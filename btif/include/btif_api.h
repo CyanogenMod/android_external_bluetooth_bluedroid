@@ -330,14 +330,15 @@ bt_status_t btif_dm_passkey_reply( const bt_bdaddr_t *bd_addr,
 **
 ** Function         btif_dm_ssp_reply
 **
-** Description      BT SSP Reply - Just Works & Numeric Comparison
+** Description      BT SSP Reply - Just Works, Numeric Comparison & Passkey Entry
 **
 ** Returns          bt_status_t
 **
 *******************************************************************************/
 
 bt_status_t btif_dm_ssp_reply( const bt_bdaddr_t *bd_addr, 
-                               uint8_t accept);
+                              bt_ssp_variant_t variant, uint8_t accept,
+                              uint32_t passkey);
 
 /*******************************************************************************
 **

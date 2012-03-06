@@ -280,23 +280,14 @@ static int pin_reply(const bt_bdaddr_t *bd_addr, uint8_t accept,
     return btif_dm_pin_reply(bd_addr, accept, pin_len, pin_code);
 }
 
-static int passkey_reply(const bt_bdaddr_t *bd_addr, uint8_t accept,
-                            uint32_t passkey)
+static int ssp_reply(const bt_bdaddr_t *bd_addr, bt_ssp_variant_t variant,
+                       uint8_t accept, uint32_t passkey)
 {
     /* sanity check */
     if (interface_ready() == FALSE)
         return BT_STATUS_NOT_READY;
 
-    return btif_dm_passkey_reply(bd_addr, accept, passkey);
-}
-
-static int ssp_reply(const bt_bdaddr_t *bd_addr, uint8_t accept)
-{
-    /* sanity check */
-    if (interface_ready() == FALSE)
-        return BT_STATUS_NOT_READY;
-
-    return btif_dm_ssp_reply(bd_addr, accept);
+    return btif_dm_ssp_reply(bd_addr, variant, accept, passkey);
 }
 
 static const void* get_profile_interface (const char *profile_id)
@@ -332,7 +323,6 @@ static const bt_interface_t bluetoothInterface = {
     remove_bond,
     cancel_bond,
     pin_reply,
-    passkey_reply,
     ssp_reply,        
     get_profile_interface
 };

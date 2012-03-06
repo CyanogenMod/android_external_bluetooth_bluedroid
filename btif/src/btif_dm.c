@@ -299,23 +299,44 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     if (p_ssp_cfm_req->just_works)
     {
         BTIF_TRACE_EVENT1("%s: Auto-accept JustWorks pairing", __FUNCTION__);
-        btif_dm_ssp_reply(&bd_addr, TRUE);
+        btif_dm_ssp_reply(&bd_addr, BT_SSP_VARIANT_CONSENT, TRUE, 0);
         return;
     }
 
     cod = devclass2uint(p_ssp_cfm_req->dev_class);
     
-    if ( cod == 0) { 
+    if ( cod == 0) {
         LOGD("cod is 0, set as unclassified");
         cod = COD_UNCLASSIFIED;
     }
 
-    /* TODO: pairing variant? */
+    /* TODO: pairing variant passkey_entry? */
     CHECK_CALL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name,
-                     cod, BT_SSP_VARIANT_CONSENT,
+                     cod, BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
                      p_ssp_cfm_req->num_val);
 }
 
+static void btif_dm_ssp_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif)
+{
+    bt_bdaddr_t bd_addr;
+    bt_bdname_t bd_name;
+    UINT32 cod;
+
+    BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
+    bdcpy(bd_addr.address, p_ssp_key_notif->bd_addr);
+    memcpy(bd_name.name, p_ssp_key_notif->bd_name, BD_NAME_LEN);
+
+    cod = devclass2uint(p_ssp_key_notif->dev_class);
+
+    if ( cod == 0) {
+        LOGD("cod is 0, set as unclassified");
+        cod = COD_UNCLASSIFIED;
+    }
+
+    CHECK_CALL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name,
+                     cod, BT_SSP_VARIANT_PASSKEY_NOTIFICATION,
+                     p_ssp_key_notif->passkey);
+}
 /*******************************************************************************
 **
 ** Function         btif_dm_auth_cmpl_evt
@@ -690,13 +711,14 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
         case BTA_DM_SP_CFM_REQ_EVT:
             btif_dm_ssp_cfm_req_evt(&p_data->cfm_req);
             break;
-
+        case BTA_DM_SP_KEY_NOTIF_EVT:
+            btif_dm_ssp_key_notif_evt(&p_data->key_notif);
+            break;
         case BTA_DM_AUTHORIZE_EVT:
         case BTA_DM_LINK_DOWN_EVT:
         case BTA_DM_SIG_STRENGTH_EVT:          
         case BTA_DM_BUSY_LEVEL_EVT:
         case BTA_DM_BOND_CANCEL_CMPL_EVT:
-        case BTA_DM_SP_KEY_NOTIF_EVT:
         case BTA_DM_SP_RMT_OOB_EVT:
         case BTA_DM_SP_KEYPRESS_EVT:
         case BTA_DM_ROLE_CHG_EVT: 
@@ -1021,40 +1043,29 @@ bt_status_t btif_dm_pin_reply( const bt_bdaddr_t *bd_addr, uint8_t accept,
 
     return BT_STATUS_SUCCESS;
 }
-
-/*******************************************************************************
-**
-** Function         btif_dm_passkey_reply
-**
-** Description      BT SSP passkey reply
-**
-** Returns          bt_status_t
-**
-*******************************************************************************/
-
-bt_status_t btif_dm_passkey_reply(const bt_bdaddr_t *bd_addr, 
-                              uint8_t accept, uint32_t passkey)
-{
-    /* This is not implemented in the stack.
-    ** For devices with display, this is not needed
-    */
-    BTIF_TRACE_WARNING1("%s: Not implemented", __FUNCTION__);
-
-    return BT_STATUS_FAIL;
-}
-
 /*******************************************************************************
 **
 ** Function         btif_dm_ssp_reply
 **
-** Description      BT SSP Reply - Just Works & Numeric Comparison
+** Description      BT SSP Reply - Just Works, Numeric Comparison & Passkey Entry
 **
 ** Returns          bt_status_t
 **
 *******************************************************************************/
 
-bt_status_t btif_dm_ssp_reply(const bt_bdaddr_t *bd_addr, uint8_t accept)
+bt_status_t btif_dm_ssp_reply(const bt_bdaddr_t *bd_addr,
+                                 bt_ssp_variant_t variant, uint8_t accept,
+                                 uint32_t passkey)
 {
+    if (variant == BT_SSP_VARIANT_PASSKEY_ENTRY)
+{
+    /* This is not implemented in the stack.
+         * For devices with display, this is not needed
+    */
+    BTIF_TRACE_WARNING1("%s: Not implemented", __FUNCTION__);
+    return BT_STATUS_FAIL;
+}
+    /* BT_SSP_VARIANT_CONSENT & BT_SSP_VARIANT_PASSKEY_CONFIRMATION supported */
     BTIF_TRACE_EVENT2("%s: accept=%d", __FUNCTION__, accept);
     BTA_DmConfirm( (UINT8 *)bd_addr->address, accept);
     if (!accept)
