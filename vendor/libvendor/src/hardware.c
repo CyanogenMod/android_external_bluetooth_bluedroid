@@ -52,7 +52,7 @@
  *  Description:   Contains controller-specific functions, like
  *                      firmware patch download
  *                      low power mode operations
- * 
+ *
  ******************************************************************************/
 
 #define LOG_TAG "bt_hw"
@@ -88,7 +88,7 @@
 
 #define FW_PATCHFILE_EXTENSION      ".hcd"
 #define FW_PATCHFILE_EXTENSION_LEN  4
-#define FW_PATCHFILE_PATH_MAXLEN    248 /* Local_Name length of return of 
+#define FW_PATCHFILE_PATH_MAXLEN    248 /* Local_Name length of return of
                                            HCI_Read_Local_Name */
 
 #define HCI_CMD_MAX_LEN             258
@@ -206,7 +206,7 @@ static const uint8_t null_bdaddr[BD_ADDR_LEN] = {0,0,0,0,0,0};
 static bt_hw_cfg_cb_t hw_cfg_cb;
 static bt_lpm_cb_t hw_lpm_cb;
 
-static bt_lpm_param_t lpm_param = 
+static bt_lpm_param_t lpm_param =
 {
     LPM_SLEEP_MODE,
     LPM_IDLE_THRESHOLD,
@@ -414,7 +414,7 @@ void hw_ascii_2_bdaddr (char *p_ascii, uint8_t *p_bd)
         else
             c |= (toupper(*p_ascii) - 'A' + 10);
 
-        p_ascii++;  // skip ':'
+        p_ascii+=2;  // skip ':' and point to next valid digit
         *p_bd++ = c;
     }
 }
@@ -540,7 +540,7 @@ void hw_config_get_bdaddr(uint8_t *local_addr)
 **
 ** Description      Program controller's Bluetooth Device Address
 **
-** Returns          TRUE, if valid address is sent 
+** Returns          TRUE, if valid address is sent
 **                  FALSE, otherwise
 **
 *******************************************************************************/
@@ -552,7 +552,7 @@ static uint8_t hw_config_set_bdaddr(VND_BT_HDR *p_buf)
     /* See if bdaddr needs to be programmed */
     if (memcmp(local_bd_addr, null_bdaddr, BD_ADDR_LEN) != 0)
     {
-        LOGI("Setting local bd addr to %02X:%02X:%02X:%02X:%02X:%02X", 
+        LOGI("Setting local bd addr to %02X:%02X:%02X:%02X:%02X:%02X",
             local_bd_addr[0], local_bd_addr[1], local_bd_addr[2],
             local_bd_addr[3], local_bd_addr[4], local_bd_addr[5]);
 
@@ -594,7 +594,7 @@ void hw_config_cback(VND_BT_HDR *p_evt_buf)
 
     status = *((uint8_t *)(p_evt_buf + 1) + HCI_EVT_CMD_CMPL_STATUS_RET_BYTE);
 
-    /* Ask a new buffer big enough to hold any HCI commands sent in here */ 
+    /* Ask a new buffer big enough to hold any HCI commands sent in here */
     if ((status == 0) && bt_vendor_cbacks)
         p_buf = (VND_BT_HDR *) bt_vendor_cbacks->alloc(BT_VND_HDR_SIZE + \
                                                        HCI_CMD_MAX_LEN);
@@ -686,13 +686,13 @@ void hw_config_cback(VND_BT_HDR *p_evt_buf)
 
                 /* Normally the firmware patch configuration file
                  * sets the new starting baud rate at 115200.
-                 * So, we need update host's baud rate accordingly. 
+                 * So, we need update host's baud rate accordingly.
                  */
                 userial_change_baud(USERIAL_BAUD_115200);
 
                 /* Next, we would like to boost baud rate up again
                  * to desired working speed.
-                 */ 
+                 */
                 hw_cfg_cb.f_set_baud_2 = TRUE;
 
                 /* fall through intentionally */
@@ -714,7 +714,7 @@ void hw_config_cback(VND_BT_HDR *p_evt_buf)
                 }
                 /* fall through intentionally */
             case HW_CFG_SET_UART_CLOCK:
-                /* set controller's UART baud rate to 3M */ 
+                /* set controller's UART baud rate to 3M */
                 UINT16_TO_STREAM(p, HCI_VSC_UPDATE_BAUDRATE);
                 *p++ = UPDATE_BAUDRATE_CMD_PARAM_SIZE; /* parameter length */
                 *p++ = 0; /* encoded baud rate */
@@ -762,7 +762,7 @@ void hw_config_cback(VND_BT_HDR *p_evt_buf)
         } // switch(hw_cfg_cb.state)
     } // if (p_buf != NULL)
 
-    /* Free the RX event buffer */ 
+    /* Free the RX event buffer */
     if (bt_vendor_cbacks)
         bt_vendor_cbacks->dealloc((TRANSAC) p_evt_buf, (char *) (p_evt_buf+1));
 
@@ -836,8 +836,8 @@ static void hw_lpm_start_transport_idle_timer(void)
         se.sigev_notify_function = hw_lpm_idle_timeout;
         se.sigev_notify_attributes = NULL;
 
-        /* set idle time to be LPM_IDLE_TIMEOUT_MULTIPLE times of 
-         * host stack idle threshold (in 300ms/25ms) 
+        /* set idle time to be LPM_IDLE_TIMEOUT_MULTIPLE times of
+         * host stack idle threshold (in 300ms/25ms)
          */
         hw_lpm_cb.timeout_ms = (uint32_t)lpm_param.host_stack_idle_threshold \
                                 * LPM_IDLE_TIMEOUT_MULTIPLE;
@@ -966,7 +966,7 @@ void hw_sco_cfg_cback(VND_BT_HDR *p_evt_buf)
     p = (uint8_t *)(p_evt_buf + 1) + HCI_EVT_CMD_CMPL_OPCODE;
     STREAM_TO_UINT16(opcode,p);
 
-    /* Free the RX event buffer */ 
+    /* Free the RX event buffer */
     if (bt_vendor_cbacks)
         bt_vendor_cbacks->dealloc((TRANSAC) p_evt_buf, (char *) (p_evt_buf+1));
 
@@ -1035,7 +1035,7 @@ void hw_config_start(void)
      * !!! TODO !!!
      *
      * === Custom Porting Required ===
-     * 
+     *
      * Unique Bluetooth address should be
      * assigned to local_bd_addr[6] in
      * production line for each device.
@@ -1156,12 +1156,12 @@ uint8_t hw_lpm_enable(uint8_t turn_on)
 **
 ** Function          hw_lpm_tx_done
 **
-** Description       This function is to inform the lpm module 
+** Description       This function is to inform the lpm module
 **                   if data is waiting in the Tx Q or not.
 **
 **                   IsTxDone: TRUE if All data in the Tx Q are gone
 **                             FALSE if any data is still in the Tx Q.
-**                   Typicaly this function must be called 
+**                   Typicaly this function must be called
 **                   before USERIAL Write and in the Tx Done routine
 **
 ** Returns           None
@@ -1182,9 +1182,9 @@ void hw_lpm_tx_done(uint8_t is_tx_done)
 **
 ** Function        hw_lpm_assert_bt_wake
 **
-** Description     Called to wake up Bluetooth chip. 
-**                 Normally this is called when there is data to be sent 
-**                 over UART. 
+** Description     Called to wake up Bluetooth chip.
+**                 Normally this is called when there is data to be sent
+**                 over UART.
 **
 ** Returns         TRUE/FALSE
 **
