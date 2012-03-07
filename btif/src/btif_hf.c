@@ -837,6 +837,11 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
     {
         BTIF_TRACE_DEBUG1("%s: Phone on hook", __FUNCTION__);
         BTA_AgResult (BTA_AG_HANDLE_ALL, BTA_AG_END_CALL_RES, NULL);
+
+        /* if held call was present, reset that as well */
+        if (btif_hf_cb.num_held)
+            send_indicator_update(BTA_AG_IND_CALLHELD, 0);
+
         goto update_call_states;
     }
 
@@ -911,8 +916,14 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
         if (res)
             BTA_AgResult(BTA_AG_HANDLE_ALL, res, &ag_res);
 
-        /* update the call states and return */
-        goto update_call_states;
+        /* if call setup is idle, we have already updated call indicator, jump out */
+        if (call_setup_state == BTHF_CALL_STATE_IDLE)
+        {
+            /* check & update callheld */
+            if ((num_held > 0) && (num_active > 0))
+                send_indicator_update(BTA_AG_IND_CALLHELD, 1);
+            goto update_call_states;
+        }
     }
 
     /* Active Changed? */
