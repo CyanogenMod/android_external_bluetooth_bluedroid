@@ -368,6 +368,23 @@
 #define PCM_DATA_FMT_JUSTIFY_MODE       0
 #endif
 
+/* PROPERTY_BT_BDADDR_PATH
+    The property key stores the storage location of Bluetooth Device Address
+*/
+#ifndef PROPERTY_BT_BDADDR_PATH
+#define PROPERTY_BT_BDADDR_PATH         "ro.bt.bdaddr_path"
+#endif
+
+/* PERSIST_BDADDR_PROPERTY
+    If there is no valid bdaddr available from PROPERTY_BT_BDADDR_PATH,
+    generating a random BDADDR and keeping it in the PERSIST_BDADDR_DROP.
+*/
+#ifndef PERSIST_BDADDR_PROPERTY
+#define PERSIST_BDADDR_PROPERTY         "persist.service.bdroid.bdaddr"
+#endif
+
+#define FACTORY_BT_BDADDR_STORAGE_LEN   17
+
 /******************************************************************************
 **  Type definitions and return values
 ******************************************************************************/
