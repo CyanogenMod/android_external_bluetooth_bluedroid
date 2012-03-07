@@ -170,6 +170,11 @@ typedef struct {
 } btif_bonded_devices_t;
 
 /************************************************************************************
+**  Extern variables
+************************************************************************************/
+extern UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID];
+
+/************************************************************************************
 **  Static variables
 ************************************************************************************/
 
@@ -589,14 +594,26 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
         /* publish list of local supported services */
         bt_uuid_t *p_uuid = (bt_uuid_t*)property->val;
         uint32_t num_uuids = 0;
+        uint32_t i;
 
-#if BTA_AG_INCLUDED == TRUE
-        uuid16_to_uuid128(UUID_SERVCLASS_AG_HANDSFREE, p_uuid + num_uuids);
-        num_uuids++;
-        uuid16_to_uuid128(UUID_SERVCLASS_HEADSET_AUDIO_GATEWAY, p_uuid + num_uuids);
-        num_uuids++;
-#endif
-
+        tBTA_SERVICE_MASK service_mask = btif_get_enabled_services_mask();
+        BTIF_TRACE_ERROR2("%s service_mask:0x%x", __FUNCTION__, service_mask);
+        for (i=0; i < BTA_MAX_SERVICE_ID; i++)
+        {
+            if(service_mask
+                &(tBTA_SERVICE_MASK)(1 << i))
+            {
+                 uuid16_to_uuid128(bta_service_id_to_uuid_lkup_tbl[i], p_uuid+num_uuids);
+                 num_uuids++;
+                 /* BTA_HSP_SERVICE_ID is a special case and gets enabled automatically
+                  * when BTA_HFP_SERVICE_ID is enabled */
+                  if (i == BTA_HFP_SERVICE_ID) {
+                     uuid16_to_uuid128(bta_service_id_to_uuid_lkup_tbl[BTA_HSP_SERVICE_ID],
+                                       p_uuid+num_uuids);
+                     num_uuids++;
+                 }
+            }
+        }
         property->len = (num_uuids)*sizeof(bt_uuid_t);
         return BT_STATUS_SUCCESS;
     }

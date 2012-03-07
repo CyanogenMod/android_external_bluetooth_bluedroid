@@ -96,10 +96,28 @@ static bt_status_t btif_dm_get_remote_services(bt_bdaddr_t *remote_addr);
 **  Externs
 ******************************************************************************/
 extern UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID];
+extern bt_status_t btif_hf_execute_service(BOOLEAN b_enable);
 
 /******************************************************************************
 **  Functions
 ******************************************************************************/
+
+bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
+                                                BOOLEAN b_enable)
+{
+    /* Check the service_ID and invoke the profile's BT state changed API */
+    switch (service_id)
+    {
+         case BTA_HFP_SERVICE_ID:
+         {
+              btif_hf_execute_service(b_enable);
+         }break;
+         default:
+              BTIF_TRACE_ERROR1("%s: Unknown service being enabled", __FUNCTION__);
+              return BT_STATUS_FAIL;
+    }
+    return BT_STATUS_SUCCESS;
+}
 
 /*******************************************************************************
 **
@@ -659,6 +677,8 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 {
     tBTA_DM_SEC_EVT dm_event = (tBTA_DM_SEC_EVT)event;
     tBTA_DM_SEC *p_data = (tBTA_DM_SEC*)p_param;
+    tBTA_SERVICE_MASK service_mask;
+    uint32_t i;
     
     BTIF_TRACE_EVENT1("btif_dm_upstreams_cback  ev: %d", event);
 
@@ -688,15 +708,39 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
                  /* A name exists in the storage. Make this the device name */
                  BTA_DmSetDeviceName((char*)prop.val);
              }
+
+             /* for each of the enabled services in the mask, trigger the profile
+              * enable */
+             service_mask = btif_get_enabled_services_mask();
+             for (i=0; i <= BTA_MAX_SERVICE_ID; i++)
+             {
+                 if (service_mask &
+                     (tBTA_SERVICE_MASK)(BTA_SERVICE_ID_TO_SERVICE_MASK(i)))
+                 {
+                     btif_in_execute_service_request(i, TRUE);
+                 }
+             }
              /* This function will also trigger the adapter_properties_cb
              ** and bonded_devices_info_cb
              */
              btif_storage_load_bonded_devices();
+
              btif_enable_bluetooth_evt(p_data->enable.status, p_data->enable.bd_addr);
         }
         break;
 
         case BTA_DM_DISABLE_EVT:
+            /* for each of the enabled services in the mask, trigger the profile
+             * disable */
+            service_mask = btif_get_enabled_services_mask();
+            for (i=0; i <= BTA_MAX_SERVICE_ID; i++)
+            {
+                if (service_mask &
+                    (tBTA_SERVICE_MASK)(BTA_SERVICE_ID_TO_SERVICE_MASK(i)))
+                {
+                    btif_in_execute_service_request(i, FALSE);
+                }
+            }
             btif_disable_bluetooth_evt();
             break;
 
@@ -1167,4 +1211,27 @@ bt_status_t btif_dm_get_remote_service_record(bt_bdaddr_t *remote_addr,
                        bte_dm_remote_service_record_evt, TRUE);
 
     return BT_STATUS_SUCCESS;
+}
+
+void btif_dm_execute_service_request(UINT16 event, char *p_param)
+{
+    BOOLEAN b_enable = FALSE;
+    bt_status_t status;
+    if (event == BTIF_DM_ENABLE_SERVICE)
+    {
+        b_enable = TRUE;
+    }
+    status = btif_in_execute_service_request(*((tBTA_SERVICE_ID*)p_param), b_enable);
+    if (status == BT_STATUS_SUCCESS)
+    {
+        bt_property_t property;
+        bt_uuid_t local_uuids[BT_MAX_NUM_UUIDS];
+         /* Now send the UUID_PROPERTY_CHANGED event to the upper layer */
+         BTIF_STORAGE_FILL_PROPERTY(&property, BT_PROPERTY_UUIDS,
+                                    sizeof(local_uuids), local_uuids);
+         btif_storage_get_adapter_property(&property);
+         CHECK_CALL_CBACK(bt_hal_cbacks, adapter_properties_cb,
+                          BT_STATUS_SUCCESS, 1, &property);
+    }
+    return;
 }

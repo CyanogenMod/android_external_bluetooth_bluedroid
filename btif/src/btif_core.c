@@ -83,7 +83,7 @@ static UINT32 btif_task_stack[(BTIF_TASK_STACK_SIZE + 3) / 4];
 /* checks whether any HAL operation other than enable is permitted */
 static int btif_enabled = 0;
 static int btif_shutdown_pending = 0;
-
+static tBTA_SERVICE_MASK btif_enabled_services = 0;
 /************************************************************************************
 **  Local type definitions
 ************************************************************************************/
@@ -129,6 +129,7 @@ void bte_main_shutdown(void);
 void bte_main_enable_lpm(BOOLEAN enable);
 #endif
 void bte_main_postload_cfg(void);
+void btif_dm_execute_service_request(UINT16 event, char *p_param);
 
 /************************************************************************************
 **  Functions
@@ -1036,3 +1037,65 @@ bt_status_t btif_get_remote_service_record(bt_bdaddr_t *remote_addr,
     return btif_dm_get_remote_service_record(remote_addr, uuid);
 }
 
+tBTA_SERVICE_MASK btif_get_enabled_services_mask(void)
+{
+    return btif_enabled_services;
+}
+
+/*******************************************************************************
+**
+** Function         btif_enable_service
+**
+** Description      Enables the service 'service_ID' to the service_mask.
+**                  Upon BT enable, BTIF core shall invoke the BTA APIs to
+**                  enable the profiles
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_enable_service(tBTA_SERVICE_ID service_id)
+{
+      tBTA_SERVICE_ID *p_id = &service_id;
+     /* If BT is enabled, we need to switch to BTIF context and trigger the
+      * enable for that profile
+      *
+      * Otherwise, we just set the flag. On BT_Enable, the DM will trigger
+      * enable for the profiles that have been enabled */
+     btif_enabled_services |= (1 << service_id);
+     BTIF_TRACE_ERROR2("%s: Current Services:0x%x", __FUNCTION__, btif_enabled_services);
+     if (btif_enabled == TRUE)
+     {
+          btif_transfer_context(btif_dm_execute_service_request,
+                                BTIF_DM_ENABLE_SERVICE,
+                                (char*)p_id, sizeof(tBTA_SERVICE_ID), NULL);
+     }
+     return BT_STATUS_SUCCESS;
+}
+/*******************************************************************************
+**
+** Function         btif_disable_service
+**
+** Description      Disables the service 'service_ID' to the service_mask.
+**                  Upon BT disable, BTIF core shall invoke the BTA APIs to
+**                  disable the profiles
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_disable_service(tBTA_SERVICE_ID service_id)
+{
+      tBTA_SERVICE_ID *p_id = &service_id;
+     /* If BT is enabled, we need to switch to BTIF context and trigger the
+      * disable for that profile so that the appropriate uuid_property_changed will
+      * be triggerred. Otherwise, we just need to clear the service_id in the mask
+      */
+     btif_enabled_services &=  (tBTA_SERVICE_MASK)(~(1<<service_id));
+     BTIF_TRACE_ERROR2("%s: Current Services:0x%x", __FUNCTION__, btif_enabled_services);
+     if (btif_enabled == TRUE)
+     {
+          btif_transfer_context(btif_dm_execute_service_request,
+                                BTIF_DM_DISABLE_SERVICE,
+                                (char*)p_id, sizeof(tBTA_SERVICE_ID), NULL);
+     }
+     return BT_STATUS_SUCCESS;
+}

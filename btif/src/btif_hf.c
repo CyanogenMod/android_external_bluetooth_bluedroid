@@ -422,16 +422,13 @@ static void bte_hf_evt(tBTA_AG_EVT event, tBTA_AG *p_data)
 *******************************************************************************/
 static bt_status_t init( bthf_callbacks_t* callbacks )
 {
-    char * p_service_names[] = {BTIF_HSAG_SERVICE_NAME, BTIF_HFAG_SERVICE_NAME};
-
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
 
     bt_hf_callbacks = callbacks;
 
-    /* Enable and register with BTA-AG */
-    BTA_AgEnable (BTA_AG_PARSE, bte_hf_evt);
-    BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY, BTIF_HF_FEATURES, 
-                   p_service_names, BTIF_HF_ID_1);
+    /* Invoke the enable service API to the core to set the appropriate service_id
+     * Internally, the HSP_SERVICE_ID shall also be enabled */
+    btif_enable_service(BTA_HFP_SERVICE_ID);
 
     return BT_STATUS_SUCCESS;
 }
@@ -966,10 +963,7 @@ static void  cleanup( void )
 
     if (bt_hf_callbacks)
     {
-        /* De-register AG */
-        BTA_AgDeregister(btif_hf_cb.handle);
-        /* Disable AG */
-        BTA_AgDisable();
+        btif_disable_service(BTA_HFP_SERVICE_ID);
         bt_hf_callbacks = NULL;
     }
 }
@@ -993,6 +987,34 @@ static const bthf_interface_t bthfInterface = {
     phone_state_change,
     cleanup,
 };
+
+/*******************************************************************************
+**
+** Function         btif_hf_execute_service
+**
+** Description      Initializes/Shuts down the service
+**
+** Returns          BT_STATUS_SUCCESS on success, BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_hf_execute_service(BOOLEAN b_enable)
+{
+    char * p_service_names[] = {BTIF_HSAG_SERVICE_NAME, BTIF_HFAG_SERVICE_NAME};
+     if (b_enable)
+     {
+          /* Enable and register with BTA-AG */
+          BTA_AgEnable (BTA_AG_PARSE, bte_hf_evt);
+          BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY, BTIF_HF_FEATURES,
+                         p_service_names, BTIF_HF_ID_1);
+     }
+     else {
+         /* De-register AG */
+         BTA_AgDeregister(btif_hf_cb.handle);
+         /* Disable AG */
+         BTA_AgDisable();
+     }
+     return BT_STATUS_SUCCESS;
+}
 
 /*******************************************************************************
 **
