@@ -56,6 +56,7 @@
 
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf.h>
+#include <stdlib.h>
 
 #define LOG_TAG "BTIF_HF"
 #include "btif_common.h"
@@ -343,7 +344,7 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
 
         /* Java needs to send OK/ERROR for these commands */
         case BTA_AG_AT_CHLD_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, chld_cmd_cb, p_data->val.num);
+            CHECK_CALL_CBACK(bt_hf_callbacks, chld_cmd_cb, atoi(p_data->val.str));
             break;
 
         case BTA_AG_AT_CLCC_EVT:
