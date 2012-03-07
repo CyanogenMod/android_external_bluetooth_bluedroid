@@ -1,18 +1,18 @@
-/************************************************************************************
+/******************************************************************************
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
  *  licensors, and may only be used, duplicated, modified or distributed 
  *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
+ *  agreement executed between you and Broadcom (an "Authorized License"). 
  *  Except as set forth in an Authorized License, Broadcom grants no license 
  *  (express or implied), right to use, or waiver of any kind with respect to 
  *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
+ *  Software and all intellectual property rights therein. 
  *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
  *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  ALL USE OF THE SOFTWARE. 
  *
  *  Except as expressly set forth in the Authorized License,
  *
@@ -43,16 +43,16 @@
  *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
- ************************************************************************************/
+ ******************************************************************************/
 
-/************************************************************************************
+/******************************************************************************
  *
  *  Filename:      userial.c
  *
- *  Description:   
- * 
- ***********************************************************************************/
- 
+ *  Description:   Contains open/read/write/close functions on serial port
+ *
+ ******************************************************************************/
+
 #define LOG_TAG "bt_userial"
 
 #include <utils/Log.h>
@@ -66,9 +66,9 @@
 #include "userial.h"
 #include "utils.h"
 
-/************************************************************************************
+/******************************************************************************
 **  Constants & Macros
-************************************************************************************/
+******************************************************************************/
 
 #ifndef USERIAL_DBG
 #define USERIAL_DBG FALSE
@@ -89,9 +89,9 @@ enum {
     USERIAL_RX_FLOW_ON
 };
 
-/************************************************************************************
+/******************************************************************************
 **  Local type definitions
-************************************************************************************/
+******************************************************************************/
 
 typedef struct
 {
@@ -103,9 +103,9 @@ typedef struct
     VND_BT_HDR      *p_rx_hdr;
 } tUSERIAL_CB;
 
-/************************************************************************************
+/******************************************************************************
 **  Static variables
-************************************************************************************/
+******************************************************************************/
 
 static tUSERIAL_CB userial_cb;
 static volatile uint8_t userial_running = 0;
@@ -137,9 +137,9 @@ static uint32_t userial_baud_tbl[] =
     4000000     /* USERIAL_BAUD_4M           15 */
 };
 
-/************************************************************************************
+/******************************************************************************
 **  Static functions
-************************************************************************************/
+******************************************************************************/
 
 /*****************************************************************************
 **   Socket signal functions to wake up userial_read_thread for termination
@@ -152,7 +152,7 @@ static int signal_fds[2]={0,1};
 static uint8_t rx_flow_on = TRUE;
 static inline int create_signal_fds(fd_set* set)
 {
-    if(signal_fds[0] == 0 && socketpair(AF_UNIX, SOCK_STREAM, 0, signal_fds) < 0)
+    if(signal_fds[0]==0 && socketpair(AF_UNIX, SOCK_STREAM, 0, signal_fds)<0)
     {
         LOGE("create_signal_sockets:socketpair failed, errno: %d", errno);
         return -1;
@@ -162,7 +162,7 @@ static inline int create_signal_fds(fd_set* set)
 }
 static inline int send_wakeup_signal(char sig_cmd)
 {
-    return send(signal_fds[1], &sig_cmd, sizeof(sig_cmd), 0);     
+    return send(signal_fds[1], &sig_cmd, sizeof(sig_cmd), 0);
 }
 static inline char reset_signal()
 {
@@ -180,19 +180,19 @@ static inline int is_signaled(fd_set* set)
 ** Function        select_read
 **
 ** Description     check if fd is ready for reading and listen for termination
-**                  signal. need to use select in order to avoid collision 
+**                  signal. need to use select in order to avoid collision
 **                  between read and close on the same fd
 **
 ** Returns         -1: termination
 **                 >=0: numbers of bytes read back from fd
-**      
+**
 *******************************************************************************/
 static int select_read(int fd, uint8_t *pbuf, int len)
 {
     fd_set input;
     int n = 0, ret = -1;
     char reason = 0;
-    
+
     while (userial_running)
     {
         /* Initialize the input fd set */
@@ -202,7 +202,7 @@ static int select_read(int fd, uint8_t *pbuf, int len)
             FD_SET(fd, &input);
         }
         int fd_max = create_signal_fds(&input);
-        fd_max = fd_max > fd ? fd_max : fd; 
+        fd_max = fd_max > fd ? fd_max : fd;
 
         /* Do the select */
         n = select(fd_max+1, &input, NULL, NULL, NULL);
@@ -243,8 +243,8 @@ static int select_read(int fd, uint8_t *pbuf, int len)
         else if (n == 0)
             LOGW( "Got a select() TIMEOUT");
 
-    }    
-    
+    }
+
     return ret;
 }
 
@@ -252,7 +252,7 @@ static int select_read(int fd, uint8_t *pbuf, int len)
 **
 ** Function        userial_read_thread
 **
-** Description     
+** Description
 **
 ** Returns         void *
 **
@@ -264,7 +264,7 @@ static void *userial_read_thread(void *arg)
     uint8_t *p;
 
     USERIALDBG("Entering userial_read_thread()");
-    
+
     rx_flow_on = TRUE;
     userial_running = 1;
 
@@ -272,7 +272,8 @@ static void *userial_read_thread(void *arg)
     {
         if (bt_vendor_cbacks)
         {
-            p_buf = (VND_BT_HDR *) bt_vendor_cbacks->alloc(BTVND_USERIAL_READ_MEM_SIZE);
+            p_buf = (VND_BT_HDR *) bt_vendor_cbacks->alloc( \
+                                                BTVND_USERIAL_READ_MEM_SIZE);
         }
         else
             p_buf = NULL;
@@ -281,9 +282,9 @@ static void *userial_read_thread(void *arg)
         {
             p_buf->offset = 0;
             p_buf->layer_specific = 0;
-            
+
             p = (uint8_t *) (p_buf + 1);
-            rx_length = select_read(userial_cb.sock, p, READ_LIMIT);            
+            rx_length = select_read(userial_cb.sock, p, READ_LIMIT);
         }
         else
         {
@@ -293,7 +294,7 @@ static void *userial_read_thread(void *arg)
             continue;
         }
 
-        
+
         if (rx_length > 0)
         {
             p_buf->len = (uint16_t)rx_length;
@@ -302,7 +303,8 @@ static void *userial_read_thread(void *arg)
         }
         else /* either 0 or < 0 */
         {
-            LOGW("select_read return size <=0:%d, exiting userial_read_thread", rx_length);
+            LOGW("select_read return size <=0:%d, exiting userial_read_thread",\
+                 rx_length);
             /* if we get here, we should have a buffer */
             bt_vendor_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
             /* negative value means exit thread */
@@ -326,7 +328,7 @@ static void *userial_read_thread(void *arg)
 **
 ** Function        baud_userial_to_tcio
 **
-** Description     helper function converts USERIAL baud rates into TCIO 
+** Description     helper function converts USERIAL baud rates into TCIO
 **                  conforming baud rates
 **
 ** Returns         TRUE/FALSE
@@ -366,7 +368,7 @@ uint8_t userial_to_tcio_baud(uint8_t cfg_baud, uint32_t *baud)
         *baud = B115200;
         return FALSE;
     }
-    
+
     return TRUE;
 }
 
@@ -375,8 +377,8 @@ uint8_t userial_to_tcio_baud(uint8_t cfg_baud, uint32_t *baud)
 **
 ** Function        userial_ioctl_init_bt_wake
 **
-** Description     helper function to set the open state of the bt_wake if ioctl 
-**                  is used. it should not hurt in the rfkill case but it might 
+** Description     helper function to set the open state of the bt_wake if ioctl
+**                  is used. it should not hurt in the rfkill case but it might
 **                  be better to compile it out.
 **
 ** Returns         none
@@ -385,11 +387,12 @@ uint8_t userial_to_tcio_baud(uint8_t cfg_baud, uint32_t *baud)
 void userial_ioctl_init_bt_wake(int fd)
 {
     uint32_t bt_wake_state;
-    
+
     /* assert BT_WAKE through ioctl */
     ioctl( fd, USERIAL_IOCTL_BT_WAKE_ASSERT, NULL);
     ioctl( fd, USERIAL_IOCTL_BT_WAKE_GET_ST, &bt_wake_state);
-    USERIALDBG("userial_ioctl_init_bt_wake read back BT_WAKE state=%i", bt_wake_state);
+    USERIALDBG("userial_ioctl_init_bt_wake read back BT_WAKE state=%i", \
+               bt_wake_state);
 }
 #endif // (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
 
@@ -446,7 +449,7 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
         userial_close();
         utils_delay(50);
     }
-    
+
     if (port >= MAX_SERIAL_PORT)
     {
         LOGE("Port > MAX_SERIAL_PORT");
@@ -457,7 +460,7 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
     {
         return FALSE;
     }
-    
+
     if(p_cfg->fmt & USERIAL_DATABITS_8)
         data_bits = CS8;
     else if(p_cfg->fmt & USERIAL_DATABITS_7)
@@ -496,8 +499,8 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
 
     sprintf(device_name, "%s", userial_dev[port]);
     LOGI("userial_open: opening %s", device_name);
-    
-    if ((userial_cb.sock = open(device_name, O_RDWR)) == -1) 
+
+    if ((userial_cb.sock = open(device_name, O_RDWR)) == -1)
     {
         LOGE("userial_open: unable to open %s", device_name);
         return FALSE;
@@ -529,12 +532,13 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
 
     pthread_attr_init(&thread_attr);
 
-    if (pthread_create(&(userial_cb.read_thread), &thread_attr, userial_read_thread, NULL) != 0 )
+    if (pthread_create(&(userial_cb.read_thread), &thread_attr, \
+                       userial_read_thread, NULL) != 0 )
     {
         LOGE("pthread_create failed!\n\r");
         return FALSE;
     }
-    
+
     if(pthread_getschedparam(userial_cb.read_thread, &policy, &param)==0)
     {
         policy = SCHED_FIFO;
@@ -551,7 +555,7 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
 **
 ** Description     Read data from the userial port
 **
-** Returns         Number of bytes actually read from the userial port and 
+** Returns         Number of bytes actually read from the userial port and
 **                 copied into p_data.  This may be less than len.
 **
 *******************************************************************************/
@@ -560,12 +564,13 @@ uint16_t  userial_read(uint8_t *p_buffer, uint16_t len)
     uint16_t total_len = 0;
     uint16_t copy_len = 0;
     uint8_t *p_data = NULL;
-    
+
     do
     {
         if(userial_cb.p_rx_hdr != NULL)
         {
-            p_data = ((uint8_t *)(userial_cb.p_rx_hdr + 1)) + (userial_cb.p_rx_hdr->offset);
+            p_data = ((uint8_t *)(userial_cb.p_rx_hdr + 1)) + \
+                     (userial_cb.p_rx_hdr->offset);
 
             if((userial_cb.p_rx_hdr->len) <= (len - total_len))
                 copy_len = userial_cb.p_rx_hdr->len;
@@ -582,15 +587,16 @@ uint16_t  userial_read(uint8_t *p_buffer, uint16_t len)
             if(userial_cb.p_rx_hdr->len == 0)
             {
                 if (bt_vendor_cbacks)
-                    bt_vendor_cbacks->dealloc((TRANSAC) userial_cb.p_rx_hdr, (char *) (userial_cb.p_rx_hdr + 1));
-                
+                    bt_vendor_cbacks->dealloc((TRANSAC) userial_cb.p_rx_hdr, \
+                                              (char *) (userial_cb.p_rx_hdr+1));
+
                 userial_cb.p_rx_hdr = NULL;
             }
         }
 
         if(userial_cb.p_rx_hdr == NULL)
         {
-            userial_cb.p_rx_hdr = (VND_BT_HDR *)utils_dequeue(&(userial_cb.rx_q));
+            userial_cb.p_rx_hdr=(VND_BT_HDR *)utils_dequeue(&(userial_cb.rx_q));
         }
     } while ((userial_cb.p_rx_hdr != NULL) && (total_len < len));
 
@@ -608,7 +614,7 @@ uint16_t  userial_read(uint8_t *p_buffer, uint16_t len)
 **
 ** Description     Write data to the userial port
 **
-** Returns         Number of bytes actually written to the userial port. This 
+** Returns         Number of bytes actually written to the userial port. This
 **                 may be less than len.
 **
 *******************************************************************************/
@@ -644,12 +650,12 @@ void userial_close(void)
 {
     int result;
     TRANSAC p_buf;
-    
+
     USERIALDBG("userial_close(sock:%d)", userial_cb.sock);
 
     if (userial_running)
         send_wakeup_signal(USERIAL_RX_EXIT);
-    
+
     if ((result=pthread_join(userial_cb.read_thread, NULL)) < 0)
         LOGE( "pthread_join() FAILED result:%d", result);
 
@@ -667,7 +673,7 @@ void userial_close(void)
     {
         while ((p_buf = utils_dequeue (&(userial_cb.rx_q))) != NULL)
         {
-            bt_vendor_cbacks->dealloc(p_buf, (char *) ((VND_BT_HDR *)p_buf + 1));
+            bt_vendor_cbacks->dealloc(p_buf, (char *) ((VND_BT_HDR *)p_buf+1));
         }
     }
 }
@@ -693,7 +699,8 @@ void userial_change_baud(uint8_t baud)
     /* change baud rate in settings - leave everything else the same  */
     userial_cb.cfg.baud = baud;
 
-    LOGI("userial_change_rate: Attempting to reopen the UART Port at %i", (unsigned int)userial_baud_tbl[baud]);
+    LOGI("userial_change_rate: Attempting to reopen the UART Port at %i", \
+         (unsigned int)userial_baud_tbl[baud]);
 
     userial_open(userial_cb.port, &userial_cb.cfg);
 }
@@ -702,31 +709,31 @@ void userial_change_baud(uint8_t baud)
 **
 ** Function        userial_ioctl
 **
-** Description     ioctl inteface 
+** Description     ioctl inteface
 **
 ** Returns         None
 **
 *******************************************************************************/
 void userial_ioctl(userial_ioctl_op_t op, void *p_data)
 {
-    switch(op) 
+    switch(op)
     {
         case USERIAL_OP_RXFLOW_ON:
             if (userial_running)
                 send_wakeup_signal(USERIAL_RX_FLOW_ON);
             break;
-            
+
         case USERIAL_OP_RXFLOW_OFF:
             if (userial_running)
                 send_wakeup_signal(USERIAL_RX_FLOW_OFF);
             break;
-    
+
 #if (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
         case USERIAL_OP_ASSERT_BT_WAKE:
             USERIALDBG("##### userial_ioctl: Asserting BT_Wake ####");
             ioctl(userial_cb.sock, USERIAL_IOCTL_BT_WAKE_ASSERT, NULL);
             break;
-        
+
         case USERIAL_OP_DEASSERT_BT_WAKE:
             USERIALDBG("##### userial_ioctl: De-asserting BT_Wake ####");
             ioctl(userial_cb.sock, USERIAL_IOCTL_BT_WAKE_DEASSERT, NULL);

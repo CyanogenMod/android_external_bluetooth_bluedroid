@@ -1,18 +1,18 @@
-/************************************************************************************
+/******************************************************************************
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
  *  licensors, and may only be used, duplicated, modified or distributed 
  *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
+ *  agreement executed between you and Broadcom (an "Authorized License"). 
  *  Except as set forth in an Authorized License, Broadcom grants no license 
  *  (express or implied), right to use, or waiver of any kind with respect to 
  *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
+ *  Software and all intellectual property rights therein. 
  *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ *  ALL USE OF THE SOFTWARE. 
  *
  *  Except as expressly set forth in the Authorized License,
  *
@@ -43,15 +43,15 @@
  *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
- ************************************************************************************/
+ ******************************************************************************/
 
-/************************************************************************************
+/******************************************************************************
  *
  *  Filename:      hci_h4.c
  *
- *  Description:   
- * 
- ***********************************************************************************/
+ *  Description:   Contains HCI transport send/receive functions
+ *
+ ******************************************************************************/
 
 #define LOG_TAG "bt_h4"
 
@@ -62,9 +62,9 @@
 #include "userial.h"
 #include "utils.h"
 
-/************************************************************************************
+/******************************************************************************
 **  Constants & Macros
-************************************************************************************/
+******************************************************************************/
 
 #ifndef HCIH4_DBG
 #define HCIH4_DBG FALSE
@@ -134,9 +134,9 @@ static const uint16_t msg_evt_table[] =
 #define HCI_READ_BUFFER_SIZE        0x1005
 #define HCI_LE_READ_BUFFER_SIZE     0x2002
 
-/************************************************************************************
+/******************************************************************************
 **  Local type definitions
-************************************************************************************/
+******************************************************************************/
 
 /* H4 Rx States */
 typedef enum {
@@ -151,31 +151,32 @@ typedef void (*tINT_CMD_CBACK)(VND_BT_HDR *p_buf);
 
 typedef struct
 {
-    uint16_t opcode;                    /* OPCODE of outstanding internal commands */
-    tINT_CMD_CBACK cback;               /* Callback function if return of internal command is received */    
+    uint16_t opcode;        /* OPCODE of outstanding internal commands */
+    tINT_CMD_CBACK cback;   /* Callback function when return of internal 
+                             * command is received */    
 } tINT_CMD_Q;
 
 /* Control block for HCISU_H4 */
 typedef struct
 {
-    VND_BT_HDR *p_rcv_msg;              /* Buffer for holding current incoming HCI message */
-    uint16_t rcv_len;                   /* Size of current incoming message */
-    uint8_t rcv_msg_type;               /* Current incoming message type */
-    tHCI_H4_RCV_STATE rcv_state;        /* Receive state of current incoming message */
-    uint16_t hc_acl_data_size;          /* Host Controller's maximum ACL data length */
-    uint16_t hc_ble_acl_data_size;      /* Host Controller's maximum BLE ACL data length */
-    BUFFER_Q acl_rx_q;                  /* Queue to hold base buffer for fragmented ACL pkts */
-    uint8_t preload_count;              /* Count numbers of preload bytes */
-    uint8_t preload_buffer[6];          /* HCI_ACL_PREAMBLE_SIZE + 2 */
-    int int_cmd_rsp_pending;            /* Numbers of internal commands pending for response */
-    uint8_t int_cmd_rd_idx;             /* Read index of int_cmd_opcode queue */
-    uint8_t int_cmd_wrt_idx;            /* Write index of int_cmd_opcode queue */
+    VND_BT_HDR *p_rcv_msg;          /* Buffer to hold current rx HCI message */
+    uint16_t rcv_len;               /* Size of current incoming message */
+    uint8_t rcv_msg_type;           /* Current incoming message type */
+    tHCI_H4_RCV_STATE rcv_state;    /* Receive state of current rx message */
+    uint16_t hc_acl_data_size;      /* Controller's max ACL data length */
+    uint16_t hc_ble_acl_data_size;  /* Controller's max BLE ACL data length */
+    BUFFER_Q acl_rx_q;      /* Queue of base buffers for fragmented ACL pkts */
+    uint8_t preload_count;          /* Count numbers of preload bytes */
+    uint8_t preload_buffer[6];      /* HCI_ACL_PREAMBLE_SIZE + 2 */
+    int int_cmd_rsp_pending;        /* Num of internal cmds pending for ack */
+    uint8_t int_cmd_rd_idx;         /* Read index of int_cmd_opcode queue */
+    uint8_t int_cmd_wrt_idx;        /* Write index of int_cmd_opcode queue */
     tINT_CMD_Q int_cmd[INT_CMD_PKT_MAX_COUNT]; /* FIFO queue */
 } tHCI_H4_CB;
 
-/************************************************************************************
+/******************************************************************************
 **  Externs
-************************************************************************************/
+******************************************************************************/
 
 extern BUFFER_Q tx_q;
 
@@ -184,25 +185,27 @@ void btsnoop_open(void);
 void btsnoop_close(void);
 void btsnoop_cleanup (void);
 void btsnoop_capture(VND_BT_HDR *p_buf, uint8_t is_rcvd);
-uint8_t hci_h4_send_int_cmd(uint16_t opcode, VND_BT_HDR *p_buf, tINT_CMD_CBACK p_cback);
+uint8_t hci_h4_send_int_cmd(uint16_t opcode, VND_BT_HDR *p_buf, \
+                                  tINT_CMD_CBACK p_cback);
 void hw_lpm_assert_bt_wake(void);
 void hw_lpm_tx_done(uint8_t is_tx_done);
 
-/************************************************************************************
+/******************************************************************************
 **  Variables
-************************************************************************************/
+******************************************************************************/
 
-volatile int num_hci_cmd_pkts = 1;  /* Num of allowed outstanding HCI CMD packets */
+/* Num of allowed outstanding HCI CMD packets */
+volatile int num_hci_cmd_pkts = 1;
 
-/************************************************************************************
+/******************************************************************************
 **  Static variables
-************************************************************************************/
+******************************************************************************/
 
 static tHCI_H4_CB       h4_cb;
 
-/************************************************************************************
+/******************************************************************************
 **  Static functions
-************************************************************************************/
+******************************************************************************/
 
 /*******************************************************************************
 **
@@ -210,7 +213,7 @@ static tHCI_H4_CB       h4_cb;
 **
 ** Description      Enable bt snoop
 **
-** Returns          TRUE(enabled)/FALSE                  
+** Returns          TRUE(enabled)/FALSE
 **
 *******************************************************************************/
 static uint8_t is_snoop_enabled()
@@ -243,7 +246,7 @@ void get_acl_data_length_cback(VND_BT_HDR *p_buf)
 {
     uint8_t     *p, status;
     uint16_t    opcode, len=0;
-    
+
     p = (uint8_t *)(p_buf + 1) + 3;
     STREAM_TO_UINT16(opcode, p)
     status = *p++;
@@ -265,10 +268,11 @@ void get_acl_data_length_cback(VND_BT_HDR *p_buf)
         UINT16_TO_STREAM(p, HCI_LE_READ_BUFFER_SIZE);
         *p = 0;
 
-        if ((status = hci_h4_send_int_cmd(HCI_LE_READ_BUFFER_SIZE, p_buf, get_acl_data_length_cback)) == FALSE)
+        if ((status = hci_h4_send_int_cmd(HCI_LE_READ_BUFFER_SIZE, p_buf, \
+                                           get_acl_data_length_cback)) == FALSE)
         {
             bt_vendor_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
-            bt_vendor_cbacks->postload_cb(NULL, BT_VENDOR_POSTLOAD_SUCCESS);        
+            bt_vendor_cbacks->postload_cb(NULL, BT_VENDOR_POSTLOAD_SUCCESS);
         }
     }
     else if (opcode == HCI_LE_READ_BUFFER_SIZE)
@@ -279,10 +283,10 @@ void get_acl_data_length_cback(VND_BT_HDR *p_buf)
         if (bt_vendor_cbacks)
         {
             bt_vendor_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
-            LOGE("vendor lib postload completed");            
-            bt_vendor_cbacks->postload_cb(NULL, BT_VENDOR_POSTLOAD_SUCCESS);        
+            LOGE("vendor lib postload completed");
+            bt_vendor_cbacks->postload_cb(NULL, BT_VENDOR_POSTLOAD_SUCCESS);
         }
-    }                    
+    }
 }
 
 
@@ -305,9 +309,9 @@ uint8_t internal_event_intercept(void)
     uint8_t     event_code;
     uint16_t    opcode, len;
     tHCI_H4_CB  *p_cb = &h4_cb;
-    
+
     p = (uint8_t *)(p_cb->p_rcv_msg + 1);
-    
+
     event_code = *p++;
     len = *p++;
 
@@ -318,12 +322,15 @@ uint8_t internal_event_intercept(void)
         if (p_cb->int_cmd_rsp_pending > 0)
         {
             STREAM_TO_UINT16(opcode, p)
-                
+
             if (opcode == p_cb->int_cmd[p_cb->int_cmd_rd_idx].opcode)
             {
-                HCIH4DBG("Intercept CommandCompleteEvent for internal command (0x%04X)", opcode);
+                HCIH4DBG( \
+                "Intercept CommandCompleteEvent for internal command (0x%04X)",\
+                          opcode);
                 p_cb->int_cmd[p_cb->int_cmd_rd_idx].cback(p_cb->p_rcv_msg);
-                p_cb->int_cmd_rd_idx = ((p_cb->int_cmd_rd_idx+1) & INT_CMD_PKT_IDX_MASK);
+                p_cb->int_cmd_rd_idx = ((p_cb->int_cmd_rd_idx+1) & \
+                                        INT_CMD_PKT_IDX_MASK);
                 p_cb->int_cmd_rsp_pending--;
                 return TRUE;
             }
@@ -381,7 +388,7 @@ static VND_BT_HDR *acl_rx_frame_buffer_alloc (void)
     {
         uint16_t save_handle;
         VND_BT_HDR *p_hdr = p_cb->acl_rx_q.p_first;
-        
+
         while (p_hdr != NULL)
         {
             p = (uint8_t *)(p_hdr + 1);
@@ -392,33 +399,37 @@ static VND_BT_HDR *acl_rx_frame_buffer_alloc (void)
                 p_return_buf = p_hdr;
                 break;
             }
-            p_hdr = utils_getnext(p_hdr);            
+            p_hdr = utils_getnext(p_hdr);
         }
     }
-    
+
     if (pkt_type == ACL_RX_PKT_START)       /*** START PACKET ***/
     {
         /* Might have read 2 bytes for the L2CAP payload length */
         p_cb->rcv_len = (hci_len) ? (hci_len - 2) : 0;
-            
+
         /* Start of packet. If we were in the middle of receiving */
-        /* a packet on the same ACL handle, the original packet is incomplete. Drop it. */
+        /* a packet on the same ACL handle, the original packet is incomplete.
+         * Drop it. */
         if (p_return_buf)
         {
             LOGW("H4 - dropping incomplete ACL frame");
 
             utils_remove_from_queue(&(p_cb->acl_rx_q), p_return_buf);
-            
-            if (bt_vendor_cbacks)                        
-                bt_vendor_cbacks->dealloc((TRANSAC) p_return_buf, (char *) (p_return_buf + 1));
 
+            if (bt_vendor_cbacks)
+            {
+                bt_vendor_cbacks->dealloc((TRANSAC) p_return_buf, \
+                                          (char *) (p_return_buf + 1));
+            }
             p_return_buf = NULL;
         }
-        
+
         /* Allocate a buffer for message */
         if (bt_vendor_cbacks)
         {
-            int len = total_len + HCI_ACL_PREAMBLE_SIZE + L2CAP_HEADER_SIZE + BT_VND_HDR_SIZE;
+            int len = total_len + HCI_ACL_PREAMBLE_SIZE + L2CAP_HEADER_SIZE + \
+                      BT_VND_HDR_SIZE;
             p_return_buf = (VND_BT_HDR *) bt_vendor_cbacks->alloc(len);
         }
 
@@ -429,7 +440,8 @@ static VND_BT_HDR *acl_rx_frame_buffer_alloc (void)
             p_return_buf->layer_specific = 0;
             p_return_buf->event = MSG_VND_TO_STACK_HCI_ACL;
             p_return_buf->len = p_cb->preload_count;
-            memcpy((uint8_t *)(p_return_buf + 1), p_cb->preload_buffer, p_cb->preload_count);
+            memcpy((uint8_t *)(p_return_buf + 1), p_cb->preload_buffer, \
+                   p_cb->preload_count);
 
             if (hci_len && ((total_len + L2CAP_HEADER_SIZE) > hci_len))
             {
@@ -450,7 +462,7 @@ static VND_BT_HDR *acl_rx_frame_buffer_alloc (void)
 
             STREAM_TO_UINT16 (total_len, p);
 
-            /* Update HCI header of first segment (base buffer) with new length */
+            /* Update HCI header of first segment (base buffer) with new len */
             total_len += hci_len;
             UINT16_TO_STREAM (p_f, total_len);
         }
@@ -464,9 +476,9 @@ static VND_BT_HDR *acl_rx_frame_buffer_alloc (void)
 ** Function         acl_rx_frame_end_chk
 **
 ** Description      This function is called from the HCI transport when the last
-**                  byte of an HCI ACL packet has been received. It checks if the
-**                  L2CAP message is complete, i.e. no more continuation packets
-**                  are expected.
+**                  byte of an HCI ACL packet has been received. It checks if 
+**                  the L2CAP message is complete, i.e. no more continuation 
+**                  packets are expected.
 **
 ** Returns          TRUE if message complete, FALSE if continuation expected
 **
@@ -488,9 +500,10 @@ static uint8_t acl_rx_frame_end_chk (void)
 
     if (hci_len > 0)
     {
-        if (l2cap_len > (p_buf->len - (HCI_ACL_PREAMBLE_SIZE + L2CAP_HEADER_SIZE)))
+        if (l2cap_len > (p_buf->len-(HCI_ACL_PREAMBLE_SIZE+L2CAP_HEADER_SIZE)) )
         {
-            /* If the L2CAP length has not been reached, tell H4 not to send this buffer to stack */
+            /* If the L2CAP length has not been reached, tell H4 not to send 
+             * this buffer to stack */
             frame_end = FALSE;
         }
         else
@@ -500,9 +513,9 @@ static uint8_t acl_rx_frame_end_chk (void)
              * Remove it from the list if it is in.
              */
             if (p_cb->acl_rx_q.count)
-                utils_remove_from_queue(&(p_cb->acl_rx_q), p_buf);    
+                utils_remove_from_queue(&(p_cb->acl_rx_q), p_buf);
         }
-    }    
+    }
 
     /**** 
      ** Print snoop trace 
@@ -513,7 +526,7 @@ static uint8_t acl_rx_frame_end_chk (void)
 
         /* save original p_buf->len content */
         uint16_t tmp_u16 = p_buf->len;
-        
+
         /* borrow HCI_ACL_PREAMBLE_SIZE bytes from the payload section */
         p = (uint8_t *)(p_buf + 1) + p_buf->offset - HCI_ACL_PREAMBLE_SIZE;
 
@@ -530,12 +543,13 @@ static uint8_t acl_rx_frame_end_chk (void)
         /* roll pointer back */
         p = p - HCI_ACL_PREAMBLE_SIZE;
 
-        /* adjust `p_buf->offset` & `p_buf->len` before calling btsnoop_capture() */
+        /* adjust `p_buf->offset` & `p_buf->len` 
+         * before calling btsnoop_capture() */
         p_buf->offset = p_buf->offset - HCI_ACL_PREAMBLE_SIZE;
         p_buf->len = p_buf->len - p_buf->offset;
-        
+
         btsnoop_capture(p_buf, TRUE);
-        
+
         /* restore contents */
         memcpy(p, p_cb->preload_buffer, HCI_ACL_PREAMBLE_SIZE);
 
@@ -552,7 +566,7 @@ static uint8_t acl_rx_frame_end_chk (void)
         p_buf->offset = 0;
     else
         p_buf->offset = p_buf->len; /* save current buffer-end position */
-    
+
     return frame_end;
 }
 
@@ -575,7 +589,7 @@ void hci_h4_init(void)
 
     memset(&h4_cb, 0, sizeof(tHCI_H4_CB));
     utils_queue_init(&(h4_cb.acl_rx_q));
-    
+
     /* Per HCI spec., always starts with 1 */
     num_hci_cmd_pkts = 1;
 
@@ -629,7 +643,7 @@ void hci_h4_send_msg(VND_BT_HDR *p_msg)
     uint16_t sub_event = p_msg->event & MSG_SUB_EVT_MASK;
     uint16_t acl_pkt_size = 0, acl_data_size = 0;
     uint16_t bytes_sent;
-   
+
     /* wake up BT device if its in sleep mode */
     hw_lpm_assert_bt_wake();
 
@@ -666,10 +680,10 @@ void hci_h4_send_msg(VND_BT_HDR *p_msg)
             /* remember layer_specific because uart borrow 
                one byte from layer_specific for packet type */
             lay_spec = p_msg->layer_specific;
-            
+
             p = ((uint8_t *)(p_msg + 1)) + p_msg->offset - 1;
             *p = type;
-            bytes_to_send = acl_pkt_size + 1;    /* packet_size + message type */
+            bytes_to_send = acl_pkt_size + 1; /* packet_size + message type */
 
             bytes_sent = userial_write((uint8_t *) p, bytes_to_send);
 
@@ -703,7 +717,11 @@ void hci_h4_send_msg(VND_BT_HDR *p_msg)
                     p_msg->event = MSG_VND_TO_STACK_L2C_SEG_XMIT;
 
                     if (bt_vendor_cbacks)
-                        bt_vendor_cbacks->tx_result((TRANSAC) p_msg, (char *) (p_msg + 1), BT_VENDOR_TX_FRAGMENT);
+                    {
+                        bt_vendor_cbacks->tx_result((TRANSAC) p_msg, \
+                                                    (char *) (p_msg + 1), \
+                                                    BT_VENDOR_TX_FRAGMENT);
+                    }
 
                     return;
                 }
@@ -715,7 +733,7 @@ void hci_h4_send_msg(VND_BT_HDR *p_msg)
     /* remember layer_specific because uart borrow 
        one byte from layer_specific for packet type */
     lay_spec = p_msg->layer_specific;
-    
+
     /* Put the HCI Transport packet type 1 byte before the message */
     p = ((uint8_t *)(p_msg + 1)) + p_msg->offset - 1;
     *p = type;
@@ -736,24 +754,28 @@ void hci_h4_send_msg(VND_BT_HDR *p_msg)
          p++;
         STREAM_TO_UINT16(lay_spec, p);
     }
-    
+
     /* generate snoop trace message */
     btsnoop_capture(p_msg, FALSE);
-    
+
     if (bt_vendor_cbacks)
     {
-        if ((event == MSG_STACK_TO_VND_HCI_CMD) && (h4_cb.int_cmd_rsp_pending > 0) && (p_msg->layer_specific == lay_spec))
+        if ((event == MSG_STACK_TO_VND_HCI_CMD) && \
+            (h4_cb.int_cmd_rsp_pending > 0) && \
+            (p_msg->layer_specific == lay_spec))
         {
-            bt_vendor_cbacks->dealloc((TRANSAC) p_msg, (char *) (p_msg + 1)); /* dealloc buffer of internal command */
+            /* dealloc buffer of internal command */
+            bt_vendor_cbacks->dealloc((TRANSAC) p_msg, (char *) (p_msg + 1));
         }
         else
         {
-            bt_vendor_cbacks->tx_result((TRANSAC) p_msg, (char *) (p_msg + 1), BT_VENDOR_TX_SUCCESS);
+            bt_vendor_cbacks->tx_result((TRANSAC) p_msg, (char *) (p_msg + 1), \
+                                        BT_VENDOR_TX_SUCCESS);
         }
     }
 
     hw_lpm_tx_done(TRUE);
-    
+
     return;
 }
 
@@ -794,7 +816,7 @@ uint16_t hci_h4_receive_msg(void)
             {
                 /* Unknown HCI message type */
                 /* Drop this byte */
-                LOGE( "[h4] Unknown HCI message type drop this byte 0x%x", byte); 
+                LOGE("[h4] Unknown HCI message type drop this byte 0x%x", byte);
                 break;
             }
 
@@ -803,8 +825,8 @@ uint16_t hci_h4_receive_msg(void)
             p_cb->rcv_len = hci_preamble_table[byte-1];
             memset(p_cb->preload_buffer, 0 , 6);
             p_cb->preload_count = 0;
-            // p_cb->p_rcv_msg = NULL;            
-            p_cb->rcv_state = H4_RX_LEN_ST;              /* Next, wait for length to come in */
+            // p_cb->p_rcv_msg = NULL;
+            p_cb->rcv_state = H4_RX_LEN_ST; /* Next, wait for length to come */
             break;
 
         case H4_RX_LEN_ST:
@@ -820,7 +842,7 @@ uint16_t hci_h4_receive_msg(void)
                     /* ACL data lengths are 16-bits */
                     msg_len = p_cb->preload_buffer[3];
                     msg_len = (msg_len << 8) + p_cb->preload_buffer[2];
-                
+
                     if (msg_len && (p_cb->preload_count == 4))
                     {
                         /* Check if this is a start packet */
@@ -828,58 +850,70 @@ uint16_t hci_h4_receive_msg(void)
 
                         if (byte == ACL_RX_PKT_START)
                         {
-                            /*
-                             * A start packet & with non-zero data payload length.
-                             * We want to read 2 more bytes to get L2CAP payload length
-                             */
+                           /*
+                            * A start packet & with non-zero data payload length.
+                            * We want to read 2 more bytes to get L2CAP payload 
+                            * length.
+                            */
                             p_cb->rcv_len = 2;
-                            
+
                             break;
                         }
                     }
-                    
-                    /* Check for segmented packets. If this is a continuation packet, then   */
-                    /* we will continue appending data to the original rcv buffer.           */
+
+                    /*
+                     * Check for segmented packets. If this is a continuation 
+                     * packet, then we will continue appending data to the 
+                     * original rcv buffer.
+                     */
                     p_cb->p_rcv_msg = acl_rx_frame_buffer_alloc();
                 }
                 else
                 {
-                    /* Received entire preamble. Length is in the last received byte */
+                    /* Received entire preamble. 
+                     * Length is in the last received byte */
                     msg_len = byte;
                     p_cb->rcv_len = msg_len;
-                                    
+
                     /* Allocate a buffer for message */
                     if (bt_vendor_cbacks)
                     {
                         len = msg_len + p_cb->preload_count + BT_VND_HDR_SIZE;
-                        p_cb->p_rcv_msg = (VND_BT_HDR *) bt_vendor_cbacks->alloc(len);
+                        p_cb->p_rcv_msg = \
+                            (VND_BT_HDR *) bt_vendor_cbacks->alloc(len);
                     }
-                
+
                     if (p_cb->p_rcv_msg)
                     {
                         /* Initialize buffer with preloaded data */
                         p_cb->p_rcv_msg->offset = 0;
                         p_cb->p_rcv_msg->layer_specific = 0;
-                        p_cb->p_rcv_msg->event = msg_evt_table[p_cb->rcv_msg_type-1];
+                        p_cb->p_rcv_msg->event = \
+                            msg_evt_table[p_cb->rcv_msg_type-1];
                         p_cb->p_rcv_msg->len = p_cb->preload_count;
-                        memcpy((uint8_t *)(p_cb->p_rcv_msg + 1), p_cb->preload_buffer, p_cb->preload_count);
-                    }                    
+                        memcpy((uint8_t *)(p_cb->p_rcv_msg + 1), \
+                               p_cb->preload_buffer, p_cb->preload_count);
+                    }
                 }
-                
+
                 if (p_cb->p_rcv_msg == NULL)
                 {
                     /* Unable to acquire message buffer. */
-                    LOGE("H4: Unable to acquire buffer for incoming HCI message.");
+                    LOGE( \
+                     "H4: Unable to acquire buffer for incoming HCI message." \
+                    );
 
                     if (msg_len == 0)
                     {
-                        p_cb->rcv_state = H4_RX_MSGTYPE_ST;  /* Wait for next message */
+                        /* Wait for next message */
+                        p_cb->rcv_state = H4_RX_MSGTYPE_ST;
                     }
                     else
                     {
-                        p_cb->rcv_state = H4_RX_IGNORE_ST;   /* Ignore rest of the packet */
+                        /* Ignore rest of the packet */
+                        p_cb->rcv_state = H4_RX_IGNORE_ST;
                     }
-                    
+
                     break;
                 }
 
@@ -891,12 +925,15 @@ uint16_t hci_h4_receive_msg(void)
                 }
                 else
                 {
-                    /* Message has no additional parameters. (Entire message has been received) */
+                    /* Message has no additional parameters. 
+                     * (Entire message has been received) */
                     if (p_cb->rcv_msg_type == H4_TYPE_ACL_DATA)
                         acl_rx_frame_end_chk(); /* to print snoop trace */
-                    
+
                     msg_received = TRUE;
-                    p_cb->rcv_state = H4_RX_MSGTYPE_ST;  /* Next, wait for next message */
+
+                    /* Next, wait for next message */
+                    p_cb->rcv_state = H4_RX_MSGTYPE_ST;
                 }
             }
             break;
@@ -908,7 +945,9 @@ uint16_t hci_h4_receive_msg(void)
             if (p_cb->rcv_len > 0)
             {
                 /* Read in the rest of the message */
-                len = userial_read(((uint8_t *)(p_cb->p_rcv_msg + 1) + p_cb->p_rcv_msg->len),  p_cb->rcv_len);
+                len = userial_read( \
+                      ((uint8_t *)(p_cb->p_rcv_msg+1) + p_cb->p_rcv_msg->len), \
+                      p_cb->rcv_len);
                 p_cb->p_rcv_msg->len += len;
                 p_cb->rcv_len -= len;
                 bytes_read += len;
@@ -923,12 +962,14 @@ uint16_t hci_h4_receive_msg(void)
                     !acl_rx_frame_end_chk())
                 {
                     /* Not the end of packet yet. */
-                    p_cb->rcv_state = H4_RX_MSGTYPE_ST;      /* Next, wait for next message */
+                    /* Next, wait for next message */
+                    p_cb->rcv_state = H4_RX_MSGTYPE_ST;
                 }
                 else
                 {
                     msg_received = TRUE;
-                    p_cb->rcv_state = H4_RX_MSGTYPE_ST;      /* Next, wait for next message */
+                    /* Next, wait for next message */
+                    p_cb->rcv_state = H4_RX_MSGTYPE_ST;
                 }
             }
             break;
@@ -941,7 +982,8 @@ uint16_t hci_h4_receive_msg(void)
             /* Check if we read in entire message yet */
             if (p_cb->rcv_len == 0)
             {
-                p_cb->rcv_state = H4_RX_MSGTYPE_ST;      /* Next, wait for next message */
+                /* Next, wait for next message */
+                p_cb->rcv_state = H4_RX_MSGTYPE_ST;
             }
             break;
         }
@@ -953,7 +995,8 @@ uint16_t hci_h4_receive_msg(void)
             uint8_t intercepted = FALSE;
 
             /* generate snoop trace message */
-            if (p_cb->p_rcv_msg->event != MSG_VND_TO_STACK_HCI_ACL) /* had done in acl_rx_frame_end_chk() */
+            /* ACL packet tracing had done in acl_rx_frame_end_chk() */
+            if (p_cb->p_rcv_msg->event != MSG_VND_TO_STACK_HCI_ACL) 
                 btsnoop_capture(p_cb->p_rcv_msg, TRUE);
 
             if (p_cb->p_rcv_msg->event == MSG_VND_TO_STACK_HCI_EVT)
@@ -961,7 +1004,9 @@ uint16_t hci_h4_receive_msg(void)
 
             if ((bt_vendor_cbacks) && (intercepted == FALSE)) 
             {
-                bt_vendor_cbacks->data_ind((TRANSAC) p_cb->p_rcv_msg, (char *) (p_cb->p_rcv_msg + 1), p_cb->p_rcv_msg->len + BT_VND_HDR_SIZE);
+                bt_vendor_cbacks->data_ind((TRANSAC) p_cb->p_rcv_msg, \
+                                       (char *) (p_cb->p_rcv_msg + 1), \
+                                       p_cb->p_rcv_msg->len + BT_VND_HDR_SIZE);
             }
             p_cb->p_rcv_msg = NULL;
         }
@@ -975,30 +1020,35 @@ uint16_t hci_h4_receive_msg(void)
 **
 ** Function        hci_h4_send_int_cmd
 **
-** Description     
+** Description     Place the internal commands (issued internally by vendor lib)
+**                 in the tx_q.
 **
 ** Returns         TRUE/FALSE
 **
 *******************************************************************************/
-uint8_t hci_h4_send_int_cmd(uint16_t opcode, VND_BT_HDR *p_buf, tINT_CMD_CBACK p_cback)
+uint8_t hci_h4_send_int_cmd(uint16_t opcode, VND_BT_HDR *p_buf, \
+                                  tINT_CMD_CBACK p_cback)
 {
     if (h4_cb.int_cmd_rsp_pending > INT_CMD_PKT_MAX_COUNT)
     {
-        LOGE("Currently we only allow %d outstanding internal command at a time [Reject 0x%04X]", INT_CMD_PKT_MAX_COUNT, opcode);
+        LOGE( \
+        "Allow only %d outstanding internal commands at a time [Reject 0x%04X]"\
+        , INT_CMD_PKT_MAX_COUNT, opcode);
         return FALSE;
     }
 
     h4_cb.int_cmd_rsp_pending++;
     h4_cb.int_cmd[h4_cb.int_cmd_wrt_idx].opcode = opcode;
     h4_cb.int_cmd[h4_cb.int_cmd_wrt_idx].cback = p_cback;
-    h4_cb.int_cmd_wrt_idx = ((h4_cb.int_cmd_wrt_idx + 1) & INT_CMD_PKT_IDX_MASK);
+    h4_cb.int_cmd_wrt_idx = ((h4_cb.int_cmd_wrt_idx+1) & INT_CMD_PKT_IDX_MASK);
 
-    p_buf->layer_specific = opcode; /* signature to indicate an internal command */
+    /* stamp signature to indicate an internal command */
+    p_buf->layer_specific = opcode;
 
-    utils_enqueue(&tx_q, (void *) p_buf);    
+    utils_enqueue(&tx_q, (void *) p_buf);
     btvnd_signal_event(VND_EVENT_TX);
-    
-    return TRUE;    
+
+    return TRUE;
 }
 
 
@@ -1006,7 +1056,8 @@ uint8_t hci_h4_send_int_cmd(uint16_t opcode, VND_BT_HDR *p_buf, tINT_CMD_CBACK p
 **
 ** Function        hci_h4_get_acl_data_length
 **
-** Description     
+** Description     Issue HCI_READ_BUFFER_SIZE command to retrieve Controller's
+**                 ACL data length setting
 **
 ** Returns         None
 **
@@ -1015,22 +1066,26 @@ void hci_h4_get_acl_data_length(void)
 {
     VND_BT_HDR  *p_buf = NULL;
     uint8_t     *p, ret;
-    
+
     if (bt_vendor_cbacks)
-        p_buf = (VND_BT_HDR *) bt_vendor_cbacks->alloc(BT_VND_HDR_SIZE+3);
+    {
+        p_buf = (VND_BT_HDR *) bt_vendor_cbacks->alloc(BT_VND_HDR_SIZE + \
+                                                       HCI_CMD_PREAMBLE_SIZE);
+    }
 
     if (p_buf)
     {
         p_buf->event = MSG_STACK_TO_VND_HCI_CMD;
         p_buf->offset = 0;
         p_buf->layer_specific = 0;
-        p_buf->len = 3;
+        p_buf->len = HCI_CMD_PREAMBLE_SIZE;
 
         p = (uint8_t *) (p_buf + 1);
         UINT16_TO_STREAM(p, HCI_READ_BUFFER_SIZE);
         *p = 0;
-        
-        if ((ret = hci_h4_send_int_cmd(HCI_READ_BUFFER_SIZE, p_buf, get_acl_data_length_cback)) == FALSE)
+
+        if ((ret = hci_h4_send_int_cmd(HCI_READ_BUFFER_SIZE, p_buf, \
+                                       get_acl_data_length_cback)) == FALSE)
         {
             bt_vendor_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
         }
@@ -1040,7 +1095,7 @@ void hci_h4_get_acl_data_length(void)
 
     if (bt_vendor_cbacks)
     {
-        LOGE("vendor lib postload aborted");            
+        LOGE("vendor lib postload aborted");
         bt_vendor_cbacks->postload_cb(NULL, BT_VENDOR_POSTLOAD_FAIL);
     }
 }

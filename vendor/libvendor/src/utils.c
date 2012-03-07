@@ -1,18 +1,18 @@
-/************************************************************************************
+/******************************************************************************
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
  *  licensors, and may only be used, duplicated, modified or distributed 
  *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
+ *  agreement executed between you and Broadcom (an "Authorized License"). 
  *  Except as set forth in an Authorized License, Broadcom grants no license 
  *  (express or implied), right to use, or waiver of any kind with respect to 
  *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
+ *  Software and all intellectual property rights therein. 
  *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
  *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  ALL USE OF THE SOFTWARE. 
  *
  *  Except as expressly set forth in the Authorized License,
  *
@@ -43,15 +43,15 @@
  *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
- ************************************************************************************/
+ ******************************************************************************/
 
-/************************************************************************************
+/******************************************************************************
  *
  *  Filename:      utils.c
  *
- *  Description:   
- * 
- ***********************************************************************************/
+ *  Description:   Contains helper functions
+ *
+ ******************************************************************************/
 
 #include <errno.h>
 #include <pthread.h>
@@ -59,9 +59,9 @@
 #include "bt_vendor_brcm.h"
 #include "utils.h"
 
-/************************************************************************************
+/******************************************************************************
 **  Static variables
-************************************************************************************/
+******************************************************************************/
 
 static pthread_mutex_t utils_mutex;
 
@@ -130,7 +130,9 @@ void utils_enqueue (BUFFER_Q *p_q, void *p_buf)
 
     if (p_q->p_last)
     {
-        VND_BUFFER_HDR_T *p_last_hdr = (VND_BUFFER_HDR_T *)((uint8_t *)p_q->p_last - BT_VND_BUFFER_HDR_SIZE);
+        VND_BUFFER_HDR_T *p_last_hdr = \
+          (VND_BUFFER_HDR_T *)((uint8_t *)p_q->p_last - BT_VND_BUFFER_HDR_SIZE);
+
         p_last_hdr->p_next = p_hdr;
     }
     else
@@ -165,7 +167,7 @@ void *utils_dequeue (BUFFER_Q *p_q)
         return (NULL);
     }
 
-    p_hdr = (VND_BUFFER_HDR_T *)((uint8_t *)p_q->p_first - BT_VND_BUFFER_HDR_SIZE);
+    p_hdr=(VND_BUFFER_HDR_T *)((uint8_t *)p_q->p_first-BT_VND_BUFFER_HDR_SIZE);
 
     if (p_hdr->p_next)
         p_q->p_first = ((uint8_t *)p_hdr->p_next + BT_VND_BUFFER_HDR_SIZE);
@@ -188,7 +190,8 @@ void *utils_dequeue (BUFFER_Q *p_q)
 **
 ** Function        utils_getnext
 **
-** Description     Return a pointer to the next buffer linked to the given buffer
+** Description     Return a pointer to the next buffer linked to the given 
+**                 buffer
 **
 ** Returns         NULL if the given buffer does not point to any next buffer, 
 **                 else next buffer address
@@ -229,7 +232,7 @@ void *utils_remove_from_queue (BUFFER_Q *p_q, void *p_buf)
     }
 
     p_buf_hdr = (VND_BUFFER_HDR_T *)((uint8_t *)p_buf - BT_VND_BUFFER_HDR_SIZE);
-    p_prev    = (VND_BUFFER_HDR_T *)((uint8_t *)p_q->p_first - BT_VND_BUFFER_HDR_SIZE);
+    p_prev=(VND_BUFFER_HDR_T *)((uint8_t *)p_q->p_first-BT_VND_BUFFER_HDR_SIZE);
 
     for ( ; p_prev; p_prev = p_prev->p_next)
     {
@@ -276,7 +279,7 @@ void utils_delay (uint32_t timeout)
 
     /* [u]sleep can't be used because it uses SIGALRM */
     do {
-        err = nanosleep(&delay, &delay); 
+        err = nanosleep(&delay, &delay);
     } while (err < 0 && errno ==EINTR);
 }
 

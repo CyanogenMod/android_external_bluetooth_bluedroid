@@ -1,18 +1,18 @@
-/************************************************************************************
+/******************************************************************************
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
  *  licensors, and may only be used, duplicated, modified or distributed 
  *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
+ *  agreement executed between you and Broadcom (an "Authorized License"). 
  *  Except as set forth in an Authorized License, Broadcom grants no license 
  *  (express or implied), right to use, or waiver of any kind with respect to 
  *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
+ *  Software and all intellectual property rights therein. 
  *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
  *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  ALL USE OF THE SOFTWARE. 
  *
  *  Except as expressly set forth in the Authorized License,
  *
@@ -43,15 +43,17 @@
  *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
- ************************************************************************************/
+ ******************************************************************************/
 
-/************************************************************************************
+/******************************************************************************
  *
  *  Filename:      upio.c
  *
- *  Description:   
- * 
- ***********************************************************************************/
+ *  Description:   Contains I/O functions, like
+ *                      rfkill control
+ *                      BT_WAKE/HOST_WAKE control
+ *
+ ******************************************************************************/
 
 #define LOG_TAG "bt_upio"
 
@@ -63,9 +65,9 @@
 #include "upio.h"
 #include "userial.h"
 
-/************************************************************************************
+/******************************************************************************
 **  Constants & Macros
-************************************************************************************/
+******************************************************************************/
 
 #ifndef UPIO_DBG
 #define UPIO_DBG FALSE
@@ -77,22 +79,22 @@
 #define UPIODBG LOGV
 #endif
 
-/************************************************************************************
+/******************************************************************************
 **  Local type definitions
-************************************************************************************/
+******************************************************************************/
 
-/************************************************************************************
+/******************************************************************************
 **  Static variables
-************************************************************************************/
+******************************************************************************/
 
 static uint8_t upio_state[UPIO_MAX_COUNT];
 static int rfkill_id = -1;
 static int bt_emul_enable = 0;
 static char *rfkill_state_path = NULL;
 
-/************************************************************************************
+/******************************************************************************
 **  Static functions
-************************************************************************************/
+******************************************************************************/
 
 /* for friendly debugging outpout string */
 static char *lpm_state[] = {
@@ -109,24 +111,24 @@ static int is_emulator_context(void)
     char value[PROPERTY_VALUE_MAX];
     
     property_get("ro.kernel.qemu", value, "0");
-    UPIODBG("is_emulator_context : %s", value);   
+    UPIODBG("is_emulator_context : %s", value);
     if (strcmp(value, "1") == 0) {
         return 1;
     }
     return 0;
 }
 
-static int is_rfkill_disabled(void) 
+static int is_rfkill_disabled(void)
 {
     char value[PROPERTY_VALUE_MAX];
-    
-    property_get("ro.rfkilldisabled", value, "0");
-    UPIODBG("is_rfkill_disabled ? [%s]", value);   
 
-    if (strcmp(value, "1") == 0) {  
+    property_get("ro.rfkilldisabled", value, "0");
+    UPIODBG("is_rfkill_disabled ? [%s]", value);
+
+    if (strcmp(value, "1") == 0) {
         return UPIO_BT_POWER_ON;
     }
-    
+
     return UPIO_BT_POWER_OFF;
 }
 
@@ -145,14 +147,15 @@ static int init_rfkill()
         fd = open(path, O_RDONLY);
         if (fd < 0)
         {
-            LOGE("init_rfkill : open(%s) failed: %s (%d)\n", path, strerror(errno), errno);
+            LOGE("init_rfkill : open(%s) failed: %s (%d)\n", \
+                 path, strerror(errno), errno);
             return -1;
         }
-        
+
         sz = read(fd, &buf, sizeof(buf));
         close(fd);
-        
-        if (sz >= 9 && memcmp(buf, "bluetooth", 9) == 0) 
+
+        if (sz >= 9 && memcmp(buf, "bluetooth", 9) == 0)
         {
             rfkill_id = id;
             break;
@@ -219,47 +222,47 @@ int upio_set_bluetooth_power(int on)
     switch(on)
     {
         case UPIO_BT_POWER_OFF:
-            buffer = '0';  
+            buffer = '0';
             break;
 
         case UPIO_BT_POWER_ON:
-            buffer = '1';  
+            buffer = '1';
             break;
-    }       
+    }
 
     if (is_emulator_context())
     {
         /* if new value is same as current, return -1 */
         if (bt_emul_enable == on)
-            return ret;     
+            return ret;
 
         UPIODBG("set_bluetooth_power [emul] %d", on);
-        
+
         bt_emul_enable = on;
         return 0;
     }
 
     /* check if we have rfkill interface */
     if (is_rfkill_disabled())
-        return 0;    
+        return 0;
 
-    if (rfkill_id == -1) 
+    if (rfkill_id == -1)
     {
-        if (init_rfkill()) 
+        if (init_rfkill())
             return ret;
     }
 
     fd = open(rfkill_state_path, O_WRONLY);
-    
+
     if (fd < 0)
     {
-        LOGE("set_bluetooth_power : open(%s) for write failed: %s (%d)", 
+        LOGE("set_bluetooth_power : open(%s) for write failed: %s (%d)",
             rfkill_state_path, strerror(errno), errno);
         return ret;
     }
-    
+
     sz = write(fd, &buffer, 1);
-    
+
     if (sz < 0) {
         LOGE("set_bluetooth_power : write(%s) failed: %s (%d)",
             rfkill_state_path, strerror(errno),errno);
@@ -267,9 +270,9 @@ int upio_set_bluetooth_power(int on)
     else
         ret = 0;
 
-    if (fd >= 0) 
+    if (fd >= 0)
         close(fd);
-    
+
     return ret;
 }
 
@@ -298,7 +301,7 @@ void upio_set(uint8_t pio, uint8_t action, uint8_t polarity)
             }
 
             upio_state[UPIO_BT_WAKE] = action;
-            
+
             /****************************************
              * !!! TODO !!!
              *
@@ -309,8 +312,10 @@ void upio_set(uint8_t pio, uint8_t action, uint8_t polarity)
              * state of physical BT_WAKE pin.
              ****************************************/
 #if (BT_WAKE_VIA_USERIAL_IOCTL == TRUE)
-            userial_ioctl(((action==UPIO_ASSERT) ? USERIAL_OP_ASSERT_BT_WAKE : USERIAL_OP_DEASSERT_BT_WAKE), NULL);
-#endif      
+            userial_ioctl( ( (action==UPIO_ASSERT) ? \
+                      USERIAL_OP_ASSERT_BT_WAKE : USERIAL_OP_DEASSERT_BT_WAKE),\
+                      NULL);
+#endif
             break;
 
         case UPIO_HOST_WAKE:

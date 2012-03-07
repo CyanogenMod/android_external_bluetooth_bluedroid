@@ -1,18 +1,18 @@
-/************************************************************************************
+/******************************************************************************
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
  *  licensors, and may only be used, duplicated, modified or distributed 
  *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
+ *  agreement executed between you and Broadcom (an "Authorized License"). 
  *  Except as set forth in an Authorized License, Broadcom grants no license 
  *  (express or implied), right to use, or waiver of any kind with respect to 
  *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
+ *  Software and all intellectual property rights therein. 
  *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
  *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  ALL USE OF THE SOFTWARE. 
  *
  *  Except as expressly set forth in the Authorized License,
  *
@@ -43,15 +43,18 @@
  *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
- ************************************************************************************/
+ ******************************************************************************/
 
-/************************************************************************************
+/******************************************************************************
  *
  *  Filename:      bt_vendor_brcm.h
  *
- *  Description:   
- * 
- ***********************************************************************************/
+ *  Description:   A wrapper header file of bt_vendor_lib.h
+ *
+ *                 Contains definitions specific for running Broadcom
+ *                 Bluetooth stack on Broadcom Bluetooth Controllers 
+ *
+ ******************************************************************************/
 
 #ifndef BT_VENDOR_BRCM_H
 #define BT_VENDOR_BRCM_H
@@ -59,9 +62,9 @@
 #include "bt_vendor_lib.h"
 #include "vnd_buildcfg.h"
 
-/************************************************************************************
+/******************************************************************************
 **  Constants & Macros
-************************************************************************************/
+******************************************************************************/
 
 #ifndef FALSE
 #define FALSE  0
@@ -100,20 +103,20 @@
 #define VND_EVENT_EXIT                  0x0200
 
 /* Message event mask across vendor lib and stack */
-#define MSG_EVT_MASK            0xFF00              /* eq. BT_EVT_MASK */
-#define MSG_SUB_EVT_MASK        0x00FF              /* eq. BT_SUB_EVT_MASK */
+#define MSG_EVT_MASK                    0xFF00 /* eq. BT_EVT_MASK */
+#define MSG_SUB_EVT_MASK                0x00FF /* eq. BT_SUB_EVT_MASK */
 
 /* Message event ID passed from vendor lib to stack */
-#define MSG_VND_TO_STACK_HCI_ERR        0x1300      /* HCIT_TYPE_COMMAND = BT_EVT_TO_BTU_HCIT_ERR */
-#define MSG_VND_TO_STACK_HCI_ACL        0x1100      /* HCIT_TYPE_ACL_DATA = BT_EVT_TO_BTU_HCI_ACL */
-#define MSG_VND_TO_STACK_HCI_SCO        0x1200      /* HCIT_TYPE_SCO_DATA = BT_EVT_TO_BTU_HCI_SCO */
-#define MSG_VND_TO_STACK_HCI_EVT        0x1000      /* HCIT_TYPE_EVENT = BT_EVT_TO_BTU_HCI_EVT */
-#define MSG_VND_TO_STACK_L2C_SEG_XMIT   0x1900      /* L2CAP segment(s) transmitted = BT_EVT_TO_BTU_L2C_SEG_XMIT */
+#define MSG_VND_TO_STACK_HCI_ERR        0x1300 /* eq. BT_EVT_TO_BTU_HCIT_ERR */
+#define MSG_VND_TO_STACK_HCI_ACL        0x1100 /* eq. BT_EVT_TO_BTU_HCI_ACL */
+#define MSG_VND_TO_STACK_HCI_SCO        0x1200 /* eq. BT_EVT_TO_BTU_HCI_SCO */
+#define MSG_VND_TO_STACK_HCI_EVT        0x1000 /* eq. BT_EVT_TO_BTU_HCI_EVT */
+#define MSG_VND_TO_STACK_L2C_SEG_XMIT   0x1900 /* eq. BT_EVT_TO_BTU_L2C_SEG_XMIT */
 
 /* Message event ID passed from stack to vendor lib */
-#define MSG_STACK_TO_VND_HCI_ACL        0x2100      /* HCI ACL Data = BT_EVT_TO_LM_HCI_ACL */
-#define MSG_STACK_TO_VND_HCI_SCO        0x2200      /* HCI SCO Data = BT_EVT_TO_LM_HCI_SCO */
-#define MSG_STACK_TO_VND_HCI_CMD        0x2000      /* HCI Command = BT_EVT_TO_LM_HCI_CMD */
+#define MSG_STACK_TO_VND_HCI_ACL        0x2100 /* eq. BT_EVT_TO_LM_HCI_ACL */
+#define MSG_STACK_TO_VND_HCI_SCO        0x2200 /* eq. BT_EVT_TO_LM_HCI_SCO */
+#define MSG_STACK_TO_VND_HCI_CMD        0x2000 /* eq. BT_EVT_TO_LM_HCI_CMD */
 
 /* Local Bluetooth Controller ID for BR/EDR */
 #define LOCAL_BR_EDR_CONTROLLER_ID      0
@@ -143,11 +146,11 @@
 
 /* Host Stack Idle Threshold in 300ms or 25ms 
 
-  In sleep mode 1, this is the number of firmware loops executed with no activity 
-    before the Host wake line is deasserted. Activity includes HCI traffic excluding
-    certain sleep mode commands and the presence of SCO connections if the 
-    "Allow Host Sleep During SCO" flag is not set to 1. Each count of this 
-    parameter is roughly equivalent to 300ms or 25ms.
+  In sleep mode 1, this is the number of firmware loops executed with no
+    activity before the Host wake line is deasserted. Activity includes HCI
+    traffic excluding certain sleep mode commands and the presence of SCO
+    connections if the "Allow Host Sleep During SCO" flag is not set to 1.
+    Each count of this parameter is roughly equivalent to 300ms or 25ms.
 */
 #ifndef LPM_IDLE_THRESHOLD
 #define LPM_IDLE_THRESHOLD              1
@@ -155,11 +158,10 @@
 
 /* Host Controller Idle Threshold in 300ms or 25ms
 
-    This is the number of firmware loops executed with no activity before the HC is 
-    considered idle. Depending on the mode, HC may then attempt to sleep. 
-    Activity includes HCI traffic excluding certain sleep mode commands and 
+    This is the number of firmware loops executed with no activity before the
+    HC is considered idle. Depending on the mode, HC may then attempt to sleep.
+    Activity includes HCI traffic excluding certain sleep mode commands and
     the presence of ACL/SCO connections.
-
 */
 #ifndef LPM_HC_IDLE_THRESHOLD
 #define LPM_HC_IDLE_THRESHOLD           1
@@ -181,7 +183,8 @@
     an SCO is active. In sleep mode 1, the device will keep the host
     wake line asserted while an SCO is active.
     When this flag is set to 1, the host can sleep while an SCO is active.
-    This flag should only be set to 1 if SCO traffic is directed to the PCM interface.
+    This flag should only be set to 1 if SCO traffic is directed to the PCM
+    interface.
 */
 #ifndef LPM_ALLOW_HOST_SLEEP_DURING_SCO
 #define LPM_ALLOW_HOST_SLEEP_DURING_SCO 1
@@ -192,9 +195,10 @@
     In Mode 0, always set byte 7 to 0. In sleep mode 1, device always
     requires permission to sleep between scans / periodic inquiries regardless
     of the setting of this byte. In sleep mode 1, if byte is set, device must
-    have "permission" to sleep during the low power modes of sniff, hold, and park.
-    If byte is not set, device can sleep without permission during these modes.
-    Permission to sleep in Mode 1 is obtained if the BT_WAKE signal is not asserted.
+    have "permission" to sleep during the low power modes of sniff, hold, and
+    park. If byte is not set, device can sleep without permission during these
+    modes. Permission to sleep in Mode 1 is obtained if the BT_WAKE signal is
+    not asserted.
 */
 #ifndef LPM_COMBINE_SLEEP_MODE_AND_LPM
 #define LPM_COMBINE_SLEEP_MODE_AND_LPM  1
@@ -202,8 +206,10 @@
 
 /* LPM_ENABLE_UART_TXD_TRI_STATE
 
-    When set to 0, the device will not tristate its UART TX line before going to sleep.
-    When set to 1, the device will tristate its UART TX line before going to sleep.
+    When set to 0, the device will not tristate its UART TX line before going
+    to sleep.
+    When set to 1, the device will tristate its UART TX line before going to
+    sleep.
 */
 #ifndef LPM_ENABLE_UART_TXD_TRI_STATE
 #define LPM_ENABLE_UART_TXD_TRI_STATE   0
@@ -362,9 +368,9 @@
 #define PCM_DATA_FMT_JUSTIFY_MODE       0
 #endif
 
-/************************************************************************************
+/******************************************************************************
 **  Type definitions and return values
-************************************************************************************/
+******************************************************************************/
 
 typedef struct
 {
@@ -388,15 +394,15 @@ typedef struct _vnd_buffer_hdr
 
 #define BT_VND_BUFFER_HDR_SIZE (sizeof(VND_BUFFER_HDR_T))
 
-/************************************************************************************
+/******************************************************************************
 **  Extern variables and functions
-************************************************************************************/
+******************************************************************************/
 
 extern bt_vendor_callbacks_t *bt_vendor_cbacks;
 
-/************************************************************************************
+/******************************************************************************
 **  Functions
-************************************************************************************/
+******************************************************************************/
 
 /*******************************************************************************
 **
@@ -408,7 +414,6 @@ extern bt_vendor_callbacks_t *bt_vendor_cbacks;
 **
 *******************************************************************************/
 extern void btvnd_signal_event(uint16_t event);
-    
 
 #endif /* BT_VENDOR_BRCM_H */
 

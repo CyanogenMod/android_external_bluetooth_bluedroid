@@ -1,18 +1,18 @@
-/************************************************************************************
+/******************************************************************************
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
  *  licensors, and may only be used, duplicated, modified or distributed 
  *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
+ *  agreement executed between you and Broadcom (an "Authorized License"). 
  *  Except as set forth in an Authorized License, Broadcom grants no license 
  *  (express or implied), right to use, or waiver of any kind with respect to 
  *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
+ *  Software and all intellectual property rights therein. 
  *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
  *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  ALL USE OF THE SOFTWARE. 
  *
  *  Except as expressly set forth in the Authorized License,
  *
@@ -43,22 +43,22 @@
  *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
- ************************************************************************************/
+ ******************************************************************************/
 
-/************************************************************************************
+/******************************************************************************
  *
  *  Filename:      userial.h
  *
- *  Description:   
- * 
- ***********************************************************************************/
+ *  Description:   Contains definitions used for serial port controls
+ *
+ ******************************************************************************/
 
 #ifndef USERIAL_H
 #define USERIAL_H
 
-/************************************************************************************
+/******************************************************************************
 **  Constants & Macros
-************************************************************************************/
+******************************************************************************/
 
 /**** port IDs ****/
 #define USERIAL_PORT_1          0
@@ -128,8 +128,8 @@ typedef enum {
 } userial_ioctl_op_t;
 
 #if (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
-/* These are the ioctl values used for bt_wake ioctl via UART driver. you may need to 
- * redefine them on you platform! 
+/* These are the ioctl values used for bt_wake ioctl via UART driver. you may 
+ * need to redefine them on you platform! 
  * Logically they need to be unique and not colide with existing uart ioctl's.
  */
 #ifndef USERIAL_IOCTL_BT_WAKE_ASSERT
@@ -143,9 +143,9 @@ typedef enum {
 #endif
 #endif // (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
 
-/************************************************************************************
+/******************************************************************************
 **  Type definitions
-************************************************************************************/
+******************************************************************************/
 
 /* Structure used to configure serial port during open */
 typedef struct
@@ -154,13 +154,13 @@ typedef struct
     uint8_t  baud;      /* Baud rate */
 } tUSERIAL_CFG;
 
-/************************************************************************************
+/******************************************************************************
 **  Extern variables and functions
-************************************************************************************/
+******************************************************************************/
 
-/************************************************************************************
+/******************************************************************************
 **  Functions
-************************************************************************************/
+******************************************************************************/
 
 /*******************************************************************************
 **

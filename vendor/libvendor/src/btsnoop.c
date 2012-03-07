@@ -1,18 +1,18 @@
-/************************************************************************************
+/******************************************************************************
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
  *  licensors, and may only be used, duplicated, modified or distributed 
  *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
+ *  agreement executed between you and Broadcom (an "Authorized License"). 
  *  Except as set forth in an Authorized License, Broadcom grants no license 
  *  (express or implied), right to use, or waiver of any kind with respect to 
  *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
+ *  Software and all intellectual property rights therein. 
  *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
  *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  ALL USE OF THE SOFTWARE. 
  *
  *  Except as expressly set forth in the Authorized License,
  *
@@ -43,7 +43,7 @@
  *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
- ************************************************************************************/
+ ******************************************************************************/
 
 /****************************************************************************
  *
@@ -63,7 +63,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <fcntl.h>
-     
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -250,7 +250,9 @@ static int btsnoop_log_open(void)
     /* write the BT snoop header */
     if (BTSNOOP_FILENAME != NULL)
     {
-        hci_btsnoop_fd = open((char*)BTSNOOP_FILENAME, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+        hci_btsnoop_fd = open((char*)BTSNOOP_FILENAME, \
+                              O_WRONLY|O_CREAT|O_TRUNC, \
+                              S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
         if (hci_btsnoop_fd == -1)
         {
             perror("open");
@@ -595,7 +597,7 @@ static void ext_parser_thread(void* param)
     sigaddset (&sigSet, sig);
 
     LOGD("ext_parser_thread");
-    
+
     prctl(PR_SET_NAME, (unsigned long)"BtsnoopExtParser", 0, 0, 0);
 
     pthread_sigmask (SIG_UNBLOCK, &sigSet, NULL);
@@ -610,7 +612,7 @@ static void ext_parser_thread(void* param)
 
         ext_parser_fd = fd;
  
-        LOGD("ext parser attached on fd %d\n", ext_parser_fd); 
+        LOGD("ext parser attached on fd %d\n", ext_parser_fd);
     } while (1);
 }
 
@@ -660,7 +662,8 @@ void btsnoop_capture(VND_BT_HDR *p_buf, uint8_t is_rcvd)
 {
     uint8_t *p = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
-    SNOOPDBG("btsnoop_capture: fd = %d, type %x, rcvd %d, ext %d", hci_btsnoop_fd, p_buf->event, is_rcvd, ext_parser_fd);
+    SNOOPDBG("btsnoop_capture: fd = %d, type %x, rcvd %d, ext %d", \
+             hci_btsnoop_fd, p_buf->event, is_rcvd, ext_parser_fd);
 
     if (ext_parser_fd > 0)
     {
@@ -691,7 +694,7 @@ void btsnoop_capture(VND_BT_HDR *p_buf, uint8_t is_rcvd)
         *(++p) = tmp;
         return;
     }
-    
+
     if (hci_btsnoop_fd == -1)
         return;
 
