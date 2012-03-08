@@ -226,7 +226,7 @@ GOEP_API extern void GOEP_TraceSupportedDataTypes(UINT8 data_types, UINT8 *p_dat
 #define GOEP_ErrorName(_x) ""
 #endif
 #define GOEP_TraceSupportedDataTypes(x, y)
-#endif /* end if BT_TRACE_PROTOCOL */
+#endif
 
 
 /*****************************************************************************

@@ -600,17 +600,26 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
         BTIF_TRACE_ERROR2("%s service_mask:0x%x", __FUNCTION__, service_mask);
         for (i=0; i < BTA_MAX_SERVICE_ID; i++)
         {
+            /* This should eventually become a function when more services are enabled */
             if(service_mask
                 &(tBTA_SERVICE_MASK)(1 << i))
             {
-                 uuid16_to_uuid128(bta_service_id_to_uuid_lkup_tbl[i], p_uuid+num_uuids);
+                 switch (i) {
+                     case BTA_HFP_SERVICE_ID:
+                     {
+                          uuid16_to_uuid128(UUID_SERVCLASS_AG_HANDSFREE,
+                                            p_uuid+num_uuids);
                  num_uuids++;
-                 /* BTA_HSP_SERVICE_ID is a special case and gets enabled automatically
-                  * when BTA_HFP_SERVICE_ID is enabled */
-                  if (i == BTA_HFP_SERVICE_ID) {
-                     uuid16_to_uuid128(bta_service_id_to_uuid_lkup_tbl[BTA_HSP_SERVICE_ID],
+                          uuid16_to_uuid128(UUID_SERVCLASS_HEADSET_AUDIO_GATEWAY,
                                        p_uuid+num_uuids);
                      num_uuids++;
+                     }break;
+                     case BTA_A2DP_SERVICE_ID:
+                     {
+                          uuid16_to_uuid128(UUID_SERVCLASS_AUDIO_SOURCE,
+                                            p_uuid+num_uuids);
+                          num_uuids++;
+                     }break;
                  }
             }
         }

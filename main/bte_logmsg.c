@@ -73,9 +73,6 @@
 #include "pan_api.h"
 #endif
 #include "sdp_api.h"
-#if (VDP_INCLUDED==TRUE)
-#include "vdp_api.h"
-#endif
 
 #if (BLE_INCLUDED==TRUE)
 #include "gatt_api.h"
@@ -330,7 +327,7 @@ const tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
     { BTTRC_ID_STK_OBEX, BTTRC_ID_STK_OBEX, (const tBTTRC_SET_TRACE_LEVEL *)OBX_SetTraceLevel, "TRC_OBEX" },
 #endif
 #if (AVCT_INCLUDED==TRUE)
-    { BTTRC_ID_STK_AVCT, BTTRC_ID_STK_AVCT, (tBTTRC_SET_TRACE_LEVEL *)NULL, "TRC_AVCT" },
+    //{ BTTRC_ID_STK_AVCT, BTTRC_ID_STK_AVCT, (tBTTRC_SET_TRACE_LEVEL *)NULL, "TRC_AVCT" },
 #endif
 #if (AVDT_INCLUDED==TRUE)
     { BTTRC_ID_STK_AVDT, BTTRC_ID_STK_AVDT, (const tBTTRC_SET_TRACE_LEVEL *)AVDT_SetTraceLevel, "TRC_AVDT" },
@@ -339,7 +336,7 @@ const tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
     { BTTRC_ID_STK_AVRC, BTTRC_ID_STK_AVRC, (const tBTTRC_SET_TRACE_LEVEL *)AVRC_SetTraceLevel, "TRC_AVRC" },
 #endif
 #if (AVDT_INCLUDED==TRUE)
-    { BTTRC_ID_AVDT_SCB, BTTRC_ID_AVDT_CCB, (tBTTRC_SET_TRACE_LEVEL *)NULL, "TRC_AVDT_SCB" },
+    //{ BTTRC_ID_AVDT_SCB, BTTRC_ID_AVDT_CCB, (tBTTRC_SET_TRACE_LEVEL *)NULL, "TRC_AVDT_SCB" },
 #endif
 #if (A2D_INCLUDED==TRUE)
     { BTTRC_ID_STK_A2D, BTTRC_ID_STK_A2D, (const tBTTRC_SET_TRACE_LEVEL *)A2D_SetTraceLevel, "TRC_A2D" },
@@ -373,9 +370,6 @@ const tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
     { BTTRC_ID_STK_SAP, BTTRC_ID_STK_SAP, (tBTTRC_SET_TRACE_LEVEL *)NULL, "TRC_SAP" },
 #endif
     { BTTRC_ID_STK_SDP, BTTRC_ID_STK_SDP, (const tBTTRC_SET_TRACE_LEVEL *)SDP_SetTraceLevel, "TRC_SDP" },
-#if (VDP_INCLUDED==TRUE)
-    { BTTRC_ID_STK_VDP, BTTRC_ID_STK_VDP, (const tBTTRC_SET_TRACE_LEVEL *)VDP_SetTraceLevel, "TRC_VDP" },
-#endif
 #if (BLE_INCLUDED==TRUE)
     { BTTRC_ID_STK_GATT, BTTRC_ID_STK_GATT, (const tBTTRC_SET_TRACE_LEVEL *)GATT_SetTraceLevel , "TRC_GATT" },
 #endif

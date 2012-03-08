@@ -1456,7 +1456,7 @@ BTA_API extern void BTA_SysFeatures (UINT16 sys_features);
 **
 ** Description      This function will request BTA to execute a call back in the context of BTU task
 **                  This API was named in lower case because it is only intended
-**                  for the internal customers(like BSA).
+**                  for the internal customers(like BTIF).
 **
 ** Returns          void                  
 **

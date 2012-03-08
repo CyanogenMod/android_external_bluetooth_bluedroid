@@ -111,7 +111,7 @@ BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
         p_dev_rec->link_key_type = key_type;
     }
 
-#if defined(BSA_MIXED_MODE_INCLUDED) && (BSA_MIXED_MODE_INCLUDED == TRUE)
+#if defined(BTIF_MIXED_MODE_INCLUDED) && (BTIF_MIXED_MODE_INCLUDED == TRUE)
     p_dev_rec->sm4 = BTM_SM4_KNOWN;
 #endif
 

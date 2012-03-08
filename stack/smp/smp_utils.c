@@ -21,9 +21,6 @@
     #include "l2c_int.h"
     #include "smp_int.h"
 
-    #if (BT_TRACE_PROTOCOL == TRUE)
-        #include "trace_api.h"
-    #endif
 
     #define SMP_PAIRING_REQ_SIZE    7
     #define SMP_CONFIRM_CMD_SIZE    (BT_OCTET16_LEN + 1)

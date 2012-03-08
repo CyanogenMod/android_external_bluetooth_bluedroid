@@ -97,6 +97,7 @@ static bt_status_t btif_dm_get_remote_services(bt_bdaddr_t *remote_addr);
 ******************************************************************************/
 extern UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID];
 extern bt_status_t btif_hf_execute_service(BOOLEAN b_enable);
+extern bt_status_t btif_av_execute_service(BOOLEAN b_enable);
 
 /******************************************************************************
 **  Functions
@@ -111,6 +112,10 @@ bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
          case BTA_HFP_SERVICE_ID:
          {
               btif_hf_execute_service(b_enable);
+         }break;
+         case BTA_A2DP_SERVICE_ID:
+         {
+              btif_av_execute_service(b_enable);
          }break;
          default:
               BTIF_TRACE_ERROR1("%s: Unknown service being enabled", __FUNCTION__);
@@ -604,6 +609,10 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
         }
         break;
 
+        case BTA_DM_DISC_CMPL_EVT:
+            /* fixme */
+        break;
+
         default:
         {
             ASSERTC(0, "unhandled search services event", event);
@@ -1078,6 +1087,7 @@ bt_status_t btif_dm_pin_reply( const bt_bdaddr_t *bd_addr, uint8_t accept,
 
     return BT_STATUS_SUCCESS;
 }
+
 /*******************************************************************************
 **
 ** Function         btif_dm_ssp_reply

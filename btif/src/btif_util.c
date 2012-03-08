@@ -56,6 +56,7 @@
 
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf.h>
+#include <hardware/bt_av.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -325,6 +326,18 @@ const char* dump_hf_audio_state(UINT16 event)
     }
 }
 
+const char* dump_av_conn_state(UINT16 event)
+{
+    switch(event)
+    {
+        CASE_RETURN_STR(BTAV_CONNECTION_STATE_DISCONNECTED)
+        CASE_RETURN_STR(BTAV_CONNECTION_STATE_CONNECTING)
+        CASE_RETURN_STR(BTAV_CONNECTION_STATE_CONNECTED)
+        CASE_RETURN_STR(BTAV_CONNECTION_STATE_DISCONNECTING)
+        default:
+            return "UNKNOWN MSG ID";
+    }
+}
 
 const char* dump_adapter_scan_mode(bt_scan_mode_t mode)
 {

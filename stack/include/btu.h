@@ -21,7 +21,6 @@
 #define BTU_HCI_RCV_MBOX        TASK_MBOX_0     /* Messages from HCI  */
 #define BTU_BTIF_MBOX           TASK_MBOX_1     /* Messages to BTIF   */
 
-
 /* callbacks
 */
 typedef void (*tBTU_TIMER_CALLBACK)(TIMER_LIST_ENT *p_tle);

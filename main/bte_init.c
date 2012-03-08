@@ -113,9 +113,6 @@
 #include "a2d_api.h"
 #endif
 
-#if (defined(VDP_INCLUDED) && VDP_INCLUDED == TRUE)
-#include "vdp_api.h"
-#endif
 
 #if (defined(HID_DEV_INCLUDED) && HID_DEV_INCLUDED == TRUE)
 #include "hidd_api.h"
@@ -210,9 +207,6 @@
 #endif
 #if BTA_AV_INCLUDED==TRUE
 #include "bta_av_int.h"
-#endif
-#if BTA_AVK_INCLUDED==TRUE
-#include "bta_avk_int.h"
 #endif
 
 #if BTA_SC_INCLUDED==TRUE
@@ -384,9 +378,6 @@ BT_API void BTE_InitStack(void)
     A2D_Init();
 #endif  /* AADP */
 
-#if (defined(VDP_INCLUDED) && VDP_INCLUDED == TRUE)
-    VDP_Init();
-#endif
 
 #if (defined(AVRC_INCLUDED) && AVRC_INCLUDED == TRUE)
     AVRC_Init();
@@ -480,9 +471,6 @@ BT_API void BTE_InitStack(void)
 #endif
 #if BTA_AV_INCLUDED==TRUE
     memset((void *)bta_av_cb_ptr, 0, sizeof(tBTA_AV_CB));
-#endif
-#if BTA_AVK_INCLUDED==TRUE
-    memset((void *)bta_avk_cb_ptr, 0, sizeof(tBTA_AVK_CB));
 #endif
 #if BTA_PR_INCLUDED==TRUE
     memset((void *)bta_pr_cb_ptr, 0, sizeof(tBTA_PR_CB));

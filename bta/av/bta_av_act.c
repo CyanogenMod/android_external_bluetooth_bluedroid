@@ -11,7 +11,7 @@
 *****************************************************************************/
 
 #include "bt_target.h"
-#if defined(AV_INCLUDED) && (AV_INCLUDED == TRUE)
+#if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
 
 #include <string.h>
 #include "bta_av_api.h"
@@ -767,6 +767,7 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
         p_vendor->hdr.ctype = BTA_AV_RSP_NOT_IMPL;
         AVRC_VendorRsp(p_msg->handle, p_msg->label, &p_msg->msg.vendor); 
     }
+#if (AVRC_METADATA_INCLUDED == TRUE)
     else if (!AVRC_IsValidAvcType(pdu, p_vendor->hdr.ctype) )
     {
         APPL_TRACE_DEBUG2("Invalid pdu/ctype: 0x%x, %d", pdu, p_vendor->hdr.ctype);
@@ -774,6 +775,7 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
         evt = 0;
         p_rc_rsp->rsp.status = AVRC_STS_BAD_CMD;
     }
+#endif
     else
     {
         switch (pdu)
@@ -1997,4 +1999,4 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
         utl_set_device_class(&cod, BTA_UTL_CLR_COD_SERVICE_CLASS);
     }
 }
-#endif /* AV_INCLUDED */
+#endif /* BTA_AV_INCLUDED */

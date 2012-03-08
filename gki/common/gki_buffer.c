@@ -10,6 +10,7 @@
 **                                                                              *
 *********************************************************************************/
 #include "gki_int.h"
+#include <cutils/log.h>
 
 #if (GKI_NUM_TOTAL_BUF_POOLS > 16)
 #error Number of pools out of range (16 Max)!
@@ -88,7 +89,7 @@ static BOOLEAN gki_alloc_free_queue(UINT8 id)
 {
     FREE_QUEUE_T  *Q;
     tGKI_COM_CB *p_cb = &gki_cb.com;
-    GKI_TRACE("\ngki_alloc_free_queue in, id:%d \n", id);
+    GKI_TRACE("\ngki_alloc_free_queue in, id:%d \n", (int)id );
     
     Q = &p_cb->freeq[p_cb->pool_list[id]];
     

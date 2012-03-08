@@ -12,7 +12,7 @@
 *****************************************************************************/
 
 #include "bt_target.h"
-#if defined(AV_INCLUDED) && (AV_INCLUDED == TRUE)
+#if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
 
 #include "bta_api.h"
 #include "bd.h"
@@ -565,4 +565,4 @@ void BTA_AvMetaCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CMD cmd_code, BT_HDR *p
     }
 }
 
-#endif /* AV_INCLUDED */
+#endif /* BTA_AV_INCLUDED */

@@ -268,8 +268,8 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
     int policy, ret = 0;
     pthread_attr_t attr1;
     
-    GKI_TRACE( "GKI_create_task %x %d %s %x %d\n", task_entry, task_id, taskname, stack,
-                stacksize);
+    GKI_TRACE( "GKI_create_task %x %d %s %x %d", (int)task_entry, (int)task_id, 
+            (char*) taskname, (int) stack, (int)stacksize);
 
     if (task_id >= GKI_MAX_TASKS)
     {
@@ -339,12 +339,12 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
      }
     
     GKI_TRACE( "Leaving GKI_create_task %x %d %x %s %x %d\n", 
-              task_entry,
-              task_id,
-              gki_cb.os.thread_id[task_id],
-              taskname, 
-              stack,
-              stacksize);
+              (int)task_entry,
+              (int)task_id,
+              (int)gki_cb.os.thread_id[task_id],
+              (char*)taskname, 
+              (int)stack,
+              (int)stacksize);
 
     return (GKI_SUCCESS);
 }
@@ -754,7 +754,7 @@ UINT16 GKI_wait (UINT16 flag, UINT32 timeout)
 
     rtask = GKI_get_taskid();
 
-    GKI_TRACE("GKI_wait %d %x %d", rtask, flag, timeout);
+    GKI_TRACE("GKI_wait %d %x %d", (int)rtask, (int)flag, (int)timeout);
 
     gki_cb.com.OSWaitForEvt[rtask] = flag;
 
@@ -825,7 +825,7 @@ UINT16 GKI_wait (UINT16 flag, UINT32 timeout)
     /* unlock thread_evt_mutex as pthread_cond_wait() does auto lock mutex when cond is met */
     pthread_mutex_unlock(&gki_cb.os.thread_evt_mutex[rtask]);
 
-    GKI_TRACE("GKI_wait %d %x %d %x done", rtask, flag, timeout, evt);
+    GKI_TRACE("GKI_wait %d %x %d %x done", (int)rtask, (int)flag, (int)timeout, (int)evt);
     return (evt);
 }
 
@@ -849,7 +849,7 @@ void GKI_delay (UINT32 timeout)
     struct timespec delay;
     int err;
 
-    GKI_TRACE("GKI_delay %d %d", rtask, timeout);
+    GKI_TRACE("GKI_delay %d %d", (int)rtask, (int)timeout);
 
     delay.tv_sec = timeout / 1000;
     delay.tv_nsec = 1000 * 1000 * (timeout%1000);
@@ -868,7 +868,7 @@ void GKI_delay (UINT32 timeout)
     {
     }
 
-    GKI_TRACE("GKI_delay %d %d done", rtask, timeout);
+    GKI_TRACE("GKI_delay %d %d done", (int)rtask, (int)timeout);
 
     return;
 }
@@ -910,6 +910,7 @@ UINT8 GKI_send_event (UINT8 task_id, UINT16 event)
         GKI_TRACE("GKI_send_event %d %x done", task_id, event);
         return ( GKI_SUCCESS );
     }
+    GKI_TRACE("############## GKI_send_event FAILED!! ##################");
     return (GKI_FAILURE);
 }
 
@@ -961,7 +962,7 @@ UINT8 GKI_get_taskid (void)
 
     pthread_t thread_id = pthread_self( );
 
-    GKI_TRACE("GKI_get_taskid %x", thread_id);
+    GKI_TRACE("GKI_get_taskid %x", (int)thread_id);
 
     for (i = 0; i < GKI_MAX_TASKS; i++) {
         if (gki_cb.os.thread_id[i] == thread_id) {
@@ -1025,9 +1026,9 @@ INT8 *GKI_map_taskname (UINT8 task_id)
 *******************************************************************************/
 void GKI_enable (void)
 {
-    GKI_TRACE("GKI_enable");
+    //GKI_TRACE("GKI_enable");
     pthread_mutex_unlock(&gki_cb.os.GKI_mutex);
-    GKI_TRACE("Leaving GKI_enable");
+    //GKI_TRACE("Leaving GKI_enable");
     return;
 }
 
@@ -1044,11 +1045,11 @@ void GKI_enable (void)
 
 void GKI_disable (void)
 {
-    GKI_TRACE("GKI_disable");
+    //GKI_TRACE("GKI_disable");
 
     pthread_mutex_lock(&gki_cb.os.GKI_mutex);
 
-    GKI_TRACE("Leaving GKI_disable");
+    //GKI_TRACE("Leaving GKI_disable");
     return;
 }
 

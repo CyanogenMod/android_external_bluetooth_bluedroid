@@ -11,7 +11,7 @@
 *****************************************************************************/
 
 #include "bt_target.h"
-#if defined(AV_INCLUDED) && (AV_INCLUDED == TRUE)
+#if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
 
 #include <string.h>
 #include "bta_av_int.h"
@@ -602,7 +602,6 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                     bta_av_rc_create(&bta_av_cb, AVCT_ACP, 0, BTA_AV_NUM_LINKS + 1);
 
                 /* if the AV and AVK are both supported, it cannot support the CT role */
-#if (BTA_AVK_INCLUDED == FALSE)
                 if (bta_av_cb.features & (BTA_AV_FEAT_RCCT))
                 {
                     /* if TG is not supported, we need to register to AVCT now */
@@ -624,7 +623,6 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                            p_bta_av_cfg->avrc_ct_cat, BTA_ID_AV);
 #endif
                 }
-#endif
             }
             bta_av_cb.reg_audio |= BTA_AV_HNDL_TO_MSK(p_scb->hdi);
             APPL_TRACE_DEBUG1("reg_audio: 0x%x",bta_av_cb.reg_audio);
@@ -705,14 +703,9 @@ static void bta_av_ci_data(tBTA_AV_DATA *p_data)
 **
 *******************************************************************************/
 #if (AVDT_REPORTING == TRUE)
+
 static void bta_av_rpc_conn(tBTA_AV_DATA *p_data)
 {
-    tBTA_AV_SCB *p_scb = bta_av_hndl_to_scb(p_data->hdr.layer_specific);
-    if(p_scb)
-    {
-        bta_av_co_video_report_conn(p_data->str_msg.msg.report_conn.err_param,
-            p_scb->avdt_handle);
-    }
 }
 #endif
 
@@ -1315,4 +1308,4 @@ char *bta_av_evt_code(UINT16 evt_code)
 }
 #endif
 
-#endif /* AV_INCLUDED */
+#endif /* BTA_AV_INCLUDED */

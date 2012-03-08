@@ -15,24 +15,12 @@
 #include "bta_api.h"
 #include "bta_av_int.h"
 
-#ifndef BTA_AV_VDP_INCLUDED
-#define BTA_AV_VDP_INCLUDED     TRUE
-#endif
 
-#if ((VDP_INCLUDED == FALSE) && (BTA_AV_VDP_INCLUDED == TRUE))
-#undef BTA_AV_VDP_INCLUDED
-#define BTA_AV_VDP_INCLUDED        FALSE
-#endif
 
 #ifndef BTA_AV_RC_PASS_RSP_CODE
 #define BTA_AV_RC_PASS_RSP_CODE     BTA_AV_RSP_NOT_IMPL
 #endif
 
-#if (BTA_AV_VDP_INCLUDED == TRUE)
-#define BTA_AV_NUM_A2DP_STRS     (BTA_AV_NUM_STRS - 1)
-#else
-#define BTA_AV_NUM_A2DP_STRS     (BTA_AV_NUM_STRS)
-#endif
 
 const UINT32  bta_av_meta_caps_co_ids[] = {
     AVRC_CO_METADATA,
@@ -175,13 +163,6 @@ const tBTA_AV_CFG bta_av_cfg =
     BTA_AV_RC_PASS_RSP_CODE,/* the default response code for pass through commands */
     bta_av_meta_caps_co_ids,/* the metadata Get Capabilities response for company id */
     bta_av_meta_caps_evt_ids,/* the the metadata Get Capabilities response for event id */
-#if BTA_AV_VDP_INCLUDED == TRUE
-    (const tBTA_AV_ACT *)bta_av_vdp_action,/* the action table for VDP */
-    bta_av_reg_vdp          /* action function to register VDP */
-#else
-    (const tBTA_AV_ACT *)NULL,/* the action table for VDP */
-    NULL                    /* action function to register VDP */
-#endif
 };
 
 tBTA_AV_CFG *p_bta_av_cfg = (tBTA_AV_CFG *) &bta_av_cfg;

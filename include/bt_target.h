@@ -3002,13 +3002,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define A2D_M24_INCLUDED        A2D_INCLUDED
 #endif
 
-/*************************************************************************
- * VDP Definitions
- */
-#ifndef VDP_INCLUDED
-#define VDP_INCLUDED            FALSE
-#endif
-
 /******************************************************************************
 **
 ** AVCTP

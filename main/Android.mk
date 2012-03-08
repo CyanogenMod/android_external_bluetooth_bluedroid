@@ -8,14 +8,14 @@ include $(CLEAR_VARS)
 
 # HAL layer 
 LOCAL_SRC_FILES:= \
-	../btif/src/bluetooth.c\
+	../btif/src/bluetooth.c
 
 # platform specific
 LOCAL_SRC_FILES+= \
         bte_main.c \
 	bte_init.c \
 	bte_version.c \
-	bte_logmsg.c\
+	bte_logmsg.c
 
 # BTIF
 LOCAL_SRC_FILES += \
@@ -23,7 +23,9 @@ LOCAL_SRC_FILES += \
 	../btif/src/btif_dm.c \
 	../btif/src/btif_storage.c \
 	../btif/src/btif_util.c \
+	../btif/src/btif_sm.c \
 	../btif/src/btif_hf.c \
+	../btif/src/btif_av.c
 
 # callouts
 LOCAL_SRC_FILES+= \
@@ -31,10 +33,24 @@ LOCAL_SRC_FILES+= \
 	../btif/co/bta_fs_co.c \
 	../btif/co/bta_ag_co.c \
 	../btif/co/bta_dm_co.c \
+	../btif/co/bta_av_co.c
+
+# sbc encoder
+LOCAL_SRC_FILES+= \
+	../embdrv/sbc/encoder/srce/sbc_analysis.c \
+	../embdrv/sbc/encoder/srce/sbc_dct.c \
+	../embdrv/sbc/encoder/srce/sbc_dct_coeffs.c \
+	../embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_mono.c \
+	../embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_ste.c \
+	../embdrv/sbc/encoder/srce/sbc_enc_coeffs.c \
+	../embdrv/sbc/encoder/srce/sbc_encoder.c \
+	../embdrv/sbc/encoder/srce/sbc_packing.c \
+	../btif/src/btif_media_task.c
 
 # candidates for vendor lib (keep here for now)
 LOCAL_SRC_FILES+= \
 	../udrv/ulinux/unv_linux.c\
+	../udrv/ulinux/uipc.c
 
 
 LOCAL_C_INCLUDES+= . \
@@ -46,13 +62,18 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/../include \
                    $(LOCAL_PATH)/../stack/include \
                    $(LOCAL_PATH)/../stack/l2cap \
+                   $(LOCAL_PATH)/../stack/a2dp \
                    $(LOCAL_PATH)/../stack/btm \
+                   $(LOCAL_PATH)/../stack/avdt \
                    $(LOCAL_PATH)/../hcis \
                    $(LOCAL_PATH)/../hcis/include \
                    $(LOCAL_PATH)/../hcis/patchram \
                    $(LOCAL_PATH)/../udrv/include \
                    $(LOCAL_PATH)/../btif/include \
+                   $(LOCAL_PATH)/../btif/co \
                    $(LOCAL_PATH)/../vendor/libvendor/include\
+                   $(LOCAL_PATH)/../brcm/include \
+		   		   $(LOCAL_PATH)/../embdrv/sbc/encoder/include
 
 LOCAL_CFLAGS += -DBUILDCFG -Werror
 
@@ -75,7 +96,7 @@ LOCAL_SHARED_LIBRARIES := \
     libbt-vendor
 
 #LOCAL_WHOLE_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_stack libbt-brcm_bta
-LOCAL_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_stack libbt-brcm_bta
+LOCAL_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_bta libbt-brcm_stack
 
 LOCAL_MODULE := bluetooth.default
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw

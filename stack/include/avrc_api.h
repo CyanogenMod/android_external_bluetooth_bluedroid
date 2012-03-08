@@ -10,7 +10,7 @@
 *****************************************************************************/
 #ifndef AVRC_API_H
 #define AVRC_API_H
-
+#include "bt_target.h"
 #include "avct_api.h"
 #include "sdp_api.h"
 #include "avrc_defs.h"

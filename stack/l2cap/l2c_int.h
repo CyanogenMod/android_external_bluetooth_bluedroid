@@ -26,7 +26,7 @@
 #define L2CAP_LINK_FLOW_CONTROL_TOUT 2            /* 2  seconds */
 #define L2CAP_LINK_DISCONNECT_TOUT   30           /* 30 seconds */
 
-#ifndef L2CAP_CHNL_CONNECT_TOUT      /* BSA needs to override for internal project needs */
+#ifndef L2CAP_CHNL_CONNECT_TOUT      /* BTIF needs to override for internal project needs */
 #define L2CAP_CHNL_CONNECT_TOUT      60           /* 60 seconds */
 #endif
 

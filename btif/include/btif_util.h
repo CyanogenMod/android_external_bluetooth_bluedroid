@@ -94,6 +94,8 @@ const char* dump_hf_audio_state(UINT16 event);
 const char* dump_adapter_scan_mode(bt_scan_mode_t mode);
 const char* dump_thread_evt(bt_cb_thread_evt evt);
 
+const char* dump_av_conn_state(UINT16 event);
+
 int str2bd(char *str, bt_bdaddr_t *addr);
 char *bd2str(bt_bdaddr_t *addr, bdstr_t *bdstr);
 

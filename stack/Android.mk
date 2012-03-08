@@ -8,6 +8,7 @@ LOCAL_C_INCLUDES:= . \
                    $(LOCAL_PATH)/include \
                    $(LOCAL_PATH)/avct \
                    $(LOCAL_PATH)/btm \
+                   $(LOCAL_PATH)/avrc \
                    $(LOCAL_PATH)/l2cap \
                    $(LOCAL_PATH)/avdt \
                    $(LOCAL_PATH)/gatt \
@@ -41,6 +42,10 @@ endif
 LOCAL_PRELINK_MODULE:=false
 LOCAL_SRC_FILES:= \
     ./dun/dun_api.c \
+    ./a2dp/a2d_api.c \
+    ./a2dp/a2d_m24.c \
+    ./a2dp/a2d_m12.c \
+    ./a2dp/a2d_sbc.c \
     ./avrc/avrc_bld_tg.c \
     ./avrc/avrc_api.c \
     ./avrc/avrc_utils.c \
@@ -157,10 +162,6 @@ LOCAL_SRC_FILES:= \
     ./xml/xml_flp.c \
     ./xml/xml_mlp.c \
     ./xml/xml_bld.c \
-    ./a2dp/a2d_api.c \
-    ./a2dp/a2d_m24.c \
-    ./a2dp/a2d_m12.c \
-    ./a2dp/a2d_sbc.c \
     ./pan/pan_main.c \
     ./pan/pan_api.c \
     ./pan/pan_utils.c \

@@ -17,9 +17,6 @@
 #include "avdt_api.h"
 #include "a2d_api.h"
 #include "bta_api.h"
-#if( defined VDP_INCLUDED) && (VDP_INCLUDED == TRUE)
-#include "vdp_api.h"
-#endif
 
 /*****************************************************************************
 **  Constants and data types
@@ -238,6 +235,8 @@ typedef UINT8 tBTA_AV_ERR;
 #define BTA_AV_META_MSG_EVT     17      /* metadata messages */
 #define BTA_AV_REJECT_EVT       18      /* incoming connection rejected */
 #define BTA_AV_RC_FEAT_EVT      19      /* remote control channel peer supported features update */
+/* Max BTA event */
+#define BTA_AV_MAX_EVT          20
 
 typedef UINT8 tBTA_AV_EVT;
 

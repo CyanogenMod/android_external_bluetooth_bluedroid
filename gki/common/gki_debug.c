@@ -210,7 +210,7 @@ GKI_API void gki_print_used_bufs (FP_PRINT print, UINT8 pool_id)
     UINT16       *p;
 
 
-    if (pool_id >= GKI_NUM_TOTAL_BUF_POOLS && gki_cb.com.pool_start[pool_id] != 0)
+    if ((pool_id >= GKI_NUM_TOTAL_BUF_POOLS) || (gki_cb.com.pool_start[pool_id] != 0))
     {
         print("Not a valid Buffer pool\n");
         return;

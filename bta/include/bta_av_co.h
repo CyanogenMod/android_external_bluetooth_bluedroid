@@ -47,12 +47,6 @@ enum
     BTA_AV_CO_ST_STREAM
 };
 
-/* data type for the Video Codec Information Element*/
-typedef struct
-{
-    UINT8   codec_type;     /* Codec type */
-    UINT8   levels;         /* level mask */
-} tBTA_AV_VIDEO_CFG;
 
 /* data type for the Audio Codec Information*/
 typedef struct
@@ -79,22 +73,6 @@ typedef struct
 **
 *******************************************************************************/
 BTA_API extern BOOLEAN bta_av_co_audio_init(UINT8 *p_codec_type, UINT8 *p_codec_info,
-                                   UINT8 *p_num_protect, UINT8 *p_protect_info, UINT8 index);
-
-/*******************************************************************************
-**
-** Function         bta_av_co_video_init
-**
-** Description      This callout function is executed by AV when it is
-**                  started by calling BTA_AvEnable().  This function can be
-**                  used by the phone to initialize video paths or for other
-**                  initialization purposes.  
-**                  
-**
-** Returns          Stream codec and content protection capabilities info.
-**
-*******************************************************************************/
-BTA_API extern BOOLEAN bta_av_co_video_init(UINT8 *p_codec_type, UINT8 *p_codec_info,
                                    UINT8 *p_num_protect, UINT8 *p_protect_info, UINT8 index);
 
 /*******************************************************************************
@@ -263,7 +241,8 @@ BTA_API extern void bta_av_co_video_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type);
+BTA_API extern void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
+        UINT8 *p_codec_info, BOOLEAN *p_no_rtp_hdr);
 
 /*******************************************************************************
 **
@@ -276,7 +255,8 @@ BTA_API extern void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_av_co_video_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type);
+BTA_API extern void bta_av_co_video_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
+        UINT8 *p_codec_info, BOOLEAN *p_no_rtp_hdr);
 
 /*******************************************************************************
 **

@@ -12,7 +12,7 @@
 *****************************************************************************/
 
 #include "bt_target.h"
-#if defined(AV_INCLUDED) && (AV_INCLUDED == TRUE)
+#if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
 
 #include <string.h>
 #include "bta_av_int.h"
@@ -2685,4 +2685,4 @@ void bta_av_open_at_inc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     }
 }
 
-#endif /* AV_INCLUDED */
+#endif /* BTA_AV_INCLUDED */

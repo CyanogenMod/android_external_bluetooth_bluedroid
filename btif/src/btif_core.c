@@ -73,12 +73,12 @@
 ************************************************************************************/
 
 #ifndef BTIF_TASK_STACK_SIZE
-#define BTIF_TASK_STACK_SIZE       0//0x2000         /* In bytes */
+#define BTIF_TASK_STACK_SIZE       0x2000         /* In bytes */
 #endif
 
 #define BTIF_TASK_STR        ((INT8 *) "BTIF")
-
 static UINT32 btif_task_stack[(BTIF_TASK_STACK_SIZE + 3) / 4];
+
 
 /* checks whether any HAL operation other than enable is permitted */
 static int btif_enabled = 0;
@@ -317,7 +317,7 @@ bt_status_t btif_init_bluetooth(void)
 
     bte_main_boot_entry();
 
-    /* Start the BTIF task */
+    /* start btif task */
     status = GKI_create_task(btif_task, BTIF_TASK, BTIF_TASK_STR,
                 (UINT16 *) ((UINT8 *)btif_task_stack + BTIF_TASK_STACK_SIZE),
                 sizeof(btif_task_stack));
