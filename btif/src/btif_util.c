@@ -287,14 +287,14 @@ const char* dump_hf_call_state(bthf_call_state_t call_state)
     switch(call_state)
     {
         CASE_RETURN_STR(BTHF_CALL_STATE_IDLE)
-        CASE_RETURN_STR(BTHF_CALL_STATE_ONHOLD)
+        CASE_RETURN_STR(BTHF_CALL_STATE_HELD)
         CASE_RETURN_STR(BTHF_CALL_STATE_DIALING)
         CASE_RETURN_STR(BTHF_CALL_STATE_ALERTING)
         CASE_RETURN_STR(BTHF_CALL_STATE_INCOMING)
         CASE_RETURN_STR(BTHF_CALL_STATE_WAITING)
         CASE_RETURN_STR(BTHF_CALL_STATE_ACTIVE)
         default:
-            return "UNKNOWN MSG ID";
+            return "UNKNOWN CALL STATE";
     }
 }
 

@@ -3396,6 +3396,15 @@ The maximum number of payload octets that the local device can receive in a sing
 #define BTA_EIR_SERVER_NUM_CUSTOM_UUID     8
 #endif
 
+/* CHLD override for bluedroid */
+#ifndef BTA_AG_CHLD_VAL_ECC
+#define BTA_AG_CHLD_VAL_ECC  "(0,1,1x,2,2x,3)"
+#endif
+
+#ifndef BTA_AG_CHLD_VAL
+#define BTA_AG_CHLD_VAL  "(0,1,2,3)"
+#endif
+
 
 /******************************************************************************
 **

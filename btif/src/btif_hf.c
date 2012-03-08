@@ -824,10 +824,10 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
 
     CHECK_BTHF_INIT();
 
-    BTIF_TRACE_DEBUG6("phone_state_change: num_active=%d[%d]  num_held=%d[%d]"\
-                      " call_setup=%d [%d]", num_active, btif_hf_cb.num_active,
+    BTIF_TRACE_DEBUG6("phone_state_change: num_active=%d [prev: %d]  num_held=%d[prev: %d]"\
+                      " call_setup=%s [prev: %s]", num_active, btif_hf_cb.num_active,
                        num_held, btif_hf_cb.num_held,
-                       call_setup_state, btif_hf_cb.call_setup_state);
+                       dump_hf_call_state(call_setup_state), dump_hf_call_state(btif_hf_cb.call_setup_state));
 
     /* Check what has changed and update the corresponding indicators.
     ** In ad
@@ -895,7 +895,10 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
                     res = BTA_AG_IN_CALL_RES;
                 if (number)
                 {
-                    strcpy(ag_res.str, number);
+                    if ((type == BTHF_CALL_ADDRTYPE_INTERNATIONAL) && (*number != '+'))
+                        sprintf (ag_res.str, "\"+%s\"", number);
+                    else
+                        sprintf (ag_res.str, "\"%s\"", number);
                     ag_res.num = type;
                 }
                 break;
