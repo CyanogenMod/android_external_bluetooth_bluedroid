@@ -142,7 +142,7 @@ static btif_hf_cb_t btif_hf_cb;
 *******************************************************************************/
 static BOOLEAN is_connected(bt_bdaddr_t *bd_addr)
 {
-    if ((btif_hf_cb.state == BTHF_CONNECTION_STATE_CONNECTED) &&
+    if (((btif_hf_cb.state == BTHF_CONNECTION_STATE_CONNECTED) || (btif_hf_cb.state == BTHF_CONNECTION_STATE_SLC_CONNECTED))&&
         ((bd_addr == NULL) || (bdcmp(bd_addr->address, btif_hf_cb.connected_bda.address) == 0)))
         return TRUE;
     else
@@ -214,6 +214,13 @@ static void send_indicator_update (UINT16 indicator, UINT16 value)
     BTA_AgResult(BTA_AG_HANDLE_ALL, BTA_AG_IND_RES, &ag_res);
 }
 
+void clear_phone_state()
+{
+    btif_hf_cb.call_setup_state = BTHF_CALL_STATE_IDLE;
+    btif_hf_cb.num_active = btif_hf_cb.num_held = 0;
+}
+
+
 /*****************************************************************************
 **   Section name (Group of functions)
 *****************************************************************************/
@@ -257,6 +264,7 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
                 bdcpy(btif_hf_cb.connected_bda.address, p_data->open.bd_addr);
                 btif_hf_cb.state = BTHF_CONNECTION_STATE_CONNECTED;
                 btif_hf_cb.peer_feat = 0;
+                clear_phone_state();
             }
             else if (btif_hf_cb.state == BTHF_CONNECTION_STATE_CONNECTING)
             {
@@ -271,19 +279,27 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
 
             CHECK_CALL_CBACK(bt_hf_callbacks, connection_state_cb, btif_hf_cb.state, &btif_hf_cb.connected_bda);
 
-            if (p_data->open.status != BTA_AG_SUCCESS)
+            if (btif_hf_cb.state == BTHF_CONNECTION_STATE_DISCONNECTED)
                 bdsetany(btif_hf_cb.connected_bda.address);
             break;
 
         case BTA_AG_CLOSE_EVT:
             btif_hf_cb.state = BTHF_CONNECTION_STATE_DISCONNECTED;
             CHECK_CALL_CBACK(bt_hf_callbacks, connection_state_cb, btif_hf_cb.state, &btif_hf_cb.connected_bda);
+
             bdsetany(btif_hf_cb.connected_bda.address);
             btif_hf_cb.peer_feat = 0;
+            clear_phone_state();
+
             break;
 
         case BTA_AG_CONN_EVT:
             btif_hf_cb.peer_feat = p_data->conn.peer_feat;
+            btif_hf_cb.state = BTHF_CONNECTION_STATE_SLC_CONNECTED;
+
+            CHECK_CALL_CBACK(bt_hf_callbacks, connection_state_cb, btif_hf_cb.state,
+                             &btif_hf_cb.connected_bda);
+
             break;
 
         case BTA_AG_AUDIO_OPEN_EVT:
