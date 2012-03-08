@@ -71,10 +71,10 @@
 /* TODO: Should these be moved to a conf file? */
 #define BTIF_HF_SERVICES    (BTA_HSP_SERVICE_MASK | BTA_HFP_SERVICE_MASK)
 #define BTIF_HF_SECURITY    (BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT)
-#define BTIF_HF_FEATURES   (BTA_AG_FEAT_ECNR   | \
+#define BTIF_HF_FEATURES   ( BTA_AG_FEAT_3WAY | \
+                             BTA_AG_FEAT_ECNR   | \
                              BTA_AG_FEAT_REJECT | \
                              BTA_AG_FEAT_ECS    | \
-                             BTA_AG_FEAT_ECC    | \
                              BTA_AG_FEAT_EXTERR | \
                              BTA_AG_FEAT_BTRH   | \
                              BTA_AG_FEAT_VREC)
