@@ -135,7 +135,6 @@ enum
     BTIF_DM_CB_START = BTIF_SIG_CB_START(BTIF_DM),
     BTIF_DM_CB_DISCOVERY_STARTED, /* Discovery has started */
     BTIF_DM_CB_BONDING_STARTED,   /* Bonding process has started */
-    BTIF_DM_CB_REMOVED_BONDING    /* Bonded device deleted */
 };
 
 /************************************************************************************

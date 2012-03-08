@@ -74,6 +74,8 @@ enum
     BTA_DM_CI_RMT_OOB_EVT,
 #endif /* BTM_OOB_INCLUDED */
 
+    BTA_DM_API_REMOVE_DEVICE_EVT,
+
 #if BLE_INCLUDED == TRUE
     BTA_DM_API_ADD_BLEKEY_EVT,
     BTA_DM_API_ADD_BLEDEVICE_EVT,
@@ -383,6 +385,13 @@ typedef struct
     BD_FEATURES         features;
 } tBTA_DM_API_ADD_DEVICE;
 
+/* data type for BTA_DM_API_REMOVE_ACL_EVT */
+typedef struct
+{
+    BT_HDR              hdr;
+    BD_ADDR             bd_addr;
+} tBTA_DM_API_REMOVE_DEVICE;
+
 /* data type for BTA_DM_API_EXECUTE_CBACK_EVT */
 typedef struct
 {
@@ -506,6 +515,8 @@ typedef union
 
     tBTA_DM_API_ADD_DEVICE  add_dev;
 
+    tBTA_DM_API_REMOVE_DEVICE remove_dev;
+
     tBTA_DM_API_SEARCH search;
 
     tBTA_DM_API_DISCOVER discover;
@@ -575,7 +586,7 @@ typedef union
 
 #define BTA_DM_NOT_CONNECTED  0
 #define BTA_DM_CONNECTED      1
-
+#define BTA_DM_UNPAIRING      2
 typedef UINT8 tBTA_DM_CONN_STATE;
 
 
@@ -885,6 +896,8 @@ extern void bta_dm_signal_strength(tBTA_DM_MSG *p_data);
 extern void bta_dm_tx_inqpower(tBTA_DM_MSG *p_data);
 extern void bta_dm_acl_change(tBTA_DM_MSG *p_data); 
 extern void bta_dm_add_device (tBTA_DM_MSG *p_data);
+extern void bta_dm_remove_device (tBTA_DM_MSG *p_data);
+
 
 extern void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data);
 extern void bta_dm_pm_timer(tBTA_DM_MSG *p_data);

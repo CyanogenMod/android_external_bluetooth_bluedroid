@@ -734,26 +734,22 @@ void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
 *******************************************************************************/
 tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr)
 {
+    tBTA_DM_API_REMOVE_DEVICE *p_msg;
 
-    BOOLEAN device_ok_to_remove = TRUE;
-
-    GKI_sched_lock();
-
-    if (BTM_IsAclConnectionUp(bd_addr))
+    if ((p_msg = (tBTA_DM_API_REMOVE_DEVICE *) GKI_getbuf(sizeof(tBTA_DM_API_REMOVE_DEVICE))) != NULL)
     {
-        /* Don't allow deletion while connection is active */
-        device_ok_to_remove = FALSE;
-    }
-    else    /* Ok to remove the device in application layer */
-    {
-        BTM_SecDeleteDevice(bd_addr);
-    }
-    GKI_sched_unlock();
+        memset (p_msg, 0, sizeof(tBTA_DM_API_REMOVE_DEVICE));
 
-    if(device_ok_to_remove)
-        return BTA_SUCCESS;
+        p_msg->hdr.event = BTA_DM_API_REMOVE_DEVICE_EVT;
+        bdcpy(p_msg->bd_addr, bd_addr);
+        bta_sys_sendmsg(p_msg);
+    }
     else
+    {
         return BTA_FAILURE;
+    }
+
+    return BTA_SUCCESS;
 }
 
 /*******************************************************************************

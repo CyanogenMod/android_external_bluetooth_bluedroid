@@ -679,7 +679,8 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
     tBTA_DM_SEC *p_data = (tBTA_DM_SEC*)p_param;
     tBTA_SERVICE_MASK service_mask;
     uint32_t i;
-    
+    bt_bdaddr_t bd_addr;
+
     BTIF_TRACE_EVENT1("btif_dm_upstreams_cback  ev: %d", event);
 
     switch (event)
@@ -758,6 +759,13 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
         case BTA_DM_SP_KEY_NOTIF_EVT:
             btif_dm_ssp_key_notif_evt(&p_data->key_notif);
             break;
+
+        case BTA_DM_DEV_UNPAIRED_EVT:
+            bdcpy(bd_addr.address, p_data->link_down.bd_addr);
+            btif_storage_remove_bonded_device(&bd_addr);
+            CHECK_CALL_CBACK(bt_hal_cbacks, bond_state_changed_cb, BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_NONE);
+            break;
+
         case BTA_DM_AUTHORIZE_EVT:
         case BTA_DM_LINK_DOWN_EVT:
         case BTA_DM_SIG_STRENGTH_EVT:          
@@ -798,19 +806,6 @@ static void btif_dm_generic_evt(UINT16 event, char* p_param)
         case BTIF_DM_CB_DISCOVERY_STARTED:
         {
             CHECK_CALL_CBACK(bt_hal_cbacks, discovery_state_changed_cb, BT_DISCOVERY_STARTED);
-        }
-        break;
-
-        case BTIF_DM_CB_REMOVED_BONDING:
-        {
-           bt_bdaddr_t *bd_addr = (bt_bdaddr_t*)p_param;
-           bt_status_t status;
-
-           status = btif_storage_remove_bonded_device(bd_addr);
-           ASSERTC(status == BT_STATUS_SUCCESS, "failed to delete bonded device", status);
-
-           CHECK_CALL_CBACK(bt_hal_cbacks, bond_state_changed_cb,
-                            BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_NONE);
         }
         break;
 
@@ -1051,14 +1046,10 @@ bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr)
         BTIF_TRACE_DEBUG1("Successfully removed bonding with device: %s", 
                                                 bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
 
-        /* Device shall be removed from the storage in the btif context */
-        btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_REMOVED_BONDING,
-                              (char*)bd_addr, sizeof(bt_bdaddr_t), NULL);
     }
     else
     {
-        /* TODO: ACL is already up with this device, disconnect and then issue RemoveBond */
-        BTIF_TRACE_WARNING0("ACL connection exists with device. Disconnect and issue remove bonding");
+        return BT_STATUS_FAIL;
     }
     return BT_STATUS_SUCCESS;
 }

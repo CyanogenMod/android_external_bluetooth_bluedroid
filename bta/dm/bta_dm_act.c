@@ -607,6 +607,42 @@ void bta_dm_tx_inqpower(tBTA_DM_MSG *p_data)
 
 /*******************************************************************************
 **
+** Function         bta_dm_remove_device
+**
+** Description      Removes device, Disconnects ACL link if required.
+****
+*******************************************************************************/
+void bta_dm_remove_device (tBTA_DM_MSG *p_data)
+{
+    tBTA_DM_API_REMOVE_DEVICE *p_dev = &p_data->remove_dev;
+    int i;
+
+    if (BTM_IsAclConnectionUp(p_dev->bd_addr))
+    {
+        /* Take the link down first, and mark the device for removal when disconnected */
+        btm_remove_acl( p_dev->bd_addr) ;
+
+        for(i=0; i<bta_dm_cb.device_list.count; i++)
+        {
+            if(!bdcmp( bta_dm_cb.device_list.peer_device[i].peer_bdaddr, p_dev->bd_addr))
+            break;
+        }
+
+        if(i < bta_dm_cb.device_list.count)
+        {
+            bta_dm_cb.device_list.peer_device[i].conn_state = BTA_DM_UNPAIRING;
+        }
+    }
+    else    /* Ok to remove the device in application layer */
+    {
+        BTM_SecDeleteDevice(p_dev->bd_addr);
+        if( bta_dm_cb.p_sec_cback )
+            bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, p_dev->bd_addr);
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         bta_dm_add_device
 **
 ** Description      This function adds a Link Key to an security database entry. 
@@ -3080,6 +3116,7 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
     BOOLEAN is_new = p_data->acl_change.is_new;
     BD_ADDR_PTR     p_bda = p_data->acl_change.bd_addr;
     BOOLEAN         need_policy_change = FALSE;
+    BOOLEAN         issue_unpair_cb = FALSE;
 
 #if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     tBTA_DM_PEER_DEVICE *p_dev;
@@ -3181,18 +3218,20 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
             if(bdcmp( bta_dm_cb.device_list.peer_device[i].peer_bdaddr, p_bda))
                 continue;       
 
+            if( bta_dm_cb.device_list.peer_device[i].conn_state == BTA_DM_UNPAIRING )
+            {
+                BTM_SecDeleteDevice(bta_dm_cb.device_list.peer_device[i].peer_bdaddr);
+                issue_unpair_cb = TRUE;
+            }
+
             for(; i<bta_dm_cb.device_list.count ; i++)
             {
-
                 memcpy(&bta_dm_cb.device_list.peer_device[i], &bta_dm_cb.device_list.peer_device[i+1], sizeof(bta_dm_cb.device_list.peer_device[i]));
-
-            } 
-
+            }
             break;
-
         }
         if(bta_dm_cb.device_list.count)
-        bta_dm_cb.device_list.count--;
+            bta_dm_cb.device_list.count--;
 
         if(bta_dm_search_cb.wait_disc && !bdcmp(bta_dm_search_cb.peer_bdaddr, p_bda))
         {
@@ -3209,22 +3248,23 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
 
         if(bta_dm_cb.disabling)
         {
-
             if(!BTM_GetNumAclLinks())
             {
                 bta_sys_stop_timer(&bta_dm_cb.disable_timer);
                 bta_dm_cb.disable_timer.p_cback = (TIMER_CBACK*)&bta_dm_disable_conn_down_timer_cback;
-                /* start a timer to make sure that the profiles
-                get the disconnect event */
+                /* start a timer to make sure that the profiles get the disconnect event */
                 bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, 1000);
             }
-
         }
 
         bdcpy(conn.link_down.bd_addr, p_bda);
         conn.link_down.status = (UINT8) btm_get_acl_disc_reason_code();
         if( bta_dm_cb.p_sec_cback )  
+        {
             bta_dm_cb.p_sec_cback(BTA_DM_LINK_DOWN_EVT, (tBTA_DM_SEC *)&conn);
+            if( issue_unpair_cb )
+                bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, (tBTA_DM_SEC *)&conn);
+        }
     } 
 
     bta_dm_adjust_roles();
