@@ -79,6 +79,7 @@
 #define BTIF_DM_DEFAULT_INQ_MAX_DURATION    10
 
 typedef struct {
+    bt_bond_state_t state;
     BD_ADDR bd_addr;
     UINT8   is_temp;
     UINT8   pin_code_len;
@@ -206,6 +207,25 @@ static BOOLEAN check_cached_remote_name(tBTA_DM_SEARCH *p_search_data,
     return FALSE;
 }
 
+static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond_state_t state)
+{
+    /* Send bonding state only once - based on outgoing/incoming we may receive duplicates */
+    if ( (pairing_cb.state == state) && (state == BT_BOND_STATE_BONDING) )
+        return;
+
+    BTIF_TRACE_DEBUG3("%s: state=%d prev_state=%d", __FUNCTION__, state, pairing_cb.state);
+
+    CHECK_CALL_CBACK(bt_hal_cbacks, bond_state_changed_cb, status, bd_addr, state);
+
+    if (state == BT_BOND_STATE_BONDING)
+    {
+        pairing_cb.state = state;
+        bdcpy(pairing_cb.bd_addr, bd_addr->address);
+    }
+    else
+        memset(&pairing_cb, 0, sizeof(pairing_cb));
+}
+
 /*******************************************************************************
 **
 ** Function         search_devices_copy_cb
@@ -274,8 +294,7 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     bdcpy(bd_addr.address, p_pin_req->bd_addr);
     memcpy(bd_name.name, p_pin_req->bd_name, BD_NAME_LEN);
 
-    memset(&pairing_cb, 0, sizeof(btif_dm_pairing_cb_t));
-    bdcpy(pairing_cb.bd_addr, p_pin_req->bd_addr);
+    bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
 
     cod = devclass2uint(p_pin_req->dev_class);
     
@@ -308,8 +327,7 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     memcpy(bd_name.name, p_ssp_cfm_req->bd_name, BD_NAME_LEN);
 
     /* Set the pairing_cb based on the local & remote authentication requirements */
-    memset(&pairing_cb, 0, sizeof(btif_dm_pairing_cb_t));
-    bdcpy(pairing_cb.bd_addr, p_ssp_cfm_req->bd_addr);
+    bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
 
     if ((p_ssp_cfm_req->loc_auth_req >= BTM_AUTH_AP_NO && p_ssp_cfm_req->rmt_auth_req >= BTM_AUTH_AP_NO) ||
         (p_ssp_cfm_req->loc_auth_req == BTM_AUTH_AP_NO || p_ssp_cfm_req->loc_auth_req == BTM_AUTH_AP_YES) ||
@@ -348,6 +366,8 @@ static void btif_dm_ssp_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif)
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
     bdcpy(bd_addr.address, p_ssp_key_notif->bd_addr);
     memcpy(bd_name.name, p_ssp_key_notif->bd_name, BD_NAME_LEN);
+
+    bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
 
     cod = devclass2uint(p_ssp_key_notif->dev_class);
 
@@ -406,9 +426,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         btif_dm_get_remote_services(&bd_addr);
     }
 
-    CHECK_CALL_CBACK(bt_hal_cbacks, bond_state_changed_cb, status, &bd_addr, state);
-
-    memset(&pairing_cb, 0, sizeof(btif_dm_pairing_cb_t));
+    bond_state_changed(status, &bd_addr, state);
 }
 
 /******************************************************************************
@@ -772,7 +790,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
         case BTA_DM_DEV_UNPAIRED_EVT:
             bdcpy(bd_addr.address, p_data->link_down.bd_addr);
             btif_storage_remove_bonded_device(&bd_addr);
-            CHECK_CALL_CBACK(bt_hal_cbacks, bond_state_changed_cb, BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_NONE);
+            bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_NONE);
             break;
 
         case BTA_DM_AUTHORIZE_EVT:
@@ -815,6 +833,12 @@ static void btif_dm_generic_evt(UINT16 event, char* p_param)
         case BTIF_DM_CB_DISCOVERY_STARTED:
         {
             CHECK_CALL_CBACK(bt_hal_cbacks, discovery_state_changed_cb, BT_DISCOVERY_STARTED);
+        }
+        break;
+
+        case BTIF_DM_CB_BONDING_STARTED:
+        {
+            bond_state_changed(BT_STATUS_SUCCESS, (bt_bdaddr_t *)p_param, BT_BOND_STATE_BONDING);
         }
         break;
 
@@ -998,6 +1022,9 @@ bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr)
     
     BTIF_TRACE_EVENT2("%s: bd_addr=%s", __FUNCTION__, bd2str((bt_bdaddr_t *) bd_addr, &bdstr));
 
+    if (pairing_cb.state != BT_BOND_STATE_NONE)
+        return BT_STATUS_BUSY;
+
     /* TODO:
     **  1. Check if ACL is already up with this device
     **  2. Disable unpaired devices from connecting while we are bonding
@@ -1005,6 +1032,10 @@ bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr)
     */
 
     BTA_DmBond ((UINT8 *)bd_addr->address);
+
+    /* Invoke the discovery_started callback */
+    btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_BONDING_STARTED, (char *)bd_addr, sizeof(bt_bdaddr_t), NULL);
+
     return BT_STATUS_SUCCESS;
 }
 
@@ -1082,8 +1113,6 @@ bt_status_t btif_dm_pin_reply( const bt_bdaddr_t *bd_addr, uint8_t accept,
 
     if (accept)
         pairing_cb.pin_code_len = pin_len;
-    else
-        memset(&pairing_cb, 0, sizeof(btif_dm_pairing_cb_t));
 
     return BT_STATUS_SUCCESS;
 }
@@ -1103,18 +1132,16 @@ bt_status_t btif_dm_ssp_reply(const bt_bdaddr_t *bd_addr,
                                  uint32_t passkey)
 {
     if (variant == BT_SSP_VARIANT_PASSKEY_ENTRY)
-{
-    /* This is not implemented in the stack.
+    {
+        /* This is not implemented in the stack.
          * For devices with display, this is not needed
-    */
-    BTIF_TRACE_WARNING1("%s: Not implemented", __FUNCTION__);
-    return BT_STATUS_FAIL;
-}
+        */
+        BTIF_TRACE_WARNING1("%s: Not implemented", __FUNCTION__);
+        return BT_STATUS_FAIL;
+    }
     /* BT_SSP_VARIANT_CONSENT & BT_SSP_VARIANT_PASSKEY_CONFIRMATION supported */
     BTIF_TRACE_EVENT2("%s: accept=%d", __FUNCTION__, accept);
     BTA_DmConfirm( (UINT8 *)bd_addr->address, accept);
-    if (!accept)
-        memset(&pairing_cb, 0, sizeof(btif_dm_pairing_cb_t));
 
     return BT_STATUS_SUCCESS;
 }
