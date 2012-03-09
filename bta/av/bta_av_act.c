@@ -87,7 +87,8 @@ void bta_av_del_rc(tBTA_AV_RCB *p_rcb)
             p_scb = bta_av_cb.p_scb[p_rcb->shdl - 1];
             if(p_scb)
             {
-                APPL_TRACE_DEBUG3("bta_av_del_rc shdl:%d, srch:%d rc_handle:%d", p_rcb->shdl, p_scb->rc_handle, p_rcb->handle);
+                APPL_TRACE_DEBUG3("bta_av_del_rc shdl:%d, srch:%d rc_handle:%d", p_rcb->shdl,
+                                  p_scb->rc_handle, p_rcb->handle);
                 if(p_scb->rc_handle == p_rcb->handle)
                     p_scb->rc_handle = BTA_AV_RC_HANDLE_NONE;
                 /* just in case the RC timer is active
@@ -317,7 +318,7 @@ UINT8 bta_av_rc_create(tBTA_AV_CB *p_cb, UINT8 role, UINT8 shdl, UINT8 lidx)
     ccb.company_id = p_bta_av_cfg->company_id;  
     ccb.conn = role;        
     /* note: BTA_AV_FEAT_RCTG = AVRC_CT_TARGET, BTA_AV_FEAT_RCCT = AVRC_CT_CONTROL */
-    ccb.control = p_cb->features & (BTA_AV_FEAT_RCTG | BTA_AV_FEAT_RCCT | AVRC_CT_PASSIVE);       
+    ccb.control = p_cb->features & (BTA_AV_FEAT_RCTG | BTA_AV_FEAT_RCCT | AVRC_CT_PASSIVE);
 
 
     if (AVRC_Open(&rc_handle, &ccb, bda) != AVRC_SUCCESS)
@@ -497,7 +498,8 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 
     if (p_cb->rcb[i].lidx == (BTA_AV_NUM_LINKS + 1) && shdl != 0)
     {
-        /* rc is opened on the RC only ACP channel, but is for a specific SCB -> need to switch RCBs */
+        /* rc is opened on the RC only ACP channel, but is for a specific
+         * SCB -> need to switch RCBs */
         p_rcb = bta_av_get_rcb_by_shdl(shdl);
         if (p_rcb)
         {
@@ -507,7 +509,8 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             p_cb->rcb[i].lidx = tmp;
             p_cb->rc_acp_handle = p_rcb->handle;
             p_cb->rc_acp_idx = (p_rcb - p_cb->rcb) + 1;
-            APPL_TRACE_DEBUG2("switching RCB rc_acp_handle:%d idx:%d", p_cb->rc_acp_handle, p_cb->rc_acp_idx);
+            APPL_TRACE_DEBUG2("switching RCB rc_acp_handle:%d idx:%d",
+                               p_cb->rc_acp_handle, p_cb->rc_acp_idx);
         }
     }
 
@@ -538,7 +541,8 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     bdcpy(rc_open.peer_addr, p_data->rc_conn_chg.peer_addr);
     rc_open.peer_features = p_cb->rcb[i].peer_features;
     rc_open.status = BTA_AV_SUCCESS;
-    APPL_TRACE_DEBUG2("local features:x%x peer_features:x%x", p_cb->features, rc_open.peer_features);
+    APPL_TRACE_DEBUG2("local features:x%x peer_features:x%x", p_cb->features,
+                      rc_open.peer_features);
     if(rc_open.peer_features == 0)
     {
         /* we have not done SDP on peer RC capabilities.
@@ -549,8 +553,8 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     (*p_cb->p_cback)(BTA_AV_RC_OPEN_EVT, (tBTA_AV *) &rc_open);
 
 #if (AVRC_ADV_CTRL_INCLUDED == TRUE && AVCT_BROWSE_INCLUDED == TRUE)
-    /* if local initiated AVRCP connection and both peer and locals device support browsing channel,
-     * open the browsing channel now */
+    /* if local initiated AVRCP connection and both peer and locals device support
+     * browsing channel, open the browsing channel now */
     if ((p_cb->features & BTA_AV_FEAT_BROWSE) && (rc_open.peer_features & BTA_AV_FEAT_BROWSE) &&
         ((p_cb->rcb[i].status & BTA_AV_RC_ROLE_MASK) == BTA_AV_RC_ROLE_INT))
     {
@@ -652,7 +656,8 @@ void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             (!p_data->api_meta_rsp.is_rsp && (p_cb->features & BTA_AV_FEAT_RCCT)) )
         {
             p_rcb = &p_cb->rcb[p_data->hdr.layer_specific];
-            AVRC_MsgReq(p_rcb->handle, p_data->api_meta_rsp.label, p_data->api_meta_rsp.rsp_code, p_data->api_meta_rsp.p_pkt);
+            AVRC_MsgReq(p_rcb->handle, p_data->api_meta_rsp.label, p_data->api_meta_rsp.rsp_code,
+                                      p_data->api_meta_rsp.p_pkt);
             free = FALSE;
         }
     }
@@ -798,13 +803,15 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
                 {
                     *p_ctype = AVRC_RSP_IMPL_STBL;
                     p_rc_rsp->get_caps.count = p_bta_av_cfg->num_co_ids;
-                    memcpy(p_rc_rsp->get_caps.param.company_id, p_bta_av_cfg->p_meta_co_ids, (p_bta_av_cfg->num_co_ids << 2));
+                    memcpy(p_rc_rsp->get_caps.param.company_id, p_bta_av_cfg->p_meta_co_ids,
+                           (p_bta_av_cfg->num_co_ids << 2));
                 }
                 else if (u8 == AVRC_CAP_EVENTS_SUPPORTED)
                 {
                     *p_ctype = AVRC_RSP_IMPL_STBL;
                     p_rc_rsp->get_caps.count = p_bta_av_cfg->num_evt_ids;
-                    memcpy(p_rc_rsp->get_caps.param.event_id, p_bta_av_cfg->p_meta_evt_ids, p_bta_av_cfg->num_evt_ids);
+                    memcpy(p_rc_rsp->get_caps.param.event_id, p_bta_av_cfg->p_meta_evt_ids,
+                           p_bta_av_cfg->num_evt_ids);
                 }
                 else
                 {
@@ -864,7 +871,9 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
                 p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_NOT_IMPL;
 #if (AVRC_METADATA_INCLUDED == TRUE)
                 if (p_cb->features & BTA_AV_FEAT_METADATA)
-                    p_data->rc_msg.msg.hdr.ctype = bta_av_group_navi_supported(p_data->rc_msg.msg.pass.pass_len, p_data->rc_msg.msg.pass.p_pass_data);
+                    p_data->rc_msg.msg.hdr.ctype =
+                       bta_av_group_navi_supported(p_data->rc_msg.msg.pass.pass_len,
+                       p_data->rc_msg.msg.pass.p_pass_data);
 #endif
             }
             else
@@ -1081,7 +1090,8 @@ void bta_av_stream_chg(tBTA_AV_SCB *p_scb, BOOLEAN started)
     tBTA_AV_SCB *p_scbi;
 
     started_msk = BTA_AV_HNDL_TO_MSK(p_scb->hdi);
-    APPL_TRACE_DEBUG3 ("bta_av_stream_chg started:%d started_msk:x%x chnl:x%x", started, started_msk, p_scb->chnl);
+    APPL_TRACE_DEBUG3 ("bta_av_stream_chg started:%d started_msk:x%x chnl:x%x", started,
+                                                  started_msk, p_scb->chnl);
     if (BTA_AV_CHNL_AUDIO == p_scb->chnl)
         p_streams = &bta_av_cb.audio_streams;
     else
@@ -1114,7 +1124,8 @@ void bta_av_stream_chg(tBTA_AV_SCB *p_scb, BOOLEAN started)
                 for (; i<BTA_AV_NUM_STRS; i++)
                 {
                     p_scbi = bta_av_cb.p_scb[i];
-                    if ( p_scbi && (bta_av_cb.audio_streams & BTA_AV_HNDL_TO_MSK(i))  /* scb is used and started */
+                    /* scb is used and started */
+                    if ( p_scbi && (bta_av_cb.audio_streams & BTA_AV_HNDL_TO_MSK(i))
                         && bdcmp(p_scbi->peer_addr, p_scb->peer_addr) == 0)
                     {
                         no_streams = FALSE;
@@ -1125,7 +1136,8 @@ void bta_av_stream_chg(tBTA_AV_SCB *p_scb, BOOLEAN started)
             }
         }
 
-        APPL_TRACE_DEBUG4 ("no_streams:%d i:%d, audio_streams:x%x, video_streams:x%x", no_streams, i, bta_av_cb.audio_streams, bta_av_cb.video_streams);
+        APPL_TRACE_DEBUG4 ("no_streams:%d i:%d, audio_streams:x%x, video_streams:x%x", no_streams, i,
+                           bta_av_cb.audio_streams, bta_av_cb.video_streams);
         if (no_streams)
         {
             /* Let L2CAP know this channel is processed with low priority */
@@ -1178,7 +1190,9 @@ void bta_av_conn_chg(tBTA_AV_DATA *p_data)
                     if (bta_av_cb.rcb[i].lidx == p_lcb->lidx)
                     {
                         bta_av_cb.rcb[i].shdl = index + 1;
-                        APPL_TRACE_DEBUG5("conn_chg up[%d]: %d, status=0x%x, shdl:%d, lidx:%d", i, bta_av_cb.rcb[i].handle, bta_av_cb.rcb[i].status, bta_av_cb.rcb[i].shdl, bta_av_cb.rcb[i].lidx);
+                        APPL_TRACE_DEBUG5("conn_chg up[%d]: %d, status=0x%x, shdl:%d, lidx:%d", i,
+                                          bta_av_cb.rcb[i].handle, bta_av_cb.rcb[i].status,
+                                          bta_av_cb.rcb[i].shdl, bta_av_cb.rcb[i].lidx);
                         break;
                     }
                 }
@@ -1206,13 +1220,17 @@ void bta_av_conn_chg(tBTA_AV_DATA *p_data)
             if(p_lcb && p_cb->rc_acp_handle != BTA_AV_RC_HANDLE_NONE && p_cb->rc_acp_idx)
             {
                 p_lcb_rc = &p_cb->lcb[BTA_AV_NUM_LINKS];
-                APPL_TRACE_DEBUG1("rc_acp is connected && conn_chg on same addr p_lcb_rc->conn_msk:x%x", p_lcb_rc->conn_msk);
+                APPL_TRACE_DEBUG1("rc_acp is connected && conn_chg on same addr p_lcb_rc->conn_msk:x%x",
+                                  p_lcb_rc->conn_msk);
                 /* check if the RC is connected to the scb addr */
                 APPL_TRACE_DEBUG6 ("p_lcb_rc->addr: %02x:%02x:%02x:%02x:%02x:%02x",
-                       p_lcb_rc->addr[0], p_lcb_rc->addr[1], p_lcb_rc->addr[2], p_lcb_rc->addr[3], p_lcb_rc->addr[4], p_lcb_rc->addr[5]);
+                       p_lcb_rc->addr[0], p_lcb_rc->addr[1], p_lcb_rc->addr[2], p_lcb_rc->addr[3],
+                       p_lcb_rc->addr[4], p_lcb_rc->addr[5]);
                 APPL_TRACE_DEBUG6 ("conn_chg.peer_addr: %02x:%02x:%02x:%02x:%02x:%02x",
-                       p_data->conn_chg.peer_addr[0], p_data->conn_chg.peer_addr[1], p_data->conn_chg.peer_addr[2],
-                       p_data->conn_chg.peer_addr[3], p_data->conn_chg.peer_addr[4], p_data->conn_chg.peer_addr[5]);
+                       p_data->conn_chg.peer_addr[0], p_data->conn_chg.peer_addr[1],
+                       p_data->conn_chg.peer_addr[2],
+                       p_data->conn_chg.peer_addr[3], p_data->conn_chg.peer_addr[4],
+                       p_data->conn_chg.peer_addr[5]);
                 if (p_lcb_rc->conn_msk && bdcmp(p_lcb_rc->addr, p_data->conn_chg.peer_addr) == 0)
                 {
                     /* AVRCP is already connected.
@@ -1222,7 +1240,8 @@ void bta_av_conn_chg(tBTA_AV_DATA *p_data)
                     p_scb->rc_handle = p_cb->rc_acp_handle;
                     p_rcb = &p_cb->rcb[p_cb->rc_acp_idx - 1];
                     p_rcb->shdl = bta_av_get_shdl(p_scb);
-                    APPL_TRACE_DEBUG3("update rc_acp shdl:%d/%d srch:%d", index + 1, p_rcb->shdl, p_scb->rc_handle );
+                    APPL_TRACE_DEBUG3("update rc_acp shdl:%d/%d srch:%d", index + 1, p_rcb->shdl,
+                                      p_scb->rc_handle );
 
                     p_rcb2 = bta_av_get_rcb_by_shdl(p_rcb->shdl);
                     if (p_rcb2)
@@ -1230,12 +1249,15 @@ void bta_av_conn_chg(tBTA_AV_DATA *p_data)
                         /* found the RCB that was created to associated with this SCB */
                         p_cb->rc_acp_handle = p_rcb2->handle;
                         p_cb->rc_acp_idx = (p_rcb2 - p_cb->rcb) + 1;
-                        APPL_TRACE_DEBUG2("new rc_acp_handle:%d, idx:%d", p_cb->rc_acp_handle, p_cb->rc_acp_idx);
+                        APPL_TRACE_DEBUG2("new rc_acp_handle:%d, idx:%d", p_cb->rc_acp_handle,
+                                           p_cb->rc_acp_idx);
                         p_rcb2->lidx = (BTA_AV_NUM_LINKS + 1);
-                        APPL_TRACE_DEBUG3("rc2 handle:%d lidx:%d/%d",p_rcb2->handle, p_rcb2->lidx, p_cb->lcb[p_rcb2->lidx-1].lidx);
+                        APPL_TRACE_DEBUG3("rc2 handle:%d lidx:%d/%d",p_rcb2->handle, p_rcb2->lidx,
+                                          p_cb->lcb[p_rcb2->lidx-1].lidx);
                     }
                     p_rcb->lidx = p_lcb->lidx;
-                    APPL_TRACE_DEBUG3("rc handle:%d lidx:%d/%d",p_rcb->handle, p_rcb->lidx, p_cb->lcb[p_rcb->lidx-1].lidx);
+                    APPL_TRACE_DEBUG3("rc handle:%d lidx:%d/%d",p_rcb->handle, p_rcb->lidx,
+                                      p_cb->lcb[p_rcb->lidx-1].lidx);
                 }
             }
         }
@@ -1276,7 +1298,9 @@ void bta_av_conn_chg(tBTA_AV_DATA *p_data)
         APPL_TRACE_DEBUG1("bta_av_conn_chg shdl:%d", index + 1);
         for (i=0; i<BTA_AV_NUM_RCB; i++)
         {
-            APPL_TRACE_DEBUG5("conn_chg dn[%d]: %d, status=0x%x, shdl:%d, lidx:%d", i, bta_av_cb.rcb[i].handle, bta_av_cb.rcb[i].status, bta_av_cb.rcb[i].shdl, bta_av_cb.rcb[i].lidx);
+            APPL_TRACE_DEBUG5("conn_chg dn[%d]: %d, status=0x%x, shdl:%d, lidx:%d", i,
+                              bta_av_cb.rcb[i].handle, bta_av_cb.rcb[i].status,
+                              bta_av_cb.rcb[i].shdl, bta_av_cb.rcb[i].lidx);
             if(bta_av_cb.rcb[i].shdl == index + 1)
             {
                 bta_av_del_rc(&bta_av_cb.rcb[i]);
@@ -1431,7 +1455,12 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
                         p_cb->p_scb[xx]->use_rc = TRUE;     /* allowing RC for incoming connection */
                         bta_av_ssm_execute(p_cb->p_scb[xx], BTA_AV_ACP_CONNECT_EVT, p_data);
 
-                        bta_sys_start_timer(&p_cb->sig_tmr, BTA_AV_SIG_TIMER_EVT, BTA_AV_SIG_TIME_VAL);
+                        /* The Pending Event should be sent as soon as the L2CAP signalling channel 
+                         * is set up, which is NOW. Earlier this was done only after 
+                         * BTA_AV_SIG_TIME_VAL milliseconds.
+                         * The following function shall send the event and start the recurring timer
+                         */
+                        bta_av_sig_timer(NULL);
 
                         /* Possible collision : need to avoid outgoing processing while the timer is running */
                         p_cb->p_scb[xx]->coll_mask = BTA_AV_COLL_INC_TMR;

@@ -2,7 +2,7 @@
 #define BUILDCFG_H
 #define AVCT_INCLUDED   TRUE
 #define AVRC_INCLUDED   TRUE
-#define AVRC_METADATA_INCLUDED   TRUE
+#define AVRC_METADATA_INCLUDED   FALSE
 #define AVRC_ADV_CTRL_INCLUDED      FALSE
 #define AVDT_INCLUDED   TRUE
 #define AVDTC_INCLUDED   FALSE               # Makefile only

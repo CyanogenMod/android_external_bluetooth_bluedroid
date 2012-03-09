@@ -216,7 +216,7 @@ static tBTA_AV_CO_PEER *bta_av_co_get_peer(tBTA_AV_HNDL hndl)
     FUNC_TRACE();
 
     index = BTA_AV_CO_AUDIO_HNDL_TO_INDX(hndl);
-
+    APPL_TRACE_ERROR2("%s index:%d", __FUNCTION__, index);
     /* Sanity check */
     if (index >= BTA_AV_CO_NUM_ELEMENTS(bta_av_co_cb.peers))
     {
@@ -1008,7 +1008,6 @@ static BOOLEAN bta_av_co_audio_peer_supports_codec(tBTA_AV_CO_PEER *p_peer, UINT
     /* Configure the codec type to look for */
     codec_type = bta_av_co_cb.codec_cfg.id;
 
-
     for (index = 0; index < p_peer->num_sup_snks; index++)
     {
         if (p_peer->snks[index].codec_type == codec_type)
@@ -1378,6 +1377,12 @@ void bta_av_co_init(void)
 
     /* Reset the control block */
     memset(&bta_av_co_cb, 0, sizeof(bta_av_co_cb));
+
+#if defined(BTA_AV_CO_CP_SCMS_T) && (BTA_AV_CO_CP_SCMS_T == TRUE)
+    bta_av_co_cp_set_flag(BTA_AV_CP_SCMS_COPY_NEVER);
+#else
+    bta_av_co_cp_set_flag(BTA_AV_CP_SCMS_COPY_FREE);
+#endif
 
     /* Reset the current config */
     bta_av_co_audio_codec_reset();
