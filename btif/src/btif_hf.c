@@ -895,11 +895,15 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
                     res = BTA_AG_IN_CALL_RES;
                 if (number)
                 {
+                    int xx = 0;
                     if ((type == BTHF_CALL_ADDRTYPE_INTERNATIONAL) && (*number != '+'))
-                        sprintf (ag_res.str, "\"+%s\"", number);
+                        xx = sprintf (ag_res.str, "\"+%s\"", number);
                     else
-                        sprintf (ag_res.str, "\"%s\"", number);
+                        xx = sprintf (ag_res.str, "\"%s\"", number);
                     ag_res.num = type;
+
+                    if (res == BTA_AG_CALL_WAIT_RES)
+                        sprintf(&ag_res.str[xx], ",%d", type);
                 }
                 break;
             case BTHF_CALL_STATE_DIALING:
