@@ -363,6 +363,27 @@ void GKI_destroy_task(UINT8 task_id)
         /* paranoi settings, make sure that we do not execute any mailbox events */
         gki_cb.com.OSWaitEvt[task_id] &= ~(TASK_MBOX_0_EVT_MASK|TASK_MBOX_1_EVT_MASK|
                                             TASK_MBOX_2_EVT_MASK|TASK_MBOX_3_EVT_MASK);
+
+#if (GKI_NUM_TIMERS > 0)
+        gki_cb.com.OSTaskTmr0R[task_id] = 0;
+        gki_cb.com.OSTaskTmr0 [task_id] = 0;
+#endif
+
+#if (GKI_NUM_TIMERS > 1)
+        gki_cb.com.OSTaskTmr1R[task_id] = 0;
+        gki_cb.com.OSTaskTmr1 [task_id] = 0;
+#endif
+
+#if (GKI_NUM_TIMERS > 2)
+        gki_cb.com.OSTaskTmr2R[task_id] = 0;
+        gki_cb.com.OSTaskTmr2 [task_id] = 0;
+#endif
+
+#if (GKI_NUM_TIMERS > 3)
+        gki_cb.com.OSTaskTmr3R[task_id] = 0;
+        gki_cb.com.OSTaskTmr3 [task_id] = 0;
+#endif
+
         GKI_send_event(task_id, EVENT_MASK(GKI_SHUTDOWN_EVT));
 
 #if ( FALSE == GKI_PTHREAD_JOINABLE )
@@ -383,6 +404,70 @@ void GKI_destroy_task(UINT8 task_id)
 
 }
 
+
+/*******************************************************************************
+**
+** Function         GKI_task_self_cleanup
+**
+** Description      This function is used in the case when the calling thread
+**                  is exiting itself. The GKI_destroy_task function can not be
+**                  used in this case due to the pthread_join call. The function
+**                  cleans up GKI control block associated to the terminating
+**                  thread.
+**
+** Parameters:      task_id     - (input) Task id is used for sanity check to
+**                                 make sure the calling thread is in the right
+**                                 context.
+**
+** Returns          None
+**
+*******************************************************************************/
+void GKI_task_self_cleanup(UINT8 task_id)
+{
+    UINT8 my_task_id = GKI_get_taskid();
+
+    if (task_id != my_task_id)
+    {
+        GKI_ERROR_LOG("%s: Wrong context - current task %d is not the given task id %d",\
+                      __FUNCTION__, my_task_id, task_id);
+        return;
+    }
+    
+    if (gki_cb.com.OSRdyTbl[task_id] != TASK_DEAD)
+    {
+        /* paranoi settings, make sure that we do not execute any mailbox events */
+        gki_cb.com.OSWaitEvt[task_id] &= ~(TASK_MBOX_0_EVT_MASK|TASK_MBOX_1_EVT_MASK|
+                                            TASK_MBOX_2_EVT_MASK|TASK_MBOX_3_EVT_MASK);
+
+#if (GKI_NUM_TIMERS > 0)
+        gki_cb.com.OSTaskTmr0R[task_id] = 0;
+        gki_cb.com.OSTaskTmr0 [task_id] = 0;
+#endif
+
+#if (GKI_NUM_TIMERS > 1)
+        gki_cb.com.OSTaskTmr1R[task_id] = 0;
+        gki_cb.com.OSTaskTmr1 [task_id] = 0;
+#endif
+
+#if (GKI_NUM_TIMERS > 2)
+        gki_cb.com.OSTaskTmr2R[task_id] = 0;
+        gki_cb.com.OSTaskTmr2 [task_id] = 0;
+#endif
+
+#if (GKI_NUM_TIMERS > 3)
+        gki_cb.com.OSTaskTmr3R[task_id] = 0;
+        gki_cb.com.OSTaskTmr3 [task_id] = 0;
+#endif
+
+        GKI_exit_task(task_id);
+
+        /* Calling pthread_detach here to mark the thread as detached.
+           Once the thread terminates, the system can reclaim its resources
+           without waiting for another thread to join with.
+        */
+        pthread_detach(gki_cb.os.thread_id[task_id]);
+    }
+}
 
 /*******************************************************************************
 **

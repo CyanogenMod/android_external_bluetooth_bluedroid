@@ -49,8 +49,8 @@
  *
  *  Filename:      btif_core.c
  *
- *  Description:   Contains core functionality related to interfacing between 
- *                 Bluetooth HAL and BTE core stack. 
+ *  Description:   Contains core functionality related to interfacing between
+ *                 Bluetooth HAL and BTE core stack.
  * 
  ***********************************************************************************/
 
@@ -110,8 +110,8 @@ typedef union {
 /************************************************************************************
 **  Static functions
 ************************************************************************************/
-static bt_status_t btif_init_bluetooth_evt(void);
-static bt_status_t btif_shutdown_bluetooth_evt(void);
+static bt_status_t btif_associate_evt(void);
+static bt_status_t btif_disassociate_evt(void);
 
 /* sends message to btif task */
 static void btif_sendmsg(void *p_msg);
@@ -145,11 +145,11 @@ void btif_dm_execute_service_request(UINT16 event, char *p_param);
 **
 ** Function         btif_context_switched
 **
-** Description      Callback used to execute transferred context callback                  
+** Description      Callback used to execute transferred context callback
 **
 **                  p_msg : message to be executed in btif context
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 
@@ -163,7 +163,7 @@ static void btif_context_switched(void *p_msg)
 
     /* each callback knows how to parse the data */
     if (p->p_cb)
-        p->p_cb(p->event, p->p_param);   
+        p->p_cb(p->event, p->p_param);
 }
 
 
@@ -185,7 +185,7 @@ static void btif_context_switched(void *p_msg)
 
 bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_params, int param_len, tBTIF_COPY_CBACK *p_copy_cback)
 {
-    tBTIF_CONTEXT_SWITCH_CBACK *p_msg;        
+    tBTIF_CONTEXT_SWITCH_CBACK *p_msg;
 
     BTIF_TRACE_VERBOSE2("btif_transfer_context event %d, len %d", event, param_len);
 
@@ -224,7 +224,7 @@ bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_p
 ** Description      BTIF task handler managing all messages being passed
 **                  Bluetooth HAL and BTA.
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 
@@ -235,13 +235,13 @@ static void btif_task(UINT32 params)
 
     BTIF_TRACE_DEBUG0("btif task starting");
 
-    btif_init_bluetooth_evt();
+    btif_associate_evt();
 
     for(;;)
     {
         /* wait for specified events */
         event = GKI_wait(0xFFFF, 0);
-        
+
         /* 
          * Wait for the trigger to init chip and stack. This trigger will
          * be received by btu_task once the UART is opened and ready 
@@ -261,12 +261,12 @@ static void btif_task(UINT32 params)
             while((p_msg = GKI_read_mbox(BTU_BTIF_MBOX)) != NULL)
             {
                 BTIF_TRACE_VERBOSE1("btif task fetched event %x", p_msg->event);
-                
+
                 switch (p_msg->event)
                 {
                     case BT_EVT_CONTEXT_SWITCH_EVT:
                         btif_context_switched(p_msg);
-                        break;                        
+                        break;
                     default:
                         BTIF_TRACE_ERROR1("unhandled btif event (%d)", p_msg->event & BT_EVT_MASK);
                         break;
@@ -276,7 +276,22 @@ static void btif_task(UINT32 params)
             }
         }
     }
-    btif_shutdown_bluetooth_evt();
+
+    btif_disassociate_evt();
+
+    GKI_task_self_cleanup(BTIF_TASK);
+    
+    if (btif_shutdown_pending)
+    {
+        btif_shutdown_pending = 0;
+        
+        bte_main_shutdown();
+
+        /* shutdown complete, all events notified and we reset HAL callbacks */
+        bt_hal_cbacks = NULL;
+    }
+
+    BTIF_TRACE_DEBUG0("btif task exiting");
 }
 
 
@@ -313,33 +328,24 @@ void btif_sendmsg(void *p_msg)
 
 bt_status_t btif_init_bluetooth(void)
 {
-    UINT8 status;
 
     bte_main_boot_entry();
-
-    /* start btif task */
-    status = GKI_create_task(btif_task, BTIF_TASK, BTIF_TASK_STR,
-                (UINT16 *) ((UINT8 *)btif_task_stack + BTIF_TASK_STACK_SIZE),
-                sizeof(btif_task_stack));
-
-    if (status != GKI_SUCCESS)
-        return BT_STATUS_FAIL;
 
     return BT_STATUS_SUCCESS;
 }
 
 /*******************************************************************************
 **
-** Function         btif_init_bluetooth_evt
+** Function         btif_associate_evt
 **
-** Description      Event indicating bluetooth init is completed
+** Description      Event indicating btif_task is up
 **                  Attach btif_task to JVM
 **
 ** Returns          void
 **
 *******************************************************************************/
 
-static bt_status_t btif_init_bluetooth_evt(void)
+static bt_status_t btif_associate_evt(void)
 {
     BTIF_TRACE_DEBUG1("%s: notify ASSOCIATE_JVM", __FUNCTION__);
     CHECK_CALL_CBACK(bt_hal_cbacks, thread_evt_cb, ASSOCIATE_JVM);
@@ -370,13 +376,18 @@ bt_status_t btif_enable_bluetooth(void)
         return BT_STATUS_DONE;
     }
 
+    /* Start the BTIF task */
+    status = GKI_create_task(btif_task, BTIF_TASK, BTIF_TASK_STR,
+                (UINT16 *) ((UINT8 *)btif_task_stack + BTIF_TASK_STACK_SIZE),
+                sizeof(btif_task_stack));
+
+    if (status != BTA_SUCCESS)
+        return BT_STATUS_FAIL;
+
     /* add return status for create tasks functions ? */
 
     /* Create the GKI tasks and run them */
     bte_main_enable();
-
-    if (status != BTA_SUCCESS)
-        return BT_STATUS_FAIL;
 
     return BT_STATUS_SUCCESS;
 }
@@ -480,10 +491,7 @@ void btif_disable_bluetooth_evt(void)
     /* update local state */
     btif_enabled = 0;
 
-    if (btif_shutdown_pending)
-    {
-        btif_shutdown_bluetooth();
-    }
+    GKI_send_event(BTIF_TASK, EVENT_MASK(GKI_SHUTDOWN_EVT));
 }
 
 
@@ -512,23 +520,30 @@ bt_status_t btif_shutdown_bluetooth(void)
         return BT_STATUS_SUCCESS;
     }
 
-    btif_shutdown_pending = 0;
-
-    GKI_destroy_task(BTIF_TASK);
-
     bte_main_shutdown();
+
+    /* shutdown complete, all events notified and we reset HAL callbacks */
+    bt_hal_cbacks = NULL;
 
     return BT_STATUS_SUCCESS;
 }
 
-static bt_status_t btif_shutdown_bluetooth_evt(void)
+
+/*******************************************************************************
+**
+** Function         btif_disassociate_evt
+**
+** Description      Event indicating btif_task is going down
+**                  Detach btif_task to JVM
+**
+** Returns          void
+**
+*******************************************************************************/
+
+static bt_status_t btif_disassociate_evt(void)
 {
     BTIF_TRACE_DEBUG1("%s: notify DISASSOCIATE_JVM", __FUNCTION__);
-
     CHECK_CALL_CBACK(bt_hal_cbacks, thread_evt_cb, DISASSOCIATE_JVM);
-    
-    /* shutdown complete, all events notified and we reset HAL callbacks */
-    bt_hal_cbacks = NULL;
 
     return BT_STATUS_SUCCESS;
 }
@@ -1063,7 +1078,7 @@ bt_status_t btif_enable_service(tBTA_SERVICE_ID service_id)
       * enable for the profiles that have been enabled */
      btif_enabled_services |= (1 << service_id);
      BTIF_TRACE_ERROR2("%s: Current Services:0x%x", __FUNCTION__, btif_enabled_services);
-     if (btif_enabled == TRUE)
+     if (btif_enabled == 1)
      {
           btif_transfer_context(btif_dm_execute_service_request,
                                 BTIF_DM_ENABLE_SERVICE,
@@ -1091,7 +1106,7 @@ bt_status_t btif_disable_service(tBTA_SERVICE_ID service_id)
       */
      btif_enabled_services &=  (tBTA_SERVICE_MASK)(~(1<<service_id));
      BTIF_TRACE_ERROR2("%s: Current Services:0x%x", __FUNCTION__, btif_enabled_services);
-     if (btif_enabled == TRUE)
+     if (btif_enabled == 1)
      {
           btif_transfer_context(btif_dm_execute_service_request,
                                 BTIF_DM_DISABLE_SERVICE,

@@ -119,16 +119,10 @@ UINT32 bte_btu_stack[(BTE_BTU_STACK_SIZE + 3) / 4];
 ******************************************************************************/
 void bte_main_in_hw_init(void)
 {
-    GKI_delay(200);
-
-    if ( (bt_vendor_if = (bt_vendor_interface_t *) bt_vendor_get_interface()) == NULL) 
+    if ( (bt_vendor_if = (bt_vendor_interface_t *) bt_vendor_get_interface()) \
+         == NULL)
     {
         APPL_TRACE_ERROR0("!!! Failed to get BtVendorInterface !!!");
-    }
-    else
-    {
-        int result = bt_vendor_if->init(&vnd_callbacks);
-        APPL_TRACE_EVENT1("libbt-vendor init returns %d", result);
     }
 }
 
@@ -153,8 +147,6 @@ void bte_main_boot_entry(void)
     BTTRC_TraceInit(MAX_TRACE_RAM_SIZE, &BTE_TraceLogBuf[0], BTTRC_METHOD_RAM);
 #endif
 
-    /* Initialize BTE control block */
-    BTE_Init();
 }
 
 /******************************************************************************
@@ -168,8 +160,10 @@ void bte_main_boot_entry(void)
 ******************************************************************************/
 void bte_main_shutdown()
 {
+#if 0
     if (bt_vendor_if)
         bt_vendor_if->cleanup();
+#endif
 
     bt_vendor_if = NULL;
     GKI_shutdown();
@@ -188,11 +182,18 @@ void bte_main_shutdown()
 void bte_main_enable(void)
 {
     APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+
+    /* Initialize BTE control block */
+    BTE_Init();
+
     lpm_enabled = FALSE;
 
     if (bt_vendor_if)
     {
-        /* toggle chip power to ensure we will reset chip in case 
+        int result = bt_vendor_if->init(&vnd_callbacks);
+        APPL_TRACE_EVENT1("libbt-vendor init returns %d", result);
+
+        /* toggle chip power to ensure we will reset chip in case
            a previous stack shutdown wasn't completed gracefully */
         bt_vendor_if->set_power(BT_VENDOR_CHIP_PWR_OFF);
         bt_vendor_if->set_power(BT_VENDOR_CHIP_PWR_ON);
@@ -226,7 +227,11 @@ void bte_main_disable(void)
     GKI_freeze();
 
     if (bt_vendor_if)
-        bt_vendor_if->set_power(BT_VENDOR_CHIP_PWR_OFF);        
+    {
+        bt_vendor_if->set_power(BT_VENDOR_CHIP_PWR_OFF);
+        bt_vendor_if->cleanup();
+    }
+
 }
 
 /******************************************************************************
@@ -257,7 +262,7 @@ void bte_main_postload_cfg(void)
 void bte_main_enable_lpm(BOOLEAN enable)
 {
     int result = -1;
-    
+
     if (bt_vendor_if)
         result = bt_vendor_if->lpm( \
         (enable == TRUE) ? BT_VENDOR_LPM_ENABLE : BT_VENDOR_LPM_DISABLE \
@@ -297,7 +302,7 @@ void bte_main_lpm_allow_bt_device_sleep()
 void bte_main_lpm_wake_bt_device()
 {
     int result = -1;
-    
+
     if ((bt_vendor_if) && (lpm_enabled == TRUE))
         result = bt_vendor_if->lpm(BT_VENDOR_LPM_WAKE_ASSERT);
 
@@ -332,7 +337,7 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
                                        (char *) (p_msg + 1), \
                                         p_msg->len);
         else
-            GKI_freebuf(p_msg);        
+            GKI_freebuf(p_msg);
     }
     else
     {
@@ -345,7 +350,7 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
 **
 ** Function         bte_main_post_reset_init
 **
-** Description      BTE MAIN API - This function is mapped to BTM_APP_DEV_INIT 
+** Description      BTE MAIN API - This function is mapped to BTM_APP_DEV_INIT
 **                  and shall be automatically called from BTE after HCI_Reset
 **
 ** Returns          None
@@ -366,7 +371,7 @@ void bte_main_post_reset_init()
 **
 ** Function         preload_cb
 **
-** Description      VENDOR LIB CALLBACK API - This function is called 
+** Description      VENDOR LIB CALLBACK API - This function is called
 **                  when vendor lib completed stack preload process
 **
 ** Returns          None
@@ -388,7 +393,7 @@ static void preload_cb(TRANSAC transac, bt_vendor_preload_result_t result)
 **
 ** Function         postload_cb
 **
-** Description      VENDOR LIB CALLBACK API - This function is called 
+** Description      VENDOR LIB CALLBACK API - This function is called
 **                  when vendor lib completed stack postload process
 **
 ** Returns          None
@@ -403,7 +408,7 @@ static void postload_cb(TRANSAC transac, bt_vendor_postload_result_t result)
 **
 ** Function         lpm_cb
 **
-** Description      VENDOR LIB CALLBACK API - This function is called 
+** Description      VENDOR LIB CALLBACK API - This function is called
 **                  back from vendor lib to indicate the current LPM state
 **
 ** Returns          None
@@ -412,14 +417,14 @@ static void postload_cb(TRANSAC transac, bt_vendor_postload_result_t result)
 static void lpm_cb(bt_vendor_lpm_request_result_t result)
 {
     APPL_TRACE_EVENT1("vnd lpm_result_cb %d", result);
-    lpm_enabled = (result == BT_VENDOR_LPM_ENABLED) ? TRUE : FALSE;    
+    lpm_enabled = (result == BT_VENDOR_LPM_ENABLED) ? TRUE : FALSE;
 }
 
 /******************************************************************************
 **
 ** Function         hostwake_ind
 **
-** Description      VENDOR LIB CALLOUT API - This function is called 
+** Description      VENDOR LIB CALLOUT API - This function is called
 **                  from vendor lib to indicate the HostWake event
 **
 ** Returns          None
@@ -434,7 +439,7 @@ static void hostwake_ind(bt_vendor_low_power_event_t event)
 **
 ** Function         alloc
 **
-** Description      VENDOR LIB CALLOUT API - This function is called 
+** Description      VENDOR LIB CALLOUT API - This function is called
 **                  from vendor lib to request for data buffer allocation
 **
 ** Returns          NULL / pointer to allocated buffer
@@ -443,16 +448,18 @@ static void hostwake_ind(bt_vendor_low_power_event_t event)
 static char *alloc(int size)
 {
     BT_HDR *p_hdr = NULL;
-    
-//    APPL_TRACE_DEBUG1("vnd alloc size=%d", size);
-    
+
+    /*
+    APPL_TRACE_DEBUG1("vnd alloc size=%d", size);
+    */
+
     p_hdr = (BT_HDR *) GKI_getbuf ((UINT16) size);
-    
+
     if (p_hdr == NULL)
     {
         APPL_TRACE_WARNING0("alloc returns NO BUFFER!");
     }
-        
+
     return ((char *) p_hdr);
 }
 
@@ -460,16 +467,16 @@ static char *alloc(int size)
 **
 ** Function         dealloc
 **
-** Description      VENDOR LIB CALLOUT API - This function is called 
+** Description      VENDOR LIB CALLOUT API - This function is called
 **                  from vendor lib to release the data buffer allocated
-**                  through the alloc call earlier.
+**                  through the alloc call earlier
 **
 ** Returns          bt_vnd_status_t
 **
 ******************************************************************************/
 static int dealloc(TRANSAC transac, char *p_buf)
 {
-    GKI_freebuf(transac);       
+    GKI_freebuf(transac);
     return BT_VENDOR_STATUS_SUCCESS;
 }
 
@@ -477,11 +484,11 @@ static int dealloc(TRANSAC transac, char *p_buf)
 **
 ** Function         data_ind
 **
-** Description      VENDOR LIB CALLOUT API - This function is called 
-**                  from vendor lib to pass in the received HCI packets.
+** Description      VENDOR LIB CALLOUT API - This function is called
+**                  from vendor lib to pass in the received HCI packets
 **
 **                  The core stack is responsible for releasing the data buffer
-**                  passed in from vendor lib once the core stack has done with 
+**                  passed in from vendor lib once the core stack has done with
 **                  it.
 **
 ** Returns          bt_vnd_status_t
@@ -490,20 +497,21 @@ static int dealloc(TRANSAC transac, char *p_buf)
 static int data_ind(TRANSAC transac, char *p_buf, int len)
 {
     BT_HDR *p_msg = (BT_HDR *) transac;
-    
-//    APPL_TRACE_DEBUG2("vnd data_ind event=0x%04X (len=%d)", p_msg->event, len);
 
+    /*
+    APPL_TRACE_DEBUG2("vnd data_ind event=0x%04X (len=%d)", p_msg->event, len);
+    */
 
     GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, transac);
-    return BT_VENDOR_STATUS_SUCCESS;    
+    return BT_VENDOR_STATUS_SUCCESS;
 }
 
 /******************************************************************************
 **
 ** Function         tx_result
 **
-** Description      VENDOR LIB CALLBACK API - This function is called 
-**                  from vendor lib once it has processed/sent the prior data 
+** Description      VENDOR LIB CALLBACK API - This function is called
+**                  from vendor lib once it has processed/sent the prior data
 **                  buffer which core stack passed to it through transmit_buf
 **                  call earlier.
 **
@@ -520,17 +528,17 @@ static int tx_result(TRANSAC transac, char *p_buf, \
     APPL_TRACE_DEBUG2("vnd tx_result %d (event=%04X)", result, \
                       ((BT_HDR *)transac)->event);
     */
-    
+
     if (result == BT_VENDOR_TX_FRAGMENT)
     {
-        GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, transac);        
+        GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, transac);
     }
     else
     {
         GKI_freebuf(transac);
     }
-    
-    return BT_VENDOR_STATUS_SUCCESS;    
+
+    return BT_VENDOR_STATUS_SUCCESS;
 }
 
 /*****************************************************************************

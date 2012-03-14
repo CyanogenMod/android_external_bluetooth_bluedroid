@@ -369,6 +369,7 @@ extern "C" {
 */
 GKI_API extern UINT8   GKI_create_task (TASKPTR, UINT8, INT8 *, UINT16 *, UINT16);
 GKI_API extern void    GKI_destroy_task(UINT8 task_id);
+GKI_API extern void    GKI_task_self_cleanup(UINT8 task_id);
 GKI_API extern void    GKI_exit_task(UINT8);
 GKI_API extern UINT8   GKI_get_taskid(void);
 GKI_API extern void    GKI_init(void);
