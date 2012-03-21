@@ -424,8 +424,9 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
 
     if(BTM_GetNumAclLinks()==0)
     {       
-        bta_dm_cb.disable_timer.p_cback = (TIMER_CBACK*)&bta_dm_disable_conn_down_timer_cback;
-        bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, 1000);
+       /* Earlier there used to be a 1-second timer to fire this callback.
+        * Doesn't look like it is needed. */
+        bta_dm_disable_conn_down_timer_cback(NULL);
     }
     else
     {    
