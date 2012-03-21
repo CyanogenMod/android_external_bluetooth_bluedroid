@@ -102,6 +102,20 @@ static bthf_callbacks_t *bt_hf_callbacks = NULL;
         BTIF_TRACE_EVENT1("BTHF: %s", __FUNCTION__);\
     }
 
+#define CHECK_BTHF_SLC_CONNECTED() if (bt_hf_callbacks == NULL)\
+    {\
+        BTIF_TRACE_WARNING1("BTHF: %s: BTHF not initialized", __FUNCTION__);\
+        return BT_STATUS_NOT_READY;\
+    }\
+    else if (btif_hf_cb.state != BTHF_CONNECTION_STATE_SLC_CONNECTED)\
+    {\
+        BTIF_TRACE_WARNING2("BTHF: %s: SLC connection not up. state=%s", __FUNCTION__, dump_hf_conn_state(btif_hf_cb.state));\
+        return BT_STATUS_NOT_READY;\
+    }\
+    else\
+    {\
+        BTIF_TRACE_EVENT1("BTHF: %s", __FUNCTION__);\
+    }
 
 /* BTIF-HF control block to map bdaddr to BTA handle */
 typedef struct _btif_hf_cb
@@ -837,17 +851,14 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
     tBTA_AG_RES res = 0xff;
     tBTA_AG_RES_DATA ag_res;
     bt_status_t status = BT_STATUS_SUCCESS;
+    BOOLEAN activeCallUpdated = FALSE;
 
-    CHECK_BTHF_INIT();
+    CHECK_BTHF_SLC_CONNECTED();
 
     BTIF_TRACE_DEBUG6("phone_state_change: num_active=%d [prev: %d]  num_held=%d[prev: %d]"\
                       " call_setup=%s [prev: %s]", num_active, btif_hf_cb.num_active,
                        num_held, btif_hf_cb.num_held,
                        dump_hf_call_state(call_setup_state), dump_hf_call_state(btif_hf_cb.call_setup_state));
-
-    /* Check what has changed and update the corresponding indicators.
-    ** In ad
-    */
 
     /* if all indicators are 0, send end call and return */
     if (num_active == 0 && num_held == 0 && call_setup_state == BTHF_CALL_STATE_IDLE)
@@ -860,6 +871,30 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
             send_indicator_update(BTA_AG_IND_CALLHELD, 0);
 
         goto update_call_states;
+    }
+
+    /* active state can change when:
+    ** 1. an outgoing/incoming call was answered
+    ** 2. an held was resumed
+    ** 3. without callsetup notifications, call became active
+    ** (3) can happen if call is active and a headset connects to us
+    **
+    ** In the case of (3), we will have to notify the stack of an active
+    ** call, instead of sending an indicator update. This will also
+    ** force the SCO to be setup. Handle this special case here prior to
+    ** call setup handling
+    */
+    if ( (num_active == 1) && (btif_hf_cb.num_active == 0) && (btif_hf_cb.num_held == 0) &&
+         (btif_hf_cb.call_setup_state == BTHF_CALL_STATE_IDLE) )
+    {
+        BTIF_TRACE_DEBUG1("%s: Active call notification received without call setup update",
+                          __FUNCTION__);
+
+        memset(&ag_res, 0, sizeof(tBTA_AG_RES_DATA));
+        ag_res.audio_handle = btif_hf_cb.handle;
+        res = BTA_AG_OUT_CALL_CONN_RES;
+        BTA_AgResult(BTA_AG_HANDLE_ALL, res, &ag_res);
+        activeCallUpdated = TRUE;
     }
 
     /* Ringing call changed? */
@@ -927,7 +962,9 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
                 res = BTA_AG_OUT_CALL_ORIG_RES;
                 break;
             case BTHF_CALL_STATE_ALERTING:
-                ag_res.audio_handle = btif_hf_cb.handle;
+                /* if we went from idle->alert, force SCO setup here. dialing usually triggers it */
+                if (btif_hf_cb.call_setup_state == BTHF_CALL_STATE_IDLE)
+                    ag_res.audio_handle = btif_hf_cb.handle;
                 res = BTA_AG_OUT_CALL_ALERT_RES;
                 break;
             default:
@@ -950,8 +987,10 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
         }
     }
 
+    memset(&ag_res, 0, sizeof(tBTA_AG_RES_DATA));
+
     /* Active Changed? */
-    if (num_active != btif_hf_cb.num_active)
+    if ((num_active != btif_hf_cb.num_active) && !activeCallUpdated)
     {
         BTIF_TRACE_DEBUG3("%s: Active call states changed. old: %d new: %d", __FUNCTION__, btif_hf_cb.num_active, num_active);
         send_indicator_update(BTA_AG_IND_CALL, (num_active ? 1 : 0));

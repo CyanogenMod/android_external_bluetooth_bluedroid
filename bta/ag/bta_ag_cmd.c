@@ -1496,6 +1496,11 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
         case BTA_AG_OUT_CALL_ALERT_RES:
             /* send indicators */
             bta_ag_send_call_inds(p_scb, p_result->result);
+            if (p_result->data.audio_handle == bta_ag_scb_to_idx(p_scb) &&
+                !(p_scb->features & BTA_AG_FEAT_NOSCO))
+            {
+                bta_ag_sco_open(p_scb, (tBTA_AG_DATA *) p_result);
+            }
             break;
 
         case BTA_AG_OUT_CALL_CONN_RES:
