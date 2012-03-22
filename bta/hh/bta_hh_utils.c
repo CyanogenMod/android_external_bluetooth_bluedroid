@@ -11,7 +11,8 @@
 #include <string.h>
 
 #include "bt_target.h"
-#if defined(HL_INCLUDED) && (HL_INCLUDED == TRUE)
+#if defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE)
+
 
 #include "bta_hh_int.h"
 

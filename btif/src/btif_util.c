@@ -73,6 +73,8 @@
 #include "btif_dm.h"
 #include "btif_util.h"
 #include "bta_ag_api.h"
+#include "bta_hh_api.h"
+
 
 
 /************************************************************************************
@@ -264,6 +266,28 @@ const char* dump_hf_event(UINT16 event)
         CASE_RETURN_STR(BTA_AG_AT_BAC_EVT)
         CASE_RETURN_STR(BTA_AG_AT_BCS_EVT)
 
+        default:
+            return "UNKNOWN MSG ID";
+     }
+}
+
+const char* dump_hh_event(UINT16 event)
+{
+    switch(event)
+    {
+        CASE_RETURN_STR(BTA_HH_ENABLE_EVT)
+        CASE_RETURN_STR(BTA_HH_DISABLE_EVT)
+        CASE_RETURN_STR(BTA_HH_OPEN_EVT)
+        CASE_RETURN_STR(BTA_HH_CLOSE_EVT)
+        CASE_RETURN_STR(BTA_HH_GET_DSCP_EVT)
+        CASE_RETURN_STR(BTA_HH_GET_PROTO_EVT)
+        CASE_RETURN_STR(BTA_HH_GET_RPT_EVT)
+        CASE_RETURN_STR(BTA_HH_SET_PROTO_EVT)
+        CASE_RETURN_STR(BTA_HH_SET_RPT_EVT)
+        CASE_RETURN_STR(BTA_HH_VC_UNPLUG_EVT)
+        CASE_RETURN_STR(BTA_HH_ADD_DEV_EVT)
+        CASE_RETURN_STR(BTA_HH_RMV_DEV_EVT)
+        CASE_RETURN_STR(BTA_HH_API_ERR_EVT)
         default:
             return "UNKNOWN MSG ID";
      }

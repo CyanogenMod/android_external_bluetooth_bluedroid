@@ -87,6 +87,7 @@ typedef char bdstr_t[18];
 const char* dump_bt_status(bt_status_t status);
 const char* dump_dm_search_event(UINT16 event);
 const char* dump_hf_event(UINT16 event);
+const char* dump_hh_event(UINT16 event);
 const char* dump_hf_conn_state(UINT16 event);
 const char* dump_hf_call_state(bthf_call_state_t call_state);
 const char* dump_property_type(bt_property_type_t type);

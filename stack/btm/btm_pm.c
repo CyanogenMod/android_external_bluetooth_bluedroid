@@ -842,7 +842,7 @@ void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, U
         BTM_TRACE_DEBUG0 ("btm mode change to active; check l2c_link for outgoing packets");
         l2c_link_check_send_pkts (p_lcb, NULL, NULL);
 
-        btu_stop_timer (&p_lcb->timer_entry);
+        //btu_stop_timer (&p_lcb->timer_entry);
     }
 
     /* notify registered parties */

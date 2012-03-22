@@ -108,6 +108,9 @@
 #include "btif_util.h"
 #include "unv.h"
 #include "bd.h"
+#include "gki.h"
+#include "bta_hh_api.h"
+#include "btif_hh.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -123,6 +126,7 @@
 #define BTIF_STORAGE_PATH_REMOTE_LINKKEYS "remote_linkkeys"
 #define BTIF_STORAGE_PATH_REMOTE_ALIASES "remote_aliases"
 #define BTIF_STORAGE_PATH_REMOTE_SERVICES "remote_services"
+#define BTIF_STORAGE_PATH_REMOTE_HIDINFO "hid_info"
 
 #define BTIF_STORAGE_KEY_ADAPTER_NAME "name"
 #define BTIF_STORAGE_KEY_ADAPTER_SCANMODE "scan_mode"
@@ -152,6 +156,7 @@
                                              STORAGE_KEYTYPE_STRING_MAX_SIZE)
 
 #define STORAGE_REMOTE_LINKKEYS_ENTRY_SIZE (LINK_KEY_LEN*2 + 1 + 2 + 1 + 2)
+
 
 /* currently remote services is the potentially largest entry */
 #define BTIF_STORAGE_MAX_LINE_SZ BTIF_REMOTE_SERVICES_ENTRY_SIZE_MAX
@@ -525,6 +530,29 @@ static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_
 
     return BT_STATUS_SUCCESS;
 }
+static int hex_str_to_int(const char* str, int size)
+{
+    int  n = 0;
+    char c = *str++;
+    while (size-- != 0) {
+        n <<= 4;
+        if (c >= '0' && c <= '9')
+        {
+            n |= c - '0';
+        }
+        else if (c >= 'a' && c <= 'z')
+        {
+            n |= c - 'a' + 10;
+        }
+        else { // (c >= 'A' && c <= 'Z')
+            n |= c - 'A' + 10;
+        }
+
+        c = *str++;
+    }
+    return n;
+}
+
 
 /************************************************************************************
 **  Externs
@@ -1059,3 +1087,4 @@ bt_status_t btif_storage_load_bonded_devices(void)
     }
     return BT_STATUS_SUCCESS;
 }
+

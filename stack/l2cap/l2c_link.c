@@ -1040,14 +1040,15 @@ BOOLEAN l2c_link_check_power_mode (tL2C_LCB *p_lcb)
         /* check power mode */
         if (BTM_ReadPowerMode(p_lcb->remote_bd_addr, &mode) == BTM_SUCCESS)
         {
+            /*
             if ( mode == BTM_PM_MD_PARK )
             {
                 L2CAP_TRACE_DEBUG1 ("LCB(0x%x) is in park mode", p_lcb->handle);
-/* Coverity:                        
+// Coverity:
 // FALSE-POSITIVE error from Coverity test tool. Please do NOT remove following comment.    
 // coverity[uninit_use_in_call] False-positive: setting the mode to BTM_PM_MD_ACTIVE only uses settings.mode
                                 the other data members of tBTM_PM_PWR_MD are ignored
-*/
+
                 memset((void*)&pm, 0, sizeof(pm));
                 pm.mode = BTM_PM_MD_ACTIVE;
                 BTM_SetPowerMode(BTM_PM_SET_ONLY_ID, p_lcb->remote_bd_addr, &pm);
@@ -1055,7 +1056,8 @@ BOOLEAN l2c_link_check_power_mode (tL2C_LCB *p_lcb)
                                  BTU_TTYPE_L2CAP_LINK, L2CAP_WAIT_UNPARK_TOUT);
                 return TRUE;
             }
-            else if ( mode == BTM_PM_STS_PENDING )
+            */
+            if ( mode == BTM_PM_STS_PENDING )
             {
                 L2CAP_TRACE_DEBUG1 ("LCB(0x%x) is in PM pending state", p_lcb->handle);
 
