@@ -3,44 +3,44 @@
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed 
- *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
- *  Except as set forth in an Authorized License, Broadcom grants no license 
- *  (express or implied), right to use, or waiver of any kind with respect to 
- *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  licensors, and may only be used, duplicated, modified or distributed
+ *  pursuant to the terms and conditions of a separate, written license
+ *  agreement executed between you and Broadcom (an "Authorized License").
+ *  Except as set forth in an Authorized License, Broadcom grants no license
+ *  (express or implied), right to use, or waiver of any kind with respect to
+ *  the Software, and Broadcom expressly reserves all rights in and to the
+ *  Software and all intellectual property rights therein.
+ *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
+ *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ *  ALL USE OF THE SOFTWARE.
  *
  *  Except as expressly set forth in the Authorized License,
  *
- *  1.     This program, including its structure, sequence and organization, 
- *         constitutes the valuable trade secrets of Broadcom, and you shall 
- *         use all reasonable efforts to protect the confidentiality thereof, 
- *         and to use this information only in connection with your use of 
+ *  1.     This program, including its structure, sequence and organization,
+ *         constitutes the valuable trade secrets of Broadcom, and you shall
+ *         use all reasonable efforts to protect the confidentiality thereof,
+ *         and to use this information only in connection with your use of
  *         Broadcom integrated circuit products.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED 
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, 
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, 
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY 
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, 
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES, 
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR 
+ *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+ *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
  *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING OUT
  *         OF USE OR PERFORMANCE OF THE SOFTWARE.
  *
  *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM OR
- *         ITS LICENSORS BE LIABLE FOR 
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY 
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO 
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM 
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR 
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE 
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE 
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
+ *         ITS LICENSORS BE LIABLE FOR
+ *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
+ *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
+ *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+ *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
+ *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
+ *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
+ *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
  ************************************************************************************/
@@ -50,11 +50,11 @@
  *  Filename:      unv_linux.c
  *
  *  Description:   Universal NV Ram API.
- *                 Manages all non volatile (file) database entries used by 
+ *                 Manages all non volatile (file) database entries used by
  *                 bluetooth upper layer stack.
- * 
+ *
  ***********************************************************************************/
- 
+
 #include "unv.h"
 
 #include <stdio.h>
@@ -68,7 +68,7 @@
 #include <sys/mman.h>
 #include <stdlib.h>
 #include <sys/prctl.h>
-#include <pthread.h> 
+#include <pthread.h>
 
 #define LOG_TAG "UNV_LINUX"
 #include <utils/Log.h>
@@ -118,7 +118,7 @@
 
 /*******************************************************************************
 **
-** Function         check_caller_context 
+** Function         check_caller_context
 **
 ** Description      Checks pthread name of caller. Currently only BTIF thread
 **                  is allowed to call in here to avoid multithreading issues
@@ -132,7 +132,7 @@ static int check_caller_context(void)
     char name[16];
 
     prctl(PR_GET_NAME, name, 0, 0, 0);
-    
+
     if (strncmp(name, BTIF_TASK_STR, strlen(BTIF_TASK_STR)) != 0)
     {
         error("only btif context allowed (%s)", name);
@@ -143,7 +143,7 @@ static int check_caller_context(void)
 
 /*******************************************************************************
 **
-** Function         mk_dir 
+** Function         mk_dir
 **
 ** Description      Create directory
 **
@@ -154,7 +154,7 @@ static int check_caller_context(void)
 static int mk_dir(const char *path)
 {
     struct stat st;
-    
+
     if (stat(path, &st) == 0)
     {
         if (!S_ISDIR(st.st_mode))
@@ -163,11 +163,11 @@ static int mk_dir(const char *path)
             error("directory path %s is not a directory (%s)", path, strerror(errno));
             return -1;
         }
-         
+
         /* already exist */
-        return 0;  
-    }        
-    
+        return 0;
+    }
+
     /* no existing dir path, try creating it */
     if (mkdir(path, DIR_MODE) != 0)
     {
@@ -197,7 +197,7 @@ static int rm_dir(const char *path)
         error("rmdir %s failed (%s)", path, strerror(errno));
         return -1;
     }
-    return 0;    
+    return 0;
 }
 
 /*******************************************************************************
@@ -210,8 +210,8 @@ static int rm_dir(const char *path)
 **
 *******************************************************************************/
 
-static int write_keyval( int fd, 
-                         const char *key, 
+static int write_keyval( int fd,
+                         const char *key,
                          const char *val )
 {
     int len = 0;
@@ -230,16 +230,16 @@ static int write_keyval( int fd,
         error("alloc failed (%s)", strerror(errno));
         return -1;
     }
-    
+
     len = sprintf(line, "%s %s%s", key, val, UNV_DELIM);
 
-    //info("write_keyval %s %s (%d bytes)", key, val, len);    
+    //info("write_keyval %s %s (%d bytes)", key, val, len);
 
     /* update line */
     written = write(fd, line, len);
 
     free(line);
-    
+
     return written;
 }
 
@@ -258,10 +258,10 @@ static int write_keyval( int fd,
 **
 *******************************************************************************/
 
-static int update_key( int fd, 
-                       const char *key, 
-                       const char *value, 
-                       int pos_start, 
+static int update_key( int fd,
+                       const char *key,
+                       const char *value,
+                       int pos_start,
                        int pos_stop )
 {
     char *line;
@@ -278,7 +278,7 @@ static int update_key( int fd,
     {
         verbose("remove key [%s]", key);
     }
-    
+
     /* update file with new value for this key */
 
     if (fstat(fd, &st) != 0)
@@ -286,7 +286,7 @@ static int update_key( int fd,
         error("stat failed (%s)", strerror(errno));
         return -1;
     }
-    
+
     tail_sz = st.st_size-pos_stop;
 
     if (tail_sz > 0)
@@ -312,7 +312,7 @@ static int update_key( int fd,
     }
 
     /* rewind and update new line */
-    lseek(fd, pos_start, SEEK_SET);    
+    lseek(fd, pos_start, SEEK_SET);
     len = pos_start;
 
     /* a null key means remove entry */
@@ -320,14 +320,14 @@ static int update_key( int fd,
     {
         len += write_keyval(fd, key, value);
     }
-    
+
     /* write tail content */
     if (p_tail)
     {
         len += write(fd, p_tail, tail_sz);
         free(p_tail);
     }
-    
+
     /* finally truncate file to new length */
     ftruncate(fd, len);
 
@@ -345,18 +345,18 @@ static int update_key( int fd,
 **                  key         : string to search for in keyfile
 **                  p_out       : output buffer supplied by caller
 **                  out_len     : max length of output line buffer
-**                  pos_begin   : returns keyvalue start offset in file 
+**                  pos_begin   : returns keyvalue start offset in file
 **                  pos_end     : returns keyvalue end offset in file
-** 
+**
 ** Returns          String of key value, NULL if not found
 **
 ******************************************************************************/
 
 static char *get_keyval( int fd,
-                         const char *key, 
+                         const char *key,
                          char *p_out,
                          int out_len,
-                         int *pos_begin, 
+                         int *pos_begin,
                          int *pos_end)
 {
     char *p_value = NULL;
@@ -373,7 +373,7 @@ static char *get_keyval( int fd,
 
     p_buf = malloc(st.st_size + 1);
 
-    if (!p_buf)      
+    if (!p_buf)
         return NULL;
 
     p = p_buf;
@@ -387,9 +387,9 @@ static char *get_keyval( int fd,
 
     /* tokenize first line */
     line = strtok(p, UNV_DELIM);
-    
+
     while (line && (p_value == NULL))
-    {    
+    {
         /* check for match */
         if (strncmp(line, key, strlen(key)) == 0)
         {
@@ -409,25 +409,25 @@ static char *get_keyval( int fd,
 
             p_value = p_out;
             /* should be ok to just strcpy from 'line' as
-             * strrok shall null-terminate the token 
+             * strrok shall null-terminate the token
              * in the above call */
             strcpy(p_value, line);
 
             verbose("found [%s=%s]", key, p_value);
-            
+
             if (pos_end)
                 *pos_end = (line-p_buf) + strlen(line) + strlen(UNV_DELIM);
         }
 
         /* check next line */
-        line = strtok(NULL, UNV_DELIM);        
+        line = strtok(NULL, UNV_DELIM);
     }
-    
+
     free(p_buf);
 
     /* rewind */
     lseek(fd, 0, SEEK_SET);
-    
+
     return p_value;
 }
 
@@ -446,7 +446,7 @@ static char *get_keyval( int fd,
 **
 ** Function         unv_create_directory
 **
-** Description      Creates directory, if full path is not available it 
+** Description      Creates directory, if full path is not available it
 **                  will construct it. Must be called from BTIF task context.
 **
 ** Parameters
@@ -467,14 +467,14 @@ int unv_create_directory(const char *path)
 
     if (check_caller_context() == 0)
         return -1;
-    
+
     /* assumes absolute paths */
     if (strncmp(path, "./", 2) == 0)
     {
         error("%s not an absolute path", path);
         return -1;
     }
-    
+
     /* try creating dir directly */
     if (mk_dir(path) == 0)
         return 0;
@@ -493,11 +493,11 @@ int unv_create_directory(const char *path)
     p = strchr(p_copy+1, '/'); /* skip root */
 
     while ((status == 0) && p)
-    { 
-        /* 
-         * temporarily null terminate to allow creating 
+    {
+        /*
+         * temporarily null terminate to allow creating
          * directories up to this point
-         */        
+         */
         *p= '\0';
         status = mk_dir(p_copy);
         *p= '/';
@@ -519,7 +519,7 @@ int unv_create_directory(const char *path)
 ** Parameters
 **                  filename     : file path to be created
 **
-** Returns          0 if successful, -1 if failure          
+** Returns          0 if successful, -1 if failure
 **
 *******************************************************************************/
 
@@ -534,7 +534,7 @@ int unv_create_file(const char *filename)
 
     /* separate path from filename */
     p = strrchr(path, '/');
-    
+
     if (p)
     {
         *p = '\0';
@@ -544,21 +544,21 @@ int unv_create_file(const char *filename)
             return -1;
         }
     }
-    
+
     free(path);
-    
+
     verbose("CREATE FILE %s", filename);
-    
+
     fd = open(filename, O_RDWR|O_CREAT, FILE_MODE);
 
-    if (fd < 0) 
+    if (fd < 0)
     {
         error("file failed to create %s errno: (%s)", filename, strerror(errno));
         return -1;
     }
 
     close(fd);
-    
+
     return 0;
 }
 
@@ -581,14 +581,14 @@ int unv_create_file(const char *filename)
 **
 ******************************************************************************/
 
-char* unv_read_key( const char *path, 
+char* unv_read_key( const char *path,
                     const char *key,
                     char *p_out,
                     int out_len)
 {
     int fd;
     char *p_search;
-    
+
     verbose("READ KEY [%s]", key);
 
     /* sanity check */
@@ -597,7 +597,7 @@ char* unv_read_key( const char *path,
 
     if (check_caller_context() == 0)
         return NULL;
-    
+
     fd = open(path, O_RDONLY, FILE_MODE);
 
     if (fd < 0) {
@@ -608,7 +608,7 @@ char* unv_read_key( const char *path,
     p_search = get_keyval(fd, key, p_out, out_len, NULL, NULL);
 
     close(fd);
-  
+
     return p_search;
 }
 
@@ -629,8 +629,8 @@ char* unv_read_key( const char *path,
 **
 *******************************************************************************/
 
-int unv_read_key_iter( const char *path, 
-                       unv_iter_cb cb, 
+int unv_read_key_iter( const char *path,
+                       unv_iter_cb cb,
                        void *userdata )
 {
     int fd;
@@ -703,7 +703,7 @@ int unv_read_key_iter( const char *path,
 **
 ** Function         unv_write_key
 **
-** Description      Writes key to file. If key value exists it will be updated                 
+** Description      Writes key to file. If key value exists it will be updated
 **                  Path must be an existing absolute path
 **                  Must be called from BTIF task context
 **
@@ -712,12 +712,12 @@ int unv_read_key_iter( const char *path,
 **                  key         : key string to write
 **                  value       : value string to set for this key
 **
-** Returns          0 if successful, -1 if failure 
+** Returns          0 if successful, -1 if failure
 **
 *******************************************************************************/
 
-int unv_write_key( const char *path, 
-                   const char *key, 
+int unv_write_key( const char *path,
+                   const char *key,
                    const char *value )
 {
     int fd;
@@ -737,7 +737,7 @@ int unv_write_key( const char *path,
 
     fd = open(path, O_RDWR, FILE_MODE);
 
-    if (fd < 0) 
+    if (fd < 0)
     {
        error("file failed to create %s (%s)", path, strerror(errno));
        return -1;
@@ -748,18 +748,18 @@ int unv_write_key( const char *path,
 
     if (keyval)
     {
-        update_key(fd, key, value, pos_start, pos_stop);      
+        update_key(fd, key, value, pos_start, pos_stop);
     }
     else
     {
         /* append at end of file */
         lseek(fd, 0, SEEK_END);
         write_keyval(fd, key, value);
-    } 
+    }
 
     free(p_line);
     close(fd);
-    
+
     return 0;
 }
 
@@ -779,7 +779,7 @@ int unv_write_key( const char *path,
 **
 *******************************************************************************/
 
-int unv_remove_key( const char *path, 
+int unv_remove_key( const char *path,
                     const char *key )
 {
     int fd;
@@ -787,7 +787,7 @@ int unv_remove_key( const char *path,
     int pos_begin = 0;
     int pos_stop = 0;
     char *p_line = malloc(UNV_MAXLINE_LENGTH);
- 
+
     verbose("READ KEY [%s]", key);
 
     /* sanity check */
@@ -796,7 +796,7 @@ int unv_remove_key( const char *path,
 
     if (check_caller_context() == 0)
         return -1;
-    
+
     fd = open(path, O_RDWR, FILE_MODE);
 
     if (fd < 0) {
@@ -804,14 +804,14 @@ int unv_remove_key( const char *path,
        return -1;
     }
 
-    p_search = get_keyval(fd, key, p_line, UNV_MAXLINE_LENGTH, &pos_begin, &pos_stop);       
+    p_search = get_keyval(fd, key, p_line, UNV_MAXLINE_LENGTH, &pos_begin, &pos_stop);
 
     if (p_search)
     {
         /* NULL value entry means remove key/val line in file */
-        update_key(fd, key, NULL, pos_begin, pos_stop); 
+        update_key(fd, key, NULL, pos_begin, pos_stop);
     }
-  
+
     return (p_search ? 0 : -1);
 }
 

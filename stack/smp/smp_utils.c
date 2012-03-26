@@ -12,25 +12,25 @@
 
 #if SMP_INCLUDED == TRUE
 
-    #include "bt_types.h"
-    #include <string.h>
-    #include <ctype.h>
-    #include "hcidefs.h"
-    #include "btm_ble_api.h"
-    #include "l2c_api.h"
-    #include "l2c_int.h"
-    #include "smp_int.h"
+#include "bt_types.h"
+#include <string.h>
+#include <ctype.h>
+#include "hcidefs.h"
+#include "btm_ble_api.h"
+#include "l2c_api.h"
+#include "l2c_int.h"
+#include "smp_int.h"
 
 
-    #define SMP_PAIRING_REQ_SIZE    7
-    #define SMP_CONFIRM_CMD_SIZE    (BT_OCTET16_LEN + 1)
-    #define SMP_INIT_CMD_SIZE       (BT_OCTET16_LEN + 1)
-    #define SMP_ENC_INFO_SIZE       (BT_OCTET16_LEN + 1)
-    #define SMP_MASTER_ID_SIZE      (BT_OCTET8_LEN + 2 + 1)
-    #define SMP_ID_INFO_SIZE        (BT_OCTET16_LEN + 1)
-    #define SMP_ID_ADDR_SIZE        (BD_ADDR_LEN + 1 + 1)
-    #define SMP_SIGN_INFO_SIZE      (BT_OCTET16_LEN + 1)
-    #define SMP_PAIR_FAIL_SIZE      2
+#define SMP_PAIRING_REQ_SIZE    7
+#define SMP_CONFIRM_CMD_SIZE    (BT_OCTET16_LEN + 1)
+#define SMP_INIT_CMD_SIZE       (BT_OCTET16_LEN + 1)
+#define SMP_ENC_INFO_SIZE       (BT_OCTET16_LEN + 1)
+#define SMP_MASTER_ID_SIZE      (BT_OCTET8_LEN + 2 + 1)
+#define SMP_ID_INFO_SIZE        (BT_OCTET16_LEN + 1)
+#define SMP_ID_ADDR_SIZE        (BD_ADDR_LEN + 1 + 1)
+#define SMP_SIGN_INFO_SIZE      (BT_OCTET16_LEN + 1)
+#define SMP_PAIR_FAIL_SIZE      2
 
 
 /* type for action functions */

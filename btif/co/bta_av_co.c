@@ -21,7 +21,7 @@
 
 #include "btif_media.h"
 #include "sbc_encoder.h"
-#include "btif_av.h"
+#include "btif_av_co.h"
 
 
 /*****************************************************************************
@@ -216,7 +216,7 @@ static tBTA_AV_CO_PEER *bta_av_co_get_peer(tBTA_AV_HNDL hndl)
     FUNC_TRACE();
 
     index = BTA_AV_CO_AUDIO_HNDL_TO_INDX(hndl);
-    APPL_TRACE_ERROR2("%s index:%d", __FUNCTION__, index);
+
     /* Sanity check */
     if (index >= BTA_AV_CO_NUM_ELEMENTS(bta_av_co_cb.peers))
     {
@@ -504,7 +504,7 @@ BTA_API void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_ty
     APPL_TRACE_DEBUG6("bta_av_co_audio_setconfig p_codec_info[%x:%x:%x:%x:%x:%x]",
             p_codec_info[1], p_codec_info[2], p_codec_info[3],
             p_codec_info[4], p_codec_info[5], p_codec_info[6]);
-    APPL_TRACE_DEBUG4("num_protect:0x%02x protect_info:0x%02x%02x%02x", 
+    APPL_TRACE_DEBUG4("num_protect:0x%02x protect_info:0x%02x%02x%02x",
         num_protect, p_protect_info[0], p_protect_info[1], p_protect_info[2]);
 
     /* Retrieve the peer info */
@@ -813,11 +813,15 @@ static BOOLEAN bta_av_co_audio_codec_build_config(const UINT8 *p_codec_caps, UIN
 {
     FUNC_TRACE();
 
-    /* By default, just copy the current codec configuration */
-    memcpy(p_codec_cfg, bta_av_co_cb.codec_cfg.info, AVDT_CODEC_SIZE);
+    memset(p_codec_cfg, 0, AVDT_CODEC_SIZE);
+
     switch (bta_av_co_cb.codec_cfg.id)
     {
     case BTIF_AV_CODEC_SBC:
+        /*  only copy the relevant portions for this codec to avoid issues when
+            comparing codec configs covering larger codec sets than SBC (7 bytes) */
+        memcpy(p_codec_cfg, bta_av_co_cb.codec_cfg.info, BTA_AV_CO_SBC_MAX_BITPOOL_OFF+1);
+
         /* Update the bit pool boundaries with the codec capabilities */
         p_codec_cfg[BTA_AV_CO_SBC_MIN_BITPOOL_OFF] = p_codec_caps[BTA_AV_CO_SBC_MIN_BITPOOL_OFF];
         p_codec_cfg[BTA_AV_CO_SBC_MAX_BITPOOL_OFF] = p_codec_caps[BTA_AV_CO_SBC_MAX_BITPOOL_OFF];
@@ -850,10 +854,10 @@ static BOOLEAN bta_av_co_audio_codec_cfg_matches_caps(UINT8 codec_id, const UINT
         if (!((p_codec_caps[BTA_AV_CO_SBC_FREQ_CHAN_OFF] & p_codec_cfg[BTA_AV_CO_SBC_FREQ_CHAN_OFF]) &&
               (p_codec_caps[BTA_AV_CO_SBC_BLOCK_BAND_OFF] & p_codec_cfg[BTA_AV_CO_SBC_BLOCK_BAND_OFF])))
         {
-            APPL_TRACE_EVENT4("FALSE %x %x %x %x", 
-                    p_codec_caps[BTA_AV_CO_SBC_FREQ_CHAN_OFF], 
-                    p_codec_cfg[BTA_AV_CO_SBC_FREQ_CHAN_OFF], 
-                    p_codec_caps[BTA_AV_CO_SBC_BLOCK_BAND_OFF], 
+            APPL_TRACE_EVENT4("FALSE %x %x %x %x",
+                    p_codec_caps[BTA_AV_CO_SBC_FREQ_CHAN_OFF],
+                    p_codec_cfg[BTA_AV_CO_SBC_FREQ_CHAN_OFF],
+                    p_codec_caps[BTA_AV_CO_SBC_BLOCK_BAND_OFF],
                     p_codec_cfg[BTA_AV_CO_SBC_BLOCK_BAND_OFF]);
             return FALSE;
         }
@@ -927,7 +931,7 @@ static BOOLEAN bta_av_co_cp_is_scmst(const UINT8 *p_protectinfo)
             return TRUE;
         }
     }
-    
+
     return FALSE;
 }
 
@@ -1007,6 +1011,7 @@ static BOOLEAN bta_av_co_audio_peer_supports_codec(tBTA_AV_CO_PEER *p_peer, UINT
 
     /* Configure the codec type to look for */
     codec_type = bta_av_co_cb.codec_cfg.id;
+
 
     for (index = 0; index < p_peer->num_sup_snks; index++)
     {
@@ -1173,6 +1178,7 @@ void bta_av_co_audio_codec_reset(void)
 
     /* Reset the current configuration to SBC */
     bta_av_co_cb.codec_cfg.id = BTIF_AV_CODEC_SBC;
+
     if (A2D_BldSbcInfo(A2D_MEDIA_TYPE_AUDIO, (tA2D_SBC_CIE *)&btif_av_sbc_default_config, bta_av_co_cb.codec_cfg.info) != A2D_SUCCESS)
     {
         APPL_TRACE_ERROR0("bta_av_co_audio_codec_reset A2D_BldSbcInfo failed");
@@ -1311,10 +1317,10 @@ BOOLEAN bta_av_co_audio_get_sbc_config(tA2D_SBC_CIE *p_sbc_config, UINT16 *p_min
                         {
                             /* Update the bitpool boundaries of the current config */
                             p_sbc_config->min_bitpool =
-                               BTA_AV_CO_MAX(p_sink->codec_caps[BTA_AV_CO_SBC_MIN_BITPOOL_OFF], 
+                               BTA_AV_CO_MAX(p_sink->codec_caps[BTA_AV_CO_SBC_MIN_BITPOOL_OFF],
                                              p_sbc_config->min_bitpool);
                             p_sbc_config->max_bitpool =
-                               BTA_AV_CO_MIN(p_sink->codec_caps[BTA_AV_CO_SBC_MAX_BITPOOL_OFF], 
+                               BTA_AV_CO_MIN(p_sink->codec_caps[BTA_AV_CO_SBC_MAX_BITPOOL_OFF],
                                              p_sbc_config->max_bitpool);
                             break;
                         }

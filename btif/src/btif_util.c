@@ -3,44 +3,44 @@
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed 
- *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
- *  Except as set forth in an Authorized License, Broadcom grants no license 
- *  (express or implied), right to use, or waiver of any kind with respect to 
- *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  licensors, and may only be used, duplicated, modified or distributed
+ *  pursuant to the terms and conditions of a separate, written license
+ *  agreement executed between you and Broadcom (an "Authorized License").
+ *  Except as set forth in an Authorized License, Broadcom grants no license
+ *  (express or implied), right to use, or waiver of any kind with respect to
+ *  the Software, and Broadcom expressly reserves all rights in and to the
+ *  Software and all intellectual property rights therein.
+ *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
+ *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ *  ALL USE OF THE SOFTWARE.
  *
  *  Except as expressly set forth in the Authorized License,
  *
- *  1.     This program, including its structure, sequence and organization, 
- *         constitutes the valuable trade secrets of Broadcom, and you shall 
- *         use all reasonable efforts to protect the confidentiality thereof, 
- *         and to use this information only in connection with your use of 
+ *  1.     This program, including its structure, sequence and organization,
+ *         constitutes the valuable trade secrets of Broadcom, and you shall
+ *         use all reasonable efforts to protect the confidentiality thereof,
+ *         and to use this information only in connection with your use of
  *         Broadcom integrated circuit products.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED 
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, 
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, 
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY 
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, 
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES, 
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR 
+ *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+ *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
  *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING OUT
  *         OF USE OR PERFORMANCE OF THE SOFTWARE.
  *
  *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM OR
- *         ITS LICENSORS BE LIABLE FOR 
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY 
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO 
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM 
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR 
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE 
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE 
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
+ *         ITS LICENSORS BE LIABLE FOR
+ *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
+ *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
+ *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+ *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
+ *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
+ *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
+ *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
  ************************************************************************************/
@@ -50,12 +50,13 @@
  *  Filename:      btif_util.c
  *
  *  Description:   Miscellaneous helper functions
- *              
- * 
+ *
+ *
  ***********************************************************************************/
 
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf.h>
+#include <hardware/bt_av.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -200,7 +201,7 @@ const char* dump_dm_search_event(UINT16 event)
         CASE_RETURN_STR(BTA_DM_DISC_CMPL_EVT)
         CASE_RETURN_STR(BTA_DM_DI_DISC_CMPL_EVT)
         CASE_RETURN_STR(BTA_DM_SEARCH_CANCEL_CMPL_EVT)
-        
+
         default:
             return "UNKNOWN MSG ID";
      }
@@ -221,11 +222,11 @@ const char* dump_property_type(bt_property_type_t type)
         CASE_RETURN_STR(BT_PROPERTY_ADAPTER_BONDED_DEVICES)
         CASE_RETURN_STR(BT_PROPERTY_ADAPTER_SCAN_MODE)
         CASE_RETURN_STR(BT_PROPERTY_REMOTE_FRIENDLY_NAME)
-        
+
         default:
             return "UNKNOWN PROPERTY ID";
-    } 
-} 
+    }
+}
 
 
 const char* dump_hf_event(UINT16 event)
@@ -279,7 +280,7 @@ const char* dump_hf_conn_state(UINT16 event)
         CASE_RETURN_STR(BTHF_CONNECTION_STATE_SLC_CONNECTED)
         CASE_RETURN_STR(BTHF_CONNECTION_STATE_DISCONNECTING)
         default:
-            return "UNKNOWN MSG ID";        
+            return "UNKNOWN MSG ID";
     }
 }
 
@@ -305,11 +306,11 @@ const char* dump_thread_evt(bt_cb_thread_evt evt)
     {
         CASE_RETURN_STR(ASSOCIATE_JVM)
         CASE_RETURN_STR(DISASSOCIATE_JVM)
-        
+
         default:
             return "unknown thread evt";
-    } 
-} 
+    }
+}
 
 
 const char* dump_hf_audio_state(UINT16 event)
@@ -326,6 +327,30 @@ const char* dump_hf_audio_state(UINT16 event)
     }
 }
 
+const char* dump_av_conn_state(UINT16 event)
+{
+    switch(event)
+    {
+        CASE_RETURN_STR(BTAV_CONNECTION_STATE_DISCONNECTED)
+        CASE_RETURN_STR(BTAV_CONNECTION_STATE_CONNECTING)
+        CASE_RETURN_STR(BTAV_CONNECTION_STATE_CONNECTED)
+        CASE_RETURN_STR(BTAV_CONNECTION_STATE_DISCONNECTING)
+        default:
+            return "UNKNOWN MSG ID";
+    }
+}
+
+const char* dump_av_audio_state(UINT16 event)
+{
+    switch(event)
+    {
+        CASE_RETURN_STR(BTAV_AUDIO_STATE_REMOTE_SUSPEND)
+        CASE_RETURN_STR(BTAV_AUDIO_STATE_STOPPED)
+        CASE_RETURN_STR(BTAV_AUDIO_STATE_STARTED)
+        default:
+            return "UNKNOWN MSG ID";
+    }
+}
 
 const char* dump_adapter_scan_mode(bt_scan_mode_t mode)
 {

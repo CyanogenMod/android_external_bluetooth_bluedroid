@@ -81,7 +81,7 @@
 #include "l2c_api.h"
 
 
-#include "btif_av.h"
+#include "btif_av_co.h"
 #include "btif_media.h"
 
 
@@ -89,7 +89,13 @@
 #include "sbc_encoder.h"
 #endif
 
+#define LOG_TAG "BTIF-MEDIA"
 
+#include <hardware/bluetooth.h>
+#include "audio_a2dp_hw.h"
+#include "btif_av.h"
+#include "btif_sm.h"
+#include "btif_util.h"
 
 /*****************************************************************************
  **  Constants
@@ -166,6 +172,35 @@ enum
 #define DEFAULT_SBC_BITRATE 220
 
 
+#ifndef A2DP_MEDIA_TASK_STACK_SIZE
+#define A2DP_MEDIA_TASK_STACK_SIZE       0x2000         /* In bytes */
+#endif
+
+#define A2DP_MEDIA_TASK_TASK_STR        ((INT8 *) "A2DP-MEDIA")
+static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
+
+#define BT_MEDIA_TASK A2DP_MEDIA_TASK
+
+#define USEC_PER_SEC 1000000L
+#define TPUT_STATS_INTERVAL_US (1000*1000)
+
+/*
+ * CONGESTION COMPENSATION CTRL ::
+ *
+ * Thus setting controls how many buffers we will hold in media task
+ * during temp link congestion. Together with the stack buffer queues
+ * it controls much temporary a2dp link congestion we can
+ * compensate for. It however also depends on the default run level of sinks
+ * jitterbuffers. Depending on type of sink this would vary.
+ * Ideally the (SRC) max tx buffer capacity should equal the sinks
+ * jitterbuffer runlevel including any intermediate buffers on the way
+ * towards the sinks codec.
+ */
+
+/* fixme -- define this in pcm time instead of buffer count */
+/* fixme -- tune optimal value. For now set a large buffer capacity */
+#define MAX_OUTPUT_BUFFER_QUEUE_SZ 12
+
 /*****************************************************************************
  **  Data types
  *****************************************************************************/
@@ -196,6 +231,10 @@ typedef struct
     tBTIF_AV_MEDIA_FEEDINGS_STATE media_feeding_state;
     SBC_ENC_PARAMS encoder;
     UINT8 busy_level;
+    void* av_sm_hdl;
+    UINT8 a2dp_cmd_pending; /* we can have max one command pending */
+    BOOLEAN tx_flush; /* discards any outgoing data when true */
+
 #if ((defined(BTIF_MEDIA_OVERFEED_INCLUDED) && (BTIF_MEDIA_OVERFEED_INCLUDED == TRUE)) || \
      (defined(BTIF_MEDIA_UNDERFEED_INCLUDED) && (BTIF_MEDIA_UNDERFEED_INCLUDED == TRUE)))
     UINT8 tx_counter;
@@ -204,14 +243,32 @@ typedef struct
 
 } tBTIF_MEDIA_CB;
 
+typedef struct {
+    int rx;
+    int rx_tot;
+    int tx;
+    int tx_tot;
+    int ts_prev_us;
+} t_stat;
+
 /*****************************************************************************
  **  Local data
  *****************************************************************************/
 
 static tBTIF_MEDIA_CB btif_media_cb;
+static int media_task_running = 0;
+
 
 /*****************************************************************************
  **  Local functions
+ *****************************************************************************/
+
+static void btif_a2dp_data_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event);
+static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event);
+static void btif_a2dp_encoder_update(void);
+
+/*****************************************************************************
+ **  Externs
  *****************************************************************************/
 
 static void btif_media_task_handle_cmd(BT_HDR *p_msg);
@@ -231,40 +288,8 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame);
 
 
 /*****************************************************************************
- **  
+ **  Misc helper functions
  *****************************************************************************/
-
-#define UIPC_CH_ID_AV_AUDIO 0
-
-/* Events generated */
-#define UIPC_OPEN_EVT                       0x01
-#define UIPC_CLOSE_EVT                      0x02
-#define UIPC_RX_DATA_EVT                    0x03
-#define UIPC_RX_DATA_READY_EVT              0x04
-#define UIPC_TX_DATA_READY_EVT              0x05
-
-#ifndef A2DP_MEDIA_TASK_STACK_SIZE
-#define A2DP_MEDIA_TASK_STACK_SIZE       0x2000         /* In bytes */
-#endif
-        
-#define A2DP_MEDIA_TASK_TASK_STR        ((INT8 *) "A2DP-MEDIA")
-static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
-
-#define BT_MEDIA_TASK A2DP_MEDIA_TASK
-
-#define CASE_RETURN_STR(const) case const: return #const;
-
-
-#define USEC_PER_SEC 1000000L
-#define TPUT_STATS_INTERVAL_US (1000*1000)
-
-typedef struct {
-    int rx;
-    int rx_tot;
-    int tx;
-    int tx_tot;
-    int ts_prev_us;
-} t_stat;
 
 static void tput_mon(int is_rx, int len, int reset)
 {
@@ -279,7 +304,7 @@ static void tput_mon(int is_rx, int len, int reset)
         memset(&cur_stat, 0, sizeof(t_stat));
         return;
     }
-    
+
     if (is_rx)
     {
         cur_stat.rx+=len;
@@ -288,13 +313,13 @@ static void tput_mon(int is_rx, int len, int reset)
     else
     {
         cur_stat.tx+=len;
-        cur_stat.tx_tot+=len;        
+        cur_stat.tx_tot+=len;
     }
     clock_gettime(CLOCK_MONOTONIC, &now);
-    
+
     now_us = now.tv_sec*USEC_PER_SEC + now.tv_nsec/1000;
 
-    //APPL_TRACE_EVENT1("%d us", now_us - cur_stat.ts_prev_us);
+    //APPL_TRACE_DEBUG1("%d us", now_us - cur_stat.ts_prev_us);
 
     if ((now_us - cur_stat.ts_prev_us) < TPUT_STATS_INTERVAL_US)
         return;
@@ -311,7 +336,7 @@ static void tput_mon(int is_rx, int len, int reset)
 }
 
 
-void log_tstamps_us(char *comment)
+static void log_tstamps_us(char *comment)
 {
     #define USEC_PER_SEC 1000000L
     static struct timespec prev = {0, 0};
@@ -322,10 +347,11 @@ void log_tstamps_us(char *comment)
     clock_gettime(CLOCK_MONOTONIC, &now);
     now_us = now.tv_sec*USEC_PER_SEC + now.tv_nsec/1000;
     diff_us = (now.tv_sec - prev.tv_sec) * USEC_PER_SEC + (now.tv_nsec - prev.tv_nsec)/1000;
-    
-    APPL_TRACE_EVENT3("[%s] ts %08d, diff : %08d", comment, now_us, diff_us);
 
-    prev = now; 
+    APPL_TRACE_DEBUG4("[%s] ts %08d, diff : %08d, queue sz %d", comment, now_us, diff_us,
+                btif_media_cb.TxAaQ.count);
+
+    prev = now;
 }
 
 const char* dump_media_event(UINT16 event)
@@ -350,7 +376,211 @@ const char* dump_media_event(UINT16 event)
     }
 }
 
-void btif_av_encoder_init(void)
+
+/*****************************************************************************
+ **  A2DP CTRL PATH
+ *****************************************************************************/
+
+static const char* dump_a2dp_ctrl_event(UINT8 event)
+{
+    switch(event)
+    {
+        CASE_RETURN_STR(A2DP_CTRL_CMD_NONE)
+        CASE_RETURN_STR(A2DP_CTRL_CMD_CHECK_READY)
+        CASE_RETURN_STR(A2DP_CTRL_CMD_START)
+        CASE_RETURN_STR(A2DP_CTRL_CMD_STOP)
+        CASE_RETURN_STR(A2DP_CTRL_CMD_SUSPEND)
+        default:
+            return "UNKNOWN MSG ID";
+    }
+}
+
+static void btif_audiopath_detached(void)
+{
+    APPL_TRACE_EVENT0("## AUDIO PATH DETACHED ##");
+
+    /*  send stop request only if we are actively streaming and haven't received
+        a stop request. Potentially audioflinger detached abnormally */
+    if (btif_media_cb.is_tx_timer)
+    {
+        /* post stop event and wait for audio path to stop */
+        btif_dispatch_sm_event(BTIF_AV_STOP_STREAM_REQ_EVT, NULL, 0);
+    }
+}
+
+static void a2dp_cmd_acknowledge(int status)
+{
+    UINT8 ack = status;
+
+    APPL_TRACE_EVENT2("## a2dp ack : %s, status %d ##", dump_a2dp_ctrl_event(btif_media_cb.a2dp_cmd_pending), status);
+
+    /* sanity check */
+    if (btif_media_cb.a2dp_cmd_pending == A2DP_CTRL_CMD_NONE)
+    {
+        APPL_TRACE_ERROR0("warning : no command pending, ignore ack");
+        return;
+    }
+
+    /* clear pending */
+    btif_media_cb.a2dp_cmd_pending = A2DP_CTRL_CMD_NONE;
+
+    /* acknowledge start request */
+    UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, &ack, 1);
+}
+
+
+static void btif_recv_ctrl_data(void)
+{
+    UINT8 cmd = 0;
+    int n;
+
+    n = UIPC_Read(UIPC_CH_ID_AV_CTRL, NULL, &cmd, 1);
+
+    /* detach on ctrl channel means audioflinger process was terminated */
+    if (n == 0)
+    {
+        APPL_TRACE_EVENT0("CTRL CH DETACHED");
+        UIPC_Close(UIPC_CH_ID_AV_CTRL);
+        /* we can operate only on datachannel, if af client wants to
+           do send additional commands the ctrl channel would be reestablished */
+        //btif_audiopath_detached();
+        return;
+    }
+
+    APPL_TRACE_EVENT1("a2dp-ctrl-cmd : %s", dump_a2dp_ctrl_event(cmd));
+
+    btif_media_cb.a2dp_cmd_pending = cmd;
+
+    switch(cmd)
+    {
+        case A2DP_CTRL_CMD_CHECK_READY:
+
+            /* check whether avdtp is ready to start */
+            if (btif_av_stream_ready() == TRUE)
+            {
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+            }
+            else
+            {
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+            }
+            break;
+
+        case A2DP_CTRL_CMD_START:
+
+            if (btif_av_stream_ready() == TRUE)
+            {
+                /* setup audio data channel listener */
+                UIPC_Open(UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb);
+
+                /* post start event and wait for audio path to open */
+                btif_dispatch_sm_event(BTIF_AV_START_STREAM_REQ_EVT, NULL, 0);
+
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+            }
+            else if (btif_av_stream_started())
+            {
+                /* setup audio data channel listener */
+                UIPC_Open(UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb);
+
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+            }
+            else
+            {
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+                break;
+            }
+            break;
+
+        case A2DP_CTRL_CMD_STOP:
+
+            if (btif_media_cb.is_tx_timer == FALSE)
+            {
+                /* we are already stopped, just ack back */
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+                break;
+            }
+
+            btif_dispatch_sm_event(BTIF_AV_STOP_STREAM_REQ_EVT, NULL, 0);
+            break;
+
+        case A2DP_CTRL_CMD_SUSPEND:
+            /* local suspend */
+            btif_dispatch_sm_event(BTIF_AV_SUSPEND_STREAM_REQ_EVT, NULL, 0);
+            break;
+
+        default:
+            APPL_TRACE_ERROR1("UNSUPPORTED CMD (%d)", cmd);
+            a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+            break;
+    }
+    APPL_TRACE_EVENT1("a2dp-ctrl-cmd : %s DONE", dump_a2dp_ctrl_event(cmd));
+}
+
+static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
+{
+    APPL_TRACE_DEBUG1("A2DP-CTRL-CHANNEL EVENT %s", dump_uipc_event(event));
+
+    switch(event)
+    {
+        case UIPC_OPEN_EVT:
+            /* fetch av statemachine handle */
+            btif_media_cb.av_sm_hdl = btif_av_get_sm_handle();
+            break;
+
+        case UIPC_CLOSE_EVT:
+            /* restart ctrl server */
+            UIPC_Open(UIPC_CH_ID_AV_CTRL , btif_a2dp_ctrl_cb);
+            break;
+
+        case UIPC_RX_DATA_READY_EVT:
+            btif_recv_ctrl_data();
+            break;
+
+        default :
+            APPL_TRACE_ERROR1("### A2DP-CTRL-CHANNEL EVENT %d NOT HANDLED ###", event);
+            break;
+    }
+}
+
+static void btif_a2dp_data_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
+{
+    APPL_TRACE_DEBUG1("BTIF MEDIA (A2DP-DATA) EVENT %s", dump_uipc_event(event));
+
+    switch(event)
+    {
+        case UIPC_OPEN_EVT:
+
+            /*  read directly from media task from here on (keep callback for
+                connection events */
+            UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_REG_REMOVE_ACTIVE_READSET, NULL);
+
+            /* make sure we update any changed sbc encoder params */
+            btif_a2dp_encoder_update();
+
+            /* Start the media task to encode SBC */
+            btif_media_task_start_aa_req();
+
+            /* ack back when media task is fully started */
+            break;
+
+        case UIPC_CLOSE_EVT:
+            a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+            btif_audiopath_detached();
+            break;
+
+        default :
+            APPL_TRACE_ERROR1("### A2DP-DATA EVENT %d NOT HANDLED ###", event);
+            break;
+    }
+}
+
+
+/*****************************************************************************
+ **  BTIF ADAPTATION
+ *****************************************************************************/
+
+static void btif_a2dp_encoder_init(void)
 {
     UINT16 minmtu;
     tBTIF_MEDIA_INIT_AUDIO msg;
@@ -365,7 +595,7 @@ void btif_av_encoder_init(void)
     /* lookup table to convert freq */
     UINT16 freq_block_tbl[5] = { SBC_sf48000, SBC_sf44100, SBC_sf32000, 0, SBC_sf16000 };
 
-    APPL_TRACE_DEBUG0("btif_av_encoder_init");
+    APPL_TRACE_DEBUG0("btif_a2dp_encoder_init");
 
     /* Retrieve the current SBC configuration (default if currently not used) */
     bta_av_co_audio_get_sbc_config(&sbc_config, &minmtu);
@@ -380,24 +610,24 @@ void btif_av_encoder_init(void)
     btif_media_task_enc_init_req(&msg);
 }
 
-static void btif_av_encoder_update(void)
+static void btif_a2dp_encoder_update(void)
 {
     UINT16 minmtu;
     tA2D_SBC_CIE sbc_config;
     tBTIF_MEDIA_UPDATE_AUDIO msg;
 
-    APPL_TRACE_DEBUG0("btif_av_encoder_update");
+    APPL_TRACE_DEBUG0("btif_a2dp_encoder_update");
 
     /* Retrieve the current SBC configuration (default if currently not used) */
     bta_av_co_audio_get_sbc_config(&sbc_config, &minmtu);
 
-    APPL_TRACE_DEBUG4("btif_av_encoder_update: Common min_bitpool:%d(0x%x) max_bitpool:%d(0x%x)",
+    APPL_TRACE_DEBUG4("btif_a2dp_encoder_update: Common min_bitpool:%d(0x%x) max_bitpool:%d(0x%x)",
             sbc_config.min_bitpool, sbc_config.min_bitpool,
             sbc_config.max_bitpool, sbc_config.max_bitpool);
 
     if (sbc_config.min_bitpool > sbc_config.max_bitpool)
     {
-        APPL_TRACE_ERROR0("btif_av_encoder_update: ERROR btif_av_encoder_update min_bitpool > max_bitpool");
+        APPL_TRACE_ERROR0("btif_a2dp_encoder_update: ERROR btif_a2dp_encoder_update min_bitpool > max_bitpool");
     }
 
     msg.MinBitPool = sbc_config.min_bitpool;
@@ -408,42 +638,79 @@ static void btif_av_encoder_update(void)
 }
 
 
-static int media_task_running = 0;    
+/*****************************************************************************
+**
+** Function        btif_a2dp_start_media_task
+**
+** Description
+**
+** Returns
+**
+*******************************************************************************/
 
 int btif_a2dp_start_media_task(void)
 {
     if (media_task_running)
     {
-        APPL_TRACE_EVENT0("warning : media task already running");
+        APPL_TRACE_ERROR0("warning : media task already running");
         return GKI_FAILURE;
     }
+
+    APPL_TRACE_EVENT0("## A2DP START MEDIA TASK ##");
 
     media_task_running = 1;
 
     /* start a2dp media task */
-    return GKI_create_task((TASKPTR)btif_media_task, A2DP_MEDIA_TASK, 
+    return GKI_create_task((TASKPTR)btif_media_task, A2DP_MEDIA_TASK,
                 A2DP_MEDIA_TASK_TASK_STR,
                 (UINT16 *) ((UINT8 *)a2dp_media_task_stack + A2DP_MEDIA_TASK_STACK_SIZE),
-                sizeof(a2dp_media_task_stack));        
+                sizeof(a2dp_media_task_stack));
 }
+
+/*****************************************************************************
+**
+** Function        btif_a2dp_stop_media_task
+**
+** Description
+**
+** Returns
+**
+*******************************************************************************/
 
 void btif_a2dp_stop_media_task(void)
 {
-    APPL_TRACE_EVENT1("%s", __FUNCTION__);
+    APPL_TRACE_EVENT0("## A2DP STOP MEDIA TASK ##");
     GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_KILL, NULL);
 }
 
-void btif_a2dp_upon_init(void)
-{
-    void btif_media_task_init(void);
-    btif_media_task_init();
+/*****************************************************************************
+**
+** Function        btif_a2dp_on_init
+**
+** Description
+**
+** Returns
+**
+*******************************************************************************/
 
+void btif_a2dp_on_init(void)
+{
     //tput_mon(1, 0, 1);
 }
 
-void btif_a2dp_upon_idle(void)
+/*****************************************************************************
+**
+** Function        btif_a2dp_on_idle
+**
+** Description
+**
+** Returns
+**
+*******************************************************************************/
+
+void btif_a2dp_on_idle(void)
 {
-    APPL_TRACE_EVENT1("%s", __FUNCTION__);
+    APPL_TRACE_EVENT0("## ON A2DP IDLE ##");
 
     /* Make sure media task is stopped */
     btif_media_task_stop_aa_req();
@@ -451,27 +718,55 @@ void btif_a2dp_upon_idle(void)
     bta_av_co_init();
 }
 
-void btif_a2dp_upon_start_req(void)
+/*****************************************************************************
+**
+** Function        btif_a2dp_on_open
+**
+** Description
+**
+** Returns
+**
+*******************************************************************************/
+
+void btif_a2dp_on_open(void)
+{
+    APPL_TRACE_EVENT0("## ON A2DP OPEN ##");
+
+    /* always use callback to notify socket events */
+    UIPC_Open(UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb);
+}
+
+/*****************************************************************************
+**
+** Function        btif_a2dp_on_start_req
+**
+** Description
+**
+** Returns
+**
+*******************************************************************************/
+
+void btif_a2dp_on_start_req(void)
 {
     tBTIF_AV_MEDIA_FEEDINGS media_feeding;
     tBTIF_STATUS status;
 
-    APPL_TRACE_EVENT1("%s", __FUNCTION__);
+    APPL_TRACE_EVENT0("## ON A2DP START ##");
 
     GKI_disable();
-    
+
     /* for now hardcode 44.1 khz 16 bit stereo */
     media_feeding.cfg.pcm.sampling_freq = 44100;
     media_feeding.cfg.pcm.bit_per_sample = 16;
     media_feeding.cfg.pcm.num_channel = 2;
     media_feeding.format = BTIF_AV_CODEC_PCM;
 
-    if (bta_av_co_audio_set_codec(&media_feeding, &status))         
-    {        
+    if (bta_av_co_audio_set_codec(&media_feeding, &status))
+    {
         tBTIF_MEDIA_INIT_AUDIO_FEEDING mfeed;
 
         /* Init the encoding task */
-        btif_av_encoder_init();  
+        btif_a2dp_encoder_init();
 
         /* Build the media task configuration */
         mfeed.feeding = media_feeding;
@@ -483,13 +778,117 @@ void btif_a2dp_upon_start_req(void)
     GKI_enable();
 }
 
-void btif_a2dp_upon_started(void)
-{
-    APPL_TRACE_EVENT1("%s", __FUNCTION__);
-    btif_av_encoder_update();
 
-    /* Start the media task to encode SBC */
-    btif_media_task_start_aa_req();
+/*****************************************************************************
+**
+** Function        btif_a2dp_on_started
+**
+** Description
+**
+** Returns
+**
+*******************************************************************************/
+
+void btif_a2dp_on_started(tBTA_AV_START *p_av)
+{
+    APPL_TRACE_EVENT0("## ON A2DP STARTED ##");
+
+    if (p_av->status == BTA_AV_SUCCESS)
+    {
+        if (p_av->suspending == FALSE)
+        {
+            if (p_av->initiator)
+            {
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+            }
+            else
+            {
+                /* we were remotely started */
+            }
+
+            /* media task is autostarted upon a2dp audiopath connection */
+        }
+    }
+    else
+    {
+        a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+    }
+}
+
+
+/*****************************************************************************
+**
+** Function        btif_a2dp_on_stopped
+**
+** Description
+**
+** Returns
+**
+*******************************************************************************/
+
+void btif_a2dp_on_stopped(tBTA_AV_SUSPEND *p_av)
+{
+    APPL_TRACE_EVENT0("## ON A2DP STOPPED ##");
+
+    /* allow using this api for other than suspend */
+    if (p_av != NULL)
+    {
+        if (p_av->status != BTA_AV_SUCCESS)
+        {
+            APPL_TRACE_EVENT1("AV STOP FAILED (%d)", p_av->status);
+
+            if (p_av->initiator)
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+            return;
+        }
+    }
+
+    /* ensure tx frames are immediately suspended */
+    btif_media_cb.tx_flush = 1;
+
+    /* request to stop media task  */
+    btif_media_task_aa_tx_flush_req();
+    btif_media_task_stop_aa_req();
+
+    /* once stream is fully stopped we will ack back */
+}
+
+
+/*****************************************************************************
+**
+** Function        btif_a2dp_on_suspended
+**
+** Description
+**
+** Returns
+**
+*******************************************************************************/
+
+void btif_a2dp_on_suspended(tBTA_AV_SUSPEND *p_av)
+{
+    APPL_TRACE_EVENT0("## ON A2DP SUSPENDED ##");
+
+    /* check for status failures */
+    if (p_av->status != BTA_AV_SUCCESS)
+    {
+        if (p_av->initiator == TRUE)
+            a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+    }
+
+    /* once stream is fully stopped we will ack back */
+
+    /* ensure tx frames are immediately flushed */
+    btif_media_cb.tx_flush = 1;
+
+    /* stop timer tick */
+    btif_media_task_stop_aa_req();
+}
+
+/* when true media task discards any tx frames */
+void btif_a2dp_set_tx_flush(BOOLEAN enable)
+{
+    APPL_TRACE_EVENT1("## DROP TX %d ##", enable);
+    btif_media_cb.tx_flush = enable;
 }
 
 /*******************************************************************************
@@ -502,7 +901,6 @@ void btif_a2dp_upon_started(void)
  **
  *******************************************************************************/
 
-
 static void btif_media_task_aa_handle_timer(void)
 {
 #if (defined(DEBUG_MEDIA_AV_FLOW) && (DEBUG_MEDIA_AV_FLOW == TRUE))
@@ -510,7 +908,7 @@ static void btif_media_task_aa_handle_timer(void)
     APPL_TRACE_DEBUG1("btif_media_task_aa_handle_timer: %d", Debug++);
 #endif
 
-    //log_tstamps_us("timer");
+    log_tstamps_us("media task tx timer");
 
 #if (BTA_AV_INCLUDED == TRUE)
     btif_media_send_aa_frame();
@@ -552,14 +950,16 @@ static void btif_media_task_aa_handle_uipc_rx_rdy(void)
  ** Returns          void
  **
  *******************************************************************************/
+
 void btif_media_task_init(void)
 {
     memset(&(btif_media_cb), 0, sizeof(btif_media_cb));
 
-#if (BTA_AV_INCLUDED == TRUE)
-    UIPC_Open(UIPC_CH_ID_AV_AUDIO , NULL);
-#endif
+    UIPC_Init(NULL);
 
+#if (BTA_AV_INCLUDED == TRUE)
+    UIPC_Open(UIPC_CH_ID_AV_CTRL , btif_a2dp_ctrl_cb);
+#endif
 }
 /*******************************************************************************
  **
@@ -580,13 +980,15 @@ int btif_media_task(void *p)
     UINT16 event;
     BT_HDR *p_msg;
 
-    APPL_TRACE_EVENT0("MEDIA TASK STARTING");
+    APPL_TRACE_DEBUG0("================ MEDIA TASK STARTING ================");
 
     btif_media_task_init();
 
     while (1)
     {
         event = GKI_wait(0xffff, 0);
+
+        APPL_TRACE_DEBUG1("================= MEDIA TASK EVENT %d ===============", event);
 
         if (event & BTIF_MEDIA_TASK_CMD)
         {
@@ -613,13 +1015,17 @@ int btif_media_task(void *p)
         }
 
 
+        APPL_TRACE_DEBUG1("=============== MEDIA TASK EVENT %d DONE ============", event);
+
         /* When we get this event we exit the task  - should only happen on GKI_shutdown  */
         if (event & BTIF_MEDIA_TASK_KILL)
+        {
+            UIPC_Close(UIPC_CH_ID_ALL);
             break;
-
+        }
     }
 
-    APPL_TRACE_EVENT0("MEDIA TASK EXITING");
+    APPL_TRACE_DEBUG0("MEDIA TASK EXITING");
 
     return 0;
 }
@@ -677,7 +1083,7 @@ static void btif_media_flush_q(BUFFER_Q *p_q)
  *******************************************************************************/
 static void btif_media_task_handle_cmd(BT_HDR *p_msg)
 {
-    //APPL_TRACE_EVENT2("EVENT (%d) %s", p_msg->event, dump_media_event(p_msg->event));
+    APPL_TRACE_DEBUG2("btif_media_task_handle_cmd : %d %s", p_msg->event, dump_media_event(p_msg->event));
 
     switch (p_msg->event)
     {
@@ -708,7 +1114,7 @@ static void btif_media_task_handle_cmd(BT_HDR *p_msg)
         APPL_TRACE_ERROR1("ERROR in btif_media_task_handle_cmd unknown event %d", p_msg->event);
     }
     GKI_freebuf(p_msg);
-    //APPL_TRACE_EVENT1("MEDIA TASK RX EVENT PROCESSED %s", dump_media_event(p_msg->event));
+    APPL_TRACE_EVENT1("btif_media_task_handle_cmd : %s DONE", dump_media_event(p_msg->event));
 }
 
 /*******************************************************************************
@@ -722,7 +1128,7 @@ static void btif_media_task_handle_cmd(BT_HDR *p_msg)
  *******************************************************************************/
 static void btif_media_task_handle_media(BT_HDR *p_msg)
 {
-    APPL_TRACE_ERROR0("ERROR btif_media_task_handle_media: TODO");
+    APPL_TRACE_ERROR0("ERROR btif_media_task_handle_media: not in use");
 
     GKI_freebuf(p_msg);
 }
@@ -1166,7 +1572,7 @@ static void btif_media_task_audio_feeding_init(BT_HDR *p_msg)
             btif_media_cb.TxTranscoding = BTIF_MEDIA_TRSCD_PCM_2_SBC;
             btif_media_task_pcm2sbc_init(p_feeding);
             break;
-            
+
         default :
             APPL_TRACE_ERROR1("unknown feeding format %d", p_feeding->feeding.format);
             break;
@@ -1233,7 +1639,7 @@ static void btif_media_task_aa_start_tx(void)
 
 
     /* Use a timer to poll the UIPC, get rid of the UIPC call back */
-    UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_REG_CBACK, NULL);
+    // UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_REG_CBACK, NULL);
 
     btif_media_cb.is_tx_timer = TRUE;
 
@@ -1261,11 +1667,15 @@ static void btif_media_task_aa_start_tx(void)
 static void btif_media_task_aa_stop_tx(void)
 {
     APPL_TRACE_DEBUG1("btif_media_task_aa_stop_tx is timer: %d", btif_media_cb.is_tx_timer);
+
     /* Stop the timer first */
     GKI_stop_timer(BTIF_MEDIA_AA_TASK_TIMER_ID);
     btif_media_cb.is_tx_timer = FALSE;
 
     UIPC_Close(UIPC_CH_ID_AV_AUDIO);
+
+    /* audio engine stopped, reset tx suspended flag */
+    btif_media_cb.tx_flush = 0;
 
     /* Reset the media feeding state */
     btif_media_task_feeding_state_reset();
@@ -1449,23 +1859,13 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
 
     //tput_mon(TRUE, nb_byte_read, FALSE);
 
-    if (nb_byte_read == 0)
-    {
-        APPL_TRACE_EVENT0("REMOTE SOURCE DETACHED");
-
-        /* temp workaround before full socket interface implented
-           stop and restart media task as remote source disconnected
-           read socket will again wait for an incoming a2dp source connection */
-
-        btif_media_task_stop_aa_req();
-        btif_a2dp_upon_started();
-        return FALSE;
-    }
-
     if (nb_byte_read < read_size)
     {
-        APPL_TRACE_WARNING2("btif_media_aa_read_feeding UIPC empty UIPC_Read returns:%d asked:%d",
+        APPL_TRACE_WARNING2("### UNDERRUN :: ONLY READ %d BYTES OUT OF %d ###",
                 nb_byte_read, read_size);
+
+        if (nb_byte_read == 0)
+            return FALSE;
 
         if(btif_media_cb.feeding_mode == BTIF_AV_FEEDING_ASYNCHRONOUS)
         {
@@ -1487,6 +1887,7 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
             nb_byte_read,
             sizeof(up_sampled_buffer) - btif_media_cb.media_feeding_state.pcm.aa_feed_residue,
             &src_size_used);
+
 #if (defined(DEBUG_MEDIA_AV_FLOW) && (DEBUG_MEDIA_AV_FLOW == TRUE))
     APPL_TRACE_DEBUG3("btif_media_aa_read_feeding read_size:%d src_size_used:%d dst_size_used:%d",
             read_size, src_size_used, dst_size_used);
@@ -1560,6 +1961,7 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
             /* coverity[SIGN_EXTENSION] False-positive: Parameter are always in range avoiding sign extension*/
             memset(btif_media_cb.encoder.as16PcmBuffer, 0, blocm_x_subband
                     * btif_media_cb.encoder.s16NumOfChannels);
+
             /* Read PCM data and upsample them if needed */
             if (btif_media_aa_read_feeding(UIPC_CH_ID_AV_AUDIO))
             {
@@ -1576,6 +1978,10 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
             {
                 /* no more pcm to read */
                 nb_frame = 0;
+
+                /* break read loop if timer was stopped (media task stopped) */
+                if ( btif_media_cb.is_tx_timer == FALSE )
+                    return;
             }
 
         } while (((p_buf->len + btif_media_cb.encoder.u16PacketLength) < btif_media_cb.TxAaMtuSize)
@@ -1586,6 +1992,19 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
 
         /* store the time stamp in the buffer to send */
         *((UINT32 *) (p_buf + 1)) = btif_media_cb.timestamp;
+
+        APPL_TRACE_EVENT1("TX QUEUE NOW %d", btif_media_cb.TxAaQ.count);
+
+        if (btif_media_cb.tx_flush)
+        {
+            APPL_TRACE_DEBUG0("### tx suspended, discarded frame ###");
+
+            if (btif_media_cb.TxAaQ.count > 0)
+                btif_media_flush_q(&(btif_media_cb.TxAaQ));
+
+            GKI_freebuf(p_buf);
+            return;
+        }
 
         /* Enqueue the encoded SBC frame in AA Tx Queue */
         GKI_enqueue(&(btif_media_cb.TxAaQ), p_buf);
@@ -1602,10 +2021,13 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
  ** Returns          void
  **
  *******************************************************************************/
+
 static void btif_media_aa_prep_2_send(UINT8 nb_frame)
 {
+    APPL_TRACE_DEBUG1("btif_media_aa_prep_2_send : %d frames in queue", btif_media_cb.TxAaQ.count);
+
     /* Remove all the buffers not sent until there are only 4 in the queue */
-    while (btif_media_cb.TxAaQ.count > 4)
+    while (btif_media_cb.TxAaQ.count >= MAX_OUTPUT_BUFFER_QUEUE_SZ)
     {
         APPL_TRACE_WARNING1("btif_media_aa_prep_2_send congestion buf count %d",btif_media_cb.TxAaQ.count);
         GKI_freebuf(GKI_dequeue(&(btif_media_cb.TxAaQ)));

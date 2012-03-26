@@ -51,7 +51,7 @@
  *  Filename:      btif_rc.c
  *
  *  Description:   Bluetooth AVRC implementation
- * 
+ *
  *****************************************************************************/
 #include <hardware/bluetooth.h>
 #include <fcntl.h>
@@ -265,12 +265,12 @@ const char *dump_rc_event_name(tBTA_AV_EVT event)
 }
 
 /***************************************************************************
- *  Function       handle_rc_connect                                          
- *                                                                         
- *  - Argument:    tBTA_AV_RC_OPEN 	RC open data structure 
- *                                                                         
- *  - Description: RC connection event handler                          
- *                                                                         
+ *  Function       handle_rc_connect
+ *
+ *  - Argument:    tBTA_AV_RC_OPEN 	RC open data structure
+ *
+ *  - Description: RC connection event handler
+ *
  ***************************************************************************/
 void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
 {
@@ -286,12 +286,12 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
 }
 
 /***************************************************************************
- *  Function       handle_rc_disconnect                                    
- *                                                                         
- *  - Argument:    tBTA_AV_RC_CLOSE 	RC close data structure 
- *                                                                         
+ *  Function       handle_rc_disconnect
+ *
+ *  - Argument:    tBTA_AV_RC_CLOSE 	RC close data structure
+ *
  *  - Description: RC disconnection event handler
- *                                                                         
+ *
  ***************************************************************************/
 void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
 {
@@ -306,13 +306,13 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
 }
 
 /***************************************************************************
- *  Function       handle_rc_passthrough_cmd                               
- *                                                                         
- *  - Argument:    tBTA_AV_RC rc_id   remote control command ID            
- *                 tBTA_AV_STATE key_state status of key press             
- *                                                                         
- *  - Description: Remote control command handler                          
- *                                                                         
+ *  Function       handle_rc_passthrough_cmd
+ *
+ *  - Argument:    tBTA_AV_RC rc_id   remote control command ID
+ *                 tBTA_AV_STATE key_state status of key press
+ *
+ *  - Description: Remote control command handler
+ *
  ***************************************************************************/
 void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
 {
@@ -346,7 +346,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
             }
 #ifdef BTIF_RC_USE_UINPUT
             send_key(uinput_fd, key_map[i].mapped_id, pressed);
-#endif 
+#endif
             if ((key_map[i].release_quirk == 1) && (pressed == 1))
             {
                 GKI_delay(30); // 30ms
@@ -354,7 +354,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
                                   __FUNCTION__, key_map[i].name);
 #ifdef BTIF_RC_USE_UINPUT
                 send_key(uinput_fd, key_map[i].mapped_id, 0);
-#endif 
+#endif
             }
             break;
         }

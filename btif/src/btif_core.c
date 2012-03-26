@@ -3,44 +3,44 @@
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed 
- *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
- *  Except as set forth in an Authorized License, Broadcom grants no license 
- *  (express or implied), right to use, or waiver of any kind with respect to 
- *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  licensors, and may only be used, duplicated, modified or distributed
+ *  pursuant to the terms and conditions of a separate, written license
+ *  agreement executed between you and Broadcom (an "Authorized License").
+ *  Except as set forth in an Authorized License, Broadcom grants no license
+ *  (express or implied), right to use, or waiver of any kind with respect to
+ *  the Software, and Broadcom expressly reserves all rights in and to the
+ *  Software and all intellectual property rights therein.
+ *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
+ *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ *  ALL USE OF THE SOFTWARE.
  *
  *  Except as expressly set forth in the Authorized License,
  *
- *  1.     This program, including its structure, sequence and organization, 
- *         constitutes the valuable trade secrets of Broadcom, and you shall 
- *         use all reasonable efforts to protect the confidentiality thereof, 
- *         and to use this information only in connection with your use of 
+ *  1.     This program, including its structure, sequence and organization,
+ *         constitutes the valuable trade secrets of Broadcom, and you shall
+ *         use all reasonable efforts to protect the confidentiality thereof,
+ *         and to use this information only in connection with your use of
  *         Broadcom integrated circuit products.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED 
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, 
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, 
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY 
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, 
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES, 
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR 
+ *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+ *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
  *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING OUT
  *         OF USE OR PERFORMANCE OF THE SOFTWARE.
  *
  *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM OR
- *         ITS LICENSORS BE LIABLE FOR 
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY 
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO 
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM 
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR 
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE 
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE 
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
+ *         ITS LICENSORS BE LIABLE FOR
+ *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
+ *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
+ *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+ *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
+ *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
+ *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
+ *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
  ************************************************************************************/
@@ -51,7 +51,7 @@
  *
  *  Description:   Contains core functionality related to interfacing between
  *                 Bluetooth HAL and BTE core stack.
- * 
+ *
  ***********************************************************************************/
 
 #include <hardware/bluetooth.h>
@@ -177,9 +177,9 @@ static void btif_context_switched(void *p_msg)
 **                  event     : event id of message
 **                  p_params  : parameter area passed to callback (copied)
 **                  param_len : length of parameter area
-**                  p_copy_cback : If set this function will be invoked for deep copy 
+**                  p_copy_cback : If set this function will be invoked for deep copy
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 
@@ -191,7 +191,7 @@ bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_p
 
     /* allocate and send message that will be executed in btif context */
     if ((p_msg = (tBTIF_CONTEXT_SWITCH_CBACK *) GKI_getbuf(sizeof(tBTIF_CONTEXT_SWITCH_CBACK) + param_len)) != NULL)
-    {        
+    {
         p_msg->hdr.event = BT_EVT_CONTEXT_SWITCH_EVT; /* internal event */
         p_msg->p_cb = p_cback;
 
@@ -242,12 +242,12 @@ static void btif_task(UINT32 params)
         /* wait for specified events */
         event = GKI_wait(0xFFFF, 0);
 
-        /* 
+        /*
          * Wait for the trigger to init chip and stack. This trigger will
-         * be received by btu_task once the UART is opened and ready 
+         * be received by btu_task once the UART is opened and ready
          */
 
-        if (event == BT_EVT_TRIGGER_STACK_INIT) 
+        if (event == BT_EVT_TRIGGER_STACK_INIT)
         {
             BTIF_TRACE_DEBUG0("btif_task: received trigger stack init event");
             BTA_EnableBluetooth(bte_dm_evt);
@@ -280,11 +280,11 @@ static void btif_task(UINT32 params)
     btif_disassociate_evt();
 
     GKI_task_self_cleanup(BTIF_TASK);
-    
+
     if (btif_shutdown_pending)
     {
         btif_shutdown_pending = 0;
-        
+
         bte_main_shutdown();
 
         /* shutdown complete, all events notified and we reset HAL callbacks */
@@ -301,7 +301,7 @@ static void btif_task(UINT32 params)
 **
 ** Description      Sends msg to BTIF task
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 
@@ -321,14 +321,13 @@ void btif_sendmsg(void *p_msg)
 ** Function         btif_init_bluetooth
 **
 ** Description      Creates BTIF task and prepares BT scheduler for startup
-**   
-** Returns          bt_status_t                  
+**
+** Returns          bt_status_t
 **
 *******************************************************************************/
 
 bt_status_t btif_init_bluetooth(void)
 {
-
     bte_main_boot_entry();
 
     return BT_STATUS_SUCCESS;
@@ -348,7 +347,7 @@ bt_status_t btif_init_bluetooth(void)
 static bt_status_t btif_associate_evt(void)
 {
     BTIF_TRACE_DEBUG1("%s: notify ASSOCIATE_JVM", __FUNCTION__);
-    CHECK_CALL_CBACK(bt_hal_cbacks, thread_evt_cb, ASSOCIATE_JVM);
+    HAL_CBACK(bt_hal_cbacks, thread_evt_cb, ASSOCIATE_JVM);
 
     return BT_STATUS_SUCCESS;
 }
@@ -359,8 +358,8 @@ static bt_status_t btif_associate_evt(void)
 ** Function         btif_enable_bluetooth
 **
 ** Description      Performs chip power on and kickstarts OS scheduler
-**   
-** Returns          bt_status_t                  
+**
+** Returns          bt_status_t
 **
 *******************************************************************************/
 
@@ -399,8 +398,8 @@ bt_status_t btif_enable_bluetooth(void)
 **
 ** Description      Event indicating bluetooth enable is completed
 **                  Notifies HAL user with updated adapter state
-**   
-** Returns          void                  
+**
+** Returns          void
 **
 *******************************************************************************/
 
@@ -424,12 +423,12 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
     {
         /* store state */
         btif_enabled = 1;
-        CHECK_CALL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_ON);
+        HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_ON);
     }
     else
     {
         btif_enabled = 0;
-        CHECK_CALL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
+        HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
     }
 }
 
@@ -440,8 +439,8 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
 ** Description      Inititates shutdown of Bluetooth system.
 **                  Any active links will be dropped and device entering
 **                  non connectable/discoverable mode
-**   
-** Returns          void                  
+**
+** Returns          void
 **
 *******************************************************************************/
 
@@ -464,7 +463,7 @@ bt_status_t btif_disable_bluetooth(void)
         BTIF_TRACE_ERROR1("disable bt failed (%d)", status);
         return BT_STATUS_FAIL;
     }
-    return BT_STATUS_SUCCESS;    
+    return BT_STATUS_SUCCESS;
 }
 
 /*******************************************************************************
@@ -472,10 +471,10 @@ bt_status_t btif_disable_bluetooth(void)
 ** Function         btif_disable_bluetooth_evt
 **
 ** Description      Event notifying BT disable is now complete.
-**                  Terminates main stack tasks and notifies HAL 
-**                  user with updated BT state.                  
-**   
-** Returns          void                  
+**                  Terminates main stack tasks and notifies HAL
+**                  user with updated BT state.
+**
+** Returns          void
 **
 *******************************************************************************/
 
@@ -486,7 +485,7 @@ void btif_disable_bluetooth_evt(void)
     bte_main_disable();
 
     /* callback to HAL */
-    CHECK_CALL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
+    HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
 
     /* update local state */
     btif_enabled = 0;
@@ -501,8 +500,8 @@ void btif_disable_bluetooth_evt(void)
 **
 ** Description      Finalizes BT scheduler shutdown and terminates BTIF
 **                  task.
-**                  
-** Returns          void                  
+**
+** Returns          void
 **
 *******************************************************************************/
 
@@ -543,7 +542,8 @@ bt_status_t btif_shutdown_bluetooth(void)
 static bt_status_t btif_disassociate_evt(void)
 {
     BTIF_TRACE_DEBUG1("%s: notify DISASSOCIATE_JVM", __FUNCTION__);
-    CHECK_CALL_CBACK(bt_hal_cbacks, thread_evt_cb, DISASSOCIATE_JVM);
+
+    HAL_CBACK(bt_hal_cbacks, thread_evt_cb, DISASSOCIATE_JVM);
 
     return BT_STATUS_SUCCESS;
 }
@@ -605,7 +605,7 @@ static bt_status_t btif_in_get_adapter_properties(void)
     btif_storage_get_adapter_property(&properties[num_props]);
     num_props++;
 
-    CHECK_CALL_CBACK(bt_hal_cbacks, adapter_properties_cb,
+    HAL_CBACK(bt_hal_cbacks, adapter_properties_cb,
                      BT_STATUS_SUCCESS, num_props, properties);
 
     return BT_STATUS_SUCCESS;
@@ -651,7 +651,7 @@ static bt_status_t btif_in_get_remote_device_properties(bt_bdaddr_t *bd_addr)
                                             &remote_properties[num_props]);
     num_props++;
 
-    CHECK_CALL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+    HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
                      BT_STATUS_SUCCESS, bd_addr, num_props, remote_properties);
 
     return BT_STATUS_SUCCESS;
@@ -664,16 +664,16 @@ static bt_status_t btif_in_get_remote_device_properties(bt_bdaddr_t *bd_addr)
 **
 ** Description      Executes adapter storage request in BTIF context
 **
-** Returns          bt_status_t                  
+** Returns          bt_status_t
 **
 *******************************************************************************/
 
 static void execute_storage_request(UINT16 event, char *p_param)
 {
     uint8_t is_local;
-    int num_entries = 0;    
+    int num_entries = 0;
     bt_status_t status = BT_STATUS_SUCCESS;
-    
+
     BTIF_TRACE_EVENT1("execute storage request event : %d", event);
 
     switch(event)
@@ -686,7 +686,7 @@ static void execute_storage_request(UINT16 event, char *p_param)
                                p_prop->len, p_prop->val);
 
             status = btif_storage_set_adapter_property(p_prop);
-            CHECK_CALL_CBACK(bt_hal_cbacks, adapter_properties_cb, status, 1, p_prop);
+            HAL_CBACK(bt_hal_cbacks, adapter_properties_cb, status, 1, p_prop);
         } break;
 
         case BTIF_CORE_STORAGE_ADAPTER_READ:
@@ -699,9 +699,9 @@ static void execute_storage_request(UINT16 event, char *p_param)
             prop.len = sizeof(buf);
 
             status = btif_storage_get_adapter_property(&prop);
-            CHECK_CALL_CBACK(bt_hal_cbacks, adapter_properties_cb, status, 1, &prop);
+            HAL_CBACK(bt_hal_cbacks, adapter_properties_cb, status, 1, &prop);
         } break;
-        
+
         case BTIF_CORE_STORAGE_ADAPTER_READ_ALL:
         {
             status = btif_in_get_adapter_properties();
@@ -709,7 +709,7 @@ static void execute_storage_request(UINT16 event, char *p_param)
 
         case BTIF_CORE_STORAGE_NOTIFY_STATUS:
         {
-            CHECK_CALL_CBACK(bt_hal_cbacks, adapter_properties_cb, status, 0, NULL);
+            HAL_CBACK(bt_hal_cbacks, adapter_properties_cb, status, 0, NULL);
         } break;
 
         default:
@@ -737,7 +737,7 @@ static void execute_storage_remote_request(UINT16 event, char *p_param)
 
             status = btif_storage_get_remote_device_property(&(p_req->read_req.bd_addr),
                                                              &prop);
-            CHECK_CALL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+            HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
                             status, &(p_req->read_req.bd_addr), 1, &prop);
         }break;
         case BTIF_CORE_STORAGE_REMOTE_WRITE:
@@ -757,14 +757,14 @@ static void execute_storage_remote_request(UINT16 event, char *p_param)
 void btif_adapter_properties_evt(bt_status_t status, uint32_t num_props,
                                     bt_property_t *p_props)
 {
-    CHECK_CALL_CBACK(bt_hal_cbacks, adapter_properties_cb,
+    HAL_CBACK(bt_hal_cbacks, adapter_properties_cb,
                      status, num_props, p_props);
 
 }
 void btif_remote_properties_evt(bt_status_t status, bt_bdaddr_t *remote_addr,
                                    uint32_t num_props, bt_property_t *p_props)
 {
-    CHECK_CALL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+    HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
                      status, remote_addr, num_props, p_props);
 }
 
@@ -808,7 +808,7 @@ static void btif_in_storage_request_copy_cb(UINT16 event,
 **
 ** Description      Fetch all available properties (local & remote)
 **
-** Returns          bt_status_t                  
+** Returns          bt_status_t
 **
 *******************************************************************************/
 
@@ -830,7 +830,7 @@ bt_status_t btif_get_adapter_properties(void)
 **
 ** Description      Fetches property value from local cache
 **
-** Returns          bt_status_t                 
+** Returns          bt_status_t
 **
 *******************************************************************************/
 
@@ -855,10 +855,10 @@ bt_status_t btif_get_adapter_property(bt_property_type_t type)
 **
 ** Function         btif_set_adapter_property
 **
-** Description      Updates core stack with property value and stores it in 
+** Description      Updates core stack with property value and stores it in
 **                  local cache
 **
-** Returns          bt_status_t                 
+** Returns          bt_status_t
 **
 *******************************************************************************/
 
@@ -881,11 +881,11 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
                 BTIF_TRACE_EVENT1("set property name : %s", (char *)property->val);
 
                 BTA_DmSetDeviceName((char *)property->val);
-                    
+
                 storage_req_id = BTIF_CORE_STORAGE_ADAPTER_WRITE;
             }
             break;
-            
+
         case BT_PROPERTY_ADAPTER_SCAN_MODE:
             {
                 bt_scan_mode_t mode = *(bt_scan_mode_t*)property->val;
@@ -898,12 +898,12 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
                         disc_mode = BTA_DM_NON_DISC;
                         conn_mode = BTA_DM_NON_CONN;
                         break;
-                        
+
                     case BT_SCAN_MODE_CONNECTABLE:
                         disc_mode = BTA_DM_NON_DISC;
                         conn_mode = BTA_DM_CONN;
                         break;
-                        
+
                     case BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE:
                         disc_mode = BTA_DM_GENERAL_DISC;
                         conn_mode = BTA_DM_CONN;
@@ -913,9 +913,9 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
                         BTIF_TRACE_ERROR1("invalid scan mode (0x%x)", mode);
                         return BT_STATUS_PARM_INVALID;
                 }
-                
+
                 BTIF_TRACE_EVENT1("set property scan mode : %x", mode);
-                
+
                 BTA_DmSetVisibility(disc_mode, conn_mode, BTA_DM_IGNORE, BTA_DM_IGNORE);
 
                 storage_req_id = BTIF_CORE_STORAGE_ADAPTER_WRITE;
@@ -930,9 +930,9 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
             status = BT_STATUS_FAIL;
             break;
         default:
-            BTIF_TRACE_ERROR1("btif_get_adapter_property : invalid type %d", 
+            BTIF_TRACE_ERROR1("btif_get_adapter_property : invalid type %d",
             property->type);
-            status = BT_STATUS_FAIL;         
+            status = BT_STATUS_FAIL;
             break;
     }
 
@@ -992,7 +992,7 @@ bt_status_t btif_get_remote_device_property(bt_bdaddr_t *remote_addr,
 bt_status_t btif_get_remote_device_properties(bt_bdaddr_t *remote_addr)
 {
     btif_storage_req_t req;
-    
+
     if (btif_enabled == 0)
     return BT_STATUS_FAIL;
 
@@ -1043,7 +1043,7 @@ bt_status_t btif_set_remote_device_property(bt_bdaddr_t *remote_addr,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-bt_status_t btif_get_remote_service_record(bt_bdaddr_t *remote_addr, 
+bt_status_t btif_get_remote_service_record(bt_bdaddr_t *remote_addr,
                                                bt_uuid_t *uuid)
 {
     if (btif_enabled == 0)

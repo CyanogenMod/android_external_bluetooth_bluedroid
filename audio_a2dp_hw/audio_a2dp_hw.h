@@ -1,4 +1,4 @@
-/************************************************************************************
+/******************************************************************************
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
@@ -29,11 +29,11 @@
  *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
  *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
  *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
- *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING OUT
- *         OF USE OR PERFORMANCE OF THE SOFTWARE.
+ *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ *         OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
  *
- *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM OR
- *         ITS LICENSORS BE LIABLE FOR
+ *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+ *         OR ITS LICENSORS BE LIABLE FOR
  *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
  *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
  *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
@@ -43,68 +43,72 @@
  *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
- ************************************************************************************/
+ *****************************************************************************/
 
-/************************************************************************************
+/*****************************************************************************
  *
- *  Filename:      btif_util.h
+ *  Filename:      audio_a2dp_hw.h
  *
  *  Description:
  *
- ***********************************************************************************/
+ *****************************************************************************/
 
-#ifndef BTIF_UTIL_H
-#define BTIF_UTIL_H
+#ifndef AUDIO_A2DP_HW_H
+#define AUDIO_A2DP_HW_H
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_hf.h>
-#include <utils/Log.h>
-
-#include "data_types.h"
-#include "bt_types.h"
-
-/************************************************************************************
+/*****************************************************************************
 **  Constants & Macros
-************************************************************************************/
+******************************************************************************/
 
-#define CASE_RETURN_STR(const) case const: return #const;
+#define A2DP_AUDIO_HARDWARE_INTERFACE "audio.a2dp"
+#define A2DP_CTRL_PATH "/data/misc/bluedroid/.a2dp_ctrl"
+#define A2DP_DATA_PATH "/data/misc/bluedroid/.a2dp_data"
 
-/************************************************************************************
+#define AUDIO_CHANNEL_DEFAULT_RATE          44100
+#define AUDIO_CHANNEL_DEFAULT_FORMAT        AUDIO_FORMAT_PCM_16_BIT
+#define AUDIO_CHANNEL_OUTPUT_BUFFER_SZ      (20*512)
+#define AUDIO_SKT_DISCONNECTED              (-1)
+
+typedef enum {
+    A2DP_CTRL_CMD_NONE,
+    A2DP_CTRL_CMD_CHECK_READY,
+    A2DP_CTRL_CMD_START,
+    A2DP_CTRL_CMD_STOP,
+    A2DP_CTRL_CMD_SUSPEND
+} tA2DP_CTRL_CMD;
+
+typedef enum {
+    A2DP_CTRL_ACK_SUCCESS,
+    A2DP_CTRL_ACK_FAILURE
+} tA2DP_CTRL_ACK;
+
+
+/*****************************************************************************
 **  Type definitions for callback functions
-************************************************************************************/
+******************************************************************************/
 
-typedef char bdstr_t[18];
-
-/************************************************************************************
+/*****************************************************************************
 **  Type definitions and return values
-************************************************************************************/
+******************************************************************************/
 
+/*****************************************************************************
+**  Extern variables and functions
+******************************************************************************/
 
-/************************************************************************************
+/*****************************************************************************
 **  Functions
-************************************************************************************/
+******************************************************************************/
 
-const char* dump_bt_status(bt_status_t status);
-const char* dump_dm_search_event(UINT16 event);
-const char* dump_hf_event(UINT16 event);
-const char* dump_hf_conn_state(UINT16 event);
-const char* dump_hf_call_state(bthf_call_state_t call_state);
-const char* dump_property_type(bt_property_type_t type);
-const char* dump_hf_audio_state(UINT16 event);
-const char* dump_adapter_scan_mode(bt_scan_mode_t mode);
-const char* dump_thread_evt(bt_cb_thread_evt evt);
 
-const char* dump_av_conn_state(UINT16 event);
-const char* dump_av_audio_state(UINT16 event);
+/*****************************************************************************
+**
+** Function
+**
+** Description
+**
+** Returns
+**
+******************************************************************************/
 
-int str2bd(char *str, bt_bdaddr_t *addr);
-char *bd2str(bt_bdaddr_t *addr, bdstr_t *bdstr);
-
-UINT32 devclass2uint(DEV_CLASS dev_class);
-void uuid16_to_uuid128(uint16_t uuid16, bt_uuid_t* uuid128);
-
-void uuid_to_string(bt_uuid_t *p_uuid, char *str);
-void string_to_uuid(char *str, bt_uuid_t *p_uuid);
-
-#endif /* BTIF_UTIL_H */
+#endif /* A2DP_AUDIO_HW_H */
 

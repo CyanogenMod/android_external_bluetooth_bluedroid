@@ -43,16 +43,16 @@
  *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
- *****************************************************************************/
+ ************************************************************************************/
 
-/****************************************************************************
- **
- **  Name:          btif_media.h
- **
- **  Description:   This is the audio module for the BTIF system.  It contains
- **                 task implementations of A2DP
- **
- ******************************************************************************/
+/************************************************************************************
+ *
+ *  Filename:      btif_media.h
+ *
+ *  Description:   This is the audio module for the BTIF system.
+ *
+ ***********************************************************************************/
+
 
 #ifndef BTIF_MEDIA_H
 #define BTIF_MEDIA_H
@@ -61,6 +61,11 @@
 #include "bd.h"
 #include "gki.h"
 #include "btif_av_api.h"
+#include "audio_a2dp_hw.h"
+
+/*****************************************************************************
+ **  Constants
+ *****************************************************************************/
 
 /* Generic part */
 #define BTIF_SUCCESS                         0
@@ -74,11 +79,6 @@
 #define BTIF_ERROR_SRV_AV_NOT_OPENED         703     /* No AV link opened */
 #define BTIF_ERROR_SRV_AV_NOT_STARTED        704     /* AV is not started */
 #define BTIF_ERROR_SRV_AV_CP_NOT_SUPPORTED   705     /* Content protection is not supported by all headsets */
-
-/*****************************************************************************
- **  Constants
- *****************************************************************************/
-
 
 /* transcoding definition for TxTranscoding and RxTranscoding */
 #define BTIF_MEDIA_TRSCD_OFF             0
@@ -260,6 +260,24 @@ extern BOOLEAN btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEE
  **
  *******************************************************************************/
 extern void dump_codec_info(unsigned char *p_codec);
+
+/*
+ * local adaptation helper functions between btif and media task
+ */
+
+int btif_a2dp_start_media_task(void);
+void btif_a2dp_stop_media_task(void);
+
+void btif_a2dp_on_init(void);
+void btif_a2dp_on_idle(void);
+void btif_a2dp_on_open(void);
+void btif_a2dp_on_start_req(void);
+void btif_a2dp_on_started(tBTA_AV_START *p_av);
+void btif_a2dp_on_stop_req(void);
+void btif_a2dp_on_stopped(tBTA_AV_SUSPEND *p_av);
+void btif_a2dp_on_suspend(void);
+void btif_a2dp_on_suspended(tBTA_AV_SUSPEND *p_av);
+void btif_a2dp_set_tx_flush(BOOLEAN enable);
 
 #endif
 

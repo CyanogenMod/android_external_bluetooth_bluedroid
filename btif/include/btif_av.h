@@ -46,145 +46,111 @@
  *****************************************************************************/
 
 /*****************************************************************************
-**
-**  Name:          btif_av.h
-**
-**  Description:
-**
-******************************************************************************/
-
+ *
+ *  Filename:      btif_av.h
+ *
+ *  Description:   Main API header file for all BTIF AV functions accessed
+ *                 from internal stack.
+ *
+ *****************************************************************************/
 
 #ifndef BTIF_AV_H
 #define BTIF_AV_H
 
-#include "btif_media.h"
-
-enum
-{
-    BTIF_SV_AV_AA_SBC_INDEX = 0,
-    BTIF_SV_AV_AA_SEP_INDEX  /* Last index */
-};
+#include "btif_common.h"
+#include "btif_sm.h"
+#include "bta_av_api.h"
 
 
-/*******************************************************************************
- **
- ** Function         bta_av_co_cp_is_active
- **
- ** Description      Get the current configuration of content protection
- **
- ** Returns          TRUE if the current streaming has CP, FALSE otherwise
- **
- *******************************************************************************/
-BOOLEAN bta_av_co_cp_is_active(void);
+/*****************************************************************************
+**  Constants & Macros
+******************************************************************************/
 
-/*******************************************************************************
- **
- ** Function         bta_av_co_cp_get_flag
- **
- ** Description      Get content protection flag
- **                  BTA_AV_CP_SCMS_COPY_NEVER
- **                  BTA_AV_CP_SCMS_COPY_ONCE
- **                  BTA_AV_CP_SCMS_COPY_FREE
- **
- ** Returns          The current flag value
- **
- *******************************************************************************/
-UINT8 bta_av_co_cp_get_flag(void);
+/*****************************************************************************
+**  Type definitions for callback functions
+******************************************************************************/
 
-/*******************************************************************************
- **
- ** Function         bta_av_co_cp_set_flag
- **
- ** Description      Set content protection flag
- **                  BTA_AV_CP_SCMS_COPY_NEVER
- **                  BTA_AV_CP_SCMS_COPY_ONCE
- **                  BTA_AV_CP_SCMS_COPY_FREE
- **
- ** Returns          TRUE if setting the SCMS flag is supported else FALSE
- **
- *******************************************************************************/
-BOOLEAN bta_av_co_cp_set_flag(UINT8 cp_flag);
+
+typedef enum {
+    /* Reuse BTA_AV_XXX_EVT - No need to redefine them here */
+    BTIF_AV_CONNECT_REQ_EVT = BTA_AV_MAX_EVT,
+    BTIF_AV_DISCONNECT_REQ_EVT,
+    BTIF_AV_START_STREAM_REQ_EVT,
+    BTIF_AV_STOP_STREAM_REQ_EVT,
+    BTIF_AV_SUSPEND_STREAM_REQ_EVT,
+    BTIF_AV_RECONFIGURE_REQ_EVT,
+} btif_av_sm_event_t;
+
+/*****************************************************************************
+**  Type definitions and return values
+******************************************************************************/
+
+/*****************************************************************************
+**  Extern variables and functions
+******************************************************************************/
+
+/*****************************************************************************
+**  Functions
+******************************************************************************/
+
+
+/*****************************************************************************
+**  BTIF CORE API
+******************************************************************************/
+
+/*****************************************************************************
+**  BTIF AV API
+******************************************************************************/
 
 /*******************************************************************************
- **
- ** Function         bta_av_co_audio_codec_reset
- **
- ** Description      Reset the current codec configuration
- **
- ** Returns          void
- **
- *******************************************************************************/
-void bta_av_co_audio_codec_reset(void);
+**
+** Function         btif_av_get_sm_handle
+**
+** Description      Fetches current av SM handle
+**
+** Returns          None
+**
+*******************************************************************************/
+
+btif_sm_handle_t btif_av_get_sm_handle(void);
 
 /*******************************************************************************
- **
- ** Function         bta_av_co_audio_codec_supported
- **
- ** Description      Check if all opened connections are compatible with a codec
- **                  configuration
- **
- ** Returns          TRUE if all opened devices support this codec, FALSE otherwise
- **
- *******************************************************************************/
-BOOLEAN bta_av_co_audio_codec_supported(tBTIF_STATUS *p_status);
+**
+** Function         btif_av_stream_ready
+**
+** Description      Checks whether AV is ready for starting a stream
+**
+** Returns          None
+**
+*******************************************************************************/
+
+BOOLEAN btif_av_stream_ready(void);
 
 /*******************************************************************************
- **
- ** Function         bta_av_co_audio_set_codec
- **
- ** Description      Set the current codec configuration from the feeding type.
- **                  This function is starting to modify the configuration, it
- **                  should be protected.
- **
- ** Returns          TRUE if successful, FALSE otherwise
- **
- *******************************************************************************/
-BOOLEAN bta_av_co_audio_set_codec(const tBTIF_AV_MEDIA_FEEDINGS *p_feeding, tBTIF_STATUS *p_status);
+**
+** Function         btif_av_stream_started
+**
+** Description      Checks whether AV is already started (remotely)
+**
+** Returns          None
+**
+*******************************************************************************/
+
+BOOLEAN btif_av_stream_started(void);
 
 /*******************************************************************************
- **
- ** Function         bta_av_co_audio_get_sbc_config
- **
- ** Description      Retrieves the SBC codec configuration.  If the codec in use
- **                  is not SBC, return the default SBC codec configuration.
- **
- ** Returns          TRUE if codec is SBC, FALSE otherwise
- **
- *******************************************************************************/
-BOOLEAN bta_av_co_audio_get_sbc_config(tA2D_SBC_CIE *p_sbc_config, UINT16 *p_minmtu);
+**
+** Function         btif_dispatch_sm_event
+**
+** Description      Send event to AV statemachine
+**
+** Returns          None
+**
+*******************************************************************************/
 
-/*******************************************************************************
- **
- ** Function         bta_av_co_audio_discard_config
- **
- ** Description      Discard the codec configuration of a connection
- **
- ** Returns          Nothing
- **
- *******************************************************************************/
-void bta_av_co_audio_discard_config(tBTA_AV_HNDL hndl);
-
-/*******************************************************************************
- **
- ** Function         bta_av_co_init
- **
- ** Description      Initialization
- **
- ** Returns          Nothing
- **
- *******************************************************************************/
-void bta_av_co_init(void);
+/* used to pass events to AV statemachine from other tasks */
+void btif_dispatch_sm_event(btif_av_sm_event_t event, void *p_data, int len);
 
 
-/*******************************************************************************
- **
- ** Function         bta_av_co_peer_cp_supported
- **
- ** Description      Checks if the peer supports CP
- **
- ** Returns          TRUE if the peer supports CP
- **
- *******************************************************************************/
-BOOLEAN bta_av_co_peer_cp_supported(tBTA_AV_HNDL hndl);
+#endif /* BTIF_AV_H */
 
-#endif

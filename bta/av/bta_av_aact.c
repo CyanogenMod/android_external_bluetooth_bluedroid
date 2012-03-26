@@ -1701,7 +1701,7 @@ void bta_av_do_start (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     {
         bta_av_start_ok(p_scb, NULL);
     }
-    APPL_TRACE_DEBUG1("role:x%x", p_scb->role);
+    APPL_TRACE_DEBUG2("started %d role:x%x", p_scb->started, p_scb->role);
 }
 
 /*******************************************************************************
@@ -1721,7 +1721,9 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     BT_HDR  *p_buf;
     UINT8 policy = HCI_ENABLE_SNIFF_MODE;
 
-    APPL_TRACE_ERROR1("bta_av_str_stopped:audio_open_cnt=%d", bta_av_cb.audio_open_cnt);
+    APPL_TRACE_ERROR2("bta_av_str_stopped:audio_open_cnt=%d, p_data %x", 
+            bta_av_cb.audio_open_cnt, p_data);
+
     bta_sys_idle(BTA_ID_AV, bta_av_cb.audio_open_cnt, p_scb->peer_addr);
     if ((bta_av_cb.features & BTA_AV_FEAT_MASTER) == 0 || bta_av_cb.audio_open_cnt == 1)
         policy |= HCI_ENABLE_MASTER_SLAVE_SWITCH;
@@ -1749,6 +1751,7 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     suspend_rsp.chnl = p_scb->chnl;
     suspend_rsp.hndl = p_scb->hndl;
+
     if (p_data && p_data->api_stop.suspend)
     {
         APPL_TRACE_DEBUG2("suspending: %d, sup:%d", start, p_scb->suspend_sup);
@@ -1768,6 +1771,10 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     }
     else
     {
+        suspend_rsp.status = BTA_AV_SUCCESS;
+        suspend_rsp.initiator = TRUE;
+        APPL_TRACE_EVENT1("bta_av_str_stopped status %d", suspend_rsp.status);
+
         (*bta_av_cb.p_cback)(BTA_AV_STOP_EVT, (tBTA_AV *) &suspend_rsp);
     }
 }
@@ -2075,7 +2082,9 @@ void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         p_scb->p_cos->start(p_scb->hndl, p_scb->codec_type);
         p_scb->co_started = TRUE;
 
-        APPL_TRACE_ERROR2("bta_av_start_ok suspending: %d, role:x%x", suspend, p_scb->role);
+        APPL_TRACE_DEBUG3("bta_av_start_ok suspending: %d, role:x%x, init %d", 
+            suspend, p_scb->role, initiator);
+
         start.suspending = suspend;
         start.initiator = initiator;
         start.chnl   = p_scb->chnl;

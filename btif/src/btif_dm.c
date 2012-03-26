@@ -3,44 +3,44 @@
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed 
- *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
- *  Except as set forth in an Authorized License, Broadcom grants no license 
- *  (express or implied), right to use, or waiver of any kind with respect to 
- *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  licensors, and may only be used, duplicated, modified or distributed
+ *  pursuant to the terms and conditions of a separate, written license
+ *  agreement executed between you and Broadcom (an "Authorized License").
+ *  Except as set forth in an Authorized License, Broadcom grants no license
+ *  (express or implied), right to use, or waiver of any kind with respect to
+ *  the Software, and Broadcom expressly reserves all rights in and to the
+ *  Software and all intellectual property rights therein.
+ *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
+ *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ *  ALL USE OF THE SOFTWARE.
  *
  *  Except as expressly set forth in the Authorized License,
  *
- *  1.     This program, including its structure, sequence and organization, 
- *         constitutes the valuable trade secrets of Broadcom, and you shall 
- *         use all reasonable efforts to protect the confidentiality thereof, 
- *         and to use this information only in connection with your use of 
+ *  1.     This program, including its structure, sequence and organization,
+ *         constitutes the valuable trade secrets of Broadcom, and you shall
+ *         use all reasonable efforts to protect the confidentiality thereof,
+ *         and to use this information only in connection with your use of
  *         Broadcom integrated circuit products.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED 
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, 
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, 
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY 
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, 
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES, 
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR 
+ *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+ *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
  *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING OUT
  *         OF USE OR PERFORMANCE OF THE SOFTWARE.
  *
  *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM OR
- *         ITS LICENSORS BE LIABLE FOR 
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY 
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO 
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM 
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR 
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE 
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE 
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
+ *         ITS LICENSORS BE LIABLE FOR
+ *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
+ *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
+ *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+ *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
+ *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
+ *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
+ *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
  ************************************************************************************/
@@ -49,14 +49,14 @@
  *
  *  Filename:      btif_dm.c
  *
- *  Description:   Contains Device Management (DM) related functionality 
+ *  Description:   Contains Device Management (DM) related functionality
  *
- * 
+ *
  ***********************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-     
+
 #include <hardware/bluetooth.h>
 
 #include <utils/Log.h>
@@ -64,7 +64,7 @@
 #include "gki.h"
 #include "btu.h"
 #include "bd.h"
-#include "bta_api.h" 
+#include "bta_api.h"
 #include "btif_api.h"
 #include "btif_util.h"
 #include "btif_storage.h"
@@ -151,7 +151,7 @@ static BOOLEAN check_eir_remote_name(tBTA_DM_SEARCH *p_search_data,
             p_eir_remote_name = BTA_CheckEirData(p_search_data->inq_res.p_eir,
                     BTM_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
         }
-    
+
         if (p_eir_remote_name)
         {
             if (remote_name_len > BD_NAME_LEN)
@@ -215,7 +215,7 @@ static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond
 
     BTIF_TRACE_DEBUG3("%s: state=%d prev_state=%d", __FUNCTION__, state, pairing_cb.state);
 
-    CHECK_CALL_CBACK(bt_hal_cbacks, bond_state_changed_cb, status, bd_addr, state);
+    HAL_CBACK(bt_hal_cbacks, bond_state_changed_cb, status, bd_addr, state);
 
     if (state == BT_BOND_STATE_BONDING)
     {
@@ -297,13 +297,13 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
 
     cod = devclass2uint(p_pin_req->dev_class);
-    
-    if ( cod == 0) { 
+
+    if ( cod == 0) {
         LOGD("cod is 0, set as unclassified");
         cod = COD_UNCLASSIFIED;
     }
 
-    CHECK_CALL_CBACK(bt_hal_cbacks, pin_request_cb,
+    HAL_CBACK(bt_hal_cbacks, pin_request_cb,
                      &bd_addr, &bd_name, cod);
 }
 
@@ -345,14 +345,14 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     }
 
     cod = devclass2uint(p_ssp_cfm_req->dev_class);
-    
+
     if ( cod == 0) {
         LOGD("cod is 0, set as unclassified");
         cod = COD_UNCLASSIFIED;
     }
 
     /* TODO: pairing variant passkey_entry? */
-    CHECK_CALL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name,
+    HAL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name,
                      cod, BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
                      p_ssp_cfm_req->num_val);
 }
@@ -376,7 +376,7 @@ static void btif_dm_ssp_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif)
         cod = COD_UNCLASSIFIED;
     }
 
-    CHECK_CALL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name,
+    HAL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name,
                      cod, BT_SSP_VARIANT_PASSKEY_NOTIFICATION,
                      p_ssp_key_notif->passkey);
 }
@@ -462,7 +462,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
 
                 status = btif_storage_set_remote_device_property(&bdaddr, &properties[0]);
                 ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device property", status);
-                CHECK_CALL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+                HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
                                  status, &bdaddr, 1, properties);
             }
             /* TODO: Services? */
@@ -494,7 +494,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
 
             cod = devclass2uint (p_search_data->inq_res.dev_class);
 
-            if ( cod == 0) { 
+            if ( cod == 0) {
                 LOGD("cod is 0, set as unclassified");
                 cod = COD_UNCLASSIFIED;
             }
@@ -530,7 +530,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
                                                strlen((char *)bdname.name)+1, &bdname);
                     num_properties++;
                 }
-                
+
                 /* DEV_CLASS */
                 BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
                                     BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod), &cod);
@@ -543,7 +543,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
                 dev_type = BT_DEVICE_TYPE_BREDR;
 #endif
                 BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
-                                    BT_PROPERTY_TYPE_OF_DEVICE, sizeof(dev_type), &dev_type); 
+                                    BT_PROPERTY_TYPE_OF_DEVICE, sizeof(dev_type), &dev_type);
                 num_properties++;
                 /* RSSI */
                 BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
@@ -555,7 +555,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
                 ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device (inquiry)", status);
 
                 /* Callback to notify upper layer of device */
-                CHECK_CALL_CBACK(bt_hal_cbacks, device_found_cb, 
+                HAL_CBACK(bt_hal_cbacks, device_found_cb,
                                  num_properties, properties);
             }
         }
@@ -569,7 +569,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
         case BTA_DM_DISC_CMPL_EVT:
         case BTA_DM_SEARCH_CANCEL_CMPL_EVT:
         {
-            CHECK_CALL_CBACK(bt_hal_cbacks, discovery_state_changed_cb, BT_DISCOVERY_STOPPED);
+            HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb, BT_DISCOVERY_STOPPED);
         }
         break;
     }
@@ -612,7 +612,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                     &(tBTA_SERVICE_MASK)(BTA_SERVICE_ID_TO_SERVICE_MASK(i)))
                 {
                      memset(&uuid_arr[j], 0, sizeof(bt_uuid_t));
-                     uuid16_to_uuid128(bta_service_id_to_uuid_lkup_tbl[i], &uuid_arr[j]); 
+                     uuid16_to_uuid128(bta_service_id_to_uuid_lkup_tbl[i], &uuid_arr[j]);
                      prop.len += sizeof(bt_uuid_t);
                      j++;
                 }
@@ -622,7 +622,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
             ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed", ret);
 
             /* Send the event to the BTIF */
-            CHECK_CALL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+            HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
                              BT_STATUS_SUCCESS, &bd_addr, 1, &prop);
         }
         break;
@@ -678,7 +678,7 @@ static void btif_dm_remote_service_record_evt(UINT16 event, char *p_param)
             /* TODO: Need to get the service name using p_raw_data */
             rec.name[0] = 0;
 
-            CHECK_CALL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+            HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
                              BT_STATUS_SUCCESS, &bd_addr, 1, &prop);
         }
         break;
@@ -795,12 +795,12 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 
         case BTA_DM_AUTHORIZE_EVT:
         case BTA_DM_LINK_DOWN_EVT:
-        case BTA_DM_SIG_STRENGTH_EVT:          
+        case BTA_DM_SIG_STRENGTH_EVT:
         case BTA_DM_BUSY_LEVEL_EVT:
         case BTA_DM_BOND_CANCEL_CMPL_EVT:
         case BTA_DM_SP_RMT_OOB_EVT:
         case BTA_DM_SP_KEYPRESS_EVT:
-        case BTA_DM_ROLE_CHG_EVT: 
+        case BTA_DM_ROLE_CHG_EVT:
         case BTA_DM_BLE_KEY_EVT:
         case BTA_DM_BLE_SEC_REQ_EVT:
         case BTA_DM_BLE_PASSKEY_NOTIF_EVT:
@@ -832,7 +832,7 @@ static void btif_dm_generic_evt(UINT16 event, char* p_param)
     {
         case BTIF_DM_CB_DISCOVERY_STARTED:
         {
-            CHECK_CALL_CBACK(bt_hal_cbacks, discovery_state_changed_cb, BT_DISCOVERY_STARTED);
+            HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb, BT_DISCOVERY_STARTED);
         }
         break;
 
@@ -863,7 +863,7 @@ static void btif_dm_generic_evt(UINT16 event, char* p_param)
 void bte_dm_evt(tBTA_DM_SEC_EVT event, tBTA_DM_SEC *p_data)
 {
     bt_status_t status;
-    
+
     /* switch context to btif task context (copy full union size for convenience) */
     status = btif_transfer_context(btif_dm_upstreams_evt, (uint16_t)event, (void*)p_data, sizeof(tBTA_DM_SEC), NULL);
 
@@ -1019,7 +1019,7 @@ bt_status_t btif_dm_cancel_discovery(void)
 bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr)
 {
     bdstr_t bdstr;
-    
+
     BTIF_TRACE_EVENT2("%s: bd_addr=%s", __FUNCTION__, bd2str((bt_bdaddr_t *) bd_addr, &bdstr));
 
     if (pairing_cb.state != BT_BOND_STATE_NONE)
@@ -1083,7 +1083,7 @@ bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr)
     /* TODO: special handling for HID devices */
     if (BTA_DmRemoveDevice((UINT8 *)bd_addr->address) == BTA_SUCCESS)
     {
-        BTIF_TRACE_DEBUG1("Successfully removed bonding with device: %s", 
+        BTIF_TRACE_DEBUG1("Successfully removed bonding with device: %s",
                                                 bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
 
     }
@@ -1224,7 +1224,7 @@ bt_status_t btif_dm_get_remote_services(bt_bdaddr_t *remote_addr)
 **
 ** Returns          bt_status_t
 *******************************************************************************/
-bt_status_t btif_dm_get_remote_service_record(bt_bdaddr_t *remote_addr, 
+bt_status_t btif_dm_get_remote_service_record(bt_bdaddr_t *remote_addr,
                                                     bt_uuid_t *uuid)
 {
     tSDP_UUID sdp_uuid;
@@ -1258,7 +1258,7 @@ void btif_dm_execute_service_request(UINT16 event, char *p_param)
          BTIF_STORAGE_FILL_PROPERTY(&property, BT_PROPERTY_UUIDS,
                                     sizeof(local_uuids), local_uuids);
          btif_storage_get_adapter_property(&property);
-         CHECK_CALL_CBACK(bt_hal_cbacks, adapter_properties_cb,
+         HAL_CBACK(bt_hal_cbacks, adapter_properties_cb,
                           BT_STATUS_SUCCESS, 1, &property);
     }
     return;

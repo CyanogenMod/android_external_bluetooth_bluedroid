@@ -3,44 +3,44 @@
  *  Copyright (C) 2009-2011 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed 
- *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
- *  Except as set forth in an Authorized License, Broadcom grants no license 
- *  (express or implied), right to use, or waiver of any kind with respect to 
- *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  licensors, and may only be used, duplicated, modified or distributed
+ *  pursuant to the terms and conditions of a separate, written license
+ *  agreement executed between you and Broadcom (an "Authorized License").
+ *  Except as set forth in an Authorized License, Broadcom grants no license
+ *  (express or implied), right to use, or waiver of any kind with respect to
+ *  the Software, and Broadcom expressly reserves all rights in and to the
+ *  Software and all intellectual property rights therein.
+ *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
+ *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ *  ALL USE OF THE SOFTWARE.
  *
  *  Except as expressly set forth in the Authorized License,
  *
- *  1.     This program, including its structure, sequence and organization, 
- *         constitutes the valuable trade secrets of Broadcom, and you shall 
- *         use all reasonable efforts to protect the confidentiality thereof, 
- *         and to use this information only in connection with your use of 
+ *  1.     This program, including its structure, sequence and organization,
+ *         constitutes the valuable trade secrets of Broadcom, and you shall
+ *         use all reasonable efforts to protect the confidentiality thereof,
+ *         and to use this information only in connection with your use of
  *         Broadcom integrated circuit products.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED 
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, 
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, 
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY 
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, 
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES, 
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR 
+ *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+ *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
  *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING OUT
  *         OF USE OR PERFORMANCE OF THE SOFTWARE.
  *
  *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM OR
- *         ITS LICENSORS BE LIABLE FOR 
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY 
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO 
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM 
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR 
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE 
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE 
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
+ *         ITS LICENSORS BE LIABLE FOR
+ *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
+ *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
+ *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+ *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
+ *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
+ *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
+ *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
  ************************************************************************************/
@@ -81,7 +81,7 @@ BOOLEAN bta_dm_co_get_compress_memory(tBTA_SYS_ID id, UINT8 **memory_p, UINT32 *
 ** Parameters       bd_addr  - The peer device
 **                  *p_io_cap - The local Input/Output capabilities
 **                  *p_oob_data - TRUE, if OOB data is available for the peer device.
-**                  *p_auth_req - TRUE, if MITM protection is required. 
+**                  *p_auth_req - TRUE, if MITM protection is required.
 **
 ** Returns          void.
 **
@@ -101,7 +101,7 @@ void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap, tBTA_OOB_DATA *p_o
 ** Parameters       bd_addr  - The peer device
 **                  io_cap - The remote Input/Output capabilities
 **                  oob_data - TRUE, if OOB data is available for the peer device.
-**                  auth_req - TRUE, if MITM protection is required. 
+**                  auth_req - TRUE, if MITM protection is required.
 **
 ** Returns          void.
 **
@@ -119,7 +119,7 @@ void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
 **                  platform wants allow link key upgrade
 **
 ** Parameters       bd_addr  - The peer device
-**                  *p_upgrade - TRUE, if link key upgrade is desired. 
+**                  *p_upgrade - TRUE, if link key upgrade is desired.
 **
 ** Returns          void.
 **
@@ -175,8 +175,8 @@ void bta_dm_co_rmt_oob(BD_ADDR bd_addr)
 **
 ** Function         btui_sco_codec_callback
 **
-** Description      Callback for btui codec.  
-**                  
+** Description      Callback for btui codec.
+**
 **
 ** Returns          void
 **
@@ -189,15 +189,15 @@ static void btui_sco_codec_callback(UINT16 event, UINT16 sco_handle)
 **
 ** Function         bta_dm_sco_co_init
 **
-** Description      This function can be used by the phone to initialize audio 
+** Description      This function can be used by the phone to initialize audio
 **                  codec or for other initialization purposes before SCO connection
-**                  is opened.  
-**                  
+**                  is opened.
+**
 **
 ** Returns          tBTA_DM_SCO_ROUTE_TYPE: SCO routing configuration type.
 **
 *******************************************************************************/
-tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx_bw, 
+tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx_bw,
                                           tBTA_CODEC_INFO * p_codec_type, UINT8 app_id)
 {
     tBTM_SCO_ROUTE_TYPE route = BTA_DM_SCO_ROUTE_PCM;
@@ -236,7 +236,7 @@ tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx_bw,
 ** Function         bta_dm_sco_co_open
 **
 ** Description      This function is executed when a SCO connection is open.
-**                  
+**
 **
 ** Returns          void
 **
@@ -264,7 +264,7 @@ void bta_dm_sco_co_open(UINT16 handle, UINT8 pkt_size, UINT16 event)
 ** Function         bta_dm_sco_co_close
 **
 ** Description      This function is called when a SCO connection is closed
-**                  
+**
 **
 ** Returns          void
 **
@@ -285,7 +285,7 @@ void bta_dm_sco_co_close(void)
 **
 ** Function         bta_dm_sco_co_in_data
 **
-** Description      This function is called to send incoming SCO data to application.                 
+** Description      This function is called to send incoming SCO data to application.
 **
 ** Returns          void
 **
@@ -302,13 +302,13 @@ void bta_dm_sco_co_in_data(BT_HDR  *p_buf)
 **
 ** Function         bta_dm_sco_co_out_data
 **
-** Description      This function is called to send SCO data over HCI.                 
+** Description      This function is called to send SCO data over HCI.
 **
 ** Returns          void
 **
 *******************************************************************************/
 void bta_dm_sco_co_out_data(BT_HDR  **p_buf)
-{    
+{
     btui_sco_codec_readbuf(p_buf);
 }
 
@@ -326,20 +326,20 @@ void bta_dm_sco_co_out_data(BT_HDR  **p_buf)
 ** Parameters       bd_addr  - The peer device
 **                  *p_max_key_size - max key size local device supported.
 **                  *p_init_key - initiator keys.
-**                  *p_resp_key - responder keys. 
+**                  *p_resp_key - responder keys.
 **
 ** Returns          void.
 **
 *******************************************************************************/
-void bta_dm_co_le_io_key_req(BD_ADDR bd_addr, UINT8 *p_max_key_size, 
-                             tBTA_LE_KEY_TYPE *p_init_key, 
+void bta_dm_co_le_io_key_req(BD_ADDR bd_addr, UINT8 *p_max_key_size,
+                             tBTA_LE_KEY_TYPE *p_init_key,
                              tBTA_LE_KEY_TYPE  *p_resp_key )
 {
     BTIF_TRACE_ERROR0("##################################");
     BTIF_TRACE_ERROR0("bta_dm_co_le_io_key_req: only setting max size to 16");
     BTIF_TRACE_ERROR0("##################################");
     *p_max_key_size = 16;
-    *p_init_key = *p_resp_key = 
+    *p_init_key = *p_resp_key =
                   (BTA_LE_KEY_PENC|BTA_LE_KEY_PID|BTA_LE_KEY_PCSRK|BTA_LE_KEY_LENC|BTA_LE_KEY_LID|BTA_LE_KEY_LCSRK);
 }
 
@@ -351,7 +351,7 @@ void bta_dm_co_le_io_key_req(BD_ADDR bd_addr, UINT8 *p_max_key_size,
 ** Description      This callout function is to load the local BLE keys if available
 **                  on the device.
 **
-** Parameters       none 
+** Parameters       none
 **
 ** Returns          void.
 **
@@ -374,22 +374,22 @@ void bta_dm_co_ble_load_local_keys(tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mask, BT_OC
 ** Parameters       bd_addr  - The peer device
 **                  *p_io_cap - The local Input/Output capabilities
 **                  *p_oob_data - TRUE, if OOB data is available for the peer device.
-**                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)  
+**                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)
 **                  *p_max_key_size - max key size local device supported.
 **                  *p_init_key - initiator keys.
-**                  *p_resp_key - responder keys. 
+**                  *p_resp_key - responder keys.
 **
 ** Returns          void.
 **
 *******************************************************************************/
-void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap, 
+void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
                           tBTA_OOB_DATA *p_oob_data,
                           tBTA_LE_AUTH_REQ *p_auth_req,
-                          UINT8 *p_max_key_size, 
-                          tBTA_LE_KEY_TYPE *p_init_key, 
+                          UINT8 *p_max_key_size,
+                          tBTA_LE_KEY_TYPE *p_init_key,
                           tBTA_LE_KEY_TYPE  *p_resp_key )
 {
-    /* if OOB is not supported, this call-out function does not need to do anything 
+    /* if OOB is not supported, this call-out function does not need to do anything
      * otherwise, look for the OOB data associated with the address and set *p_oob_data accordingly
      * If the answer can not be obtained right away,
      * set *p_oob_data to BTA_OOB_UNKNOWN and call bta_dm_ci_io_req() when the answer is available */

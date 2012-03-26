@@ -26,7 +26,8 @@ LOCAL_SRC_FILES += \
 	../btif/src/btif_sm.c \
 	../btif/src/btif_hf.c \
 	../btif/src/btif_av.c \
-	../btif/src/btif_rc.c
+	../btif/src/btif_rc.c \
+	../btif/src/btif_media_task.c
 
 # callouts
 LOCAL_SRC_FILES+= \
@@ -46,7 +47,7 @@ LOCAL_SRC_FILES+= \
 	../embdrv/sbc/encoder/srce/sbc_enc_coeffs.c \
 	../embdrv/sbc/encoder/srce/sbc_encoder.c \
 	../embdrv/sbc/encoder/srce/sbc_packing.c \
-	../btif/src/btif_media_task.c
+
 
 # candidates for vendor lib (keep here for now)
 LOCAL_SRC_FILES+= \
@@ -74,7 +75,8 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/../btif/co \
                    $(LOCAL_PATH)/../vendor/libvendor/include\
                    $(LOCAL_PATH)/../brcm/include \
-		   		   $(LOCAL_PATH)/../embdrv/sbc/encoder/include
+                   $(LOCAL_PATH)/../embdrv/sbc/encoder/include \
+                   $(LOCAL_PATH)/../audio_a2dp_hw
 
 LOCAL_CFLAGS += -DBUILDCFG -Werror
 

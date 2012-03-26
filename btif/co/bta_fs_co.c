@@ -3,44 +3,44 @@
  *  Copyright (C) 2009-2011 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed 
- *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
- *  Except as set forth in an Authorized License, Broadcom grants no license 
- *  (express or implied), right to use, or waiver of any kind with respect to 
- *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  licensors, and may only be used, duplicated, modified or distributed
+ *  pursuant to the terms and conditions of a separate, written license
+ *  agreement executed between you and Broadcom (an "Authorized License").
+ *  Except as set forth in an Authorized License, Broadcom grants no license
+ *  (express or implied), right to use, or waiver of any kind with respect to
+ *  the Software, and Broadcom expressly reserves all rights in and to the
+ *  Software and all intellectual property rights therein.
+ *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
+ *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ *  ALL USE OF THE SOFTWARE.
  *
  *  Except as expressly set forth in the Authorized License,
  *
- *  1.     This program, including its structure, sequence and organization, 
- *         constitutes the valuable trade secrets of Broadcom, and you shall 
- *         use all reasonable efforts to protect the confidentiality thereof, 
- *         and to use this information only in connection with your use of 
+ *  1.     This program, including its structure, sequence and organization,
+ *         constitutes the valuable trade secrets of Broadcom, and you shall
+ *         use all reasonable efforts to protect the confidentiality thereof,
+ *         and to use this information only in connection with your use of
  *         Broadcom integrated circuit products.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED 
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, 
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, 
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY 
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, 
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES, 
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR 
+ *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+ *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
  *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING OUT
  *         OF USE OR PERFORMANCE OF THE SOFTWARE.
  *
  *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM OR
- *         ITS LICENSORS BE LIABLE FOR 
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY 
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO 
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM 
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR 
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE 
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE 
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
+ *         ITS LICENSORS BE LIABLE FOR
+ *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
+ *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
+ *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+ *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
+ *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
+ *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
+ *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
  ************************************************************************************/
@@ -86,7 +86,7 @@ extern const tBTA_PBS_CFG bta_pbs_cfg;
 
 
 
-static int del_path (const char *path) 
+static int del_path (const char *path)
 {
     DIR *dir;
     struct dirent *de;
@@ -107,7 +107,7 @@ static int del_path (const char *path)
     strcat(nameBuffer, "/");
     int nameLen = strlen(nameBuffer);
     filenameOffset = nameBuffer + nameLen;
-    
+
     for (;;) {
         de = readdir(dir);
 
@@ -117,15 +117,15 @@ static int del_path (const char *path)
             break;
         }
 
-        if (0 == strcmp(de->d_name, ".") || 0 == strcmp(de->d_name, "..")) 
+        if (0 == strcmp(de->d_name, ".") || 0 == strcmp(de->d_name, ".."))
            continue;
-        
+
         if((int)strlen(de->d_name) > PATH_MAX - nameLen) {
             BTIF_TRACE_DEBUG1("d_name len:%d is too big", strlen(de->d_name));
             ret = -1;
             break;
         }
-        
+
         strcpy(filenameOffset, de->d_name);
 
         ret = lstat (nameBuffer, &statBuffer);
@@ -154,18 +154,18 @@ static int del_path (const char *path)
         ret = rmdir(path);
         BTIF_TRACE_DEBUG2("rmdir return:%d for path:%s", ret, path);
     }
-       
+
     return ret;
 
 }
 
-inline int getAccess(int accType, struct stat *buffer, char *p_path) 
+inline int getAccess(int accType, struct stat *buffer, char *p_path)
 {
 
     struct statfs fsbuffer;
     int idType;
 
-    if(! buffer) 
+    if(! buffer)
 	return BTA_FS_CO_FAIL;
 
     //idType= (buffer->st_uid== BT_UID) ? 1 : (buffer->st_uid== BT_GID) ? 2 : 3;
@@ -178,7 +178,7 @@ inline int getAccess(int accType, struct stat *buffer, char *p_path)
         idType = 2;
     else idType = 3;
 
-    if(statfs(p_path, &fsbuffer)==0) 
+    if(statfs(p_path, &fsbuffer)==0)
     {
         if(fsbuffer.f_type == FAT_FS)
 	    return BTA_FS_CO_OK;
@@ -186,43 +186,43 @@ inline int getAccess(int accType, struct stat *buffer, char *p_path)
     else {
         return BTA_FS_CO_FAIL;
     }
-  
+
     switch(accType) {
         case 4:
 	if(idType== 1) {	//Id is User Id
-	   if(buffer-> st_mode & S_IRUSR) 
+	   if(buffer-> st_mode & S_IRUSR)
 	       return BTA_FS_CO_OK;
 	}
 	else if(idType==2) {   //Id is Group Id
-	    if(buffer-> st_mode & S_IRGRP) 
+	    if(buffer-> st_mode & S_IRGRP)
 	       return BTA_FS_CO_OK;
 	}
 	else {			//Id is Others
-	    if(buffer-> st_mode & S_IROTH) 
+	    if(buffer-> st_mode & S_IROTH)
 	       return BTA_FS_CO_OK;
 	}
 	break;
 
 	case 6:
 	if(idType== 1) {	//Id is User Id
-	   if((buffer-> st_mode & S_IRUSR) && (buffer-> st_mode & S_IWUSR)) 
+	   if((buffer-> st_mode & S_IRUSR) && (buffer-> st_mode & S_IWUSR))
 	       return BTA_FS_CO_OK;
 	}
 	else if(idType==2) {   //Id is Group Id
-	    if((buffer-> st_mode & S_IRGRP) && (buffer-> st_mode & S_IWGRP))  
+	    if((buffer-> st_mode & S_IRGRP) && (buffer-> st_mode & S_IWGRP))
 	       return BTA_FS_CO_OK;
 	}
 	else {			//Id is Others
-	    if((buffer-> st_mode & S_IROTH) && (buffer-> st_mode & S_IWOTH))  
+	    if((buffer-> st_mode & S_IROTH) && (buffer-> st_mode & S_IWOTH))
 	       return BTA_FS_CO_OK;
 	}
 	break;
-	
+
 	default:
 	return BTA_FS_CO_OK;
-    } 
+    }
     BTIF_TRACE_DEBUG0("*************FTP- Access Failed **********");
-    return BTA_FS_CO_EACCES;    
+    return BTA_FS_CO_EACCES;
 }
 
 
@@ -347,7 +347,7 @@ static int btapp_fs_check_space( const char *p_path, const UINT32 size, const UI
 **                            of the call-out function.
 **
 ** Returns          void
-**                 
+**
 **                  Note: Upon completion of the request, a file descriptor (int),
 **                        if successful, and an error code (tBTA_FS_CO_STATUS)
 **                        are returned in the call-in function, bta_fs_ci_open().
@@ -366,7 +366,7 @@ void bta_fs_co_open(const char *p_path, int oflags, UINT32 size, UINT16 evt,
 
     /* Convert BTA oflags into os specific flags */
     oflags = bta_fs_convert_bta_oflags(oflags);
- 
+
     /* check available space in case of write access. oflags are in OS format! */
     if (oflags & (O_RDWR|O_WRONLY))
     {
@@ -472,7 +472,7 @@ tBTA_FS_CO_STATUS bta_fs_co_close(int fd, UINT8 app_id)
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 **                  Note: Upon completion of the request, bta_fs_ci_read() is
 **                        called with the buffer of data, along with the number
 **                        of bytes read into the buffer, and a status.  The
@@ -518,7 +518,7 @@ void bta_fs_co_read(int fd, UINT8 *p_buf, UINT16 nbytes, UINT16 evt, UINT8 ssn, 
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 **                  Note: Upon completion of the request, bta_fs_ci_write() is
 **                        called with the file descriptor and the status.  The
 **                        call-in function should only be called when ALL requested
@@ -547,7 +547,7 @@ void bta_fs_co_write(int fd, const UINT8 *p_buf, UINT16 nbytes, UINT16 evt,
 ** Function         bta_fs_co_seek
 **
 ** Description      This function is called by io to move the file pointer
-**                  of a previously opened file to the specified location for 
+**                  of a previously opened file to the specified location for
 **                  the next read or write operation.
 **
 ** Parameters       fd      - file descriptor of file.
@@ -555,7 +555,7 @@ void bta_fs_co_write(int fd, const UINT8 *p_buf, UINT16 nbytes, UINT16 evt,
 **                  origin  - Initial position.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 void bta_fs_co_seek (int fd, INT32 offset, INT16 origin, UINT8 app_id)
 {
@@ -592,28 +592,28 @@ tBTA_FS_CO_STATUS bta_fs_co_access(const char *p_path, int mode, BOOLEAN *p_is_d
     struct stat buffer;
 
     #if (TRUE==BTA_FS_DEBUG)
-    LOGI("***********CHECKING ACCESS TO = %s", p_path);     
+    LOGI("***********CHECKING ACCESS TO = %s", p_path);
     #endif
 
-    #if (defined BTA_PBS_INCLUDED) && (BTA_PBS_INCLUDED == TRUE)    
+    #if (defined BTA_PBS_INCLUDED) && (BTA_PBS_INCLUDED == TRUE)
 
     if (app_id == UI_PBS_ID)
     {
-        
+
         *p_is_dir = TRUE;
 
         #if (TRUE==BTA_FS_DEBUG)
-        LOGI("***********SUPPORTED REPO = %d", bta_pbs_cfg.supported_repositories);     
+        LOGI("***********SUPPORTED REPO = %d", bta_pbs_cfg.supported_repositories);
         #endif
-        //Check if SIM contact requested,  and if so if it's supported. 
+        //Check if SIM contact requested,  and if so if it's supported.
         //If not, return error!
         if (strstr(p_path,"SIM1") && !(bta_pbs_cfg.supported_repositories & 0x2)) {
-            LOGI("***********RETURNING FAIL!");     
+            LOGI("***********RETURNING FAIL!");
             return BTA_FS_CO_FAIL;
         }
 
         #if (TRUE==BTA_FS_DEBUG)
-        LOGI("***********RETURNING success!");     
+        LOGI("***********RETURNING success!");
         #endif
         return (status);
     }
@@ -621,24 +621,24 @@ tBTA_FS_CO_STATUS bta_fs_co_access(const char *p_path, int mode, BOOLEAN *p_is_d
 
 
     *p_is_dir = FALSE;
-    
+
     if (mode == BTA_FS_ACC_RDWR)
         os_mode = 6;
     else if (mode == BTA_FS_ACC_READ)
         os_mode = 4;
-    
-    if (stat(p_path, &buffer) == 0) 
+
+    if (stat(p_path, &buffer) == 0)
     {
 	/* Determine if the object is a file or directory */
         if (S_ISDIR(buffer.st_mode))
             *p_is_dir = TRUE;
     }
-    else  
+    else
     {
 	BTIF_TRACE_DEBUG0("stat() failed! ");
         return BTA_FS_CO_FAIL;
     }
-    
+
     status=getAccess (os_mode, &buffer, (char*)p_path);
     return (status);
 }
@@ -701,14 +701,14 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
     tBTA_FS_CO_STATUS status = BTA_FS_CO_OK;
     struct stat buffer;
     char *dirName, *tmp = NULL;
- 
+
     path_len = strlen( p_path )+1;
     BTIF_TRACE_DEBUG2( "bta_fs_co_rmdir( app_id: %d ): path_len: %d", app_id, path_len );
 #if (TRUE==BTA_FS_DEBUG)
     BTIF_TRACE_DEBUG1( "bta_fs_co_rmdir():path_len: %d, p_path", app_id );
     BTIF_TRACE_DEBUG0( p_path );
 #endif
- 
+
     /* allocate a temp buffer for path with 0 char. make sure not to crash if path is too big! */
     dirName = (char*) calloc(1, path_len+1);
     if ( NULL != dirName )
@@ -721,7 +721,7 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
                              app_id, path_len );
         return BTA_FS_CO_FAIL;
     }
- 
+
     if (NULL!= (tmp = strrchr(dirName, '/')))
     {
         *tmp = '\0';
@@ -738,7 +738,7 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
 #endif
         return BTA_FS_CO_FAIL;
     }
- 
+
     free(dirName);
     if (status != BTA_FS_CO_OK)
     {
@@ -747,7 +747,7 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
 #endif
         return status;
     }
- 
+
     if (stat(p_path, &buffer) == 0)
     {
         status = getAccess(6, &buffer, (char*)p_path);
@@ -759,7 +759,7 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
 #endif
         return BTA_FS_CO_FAIL;
     }
- 
+
     if (status != BTA_FS_CO_OK)
     {
 #if (TRUE==BTA_FS_DEBUG)
@@ -807,37 +807,37 @@ tBTA_FS_CO_STATUS bta_fs_co_unlink(const char *p_path, UINT8 app_id)
     tBTA_FS_CO_STATUS status = BTA_FS_CO_OK;
     char *dirName, *tmp=NULL;
     struct stat buffer;
-    
+
     if(! p_path)
         return BTA_FS_CO_FAIL;
 
     /* buffer needs to be NULL terminated - so add one more byte to be zero'd out */
-#if 0   
+#if 0
     dirName= (char*) calloc(1, strlen(p_path));  /* <--- this can cause problems  */
-#else  
+#else
     dirName= (char*) calloc(1, strlen(p_path) + 1);
-#endif   
-        
+#endif
+
     strncpy(dirName, p_path, strlen(p_path));
-    if((tmp=strrchr(dirName, '/'))) 
+    if((tmp=strrchr(dirName, '/')))
     {
 	    *tmp='\0';
-    }  
-    if (stat(dirName, &buffer) == 0) 
+    }
+    if (stat(dirName, &buffer) == 0)
     {
         status=getAccess (6, &buffer, dirName);
         free(dirName);
     }
-    else  
+    else
     {
         BTIF_TRACE_DEBUG0("stat() failed! ");
         free(dirName);
         return BTA_FS_CO_FAIL;
     }
-    
+
     if(status!= BTA_FS_CO_OK)
 	return status;
-	
+
     if ((unlink (p_path)) != 0)
     {
         err = errno;
@@ -869,7 +869,7 @@ tBTA_FS_CO_STATUS bta_fs_co_unlink(const char *p_path, UINT8 app_id)
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 **                  Note: Upon completion of the request, the status is passed
 **                        in the bta_fs_ci_direntry() call-in function.
 **                        BTA_FS_CO_OK is returned when p_entry is valid,
@@ -996,7 +996,7 @@ void bta_fs_co_getdirentry(const char *p_path, BOOLEAN first_item,
 **
 ** Function         bta_fs_co_setdir
 **
-** Description      This function is executed by BTA when the server changes the 
+** Description      This function is executed by BTA when the server changes the
 **                  local path
 **
 ** Parameters       p_path  - the new path.
@@ -1005,7 +1005,7 @@ void bta_fs_co_getdirentry(const char *p_path, BOOLEAN first_item,
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 void bta_fs_co_setdir(const char *p_path, UINT8 app_id)
 {
@@ -1013,7 +1013,7 @@ void bta_fs_co_setdir(const char *p_path, UINT8 app_id)
 }
 
 /*******************************************************************************
-** OBEX14 Reliable Session not supported. Stub associated callouts. 
+** OBEX14 Reliable Session not supported. Stub associated callouts.
 ******************************************************************************/
 
 /*******************************************************************************
@@ -1029,7 +1029,7 @@ void bta_fs_co_setdir(const char *p_path, UINT8 app_id)
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 **                  Note: Upon completion of the request, the related session information,
 **                        if successful, and an error code (tBTA_FS_CO_STATUS)
 **                        are returned in the call-in function, bta_fs_ci_resume().
@@ -1055,7 +1055,7 @@ void bta_fs_co_resume(UINT16 evt, UINT8 app_id)
 **
 ** Returns          (tBTA_FS_CO_STATUS) status of the call.
 **                      [BTA_FS_CO_OK if successful]
-**                      [BTA_FS_CO_EACCES if p_dest_path already exists or could not be created (invalid path); 
+**                      [BTA_FS_CO_EACCES if p_dest_path already exists or could not be created (invalid path);
 **                                        or p_src_path is a directory and p_dest_path specifies a different path. ]
 **                      [BTA_FS_CO_FAIL otherwise]
 **
@@ -1081,7 +1081,7 @@ void bta_fs_co_set_perms(const char *p_src_path,  UINT8 *p_perms, UINT16 evt, UI
 **
 ** Returns          (tBTA_FS_CO_STATUS) status of the call.
 **                      [BTA_FS_CO_OK if successful]
-**                      [BTA_FS_CO_EACCES if p_dest_path already exists or could not be created (invalid path); 
+**                      [BTA_FS_CO_EACCES if p_dest_path already exists or could not be created (invalid path);
 **                                        or p_src_path is a directory and p_dest_path specifies a different path. ]
 **                      [BTA_FS_CO_FAIL otherwise]
 **
@@ -1109,7 +1109,7 @@ void bta_fs_co_rename(const char *p_src_path, const char *p_dest_path, UINT8 *p_
 ** Returns          (tBTA_FS_CO_STATUS) status of the call.
 **                      [BTA_FS_CO_OK if successful]
 **                      [BTA_FS_CO_EIS_DIR if p_src_path is a folder]
-**                      [BTA_FS_CO_EACCES if p_dest_path already exists or could not be created (invalid path); 
+**                      [BTA_FS_CO_EACCES if p_dest_path already exists or could not be created (invalid path);
 **                                        or p_src_path is a directory and p_dest_path specifies a different path. ]
 **                      [BTA_FS_CO_FAIL otherwise]
 **
@@ -1133,7 +1133,7 @@ void bta_fs_co_copy(const char *p_src_path, const char *p_dest_path, UINT8 *p_pe
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 void bta_fs_co_resume_op(UINT32 offset, UINT16 evt, UINT8 app_id)
 {
@@ -1155,7 +1155,7 @@ void bta_fs_co_resume_op(UINT32 offset, UINT16 evt, UINT8 app_id)
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 void bta_fs_co_session_info(BD_ADDR bd_addr, UINT8 *p_sess_info, UINT8 ssn,
                                            tBTA_FS_CO_SESS_ST new_st, char *p_path, UINT8 *p_info, UINT8 app_id)
@@ -1180,7 +1180,7 @@ void bta_fs_co_session_info(BD_ADDR bd_addr, UINT8 *p_sess_info, UINT8 ssn,
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 void bta_fs_co_suspend(BD_ADDR bd_addr, UINT8 *p_sess_info, UINT8 ssn,
                                       UINT32 *p_timeout, UINT32 *p_offset, UINT8 info, UINT8 app_id)
@@ -1203,7 +1203,7 @@ void bta_fs_co_suspend(BD_ADDR bd_addr, UINT8 *p_sess_info, UINT8 ssn,
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 void bta_fs_co_sess_ssn(int fd, UINT8 ssn, UINT8 app_id)
 {

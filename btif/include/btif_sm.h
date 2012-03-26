@@ -50,7 +50,7 @@
  *  Filename:      btif_sm.h
  *
  *  Description:   Generic BTIF state machine API
- * 
+ *
  *****************************************************************************/
 
 #ifndef BTIF_SM_H

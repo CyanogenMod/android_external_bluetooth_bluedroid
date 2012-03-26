@@ -3,44 +3,44 @@
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed 
- *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
- *  Except as set forth in an Authorized License, Broadcom grants no license 
- *  (express or implied), right to use, or waiver of any kind with respect to 
- *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  licensors, and may only be used, duplicated, modified or distributed
+ *  pursuant to the terms and conditions of a separate, written license
+ *  agreement executed between you and Broadcom (an "Authorized License").
+ *  Except as set forth in an Authorized License, Broadcom grants no license
+ *  (express or implied), right to use, or waiver of any kind with respect to
+ *  the Software, and Broadcom expressly reserves all rights in and to the
+ *  Software and all intellectual property rights therein.
+ *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
+ *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ *  ALL USE OF THE SOFTWARE.
  *
  *  Except as expressly set forth in the Authorized License,
  *
- *  1.     This program, including its structure, sequence and organization, 
- *         constitutes the valuable trade secrets of Broadcom, and you shall 
- *         use all reasonable efforts to protect the confidentiality thereof, 
- *         and to use this information only in connection with your use of 
+ *  1.     This program, including its structure, sequence and organization,
+ *         constitutes the valuable trade secrets of Broadcom, and you shall
+ *         use all reasonable efforts to protect the confidentiality thereof,
+ *         and to use this information only in connection with your use of
  *         Broadcom integrated circuit products.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED 
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, 
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, 
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY 
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, 
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES, 
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR 
+ *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+ *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
  *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING OUT
  *         OF USE OR PERFORMANCE OF THE SOFTWARE.
  *
  *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM OR
- *         ITS LICENSORS BE LIABLE FOR 
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY 
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO 
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM 
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR 
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE 
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE 
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
+ *         ITS LICENSORS BE LIABLE FOR
+ *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
+ *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
+ *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+ *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
+ *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
+ *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
+ *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
  ************************************************************************************/
@@ -49,11 +49,11 @@
  *
  *  Filename:      btif_storage.c
  *
- *  Description:   Stores the local BT adapter and remote device properties in 
- *                 NVRAM storage, typically as text files in the 
+ *  Description:   Stores the local BT adapter and remote device properties in
+ *                 NVRAM storage, typically as text files in the
  *                 mobile's filesystem
- * 
- * 
+ *
+ *
  *  Data storage directory structure
  *
  * data
@@ -67,7 +67,7 @@
  *           |-- remote_names            - Remote devices' names
  *           |-- remote_aliases          - Remote devices' Friendly names
  *           `-- remote_services         - Remote devices' services
- * 
+ *
  *
  * adapter_info - Key/Value
  *     name <space> <Name of Local Bluetooth device>
@@ -94,7 +94,7 @@
  *
  * remote_services - Key/Value
  *     <remote_device bd_addr> <space> <List of UUIDs separated by semicolons>
- * 
+ *
  ***********************************************************************************/
 #include <stdlib.h>
 #include <time.h>
@@ -103,7 +103,7 @@
 
 #define LOG_TAG "BTIF_STORAGE"
 
-#include "btif_api.h" 
+#include "btif_api.h"
 
 #include "btif_util.h"
 #include "unv.h"
@@ -199,15 +199,15 @@ static char* btif_in_make_filename(bt_bdaddr_t *bd_addr, char *fname)
    if (fname == NULL)return NULL;
    if (bd_addr)
    {
-        sprintf(path, "%s/%s/%s", BTIF_STORAGE_PATH_BLUEDROID, 
+        sprintf(path, "%s/%s/%s", BTIF_STORAGE_PATH_BLUEDROID,
                              bd2str(bd_addr, &bdstr), fname);
    }
    else
    {
         /* local adapter */
-        sprintf(path, "%s/LOCAL/%s", BTIF_STORAGE_PATH_BLUEDROID, fname);        
+        sprintf(path, "%s/LOCAL/%s", BTIF_STORAGE_PATH_BLUEDROID, fname);
    }
-   
+
    return (char*)path;
 }
 
@@ -227,9 +227,9 @@ static const char *btif_in_get_adapter_key_from_type(bt_property_type_t type)
      {
         case BT_PROPERTY_BDNAME:
             return BTIF_STORAGE_KEY_ADAPTER_NAME;
-        case BT_PROPERTY_ADAPTER_SCAN_MODE: 
+        case BT_PROPERTY_ADAPTER_SCAN_MODE:
             return BTIF_STORAGE_KEY_ADAPTER_SCANMODE;
-        case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT: 
+        case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
             return BTIF_STORAGE_KEY_ADAPTER_DISC_TIMEOUT;
         default:
             /* return valid string to avoid passing NULL to NV RAM driver */
@@ -275,7 +275,7 @@ static void btif_in_split_uuids_string_to_list(char *str, bt_uuid_t *p_uuid,
 **                  NVRAM into a property->val. Also sets the property->len.
 **                  Assumption is that property->val has enough memory to
 **                  store the string fetched from NVRAM
-** 
+**
 ** Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
@@ -284,7 +284,7 @@ static bt_status_t btif_in_str_to_property(char *value, bt_property_t *property)
     bt_status_t status = BT_STATUS_SUCCESS;
     property->len = 0;
 
-    /* if Value is NULL, then just set the property->len to 0 and return. 
+    /* if Value is NULL, then just set the property->len to 0 and return.
        This is possible if the entry does not exist  */
     if (value == NULL) {
         status = BT_STATUS_FAIL;
@@ -301,7 +301,7 @@ static bt_status_t btif_in_str_to_property(char *value, bt_property_t *property)
                 strcpy((char*)property->val, value);
             }
         } break;
-        case BT_PROPERTY_ADAPTER_SCAN_MODE: 
+        case BT_PROPERTY_ADAPTER_SCAN_MODE:
         case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
         {
             *((uint32_t *)property->val) = 0;
@@ -416,13 +416,13 @@ static char* btif_in_get_remote_device_path_from_property(bt_property_type_t typ
          case BT_PROPERTY_BDADDR:
          case BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP:
               return BTIF_STORAGE_PATH_REMOTE_DEVICES;
-         case BT_PROPERTY_BDNAME: 
+         case BT_PROPERTY_BDNAME:
               return BTIF_STORAGE_PATH_REMOTE_NAMES;
          case BT_PROPERTY_CLASS_OF_DEVICE:
               return BTIF_STORAGE_PATH_REMOTE_DEVCLASSES;
          case BT_PROPERTY_TYPE_OF_DEVICE:
               return BTIF_STORAGE_PATH_REMOTE_DEVTYPES;
-         case BT_PROPERTY_REMOTE_FRIENDLY_NAME: 
+         case BT_PROPERTY_REMOTE_FRIENDLY_NAME:
               return BTIF_STORAGE_PATH_REMOTE_ALIASES;
          case BT_PROPERTY_UUIDS:
               return BTIF_STORAGE_PATH_REMOTE_SERVICES;
@@ -455,17 +455,17 @@ int btif_in_load_device_iter_cb(char *key, char *value, void *userdata)
     uint32_t i;
 
     memset(temp, 0, sizeof(temp));
- 
+
     BTIF_TRACE_DEBUG3("%s %s %s", __FUNCTION__, key, value);
- 
+
     /* convert 32 char linkkey (fixed size) */
-    for (i = 0; i < LINK_KEY_LEN; i++) 
+    for (i = 0; i < LINK_KEY_LEN; i++)
     {
         memcpy(temp, value + (i * 2), 2);
         link_key[i] = (uint8_t) strtol((const char *)temp, NULL, 16);
         offset+=2;
     }
- 
+
     /* skip space */
     offset++;
 
@@ -476,7 +476,7 @@ int btif_in_load_device_iter_cb(char *key, char *value, void *userdata)
 
     /* value + space */
     offset+=2;
- 
+
     /* convert decimal pinlen (max 2 ascii chars) */
     memset(temp, 0, sizeof(temp));
     memcpy(temp, value + offset, 2);
@@ -484,10 +484,10 @@ int btif_in_load_device_iter_cb(char *key, char *value, void *userdata)
 
     /* convert bd address (keystring) */
     str2bd(key, &bd_addr);
- 
+
     /* add extracted information to BTA security manager */
     BTA_DmAddDevice(bd_addr.address, dev_class, link_key, 0, 0, key_type, 0);
- 
+
      /* Fill in the bonded devices */
     memcpy(&p_bonded_devices->devices[p_bonded_devices->num_devices++], &bd_addr, sizeof(bt_bdaddr_t));
 
@@ -512,13 +512,13 @@ static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_
     memset(p_bonded_devices, 0, sizeof(btif_bonded_devices_t));
 
     fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_REMOTE_LINKKEYS);
-    
-    if (fname == NULL) 
+
+    if (fname == NULL)
         return BT_STATUS_FAIL;
 
     ret = unv_read_key_iter(fname, btif_in_load_device_iter_cb, p_bonded_devices);
 
-    if (ret < 0) 
+    if (ret < 0)
         return BT_STATUS_FAIL;
 
     return BT_STATUS_SUCCESS;
@@ -580,7 +580,7 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
 
         BTIF_TRACE_DEBUG2("%s: Number of bonded devices: %d", __FUNCTION__, bonded_devices.num_devices);
 
-        if (bonded_devices.num_devices > 0) 
+        if (bonded_devices.num_devices > 0)
         {
             property->len = bonded_devices.num_devices * sizeof(bt_bdaddr_t);
             memcpy(property->val, bonded_devices.devices, property->len);
@@ -628,7 +628,7 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
     }
 
     /* fall through for other properties */
-    
+
     /* create filepath */
     fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_ADAPTER_INFO);
 
@@ -644,8 +644,8 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
         return BT_STATUS_FAIL;
     }
 
-    value = unv_read_key( fname, 
-                          btif_in_get_adapter_key_from_type(property->type), 
+    value = unv_read_key( fname,
+                          btif_in_get_adapter_key_from_type(property->type),
                           linebuf, UNV_MAXLINE_LENGTH);
 
     if (value == NULL)
@@ -678,7 +678,7 @@ bt_status_t btif_storage_set_adapter_property(bt_property_t *property)
     char *fname;
     char value[1200];
     int ret;
-    
+
     fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_ADAPTER_INFO);
     if (fname == NULL)
     {
@@ -695,11 +695,11 @@ bt_status_t btif_storage_set_adapter_property(bt_property_t *property)
         return BT_STATUS_FAIL;
     }
     ret = unv_write_key(fname, btif_in_get_adapter_key_from_type(property->type), value);
-    if (ret < 0) 
+    if (ret < 0)
     {
         return BT_STATUS_FAIL;
     }
-    
+
     return BT_STATUS_SUCCESS;
 }
 
@@ -716,7 +716,7 @@ bt_status_t btif_storage_set_adapter_property(bt_property_t *property)
 **                  BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
-bt_status_t btif_storage_get_remote_device_property(bt_bdaddr_t *remote_bd_addr, 
+bt_status_t btif_storage_get_remote_device_property(bt_bdaddr_t *remote_bd_addr,
                                                            bt_property_t *property)
 {
     char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
@@ -737,7 +737,7 @@ bt_status_t btif_storage_get_remote_device_property(bt_bdaddr_t *remote_bd_addr,
     {
         return BT_STATUS_FAIL;
     }
-    
+
     value = unv_read_key(fname, bd2str(remote_bd_addr, &bdstr), linebuf, BTIF_STORAGE_MAX_LINE_SZ);
 
     return btif_in_str_to_property(value, property);
@@ -754,7 +754,7 @@ bt_status_t btif_storage_get_remote_device_property(bt_bdaddr_t *remote_bd_addr,
 **                  BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
-bt_status_t btif_storage_set_remote_device_property(bt_bdaddr_t *remote_bd_addr, 
+bt_status_t btif_storage_set_remote_device_property(bt_bdaddr_t *remote_bd_addr,
                                                           bt_property_t *property)
 {
     char value[1200];
@@ -779,13 +779,13 @@ bt_status_t btif_storage_set_remote_device_property(bt_bdaddr_t *remote_bd_addr,
     {
         return BT_STATUS_FAIL;
     }
-    
+
     ret = unv_write_key(fname, bd2str(remote_bd_addr, &bdstr), value);
-    if (ret < 0) 
+    if (ret < 0)
     {
         return BT_STATUS_FAIL;
     }
-    
+
     return BT_STATUS_SUCCESS;
 }
 
@@ -811,19 +811,19 @@ bt_status_t btif_storage_add_remote_device(bt_bdaddr_t *remote_bdaddr,
     for (i=0; i < num_properties; i++)
     {
         /* Ignore the RSSI as this is not stored in DB */
-        if (properties[i].type == BT_PROPERTY_REMOTE_RSSI) 
+        if (properties[i].type == BT_PROPERTY_REMOTE_RSSI)
             continue;
 
         /* BD_ADDR for remote device needs special handling as we also store timestamp */
-        if (properties[i].type == BT_PROPERTY_BDADDR) 
+        if (properties[i].type == BT_PROPERTY_BDADDR)
         {
             bt_property_t addr_prop;
-            memcpy(&addr_prop, &properties[i], sizeof(bt_property_t)); 
+            memcpy(&addr_prop, &properties[i], sizeof(bt_property_t));
             addr_prop.type = BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP;
             btif_storage_set_remote_device_property(remote_bdaddr,
                                                     &addr_prop);
-        } 
-        else 
+        }
+        else
         {
             btif_storage_set_remote_device_property(remote_bdaddr,
                                                     &properties[i]);
@@ -877,7 +877,7 @@ bt_status_t btif_storage_add_bonded_device(bt_bdaddr_t *remote_bd_addr,
         return BT_STATUS_FAIL;
 
     memset(value, 0, sizeof(value));
-    
+
     for (i = 0; i < LINK_KEY_LEN; i++)
        sprintf(value + (i * 2), "%2.2X", link_key[i]);
 
@@ -891,7 +891,7 @@ bt_status_t btif_storage_add_bonded_device(bt_bdaddr_t *remote_bd_addr,
     }
 
     return BT_STATUS_SUCCESS;
-}    
+}
 
 /*******************************************************************************
 **
@@ -908,7 +908,7 @@ bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t *remote_bd_addr)
     char *fname;
     int ret;
     bdstr_t bdstr;
-        
+
     fname = btif_in_make_filename(NULL,
                                   BTIF_STORAGE_PATH_REMOTE_LINKKEYS);
     if (fname == NULL)

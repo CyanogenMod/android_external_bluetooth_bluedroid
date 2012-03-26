@@ -3,44 +3,44 @@
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed 
- *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
- *  Except as set forth in an Authorized License, Broadcom grants no license 
- *  (express or implied), right to use, or waiver of any kind with respect to 
- *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  licensors, and may only be used, duplicated, modified or distributed
+ *  pursuant to the terms and conditions of a separate, written license
+ *  agreement executed between you and Broadcom (an "Authorized License").
+ *  Except as set forth in an Authorized License, Broadcom grants no license
+ *  (express or implied), right to use, or waiver of any kind with respect to
+ *  the Software, and Broadcom expressly reserves all rights in and to the
+ *  Software and all intellectual property rights therein.
+ *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
+ *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ *  ALL USE OF THE SOFTWARE.
  *
  *  Except as expressly set forth in the Authorized License,
  *
- *  1.     This program, including its structure, sequence and organization, 
- *         constitutes the valuable trade secrets of Broadcom, and you shall 
- *         use all reasonable efforts to protect the confidentiality thereof, 
- *         and to use this information only in connection with your use of 
+ *  1.     This program, including its structure, sequence and organization,
+ *         constitutes the valuable trade secrets of Broadcom, and you shall
+ *         use all reasonable efforts to protect the confidentiality thereof,
+ *         and to use this information only in connection with your use of
  *         Broadcom integrated circuit products.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED 
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, 
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, 
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY 
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, 
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES, 
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR 
+ *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+ *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
  *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING OUT
  *         OF USE OR PERFORMANCE OF THE SOFTWARE.
  *
  *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM OR
- *         ITS LICENSORS BE LIABLE FOR 
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY 
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO 
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM 
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR 
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE 
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE 
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
+ *         ITS LICENSORS BE LIABLE FOR
+ *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
+ *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
+ *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+ *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
+ *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
+ *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
+ *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
  ************************************************************************************/
@@ -50,8 +50,8 @@
  *  Filename:      btif_hf.c
  *
  *  Description:   Handsfree Profile Bluetooth Interface
- * 
- * 
+ *
+ *
  ***********************************************************************************/
 
 #include <hardware/bluetooth.h>
@@ -252,13 +252,13 @@ void clear_phone_state()
 **
 ** Description      Executes HF UPSTREAMS events in btif context
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
 {
     tBTA_AG *p_data = (tBTA_AG *)p_param;
-    bdstr_t bdstr;    
+    bdstr_t bdstr;
 
     BTIF_TRACE_DEBUG2("%s: event=%s", __FUNCTION__, dump_hf_event(event));
 
@@ -291,7 +291,7 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
                 break;
             }
 
-            CHECK_CALL_CBACK(bt_hf_callbacks, connection_state_cb, btif_hf_cb.state, &btif_hf_cb.connected_bda);
+            HAL_CBACK(bt_hf_callbacks, connection_state_cb, btif_hf_cb.state, &btif_hf_cb.connected_bda);
 
             if (btif_hf_cb.state == BTHF_CONNECTION_STATE_DISCONNECTED)
                 bdsetany(btif_hf_cb.connected_bda.address);
@@ -299,8 +299,7 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
 
         case BTA_AG_CLOSE_EVT:
             btif_hf_cb.state = BTHF_CONNECTION_STATE_DISCONNECTED;
-            CHECK_CALL_CBACK(bt_hf_callbacks, connection_state_cb, btif_hf_cb.state, &btif_hf_cb.connected_bda);
-
+            HAL_CBACK(bt_hf_callbacks, connection_state_cb, btif_hf_cb.state, &btif_hf_cb.connected_bda);
             bdsetany(btif_hf_cb.connected_bda.address);
             btif_hf_cb.peer_feat = 0;
             clear_phone_state();
@@ -311,56 +310,56 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
             btif_hf_cb.peer_feat = p_data->conn.peer_feat;
             btif_hf_cb.state = BTHF_CONNECTION_STATE_SLC_CONNECTED;
 
-            CHECK_CALL_CBACK(bt_hf_callbacks, connection_state_cb, btif_hf_cb.state,
+            HAL_CBACK(bt_hf_callbacks, connection_state_cb, btif_hf_cb.state,
                              &btif_hf_cb.connected_bda);
 
             break;
 
         case BTA_AG_AUDIO_OPEN_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, audio_state_cb, BTHF_AUDIO_STATE_CONNECTED, &btif_hf_cb.connected_bda);
+            HAL_CBACK(bt_hf_callbacks, audio_state_cb, BTHF_AUDIO_STATE_CONNECTED, &btif_hf_cb.connected_bda);
             break;
 
         case BTA_AG_AUDIO_CLOSE_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, audio_state_cb, BTHF_AUDIO_STATE_DISCONNECTED, &btif_hf_cb.connected_bda);
+            HAL_CBACK(bt_hf_callbacks, audio_state_cb, BTHF_AUDIO_STATE_DISCONNECTED, &btif_hf_cb.connected_bda);
             break;
 
         /* BTA auto-responds, silently discard */
         case BTA_AG_SPK_EVT:
         case BTA_AG_MIC_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, volume_cmd_cb, 
+            HAL_CBACK(bt_hf_callbacks, volume_cmd_cb,
                 (event == BTA_AG_SPK_EVT) ? BTHF_VOLUME_TYPE_SPK : BTHF_VOLUME_TYPE_MIC, p_data->val.num);
             break;
 
         case BTA_AG_AT_A_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, answer_call_cmd_cb);
+            HAL_CBACK(bt_hf_callbacks, answer_call_cmd_cb);
             break;
 
         /* Java needs to send OK/ERROR for these commands */
         case BTA_AG_AT_BLDN_EVT:
         case BTA_AG_AT_D_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, dial_call_cmd_cb,
+            HAL_CBACK(bt_hf_callbacks, dial_call_cmd_cb,
                 (event == BTA_AG_AT_D_EVT) ? p_data->val.str : NULL);
             break;
 
         case BTA_AG_AT_CHUP_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, hangup_call_cmd_cb);
+            HAL_CBACK(bt_hf_callbacks, hangup_call_cmd_cb);
             break;
 
         case BTA_AG_AT_CIND_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, cind_cmd_cb);
+            HAL_CBACK(bt_hf_callbacks, cind_cmd_cb);
             break;
 
         case BTA_AG_AT_VTS_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, dtmf_cmd_cb, p_data->val.str[0]);
+            HAL_CBACK(bt_hf_callbacks, dtmf_cmd_cb, p_data->val.str[0]);
             break;
 
         case BTA_AG_AT_BVRA_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, vr_cmd_cb,
+            HAL_CBACK(bt_hf_callbacks, vr_cmd_cb,
                 (p_data->val.num == 1) ? BTHF_VR_STATE_STARTED : BTHF_VR_STATE_STOPPED);
             break;
 
         case BTA_AG_AT_NREC_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, nrec_cmd_cb,
+            HAL_CBACK(bt_hf_callbacks, nrec_cmd_cb,
                 (p_data->val.num == 1) ? BTHF_NREC_START : BTHF_NREC_STOP);
             break;
 
@@ -369,29 +368,29 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
             break;
 
         case BTA_AG_AT_CKPD_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, key_pressed_cmd_cb);
+            HAL_CBACK(bt_hf_callbacks, key_pressed_cmd_cb);
             break;
 
         /* Java needs to send OK/ERROR for these commands */
         case BTA_AG_AT_CHLD_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, chld_cmd_cb, atoi(p_data->val.str));
+            HAL_CBACK(bt_hf_callbacks, chld_cmd_cb, atoi(p_data->val.str));
             break;
 
         case BTA_AG_AT_CLCC_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, clcc_cmd_cb, p_data->val.num);
+            HAL_CBACK(bt_hf_callbacks, clcc_cmd_cb, p_data->val.num);
             break;
 
         case BTA_AG_AT_COPS_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, cops_cmd_cb);
+            HAL_CBACK(bt_hf_callbacks, cops_cmd_cb);
             break;
 
         case BTA_AG_AT_UNAT_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, unknown_at_cmd_cb,
+            HAL_CBACK(bt_hf_callbacks, unknown_at_cmd_cb,
                              p_data->val.str);
             break;
 
         case BTA_AG_AT_CNUM_EVT:
-            CHECK_CALL_CBACK(bt_hf_callbacks, cnum_cmd_cb);
+            HAL_CBACK(bt_hf_callbacks, cnum_cmd_cb);
             break;
 
         /* TODO: Some of these commands may need to be sent to app. For now respond with error */
@@ -413,7 +412,7 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
 **
 ** Description      Switches context from BTE to BTIF for all HF events
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 
@@ -433,7 +432,7 @@ static void bte_hf_evt(tBTA_AG_EVT event, tBTA_AG *p_data)
         param_len = sizeof(tBTA_AG_HDR);
     else if (p_data)
         param_len = sizeof(tBTA_AG_VAL);
-    
+
     /* switch context to btif task context (copy full union size for convenience) */
     status = btif_transfer_context(btif_hf_upstreams_evt, (uint16_t)event, (void*)p_data, param_len, NULL);
 
@@ -482,7 +481,7 @@ static bt_status_t connect( bt_bdaddr_t *bd_addr )
         btif_hf_cb.state = BTHF_CONNECTION_STATE_CONNECTING;
         bdcpy(btif_hf_cb.connected_bda.address, bd_addr->address);
 
-        BTA_AgOpen(btif_hf_cb.handle, btif_hf_cb.connected_bda.address, 
+        BTA_AgOpen(btif_hf_cb.handle, btif_hf_cb.connected_bda.address,
                    BTIF_HF_SECURITY, BTA_HSP_SERVICE_MASK | BTA_HFP_SERVICE_MASK);
 
         return BT_STATUS_SUCCESS;
@@ -725,7 +724,7 @@ static bt_status_t cind_response(int svc, int num_active, int num_held,
     if (is_connected(NULL))
     {
         tBTA_AG_RES_DATA    ag_res;
-        
+
         memset (&ag_res, 0, sizeof (ag_res));
         sprintf (ag_res.str, "%d,%d,%d,%d,%d,%d,%d",
                 (num_active ? 1 : 0),           /* Call state */
@@ -735,7 +734,7 @@ static bt_status_t cind_response(int svc, int num_active, int num_held,
                 roam,                           /* Roaming indicator */
                 batt_chg,                       /* Battery level */
                 (num_held ? 1 : 0));            /* Call held */
-        
+
         BTA_AgResult (btif_hf_cb.handle, BTA_AG_CIND_RES, &ag_res);
 
         return BT_STATUS_SUCCESS;
@@ -978,7 +977,7 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
             case BTHF_CALL_STATE_ALERTING:
                 /* if we went from idle->alert, force SCO setup here. dialing usually triggers it */
                 if (btif_hf_cb.call_setup_state == BTHF_CALL_STATE_IDLE)
-                    ag_res.audio_handle = btif_hf_cb.handle;
+                ag_res.audio_handle = btif_hf_cb.handle;
                 res = BTA_AG_OUT_CALL_ALERT_RES;
                 break;
             default:
