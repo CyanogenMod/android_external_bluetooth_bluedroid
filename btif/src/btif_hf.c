@@ -571,15 +571,22 @@ static bt_status_t start_voice_recognition()
     CHECK_BTHF_INIT();
     if (is_connected(NULL))
     {
-        tBTA_AG_RES_DATA ag_res;
-        memset(&ag_res, 0, sizeof(ag_res));
-        ag_res.state = 1;
-        BTA_AgResult (btif_hf_cb.handle, BTA_AG_BVRA_RES, &ag_res);
+        if (btif_hf_cb.peer_feat & BTA_AG_PEER_FEAT_VREC)
+        {
+            tBTA_AG_RES_DATA ag_res;
+            memset(&ag_res, 0, sizeof(ag_res));
+            ag_res.state = 1;
+            BTA_AgResult (btif_hf_cb.handle, BTA_AG_BVRA_RES, &ag_res);
 
-        return BT_STATUS_SUCCESS;
+            return BT_STATUS_SUCCESS;
+        }
+        else
+        {
+            return BT_STATUS_UNSUPPORTED;
+        }
     }
 
-    return BT_STATUS_FAIL;
+    return BT_STATUS_NOT_READY;
 }
 
 /*******************************************************************************
@@ -597,15 +604,22 @@ static bt_status_t stop_voice_recognition()
 
     if (is_connected(NULL))
     {
-        tBTA_AG_RES_DATA ag_res;
-        memset(&ag_res, 0, sizeof(ag_res));
-        ag_res.state = 0;
-        BTA_AgResult (btif_hf_cb.handle, BTA_AG_BVRA_RES, &ag_res);
+        if (btif_hf_cb.peer_feat & BTA_AG_PEER_FEAT_VREC)
+        {
+            tBTA_AG_RES_DATA ag_res;
+            memset(&ag_res, 0, sizeof(ag_res));
+            ag_res.state = 0;
+            BTA_AgResult (btif_hf_cb.handle, BTA_AG_BVRA_RES, &ag_res);
 
-        return BT_STATUS_SUCCESS;
+            return BT_STATUS_SUCCESS;
+        }
+        else
+        {
+            return BT_STATUS_UNSUPPORTED;
+        }
     }
 
-    return BT_STATUS_FAIL;
+    return BT_STATUS_NOT_READY;
 }
 
 /*******************************************************************************

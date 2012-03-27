@@ -1007,12 +1007,8 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
             break;
 
         case BTA_AG_HF_CMD_BVRA:
-            /* if feature send OK, else don't call callback, send ERROR */
-            if (p_scb->features & BTA_AG_FEAT_VREC)
-            {
-                bta_ag_send_ok(p_scb);
-            }
-            else
+            /* if feature not supported don't call callback, send ERROR. App will send OK */
+            if (!(p_scb->features & BTA_AG_FEAT_VREC))
             {
                 event = 0;
                 bta_ag_send_error(p_scb, BTA_AG_ERR_OP_NOT_SUPPORTED);
