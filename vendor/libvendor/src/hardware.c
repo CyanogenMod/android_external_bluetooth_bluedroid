@@ -103,6 +103,7 @@
 #define HCI_VSC_WRITE_SCO_PCM_INT_PARAM         0xFC1C
 #define HCI_VSC_WRITE_PCM_DATA_FORMAT_PARAM     0xFC1E
 #define HCI_VSC_WRITE_I2SPCM_INTERFACE_PARAM    0xFC6D
+#define HCI_VSC_LAUNCH_RAM                      0xFC4E
 
 #define HCI_EVT_CMD_CMPL_STATUS_RET_BYTE        5
 #define HCI_EVT_CMD_CMPL_LOCAL_NAME_STRING      6
@@ -593,6 +594,8 @@ void hw_config_cback(VND_BT_HDR *p_evt_buf)
     uint8_t     is_proceeding = FALSE;
 
     status = *((uint8_t *)(p_evt_buf + 1) + HCI_EVT_CMD_CMPL_STATUS_RET_BYTE);
+    p = (uint8_t *)(p_evt_buf + 1) + HCI_EVT_CMD_CMPL_OPCODE;
+    STREAM_TO_UINT16(opcode,p);
 
     /* Ask a new buffer big enough to hold any HCI commands sent in here */
     if ((status == 0) && bt_vendor_cbacks)
@@ -673,12 +676,21 @@ void hw_config_cback(VND_BT_HDR *p_evt_buf)
                 p_buf->len = read(hw_cfg_cb.fw_fd, p, HCI_CMD_PREAMBLE_SIZE);
                 if (p_buf->len > 0)
                 {
-                    p_buf->len += read(hw_cfg_cb.fw_fd, p+HCI_CMD_PREAMBLE_SIZE,\
-                                       *(p+HCD_REC_PAYLOAD_LEN_BYTE));
-                    STREAM_TO_UINT16(opcode,p);
-                    is_proceeding = hci_h4_send_int_cmd(opcode, p_buf, \
+                    if ((p_buf->len < HCI_CMD_PREAMBLE_SIZE) || \
+                        (opcode == HCI_VSC_LAUNCH_RAM))
+                    {
+                        LOGW("firmware patch file might be altered!");
+                    }
+                    else
+                    {
+                        p_buf->len += read(hw_cfg_cb.fw_fd, \
+                                           p+HCI_CMD_PREAMBLE_SIZE,\
+                                           *(p+HCD_REC_PAYLOAD_LEN_BYTE));
+                        STREAM_TO_UINT16(opcode,p);
+                        is_proceeding = hci_h4_send_int_cmd(opcode, p_buf, \
                                                         hw_config_cback);
-                    break;
+                        break;
+                    }
                 }
 
                 close(hw_cfg_cb.fw_fd);
