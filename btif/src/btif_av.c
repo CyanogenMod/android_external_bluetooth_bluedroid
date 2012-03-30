@@ -865,7 +865,10 @@ bt_status_t btif_av_execute_service(BOOLEAN b_enable)
          /* TODO: Removed BTA_SEC_AUTHORIZE since the Java/App does not
           * handle this request in order to allow incoming connections to succeed.
           * We need to put this back once support for this is added */
-         BTA_AvEnable(BTA_SEC_AUTHENTICATE, BTA_AV_FEAT_RCTG,
+         /* Added BTA_AV_FEAT_NO_SCO_SSPD - this ensures that the BTA does not
+          * auto-suspend av streaming on AG events(SCO or Call). The suspend shall
+          * be initiated by the app/audioflinger layers */
+         BTA_AvEnable(BTA_SEC_AUTHENTICATE, (BTA_AV_FEAT_RCTG | BTA_AV_FEAT_NO_SCO_SSPD),
                       bte_av_callback);
 #endif
          BTA_AvRegister(BTA_AV_CHNL_AUDIO, BTIF_AV_SERVICE_NAME, 0);
