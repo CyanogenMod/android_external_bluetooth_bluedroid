@@ -18,6 +18,8 @@
 #include "port_api.h"
 #include "utl.h"
 #include <string.h>
+#include "bta_dm_int.h"
+#include "l2c_api.h"
 
 /*****************************************************************************
 **  Constants
@@ -663,6 +665,10 @@ void bta_ag_rfc_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 *******************************************************************************/
 void bta_ag_start_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
+    /* Take the link out of sniff and set L2C idle time to 0 */
+    bta_dm_pm_active(p_scb->peer_addr);
+    L2CA_SetIdleTimeoutByBdAddr(p_scb->peer_addr, 0);
+
     /* if SCO is open close SCO and wait on RFCOMM close */
     if (bta_ag_sco_is_open(p_scb))
     {
