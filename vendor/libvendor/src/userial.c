@@ -75,9 +75,11 @@
 #endif
 
 #if (USERIAL_DBG == TRUE)
-#define USERIALDBG LOGD
+#define USERIALDBG(param, ...) {if (dbg_mode & traces & (1 << TRACE_USERIAL)) \
+                                LOGD(param, ## __VA_ARGS__);\
+                               }
 #else
-#define USERIALDBG
+#define USERIALDBG(param, ...) {}
 #endif
 
 #define MAX_SERIAL_PORT (USERIAL_PORT_3 + 1)
@@ -439,7 +441,7 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
     struct sched_param param;
     int policy;
     pthread_attr_t thread_attr;
-    char device_name[20];
+    char device_name[32];
 
     USERIALDBG("userial_open(port:%d, baud:%d)", port, p_cfg->baud);
 
@@ -694,7 +696,7 @@ void userial_change_baud(uint8_t baud)
     USERIALDBG("userial_change_baud: Closing UART Port");
     userial_close();
 
-    utils_delay(50);
+    utils_delay(100);
 
     /* change baud rate in settings - leave everything else the same  */
     userial_cb.cfg.baud = baud;
@@ -748,5 +750,22 @@ void userial_ioctl(userial_ioctl_op_t op, void *p_data)
         default:
             break;
     }
+}
+
+/*******************************************************************************
+**
+** Function        userial_set_port
+**
+** Description     Configure UART port name
+**
+** Returns         0 : Success
+**                 Otherwise : Fail
+**
+*******************************************************************************/
+int userial_set_port(char *p_conf_name, char *p_conf_value, int param)
+{
+    strcpy(userial_dev[USERIAL_PORT_1], p_conf_value);
+
+    return 0;
 }
 

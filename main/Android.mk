@@ -1,5 +1,7 @@
 LOCAL_PATH:= $(call my-dir)
 
+include $(LOCAL_PATH)/../include/buildcfg.mk
+
 #
 # Bluetooth HW module
 # 
@@ -15,7 +17,8 @@ LOCAL_SRC_FILES+= \
         bte_main.c \
 	bte_init.c \
 	bte_version.c \
-	bte_logmsg.c
+        bte_logmsg.c \
+        bte_conf.c
 
 # BTIF
 LOCAL_SRC_FILES += \
@@ -105,7 +108,7 @@ LOCAL_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_bta libbt-brcm_stack
 
 LOCAL_MODULE := bluetooth.default
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
-LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_TAGS := optional
 
 
 include $(BUILD_SHARED_LIBRARY)

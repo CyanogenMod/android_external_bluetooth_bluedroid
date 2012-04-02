@@ -67,9 +67,11 @@
 #endif
 
 #if (BTVND_DBG == TRUE)
-#define BTVNDDBG LOGD
+#define BTVNDDBG(param, ...) {if (dbg_mode & traces & (1 << TRACE_VND)) \
+                                LOGD(param, ## __VA_ARGS__);\
+                             }
 #else
-#define BTVNDDBG
+#define BTVNDDBG(param, ...) {}
 #endif
 
 /******************************************************************************
@@ -90,6 +92,7 @@ void hw_lpm_assert_bt_wake(void);
 #if (SCO_CFG_INCLUDED == TRUE)
 void hw_sco_config(void);
 #endif
+void vnd_load_conf(const char *p_path);
 
 /******************************************************************************
 **  Variables
@@ -97,6 +100,10 @@ void hw_sco_config(void);
 
 bt_vendor_callbacks_t *bt_vendor_cbacks = NULL;
 BUFFER_Q tx_q;
+
+/* By default, turn off debug mode */
+vnd_debug_t dbg_mode = 0;
+vnd_debug_t traces = 0;
 
 /******************************************************************************
 **  Local type definitions
@@ -151,13 +158,15 @@ static int init(const bt_vendor_callbacks_t* p_cb)
     struct sched_param param;
     int policy;
 
-    BTVNDDBG("init");
+    LOGI("init");
 
     if (p_cb == NULL)
     {
         LOGE("init failed with no user callbacks!");
         return BT_VENDOR_STATUS_FAIL;
     }
+
+    vnd_load_conf(VENDOR_LIB_CONF_FILE);
 
     /* store reference to user callbacks */
     bt_vendor_cbacks = (bt_vendor_callbacks_t *) p_cb;

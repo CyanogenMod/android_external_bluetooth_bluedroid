@@ -896,8 +896,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
              */
              if (status != BT_STATUS_SUCCESS)
              {
-                 /* TODO: BTM_DEF_LOCAL_NAME should be configurable */
-                 BTA_DmSetDeviceName(BTM_DEF_LOCAL_NAME);
+                 BTA_DmSetDeviceName((char *)BTM_DEF_LOCAL_NAME);
                  /* Hmmm...Should we store this too??? */
              }
              else
@@ -1329,7 +1328,7 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t *prop)
         case BT_PROPERTY_BDNAME:
         {
             bt_bdname_t *bd_name = (bt_bdname_t*)prop->val;
-            strcpy((char *)bd_name->name, BTM_DEF_LOCAL_NAME);
+            strcpy((char *)bd_name->name, (char *)BTM_DEF_LOCAL_NAME);
             prop->len = strlen((char *)bd_name->name)+1;
         }
         break;

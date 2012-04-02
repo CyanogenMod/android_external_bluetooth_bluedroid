@@ -2,6 +2,8 @@ ifneq ($(TARGET_SIMULATOR),true)
 
 LOCAL_PATH:= $(call my-dir)
 
+include $(LOCAL_PATH)/../include/buildcfg.mk
+
 include $(CLEAR_VARS)
 
 ifeq ($(BOARD_HAVE_BLUETOOTH_BCM),true)
@@ -121,7 +123,7 @@ LOCAL_SRC_FILES:= \
     ./sys/utl.c
 
 LOCAL_MODULE := libbt-brcm_bta 
-LOCAL_MODULE_TAGS := eng 
+LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := libcutils libc
 
 LOCAL_C_INCLUDES+= . \

@@ -81,9 +81,11 @@
 #endif
 
 #if (BTHW_DBG == TRUE)
-#define BTHWDBG LOGD
+#define BTHWDBG(param, ...) {if (dbg_mode & traces & (1 << TRACE_HW)) \
+                                LOGD(param, ## __VA_ARGS__);\
+                            }
 #else
-#define BTHWDBG
+#define BTHWDBG(param, ...) {}
 #endif
 
 #define FW_PATCHFILE_EXTENSION      ".hcd"
@@ -201,6 +203,7 @@ uint8_t hci_h4_send_int_cmd(uint16_t opcode, VND_BT_HDR *p_buf, \
 **  Static variables
 ******************************************************************************/
 
+static char fw_patchfile_path[256] = FW_PATCHFILE_LOCATION;
 static uint8_t local_bd_addr[BD_ADDR_LEN]={0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static const uint8_t null_bdaddr[BD_ADDR_LEN] = {0,0,0,0,0,0};
 
@@ -305,7 +308,7 @@ static uint8_t hw_config_findpatch(char *p_chip_id_str)
 
     BTHWDBG("Target name = [%s]", p_chip_id_str);
 
-    if ((dirp = opendir(FW_PATCHFILE_LOCATION)) != NULL)
+    if ((dirp = opendir(fw_patchfile_path)) != NULL)
     {
         /* Fetch next filename in patchfile directory */
         while ((dp = readdir(dirp)) != NULL)
@@ -324,10 +327,10 @@ static uint8_t hw_config_findpatch(char *p_chip_id_str)
                      ) == 0))
                 {
                     LOGI("Found patchfile: %s/%s", \
-                        FW_PATCHFILE_LOCATION, dp->d_name);
+                        fw_patchfile_path, dp->d_name);
 
                     /* Make sure length does not exceed maximum */
-                    if ((filenamelen + strlen(FW_PATCHFILE_LOCATION)) > \
+                    if ((filenamelen + strlen(fw_patchfile_path)) > \
                          FW_PATCHFILE_PATH_MAXLEN)
                     {
                         LOGE("Invalid patchfile name (too long)");
@@ -336,9 +339,9 @@ static uint8_t hw_config_findpatch(char *p_chip_id_str)
                     {
                         memset(p_chip_id_str, 0, FW_PATCHFILE_PATH_MAXLEN);
                         /* Found patchfile. Store location and name */
-                        strcpy(p_chip_id_str, FW_PATCHFILE_LOCATION);
-                        if (FW_PATCHFILE_LOCATION[ \
-                            strlen(FW_PATCHFILE_LOCATION)- 1 \
+                        strcpy(p_chip_id_str, fw_patchfile_path);
+                        if (fw_patchfile_path[ \
+                            strlen(fw_patchfile_path)- 1 \
                             ] != '/')
                         {
                             strcat(p_chip_id_str, "/");
@@ -381,7 +384,7 @@ static uint8_t hw_config_findpatch(char *p_chip_id_str)
     }
     else
     {
-        LOGE("Could not open %s", FW_PATCHFILE_LOCATION);
+        LOGE("Could not open %s", fw_patchfile_path);
     }
 
     return (retval);
@@ -1326,4 +1329,22 @@ void hw_sco_config(void)
     }
 }
 #endif  // SCO_CFG_INCLUDED
+
+/*******************************************************************************
+**
+** Function        hw_set_patch_file_path
+**
+** Description     Set the location of firmware patch file
+**
+** Returns         0 : Success
+**                 Otherwise : Fail
+**
+*******************************************************************************/
+int hw_set_patch_file_path(char *p_conf_name, char *p_conf_value, int param)
+{
+
+    strcpy(fw_patchfile_path, p_conf_value);
+
+    return 0;
+}
 

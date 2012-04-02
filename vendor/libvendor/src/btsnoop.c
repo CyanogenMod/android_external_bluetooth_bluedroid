@@ -3,44 +3,44 @@
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed 
- *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License"). 
- *  Except as set forth in an Authorized License, Broadcom grants no license 
- *  (express or implied), right to use, or waiver of any kind with respect to 
- *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein. 
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE. 
+ *  licensors, and may only be used, duplicated, modified or distributed
+ *  pursuant to the terms and conditions of a separate, written license
+ *  agreement executed between you and Broadcom (an "Authorized License").
+ *  Except as set forth in an Authorized License, Broadcom grants no license
+ *  (express or implied), right to use, or waiver of any kind with respect to
+ *  the Software, and Broadcom expressly reserves all rights in and to the
+ *  Software and all intellectual property rights therein.
+ *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
+ *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ *  ALL USE OF THE SOFTWARE.
  *
  *  Except as expressly set forth in the Authorized License,
  *
- *  1.     This program, including its structure, sequence and organization, 
- *         constitutes the valuable trade secrets of Broadcom, and you shall 
- *         use all reasonable efforts to protect the confidentiality thereof, 
- *         and to use this information only in connection with your use of 
+ *  1.     This program, including its structure, sequence and organization,
+ *         constitutes the valuable trade secrets of Broadcom, and you shall
+ *         use all reasonable efforts to protect the confidentiality thereof,
+ *         and to use this information only in connection with your use of
  *         Broadcom integrated circuit products.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED 
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, 
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, 
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY 
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, 
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES, 
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR 
+ *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+ *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
  *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING OUT
  *         OF USE OR PERFORMANCE OF THE SOFTWARE.
  *
  *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM OR
- *         ITS LICENSORS BE LIABLE FOR 
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY 
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO 
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM 
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR 
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE 
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE 
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
+ *         ITS LICENSORS BE LIABLE FOR
+ *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
+ *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
+ *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+ *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
+ *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
+ *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
+ *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
  ******************************************************************************/
@@ -90,9 +90,11 @@
 #endif
 
 #if (BTSNOOP_DBG == TRUE)
-#define SNOOPDBG LOGD
+#define SNOOPDBG(param, ...) {if (dbg_mode & traces & (1 << TRACE_BTSNOOP)) \
+                                LOGD(param, ## __VA_ARGS__);\
+                             }
 #else
-#define SNOOPDBG
+#define SNOOPDBG(param, ...) {}
 #endif
 
 /* file descriptor of the BT snoop file (by default, -1 means disabled) */
@@ -100,13 +102,15 @@ int hci_btsnoop_fd = -1;
 
 #if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
 
+/* by default, btsnoop log is off */
+uint8_t btsnoop_log_enabled = 0;
+
 /* if not specified in .txt file then use this as default  */
 #ifndef BTSNOOP_FILENAME
-
-//#define BTSNOOP_FILENAME  "/sdcard/snoop_log.cfa"
-#error "BTSNOOP_FILENAME needs to be defined in vnd_buildcfg.h"
-
+#define BTSNOOP_FILENAME  "/data/misc/bluedroid/btsnoop_hci.log"
 #endif  /* BTSNOOP_FILENAME      */
+
+static char btsnoop_logfile[256] = BTSNOOP_FILENAME;
 
 #endif  /* BTSNOOPDISP_INCLUDED  */
 
@@ -169,8 +173,8 @@ do {                                                                            
  ** NOTE
  ** The return value is 64 bit as 2 32 bit variables out_lo and * out_hi.
  ** A BT Snoop timestamp is the number of microseconds since 01/01/0000.
- ** The timeval structure contains the number of microseconds since EPOCH 
- ** (01/01/1970) encoded as: tv.tv_sec, number of seconds since EPOCH and 
+ ** The timeval structure contains the number of microseconds since EPOCH
+ ** (01/01/1970) encoded as: tv.tv_sec, number of seconds since EPOCH and
  ** tv_usec, number of microseconds in current second
  **
  ** Therefore the algorithm is:
@@ -245,12 +249,12 @@ static int btsnoop_log_open(void)
 #if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
     hci_btsnoop_fd = -1;
 
-    SNOOPDBG("btsnoop_log_open: snoop log file = %s\n", BTSNOOP_FILENAME);
+    SNOOPDBG("btsnoop_log_open: snoop log file = %s\n", btsnoop_logfile);
 
     /* write the BT snoop header */
-    if (BTSNOOP_FILENAME != NULL)
+    if (strlen(btsnoop_logfile) != 0)
     {
-        hci_btsnoop_fd = open((char*)BTSNOOP_FILENAME, \
+        hci_btsnoop_fd = open(btsnoop_logfile, \
                               O_WRONLY|O_CREAT|O_TRUNC, \
                               S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
         if (hci_btsnoop_fd == -1)
@@ -263,9 +267,8 @@ static int btsnoop_log_open(void)
         write(hci_btsnoop_fd, "btsnoop\0\0\0\0\1\0\0\x3\xea", 16);
         return 1;
     }
-#else
-    return 2;  /* Snoop not available  */
 #endif
+    return 2;  /* Snoop not available  */
 }
 
 /*******************************************************************************
@@ -312,7 +315,7 @@ void btsnoop_hci_cmd(uint8_t *p)
 
         /* since these display functions are called from different contexts */
         utils_lock();
-        
+
         /* store the length in both original and included fields */
         value = l_to_be(p[2] + 4);
         write(hci_btsnoop_fd, &value, 4);
@@ -486,7 +489,7 @@ void btsnoop_acl_data(uint8_t *p, uint8_t is_rcvd)
 static pthread_t thread_id;
 static int s_listen = -1;
 static int ext_parser_fd = -1;
- 
+
 static void ext_parser_detached(void);
 
 int ext_parser_accept(int port)
@@ -503,11 +506,11 @@ int ext_parser_accept(int port)
     s_listen = socket(AF_INET, SOCK_STREAM, 0);
 
     if (s_listen < 0)
-    {   
+    {
         LOGE("listener not created: listen fd %d", s_listen);
         return -1;
     }
-    
+
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family      = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -529,10 +532,10 @@ int ext_parser_accept(int port)
         perror("bind");
 
     result = listen(s_listen, 1);
-    
+
     if (result < 0)
         perror("listen");
-    
+
     clilen = sizeof(struct sockaddr_in);
 
     s = accept(s_listen, (struct sockaddr *) &cliaddr, &clilen);
@@ -557,14 +560,14 @@ static int send_ext_parser(char *p, int len)
         return 0;
 
     SNOOPDBG("write %d to snoop socket\n", len);
-    
+
     n = write(ext_parser_fd, p, len);
 
     if (n<=0)
     {
         ext_parser_detached();
     }
-    
+
     return n;
 }
 
@@ -572,12 +575,12 @@ static void ext_parser_detached(void)
 {
     LOGD("ext parser detached");
 
-    if (ext_parser_fd>0) 
+    if (ext_parser_fd>0)
         close(ext_parser_fd);
-    
-    if (s_listen > 0) 
+
+    if (s_listen > 0)
         close(s_listen);
-    
+
     ext_parser_fd = -1;
     s_listen = -1;
 }
@@ -611,7 +614,7 @@ static void ext_parser_thread(void* param)
         fd = ext_parser_accept(EXT_PARSER_PORT);
 
         ext_parser_fd = fd;
- 
+
         LOGD("ext parser attached on fd %d\n", ext_parser_fd);
     } while (1);
 }
@@ -620,6 +623,25 @@ void btsnoop_stop_listener(void)
 {
     LOGD("btsnoop_init");
     ext_parser_detached();
+}
+
+int btsnoop_set_logfile(char *p_conf_name, char *p_conf_value, int param)
+{
+#if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
+    strcpy(btsnoop_logfile, p_conf_value);
+#endif
+    return 0;
+}
+
+int btsnoop_enable_logging(char *p_conf_name, char *p_conf_value, int param)
+{
+#if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
+    if (strcmp(p_conf_value, "true") == 0)
+        btsnoop_log_enabled = 1;
+    else
+        btsnoop_log_enabled = 0;
+#endif // BTSNOOPDISP_INCLUDED
+    return 0;
 }
 
 void btsnoop_init(void)
@@ -634,14 +656,21 @@ void btsnoop_init(void)
 
 void btsnoop_open(void)
 {
-    LOGD("btsnoop_open");
-    btsnoop_log_open();
+#if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
+    if (btsnoop_log_enabled)
+    {
+        LOGD("btsnoop_open");
+        btsnoop_log_open();
+    }
+#endif // BTSNOOPDISP_INCLUDED
 }
 
 void btsnoop_close(void)
 {
+#if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
     LOGD("btsnoop_close");
     btsnoop_log_close();
+#endif
 }
 
 void btsnoop_cleanup (void)
@@ -695,6 +724,7 @@ void btsnoop_capture(VND_BT_HDR *p_buf, uint8_t is_rcvd)
         return;
     }
 
+#if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
     if (hci_btsnoop_fd == -1)
         return;
 
@@ -719,6 +749,7 @@ void btsnoop_capture(VND_BT_HDR *p_buf, uint8_t is_rcvd)
             btsnoop_hci_cmd(p);
             break;
     }
+#endif // BTSNOOPDISP_INCLUDED
 }
 
 

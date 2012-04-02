@@ -241,5 +241,17 @@ void userial_change_baud(uint8_t baud);
 *******************************************************************************/
 void userial_ioctl(userial_ioctl_op_t op, void *p_data);
 
+/*******************************************************************************
+**
+** Function        userial_set_port
+**
+** Description     Configure UART port name
+**
+** Returns         0 : Success
+**                 Otherwise : Fail
+**
+*******************************************************************************/
+int userial_set_port(char *p_conf_name, char *p_conf_value, int param);
+
 #endif /* USERIAL_H */
 

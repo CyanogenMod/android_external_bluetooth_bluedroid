@@ -66,6 +66,11 @@
 **  Constants & Macros
 *******************************************************************************/
 
+/* Run-time configuration file */
+#ifndef BTE_STACK_CONF_FILE
+#define BTE_STACK_CONF_FILE "/etc/bluetooth/bt_stack.conf"
+#endif
+
 /*******************************************************************************
 **  Local type definitions
 *******************************************************************************/
@@ -94,6 +99,7 @@ extern void btsnoop_init(void);
 extern void btsnoop_open(void);
 extern void btsnoop_close(void);
 extern void btsnoop_cleanup (void);
+extern void bte_load_conf(const char *p_path);
 
 
 
@@ -141,6 +147,8 @@ void bte_main_boot_entry(void)
     GKI_init();
 
     bte_main_in_hw_init();
+
+    bte_load_conf(BTE_STACK_CONF_FILE);
 
 #if (BTTRC_INCLUDED == TRUE)
     /* Initialize trace feature */

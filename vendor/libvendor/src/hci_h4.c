@@ -71,9 +71,11 @@
 #endif
 
 #if (HCIH4_DBG == TRUE)
-#define HCIH4DBG LOGD
+#define HCIH4DBG(param, ...) {if (dbg_mode & traces & (1 << TRACE_HCI)) \
+                                LOGD(param, ## __VA_ARGS__);\
+                             }
 #else
-#define HCIH4DBG
+#define HCIH4DBG(param, ...) {}
 #endif
 
 /* Preamble length for HCI Commands:
@@ -206,30 +208,6 @@ static tHCI_H4_CB       h4_cb;
 /******************************************************************************
 **  Static functions
 ******************************************************************************/
-
-/*******************************************************************************
-**
-** Function         is_snoop_enabled
-**
-** Description      Enable bt snoop
-**
-** Returns          TRUE(enabled)/FALSE
-**
-*******************************************************************************/
-static uint8_t is_snoop_enabled()
-{
-    char buf[8];
-    int flag = 0;
-    int fd = open(SNOOP_CONFIG_PATH, O_RDONLY, 0644);
-
-    if (fd < 0) {
-       LOGE("file failed to open %s ", SNOOP_CONFIG_PATH);
-       return FALSE;
-    }
-   read(fd,  buf, sizeof(buf));
-   flag = atoi(buf);
-   return (flag == 1) ? TRUE : FALSE;
-}
 
 /*******************************************************************************
 **
@@ -600,10 +578,7 @@ void hci_h4_init(void)
     h4_cb.hc_ble_acl_data_size = 27;
 
     btsnoop_init();
-    if (is_snoop_enabled() == TRUE)
-    {
-        btsnoop_open();
-    }
+    btsnoop_open();
 }
 
 /*******************************************************************************

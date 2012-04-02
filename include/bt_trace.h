@@ -157,21 +157,15 @@ typedef struct {
 
 typedef UINT8 (tBTTRC_SET_TRACE_LEVEL)( UINT8 );
 
-/* potentially to save flash, you could compile this out. however some functions may need adjustments! */
-#ifndef USE_TEXT_ID
-#define USE_TEXT_ID TRUE
-#endif
-
 typedef struct {
     const tBTTRC_LAYER_ID         layer_id_start;
     const tBTTRC_LAYER_ID         layer_id_end;
-    const tBTTRC_SET_TRACE_LEVEL *p_f;
-#if (USE_TEXT_ID==TRUE)
+    tBTTRC_SET_TRACE_LEVEL        *p_f;
     const char                    *trc_name;
-#endif
+    UINT8                         trace_level;
 } tBTTRC_FUNC_MAP;
 
-extern const tBTTRC_FUNC_MAP bttrc_set_level_map[];
+extern tBTTRC_FUNC_MAP bttrc_set_level_map[];
 extern const UINT16 bttrc_map_size;
 extern BT_API tBTTRC_LEVEL * BTA_SysSetTraceLevel( tBTTRC_LEVEL * p_levels );
 // btla-specific --

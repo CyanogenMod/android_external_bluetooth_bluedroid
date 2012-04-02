@@ -2,6 +2,8 @@ ifneq ($(TARGET_SIMULATOR),true)
 
 LOCAL_PATH:= $(call my-dir)
 
+include $(LOCAL_PATH)/../include/buildcfg.mk
+
 include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES:= $(LOCAL_PATH)/common \
@@ -25,7 +27,7 @@ LOCAL_SRC_FILES:= \
     ./common/gki_buffer.c 
     
 LOCAL_MODULE := libbt-brcm_gki 
-LOCAL_MODULE_TAGS := eng 
+LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := libcutils libc
 
 include $(BUILD_STATIC_LIBRARY)

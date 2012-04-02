@@ -121,6 +121,11 @@
 /* Local Bluetooth Controller ID for BR/EDR */
 #define LOCAL_BR_EDR_CONTROLLER_ID      0
 
+/* Run-time configuration file */
+#ifndef VENDOR_LIB_CONF_FILE
+#define VENDOR_LIB_CONF_FILE "/etc/bluetooth/bt_vendor.conf"
+#endif
+
 /* Device port name where Bluetooth controller attached */
 #ifndef BLUETOOTH_UART_DEVICE_PORT
 #define BLUETOOTH_UART_DEVICE_PORT      "/dev/ttyO1"    /* maguro */
@@ -128,7 +133,7 @@
 
 /* Location of firmware patch files */
 #ifndef FW_PATCHFILE_LOCATION
-#define FW_PATCHFILE_LOCATION ("/vendor/firmware/")  /* maguro */
+#define FW_PATCHFILE_LOCATION "/vendor/firmware/"  /* maguro */
 #endif
 
 #ifndef UART_TARGET_BAUD_RATE
@@ -385,6 +390,21 @@
 
 #define FACTORY_BT_BDADDR_STORAGE_LEN   17
 
+/* Debug mode with bit-wise mask */
+typedef uint8_t vnd_debug_t;
+#define DEBUG_ON    0xFF
+#define DEBUG_OFF   0x00
+
+/* Define trace On/Off bit for every modules */
+enum {
+    TRACE_VND,
+    TRACE_HW,
+    TRACE_USERIAL,
+    TRACE_HCI,
+    TRACE_UPIO,
+    TRACE_BTSNOOP
+};
+
 /******************************************************************************
 **  Type definitions and return values
 ******************************************************************************/
@@ -416,6 +436,8 @@ typedef struct _vnd_buffer_hdr
 ******************************************************************************/
 
 extern bt_vendor_callbacks_t *bt_vendor_cbacks;
+extern vnd_debug_t dbg_mode;
+extern vnd_debug_t traces;
 
 /******************************************************************************
 **  Functions

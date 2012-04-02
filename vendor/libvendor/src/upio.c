@@ -74,9 +74,11 @@
 #endif
 
 #if (UPIO_DBG == TRUE)
-#define UPIODBG LOGD
+#define UPIODBG(param, ...) {if (dbg_mode & traces & (1 << TRACE_UPIO)) \
+                                LOGD(param, ## __VA_ARGS__);\
+                            }
 #else
-#define UPIODBG LOGV
+#define UPIODBG(param, ...) {}
 #endif
 
 /******************************************************************************
