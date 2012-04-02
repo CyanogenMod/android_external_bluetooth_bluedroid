@@ -4,11 +4,11 @@ include $(LOCAL_PATH)/../include/buildcfg.mk
 
 #
 # Bluetooth HW module
-# 
+#
 
 include $(CLEAR_VARS)
 
-# HAL layer 
+# HAL layer
 LOCAL_SRC_FILES:= \
 	../btif/src/bluetooth.c
 
@@ -31,7 +31,8 @@ LOCAL_SRC_FILES += \
 	../btif/src/btif_av.c \
 	../btif/src/btif_rc.c \
 	../btif/src/btif_media_task.c \
-        ../btif/src/btif_hh.c
+        ../btif/src/btif_hh.c \
+	../btif/src/btif_hl.c
 
 # callouts
 LOCAL_SRC_FILES+= \
@@ -40,7 +41,8 @@ LOCAL_SRC_FILES+= \
 	../btif/co/bta_ag_co.c \
 	../btif/co/bta_dm_co.c \
 	../btif/co/bta_av_co.c \
-        ../btif/co/bta_hh_co.c
+        ../btif/co/bta_hh_co.c \
+	../btif/co/bta_hl_co.c
 
 # sbc encoder
 LOCAL_SRC_FILES+= \
