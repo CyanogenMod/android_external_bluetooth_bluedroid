@@ -1048,8 +1048,21 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             }
         }break;
 
-        case BTA_DM_AUTHORIZE_EVT:
+        case BTA_DM_LINK_UP_EVT:
+            bdcpy(bd_addr.address, p_data->link_up.bd_addr);
+            BTIF_TRACE_DEBUG0("BTA_DM_LINK_UP_EVT. Sending BT_ACL_STATE_CONNECTED");
+            HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
+                      &bd_addr, BT_ACL_STATE_CONNECTED);
+            break;
+
         case BTA_DM_LINK_DOWN_EVT:
+            bdcpy(bd_addr.address, p_data->link_down.bd_addr);
+            BTIF_TRACE_DEBUG0("BTA_DM_LINK_DOWN_EVT. Sending BT_ACL_STATE_DISCONNECTED");
+            HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
+                      &bd_addr, BT_ACL_STATE_DISCONNECTED);
+            break;
+
+        case BTA_DM_AUTHORIZE_EVT:
         case BTA_DM_SIG_STRENGTH_EVT:
         case BTA_DM_SP_RMT_OOB_EVT:
         case BTA_DM_SP_KEYPRESS_EVT:
