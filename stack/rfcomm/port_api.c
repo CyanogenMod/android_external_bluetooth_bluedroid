@@ -24,22 +24,28 @@
 /* duration of break in 200ms units */
 #define PORT_BREAK_DURATION     1
 
+#include <cutils/log.h>
+#define info(fmt, ...)  LOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define debug(fmt, ...) LOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define error(fmt, ...) LOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
+#define asrt(s) if(!(s)) LOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+
 /*******************************************************************************
 **
 ** Function         RFCOMM_CreateConnection
 **
-** Description      RFCOMM_CreateConnection function is used from the application 
-**                  to establish serial port connection to the peer device, 
-**                  or allow RFCOMM to accept a connection from the peer 
-**                  application.  
+** Description      RFCOMM_CreateConnection function is used from the application
+**                  to establish serial port connection to the peer device,
+**                  or allow RFCOMM to accept a connection from the peer
+**                  application.
 **
-** Parameters:      scn          - Service Channel Number as registered with 
-**                                 the SDP (server) or obtained using SDP from 
+** Parameters:      scn          - Service Channel Number as registered with
+**                                 the SDP (server) or obtained using SDP from
 **                                 the peer device (client).
 **                  is_server    - TRUE if requesting application is a server
 **                  mtu          - Maximum frame size the application can accept
 **                  bd_addr      - BD_ADDR of the peer (client)
-**                  mask         - specifies events to be enabled.  A value 
+**                  mask         - specifies events to be enabled.  A value
 **                                 of zero disables all events.
 **                  p_handle     - OUT pointer to the handle.
 **                  p_mgmt_cb    - pointer to callback function to receive
@@ -55,8 +61,8 @@
 ** (scn * 2 + 1) dlci.
 **
 *******************************************************************************/
-int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server, 
-                             UINT16 mtu, BD_ADDR bd_addr, UINT16 *p_handle, 
+int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
+                             UINT16 mtu, BD_ADDR bd_addr, UINT16 *p_handle,
                              tPORT_CALLBACK *p_mgmt_cb)
 {
     tPORT      *p_port;
@@ -65,7 +71,7 @@ int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
     tRFC_MCB   *p_mcb = port_find_mcb (bd_addr);
     UINT16     rfcomm_mtu;
 
-    RFCOMM_TRACE_API3 ("RFCOMM_CreateConnection() called SCN: %d is_server:%d mtu:%d", 
+    RFCOMM_TRACE_API3 ("RFCOMM_CreateConnection() called SCN: %d is_server:%d mtu:%d",
                        scn, is_server, mtu);
     RFCOMM_TRACE_API6 ("RFCOMM_CreateConnection()  BDA: %02x-%02x-%02x-%02x-%02x-%02x",
                        bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4], bd_addr[5]);
@@ -93,7 +99,7 @@ int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
         /* if existing port is also a client port */
         if (p_port->is_server == FALSE)
         {
-            RFCOMM_TRACE_ERROR3 ("RFCOMM_CreateConnection - already opened state:%d, RFC state:%d, MCB state:%d", 
+            RFCOMM_TRACE_ERROR3 ("RFCOMM_CreateConnection - already opened state:%d, RFC state:%d, MCB state:%d",
                 p_port->state, p_port->rfc.state, p_port->rfc.p_mcb ? p_port->rfc.p_mcb->state : 0);
             return (PORT_ALREADY_OPENED);
         }
@@ -153,7 +159,7 @@ int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
         p_port->keep_port_handle = TRUE;
 
         /* keep mtu that user asked, p_port->mtu could be updated during param negotiation */
-        p_port->keep_mtu         = p_port->mtu; 
+        p_port->keep_mtu         = p_port->mtu;
     }
 
     p_port->local_ctrl.modem_signal = p_port->default_signal_state;
@@ -181,7 +187,7 @@ int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
 **
 ** Description      This function is called to close the specified connection.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **
 *******************************************************************************/
 int RFCOMM_RemoveConnection (UINT16 handle)
@@ -217,7 +223,7 @@ int RFCOMM_RemoveConnection (UINT16 handle)
 **
 ** Description      This function is called to close the server port.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **
 *******************************************************************************/
 int RFCOMM_RemoveServer (UINT16 handle)
@@ -236,7 +242,7 @@ int RFCOMM_RemoveServer (UINT16 handle)
 
     /* Do not report any events to the client any more. */
     p_port->p_mgmt_callback = NULL;
-    
+
     if (!p_port->in_use || (p_port->state == PORT_STATE_CLOSED))
     {
         RFCOMM_TRACE_EVENT1 ("RFCOMM_RemoveServer() Not opened:%d", handle);
@@ -256,13 +262,13 @@ int RFCOMM_RemoveServer (UINT16 handle)
 **
 ** Function         PORT_SetEventCallback
 **
-** Description      This function is called to provide an address of the 
+** Description      This function is called to provide an address of the
 **                  function which will be called when one of the events
 **                  specified in the mask occures.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
-**                  p_callback - address of the callback function which should 
-**                               be called from the RFCOMM when an event 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  p_callback - address of the callback function which should
+**                               be called from the RFCOMM when an event
 **                               specified in the mask occures.
 **
 **
@@ -298,9 +304,9 @@ int PORT_SetEventCallback (UINT16 port_handle, tPORT_CALLBACK *p_port_cb)
 **
 ** Description      This function is when a data packet is received
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
-**                  p_callback - address of the callback function which should 
-**                               be called from the RFCOMM when data packet 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  p_callback - address of the callback function which should
+**                               be called from the RFCOMM when data packet
 **                               is received.
 **
 **
@@ -328,6 +334,43 @@ int PORT_SetDataCallback (UINT16 port_handle, tPORT_DATA_CALLBACK *p_port_cb)
 
     return (PORT_SUCCESS);
 }
+/*******************************************************************************
+**
+** Function         PORT_SetCODataCallback
+**
+** Description      This function is when a data packet is received
+**
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  p_callback - address of the callback function which should
+**                               be called from the RFCOMM when data packet
+**                               is received.
+**
+**
+*******************************************************************************/
+int PORT_SetDataCOCallback (UINT16 port_handle, tPORT_DATA_CO_CALLBACK *p_port_cb)
+{
+    tPORT  *p_port;
+
+    RFCOMM_TRACE_API2 ("PORT_SetDataCOCallback() handle:%d cb 0x%x", port_handle, p_port_cb);
+
+    /* Check if handle is valid to avoid crashing */
+    if ((port_handle == 0) || (port_handle > MAX_RFC_PORTS))
+    {
+        return (PORT_BAD_HANDLE);
+    }
+
+    p_port = &rfc_cb.port.port[port_handle - 1];
+
+    if (!p_port->in_use || (p_port->state == PORT_STATE_CLOSED))
+    {
+        return (PORT_NOT_OPENED);
+    }
+
+    p_port->p_data_co_callback = p_port_cb;
+
+    return (PORT_SUCCESS);
+}
+
 
 
 /*******************************************************************************
@@ -336,7 +379,7 @@ int PORT_SetDataCallback (UINT16 port_handle, tPORT_DATA_CALLBACK *p_port_cb)
 **
 ** Description      This function is called to close the specified connection.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  mask   - Bitmask of the events the host is interested in
 **
 *******************************************************************************/
@@ -372,7 +415,7 @@ int PORT_SetEventMask (UINT16 port_handle, UINT32 mask)
 ** Description      This function returns PORT_SUCCESS if connection referenced
 **                  by handle is up and running
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  bd_addr    - OUT bd_addr of the peer
 **                  p_lcid     - OUT L2CAP's LCID
 **
@@ -396,8 +439,8 @@ int PORT_CheckConnection (UINT16 handle, BD_ADDR bd_addr, UINT16 *p_lcid)
         return (PORT_NOT_OPENED);
     }
 
-    if (!p_port->rfc.p_mcb 
-     || !p_port->rfc.p_mcb->peer_ready 
+    if (!p_port->rfc.p_mcb
+     || !p_port->rfc.p_mcb->peer_ready
      || (p_port->rfc.state != RFC_STATE_OPENED))
     {
         return (PORT_LINE_ERR);
@@ -453,7 +496,7 @@ BOOLEAN PORT_IsOpening (BD_ADDR bd_addr)
                 }
             }
 
-            if ((!found_port) || 
+            if ((!found_port) ||
                 (found_port && (p_port->rfc.state < RFC_STATE_OPENED)))
             {
                 /* Port is not established yet. */
@@ -470,11 +513,11 @@ BOOLEAN PORT_IsOpening (BD_ADDR bd_addr)
 **
 ** Function         PORT_SetState
 **
-** Description      This function configures connection according to the 
+** Description      This function configures connection according to the
 **                  specifications in the tPORT_STATE structure.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
-**                  p_settings - Pointer to a tPORT_STATE structure containing 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  p_settings - Pointer to a tPORT_STATE structure containing
 **                               configuration information for the connection.
 **
 **
@@ -524,7 +567,7 @@ int PORT_SetState (UINT16 handle, tPORT_STATE *p_settings)
 **
 ** Description      This function return number of buffers on the rx queue.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  p_rx_queue_count - Pointer to return queue count in.
 **
 *******************************************************************************/
@@ -567,7 +610,7 @@ int PORT_GetRxQueueCnt (UINT16 handle, UINT16 *p_rx_queue_count)
 ** Description      This function is called to fill tPORT_STATE structure
 **                  with the curremt control settings for the port
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  p_settings - Pointer to a tPORT_STATE structure in which
 **                               configuration information is returned.
 **
@@ -605,10 +648,10 @@ int PORT_GetState (UINT16 handle, tPORT_STATE *p_settings)
 **
 ** Function         PORT_Control
 **
-** Description      This function directs a specified connection to pass control 
+** Description      This function directs a specified connection to pass control
 **                  control information to the peer device.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  signal     = specify the function to be passed
 **
 *******************************************************************************/
@@ -691,11 +734,11 @@ int PORT_Control (UINT16 handle, UINT8 signal)
 **
 ** Function         PORT_FlowControl
 **
-** Description      This function directs a specified connection to pass 
-**                  flow control message to the peer device.  Enable flag passed 
+** Description      This function directs a specified connection to pass
+**                  flow control message to the peer device.  Enable flag passed
 **                  shows if port can accept more data.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  enable     - enables data flow
 **
 *******************************************************************************/
@@ -770,12 +813,12 @@ int PORT_FlowControl (UINT16 handle, BOOLEAN enable)
 **
 ** Function         PORT_GetModemStatus
 **
-** Description      This function retrieves modem control signals.  Normally 
-**                  application will call this function after a callback 
-**                  function is called with notification that one of signals 
+** Description      This function retrieves modem control signals.  Normally
+**                  application will call this function after a callback
+**                  function is called with notification that one of signals
 **                  has been changed.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  p_signal   - specify the pointer to control signals info
 **
 *******************************************************************************/
@@ -798,7 +841,7 @@ int PORT_GetModemStatus (UINT16 handle, UINT8 *p_signal)
     *p_signal = p_port->peer_ctrl.modem_signal;
 
     RFCOMM_TRACE_API2 ("PORT_GetModemStatus() handle:%d signal:%x", handle, *p_signal);
-    
+
     return (PORT_SUCCESS);
 }
 
@@ -808,14 +851,14 @@ int PORT_GetModemStatus (UINT16 handle, UINT8 *p_signal)
 ** Function         PORT_ClearError
 **
 ** Description      This function retreives information about a communications
-**                  error and reports current status of a connection.  The 
+**                  error and reports current status of a connection.  The
 **                  function should be called when an error occures to clear
 **                  the connection error flag and to enable additional read
 **                  and write operations.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  p_errors   - pointer of the variable to receive error codes
-**                  p_status   - pointer to the tPORT_STATUS structur to receive 
+**                  p_status   - pointer to the tPORT_STATUS structur to receive
 **                               connection status
 **
 *******************************************************************************/
@@ -854,7 +897,7 @@ int PORT_ClearError (UINT16 handle, UINT16 *p_errors, tPORT_STATUS *p_status)
 **
 ** Description      This function send a communications error to the peer device
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  errors     - receive error codes
 **
 *******************************************************************************/
@@ -890,10 +933,10 @@ int PORT_SendError (UINT16 handle, UINT8 errors)
 **
 ** Function         PORT_GetQueueStatus
 **
-** Description      This function reports current status of a connection.  
+** Description      This function reports current status of a connection.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
-**                  p_status   - pointer to the tPORT_STATUS structur to receive 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  p_status   - pointer to the tPORT_STATUS structur to receive
 **                               connection status
 **
 *******************************************************************************/
@@ -939,11 +982,11 @@ int PORT_GetQueueStatus (UINT16 handle, tPORT_STATUS *p_status)
 **
 ** Function         PORT_Purge
 **
-** Description      This function discards all the data from the output or 
+** Description      This function discards all the data from the output or
 **                  input queues of the specified connection.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
-**                  purge_flags - specify the action to take.  
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  purge_flags - specify the action to take.
 **
 *******************************************************************************/
 int PORT_Purge (UINT16 handle, UINT8 purge_flags)
@@ -951,7 +994,7 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
     tPORT      *p_port;
     BT_HDR     *p_buf;
     UINT16      count;
-    UINT32     events; 
+    UINT32     events;
 
     RFCOMM_TRACE_API2 ("PORT_Purge() handle:%d flags:0x%x", handle, purge_flags);
 
@@ -994,7 +1037,7 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
             GKI_freebuf (p_buf);
 
         p_port->tx.queue_size = 0;
-        
+
         PORT_SCHEDULE_UNLOCK;
 
         events = PORT_EV_TXEMPTY;
@@ -1015,10 +1058,10 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
 **
 ** Function         PORT_ReadData
 **
-** Description      Normally not GKI aware application will call this function 
+** Description      Normally not GKI aware application will call this function
 **                  after receiving PORT_EV_RXCHAR event.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  p_data      - Data area
 **                  max_len     - Byte count requested
 **                  p_len       - Byte count received
@@ -1114,7 +1157,7 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
     /* If rfcomm suspended traffic from the peer based on the rx_queue_size */
     /* check if it can be resumed now */
     port_flow_control_peer (p_port, TRUE, count);
-    
+
     return (PORT_SUCCESS);
 }
 
@@ -1126,8 +1169,8 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
 ** Description      Normally application will call this function after receiving
 **                  PORT_EV_RXCHAR event.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
-**                  pp_buf      - pointer to address of buffer with data, 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  pp_buf      - pointer to address of buffer with data,
 **
 *******************************************************************************/
 int PORT_Read (UINT16 handle, BT_HDR **pp_buf)
@@ -1181,17 +1224,17 @@ int PORT_Read (UINT16 handle, BT_HDR **pp_buf)
 **
 ** Function         port_write
 **
-** Description      This function when a data packet is received from the apper 
-**                  layer task.  
+** Description      This function when a data packet is received from the apper
+**                  layer task.
 **
-** Parameters:      p_port     - pointer to address of port control block 
-**                  p_buf      - pointer to address of buffer with data, 
+** Parameters:      p_port     - pointer to address of port control block
+**                  p_buf      - pointer to address of buffer with data,
 **
 *******************************************************************************/
 static int port_write (tPORT *p_port, BT_HDR *p_buf)
 {
     /* We should not allow to write data in to server port when connection is not opened */
-    if (p_port->is_server && (p_port->rfc.state != RFC_STATE_OPENED)) 
+    if (p_port->is_server && (p_port->rfc.state != RFC_STATE_OPENED))
     {
         GKI_freebuf (p_buf);
         return (PORT_CLOSED);
@@ -1201,16 +1244,16 @@ static int port_write (tPORT *p_port, BT_HDR *p_buf)
     /* Peer is not ready or Port is not yet opened or initial port control */
     /* command has not been sent */
     if (p_port->tx.peer_fc
-     || !p_port->rfc.p_mcb 
-     || !p_port->rfc.p_mcb->peer_ready 
-     || (p_port->rfc.state != RFC_STATE_OPENED) 
-     || ((p_port->port_ctrl & (PORT_CTRL_REQ_SENT | PORT_CTRL_IND_RECEIVED)) != 
+     || !p_port->rfc.p_mcb
+     || !p_port->rfc.p_mcb->peer_ready
+     || (p_port->rfc.state != RFC_STATE_OPENED)
+     || ((p_port->port_ctrl & (PORT_CTRL_REQ_SENT | PORT_CTRL_IND_RECEIVED)) !=
                               (PORT_CTRL_REQ_SENT | PORT_CTRL_IND_RECEIVED)))
     {
         if ((p_port->tx.queue_size  > PORT_TX_CRITICAL_WM)
          || (p_port->tx.queue.count > PORT_TX_BUF_CRITICAL_WM))
         {
-            RFCOMM_TRACE_WARNING1 ("PORT_Write: Queue size: %d", 
+            RFCOMM_TRACE_WARNING1 ("PORT_Write: Queue size: %d",
                                    p_port->tx.queue_size);
 
             GKI_freebuf (p_buf);
@@ -1221,8 +1264,8 @@ static int port_write (tPORT *p_port, BT_HDR *p_buf)
             return (PORT_TX_FULL);
         }
 
-        RFCOMM_TRACE_EVENT4 ("PORT_Write : Data is enqued. flow disabled %d peer_ready %d state %d ctrl_state %x", 
-                             p_port->tx.peer_fc, 
+        RFCOMM_TRACE_EVENT4 ("PORT_Write : Data is enqued. flow disabled %d peer_ready %d state %d ctrl_state %x",
+                             p_port->tx.peer_fc,
                              (p_port->rfc.p_mcb && p_port->rfc.p_mcb->peer_ready),
                              p_port->rfc.state,
                              p_port->port_ctrl);
@@ -1245,11 +1288,11 @@ static int port_write (tPORT *p_port, BT_HDR *p_buf)
 **
 ** Function         PORT_Write
 **
-** Description      This function when a data packet is received from the apper 
-**                  layer task.  
+** Description      This function when a data packet is received from the apper
+**                  layer task.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
-**                  pp_buf      - pointer to address of buffer with data, 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  pp_buf      - pointer to address of buffer with data,
 **
 *******************************************************************************/
 int PORT_Write (UINT16 handle, BT_HDR *p_buf)
@@ -1277,7 +1320,7 @@ int PORT_Write (UINT16 handle, BT_HDR *p_buf)
 
     if (p_port->line_status)
     {
-        RFCOMM_TRACE_WARNING1 ("PORT_Write: Data dropped line_status:0x%x", 
+        RFCOMM_TRACE_WARNING1 ("PORT_Write: Data dropped line_status:0x%x",
                                p_port->line_status);
         GKI_freebuf (p_buf);
         return (PORT_LINE_ERR);
@@ -1285,7 +1328,7 @@ int PORT_Write (UINT16 handle, BT_HDR *p_buf)
 
     rc = port_write (p_port, p_buf);
     event |= port_flow_control_user (p_port);
-    
+
     switch (rc)
     {
     case PORT_TX_FULL:
@@ -1305,16 +1348,165 @@ int PORT_Write (UINT16 handle, BT_HDR *p_buf)
 
     return (PORT_SUCCESS);
 }
+/*******************************************************************************
+**
+** Function         PORT_WriteDataCO
+**
+** Description      Normally not GKI aware application will call this function
+**                  to send data to the port by callout functions
+**
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  fd         - socket fd
+**                  p_len      - Byte count returned
+**
+*******************************************************************************/
+int PORT_WriteDataCO (UINT16 handle, int* p_len)
+{
+
+    tPORT      *p_port;
+    BT_HDR     *p_buf;
+    UINT32     event = 0;
+    int        rc = 0;
+    UINT16     length;
+
+    RFCOMM_TRACE_API1 ("PORT_WriteDataCO() handle:%d", handle);
+    int written;
+    *p_len = 0;
+
+    /* Check if handle is valid to avoid crashing */
+    if ((handle == 0) || (handle > MAX_RFC_PORTS))
+    {
+        return (PORT_BAD_HANDLE);
+    }
+    p_port = &rfc_cb.port.port[handle - 1];
+
+    if (!p_port->in_use || (p_port->state == PORT_STATE_CLOSED))
+    {
+        RFCOMM_TRACE_WARNING1 ("PORT_WriteDataByFd() no port state:%d", p_port->state);
+        return (PORT_NOT_OPENED);
+    }
+
+    if (!p_port->peer_mtu)
+    {
+        RFCOMM_TRACE_ERROR1 ("PORT_WriteDataByFd() peer_mtu:%d", p_port->peer_mtu);
+        return (PORT_UNKNOWN_ERROR);
+    }
+    int available = 0;
+    //if(ioctl(fd, FIONREAD, &available) < 0)
+    if(p_port->p_data_co_callback(handle, (UINT8*)&available, sizeof(available),
+                                DATA_CO_CALLBACK_TYPE_OUTGOING_SIZE) == FALSE)
+    {
+        RFCOMM_TRACE_ERROR1("p_data_co_callback DATA_CO_CALLBACK_TYPE_INCOMING_SIZE failed, available:%d", available);
+        return (PORT_UNKNOWN_ERROR);
+    }
+    /* Length for each buffer is the smaller of GKI buffer, peer MTU, or max_len */
+    length = RFCOMM_DATA_POOL_BUF_SIZE -
+            (UINT16)(sizeof(BT_HDR) + L2CAP_MIN_OFFSET + RFCOMM_DATA_OVERHEAD);
+
+    /* If there are buffers scheduled for transmission check if requested */
+    /* data fits into the end of the queue */
+    PORT_SCHEDULE_LOCK;
+
+    if (((p_buf = (BT_HDR *)p_port->tx.queue.p_last) != NULL)
+     && (((int)p_buf->len + available) <= (int)p_port->peer_mtu)
+     && (((int)p_buf->len + available) <= (int)length))
+    {
+        //if(recv(fd, (UINT8 *)(p_buf + 1) + p_buf->offset + p_buf->len, available, 0) != available)
+        if(p_port->p_data_co_callback(handle, (UINT8 *)(p_buf + 1) + p_buf->offset + p_buf->len,
+                                    available, DATA_CO_CALLBACK_TYPE_OUTGOING) == FALSE)
+
+        {
+            error("p_data_co_callback DATA_CO_CALLBACK_TYPE_OUTGOING failed, available:%d", available);
+            return (PORT_UNKNOWN_ERROR);
+        }
+        //memcpy ((UINT8 *)(p_buf + 1) + p_buf->offset + p_buf->len, p_data, max_len);
+        p_port->tx.queue_size += (UINT16)available;
+
+        *p_len = available;
+        p_buf->len += (UINT16)available;
+
+        PORT_SCHEDULE_UNLOCK;
+
+        return (PORT_SUCCESS);
+    }
+
+    PORT_SCHEDULE_UNLOCK;
+
+    //int max_read = length < p_port->peer_mtu ? length : p_port->peer_mtu;
+
+    //max_read = available < max_read ? available : max_read;
+
+    while (available)
+    {
+        /* if we're over buffer high water mark, we're done */
+        if ((p_port->tx.queue_size  > PORT_TX_HIGH_WM)
+         || (p_port->tx.queue.count > PORT_TX_BUF_HIGH_WM))
+            break;
+
+        /* continue with rfcomm data write */
+        p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_DATA_POOL_ID);
+        if (!p_buf)
+            break;
+
+        p_buf->offset         = L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET;
+        p_buf->layer_specific = handle;
+
+        if (p_port->peer_mtu < length)
+            length = p_port->peer_mtu;
+        if (available < (int)length)
+            length = (UINT16)available;
+        p_buf->len = length;
+        p_buf->event          = BT_EVT_TO_BTU_SP_DATA;
+
+        //memcpy ((UINT8 *)(p_buf + 1) + p_buf->offset, p_data, length);
+        //if(recv(fd, (UINT8 *)(p_buf + 1) + p_buf->offset, (int)length, 0) != (int)length)
+        if(p_port->p_data_co_callback(handle, (UINT8 *)(p_buf + 1) + p_buf->offset, length,
+                                      DATA_CO_CALLBACK_TYPE_OUTGOING) == FALSE)
+        {
+            error("p_data_co_callback DATA_CO_CALLBACK_TYPE_OUTGOING failed, length:%d", length);
+            return (PORT_UNKNOWN_ERROR);
+        }
+
+
+        RFCOMM_TRACE_EVENT1 ("PORT_WriteData %d bytes", length);
+
+        rc = port_write (p_port, p_buf);
+
+        /* If queue went below the threashold need to send flow control */
+        event |= port_flow_control_user (p_port);
+
+        if (rc == PORT_SUCCESS)
+            event |= PORT_EV_TXCHAR;
+
+        if ((rc != PORT_SUCCESS) && (rc != PORT_CMD_PENDING))
+            break;
+
+        *p_len  += length;
+        available -= (int)length;
+    }
+    if (!available && (rc != PORT_CMD_PENDING) && (rc != PORT_TX_QUEUE_DISABLED))
+        event |= PORT_EV_TXEMPTY;
+
+    /* Mask out all events that are not of interest to user */
+    event &= p_port->ev_mask;
+
+    /* Send event to the application */
+    if (p_port->p_callback && event)
+        (p_port->p_callback)(event, p_port->inx);
+
+    return (PORT_SUCCESS);
+}
+
 
 
 /*******************************************************************************
 **
 ** Function         PORT_WriteData
 **
-** Description      Normally not GKI aware application will call this function 
+** Description      Normally not GKI aware application will call this function
 **                  to send data to the port.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  p_data      - Data area
 **                  max_len     - Byte count requested
 **                  p_len       - Byte count received
@@ -1352,7 +1544,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
     }
 
     /* Length for each buffer is the smaller of GKI buffer, peer MTU, or max_len */
-    length = RFCOMM_DATA_POOL_BUF_SIZE - 
+    length = RFCOMM_DATA_POOL_BUF_SIZE -
             (UINT16)(sizeof(BT_HDR) + L2CAP_MIN_OFFSET + RFCOMM_DATA_OVERHEAD);
 
     /* If there are buffers scheduled for transmission check if requested */
@@ -1403,7 +1595,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
         RFCOMM_TRACE_EVENT1 ("PORT_WriteData %d bytes", length);
 
         rc = port_write (p_port, p_buf);
-        
+
         /* If queue went below the threashold need to send flow control */
         event |= port_flow_control_user (p_port);
 
@@ -1468,7 +1660,7 @@ int PORT_Test (UINT16 handle, UINT8 *p_data, UINT16 len)
 
     if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) != NULL)
     {
-    
+
         p_buf->offset  = L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET + 2;
         p_buf->len = len;
 

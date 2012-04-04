@@ -60,6 +60,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf.h>
 #include <hardware/bt_av.h>
+#include <hardware/bt_sock.h>
 #include <hardware/bt_hh.h>
 #include <hardware/bt_hl.h>
 
@@ -98,6 +99,8 @@ bt_callbacks_t *bt_hal_cbacks = NULL;
 extern bthf_interface_t *btif_hf_get_interface();
 /* advanced audio profile */
 extern btav_interface_t *btif_av_get_interface();
+/*rfc l2cap*/
+extern btsock_interface_t *btif_sock_get_interface();
 /* hid host profile */
 extern bthh_interface_t *btif_hh_get_interface();
 /* health device profile */
@@ -315,6 +318,8 @@ static const void* get_profile_interface (const char *profile_id)
     if (is_profile(profile_id, BT_PROFILE_HANDSFREE_ID))
         return btif_hf_get_interface();
 
+    if (is_profile(profile_id, BT_PROFILE_SOCKETS_ID))
+        return btif_sock_get_interface();
     if (is_profile(profile_id, BT_PROFILE_ADVANCED_AUDIO_ID))
         return btif_av_get_interface();
 

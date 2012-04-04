@@ -68,6 +68,7 @@
 
 /* Define a callback function for when discovery is complete. */
 typedef void (tSDP_DISC_CMPL_CB) (UINT16 result);
+typedef void (tSDP_DISC_CMPL_CB2) (UINT16 result, void* user_data);
 
 typedef struct
 {
@@ -138,14 +139,14 @@ typedef struct
 }tSDP_DISCOVERY_DB;
 
 /* This structure is used to add protocol lists and find protocol elements */
-typedef struct 
+typedef struct
 {
     UINT16      protocol_uuid;
     UINT16      num_params;
     UINT16      params[SDP_MAX_PROTOCOL_PARAMS];
 } tSDP_PROTOCOL_ELEM;
 
-typedef struct 
+typedef struct
 {
     UINT16              num_elems;
     tSDP_PROTOCOL_ELEM  list_elem[SDP_MAX_LIST_ELEMS];
@@ -160,7 +161,7 @@ typedef struct t_sdp_di_record
     UINT16       vendor_id_source;
     UINT16       product;
     UINT16       version;
-    BOOLEAN      primary_record;  
+    BOOLEAN      primary_record;
     char         client_executable_url[SDP_MAX_ATTR_LEN];   /* optional */
     char         service_description[SDP_MAX_ATTR_LEN];     /* optional */
     char         documentation_url[SDP_MAX_ATTR_LEN];       /* optional */
@@ -203,9 +204,9 @@ SDP_API extern BOOLEAN SDP_InitDiscoveryDb (tSDP_DISCOVERY_DB *p_db, UINT32 len,
 **
 ** Function         SDP_CancelServiceSearch
 **
-** Description      This function cancels an active query to an SDP server. 
+** Description      This function cancels an active query to an SDP server.
 **
-** Returns          TRUE if discovery cancelled, FALSE if a matching activity is not found. 
+** Returns          TRUE if discovery cancelled, FALSE if a matching activity is not found.
 **
 *******************************************************************************/
 SDP_API extern BOOLEAN SDP_CancelServiceSearch (tSDP_DISCOVERY_DB *p_db);
@@ -214,9 +215,9 @@ SDP_API extern BOOLEAN SDP_CancelServiceSearch (tSDP_DISCOVERY_DB *p_db);
 **
 ** Function         SDP_ServiceSearchRequest
 **
-** Description      This function queries an SDP server for information. 
+** Description      This function queries an SDP server for information.
 **
-** Returns          TRUE if discovery started, FALSE if failed. 
+** Returns          TRUE if discovery started, FALSE if failed.
 **
 *******************************************************************************/
 SDP_API extern BOOLEAN SDP_ServiceSearchRequest (UINT8 *p_bd_addr,
@@ -228,19 +229,36 @@ SDP_API extern BOOLEAN SDP_ServiceSearchRequest (UINT8 *p_bd_addr,
 **
 ** Function         SDP_ServiceSearchAttributeRequest
 **
-** Description      This function queries an SDP server for information. 
+** Description      This function queries an SDP server for information.
 **
 **                  The difference between this API function and the function
-**                  SDP_ServiceSearchRequest is that this one does a 
+**                  SDP_ServiceSearchRequest is that this one does a
 **                  combined ServiceSearchAttributeRequest SDP function.
 **
-** Returns          TRUE if discovery started, FALSE if failed. 
+** Returns          TRUE if discovery started, FALSE if failed.
 **
 *******************************************************************************/
 SDP_API extern BOOLEAN SDP_ServiceSearchAttributeRequest (UINT8 *p_bd_addr,
                                                           tSDP_DISCOVERY_DB *p_db,
                                                           tSDP_DISC_CMPL_CB *p_cb);
 
+/*******************************************************************************
+**
+** Function         SDP_ServiceSearchAttributeRequest2
+**
+** Description      This function queries an SDP server for information.
+**
+**                  The difference between this API function and the function
+**                  SDP_ServiceSearchRequest is that this one does a
+**                  combined ServiceSearchAttributeRequest SDP function with the
+**                  user data piggyback
+**
+** Returns          TRUE if discovery started, FALSE if failed.
+**
+*******************************************************************************/
+SDP_API extern BOOLEAN SDP_ServiceSearchAttributeRequest2 (UINT8 *p_bd_addr,
+                                                          tSDP_DISCOVERY_DB *p_db,
+                                                          tSDP_DISC_CMPL_CB2 *p_cb, void * user_data);
 
 /* API of utilities to find data in the local discovery database */
 
@@ -351,7 +369,7 @@ SDP_API extern BOOLEAN SDP_FindAddProtoListsElemInRec (tSDP_DISC_REC *p_rec,
 **
 ** Description      This function looks at a specific discovery record for the
 **                  Profile list descriptor, and pulls out the version number.
-**                  The version number consists of an 8-bit major version and 
+**                  The version number consists of an 8-bit major version and
 **                  an 8-bit minor version.
 **
 ** Returns          TRUE if found, FALSE if not
@@ -568,7 +586,7 @@ SDP_API extern BOOLEAN SDP_DeleteAttribute (UINT32 handle, UINT16 attr_id);
 **
 ** Function         SDP_SetLocalDiRecord
 **
-** Description      This function adds a DI record to the local SDP database.   
+** Description      This function adds a DI record to the local SDP database.
 **
 ** Returns          Returns SDP_SUCCESS if record added successfully, else error
 **
@@ -622,7 +640,7 @@ SDP_API extern UINT8  SDP_GetNumDiRecords (tSDP_DISCOVERY_DB *p_db);
 ** Function         SDP_GetDiRecord
 **
 ** Description      This function retrieves a remote device's DI record from
-**                  the specified database.  
+**                  the specified database.
 **
 ** Returns          SDP_SUCCESS if record retrieved, else error
 **
@@ -649,7 +667,7 @@ SDP_API extern UINT8 SDP_SetTraceLevel (UINT8 new_level);
 ** Function         SDP_ConnOpen
 **
 ** Description      This function creates a connection to the SDP server on the
-**                  given device. 
+**                  given device.
 **
 ** Returns          0, if failed to initiate connection. Otherwise, the handle.
 **
@@ -663,7 +681,7 @@ SDP_API UINT32 SDP_ConnOpen (UINT8 *p_bd_addr, tSDP_DISC_RES_CB *p_rcb,
 **
 ** Description      This function sends data to the connected SDP server.
 **
-** Returns          TRUE if data is sent, FALSE if failed. 
+** Returns          TRUE if data is sent, FALSE if failed.
 **
 *******************************************************************************/
 SDP_API BOOLEAN SDP_WriteData (UINT32 handle, BT_HDR  *p_msg);
@@ -676,7 +694,7 @@ SDP_API BOOLEAN SDP_WriteData (UINT32 handle, BT_HDR  *p_msg);
 **
 ** Parameters:      handle      - Handle of the connection returned by SDP_ConnOpen
 **
-** Returns          TRUE if connection is closed, FALSE if failed to find the handle. 
+** Returns          TRUE if connection is closed, FALSE if failed to find the handle.
 **
 *******************************************************************************/
 SDP_API BOOLEAN SDP_ConnClose (UINT32 handle);
@@ -690,7 +708,7 @@ SDP_API BOOLEAN SDP_ConnClose (UINT32 handle);
 **
 ** Parameters:      p_rec      - pointer to a SDP record.
 **
-** Returns          TRUE if found, otherwise FALSE. 
+** Returns          TRUE if found, otherwise FALSE.
 **
 *******************************************************************************/
 SDP_API BOOLEAN SDP_FindServiceUUIDInRec(tSDP_DISC_REC *p_rec, tBT_UUID *p_uuid);

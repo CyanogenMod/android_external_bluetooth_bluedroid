@@ -176,6 +176,8 @@ typedef struct
 #if SDP_CLIENT_ENABLED == TRUE
     tSDP_DISCOVERY_DB *p_db;                    /* Database to save info into   */
     tSDP_DISC_CMPL_CB *p_cb;                    /* Callback for discovery done  */
+    tSDP_DISC_CMPL_CB2 *p_cb2;                   /* Callback for discovery done piggy back with the user data */
+    void               *user_data;              /* piggy back user data */
     UINT32            handles[SDP_MAX_DISC_SERVER_RECS]; /* Discovered server record handles */
     UINT16            num_handles;              /* Number of server handles     */
     UINT16            cur_handle;               /* Current handle being processed */
@@ -200,6 +202,7 @@ typedef struct
     UINT16            cont_offset;              /* Continuation state data in the server response */
     tSDP_CONT_INFO    cont_info;                /* structure to hold continuation information for the server response */
 #endif  /* SDP_SERVER_ENABLED == TRUE */
+
 } tCONN_CB;
 
 

@@ -35,7 +35,7 @@
 #define PORT_FC_CREDIT          2   /* use RFCOMM credit based flow control */
 
 /*
-** Define Port Data Transfere control block 
+** Define Port Data Transfere control block
 */
 typedef struct
 {
@@ -66,7 +66,7 @@ typedef struct
 #define RFCOMM_CTRL_BREAK_IN_SEQ    1
 
     UINT8   break_signal_seq;   /* as soon as possible | in sequence (default) */
-    
+
     BOOLEAN fc;                 /* TRUE when the device is unable to accept frames */
 } tPORT_CTRL;
 
@@ -74,7 +74,7 @@ typedef struct
 /*
 ** RFCOMM multiplexer Control Block
 */
-typedef struct 
+typedef struct
 {
     TIMER_LIST_ENT tle;       /* Timer list entry */
     BUFFER_Q  cmd_q;          /* Queue for command messages on this mux */
@@ -162,7 +162,7 @@ struct t_port_info
     tPORT_STATE user_port_pars;  /* Port parameters for user connection */
     tPORT_STATE peer_port_pars;  /* Port parameters for user connection */
 
-    tPORT_CTRL  local_ctrl; 
+    tPORT_CTRL  local_ctrl;
     tPORT_CTRL  peer_ctrl;
 
 #define PORT_CTRL_REQ_SENT          0x01
@@ -180,6 +180,7 @@ struct t_port_info
     tPORT_CALLBACK      *p_callback;        /* Pointer to users callback function */
     tPORT_CALLBACK      *p_mgmt_callback;   /* Callback function to receive connection up/down */
     tPORT_DATA_CALLBACK *p_data_callback;   /* Callback function to receive data indications */
+    tPORT_DATA_CO_CALLBACK *p_data_co_callback;   /* Callback function with callouts and flowctrl */
     UINT16      credit_tx;                  /* Flow control credits for tx path */
     UINT16      credit_rx;                  /* Flow control credits for rx path, this is */
                                             /* number of buffers peer is allowed to sent */

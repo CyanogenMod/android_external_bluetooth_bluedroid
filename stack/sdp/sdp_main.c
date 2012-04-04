@@ -79,7 +79,7 @@ void sdp_init (void)
 
 #if SDP_SERVER_ENABLED == TRUE
     /* Register with Security Manager for the specific security level */
-    if (!BTM_SetSecurityLevel (FALSE, SDP_SERVICE_NAME, BTM_SEC_SERVICE_SDP_SERVER, 
+    if (!BTM_SetSecurityLevel (FALSE, SDP_SERVICE_NAME, BTM_SEC_SERVICE_SDP_SERVER,
                                SDP_SECURITY_LEVEL, SDP_PSM, 0, 0))
     {
         SDP_TRACE_ERROR0 ("Security Registration Server failed");
@@ -89,7 +89,7 @@ void sdp_init (void)
 
 #if SDP_CLIENT_ENABLED == TRUE
     /* Register with Security Manager for the specific security level */
-    if (!BTM_SetSecurityLevel (TRUE, SDP_SERVICE_NAME, BTM_SEC_SERVICE_SDP_SERVER, 
+    if (!BTM_SetSecurityLevel (TRUE, SDP_SERVICE_NAME, BTM_SEC_SERVICE_SDP_SERVER,
                                SDP_SECURITY_LEVEL, SDP_PSM, 0, 0))
     {
         SDP_TRACE_ERROR0 ("Security Registration for Client failed");
@@ -149,7 +149,7 @@ UINT16 sdp_set_max_attr_list_size (UINT16 max_size)
 **
 ** Description      This function handles an inbound connection indication
 **                  from L2CAP. This is the case where we are acting as a
-**                  server. 
+**                  server.
 **
 ** Returns          void
 **
@@ -171,7 +171,7 @@ static void sdp_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UIN
     p_ccb->connection_id = l2cap_cid;
 
     /* Send response to the L2CAP layer. */
-    L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_OK, L2CAP_CONN_OK); 
+    L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_OK, L2CAP_CONN_OK);
     {
         tL2CAP_CFG_INFO cfg = sdp_cb.l2cap_my_cfg;
 
@@ -195,7 +195,7 @@ static void sdp_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UIN
     SDP_TRACE_EVENT1 ("SDP - Rcvd L2CAP conn ind, sent config req, CID 0x%x", p_ccb->connection_id);
 #else   /* No server */
     /* Reject the connection */
-    L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_NO_PSM, 0); 
+    L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_NO_PSM, 0);
 #endif
 }
 
@@ -215,7 +215,7 @@ static void sdp_connect_cfm (UINT16 l2cap_cid, UINT16 result)
 {
     tCONN_CB    *p_ccb;
     tL2CAP_CFG_INFO cfg;
-    
+
     /* Find CCB based on CID */
     if ((p_ccb = sdpu_find_ccb_by_cid (l2cap_cid)) == NULL)
     {
@@ -254,20 +254,25 @@ static void sdp_connect_cfm (UINT16 l2cap_cid, UINT16 result)
         SDP_TRACE_WARNING2 ("SDP - Rcvd conn cnf with error: 0x%x  CID 0x%x", result, p_ccb->connection_id);
 
         /* Tell the user if he has a callback */
-        if (p_ccb->p_cb)
+        if (p_ccb->p_cb || p_ccb->p_cb2)
         {
+            UINT16 err = -1;
             if ((result == HCI_ERR_HOST_REJECT_SECURITY)
              || (result == HCI_ERR_AUTH_FAILURE)
              || (result == HCI_ERR_PAIRING_NOT_ALLOWED)
              || (result == HCI_ERR_PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED)
              || (result == HCI_ERR_KEY_MISSING))
-                (*p_ccb->p_cb) (SDP_SECURITY_ERR);
+                err = SDP_SECURITY_ERR;
             else if (result == HCI_ERR_HOST_REJECT_DEVICE)
-                (*p_ccb->p_cb) (SDP_CONN_REJECTED);
+                err = SDP_CONN_REJECTED;
             else
-                (*p_ccb->p_cb) (SDP_CONN_FAILED);
-        }
+                err = SDP_CONN_FAILED;
+            if(p_ccb->p_cb)
+                (*p_ccb->p_cb)(err);
+            else if(p_ccb->p_cb2)
+                (*p_ccb->p_cb2)(err, p_ccb->user_data);
 
+        }
         sdpu_release_ccb (p_ccb);
     }
 }
@@ -456,6 +461,10 @@ static void sdp_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
     if (p_ccb->p_cb)
         (*p_ccb->p_cb) ((UINT16) ((p_ccb->con_state == SDP_STATE_CONNECTED) ?
                         SDP_SUCCESS : SDP_CONN_FAILED));
+    else if (p_ccb->p_cb2)
+        (*p_ccb->p_cb2) ((UINT16) ((p_ccb->con_state == SDP_STATE_CONNECTED) ?
+                        SDP_SUCCESS : SDP_CONN_FAILED), p_ccb->user_data);
+
 #endif
     sdpu_release_ccb (p_ccb);
 }
@@ -478,7 +487,7 @@ static void sdp_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
 static void sdp_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
 {
     tCONN_CB    *p_ccb;
-    
+
     /* Find CCB based on CID */
     if ((p_ccb = sdpu_find_ccb_by_cid (l2cap_cid)) != NULL)
     {
@@ -499,7 +508,7 @@ static void sdp_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
     {
         SDP_TRACE_WARNING1 ("SDP - Rcvd L2CAP data, unknown CID: 0x%x", l2cap_cid);
     }
-    
+
     GKI_freebuf (p_msg);
 }
 
@@ -628,6 +637,8 @@ void sdp_disconnect (tCONN_CB*p_ccb, UINT16 reason)
         /* Tell the user if he has a callback */
         if (p_ccb->p_cb)
             (*p_ccb->p_cb) (reason);
+        else if (p_ccb->p_cb2)
+            (*p_ccb->p_cb2) (reason, p_ccb->user_data);
 
         sdpu_release_ccb (p_ccb);
     }
@@ -659,6 +670,9 @@ static void sdp_disconnect_cfm (UINT16 l2cap_cid, UINT16 result)
     /* Tell the user if he has a callback */
     if (p_ccb->p_cb)
         (*p_ccb->p_cb) (p_ccb->disconnect_reason);
+    else if (p_ccb->p_cb2)
+        (*p_ccb->p_cb2) (p_ccb->disconnect_reason, p_ccb->user_data);
+
 
     sdpu_release_ccb (p_ccb);
 }
@@ -685,6 +699,8 @@ void sdp_conn_timeout (tCONN_CB*p_ccb)
     /* Tell the user if he has a callback */
     if (p_ccb->p_cb)
         (*p_ccb->p_cb) (SDP_CONN_FAILED);
+    else if (p_ccb->p_cb2)
+        (*p_ccb->p_cb2) (SDP_CONN_FAILED, p_ccb->user_data);
 #endif
     sdpu_release_ccb (p_ccb);
 }

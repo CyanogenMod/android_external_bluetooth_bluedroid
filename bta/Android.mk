@@ -8,9 +8,9 @@ include $(CLEAR_VARS)
 
 ifeq ($(BOARD_HAVE_BLUETOOTH_BCM),true)
 LOCAL_CFLAGS += \
-	-DBOARD_HAVE_BLUETOOTH_BCM 
+	-DBOARD_HAVE_BLUETOOTH_BCM
 endif
-LOCAL_CFLAGS += -DBUILDCFG 
+LOCAL_CFLAGS += -DBUILDCFG
 
 LOCAL_PRELINK_MODULE:=false
 LOCAL_SRC_FILES:= \
@@ -120,9 +120,13 @@ LOCAL_SRC_FILES:= \
     ./sys/bta_sys_cfg.c \
     ./sys/ptim.c \
     ./sys/bd.c \
-    ./sys/utl.c
+    ./sys/utl.c \
+    ./jv/bta_jv_act.c \
+    ./jv/bta_jv_cfg.c \
+    ./jv/bta_jv_main.c \
+    ./jv/bta_jv_api.c
 
-LOCAL_MODULE := libbt-brcm_bta 
+LOCAL_MODULE := libbt-brcm_bta
 LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := libcutils libc
 

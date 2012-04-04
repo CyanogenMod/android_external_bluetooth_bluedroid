@@ -20,6 +20,12 @@
 #include "btm_int.h"
 #include "btu.h"
 
+#include <cutils/log.h>
+#define info(fmt, ...)  LOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define debug(fmt, ...) LOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define error(fmt, ...) LOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
+#define asrt(s) if(!(s)) LOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+
 
 static const tPORT_STATE default_port_pars = 
 {
@@ -73,6 +79,7 @@ tPORT *port_allocate_port (UINT8 dlci, BD_ADDR bd_addr)
             port_set_defaults (p_port);
 
             rfc_cb.rfc.last_port = yy;
+            debug("rfc_cb.port.port[%d] allocated, last_port:%d", yy, rfc_cb.rfc.last_port);
             return (p_port);
         }
     }
@@ -197,7 +204,7 @@ void port_release_port (tPORT *p_port)
     tPORT_STATE user_port_pars;
 
     PORT_SCHEDULE_LOCK;
-
+    debug("port_release_port, p_port:%p", p_port);
     while ((p_buf = (BT_HDR *)GKI_dequeue (&p_port->rx.queue)) != NULL)
         GKI_freebuf (p_buf);
 
@@ -506,7 +513,7 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
         else
         {
             /* if client registered data callback, just do what they want */
-            if (p_port->p_data_callback)
+            if (p_port->p_data_callback || p_port->p_data_co_callback)
             {
                 p_port->rx.peer_fc = TRUE;
             }
@@ -540,7 +547,7 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
         else
         {
             /* if client registered data callback, just do what they want */
-            if (p_port->p_data_callback)
+            if (p_port->p_data_callback || p_port->p_data_co_callback)
             {
                 p_port->rx.peer_fc = TRUE;
                 RFCOMM_FlowReq (p_port->rfc.p_mcb, p_port->dlci, FALSE);

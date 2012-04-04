@@ -17,11 +17,11 @@
 **  Constants and Types
 *****************************************************************************/
 
-/* 
-** Define port settings structure send from the application in the 
+/*
+** Define port settings structure send from the application in the
 ** set settings request, or to the application in the set settings indication.
 */
-typedef struct 
+typedef struct
 {
 
 #define PORT_BAUD_RATE_2400       0x00
@@ -79,11 +79,17 @@ typedef struct
 } tPORT_STATE;
 
 
-/* 
+/*
 ** Define the callback function prototypes.  Parameters are specific
-** to each event and are described bellow 
+** to each event and are described bellow
 */
 typedef int  (tPORT_DATA_CALLBACK) (UINT16 port_handle, void *p_data, UINT16 len);
+
+#define DATA_CO_CALLBACK_TYPE_INCOMING          1
+#define DATA_CO_CALLBACK_TYPE_OUTGOING_SIZE     2
+#define DATA_CO_CALLBACK_TYPE_OUTGOING          3
+typedef int  (tPORT_DATA_CO_CALLBACK) (UINT16 port_handle, UINT8* p_buf, UINT16 len, int type);
+
 typedef void (tPORT_CALLBACK) (UINT32 code, UINT16 port_handle);
 
 /*
@@ -112,7 +118,7 @@ typedef void (tPORT_CALLBACK) (UINT32 code, UINT16 port_handle);
 #define PORT_EV_FCS     0x00020000   /* data flow enable status true = enabled */
 
 /*
-** To register for events application should provide bitmask with 
+** To register for events application should provide bitmask with
 ** corresponding bit set
 */
 
@@ -125,7 +131,7 @@ typedef void (tPORT_CALLBACK) (UINT32 code, UINT16 port_handle);
 
 
 /*
-** Define port result codes 
+** Define port result codes
 */
 #define PORT_SUCCESS                0
 
@@ -169,18 +175,18 @@ extern "C"
 **
 ** Function         RFCOMM_CreateConnection
 **
-** Description      RFCOMM_CreateConnection function is used from the application 
-**                  to establish serial port connection to the peer device, 
-**                  or allow RFCOMM to accept a connection from the peer 
-**                  application.  
+** Description      RFCOMM_CreateConnection function is used from the application
+**                  to establish serial port connection to the peer device,
+**                  or allow RFCOMM to accept a connection from the peer
+**                  application.
 **
-** Parameters:      scn          - Service Channel Number as registered with 
-**                                 the SDP (server) or obtained using SDP from 
+** Parameters:      scn          - Service Channel Number as registered with
+**                                 the SDP (server) or obtained using SDP from
 **                                 the peer device (client).
 **                  is_server    - TRUE if requesting application is a server
 **                  mtu          - Maximum frame size the application can accept
 **                  bd_addr      - BD_ADDR of the peer (client)
-**                  mask         - specifies events to be enabled.  A value 
+**                  mask         - specifies events to be enabled.  A value
 **                                 of zero disables all events.
 **                  p_handle     - OUT pointer to the handle.
 **                  p_mgmt_cb    - pointer to callback function to receive
@@ -220,7 +226,7 @@ RFC_API extern int RFCOMM_RemoveConnection (UINT16 handle);
 **
 ** Description      This function is called to close the server port.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **
 *******************************************************************************/
 RFC_API extern int RFCOMM_RemoveServer (UINT16 handle);
@@ -233,8 +239,8 @@ RFC_API extern int RFCOMM_RemoveServer (UINT16 handle);
 ** Description      Set event callback the specified connection.
 **
 ** Parameters:      handle       - Handle of the port returned in the Open
-**                  p_callback   - address of the callback function which should 
-**                                 be called from the RFCOMM when an event 
+**                  p_callback   - address of the callback function which should
+**                                 be called from the RFCOMM when an event
 **                                 specified in the mask occurs.
 **
 *******************************************************************************/
@@ -249,15 +255,15 @@ RFC_API extern int PORT_SetEventCallback (UINT16 port_handle,
 ** Description      Set event data callback the specified connection.
 **
 ** Parameters:      handle       - Handle of the port returned in the Open
-**                  p_callback   - address of the callback function which should 
-**                                 be called from the RFCOMM when a data 
+**                  p_callback   - address of the callback function which should
+**                                 be called from the RFCOMM when a data
 **                                 packet is received.
 **
 *******************************************************************************/
 RFC_API extern int PORT_SetDataCallback (UINT16 port_handle,
                                          tPORT_DATA_CALLBACK *p_cb);
 
-
+RFC_API extern int PORT_SetDataCOCallback (UINT16 port_handle, tPORT_DATA_CO_CALLBACK *p_port_cb);
 /*******************************************************************************
 **
 ** Function         PORT_SetEventMask
@@ -265,7 +271,7 @@ RFC_API extern int PORT_SetDataCallback (UINT16 port_handle,
 ** Description      This function is called to close the specified connection.
 **
 ** Parameters:      handle - Handle of the port returned in the Open
-**                  mask   - specifies events to be enabled.  A value 
+**                  mask   - specifies events to be enabled.  A value
 **                           of zero disables all events.
 **
 *******************************************************************************/
@@ -304,11 +310,11 @@ RFC_API extern BOOLEAN PORT_IsOpening (BD_ADDR bd_addr);
 **
 ** Function         PORT_SetState
 **
-** Description      This function configures connection according to the 
+** Description      This function configures connection according to the
 **                  specifications in the tPORT_STATE structure.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
-**                  p_settings - Pointer to a tPORT_STATE structure containing 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  p_settings - Pointer to a tPORT_STATE structure containing
 **                               configuration information for the connection.
 **
 *******************************************************************************/
@@ -320,7 +326,7 @@ RFC_API extern int PORT_SetState (UINT16 handle, tPORT_STATE *p_settings);
 **
 ** Description      This function return number of buffers on the rx queue.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  p_rx_queue_count - Pointer to return queue count in.
 **
 *******************************************************************************/
@@ -333,7 +339,7 @@ RFC_API extern int PORT_GetRxQueueCnt (UINT16 handle, UINT16 *p_rx_queue_count);
 ** Description      This function is called to fill tPORT_STATE structure
 **                  with the current control settings for the port
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  p_settings - Pointer to a tPORT_STATE structure in which
 **                               configuration information is returned.
 **
@@ -345,10 +351,10 @@ RFC_API extern int PORT_GetState (UINT16 handle, tPORT_STATE *p_settings);
 **
 ** Function         PORT_Control
 **
-** Description      This function directs a specified connection to pass control 
+** Description      This function directs a specified connection to pass control
 **                  control information to the peer device.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  signal     - specify the function to be passed
 **
 *******************************************************************************/
@@ -369,11 +375,11 @@ RFC_API extern int PORT_Control (UINT16 handle, UINT8 signal);
 **
 ** Function         PORT_FlowControl
 **
-** Description      This function directs a specified connection to pass 
-**                  flow control message to the peer device.  Enable flag passed 
+** Description      This function directs a specified connection to pass
+**                  flow control message to the peer device.  Enable flag passed
 **                  shows if port can accept more data.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  enable     - enables data flow
 **
 *******************************************************************************/
@@ -384,12 +390,12 @@ RFC_API extern int PORT_FlowControl (UINT16 handle, BOOLEAN enable);
 **
 ** Function         PORT_GetModemStatus
 **
-** Description      This function retrieves modem control signals.  Normally 
-**                  application will call this function after a callback 
-**                  function is called with notification that one of signals 
+** Description      This function retrieves modem control signals.  Normally
+**                  application will call this function after a callback
+**                  function is called with notification that one of signals
 **                  has been changed.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                               callback.
 **                  p_signal   - specify the pointer to control signals info
 **
@@ -415,14 +421,14 @@ RFC_API extern int PORT_GetModemStatus (UINT16 handle, UINT8 *p_control_signal);
 ** Function         PORT_ClearError
 **
 ** Description      This function retreives information about a communications
-**                  error and reports current status of a connection.  The 
+**                  error and reports current status of a connection.  The
 **                  function should be called when an error occures to clear
 **                  the connection error flag and to enable additional read
 **                  and write operations.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  p_errors   - pointer of the variable to receive error codes
-**                  p_status   - pointer to the tPORT_STATUS structur to receive 
+**                  p_status   - pointer to the tPORT_STATUS structur to receive
 **                               connection status
 **
 *******************************************************************************/
@@ -456,7 +462,7 @@ RFC_API extern int PORT_ClearError (UINT16 handle, UINT16 *p_errors,
 **
 ** Description      This function send a communications error to the peer device
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  errors     - receive error codes
 **
 *******************************************************************************/
@@ -467,10 +473,10 @@ RFC_API extern int PORT_SendError (UINT16 handle, UINT8 errors);
 **
 ** Function         PORT_GetQueueStatus
 **
-** Description      This function reports current status of a connection.  
+** Description      This function reports current status of a connection.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
-**                  p_status   - pointer to the tPORT_STATUS structur to receive 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  p_status   - pointer to the tPORT_STATUS structur to receive
 **                               connection status
 **
 *******************************************************************************/
@@ -481,11 +487,11 @@ RFC_API extern int PORT_GetQueueStatus (UINT16 handle, tPORT_STATUS *p_status);
 **
 ** Function         PORT_Purge
 **
-** Description      This function discards all the data from the output or 
+** Description      This function discards all the data from the output or
 **                  input queues of the specified connection.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
-**                  purge_flags - specify the action to take.  
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  purge_flags - specify the action to take.
 **
 *******************************************************************************/
 #define PORT_PURGE_TXCLEAR  0x01
@@ -498,15 +504,15 @@ RFC_API extern int PORT_Purge (UINT16 handle, UINT8 purge_flags);
 **
 ** Function         PORT_Read
 **
-** Description      This function returns the pointer to the buffer received 
-**                  from the peer device.  Normally application will call this 
-**                  function after receiving PORT_EVT_RXCHAR event. 
+** Description      This function returns the pointer to the buffer received
+**                  from the peer device.  Normally application will call this
+**                  function after receiving PORT_EVT_RXCHAR event.
 **                  Application calling this function is responsible to free
 **                  buffer returned.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                                callback.
-**                  pp_buf      - pointer to address of buffer with data, 
+**                  pp_buf      - pointer to address of buffer with data,
 **
 *******************************************************************************/
 RFC_API extern int PORT_Read (UINT16 handle, BT_HDR **pp_buf);
@@ -519,7 +525,7 @@ RFC_API extern int PORT_Read (UINT16 handle, BT_HDR **pp_buf);
 ** Description      Normally application will call this function after receiving
 **                  PORT_EVT_RXCHAR event.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                                callback.
 **                  p_data      - Data area
 **                  max_len     - Byte count requested
@@ -537,8 +543,8 @@ RFC_API extern int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len,
 ** Description      This function to send BT buffer to the peer device.
 **                  Application should not free the buffer.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
-**                  p_buf       - pointer to the buffer with data, 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  p_buf       - pointer to the buffer with data,
 **
 *******************************************************************************/
 RFC_API extern int PORT_Write (UINT16 handle, BT_HDR *p_buf);
@@ -548,10 +554,10 @@ RFC_API extern int PORT_Write (UINT16 handle, BT_HDR *p_buf);
 **
 ** Function         PORT_WriteData
 **
-** Description      This function is called from the legacy application to 
-**                  send data.  
+** Description      This function is called from the legacy application to
+**                  send data.
 **
-** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection 
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **                  p_data      - Data area
 **                  max_len     - Byte count to write
 **                  p_len       - Bytes written
@@ -560,6 +566,17 @@ RFC_API extern int PORT_Write (UINT16 handle, BT_HDR *p_buf);
 RFC_API extern int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len,
                                    UINT16 *p_len);
 
+/*******************************************************************************
+**
+** Function         PORT_WriteDataCO
+**
+** Description      Normally not GKI aware application will call this function
+**                  to send data to the port by callout functions.
+**
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**
+*******************************************************************************/
+RFC_API extern int PORT_WriteDataCO (UINT16 handle, int* p_len);
 
 /*******************************************************************************
 **

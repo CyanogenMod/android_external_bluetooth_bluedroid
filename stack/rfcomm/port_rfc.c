@@ -819,6 +819,17 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
         GKI_freebuf (p_buf);
         return;
     }
+    /* If client registered callout callback with flow control we can just deliver receive data */
+    if (p_port->p_data_co_callback)
+    {
+        /* Another packet is delivered to user.  Send credits to peer if required */
+
+        if(p_port->p_data_co_callback(p_port->inx, (UINT8*)p_buf, -1, DATA_CO_CALLBACK_TYPE_INCOMING))
+            port_flow_control_peer(p_port, TRUE, 1);
+        else port_flow_control_peer(p_port, FALSE, 0);
+        //GKI_freebuf (p_buf);
+        return;
+    }
 
     /* If client registered callback we can just deliver receive data */
     if (p_port->p_data_callback)

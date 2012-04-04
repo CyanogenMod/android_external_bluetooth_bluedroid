@@ -23,6 +23,12 @@
 #include "sdpint.h"
 #include "btu.h"
 
+#include <cutils/log.h>
+#define info(fmt, ...)  LOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define debug(fmt, ...) LOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define error(fmt, ...) LOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
+#define asrt(s) if(!(s)) LOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+
 
 /**********************************************************************
 **   C L I E N T    F U N C T I O N    P R O T O T Y P E S            *
@@ -94,9 +100,9 @@ BOOLEAN SDP_InitDiscoveryDb (tSDP_DISCOVERY_DB *p_db, UINT32 len, UINT16 num_uui
 **
 ** Function         SDP_CancelServiceSearch
 **
-** Description      This function cancels an active query to an SDP server. 
+** Description      This function cancels an active query to an SDP server.
 **
-** Returns          TRUE if discovery cancelled, FALSE if a matching activity is not found. 
+** Returns          TRUE if discovery cancelled, FALSE if a matching activity is not found.
 **
 *******************************************************************************/
 BOOLEAN SDP_CancelServiceSearch (tSDP_DISCOVERY_DB *p_db)
@@ -118,9 +124,9 @@ BOOLEAN SDP_CancelServiceSearch (tSDP_DISCOVERY_DB *p_db)
 **
 ** Function         SDP_ServiceSearchRequest
 **
-** Description      This function queries an SDP server for information. 
+** Description      This function queries an SDP server for information.
 **
-** Returns          TRUE if discovery started, FALSE if failed. 
+** Returns          TRUE if discovery started, FALSE if failed.
 **
 *******************************************************************************/
 BOOLEAN SDP_ServiceSearchRequest (UINT8 *p_bd_addr, tSDP_DISCOVERY_DB *p_db,
@@ -150,14 +156,14 @@ BOOLEAN SDP_ServiceSearchRequest (UINT8 *p_bd_addr, tSDP_DISCOVERY_DB *p_db,
 **
 ** Function         SDP_ServiceSearchAttributeRequest
 **
-** Description      This function queries an SDP server for information. 
+** Description      This function queries an SDP server for information.
 **
 **                  The difference between this API function and the function
-**                  SDP_ServiceSearchRequest is that this one does a 
+**                  SDP_ServiceSearchRequest is that this one does a
 **                  combined ServiceSearchAttributeRequest SDP function.
 **                  (This is for Unplug Testing)
 **
-** Returns          TRUE if discovery started, FALSE if failed. 
+** Returns          TRUE if discovery started, FALSE if failed.
 **
 *******************************************************************************/
 BOOLEAN SDP_ServiceSearchAttributeRequest (UINT8 *p_bd_addr, tSDP_DISCOVERY_DB *p_db,
@@ -177,6 +183,44 @@ BOOLEAN SDP_ServiceSearchAttributeRequest (UINT8 *p_bd_addr, tSDP_DISCOVERY_DB *
     p_ccb->p_cb       = p_cb;
 
     p_ccb->is_attr_search = TRUE;
+
+    return (TRUE);
+#else
+    return (FALSE);
+#endif
+}
+/*******************************************************************************
+**
+** Function         SDP_ServiceSearchAttributeRequest2
+**
+** Description      This function queries an SDP server for information.
+**
+**                  The difference between this API function and the function
+**                  SDP_ServiceSearchRequest is that this one does a
+**                  combined ServiceSearchAttributeRequest SDP function.
+**                  (This is for Unplug Testing)
+**
+** Returns          TRUE if discovery started, FALSE if failed.
+**
+*******************************************************************************/
+BOOLEAN SDP_ServiceSearchAttributeRequest2 (UINT8 *p_bd_addr, tSDP_DISCOVERY_DB *p_db,
+                                           tSDP_DISC_CMPL_CB2 *p_cb2, void * user_data)
+{
+#if SDP_CLIENT_ENABLED == TRUE
+    tCONN_CB     *p_ccb;
+
+    /* Specific BD address */
+    p_ccb = sdp_conn_originate (p_bd_addr);
+
+    if (!p_ccb)
+        return (FALSE);
+
+    p_ccb->disc_state = SDP_DISC_WAIT_CONN;
+    p_ccb->p_db       = p_db;
+    p_ccb->p_cb2       = p_cb2;
+
+    p_ccb->is_attr_search = TRUE;
+    p_ccb->user_data = user_data;
 
     return (TRUE);
 #else
@@ -272,10 +316,10 @@ tSDP_DISC_ATTR *SDP_FindAttributeInRec (tSDP_DISC_REC *p_rec, UINT16 attr_id)
 ** Description      This function is called to read the service UUID within a record
 **                  if there is any.
 **
-** Parameters:      p_rec      - pointer to a SDP record. 
+** Parameters:      p_rec      - pointer to a SDP record.
 **                  p_uuid     - output parameter to save the UUID found.
 **
-** Returns          TRUE if found, otherwise FALSE. 
+** Returns          TRUE if found, otherwise FALSE.
 **
 *******************************************************************************/
 BOOLEAN SDP_FindServiceUUIDInRec(tSDP_DISC_REC *p_rec, tBT_UUID * p_uuid)
@@ -612,7 +656,7 @@ BOOLEAN SDP_FindAddProtoListsElemInRec (tSDP_DISC_REC *p_rec, UINT16 layer_uuid,
 #if SDP_CLIENT_ENABLED == TRUE
     tSDP_DISC_ATTR  *p_attr, *p_sattr;
     BOOLEAN         ret = FALSE;
-    
+
     p_attr = p_rec->p_first_attr;
     while (p_attr)
     {
@@ -645,7 +689,7 @@ BOOLEAN SDP_FindAddProtoListsElemInRec (tSDP_DISC_REC *p_rec, UINT16 layer_uuid,
 **
 ** Description      This function looks at a specific discovery record for the
 **                  Profile list descriptor, and pulls out the version number.
-**                  The version number consists of an 8-bit major version and 
+**                  The version number consists of an 8-bit major version and
 **                  an 8-bit minor version.
 **
 ** Returns          TRUE if found, FALSE if not
@@ -732,11 +776,11 @@ UINT16 SDP_DiDiscover( BD_ADDR remote_device, tSDP_DISCOVERY_DB *p_db,
     tSDP_UUID init_uuid;
     init_uuid.len = 2;
     init_uuid.uu.uuid16 = di_uuid;
-  
+
     if( SDP_InitDiscoveryDb(p_db, len, num_uuids, &init_uuid, 0, NULL) )
         if( SDP_ServiceSearchRequest(remote_device, p_db, p_cb) )
             result = SDP_SUCCESS;
-  
+
     return result;
 #else
     return SDP_DI_DISC_FAILED;
@@ -777,7 +821,7 @@ UINT8 SDP_GetNumDiRecords( tSDP_DISCOVERY_DB *p_db )
 ** Function         SDP_GetDiRecord
 **
 ** Description      This function retrieves a remote device's DI record from
-**                  the specified database.  
+**                  the specified database.
 **
 ** Returns          SDP_SUCCESS if record retrieved, else error
 **
@@ -788,7 +832,7 @@ UINT16 SDP_GetDiRecord( UINT8 get_record_index, tSDP_DI_GET_RECORD *p_device_inf
 #if SDP_CLIENT_ENABLED == TRUE
     UINT16  result = SDP_NO_DI_RECORD_FOUND;
     UINT8  curr_record_index = 1;
-  
+
     tSDP_DISC_REC *p_curr_record = NULL;
 
     /* find the requested SDP record in the discovery database */
@@ -801,7 +845,7 @@ UINT16 SDP_GetDiRecord( UINT8 get_record_index, tSDP_DI_GET_RECORD *p_device_inf
             if( curr_record_index++ == get_record_index )
             {
                 result = SDP_SUCCESS;
-                break;          
+                break;
             }
         }
     }while( p_curr_record );
@@ -840,31 +884,31 @@ UINT16 SDP_GetDiRecord( UINT8 get_record_index, tSDP_DI_GET_RECORD *p_device_inf
             p_device_info->spec_id = p_curr_attr->attr_value.v.u16;
         else
             result = SDP_ERR_ATTR_NOT_PRESENT;
-    
+
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_VENDOR_ID );
         if( p_curr_attr )
             p_device_info->rec.vendor = p_curr_attr->attr_value.v.u16;
         else
             result = SDP_ERR_ATTR_NOT_PRESENT;
-       
+
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_VENDOR_ID_SOURCE );
         if( p_curr_attr )
             p_device_info->rec.vendor_id_source = p_curr_attr->attr_value.v.u16;
         else
             result = SDP_ERR_ATTR_NOT_PRESENT;
-       
+
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_PRODUCT_ID );
         if( p_curr_attr )
             p_device_info->rec.product = p_curr_attr->attr_value.v.u16;
         else
             result = SDP_ERR_ATTR_NOT_PRESENT;
-       
+
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_PRODUCT_VERSION );
         if( p_curr_attr )
             p_device_info->rec.version = p_curr_attr->attr_value.v.u16;
         else
             result = SDP_ERR_ATTR_NOT_PRESENT;
-       
+
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_PRIMARY_RECORD );
         if( p_curr_attr )
             p_device_info->rec.primary_record = (BOOLEAN)p_curr_attr->attr_value.v.u8;
@@ -888,7 +932,7 @@ UINT16 SDP_GetDiRecord( UINT8 get_record_index, tSDP_DI_GET_RECORD *p_device_inf
 **
 ** Description      This function adds a DI record to the local SDP database.
 **
-**                  
+**
 **
 ** Returns          Returns SDP_SUCCESS if record added successfully, else error
 **
@@ -912,7 +956,7 @@ UINT16 SDP_SetLocalDiRecord( tSDP_DI_RECORD *p_device_info, UINT32 *p_handle )
     if( p_device_info->primary_record == TRUE && sdp_cb.server_db.di_primary_handle )
         handle = sdp_cb.server_db.di_primary_handle;
     else
-    {  
+    {
         if( (handle = SDP_CreateRecord()) == 0 )
             return SDP_NO_RESOURCES;
     }
@@ -1013,7 +1057,7 @@ UINT16 SDP_SetLocalDiRecord( tSDP_DI_RECORD *p_device_info, UINT32 *p_handle )
                                BOOLEAN_DESC_TYPE, 1, &u8)) )
             result = SDP_DI_REG_FAILED;
     }
- 
+
     /* mandatory */
     if ( result == SDP_SUCCESS)
     {
@@ -1028,7 +1072,7 @@ UINT16 SDP_SetLocalDiRecord( tSDP_DI_RECORD *p_device_info, UINT32 *p_handle )
         SDP_DeleteRecord( handle );
     else if (p_device_info->primary_record == TRUE)
         sdp_cb.server_db.di_primary_handle = handle;
-  
+
     return result;
 #else   /* SDP_SERVER_ENABLED is FALSE */
     return SDP_DI_REG_FAILED;
@@ -1056,7 +1100,7 @@ UINT16 SDP_GetLocalDiRecord(tSDP_DI_GET_RECORD *p_device_info, UINT32 *p_handle 
     tSDP_ATTRIBUTE  *p_attr;
     UINT8           *p_temp;
     INT32            templen;
-    
+
     if (*p_handle == 0)
         *p_handle = sdp_cb.server_db.di_primary_handle;
 
@@ -1172,7 +1216,7 @@ UINT8 SDP_SetTraceLevel (UINT8 new_level)
 ** Function         SDP_ConnOpen
 **
 ** Description      This function creates a connection to the SDP server on the
-**                  given device. 
+**                  given device.
 **
 ** Returns          0, if failed to initiate connection. Otherwise, the handle.
 **
@@ -1212,7 +1256,7 @@ UINT32 SDP_ConnOpen (UINT8 *p_bd_addr, tSDP_DISC_RES_CB *p_rcb,
 **
 ** Description      This function sends data to the connected SDP server.
 **
-** Returns          TRUE if data is sent, FALSE if failed. 
+** Returns          TRUE if data is sent, FALSE if failed.
 **
 *******************************************************************************/
 BOOLEAN SDP_WriteData (UINT32 handle, BT_HDR  *p_msg)
@@ -1244,7 +1288,7 @@ BOOLEAN SDP_WriteData (UINT32 handle, BT_HDR  *p_msg)
 **
 ** Parameters:      handle      - Handle of the connection returned by SDP_ConnOpen
 **
-** Returns          TRUE if connection is closed, FALSE if failed to find the handle. 
+** Returns          TRUE if connection is closed, FALSE if failed to find the handle.
 **
 *******************************************************************************/
 BOOLEAN SDP_ConnClose (UINT32 handle)

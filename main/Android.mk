@@ -10,13 +10,13 @@ include $(CLEAR_VARS)
 
 # HAL layer
 LOCAL_SRC_FILES:= \
-	../btif/src/bluetooth.c
+    ../btif/src/bluetooth.c
 
 # platform specific
 LOCAL_SRC_FILES+= \
         bte_main.c \
-	bte_init.c \
-	bte_version.c \
+    bte_init.c \
+    bte_version.c \
         bte_logmsg.c \
         bte_conf.c
 
@@ -32,7 +32,12 @@ LOCAL_SRC_FILES += \
 	../btif/src/btif_rc.c \
 	../btif/src/btif_media_task.c \
         ../btif/src/btif_hh.c \
-	../btif/src/btif_hl.c
+	../btif/src/btif_hl.c \
+        ../btif/src/btif_sock.c \
+        ../btif/src/btif_sock_rfc.c \
+        ../btif/src/btif_sock_thread.c \
+        ../btif/src/btif_sock_sdp.c \
+        ../btif/src/btif_sock_util.c
 
 # callouts
 LOCAL_SRC_FILES+= \
@@ -46,20 +51,20 @@ LOCAL_SRC_FILES+= \
 
 # sbc encoder
 LOCAL_SRC_FILES+= \
-	../embdrv/sbc/encoder/srce/sbc_analysis.c \
-	../embdrv/sbc/encoder/srce/sbc_dct.c \
-	../embdrv/sbc/encoder/srce/sbc_dct_coeffs.c \
-	../embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_mono.c \
-	../embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_ste.c \
-	../embdrv/sbc/encoder/srce/sbc_enc_coeffs.c \
-	../embdrv/sbc/encoder/srce/sbc_encoder.c \
-	../embdrv/sbc/encoder/srce/sbc_packing.c \
+    ../embdrv/sbc/encoder/srce/sbc_analysis.c \
+    ../embdrv/sbc/encoder/srce/sbc_dct.c \
+    ../embdrv/sbc/encoder/srce/sbc_dct_coeffs.c \
+    ../embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_mono.c \
+    ../embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_ste.c \
+    ../embdrv/sbc/encoder/srce/sbc_enc_coeffs.c \
+    ../embdrv/sbc/encoder/srce/sbc_encoder.c \
+    ../embdrv/sbc/encoder/srce/sbc_packing.c \
 
 
 # candidates for vendor lib (keep here for now)
 LOCAL_SRC_FILES+= \
-	../udrv/ulinux/unv_linux.c\
-	../udrv/ulinux/uipc.c
+    ../udrv/ulinux/unv_linux.c\
+    ../udrv/ulinux/uipc.c
 
 
 LOCAL_C_INCLUDES+= . \
