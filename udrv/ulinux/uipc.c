@@ -777,8 +777,8 @@ UDRV_API UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UI
         return 0;
     }
 
-    BTIF_TRACE_DEBUG4("UIPC_Read : ch_id %d, len %d, fd %d, polltmo %d", ch_id, len,
-            fd, uipc_main.ch[ch_id].read_poll_tmo_ms);
+    //BTIF_TRACE_DEBUG4("UIPC_Read : ch_id %d, len %d, fd %d, polltmo %d", ch_id, len,
+    //        fd, uipc_main.ch[ch_id].read_poll_tmo_ms);
 
     while (n_read < (int)len)
     {
@@ -792,7 +792,7 @@ UDRV_API UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UI
             return 0;
         }
 
-        BTIF_TRACE_EVENT1("poll revents %x", pfd.revents);
+        //BTIF_TRACE_EVENT1("poll revents %x", pfd.revents);
 
         if (pfd.revents & (POLLHUP|POLLNVAL) )
         {

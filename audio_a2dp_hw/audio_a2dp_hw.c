@@ -100,7 +100,7 @@ typedef enum {
     AUDIO_A2DP_STATE_STOPPED,
     AUDIO_A2DP_STATE_SUSPENDED, /* need explicit set param call to resume (suspend=false) */
     AUDIO_A2DP_STATE_STANDBY    /* allows write to autoresume */
-} a2dp_state;
+} a2dp_state_t;
 
 struct a2dp_stream_out;
 
@@ -111,7 +111,7 @@ struct a2dp_audio_device {
 
 struct a2dp_config {
     uint32_t                rate;
-    uint32_t                channels;
+    uint32_t                channel_flags;
     int                     format;
 };
 
@@ -122,9 +122,9 @@ struct a2dp_stream_out {
     pthread_mutex_t         lock;
     int                     ctrl_fd;
     int                     audio_fd;
-    a2dp_state              state;
-    struct a2dp_config      cfg;
     size_t                  buffer_sz;
+    a2dp_state_t            state;
+    struct a2dp_config      cfg;
 };
 
 struct a2dp_stream_in {
@@ -330,12 +330,12 @@ static void a2dp_stream_out_init(struct a2dp_stream_out *out)
     out->audio_fd = AUDIO_SKT_DISCONNECTED;
     out->state = AUDIO_A2DP_STATE_STOPPED;
 
-    out->cfg.channels = AUDIO_CHANNEL_OUT_STEREO;
-    out->cfg.format = AUDIO_CHANNEL_DEFAULT_FORMAT;
-    out->cfg.rate = AUDIO_CHANNEL_DEFAULT_RATE;
+    out->cfg.channel_flags = AUDIO_STREAM_DEFAULT_CHANNEL_FLAG;
+    out->cfg.format = AUDIO_STREAM_DEFAULT_FORMAT;
+    out->cfg.rate = AUDIO_STREAM_DEFAULT_RATE;
 
     /* manages max capacity of socket pipe */
-    out->buffer_sz = AUDIO_CHANNEL_OUTPUT_BUFFER_SZ;
+    out->buffer_sz = AUDIO_STREAM_OUTPUT_BUFFER_SZ;
 }
 
 static int start_audio_datapath(struct a2dp_stream_out *out)
@@ -504,9 +504,9 @@ static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate)
 
     DEBUG("out_set_sample_rate : %d", rate);
 
-    if (rate != AUDIO_CHANNEL_DEFAULT_RATE)
+    if (rate != AUDIO_STREAM_DEFAULT_RATE)
     {
-        LOGE("only rate %d supported", AUDIO_CHANNEL_DEFAULT_RATE);
+        LOGE("only rate %d supported", AUDIO_STREAM_DEFAULT_RATE);
         return -1;
     }
 
@@ -528,22 +528,22 @@ static uint32_t out_get_channels(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    DEBUG("channels %d", out->cfg.channels);
+    DEBUG("channels 0x%x", out->cfg.channel_flags);
 
-    return out->cfg.channels;
+    return out->cfg.channel_flags;
 }
 
 static int out_get_format(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-    DEBUG("format %x", out->cfg.format);
+    DEBUG("format 0x%x", out->cfg.format);
     return out->cfg.format;
 }
 
 static int out_set_format(struct audio_stream *stream, int format)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-    DEBUG("setting format not yet supported (%x)", format);
+    DEBUG("setting format not yet supported (0x%x)", format);
     return -ENOSYS;
 }
 

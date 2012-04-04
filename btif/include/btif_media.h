@@ -271,7 +271,6 @@ void btif_a2dp_stop_media_task(void);
 void btif_a2dp_on_init(void);
 void btif_a2dp_on_idle(void);
 void btif_a2dp_on_open(void);
-void btif_a2dp_on_start_req(void);
 void btif_a2dp_on_started(tBTA_AV_START *p_av);
 void btif_a2dp_on_stop_req(void);
 void btif_a2dp_on_stopped(tBTA_AV_SUSPEND *p_av);

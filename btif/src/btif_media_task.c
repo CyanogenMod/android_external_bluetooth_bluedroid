@@ -201,6 +201,19 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 /* fixme -- tune optimal value. For now set a large buffer capacity */
 #define MAX_OUTPUT_BUFFER_QUEUE_SZ 12
 
+/* trigger rate adjustment if deviation is more than threshold */
+#define BTIF_RA_OFFSET_TRIGGER_US 3000
+
+#define BTIF_MEDIA_VERBOSE_ENABLED
+
+#ifdef BTIF_MEDIA_VERBOSE_ENABLED
+#define VERBOSE(fmt, ...) \
+      LogMsg( TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | \
+              TRACE_TYPE_ERROR, fmt, ## __VA_ARGS__)
+#else
+#define VERBOSE(fmt, ...)
+#endif
+
 /*****************************************************************************
  **  Data types
  *****************************************************************************/
@@ -218,6 +231,14 @@ typedef union
     tBTIF_AV_MEDIA_FEEDINGS_PCM_STATE pcm;
 } tBTIF_AV_MEDIA_FEEDINGS_STATE;
 
+
+/* pcm rate adjustment */
+typedef struct {
+    struct timespec time_start;        /* offset used to calculate time elapsed */
+    unsigned long long tx_pcmtime_us;  /* track pcm time transmitted since stream start */
+    /* add latency tracker */
+} tBTIF_MEDIA_RA;
+
 typedef struct
 {
 #if (BTA_AV_INCLUDED == TRUE)
@@ -234,6 +255,7 @@ typedef struct
     void* av_sm_hdl;
     UINT8 a2dp_cmd_pending; /* we can have max one command pending */
     BOOLEAN tx_flush; /* discards any outgoing data when true */
+    tBTIF_MEDIA_RA ra; /* tx rate adjustment logic */
 
 #if ((defined(BTIF_MEDIA_OVERFEED_INCLUDED) && (BTIF_MEDIA_OVERFEED_INCLUDED == TRUE)) || \
      (defined(BTIF_MEDIA_UNDERFEED_INCLUDED) && (BTIF_MEDIA_UNDERFEED_INCLUDED == TRUE)))
@@ -375,7 +397,6 @@ const char* dump_media_event(UINT16 event)
             return "UNKNOWN MEDIA EVENT";
     }
 }
-
 
 /*****************************************************************************
  **  A2DP CTRL PATH
@@ -738,7 +759,7 @@ void btif_a2dp_on_open(void)
 
 /*****************************************************************************
 **
-** Function        btif_a2dp_on_start_req
+** Function        btif_a2dp_on_started
 **
 ** Description
 **
@@ -746,12 +767,12 @@ void btif_a2dp_on_open(void)
 **
 *******************************************************************************/
 
-void btif_a2dp_on_start_req(void)
+void btif_a2dp_on_started(tBTA_AV_START *p_av)
 {
     tBTIF_AV_MEDIA_FEEDINGS media_feeding;
     tBTIF_STATUS status;
 
-    APPL_TRACE_EVENT0("## ON A2DP START ##");
+    APPL_TRACE_EVENT0("## ON A2DP STARTED ##");
 
     GKI_disable();
 
@@ -776,22 +797,6 @@ void btif_a2dp_on_start_req(void)
     }
 
     GKI_enable();
-}
-
-
-/*****************************************************************************
-**
-** Function        btif_a2dp_on_started
-**
-** Description
-**
-** Returns
-**
-*******************************************************************************/
-
-void btif_a2dp_on_started(tBTA_AV_START *p_av)
-{
-    APPL_TRACE_EVENT0("## ON A2DP STARTED ##");
 
     if (p_av->status == BTA_AV_SUCCESS)
     {
@@ -891,6 +896,138 @@ void btif_a2dp_set_tx_flush(BOOLEAN enable)
     btif_media_cb.tx_flush = enable;
 }
 
+/*****************************************************************************
+**
+** Function        btif_calc_pcmtime
+**
+** Description     Calculates the pcmtime equivalent of a datapacket
+**
+** Returns         microseconds
+**
+*******************************************************************************/
+
+static int btif_calc_pcmtime(UINT32 bytes_processed)
+{
+    int pcm_time_us = 0;
+    tBTIF_AV_MEDIA_FEED_CFG *p_cfg;
+
+    p_cfg = &btif_media_cb.media_feeding.cfg;
+
+    /* calculate corresponding pcm time based on data processed */
+    switch(btif_media_cb.media_feeding.format)
+    {
+        case BTIF_AV_CODEC_PCM:
+            pcm_time_us = (bytes_processed*1000000)/
+                          (p_cfg->pcm.num_channel*p_cfg->pcm.sampling_freq*p_cfg->pcm.bit_per_sample/8);
+            break;
+
+        default :
+            APPL_TRACE_ERROR1("mediafeeding format invalid : %d", btif_media_cb.media_feeding.format);
+            break;
+    }
+
+    return pcm_time_us;
+}
+
+/*****************************************************************************
+**
+** Function        ra_reset
+**
+** Description     Media task tx rate adjustment
+**
+** Returns         void
+**
+*******************************************************************************/
+
+static void ra_reset(void)
+{
+    /* initialize start time of test interval */
+    btif_media_cb.ra.time_start.tv_nsec = 0;
+    btif_media_cb.ra.time_start.tv_sec = 0;
+    btif_media_cb.ra.tx_pcmtime_us= 0;
+}
+
+/*****************************************************************************
+**
+** Function        ra_update
+**
+** Description     Updates RA with amount of UIPC channel data processed
+**
+** Returns         void
+**
+*******************************************************************************/
+
+static void ra_update(UINT32 bytes_processed)
+{
+    /* if this is the first frame we will initialize tx start time */
+    if ( (btif_media_cb.ra.time_start.tv_sec == 0) && (btif_media_cb.ra.time_start.tv_nsec == 0) )
+        clock_gettime(CLOCK_MONOTONIC, &btif_media_cb.ra.time_start);
+
+    btif_media_cb.ra.tx_pcmtime_us += btif_calc_pcmtime(bytes_processed);
+}
+
+/*****************************************************************************
+**
+** Function        ra_adjust
+**
+** Description     Calculates deviation between PCM time processed across
+**                 UIPC audio channel and PCM time transmitted across the
+**                 A2DP stream. Is checked every time slice (media timer
+**                 tick).
+**
+** Returns         Returns a frame count offset used to compensate for
+**                 any drift versus the ideal clockrate
+**
+*******************************************************************************/
+
+static int ra_adjust(void)
+{
+    unsigned long long time_elapsed_us;
+    struct timespec now;
+    int adjust = 0;
+
+    /* don't start adjusting until we have read any pcm data */
+    if (btif_media_cb.ra.tx_pcmtime_us == 0)
+        return 0;
+
+    clock_gettime(CLOCK_MONOTONIC, &now);
+
+    time_elapsed_us = (now.tv_sec - btif_media_cb.ra.time_start.tv_sec) * USEC_PER_SEC + \
+                      (now.tv_nsec - btif_media_cb.ra.time_start.tv_nsec)/1000;
+
+    VERBOSE("tx_pcmtime_us : %d us, elapsed : %d us", btif_media_cb.ra.tx_pcmtime_us,
+                       time_elapsed_us);
+
+    /* compare elapsed time vs read pcm time */
+    if (btif_media_cb.ra.tx_pcmtime_us > time_elapsed_us)
+    {
+        //VERBOSE("TOO FAST : %06d us", btif_media_cb.ra.tx_pcmtime_us - time_elapsed_us);
+
+        if ((btif_media_cb.ra.tx_pcmtime_us - time_elapsed_us) > BTIF_RA_OFFSET_TRIGGER_US)
+        {
+            VERBOSE("RA : -1 FRAME (%06d us)", btif_media_cb.ra.tx_pcmtime_us - time_elapsed_us);
+
+            /* adjust by sending one frame less this time slice */
+            adjust--;
+        }
+    }
+    else if (btif_media_cb.ra.tx_pcmtime_us < time_elapsed_us)
+    {
+        //VERBOSE("TOO SLOW : %06d us", time_elapsed_us - btif_media_cb.ra.tx_pcmtime_us);
+
+        if ((time_elapsed_us - btif_media_cb.ra.tx_pcmtime_us) > BTIF_RA_OFFSET_TRIGGER_US)
+        {
+            VERBOSE("RA : +1 FRAME (%06d us)", time_elapsed_us - btif_media_cb.ra.tx_pcmtime_us);
+
+            /* adjust by sending one frame more this time slice */
+            adjust++;
+        }
+    }
+
+    return adjust;
+}
+
+
 /*******************************************************************************
  **
  ** Function         btif_media_task_aa_handle_timer
@@ -936,7 +1073,7 @@ static void btif_media_task_aa_handle_uipc_rx_rdy(void)
     btif_media_aa_prep_2_send(0xFF);
 
     /* send it */
-    APPL_TRACE_DEBUG0("btif_media_task_aa_handle_uipc_rx_rdy calls bta_av_ci_src_data_ready");
+    VERBOSE("btif_media_task_aa_handle_uipc_rx_rdy calls bta_av_ci_src_data_ready");
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
 }
 #endif
@@ -960,6 +1097,8 @@ void btif_media_task_init(void)
 #if (BTA_AV_INCLUDED == TRUE)
     UIPC_Open(UIPC_CH_ID_AV_CTRL , btif_a2dp_ctrl_cb);
 #endif
+
+
 }
 /*******************************************************************************
  **
@@ -980,7 +1119,7 @@ int btif_media_task(void *p)
     UINT16 event;
     BT_HDR *p_msg;
 
-    APPL_TRACE_DEBUG0("================ MEDIA TASK STARTING ================");
+    VERBOSE("================ MEDIA TASK STARTING ================");
 
     btif_media_task_init();
 
@@ -988,7 +1127,7 @@ int btif_media_task(void *p)
     {
         event = GKI_wait(0xffff, 0);
 
-        APPL_TRACE_DEBUG1("================= MEDIA TASK EVENT %d ===============", event);
+        VERBOSE("================= MEDIA TASK EVENT %d ===============", event);
 
         if (event & BTIF_MEDIA_TASK_CMD)
         {
@@ -1015,7 +1154,7 @@ int btif_media_task(void *p)
         }
 
 
-        APPL_TRACE_DEBUG1("=============== MEDIA TASK EVENT %d DONE ============", event);
+        VERBOSE("=============== MEDIA TASK EVENT %d DONE ============", event);
 
         /* When we get this event we exit the task  - should only happen on GKI_shutdown  */
         if (event & BTIF_MEDIA_TASK_KILL)
@@ -1083,7 +1222,7 @@ static void btif_media_flush_q(BUFFER_Q *p_q)
  *******************************************************************************/
 static void btif_media_task_handle_cmd(BT_HDR *p_msg)
 {
-    APPL_TRACE_DEBUG2("btif_media_task_handle_cmd : %d %s", p_msg->event, dump_media_event(p_msg->event));
+    VERBOSE("btif_media_task_handle_cmd : %d %s", p_msg->event, dump_media_event(p_msg->event));
 
     switch (p_msg->event)
     {
@@ -1114,7 +1253,7 @@ static void btif_media_task_handle_cmd(BT_HDR *p_msg)
         APPL_TRACE_ERROR1("ERROR in btif_media_task_handle_cmd unknown event %d", p_msg->event);
     }
     GKI_freebuf(p_msg);
-    APPL_TRACE_EVENT1("btif_media_task_handle_cmd : %s DONE", dump_media_event(p_msg->event));
+    VERBOSE("btif_media_task_handle_cmd : %s DONE", dump_media_event(p_msg->event));
 }
 
 /*******************************************************************************
@@ -1371,7 +1510,6 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
 
         /* Set the initial target bit rate */
         pstrEncParams->u16BitRate = DEFAULT_SBC_BITRATE;
-
         if (pstrEncParams->s16SamplingFreq == SBC_sf16000)
             s16SamplingFreq = 16000;
         else if (pstrEncParams->s16SamplingFreq == SBC_sf32000)
@@ -1621,6 +1759,9 @@ static void btif_media_task_feeding_state_reset(void)
     /* By default, just clear the entire state */
     memset(&btif_media_cb.media_feeding_state, 0, sizeof(btif_media_cb.media_feeding_state));
 
+    /* reset pcm time tracker */
+    ra_reset();
+
 
 }
 /*******************************************************************************
@@ -1719,6 +1860,11 @@ static UINT8 btif_get_num_aa_frame(void)
                 }
                 break;
             }
+
+            result += ra_adjust();
+
+            VERBOSE("WRITE %d FRAMES", result);
+
 #if ((defined(BTIF_MEDIA_OVERFEED_INCLUDED) && (BTIF_MEDIA_OVERFEED_INCLUDED == TRUE)) || \
      (defined(BTIF_MEDIA_UNDERFEED_INCLUDED) && (BTIF_MEDIA_UNDERFEED_INCLUDED == TRUE)))
             btif_media_cb.tx_counter++;
@@ -1857,6 +2003,9 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
     /* Read Data from UIPC channel */
     nb_byte_read = UIPC_Read(channel_id, &event, (UINT8 *)read_buffer, read_size);
 
+    /* update read 'pcmtime' */
+    ra_update(nb_byte_read);
+
     //tput_mon(TRUE, nb_byte_read, FALSE);
 
     if (nb_byte_read < read_size)
@@ -1993,7 +2142,7 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
         /* store the time stamp in the buffer to send */
         *((UINT32 *) (p_buf + 1)) = btif_media_cb.timestamp;
 
-        APPL_TRACE_EVENT1("TX QUEUE NOW %d", btif_media_cb.TxAaQ.count);
+        VERBOSE("TX QUEUE NOW %d", btif_media_cb.TxAaQ.count);
 
         if (btif_media_cb.tx_flush)
         {
@@ -2024,7 +2173,8 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
 
 static void btif_media_aa_prep_2_send(UINT8 nb_frame)
 {
-    APPL_TRACE_DEBUG1("btif_media_aa_prep_2_send : %d frames in queue", btif_media_cb.TxAaQ.count);
+    VERBOSE("btif_media_aa_prep_2_send : %d frames (queue %d)", nb_frame,
+                       btif_media_cb.TxAaQ.count);
 
     /* Remove all the buffers not sent until there are only 4 in the queue */
     while (btif_media_cb.TxAaQ.count >= MAX_OUTPUT_BUFFER_QUEUE_SZ)
@@ -2066,7 +2216,7 @@ static void btif_media_send_aa_frame(void)
     btif_media_aa_prep_2_send(nb_frame_2_send);
 
     /* send it */
-    APPL_TRACE_DEBUG0("btif_media_send_aa_frame calls bta_av_ci_src_data_ready");
+    VERBOSE("btif_media_send_aa_frame : send %d frames", nb_frame_2_send);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
 }
 
