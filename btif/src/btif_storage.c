@@ -262,6 +262,7 @@ static void btif_in_split_uuids_string_to_list(char *str, bt_uuid_t *p_uuid,
     do
     {
         p_needle = strchr(p_start, ';');
+        if (p_needle < p_start) break;
         memset(buf, 0, sizeof(buf));
         strncpy(buf, p_start, (p_needle-p_start));
         string_to_uuid(buf, p_uuid + num);
