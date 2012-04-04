@@ -927,11 +927,18 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
                 storage_req_id = BTIF_CORE_STORAGE_ADAPTER_WRITE;
             }
             break;
+        case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
+            {
+                //Nothing to do beside store the value in NV.  Java
+                //will change the SCAN_MODE property after setting timeout,
+                //if required.
+                storage_req_id = BTIF_CORE_STORAGE_ADAPTER_WRITE;
+            }
+            break;
         case BT_PROPERTY_BDADDR:
         case BT_PROPERTY_UUIDS:
         case BT_PROPERTY_ADAPTER_BONDED_DEVICES:
         case BT_PROPERTY_REMOTE_FRIENDLY_NAME:
-        case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
             /* no write support through HAL, these properties are only populated from BTA events */
             status = BT_STATUS_FAIL;
             break;
