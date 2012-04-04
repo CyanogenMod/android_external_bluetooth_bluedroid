@@ -262,8 +262,6 @@ static void btif_in_split_uuids_string_to_list(char *str, bt_uuid_t *p_uuid,
     do
     {
         p_needle = strchr(p_start, ';');
-        if (!p_needle)
-            break;
         memset(buf, 0, sizeof(buf));
         strncpy(buf, p_start, (p_needle-p_start));
         string_to_uuid(buf, p_uuid + num);
@@ -536,12 +534,10 @@ static int hex_str_to_int(const char* str, int size)
     char c = *str++;
     while (size-- != 0) {
         n <<= 4;
-        if (c >= '0' && c <= '9')
-        {
+        if (c >= '0' && c <= '9') {
             n |= c - '0';
         }
-        else if (c >= 'a' && c <= 'z')
-        {
+        else if (c >= 'a' && c <= 'z') {
             n |= c - 'a' + 10;
         }
         else { // (c >= 'A' && c <= 'Z')
@@ -553,6 +549,85 @@ static int hex_str_to_int(const char* str, int size)
     return n;
 }
 
+/*******************************************************************************
+**
+** Function         btif_in_load_hid_info_iter_cb
+**
+** Description      Internal iterator callback from UNV when loading the
+**                  hid device info
+**
+** Returns
+**
+*******************************************************************************/
+
+int btif_in_load_hid_info_iter_cb(char *key, char *value, void *userdata)
+{
+    btif_bonded_devices_t *p_bonded_devices = (btif_bonded_devices_t *)userdata;
+    bt_bdaddr_t bd_addr;
+    tBTA_HH_DEV_DSCP_INFO dscp_info;
+    uint32_t i;
+    uint16_t attr_mask,a;
+    uint8_t  sub_class;
+    uint8_t  app_id;
+    BD_ADDR* bda;
+    char     *p;
+
+
+    BTIF_TRACE_DEBUG3("%s - %s - %s", __FUNCTION__, key, value);
+
+    p = value;
+    attr_mask = (uint16_t) hex_str_to_int(p, 4);
+    p +=5;
+    sub_class = (uint8_t) hex_str_to_int(p, 2);
+    p +=3;
+    app_id = (uint8_t) hex_str_to_int(p, 2);
+    p +=3;
+    dscp_info.vendor_id = (uint16_t) hex_str_to_int(p, 4);
+    p += 5;
+    dscp_info.product_id = (uint16_t) hex_str_to_int(p, 4);
+    p += 5;
+    dscp_info.version = (uint8_t) hex_str_to_int(p, 4);
+    p += 5;
+    dscp_info.ctry_code = (uint8_t) hex_str_to_int(p, 2);
+    p += 3;
+    dscp_info.descriptor.dl_len = (uint16_t) hex_str_to_int(p, 4);
+    p += 5;
+
+    BTIF_TRACE_DEBUG6("attr_mask=%d,sub_class=%d,app_id=%d,vendor_id=%d,product_id=%d,version=%d",attr_mask,
+                        sub_class,app_id,dscp_info.vendor_id,dscp_info.product_id, dscp_info.version);
+    BTIF_TRACE_DEBUG2("country_code=%d,dscp_len=%d",dscp_info.ctry_code, dscp_info.descriptor.dl_len);
+
+    dscp_info.descriptor.dsc_list = (UINT8 *) GKI_getbuf(dscp_info.descriptor.dl_len);
+    if (dscp_info.descriptor.dsc_list == NULL)
+    {
+        LOGE("%s: Failed to allocate DSCP for CB", __FUNCTION__);
+        return BT_STATUS_FAIL;
+    }
+    for (i = 0; i < dscp_info.descriptor.dl_len; i++)
+    {
+        dscp_info.descriptor.dsc_list[i] = (uint8_t) hex_str_to_int(p, 2);
+        p += 2;
+    }
+
+    BTIF_TRACE_DEBUG1("btif_in_load_hid_info_iter_cb: BD-ADDR---%s",key);
+    /* convert bd address (keystring) */
+    //str2bd(key, &bd_addr);
+    //bda = (BD_ADDR*) &bd_addr;
+
+    /* add extracted information to BTA HH
+    if (btif_hh_add_added_dev(bd_addr,attr_mask))
+    {
+        BTA_HhAddDev(bd_addr.address, attr_mask, sub_class,
+                     app_id, dscp_info);
+    }*/
+
+    GKI_freebuf(dscp_info.descriptor.dsc_list);
+
+     /* Fill in the bonded devices */
+    //mcpy(&p_bonded_devices->devices[p_bonded_devices->num_devices++], &bd_addr, sizeof(bt_bdaddr_t));
+
+    return 0;
+}
 
 /************************************************************************************
 **  Externs
@@ -1085,6 +1160,141 @@ bt_status_t btif_storage_load_bonded_devices(void)
                                         num_props, remote_properties);
          }
     }
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_add_hid_device_info
+**
+** Description      BTIF storage API - Adds the hid information of bonded hid devices-to NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the store was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+
+bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
+                                                    UINT16 attr_mask, UINT8 sub_class,
+                                                    UINT8 app_id, UINT16 vendor_id,
+                                                    UINT16 product_id, UINT16 version,
+                                                    UINT8 ctry_code, UINT16 dl_len, UINT8 *dsc_list)
+{
+    char  *hid_info;
+    uint32_t i = 0;
+    char *fname;
+    bdstr_t bdstr;
+    int ret;
+
+    char*    p;
+    size_t   size;
+
+    fname = btif_in_make_filename(NULL,
+                                  BTIF_STORAGE_PATH_REMOTE_HIDINFO);
+    if (fname == NULL)
+    {
+        return BT_STATUS_FAIL;
+    }
+    ret = unv_create_file(fname);
+
+    if (ret < 0)
+    {
+        return BT_STATUS_FAIL;
+    }
+    BTIF_TRACE_DEBUG1("%s",__FUNCTION__);
+
+
+    size = 5 + 3 + 3 + 5 + 5 + 5 + 3 + 5 + (2 * dl_len) + 1;
+    hid_info = (char *) malloc(size);
+    if (hid_info == NULL) {
+        BTIF_TRACE_ERROR2("%s: Oops, failed to allocate %d byte buffer for HID info string",
+              __FUNCTION__, size);
+        return BT_STATUS_FAIL;
+    }
+
+
+    sprintf(hid_info, "%04X %02X %02X %04X %04X %04X %02X %04X ",
+            attr_mask,sub_class,app_id,vendor_id,product_id,version,ctry_code,dl_len);
+
+    i = 0;
+    p = &hid_info[strlen(hid_info)];
+    while ((i + 16) <= dl_len) {
+        sprintf(p, "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
+                dsc_list[i],    dsc_list[i+1],  dsc_list[i+2],  dsc_list[i+3],
+                dsc_list[i+4],  dsc_list[i+5],  dsc_list[i+6],  dsc_list[i+7],
+                dsc_list[i+8],  dsc_list[i+9],  dsc_list[i+10], dsc_list[i+11],
+                dsc_list[i+12], dsc_list[i+13], dsc_list[i+14], dsc_list[i+15]);
+        p += 32;
+        i += 16;
+    }
+    if ((i + 8) <= dl_len) {
+        sprintf(p, "%02X%02X%02X%02X%02X%02X%02X%02X",
+                dsc_list[i],   dsc_list[i+1], dsc_list[i+2], dsc_list[i+3],
+                dsc_list[i+4], dsc_list[i+5], dsc_list[i+6], dsc_list[i+7]);
+        p += 16;
+        i += 8;
+    }
+    if ((i + 4) <= dl_len) {
+        sprintf(p, "%02X%02X%02X%02X",
+                dsc_list[i], dsc_list[i+1], dsc_list[i+2], dsc_list[i+3]);
+        p += 8;
+        i += 4;
+    }
+    if ((i + 3) == dl_len) {
+        sprintf(p, "%02X%02X%02X", dsc_list[i], dsc_list[i+1], dsc_list[i+2]);
+        p += 6;
+    }
+    else if ((i + 2) == dl_len) {
+        sprintf(p, "%02X%02X", dsc_list[i], dsc_list[i+1]);
+        p += 4;
+    }
+    else if ((i + 1) == dl_len) {
+        sprintf(p, "%02X", dsc_list[i]);
+        p += 2;
+    }
+    *p = '\0';
+
+    BTIF_TRACE_DEBUG1("key: %s",bd2str(remote_bd_addr, &bdstr));
+    BTIF_TRACE_DEBUG1("hid info %s",hid_info);
+
+    ret = unv_write_key(fname, bd2str(remote_bd_addr, &bdstr), hid_info);
+
+    if (ret < 0)
+    {
+        return BT_STATUS_FAIL;
+    }
+
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_load_bonded_hid_info
+**
+** Description      BTIF storage API - Loads hid info for all the bonded devices from NVRAM
+**                  and adds those devices  to the BTA_HH.
+**
+** Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_load_bonded_hid_info(void)
+{
+    char *fname;
+    btif_bonded_devices_t bonded_devices;
+    int ret;
+
+    memset(&bonded_devices, 0, sizeof(btif_bonded_devices_t));
+
+    fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_REMOTE_HIDINFO);
+
+    if (fname == NULL)
+        return BT_STATUS_FAIL;
+
+    ret = unv_read_key_iter(fname, btif_in_load_hid_info_iter_cb, &bonded_devices);
+
+    if (ret < 0)
+        return BT_STATUS_FAIL;
+
     return BT_STATUS_SUCCESS;
 }
 

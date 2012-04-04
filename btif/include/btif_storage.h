@@ -185,5 +185,36 @@ bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t *remote_bd_addr);
 *******************************************************************************/
 bt_status_t btif_storage_load_bonded_devices(void);
 
+/*******************************************************************************
+**
+** Function         btif_storage_add_hid_device_info
+**
+** Description      BTIF storage API - Adds the hid information of bonded hid devices-to NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the store was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+
+bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
+                                                    UINT16 attr_mask, UINT8 sub_class,
+                                                    UINT8 app_id, UINT16 vendor_id,
+                                                    UINT16 product_id, UINT16 version,
+                                                    UINT8 ctry_code, UINT16 dl_len, UINT8 *dsc_list);
+
+
+/*******************************************************************************
+**
+** Function         btif_storage_load_bonded_hid_info
+**
+** Description      BTIF storage API - Loads hid info for all the bonded devices from NVRAM
+**                  and adds those devices  to the BTA_HH.
+**
+** Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_load_bonded_hid_info(void);
+
+
 #endif /* BTIF_STORAGE_H */
 

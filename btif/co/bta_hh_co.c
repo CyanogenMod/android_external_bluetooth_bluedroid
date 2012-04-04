@@ -62,8 +62,6 @@
 
 #define UINT8 uint8_t
 #define UINT16 uint16_t
-#if (defined(HH_USE_BTHID) && (HH_USE_BTHID == TRUE))
-
 
 #define BTHID_HID_INFO  1
 #define LOG_TAG "BTA_HH_CO"
@@ -81,9 +79,6 @@ typedef struct BTHID_CONTROL
     unsigned short ctry_code;
 } tBTHID_CONTROL;
 
-#else
-
-#endif
 
 static UINT8 HID_REPORT_START[] = {1,0,0};
 #define HID_REPORT_CAPSLOCK  0x39
@@ -154,12 +149,9 @@ void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class, tBTA_HH_ATTR_MASK attr_ma
                 p_dev->app_id     = app_id;
 
                 btif_hh_cb.device_num++;
-
-    #if (defined(HH_USE_BTHID) && (HH_USE_BTHID == TRUE))
                 // This is a new device,open the bthid driver now.
                 p_dev->fd = open("/dev/bthid", O_RDWR);
                 BTIF_TRACE_WARNING3("%s: bthid fd = %d, errno=%d", __FUNCTION__, p_dev->fd,errno);
-    #endif
                 break;
             }
         }
@@ -219,85 +211,21 @@ void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len, tBTA_HH_PROTO_MO
          "ctry_code = %d, app_id = %d",
          __FUNCTION__, dev_handle, sub_class, mode, ctry_code, app_id);
 
-
-    // Verbose logging
-    /*
-    int i;
-    for (i =0; i < len;i++) {
-        LOGV("%s: %x",__FUNCTION__, p_rpt[i]);
-    }
-    */
-
     p_dev = btif_hh_find_connected_dev_by_handle(dev_handle);
     if (p_dev == NULL) {
         BTIF_TRACE_WARNING2("%s: Error: unknown HID device handle %d", __FUNCTION__, dev_handle);
         return;
     }
-
-#if (defined(HH_USE_BTHID) && (HH_USE_BTHID == TRUE))
     // Send the HID report to the kernel.
     if (p_dev->fd >= 0) {
         BTIF_TRACE_WARNING3("%s: fd = %d, len = %d", __FUNCTION__, p_dev->fd, len);
         /* TODO: keystate
-        if (app_id == BTAPP_HH_APP_ID_KB) {
-            process_rpt_keys_with_state(dev_handle,p_rpt,len);
-        }
         */
         write(p_dev->fd, p_rpt, len);
     }
     else {
         BTIF_TRACE_WARNING3("%s: Error: fd = %d, len = %d", __FUNCTION__, p_dev->fd, len);
     }
-#else
-
-    switch (app_id) {
-    case BTAPP_HH_APP_ID_KB:
-    case BTAPP_HH_APP_ID_MI:
-        if (mode == BTA_HH_PROTO_BOOT_MODE) {
-            // Call utility function to parse the boot mode report
-            BTA_HhParseBootRpt(&rpt, p_rpt, len);
-
-            switch (rpt.dev_type) {
-
-            case BTA_HH_KEYBD_RPT_ID:  // HID keyboard
-                /* Process the keypress by looking up the key conversion table
-                 * which could be different from language to language.
-                 * Application can pass in different key conversion table depend on
-                 * the keyboard language. For undefined country code or English
-                 * keyboard, use the default key conversion table
-                 *
-                 * We only use default conversion table here, ignore the language
-                 * and the country code.
-                 */
-               process_keyboard_rpt(p_dev, &rpt.data_rpt.keybd_rpt);
-                break;
-
-            case BTA_HH_MOUSE_RPT_ID: // HID mouse
-                process_mouse_rpt(&rpt.data_rpt.mice_rpt);
-                break;
-
-            default:
-                BTIF_TRACE_WARNING4("%s: Unknown boot-mode HID report(%d) \"%s\", dev_type = %d",
-                     __FUNCTION__, len, p_rpt, rpt.dev_type);
-                //LOGI("%s: %x %x %x %x %x %x %x",
-                //     __FUNCTION__, p_rpt[0], p_rpt[1], p_rpt[2], p_rpt[3], p_rpt[4],
-                //     p_rpt[5], p_rpt[6]);
-                break;
-            }
-        }
-        else {
-            BTIF_TRACE_WARNING4("%s: Unsupported HID mode %d rpt(%d) \"%s\"",
-                 __FUNCTION__, mode, len, p_rpt);
-        }
-        break;
-
-    default:
-        BTIF_TRACE_WARNING4("%s: Unknown HID report app_id %d rpt(%d) \"%s\"",
-             __FUNCTION__, app_id, len, p_rpt);
-        break;
-    }
-
-#endif  // (defined(HH_USE_BTHID) && (HH_USE_BTHID == TRUE))
 }
 
 
@@ -305,7 +233,7 @@ void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len, tBTA_HH_PROTO_MO
 **
 ** Function         bta_hh_co_send_hid_info
 **
-** Description      This function is called in btapp_hh.c to process DSCP received.
+** Description      This function is called in btif_hh.c to process DSCP received.
 **
 ** Parameters       dev_handle  - device handle
 **                  dscp_len    - report descriptor length
@@ -317,10 +245,8 @@ void bta_hh_co_send_hid_info(btif_hh_device_t *p_dev, char *dev_name, UINT16 ven
                              UINT16 product_id, UINT16 version, UINT8 ctry_code,
                              int dscp_len, UINT8 *p_dscp)
 {
-#if (defined(HH_USE_BTHID) && (HH_USE_BTHID == TRUE))
     int result;
     tBTHID_CONTROL  ctrl;
-#endif
 
     /*
     int i;
@@ -333,8 +259,6 @@ void bta_hh_co_send_hid_info(btif_hh_device_t *p_dev, char *dev_name, UINT16 ven
              p_dscp[i+12], p_dscp[i+13], p_dscp[i+14], p_dscp[i+15]);
     }
     */
-
-#if (defined(HH_USE_BTHID) && (HH_USE_BTHID == TRUE))
     if (p_dev->fd < 0) {
         BTIF_TRACE_WARNING3("%s: Error: fd = %d, dscp_len = %d", __FUNCTION__, p_dev->fd, dscp_len);
         return;
@@ -372,7 +296,6 @@ void bta_hh_co_send_hid_info(btif_hh_device_t *p_dev, char *dev_name, UINT16 ven
         close(p_dev->fd);
         p_dev->fd = -1;
     }
-#endif
 }
 
 
