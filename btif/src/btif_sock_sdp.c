@@ -93,6 +93,17 @@
 #define RESERVED_SCN_PBS 19
 #define RESERVED_SCN_OPS 12
 
+#define UUID_MAX_LENGTH 16
+static const UINT8  UUID_OBEX_OBJECT_PUSH[] = {0x00, 0x00, 0x11, 0x05, 0x00, 0x00, 0x10, 0x00,
+                                               0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
+
+static const UINT8  UUID_PBAP_PSE[] =          {0x00, 0x00, 0x11, 0x2F, 0x00, 0x00, 0x10, 0x00,
+                                               0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
+
+static const UINT8  UUID_OBEX_FILE_TRANSFER[] = {0x00, 0x00, 0x11, 0x06, 0x00, 0x00, 0x10, 0x00,
+                                                 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
+
+#define IS_UUID(u1,u2)  !memcmp(u1,u2,UUID_MAX_LENGTH)
 
 static int add_ftp_sdp(const char *p_service_name, int scn)
 {
@@ -430,7 +441,7 @@ static int add_ops_sdp(const char *p_service_name,int scn)
         if (SDP_AddProtocolList(sdp_handle, BTA_OPS_PROTOCOL_COUNT, protoList))
         {
             SDP_AddAttribute(sdp_handle,
-                (UINT16)ATTR_ID_SERVICE_NAME,
+               (UINT16)ATTR_ID_SERVICE_NAME,
                 (UINT8)TEXT_STR_DESC_TYPE,
                 (UINT32)(strlen(p_service_name) + 1),
                 (UINT8 *)p_service_name);
@@ -470,24 +481,13 @@ static int add_ops_sdp(const char *p_service_name,int scn)
 
 
 
-
-
 static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
 {
-   int handle = 0;
-   UINT16 uuid_16bit;
+    int handle = 0;
 
-   uuid_16bit = (((UINT16)uuid[2]) << 8) | (UINT16)uuid[3];
+    info("name:%s, scn:%d", name, scn);
 
-   info("name:%s, scn:%d, uuid_16bit: %d", name, scn,uuid_16bit);
-
-   int final_scn = get_reserved_rfc_channel(uuid);
-   if (final_scn == -1)
-   {
-       final_scn=scn;
-   }
-
-   /*
+    /*
         Bluetooth Socket API relies on having preregistered bluez sdp records for HSAG, HFAG, OPP & PBAP
         that are mapped to rc chan 10, 11,12 & 19. Today HSAG and HFAG is routed to BRCM AG and are not
         using BT socket API so for now we will need to support OPP and PBAP to enable 3rd party developer
@@ -497,17 +497,22 @@ static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
         upon reception.  See functions add_opush() and add_pbap() in sdptool.c for actual records
     */
 
-   /* special handling for preregistered bluez services (OPP, PBAP) that we need to mimic */
+    /* special handling for preregistered bluez services (OPP, PBAP) that we need to mimic */
 
-    if (uuid_16bit == UUID_SERVCLASS_OBEX_OBJECT_PUSH)
+    int final_scn = get_reserved_rfc_channel(uuid);
+    if (final_scn == -1)
+    {
+        final_scn=scn;
+    }
+    if (IS_UUID(UUID_OBEX_OBJECT_PUSH,uuid))
     {
         handle = add_ops_sdp(name,final_scn);
     }
-    else if (uuid_16bit == UUID_SERVCLASS_PBAP_PSE)
+    else if (IS_UUID(UUID_PBAP_PSE,uuid))
     {
         handle = add_pbap_sdp(name, final_scn); //PBAP Server is always 19
     }
-    else if(uuid_16bit == UUID_SERVCLASS_OBEX_FILE_TRANSFER)
+    else if (IS_UUID(UUID_OBEX_FILE_TRANSFER,uuid))
     {
         APPL_TRACE_EVENT0("Stopping btld ftp serivce when 3-party registering ftp service");
         //BTA_FtsDisable();
@@ -534,18 +539,14 @@ BOOLEAN is_reserved_rfc_channel(int scn)
 
 int get_reserved_rfc_channel (const uint8_t* uuid)
 {
-    UINT16 uuid_16bit;
-    uuid_16bit = (((UINT16)uuid[2]) << 8) | (UINT16)uuid[3];
-    info("uuid_16bit: %d", uuid_16bit);
-    if (uuid_16bit == UUID_SERVCLASS_PBAP_PSE)
+    if (IS_UUID(UUID_PBAP_PSE,uuid))
     {
       return RESERVED_SCN_PBS;
     }
-    else if (uuid_16bit == UUID_SERVCLASS_OBEX_OBJECT_PUSH)
+    else if (IS_UUID(UUID_OBEX_OBJECT_PUSH,uuid))
     {
       return RESERVED_SCN_OPS;
     }
-
     return -1;
 }
 
