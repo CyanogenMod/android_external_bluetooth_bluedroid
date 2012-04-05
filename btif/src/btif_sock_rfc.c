@@ -182,6 +182,18 @@ bt_status_t btsock_rfc_init(int poll_thread_handle)
     init_rfc_slots();
     return BT_STATUS_SUCCESS;
 }
+void btsock_rfc_cleanup()
+{
+    btsock_thread_exit(pth);
+    lock_slot(&slot_lock);
+    int i;
+    for(i = 0; i < MAX_RFC_CHANNEL; i++)
+    {
+        if(rfc_slots[i].id)
+            cleanup_rfc_slot(&rfc_slots[i]);
+    }
+    unlock_slot(&slot_lock);
+}
 static inline rfc_slot_t* find_free_slot()
 {
     int i;
@@ -512,6 +524,7 @@ static inline BOOLEAN send_app_scn(rfc_slot_t* rs)
     {
         return TRUE;
     }
+
     return FALSE;
 }
 static BOOLEAN send_app_connect_signal(int fd, const bt_bdaddr_t* addr, int channel, int status, int send_fd)

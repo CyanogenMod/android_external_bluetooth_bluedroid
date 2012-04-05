@@ -103,7 +103,8 @@ bt_status_t btif_sock_init()
     static volatile int binit;
     if(!binit)
     {
-        binit = 1;
+        //fix me, the process doesn't exit right now. don't set the init flag for now
+        //binit = 1;
         debug("btsock initializing...");
         btsock_thread_init();
         int handle = btsock_thread_create(btsock_signaled);
@@ -119,6 +120,7 @@ bt_status_t btif_sock_init()
 void btif_sock_cleanup()
 {
     debug("btif_sock_cleanup()");
+    btsock_rfc_cleanup();
 }
 static bt_status_t btsock_listen(btsock_type_t type, const char* service_name,
         const uint8_t* service_uuid, int channel, int* sock_fd, int flags)

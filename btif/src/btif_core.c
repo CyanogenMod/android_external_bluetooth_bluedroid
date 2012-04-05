@@ -460,6 +460,8 @@ bt_status_t btif_disable_bluetooth(void)
 
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
 
+    //cleanup rfcomm & l2cap api
+    btif_sock_cleanup();
     status = BTA_DisableBluetooth();
 
     if (status != BTA_SUCCESS)

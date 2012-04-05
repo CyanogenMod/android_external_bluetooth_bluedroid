@@ -56,7 +56,8 @@
 
 #ifndef btif_sock_rfc_h_
 #define btif_sock_rfc_h_
-bt_status_t btsock_rfc_init();
+bt_status_t btsock_rfc_init(int handle);
+bt_status_t btsock_rfc_cleanup();
 bt_status_t btsock_rfc_listen(const char* name, const uint8_t* uuid, int channel, int* sock_fd, int flags);
 bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t* uuid, int channel, int* sock_fd, int flags);
 void btsock_rfc_signaled(int fd, int flags, uint32_t user_id);
