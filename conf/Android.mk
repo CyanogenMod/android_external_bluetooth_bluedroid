@@ -19,6 +19,9 @@ endif
 ifeq ($(TARGET_PRODUCT), full_crespo)
     include $(LOCAL_PATH)/samsung/crespo/Android.mk
 endif
+ifeq ($(TARGET_PRODUCT), full_crespo4g)
+    include $(LOCAL_PATH)/samsung/crespo4g/Android.mk
+endif
 ifeq ($(TARGET_PRODUCT), full_wingray)
     include $(LOCAL_PATH)/moto/wingray/Android.mk
 endif

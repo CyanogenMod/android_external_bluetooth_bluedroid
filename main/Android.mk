@@ -94,7 +94,11 @@ LOCAL_CFLAGS += -DBUILDCFG -Werror
 
 ifeq ($(TARGET_PRODUCT), full_crespo)
      LOCAL_CFLAGS += -DTARGET_CRESPO
-else
+endif
+ifeq ($(TARGET_PRODUCT), full_crespo4g)
+     LOCAL_CFLAGS += -DTARGET_CRESPO
+endif
+ifeq ($(TARGET_PRODUCT), full_maguro)
      LOCAL_CFLAGS += -DTARGET_MAGURO
 endif
 
