@@ -677,7 +677,7 @@ int unv_read_key_iter( const char *path,
     line = strtok(p, UNV_DELIM);
     while (line)
     {
-        char key[128], value[128];
+        char key[128], value[1024];
         char *needle;
 
         needle = strchr(line, ' ');

@@ -148,6 +148,15 @@
 
 #define STORAGE_KEY_TYPE_MAX               (10)
 
+#define STORAGE_HID_ATRR_MASK_SIZE           (4)
+#define STORAGE_HID_SUB_CLASS_SIZE           (2)
+#define STORAGE_HID_APP_ID_SIZE              (2)
+#define STORAGE_HID_VENDOR_ID_SIZE           (4)
+#define STORAGE_HID_PRODUCT_ID_SIZE          (4)
+#define STORAGE_HID_VERSION_SIZE             (4)
+#define STORAGE_HID_CTRY_CODE_SIZE           (2)
+#define STORAGE_HID_DESC_LEN_SIZE            (4)
+#define STORAGE_HID_DESC_MAX_SIZE            (2*512)
 
 /* <18 char bd addr> <space> LIST< <36 char uuid> <;> > <keytype (dec)> <pinlen> */
 #define BTIF_REMOTE_SERVICES_ENTRY_SIZE_MAX (STORAGE_BDADDR_STRING_SZ + 1 +\
@@ -157,9 +166,24 @@
 
 #define STORAGE_REMOTE_LINKKEYS_ENTRY_SIZE (LINK_KEY_LEN*2 + 1 + 2 + 1 + 2)
 
+/* <18 char bd addr> <space>LIST <attr_mask> <space> > <sub_class> <space> <app_id> <space>
+                                <vendor_id> <space> > <product_id> <space> <version> <space>
+                                <ctry_code> <space> > <desc_len> <space> <desc_list> <space> */
+#define BTIF_HID_INFO_ENTRY_SIZE_MAX    (STORAGE_BDADDR_STRING_SZ + 1 +\
+                                         STORAGE_HID_ATRR_MASK_SIZE + 1 +\
+                                         STORAGE_HID_SUB_CLASS_SIZE + 1 +\
+                                         STORAGE_HID_APP_ID_SIZE+ 1 +\
+                                         STORAGE_HID_VENDOR_ID_SIZE+ 1 +\
+                                         STORAGE_HID_PRODUCT_ID_SIZE+ 1 +\
+                                         STORAGE_HID_VERSION_SIZE+ 1 +\
+                                         STORAGE_HID_CTRY_CODE_SIZE+ 1 +\
+                                         STORAGE_HID_DESC_LEN_SIZE+ 1 +\
+                                         STORAGE_HID_DESC_MAX_SIZE+ 1 )
+
 
 /* currently remote services is the potentially largest entry */
 #define BTIF_STORAGE_MAX_LINE_SZ BTIF_REMOTE_SERVICES_ENTRY_SIZE_MAX
+
 
 /* check against unv max entry size at compile time */
 #if (BTIF_STORAGE_ENTRY_MAX_SIZE > UNV_MAXLINE_LENGTH)
@@ -594,10 +618,6 @@ int btif_in_load_hid_info_iter_cb(char *key, char *value, void *userdata)
     dscp_info.descriptor.dl_len = (uint16_t) hex_str_to_int(p, 4);
     p += 5;
 
-    BTIF_TRACE_DEBUG6("attr_mask=%d,sub_class=%d,app_id=%d,vendor_id=%d,product_id=%d,version=%d",attr_mask,
-                        sub_class,app_id,dscp_info.vendor_id,dscp_info.product_id, dscp_info.version);
-    BTIF_TRACE_DEBUG2("country_code=%d,dscp_len=%d",dscp_info.ctry_code, dscp_info.descriptor.dl_len);
-
     dscp_info.descriptor.dsc_list = (UINT8 *) GKI_getbuf(dscp_info.descriptor.dl_len);
     if (dscp_info.descriptor.dsc_list == NULL)
     {
@@ -610,23 +630,19 @@ int btif_in_load_hid_info_iter_cb(char *key, char *value, void *userdata)
         p += 2;
     }
 
-    BTIF_TRACE_DEBUG1("btif_in_load_hid_info_iter_cb: BD-ADDR---%s",key);
     /* convert bd address (keystring) */
-    //str2bd(key, &bd_addr);
-    //bda = (BD_ADDR*) &bd_addr;
+    str2bd(key, &bd_addr);
+    bda = (BD_ADDR*) &bd_addr;
 
-    /* add extracted information to BTA HH
+    // add extracted information to BTA HH
     if (btif_hh_add_added_dev(bd_addr,attr_mask))
     {
+        BTIF_TRACE_DEBUG0("btif_in_load_hid_info_iter_cb: adding device");
         BTA_HhAddDev(bd_addr.address, attr_mask, sub_class,
                      app_id, dscp_info);
-    }*/
+    }
 
     GKI_freebuf(dscp_info.descriptor.dsc_list);
-
-     /* Fill in the bonded devices */
-    //mcpy(&p_bonded_devices->devices[p_bonded_devices->num_devices++], &bd_addr, sizeof(bt_bdaddr_t));
-
     return 0;
 }
 
@@ -684,7 +700,7 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
 
         btif_in_fetch_bonded_devices(&bonded_devices);
 
-        BTIF_TRACE_DEBUG2("%s: Number of bonded devices: %d", __FUNCTION__, bonded_devices.num_devices);
+        BTIF_TRACE_DEBUG2("%s: Number of bonded devices: %d Property:BT_PROPERTY_ADAPTER_BONDED_DEVICES", __FUNCTION__, bonded_devices.num_devices);
 
         if (bonded_devices.num_devices > 0)
         {
@@ -1204,8 +1220,15 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
     }
     BTIF_TRACE_DEBUG1("%s",__FUNCTION__);
 
+/* value = <attr_mask> <space> > <sub_class> <space> <app_id> <space>
+                                <vendor_id> <space> > <product_id> <space> <version> <space>
+                                <ctry_code> <space> > <desc_len> <space> <desc_list> <space> */
+    size = (STORAGE_BDADDR_STRING_SZ + 1 + STORAGE_HID_ATRR_MASK_SIZE + 1 +
+            STORAGE_HID_SUB_CLASS_SIZE + 1 + STORAGE_HID_APP_ID_SIZE+ 1 +
+            STORAGE_HID_VENDOR_ID_SIZE+ 1 + STORAGE_HID_PRODUCT_ID_SIZE+ 1 +
+            STORAGE_HID_VERSION_SIZE+ 1 + STORAGE_HID_CTRY_CODE_SIZE+ 1 +
+            STORAGE_HID_DESC_LEN_SIZE+ 1 + (dl_len *2)+1);
 
-    size = 5 + 3 + 3 + 5 + 5 + 5 + 3 + 5 + (2 * dl_len) + 1;
     hid_info = (char *) malloc(size);
     if (hid_info == NULL) {
         BTIF_TRACE_ERROR2("%s: Oops, failed to allocate %d byte buffer for HID info string",
@@ -1213,7 +1236,7 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
         return BT_STATUS_FAIL;
     }
 
-
+    //Convert the entries to hex and copy it to hid_info
     sprintf(hid_info, "%04X %02X %02X %04X %04X %04X %02X %04X ",
             attr_mask,sub_class,app_id,vendor_id,product_id,version,ctry_code,dl_len);
 
@@ -1255,11 +1278,8 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
     }
     *p = '\0';
 
-    BTIF_TRACE_DEBUG1("key: %s",bd2str(remote_bd_addr, &bdstr));
-    BTIF_TRACE_DEBUG1("hid info %s",hid_info);
-
     ret = unv_write_key(fname, bd2str(remote_bd_addr, &bdstr), hid_info);
-
+    free(hid_info);
     if (ret < 0)
     {
         return BT_STATUS_FAIL;
@@ -1281,20 +1301,55 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
 bt_status_t btif_storage_load_bonded_hid_info(void)
 {
     char *fname;
-    btif_bonded_devices_t bonded_devices;
     int ret;
-
-    memset(&bonded_devices, 0, sizeof(btif_bonded_devices_t));
-
     fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_REMOTE_HIDINFO);
 
     if (fname == NULL)
         return BT_STATUS_FAIL;
 
-    ret = unv_read_key_iter(fname, btif_in_load_hid_info_iter_cb, &bonded_devices);
+    ret = unv_read_key_iter(fname, btif_in_load_hid_info_iter_cb, NULL);
 
     if (ret < 0)
         return BT_STATUS_FAIL;
+
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_remove_hid_info
+**
+** Description      BTIF storage API - Deletes the bonded hid device info from NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the deletion was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr)
+{
+    char *fname;
+    int ret;
+    bdstr_t bdstr;
+
+    fname = btif_in_make_filename(NULL,
+                                  BTIF_STORAGE_PATH_REMOTE_HIDINFO);
+    if (fname == NULL)
+    {
+        return BT_STATUS_FAIL;
+    }
+    ret = unv_create_file(fname);
+
+    if (ret < 0)
+    {
+        return BT_STATUS_FAIL;
+    }
+
+    ret = unv_remove_key(fname, bd2str(remote_bd_addr, &bdstr));
+
+    if (ret < 0)
+    {
+        return BT_STATUS_FAIL;
+    }
 
     return BT_STATUS_SUCCESS;
 }

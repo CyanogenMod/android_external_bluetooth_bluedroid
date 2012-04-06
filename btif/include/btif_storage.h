@@ -215,6 +215,9 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
 *******************************************************************************/
 bt_status_t btif_storage_load_bonded_hid_info(void);
 
+bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr);
+
+
 
 #endif /* BTIF_STORAGE_H */
 

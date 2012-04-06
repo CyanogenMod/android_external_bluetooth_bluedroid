@@ -61,7 +61,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdlib.h>
+#include <ctype.h>
+
 
 #define LOG_TAG "BTIF_UTIL"
 #include "btif_common.h"
@@ -80,6 +81,8 @@
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
+#define ISDIGIT(a)  ((a>='0') && (a<='9'))
+#define ISXDIGIT(a) (((a>='0') && (a<='9'))||((a>='A') && (a<='F'))||((a>='a') && (a<='f')))
 
 /************************************************************************************
 **  Local type definitions
@@ -192,6 +195,43 @@ void uuid_to_string(bt_uuid_t *p_uuid, char *str)
             ntohl(uuid4), ntohs(uuid5));
     return;
 }
+
+/*****************************************************************************
+**  Function        ascii_2_hex
+**
+**  Description     This function converts an ASCII string into HEX
+**
+**  Returns         the number of hex bytes filled.
+*/
+int ascii_2_hex (char *p_ascii, int len, UINT8 *p_hex)
+{
+    int     x;
+    UINT8   c;
+
+    for (x = 0; (x < len) && (*p_ascii); x++)
+    {
+        if (ISDIGIT (*p_ascii))
+            c = (*p_ascii - '0') << 4;
+        else
+            c = (toupper(*p_ascii) - 'A' + 10) << 4;
+
+        p_ascii++;
+        if (*p_ascii)
+        {
+            if (ISDIGIT (*p_ascii))
+                c |= (*p_ascii - '0');
+            else
+                c |= (toupper(*p_ascii) - 'A' + 10);
+
+            p_ascii++;
+        }
+        *p_hex++ = c;
+    }
+
+    return (x);
+}
+
+
 const char* dump_dm_search_event(UINT16 event)
 {
     switch(event)
