@@ -95,7 +95,6 @@ typedef struct {
 **  Static functions
 ******************************************************************************/
 static btif_dm_pairing_cb_t pairing_cb;
-static bt_status_t btif_dm_get_remote_services(bt_bdaddr_t *remote_addr);
 static void btif_dm_generic_evt(UINT16 event, char* p_param);
 static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr);
 static void btif_dm_cb_hid_remote_name(tBTM_REMOTE_DEV_NAME *p_remote_name);

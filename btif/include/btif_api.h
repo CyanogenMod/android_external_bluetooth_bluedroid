@@ -365,5 +365,17 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t *prop);
 bt_status_t btif_dm_get_remote_service_record(bt_bdaddr_t *remote_addr,
                                               bt_uuid_t *uuid);
 
+
+/*******************************************************************************
+**
+** Function         btif_dm_get_remote_services
+**
+** Description      Start SDP to get remote services
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_dm_get_remote_services(bt_bdaddr_t *remote_addr);
+
 #endif /* BTIF_API_H */
 

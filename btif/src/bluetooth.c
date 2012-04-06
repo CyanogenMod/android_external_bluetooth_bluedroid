@@ -241,6 +241,15 @@ int get_remote_service_record(bt_bdaddr_t *remote_addr, bt_uuid_t *uuid)
     return btif_get_remote_service_record(remote_addr, uuid);
 }
 
+int get_remote_services(bt_bdaddr_t *remote_addr)
+{
+    /* sanity check */
+    if (interface_ready() == FALSE)
+        return BT_STATUS_NOT_READY;
+
+    return btif_dm_get_remote_services(remote_addr);
+}
+
 static int start_discovery(void)
 {
     /* sanity check */
@@ -344,6 +353,7 @@ static const bt_interface_t bluetoothInterface = {
     get_remote_device_property,
     set_remote_device_property,
     get_remote_service_record,
+    get_remote_services,
     start_discovery,
     cancel_discovery,
     create_bond,
