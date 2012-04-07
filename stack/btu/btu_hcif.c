@@ -1515,11 +1515,11 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
 
 // btla-specific ++
 #if (defined(ANDROID_APP_INCLUDED) && (ANDROID_APP_INCLUDED == TRUE))
-    LOGE("######################################################################");
-    LOGE("#");
-    LOGE("# WARNING : BTU HCI(id=%d) command timeout. opcode=0x%x", controller_id, opcode);
-    LOGE("#");
-    LOGE("######################################################################");    
+    ALOGE("######################################################################");
+    ALOGE("#");
+    ALOGE("# WARNING : BTU HCI(id=%d) command timeout. opcode=0x%x", controller_id, opcode);
+    ALOGE("#");
+    ALOGE("######################################################################");    
 #else
     BT_TRACE_2 (TRACE_LAYER_HCI, TRACE_TYPE_WARNING, "BTU HCI(id=%d) command timeout. opcode=0x%x", controller_id, opcode);
 #endif

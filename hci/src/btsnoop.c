@@ -90,7 +90,7 @@
 #endif
 
 #if (BTSNOOP_DBG == TRUE)
-#define SNOOPDBG(param, ...) {LOGD(param, ## __VA_ARGS__);}
+#define SNOOPDBG(param, ...) {ALOGD(param, ## __VA_ARGS__);}
 #else
 #define SNOOPDBG(param, ...) {}
 #endif
@@ -485,13 +485,13 @@ int ext_parser_accept(int port)
     int size_n;
     int result = 0;
 
-    LOGD("waiting for connection on port %d", port);
+    ALOGD("waiting for connection on port %d", port);
 
     s_listen = socket(AF_INET, SOCK_STREAM, 0);
 
     if (s_listen < 0)
     {
-        LOGE("listener not created: listen fd %d", s_listen);
+        ALOGE("listener not created: listen fd %d", s_listen);
         return -1;
     }
 
@@ -530,7 +530,7 @@ int ext_parser_accept(int port)
         return -1;
     }
 
-    LOGD("connected (%d)", s);
+    ALOGD("connected (%d)", s);
 
     return s;
 }
@@ -557,7 +557,7 @@ static int send_ext_parser(char *p, int len)
 
 static void ext_parser_detached(void)
 {
-    LOGD("ext parser detached");
+    ALOGD("ext parser detached");
 
     if (ext_parser_fd>0)
         close(ext_parser_fd);
@@ -571,7 +571,7 @@ static void ext_parser_detached(void)
 
 static void interruptFn (int sig)
 {
-    LOGD("interruptFn");
+    ALOGD("interruptFn");
     pthread_exit(0);
 }
 
@@ -583,7 +583,7 @@ static void ext_parser_thread(void* param)
     sigemptyset (&sigSet);
     sigaddset (&sigSet, sig);
 
-    LOGD("ext_parser_thread");
+    ALOGD("ext_parser_thread");
 
     prctl(PR_SET_NAME, (unsigned long)"BtsnoopExtParser", 0, 0, 0);
 
@@ -599,19 +599,19 @@ static void ext_parser_thread(void* param)
 
         ext_parser_fd = fd;
 
-        LOGD("ext parser attached on fd %d\n", ext_parser_fd);
+        ALOGD("ext parser attached on fd %d\n", ext_parser_fd);
     } while (1);
 }
 
 void btsnoop_stop_listener(void)
 {
-    LOGD("btsnoop_init");
+    ALOGD("btsnoop_init");
     ext_parser_detached();
 }
 
 void btsnoop_init(void)
 {
-    LOGD("btsnoop_init");
+    ALOGD("btsnoop_init");
 
     /* always setup ext listener port */
     if (pthread_create(&thread_id, NULL,
@@ -622,7 +622,7 @@ void btsnoop_init(void)
 void btsnoop_open(char *p_path)
 {
 #if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
-    LOGD("btsnoop_open");
+    ALOGD("btsnoop_open");
     btsnoop_log_open(p_path);
 #endif // BTSNOOPDISP_INCLUDED
 }
@@ -630,14 +630,14 @@ void btsnoop_open(char *p_path)
 void btsnoop_close(void)
 {
 #if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
-    LOGD("btsnoop_close");
+    ALOGD("btsnoop_close");
     btsnoop_log_close();
 #endif
 }
 
 void btsnoop_cleanup (void)
 {
-    LOGD("btsnoop_cleanup");
+    ALOGD("btsnoop_cleanup");
     pthread_kill(thread_id, SIGUSR2);
     pthread_join(thread_id, NULL);
     ext_parser_detached();

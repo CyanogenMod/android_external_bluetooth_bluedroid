@@ -486,7 +486,7 @@ BOOLEAN btif_rc_get_connected_peer(BD_ADDR peer_addr)
 /* clear the queued PLAY command. if bSend is TRUE, forward to app */
 void btif_rc_check_handle_pending_play (BD_ADDR peer_addr, BOOLEAN bSendToApp)
 {
-    LOGV("btapp_rc_check_handle_pending_play: bSendToApp=%d", bSendToApp);
+    ALOGV("btapp_rc_check_handle_pending_play: bSendToApp=%d", bSendToApp);
     if (btif_rc_cb.rc_pending_play)
     {
         if (bSendToApp)

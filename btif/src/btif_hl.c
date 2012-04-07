@@ -1989,7 +1989,7 @@ static void btif_hl_proc_dereg_cfm(tBTA_HL *p_data)
 {
     btif_hl_app_cb_t        *p_acb;
     UINT8                   app_idx;
-    int                     app_id;
+    int                     app_id = 0;
     bthl_app_reg_state_t    state = BTHL_APP_REG_STATE_DEREG_SUCCESS;
     BTIF_TRACE_DEBUG3("%s de-reg status=%d app_handle=%d", __FUNCTION__, p_data->dereg_cfm.status, p_data->dereg_cfm.app_handle);
 
@@ -2401,7 +2401,7 @@ static BOOLEAN btif_hl_proc_sdp_query_cfm(tBTA_HL *p_data){
     btif_hl_mcl_cb_t                *p_mcb;
     tBTA_HL_SDP                     *p_sdp;
     tBTA_HL_CCH_OPEN_PARAM          open_param;
-    UINT8                           app_idx, mcl_idx, sdp_idx;
+    UINT8                           app_idx, mcl_idx, sdp_idx = 0;
     UINT8                           num_recs, i, num_mdeps, j;
     btif_hl_cch_op_t                old_cch_oper;
     BOOLEAN                         status =FALSE;

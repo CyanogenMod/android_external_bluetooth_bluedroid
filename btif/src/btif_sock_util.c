@@ -97,10 +97,10 @@
 
 #include <cutils/log.h>
 
-#define info(fmt, ...)  LOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define debug(fmt, ...) LOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) LOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define asrt(s) if(!(s)) LOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define info(fmt, ...)  ALOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define debug(fmt, ...) ALOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define error(fmt, ...) ALOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
+#define asrt(s) if(!(s)) ALOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
 
 int sock_send_all(int sock_fd, const uint8_t* buf, int len)
@@ -222,7 +222,7 @@ void dump_bin(const char* title, const char* data, int size)
     char *line;
     int i, j, addr;
     const int width = 16;
-    LOGD("%s, size:%d, dump started {", title, size);
+    ALOGD("%s, size:%d, dump started {", title, size);
     if(size <= 0)
         return;
     //write offset
@@ -290,6 +290,6 @@ void dump_bin(const char* title, const char* data, int size)
         //output the line
         PRINT(line_buff);
     }
-    LOGD("%s, size:%d, dump ended }", title, size);
+    ALOGD("%s, size:%d, dump ended }", title, size);
 }
 

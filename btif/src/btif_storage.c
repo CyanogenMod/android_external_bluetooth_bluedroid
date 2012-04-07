@@ -722,7 +722,7 @@ int btif_in_load_hid_info_iter_cb(char *key, char *value, void *userdata)
     dscp_info.descriptor.dsc_list = (UINT8 *) GKI_getbuf(dscp_info.descriptor.dl_len);
     if (dscp_info.descriptor.dsc_list == NULL)
     {
-        LOGE("%s: Failed to allocate DSCP for CB", __FUNCTION__);
+        ALOGE("%s: Failed to allocate DSCP for CB", __FUNCTION__);
         return BT_STATUS_FAIL;
     }
     for (i = 0; i < dscp_info.descriptor.dl_len; i++)
@@ -1744,14 +1744,14 @@ bt_status_t btif_storage_load_autopair_device_list()
 
         if (ret < 0)
         {
-            LOGE("%s: Failed to create dynamic auto pair blacklist", __FUNCTION__);
+            ALOGE("%s: Failed to create dynamic auto pair blacklist", __FUNCTION__);
             return BT_STATUS_FAIL;
         }
         fp = fopen (BTIF_AUTO_PAIR_CONF_FILE, "r");
 
         if (fp == NULL)
         {
-            LOGE("%s: Failed to open auto pair blacklist conf file at %s", __FUNCTION__,BTIF_AUTO_PAIR_CONF_FILE );
+            ALOGE("%s: Failed to open auto pair blacklist conf file at %s", __FUNCTION__,BTIF_AUTO_PAIR_CONF_FILE );
             return BT_STATUS_FAIL;
         }
 

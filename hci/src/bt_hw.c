@@ -244,7 +244,7 @@ void init_vnd_if(unsigned char *local_bdaddr)
     }
     else
     {
-        LOGE("!!! Failed to get BtVendorInterface !!!");
+        ALOGE("!!! Failed to get BtVendorInterface !!!");
     }
 }
 

@@ -68,11 +68,11 @@
 
 
 #include <cutils/log.h>
-#define info(fmt, ...)  LOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define debug(fmt, ...) LOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define warn(fmt, ...) LOGW ("## WARNING : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) LOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define asrt(s) if(!(s)) LOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define info(fmt, ...)  ALOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define debug(fmt, ...) ALOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define warn(fmt, ...) ALOGW ("## WARNING : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
+#define error(fmt, ...) ALOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
+#define asrt(s) if(!(s)) ALOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
 
 
@@ -90,7 +90,7 @@
 UINT8 bta_pan_co_init(UINT8 *q_level)
 {
 
-    LOGD("bta_pan_co_init");
+    ALOGD("bta_pan_co_init");
 
     /* set the q_level to 30 buffers */
     *q_level = 30;
@@ -118,14 +118,14 @@ UINT8 bta_pan_co_init(UINT8 *q_level)
 
 void bta_pan_co_open(UINT16 handle, UINT8 app_id, tBTA_PAN_ROLE local_role, tBTA_PAN_ROLE peer_role, BD_ADDR peer_addr)
 {
-    LOGD("bta_pan_co_open:app_id:%d, local_role:%d, peer_role:%d, handle:%d",
+    ALOGD("bta_pan_co_open:app_id:%d, local_role:%d, peer_role:%d, handle:%d",
             app_id, local_role, peer_role, handle);
     btpan_conn_t* conn = btpan_find_conn_addr(peer_addr);
     if(conn == NULL)
         conn = btpan_new_conn(handle, peer_addr, local_role, peer_role);
     if(conn)
     {
-        LOGD("bta_pan_co_open:tap_fd:%d, open_count:%d, conn->handle:%d should = handle:%d, local_role:%d, remote_role:%d",
+        ALOGD("bta_pan_co_open:tap_fd:%d, open_count:%d, conn->handle:%d should = handle:%d, local_role:%d, remote_role:%d",
              btpan_cb.tap_fd, btpan_cb.open_count, conn->handle, handle, conn->local_role, conn->remote_role);
         //refresh the role & bt address
 
@@ -160,11 +160,11 @@ void bta_pan_co_open(UINT16 handle, UINT8 app_id, tBTA_PAN_ROLE local_role, tBTA
 *******************************************************************************/
 void bta_pan_co_close(UINT16 handle, UINT8 app_id)
 {
-    LOGD("bta_pan_co_close:app_id:%d, handle:%d", app_id, handle);
+    ALOGD("bta_pan_co_close:app_id:%d, handle:%d", app_id, handle);
     btpan_conn_t* conn = btpan_find_conn_handle(handle);
     if(conn && conn->state == PAN_STATE_OPEN)
     {
-        LOGD("bta_pan_co_close");
+        ALOGD("bta_pan_co_close");
 
         // let bta close event reset this handle as it needs
         // the handle to find the connection upon CLOSE
@@ -211,12 +211,12 @@ void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
     BOOLEAN            ext;
     BOOLEAN         forward;
 
-    LOGD("bta_pan_co_tx_path, handle:%d, app_id:%d", handle, app_id);
+    ALOGD("bta_pan_co_tx_path, handle:%d, app_id:%d", handle, app_id);
 
     btpan_conn_t* conn = btpan_find_conn_handle(handle);
     if(conn && conn->state != PAN_STATE_OPEN)
     {
-        LOGE("bta_pan_co_tx_path: cannot find pan connction or conn is not opened, conn:%p, conn->state:%d", conn, conn->state);
+        ALOGE("bta_pan_co_tx_path: cannot find pan connction or conn is not opened, conn:%p, conn->state:%d", conn, conn->state);
         return;
     }
     do
@@ -226,10 +226,10 @@ void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
         if ((p_buf = bta_pan_ci_readbuf(handle, src, dst, &protocol,
                                  &ext, &forward)))
         {
-            LOGD("bta_pan_co_tx_path, calling btapp_tap_send, p_buf->len:%d, offset:%d", p_buf->len, p_buf->offset);
+            ALOGD("bta_pan_co_tx_path, calling btapp_tap_send, p_buf->len:%d, offset:%d", p_buf->len, p_buf->offset);
             if(is_empty_eth_addr(conn->eth_addr) && is_valid_bt_eth_addr(src))
             {
-                LOGD("pan bt peer addr: %02x:%02x:%02x:%02x:%02x:%02x, update its ethernet addr: %02x:%02x:%02x:%02x:%02x:%02x",
+                ALOGD("pan bt peer addr: %02x:%02x:%02x:%02x:%02x:%02x, update its ethernet addr: %02x:%02x:%02x:%02x:%02x:%02x",
                         conn->peer[0], conn->peer[1], conn->peer[2], conn->peer[3],conn->peer[4], conn->peer[5],
                         src[0], src[1], src[2], src[3],src[4], src[5]);
                 memcpy(conn->eth_addr, src, sizeof(conn->eth_addr));
@@ -261,7 +261,7 @@ void bta_pan_co_rx_path(UINT16 handle, UINT8 app_id)
 
     UINT8           i;
 
-    LOGD("bta_pan_co_rx_path not used");
+    ALOGD("bta_pan_co_rx_path not used");
 
 
 }
@@ -282,7 +282,7 @@ void bta_pan_co_rx_path(UINT16 handle, UINT8 app_id)
 void bta_pan_co_tx_write(UINT16 handle, UINT8 app_id, BD_ADDR src, BD_ADDR dst, UINT16 protocol, UINT8 *p_data,
                                 UINT16 len, BOOLEAN ext, BOOLEAN forward)
 {
-     LOGD("bta_pan_co_tx_write not used");
+     ALOGD("bta_pan_co_tx_write not used");
 
 }
 
@@ -303,7 +303,7 @@ void  bta_pan_co_tx_writebuf(UINT16 handle, UINT8 app_id, BD_ADDR src, BD_ADDR d
                                    BOOLEAN ext, BOOLEAN forward)
 {
 
-    LOGD("bta_pan_co_tx_writebuf not used");
+    ALOGD("bta_pan_co_tx_writebuf not used");
 
 
 }
@@ -325,7 +325,7 @@ void  bta_pan_co_tx_writebuf(UINT16 handle, UINT8 app_id, BD_ADDR src, BD_ADDR d
 void bta_pan_co_rx_flow(UINT16 handle, UINT8 app_id, BOOLEAN enable)
 {
 
-    LOGD("bta_pan_co_rx_flow, enabled:%d, not used", enable);
+    ALOGD("bta_pan_co_rx_flow, enabled:%d, not used", enable);
 
 }
 
@@ -342,7 +342,7 @@ void bta_pan_co_rx_flow(UINT16 handle, UINT8 app_id, BOOLEAN enable)
 void bta_pan_co_pfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STATUS result,
                                     UINT16 len, UINT8 *p_filters)
 {
-    LOGD("bta_pan_co_pfilt_ind");
+    ALOGD("bta_pan_co_pfilt_ind");
 
 }
 /*******************************************************************************
@@ -358,6 +358,6 @@ void bta_pan_co_mfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STATUS res
                                     UINT16 len, UINT8 *p_filters)
 {
 
-    LOGD("bta_pan_co_mfilt_ind");
+    ALOGD("bta_pan_co_mfilt_ind");
 }
 

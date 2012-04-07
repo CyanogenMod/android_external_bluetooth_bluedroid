@@ -317,7 +317,7 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
     btif_hh_device_t       *p_dev;
     btif_hh_added_device_t *p_added_dev;
 
-    LOGI("%s: bda = %02x:%02x:%02x:%02x:%02x:%02x", __FUNCTION__,
+    ALOGI("%s: bda = %02x:%02x:%02x:%02x:%02x:%02x", __FUNCTION__,
          bd_addr.address[0], bd_addr.address[1], bd_addr.address[2], bd_addr.address[3], bd_addr.address[4], bd_addr.address[5]);
 
     for (i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
@@ -687,7 +687,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 return;
             }
             if (p_dev->fd < 0) {
-                LOGE("BTA_HH_GET_DSCP_EVT: Error, failed to find the bthid driver...");
+                ALOGE("BTA_HH_GET_DSCP_EVT: Error, failed to find the bthid driver...");
                 return;
             }
             {
@@ -791,7 +791,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 break;
 
         case BTA_HH_API_ERR_EVT  :
-                LOGI("BTA_HH API_ERR");
+                ALOGI("BTA_HH API_ERR");
                 break;
 
 
@@ -1044,7 +1044,7 @@ static bt_status_t set_info (bt_bdaddr_t *bd_addr, bthh_hid_info_t hid_info )
     dscp_info.descriptor.dsc_list = (UINT8 *) GKI_getbuf(dscp_info.descriptor.dl_len);
     if (dscp_info.descriptor.dsc_list == NULL)
     {
-        LOGE("%s: Failed to allocate DSCP for CB", __FUNCTION__);
+        ALOGE("%s: Failed to allocate DSCP for CB", __FUNCTION__);
         return BT_STATUS_FAIL;
     }
     memcpy(dscp_info.descriptor.dsc_list, &(hid_info.dsc_list), hid_info.dl_len);
@@ -1237,7 +1237,7 @@ static bt_status_t get_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
              (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
         return BT_STATUS_FAIL;
     }
-    else if (reportType <= BTA_HH_RPTT_RESRV || reportType > BTA_HH_RPTT_FEATURE) {
+    else if ( ((int) reportType) <= BTA_HH_RPTT_RESRV || ((int) reportType) > BTA_HH_RPTT_FEATURE) {
         BTIF_TRACE_ERROR6(" Error, device %02X:%02X:%02X:%02X:%02X:%02X not opened.",
              (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
         return BT_STATUS_FAIL;
@@ -1282,7 +1282,7 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
              (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
         return BT_STATUS_FAIL;
     }
-    else if (reportType <= BTA_HH_RPTT_RESRV || reportType > BTA_HH_RPTT_FEATURE) {
+    else if ( ( (int) reportType) <= BTA_HH_RPTT_RESRV || ( (int) reportType) > BTA_HH_RPTT_FEATURE) {
         BTIF_TRACE_ERROR6(" Error, device %02X:%02X:%02X:%02X:%02X:%02X not opened.",
              (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
         return BT_STATUS_FAIL;
@@ -1308,7 +1308,7 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
         memset(hexbuf, 0, 200);
         //TODO
         hex_bytes_filled = ascii_2_hex(report, len, hexbuf);
-        LOGI("Hex bytes filled, hex value: %d", hex_bytes_filled);
+        ALOGI("Hex bytes filled, hex value: %d", hex_bytes_filled);
 
         if (hex_bytes_filled) {
             UINT8* pbuf_data;
@@ -1410,7 +1410,7 @@ static void  cleanup( void )
     btif_hh_cb.status = BTIF_HH_DISABLING;
     for (i = 0; i < BTIF_HH_MAX_HID; i++) {
          p_dev = &btif_hh_cb.devices[i];
-         if (p_dev->dev_status != BTIF_HH_DEV_UNKNOWN && p_dev->fd >= 0) {
+         if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN && p_dev->fd >= 0) {
              BTIF_TRACE_DEBUG2("%s: Closing bthid.ko fd = %d", __FUNCTION__, p_dev->fd);
              close(p_dev->fd);
              p_dev->fd = -1;

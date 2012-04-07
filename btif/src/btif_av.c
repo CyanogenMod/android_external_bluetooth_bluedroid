@@ -176,7 +176,7 @@ const char *dump_av_sm_state_name(btif_av_state_t state)
 
 const char *dump_av_sm_event_name(btif_av_sm_event_t event)
 {
-    switch(event)
+    switch((int)event)
     {
         CASE_RETURN_STR(BTA_AV_ENABLE_EVT)
         CASE_RETURN_STR(BTA_AV_REGISTER_EVT)

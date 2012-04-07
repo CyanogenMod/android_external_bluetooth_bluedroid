@@ -77,10 +77,10 @@
 **  Constants & Macros
 ************************************************************************************/
 
-#define info(fmt, ...)  LOGI ("%s: " fmt,__FUNCTION__, ## __VA_ARGS__)
-#define debug(fmt, ...) LOGD ("%s: " fmt,__FUNCTION__, ## __VA_ARGS__)
+#define info(fmt, ...)  ALOGI ("%s: " fmt,__FUNCTION__, ## __VA_ARGS__)
+#define debug(fmt, ...) ALOGD ("%s: " fmt,__FUNCTION__, ## __VA_ARGS__)
 #define verbose(fmt, ...) //LOGD ("%s: " fmt, __FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) LOGE ("##### ERROR : %s: " fmt "#####", __FUNCTION__, ## __VA_ARGS__)
+#define error(fmt, ...) ALOGE ("##### ERROR : %s: " fmt "#####", __FUNCTION__, ## __VA_ARGS__)
 
 #define UNV_DELIM "\r\n"
 

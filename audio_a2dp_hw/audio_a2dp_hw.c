@@ -86,8 +86,8 @@
 
 #define CASE_RETURN_STR(const) case const: return #const;
 
-#define FNLOG()             LOGV("%s", __FUNCTION__);
-#define DEBUG(fmt, ...)     LOGD ("%s: " fmt,__FUNCTION__, ## __VA_ARGS__)
+#define FNLOG()             ALOGV("%s", __FUNCTION__);
+#define DEBUG(fmt, ...)     ALOGD ("%s: " fmt,__FUNCTION__, ## __VA_ARGS__)
 
 #define ASSERTC(cond, msg, val) if (!(cond)) {LOGE("### ASSERT : %s line %d %s (%d) ###", __FILE__, __LINE__, msg, val);}
 
@@ -528,7 +528,7 @@ static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate)
 
     if (rate != AUDIO_STREAM_DEFAULT_RATE)
     {
-        LOGE("only rate %d supported", AUDIO_STREAM_DEFAULT_RATE);
+        ALOGE("only rate %d supported", AUDIO_STREAM_DEFAULT_RATE);
         return -1;
     }
 

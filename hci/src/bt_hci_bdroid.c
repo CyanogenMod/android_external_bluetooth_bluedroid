@@ -68,7 +68,7 @@
 #endif
 
 #if (BTHC_DBG == TRUE)
-#define BTHCDBG(param, ...) {LOGD(param, ## __VA_ARGS__);}
+#define BTHCDBG(param, ...) {ALOGD(param, ## __VA_ARGS__);}
 #else
 #define BTHCDBG(param, ...) {}
 #endif
@@ -154,11 +154,11 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
     struct sched_param param;
     int policy, result;
 
-    LOGI("init");
+    ALOGI("init");
 
     if (p_cb == NULL)
     {
-        LOGE("init failed with no user callbacks!");
+        ALOGE("init failed with no user callbacks!");
         return BT_HC_STATUS_FAIL;
     }
 
@@ -176,7 +176,7 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
 
     if (lib_running)
     {
-        LOGW("init has been called repeatedly without calling cleanup ?");
+        ALOGW("init has been called repeatedly without calling cleanup ?");
     }
 
     lib_running = 1;
@@ -188,7 +188,7 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
     if (pthread_create(&hc_cb.worker_thread, &thread_attr, \
                        bt_hc_worker_thread, NULL) != 0)
     {
-        LOGE("pthread_create failed!");
+        ALOGE("pthread_create failed!");
         lib_running = 0;
         return BT_HC_STATUS_FAIL;
     }
@@ -202,7 +202,7 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
         result = pthread_setschedparam(hc_cb.worker_thread, policy, &param);
         if (result != 0)
         {
-            LOGW("libbt-hci init: pthread_setschedparam failed (%s)", \
+            ALOGW("libbt-hci init: pthread_setschedparam failed (%s)", \
                   strerror(result));
         }
     }
@@ -224,7 +224,7 @@ static void set_power(bt_hc_chip_power_state_t state)
     if (bt_vnd_if)
         bt_vnd_if->op(BT_VND_OP_POWER_CTRL, &pwr_state);
     else
-        LOGE("vendor lib is missing!");
+        ALOGE("vendor lib is missing!");
 }
 
 

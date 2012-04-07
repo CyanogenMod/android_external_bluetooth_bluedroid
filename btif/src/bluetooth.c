@@ -131,7 +131,7 @@ static uint8_t interface_ready(void)
 
 static int init(bt_callbacks_t* callbacks )
 {
-    LOGI("init");
+    ALOGI("init");
 
     /* sanity check */
     if (interface_ready() == TRUE)
@@ -150,7 +150,7 @@ static int init(bt_callbacks_t* callbacks )
 
 static int enable( void )
 {
-    LOGI("enable");
+    ALOGI("enable");
 
     /* sanity check */
     if (interface_ready() == FALSE)
@@ -320,7 +320,7 @@ static int ssp_reply(const bt_bdaddr_t *bd_addr, bt_ssp_variant_t variant,
 
 static const void* get_profile_interface (const char *profile_id)
 {
-    LOGI("get_profile_interface %s", profile_id);
+    ALOGI("get_profile_interface %s", profile_id);
 
     /* sanity check */
     if (interface_ready() == FALSE)

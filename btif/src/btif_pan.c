@@ -101,11 +101,11 @@
 
 
 #include <cutils/log.h>
-#define info(fmt, ...)  LOGI ("btif_pan: %s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define debug(fmt, ...) LOGD ("btif_pan: %s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define warn(fmt, ...) LOGW ("btif_pan: ## WARNING : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define error(fmt, ...) LOGE ("btif_pan: ## ERROR : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define asrt(s) if(!(s)) LOGE ("btif_pan: ## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define info(fmt, ...)  ALOGI ("btif_pan: %s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
+#define debug(fmt, ...) ALOGD ("btif_pan: %s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
+#define warn(fmt, ...) ALOGW ("btif_pan: ## WARNING : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
+#define error(fmt, ...) ALOGE ("btif_pan: ## ERROR : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
+#define asrt(s) if(!(s)) ALOGE ("btif_pan: ## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
 
 
@@ -463,7 +463,7 @@ int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 prot
         memcpy(packet, &eth_hdr, sizeof(tETH_HDR));
         if(len > 2000)
         {
-            LOGE("btpan_tap_send eth packet size:%d is exceeded limit!", len);
+            ALOGE("btpan_tap_send eth packet size:%d is exceeded limit!", len);
             return -1;
         }
         memcpy(packet + sizeof(tETH_HDR), buf, len);
@@ -639,7 +639,7 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
             {
                 btpan_conn_t* conn = btpan_find_conn_handle(p_data->close.handle);
 
-                LOGI("%s: event = BTA_PAN_CLOSE_EVT handle %d", __FUNCTION__, p_data->close.handle);
+                ALOGI("%s: event = BTA_PAN_CLOSE_EVT handle %d", __FUNCTION__, p_data->close.handle);
 
                 if(conn && conn->handle >= 0)
                 {

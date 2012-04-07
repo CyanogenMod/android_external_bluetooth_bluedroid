@@ -75,7 +75,7 @@
 #endif
 
 #if (USERIAL_DBG == TRUE)
-#define USERIALDBG(param, ...) {LOGD(param, ## __VA_ARGS__);}
+#define USERIALDBG(param, ...) {ALOGD(param, ## __VA_ARGS__);}
 #else
 #define USERIALDBG(param, ...) {}
 #endif
@@ -154,7 +154,7 @@ static inline int create_signal_fds(fd_set* set)
 {
     if(signal_fds[0]==0 && socketpair(AF_UNIX, SOCK_STREAM, 0, signal_fds)<0)
     {
-        LOGE("create_signal_sockets:socketpair failed, errno: %d", errno);
+        ALOGE("create_signal_sockets:socketpair failed, errno: %d", errno);
         return -1;
     }
     FD_SET(signal_fds[0], set);
@@ -233,15 +233,15 @@ static int select_read(int fd, uint8_t *pbuf, int len)
             {
                 ret = read(fd, pbuf, (size_t)len);
                 if (0 == ret)
-                    LOGW( "read() returned 0!" );
+                    ALOGW( "read() returned 0!" );
 
                 return ret;
             }
         }
         else if (n < 0)
-            LOGW( "select() Failed");
+            ALOGW( "select() Failed");
         else if (n == 0)
-            LOGW( "Got a select() TIMEOUT");
+            ALOGW( "Got a select() TIMEOUT");
 
     }
 
@@ -290,7 +290,7 @@ static void *userial_read_thread(void *arg)
         {
             rx_length = 0;
             utils_delay(100);
-            LOGW("userial_read_thread() failed to gain buffers");
+            ALOGW("userial_read_thread() failed to gain buffers");
             continue;
         }
 
@@ -303,7 +303,7 @@ static void *userial_read_thread(void *arg)
         }
         else /* either 0 or < 0 */
         {
-            LOGW("select_read return size <=0:%d, exiting userial_read_thread",\
+            ALOGW("select_read return size <=0:%d, exiting userial_read_thread",\
                  rx_length);
             /* if we get here, we should have a buffer */
             bt_hc_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
@@ -369,7 +369,7 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
 
     if (port >= MAX_SERIAL_PORT)
     {
-        LOGE("Port > MAX_SERIAL_PORT");
+        ALOGE("Port > MAX_SERIAL_PORT");
         return FALSE;
     }
 
@@ -380,17 +380,16 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
     }
     else
     {
-        LOGE("userial_open: missing vendor lib interface !!!");
-        LOGE("userial_open: unable to open UART port");
+        ALOGE("userial_open: missing vendor lib interface !!!");
+        ALOGE("userial_open: unable to open UART port");
         return FALSE;
     }
 
     if (userial_cb.sock == -1)
     {
-        LOGE("userial_open: failed to open UART port");
+        ALOGE("userial_open: failed to open UART port");
         return FALSE;
     }
-
 
     USERIALDBG( "sock = %d", userial_cb.sock);
 
@@ -402,7 +401,7 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
     if (pthread_create(&(userial_cb.read_thread), &thread_attr, \
                        userial_read_thread, NULL) != 0 )
     {
-        LOGE("pthread_create failed!");
+        ALOGE("pthread_create failed!");
         return FALSE;
     }
 
@@ -415,7 +414,7 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
         result = pthread_setschedparam(userial_cb.read_thread, policy, &param);
         if (result != 0)
         {
-            LOGW("userial_open: pthread_setschedparam failed (%s)", \
+            ALOGW("userial_open: pthread_setschedparam failed (%s)", \
                   strerror(result));
         }
     }
@@ -521,14 +520,14 @@ void userial_close(void)
         send_wakeup_signal(USERIAL_RX_EXIT);
 
     if ((result=pthread_join(userial_cb.read_thread, NULL)) < 0)
-        LOGE( "pthread_join() FAILED result:%d", result);
+        ALOGE( "pthread_join() FAILED result:%d", result);
 
     /* Calling vendor-specific part */
     if (bt_vnd_if)
         bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
 
     if ((result=close(userial_cb.sock)) < 0)
-        LOGE( "close(sock:%d) FAILED result:%d", userial_cb.sock, result);
+        ALOGE( "close(sock:%d) FAILED result:%d", userial_cb.sock, result);
 
     userial_cb.sock = -1;
 
@@ -560,7 +559,7 @@ void userial_change_baud(uint8_t baud)
     /* change baud rate in settings - leave everything else the same  */
     userial_cb.cfg.baud = baud;
 
-    LOGI("userial_change_rate: Attempting to reopen the UART Port at %i", \
+    ALOGI("userial_change_rate: Attempting to reopen the UART Port at %i", \
          (unsigned int)userial_baud_tbl[baud]);
 
     userial_open(userial_cb.port, &userial_cb.cfg);

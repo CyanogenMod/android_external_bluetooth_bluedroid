@@ -671,7 +671,7 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     cod = devclass2uint(p_ssp_cfm_req->dev_class);
 
     if ( cod == 0) {
-        LOGD("cod is 0, set as unclassified");
+        ALOGD("cod is 0, set as unclassified");
         cod = COD_UNCLASSIFIED;
     }
 
@@ -700,7 +700,7 @@ static void btif_dm_ssp_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif)
     cod = devclass2uint(p_ssp_key_notif->dev_class);
 
     if ( cod == 0) {
-        LOGD("cod is 0, set as unclassified");
+        ALOGD("cod is 0, set as unclassified");
         cod = COD_UNCLASSIFIED;
     }
 
@@ -865,7 +865,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
             cod = devclass2uint (p_search_data->inq_res.dev_class);
 
             if ( cod == 0) {
-                LOGD("cod is 0, set as unclassified");
+                ALOGD("cod is 0, set as unclassified");
                 cod = COD_UNCLASSIFIED;
             }
 

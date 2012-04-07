@@ -432,7 +432,7 @@ BT_API void BTE_InitTraceLevels( void )
 
         while (p_f_map->trc_name != NULL)
         {
-            LOGI("BTE_InitTraceLevels -- %s", p_f_map->trc_name);
+            ALOGI("BTE_InitTraceLevels -- %s", p_f_map->trc_name);
 
             if (p_f_map->p_f)
                 p_f_map->p_f(p_f_map->trace_level);
@@ -442,7 +442,7 @@ BT_API void BTE_InitTraceLevels( void )
     }
     else
     {
-        LOGI("[bttrc] using compile default trace settings");
+        ALOGI("[bttrc] using compile default trace settings");
     }
 #endif
 }

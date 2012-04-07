@@ -179,4 +179,3 @@ extern bt_hc_callbacks_t *bt_hc_cbacks;
 extern void bthc_signal_event(uint16_t event);
 
 #endif /* BT_HCI_BDROID_H */
-

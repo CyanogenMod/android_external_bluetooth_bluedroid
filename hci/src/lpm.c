@@ -70,7 +70,7 @@
 #endif
 
 #if (BTLPM_DBG == TRUE)
-#define BTLPMDBG(param, ...) {LOGD(param, ## __VA_ARGS__);}
+#define BTLPMDBG(param, ...) {ALOGD(param, ## __VA_ARGS__);}
 #else
 #define BTLPMDBG(param, ...) {}
 #endif
@@ -187,7 +187,7 @@ static void lpm_start_transport_idle_timer(void)
 
         status = timer_settime(bt_lpm_cb.timer_id, 0, &ts, 0);
         if (status == -1)
-            LOGE("[START] Failed to set LPM idle timeout");
+            ALOGE("[START] Failed to set LPM idle timeout");
     }
 }
 
@@ -214,7 +214,7 @@ static void lpm_stop_transport_idle_timer(void)
 
         status = timer_settime(bt_lpm_cb.timer_id, 0, &ts, 0);
         if (status == -1)
-            LOGE("[STOP] Failed to set LPM idle timeout");
+            ALOGE("[STOP] Failed to set LPM idle timeout");
     }
 }
 
@@ -316,19 +316,19 @@ void lpm_enable(uint8_t turn_on)
 {
     if ((bt_lpm_cb.state!=LPM_DISABLED) && (bt_lpm_cb.state!=LPM_ENABLED))
     {
-        LOGW("Still busy on processing prior LPM enable/disable request...");
+        ALOGW("Still busy on processing prior LPM enable/disable request...");
         return;
     }
 
     if ((turn_on == TRUE) && (bt_lpm_cb.state == LPM_ENABLED))
     {
-        LOGI("LPM is already on!!!");
+        ALOGI("LPM is already on!!!");
         if (bt_hc_cbacks)
             bt_hc_cbacks->lpm_cb(BT_HC_LPM_ENABLED);
     }
     else if ((turn_on == FALSE) && (bt_lpm_cb.state == LPM_DISABLED))
     {
-        LOGI("LPM is already off!!!");
+        ALOGI("LPM is already off!!!");
         if (bt_hc_cbacks)
             bt_hc_cbacks->lpm_cb(BT_HC_LPM_DISABLED);
     }

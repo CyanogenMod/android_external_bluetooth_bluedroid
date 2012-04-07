@@ -70,13 +70,13 @@ static inline void lock_slot(pthread_mutex_t* mutex)
 {
     if(mutex->value)
         pthread_mutex_lock(mutex);
-    else LOGE("mutex: %p is not initialized", mutex);
+    else ALOGE("mutex: %p is not initialized", mutex);
 }
 static inline void unlock_slot(pthread_mutex_t* mutex)
 {
    if(mutex->value)
         pthread_mutex_unlock(mutex);
-   else LOGE("mutex: %p is not initialized", mutex);
+   else ALOGE("mutex: %p is not initialized", mutex);
 }
 void dump_bin(const char* title, const char* data, int size);
 int sock_send_fd(int sock_fd, const uint8_t* buffer, int len, int send_fd);
