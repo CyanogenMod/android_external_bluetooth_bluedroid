@@ -450,10 +450,6 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     bt_bdaddr_t bd_addr;
     bt_bdname_t bd_name;
     UINT32 cod;
-    BOOLEAN incoming_bonding;
-
-    /* if bonding state is BT_BOND_STATE_BONDING, then we initiated it */
-    incoming_bonding = !(pairing_cb.state == BT_BOND_STATE_BONDING);
 
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
     bdcpy(bd_addr.address, p_ssp_cfm_req->bd_addr);
@@ -469,8 +465,8 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     else
         pairing_cb.is_temp = TRUE;
 
-    /* If JustWorks auto-accept if we initiated bonding */
-    if (p_ssp_cfm_req->just_works && !incoming_bonding)
+    /* If JustWorks auto-accept */
+    if (p_ssp_cfm_req->just_works)
     {
         BTIF_TRACE_EVENT1("%s: Auto-accept JustWorks pairing", __FUNCTION__);
         btif_dm_ssp_reply(&bd_addr, BT_SSP_VARIANT_CONSENT, TRUE, 0);
@@ -484,9 +480,8 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
         cod = COD_UNCLASSIFIED;
     }
 
-    /* TODO: pairing variant passkey_entry? */
     HAL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name,
-                     cod, p_ssp_cfm_req->just_works ? BT_SSP_VARIANT_CONSENT : BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
+                     cod, BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
                      p_ssp_cfm_req->num_val);
 }
 
