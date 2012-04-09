@@ -281,11 +281,11 @@ static void btif_task(UINT32 params)
 
     GKI_task_self_cleanup(BTIF_TASK);
 
+    bte_main_shutdown();
+
     if (btif_shutdown_pending)
     {
         btif_shutdown_pending = 0;
-
-        bte_main_shutdown();
 
         /* shutdown complete, all events notified and we reset HAL callbacks */
         bt_hal_cbacks = NULL;
@@ -369,6 +369,9 @@ bt_status_t btif_enable_bluetooth(void)
 
     LOGI("btif_enable_bluetooth");
 
+    /* initialize OS */
+    GKI_init();
+
     if (btif_enabled == 1)
     {
         LOGD("already enabled\n");
@@ -447,7 +450,6 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
 ** Returns          void
 **
 *******************************************************************************/
-
 bt_status_t btif_disable_bluetooth(void)
 {
     tBTA_STATUS status;
@@ -459,7 +461,6 @@ bt_status_t btif_disable_bluetooth(void)
     }
 
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
-
     //cleanup rfcomm & l2cap api
     btif_sock_cleanup();
     status = BTA_DisableBluetooth();

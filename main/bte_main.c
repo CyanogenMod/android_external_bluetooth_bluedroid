@@ -143,9 +143,6 @@ void bte_main_in_hw_init(void)
 ******************************************************************************/
 void bte_main_boot_entry(void)
 {
-    /* initialize OS */
-    GKI_init();
-
     bte_main_in_hw_init();
 
     bte_load_conf(BTE_STACK_CONF_FILE);
@@ -173,7 +170,7 @@ void bte_main_shutdown()
         bt_vendor_if->cleanup();
 #endif
 
-    bt_vendor_if = NULL;
+    //bt_vendor_if = NULL;
     GKI_shutdown();
 }
 
