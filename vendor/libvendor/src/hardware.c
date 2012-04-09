@@ -226,7 +226,7 @@ static bt_lpm_param_t lpm_param =
     LPM_PULSED_HOST_WAKE
 };
 
-#if (SCO_USE_I2S_INTERFACE == FALSE)
+#if (!defined(SCO_USE_I2S_INTERFACE) || (SCO_USE_I2S_INTERFACE == FALSE))
 static uint8_t bt_sco_param[SCO_PCM_PARAM_SIZE] =
 {
     SCO_PCM_ROUTING,
@@ -985,7 +985,7 @@ void hw_sco_cfg_cback(VND_BT_HDR *p_evt_buf)
     if (bt_vendor_cbacks)
         bt_vendor_cbacks->dealloc((TRANSAC) p_evt_buf, (char *) (p_evt_buf+1));
 
-#if (SCO_USE_I2S_INTERFACE == FALSE)
+#if (!defined(SCO_USE_I2S_INTERFACE) || (SCO_USE_I2S_INTERFACE == FALSE))
     if (opcode == HCI_VSC_WRITE_SCO_PCM_INT_PARAM)
     {
         uint8_t ret = FALSE;
@@ -1279,7 +1279,7 @@ void hw_sco_config(void)
     VND_BT_HDR  *p_buf = NULL;
     uint8_t     *p, ret;
 
-#if (SCO_USE_I2S_INTERFACE == FALSE)
+#if (!defined(SCO_USE_I2S_INTERFACE) || (SCO_USE_I2S_INTERFACE == FALSE))
     uint16_t cmd_u16 = HCI_CMD_PREAMBLE_SIZE + SCO_PCM_PARAM_SIZE;
 #else
     uint16_t cmd_u16 = HCI_CMD_PREAMBLE_SIZE + SCO_I2SPCM_PARAM_SIZE;
@@ -1296,7 +1296,7 @@ void hw_sco_config(void)
         p_buf->len = cmd_u16;
 
         p = (uint8_t *) (p_buf + 1);
-#if (SCO_USE_I2S_INTERFACE == FALSE)
+#if (!defined(SCO_USE_I2S_INTERFACE) || (SCO_USE_I2S_INTERFACE == FALSE))
         UINT16_TO_STREAM(p, HCI_VSC_WRITE_SCO_PCM_INT_PARAM);
         *p++ = SCO_PCM_PARAM_SIZE;
         memcpy(p, &bt_sco_param, SCO_PCM_PARAM_SIZE);
