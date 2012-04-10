@@ -693,9 +693,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
         {
         }
         break;
-
         case BTA_DM_DISC_CMPL_EVT:
-        case BTA_DM_SEARCH_CANCEL_CMPL_EVT:
         {
             HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb, BT_DISCOVERY_STOPPED);
         }
@@ -926,10 +924,26 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_NONE);
             break;
 
+        case BTA_DM_BUSY_LEVEL_EVT:
+        {
+            UINT8 busy_level;
+            busy_level = p_data->busy_level.level;
+            if (busy_level & BTM_BL_INQUIRY_PAGING_MASK)
+            {
+                if (busy_level == BTM_BL_INQUIRY_STARTED)
+                {
+                       HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb,
+                                                BT_DISCOVERY_STARTED);
+                } else if (busy_level == BTM_BL_INQUIRY_CANCELLED)
+                {
+                       HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb,
+                                                BT_DISCOVERY_STOPPED);
+                }
+            }
+        }break;
         case BTA_DM_AUTHORIZE_EVT:
         case BTA_DM_LINK_DOWN_EVT:
         case BTA_DM_SIG_STRENGTH_EVT:
-        case BTA_DM_BUSY_LEVEL_EVT:
         case BTA_DM_BOND_CANCEL_CMPL_EVT:
         case BTA_DM_SP_RMT_OOB_EVT:
         case BTA_DM_SP_KEYPRESS_EVT:
@@ -1129,9 +1143,6 @@ bt_status_t btif_dm_start_discovery(void)
 
     /* find nearby devices */
     BTA_DmSearch(&inq_params, services, bte_search_devices_evt);
-
-    /* Invoke the discovery_started callback */
-    btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_DISCOVERY_STARTED, NULL, 0, NULL);
 
     return BT_STATUS_SUCCESS;
 }

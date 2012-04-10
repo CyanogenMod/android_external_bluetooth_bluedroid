@@ -774,7 +774,10 @@ tBTM_STATUS BTM_CancelInquiry(void)
         }
 
 #if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
-        btm_acl_update_busy_level (BTM_BLI_INQ_DONE_EVT);
+        /* Do not send the BUSY_LEVEL event yet. Wait for the cancel_complete event
+         * and then send the BUSY_LEVEL event
+         * btm_acl_update_busy_level (BTM_BLI_INQ_DONE_EVT);
+         */
 #endif
 
         p_inq->inq_counter++;
@@ -2338,6 +2341,25 @@ void btm_process_inq_complete (UINT8 status, UINT8 mode)
 #endif
 }
 
+/*******************************************************************************
+**
+** Function         btm_process_cancel_complete
+**
+** Description      This function is called when inquiry cancel complete is received
+**                  from the device.This function will also call the btm_process_inq_complete
+**                  This function is needed to differentiate a cancel_cmpl_evt from the
+**                  inq_cmpl_evt
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_process_cancel_complete(UINT8 status, UINT8 mode)
+{
+#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
+     btm_acl_update_busy_level (BTM_BLI_INQ_CANCEL_EVT);
+#endif
+     btm_process_inq_complete(status, mode);
+}
 /*******************************************************************************
 **
 ** Function         btm_initiate_rem_name

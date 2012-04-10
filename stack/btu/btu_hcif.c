@@ -982,7 +982,7 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
 
         case HCI_INQUIRY_CANCEL:
             /* Tell inquiry processing that we are done */
-            btm_process_inq_complete(HCI_SUCCESS, BTM_BR_INQUIRY_MASK);
+            btm_process_cancel_complete(HCI_SUCCESS, BTM_BR_INQUIRY_MASK);
             break;
         case HCI_SET_EVENT_FILTER:
             btm_event_filter_complete (p);
