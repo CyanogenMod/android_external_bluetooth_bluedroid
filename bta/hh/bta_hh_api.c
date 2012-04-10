@@ -231,18 +231,38 @@ void BTA_HhGetProtoMode(UINT8 dev_handle)
 {
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_GET_PROTOCOL, 0, 0, 0, NULL);
 }
+/*******************************************************************************
+**
+** Function         BTA_HhSetIdle
+**
+** Description      send SET_IDLE to device.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate)
+{
+    bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_IDLE, 0, idle_rate, 0, NULL);
+}
 
-// btla-specific ++
-// ATTENTION:
-//		BTA_HH_GET_IDLE_EVT and BTA_HH_SET_IDLE_EVT had been deprecated in the newer stack
-//		btla apps will need to be changed accordingly for this
-// btla-specific --
-
+/*******************************************************************************
+**
+** Function         BTA_HhGetIdle
+**
+** Description      Send a GET_IDLE from HID device.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_HhGetIdle(UINT8 dev_handle)
+{
+    bta_hh_snd_write_dev(dev_handle, HID_TRANS_GET_IDLE, 0, 0, 0, NULL);
+}
 /*******************************************************************************
 **
 ** Function         BTA_HhSendCtrl
 **
-** Description      Send a control command to HID device.             
+** Description      Send a control command to HID device.
 **
 ** Returns          void
 **

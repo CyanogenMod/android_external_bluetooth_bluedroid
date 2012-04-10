@@ -830,6 +830,11 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
     case HID_TRANS_SET_REPORT:
     case HID_TRANS_GET_PROTOCOL:
     case HID_TRANS_SET_PROTOCOL:
+    case HID_TRANS_GET_IDLE:
+    case HID_TRANS_SET_IDLE:
+        cid = p_hcon->ctrl_cid;
+        pool_id = HID_CONTROL_POOL_ID;
+        break;
     case HID_TRANS_DATA:
         cid = p_hcon->intr_cid;
         pool_id = HID_INTERRUPT_POOL_ID;
@@ -838,7 +843,9 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
         return (HID_ERR_INVALID_PARAM) ;
     }
 
-    if( (trans_type == HID_TRANS_GET_REPORT) && (param & 0x08) )
+    if( trans_type == HID_TRANS_SET_IDLE )
+        use_data = 1;
+    else if( (trans_type == HID_TRANS_GET_REPORT) && (param & 0x08) )
         use_data = 2;
 
     do

@@ -35,11 +35,12 @@
 #define BTA_HH_OPEN_EVT         2       /* connection opened */
 #define BTA_HH_CLOSE_EVT        3       /* connection closed */
 #define BTA_HH_GET_RPT_EVT      4       /* BTA_HhGetReport callback */
-#define BTA_HH_SET_RPT_EVT      5       /* BTA_HhSetReport callback */    
+#define BTA_HH_SET_RPT_EVT      5       /* BTA_HhSetReport callback */
 #define BTA_HH_GET_PROTO_EVT    6       /* BTA_GetProtoMode callback */
-#define BTA_HH_SET_PROTO_EVT    7       /* BTA_HhSetProtoMode callback */ 
-/* leave 8, 9 gap due to deprecate of GET_IDLE and SET_IDLE */
-#define BTA_HH_GET_DSCP_EVT     10      /* Get report descripotor */    
+#define BTA_HH_SET_PROTO_EVT    7       /* BTA_HhSetProtoMode callback */
+#define BTA_HH_GET_IDLE_EVT     8       /* BTA_HhGetIdle comes callback */
+#define BTA_HH_SET_IDLE_EVT     9       /* BTA_HhSetIdle finish callback */
+#define BTA_HH_GET_DSCP_EVT     10      /* Get report descripotor */
 #define BTA_HH_ADD_DEV_EVT      11      /* Add Device callback */
 #define BTA_HH_RMV_DEV_EVT      12      /* remove device finished */
 #define BTA_HH_VC_UNPLUG_EVT    13      /* virtually unplugged */

@@ -621,6 +621,7 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
             hs_data.rsp_data.proto_mode = BTA_HH_PROTO_UNKNOWN;
             /* fall through */
         case BTA_HH_GET_RPT_EVT:
+        case BTA_HH_GET_IDLE_EVT :
             hs_data.handle = p_cb->hid_handle;            
             /* if handshake gives an OK code for these transaction, fill in UNSUPT */
             if ((hs_data.status = bta_hh_get_trans_status(p_data->hid_cback.data)) == BTA_HH_OK)
@@ -633,6 +634,7 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
         /* acknoledgement from HID device for SET_ transaction */
         case BTA_HH_SET_RPT_EVT:
         case BTA_HH_SET_PROTO_EVT:
+        case BTA_HH_SET_IDLE_EVT :
             cback_data.handle  = p_cb->hid_handle;
             cback_data.status = bta_hh_get_trans_status(p_data->hid_cback.data);
             (* bta_hh_cb.p_cback)(p_cb->w4_evt, (tBTA_HH *)&cback_data);
@@ -659,7 +661,6 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 
     /* transaction achknoledgement received, inform PM for mode change */
     bta_sys_idle(BTA_ID_HH, p_cb->app_id, p_cb->addr);
-
     return;
 }
 /*******************************************************************************
@@ -687,13 +688,16 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 
     switch (p_cb->w4_evt)
     {
+    case BTA_HH_GET_IDLE_EVT:
+        hs_data.rsp_data.idle_rate = *data;
+        break;
     case BTA_HH_GET_RPT_EVT:
         hs_data.rsp_data.p_rpt_data = pdata;
         break;
     case BTA_HH_GET_PROTO_EVT:
         /* match up BTE/BTA report/boot mode def*/
         hs_data.rsp_data.proto_mode = ((*data) == HID_PAR_PROTOCOL_REPORT)? \
-                    BTA_HH_PROTO_RPT_MODE : BTA_HH_PROTO_BOOT_MODE; 
+                    BTA_HH_PROTO_RPT_MODE : BTA_HH_PROTO_BOOT_MODE;
 #if BTA_HH_DEBUG
         APPL_TRACE_DEBUG1("GET_PROTOCOL Mode = [%s]", 
             (hs_data.rsp_data.proto_mode == BTA_HH_PROTO_RPT_MODE)? "Report" : "Boot");
@@ -703,6 +707,8 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
     case BTA_HH_SET_PROTO_EVT:
         /* fall through */
     case BTA_HH_SET_RPT_EVT:
+        /* fall through */
+    case BTA_HH_SET_IDLE_EVT :
         /* fall through */
     default:
 #if BTA_HH_DEBUG
@@ -715,7 +721,7 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
     /* inform PM for mode change */
     bta_sys_busy(BTA_ID_HH, p_cb->app_id, p_cb->addr);
     bta_sys_idle(BTA_ID_HH, p_cb->app_id, p_cb->addr);
-    
+
     (* bta_hh_cb.p_cback)(p_cb->w4_evt, (tBTA_HH *)&hs_data);
 
     p_cb->w4_evt = 0;
@@ -937,7 +943,7 @@ void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         cbdata.status = BTA_HH_ERR;
 
         if (p_data->api_sndcmd.t_type != HID_TRANS_CONTROL &&
-            p_data->api_sndcmd.t_type != HID_TRANS_DATA) 
+            p_data->api_sndcmd.t_type != HID_TRANS_DATA)
             (* bta_hh_cb.p_cback)(event, (tBTA_HH *)&cbdata);
         else if (p_data->api_sndcmd.param == BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG)
             (* bta_hh_cb.p_cback)(BTA_HH_VC_UNPLUG_EVT, (tBTA_HH *)&cbdata);
@@ -953,7 +959,11 @@ void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
             /* fall through */
         case HID_TRANS_SET_REPORT:
             /* fall through */
-        case HID_TRANS_GET_PROTOCOL:/* set w4_handsk event name for callback function use */
+        case HID_TRANS_GET_PROTOCOL:
+            /* fall through */
+        case HID_TRANS_GET_IDLE:
+            /* fall through */
+        case HID_TRANS_SET_IDLE:/* set w4_handsk event name for callback function use */
             p_cb->w4_evt = event;
             break;
         case HID_TRANS_DATA:  /* output report */
@@ -965,13 +975,6 @@ void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                 p_cb->vp = TRUE;
 
             break;
-        /* deprecated for HID 1.1, shall not be sent out */
-        case HID_TRANS_GET_IDLE:    
-        /* fall through */
-        case HID_TRANS_SET_IDLE:    
-            APPL_TRACE_ERROR0("SET_IDLE, GET_IDLE is deprecated in HID 1.1")
-            break;
-
         /* currently not expected */
         case HID_TRANS_DATAC:     
         default:

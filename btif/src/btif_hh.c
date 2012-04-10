@@ -401,13 +401,8 @@ void btif_hh_virtual_unpug(bt_bdaddr_t *bd_addr)
     p_dev = btif_hh_find_dev_by_bda(bd_addr);
     if (p_dev != NULL)
     {
-        if(p_dev->attr_mask & HID_VIRTUAL_CABLE)
-        {
             BTIF_TRACE_DEBUG1("%s Sending BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG", __FUNCTION__);
             BTA_HhSendCtrl(p_dev->dev_handle, BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG);
-        }
-        else
-            BTA_HhClose(p_dev->dev_handle);
     }
     else
         BTIF_TRACE_ERROR2("%s: Error, device %s not opened.", __FUNCTION__, bd_str);
@@ -1344,9 +1339,7 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
 
         /* Build a SetReport data buffer */
         memset(hexbuf, 0, 200);
-        //TODO
-        /*
-        hex_bytes_filled = scru_ascii_2_hex(data, len, hexbuf);
+        hex_bytes_filled = ascii_2_hex(data, len, hexbuf);
         BTIF_TRACE_ERROR2("Hex bytes filled, hex value: %d, %d", hex_bytes_filled, len);
 
         if (hex_bytes_filled) {
@@ -1355,7 +1348,7 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
             memcpy(pbuf_data, hexbuf, hex_bytes_filled);
             BTA_HhSendData(p_dev->dev_handle, *bda, p_dev->p_buf);
             return BT_STATUS_SUCCESS;
-        }*/
+        }
 
     }
     return BT_STATUS_FAIL;
