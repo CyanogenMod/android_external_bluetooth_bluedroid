@@ -255,6 +255,13 @@ static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond
     else
     {
         memset(&pairing_cb, 0, sizeof(pairing_cb));
+        char buf[512];
+        bt_property_t prop;
+        prop.type = BT_PROPERTY_ADAPTER_BONDED_DEVICES;
+        prop.val = (void*)buf;
+        prop.len = sizeof(buf);
+        status = btif_storage_get_adapter_property(&prop);
+        HAL_CBACK(bt_hal_cbacks, adapter_properties_cb, status, 1, &prop);
     }
 
 }
@@ -686,6 +693,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
         {
         }
         break;
+        case BTA_DM_SEARCH_CANCEL_CMPL_EVT:
         case BTA_DM_DISC_CMPL_EVT:
         {
             HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb, BT_DISCOVERY_STOPPED);

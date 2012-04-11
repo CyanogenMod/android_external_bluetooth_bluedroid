@@ -524,6 +524,57 @@ int btif_in_load_device_iter_cb(char *key, char *value, void *userdata)
     return 0;
 }
 
+
+int btif_in_get_device_iter_cb(char *key, char *value, void *userdata)
+{
+    btif_bonded_devices_t *p_bonded_devices = (btif_bonded_devices_t *)userdata;
+    DEV_CLASS dev_class = {0, 0, 0};
+    bt_bdaddr_t bd_addr;
+    LINK_KEY link_key;
+    uint8_t key_type;
+    uint8_t pin_length;
+    int offset = 0;
+    int8_t temp[3];
+    uint32_t i;
+
+    memset(temp, 0, sizeof(temp));
+
+    BTIF_TRACE_DEBUG3("%s %s %s", __FUNCTION__, key, value);
+
+    /* convert 32 char linkkey (fixed size) */
+    for (i = 0; i < LINK_KEY_LEN; i++)
+    {
+        memcpy(temp, value + (i * 2), 2);
+        link_key[i] = (uint8_t) strtol((const char *)temp, NULL, 16);
+        offset+=2;
+    }
+
+    /* skip space */
+    offset++;
+
+    /* convert decimal keytype (max 2 ascii chars) */
+    memset(temp, 0, sizeof(temp));
+    memcpy(temp, value + offset, 2);
+    key_type = (uint8_t)strtoul((const char *)temp, NULL, 10);
+
+    /* value + space */
+    offset+=2;
+
+    /* convert decimal pinlen (max 2 ascii chars) */
+    memset(temp, 0, sizeof(temp));
+    memcpy(temp, value + offset, 2);
+    pin_length = (uint8_t)strtoul((const char *)temp, NULL, 10);
+
+    /* convert bd address (keystring) */
+    str2bd(key, &bd_addr);
+
+
+     /* Fill in the bonded devices */
+    memcpy(&p_bonded_devices->devices[p_bonded_devices->num_devices++], &bd_addr, sizeof(bt_bdaddr_t));
+
+    return 0;
+}
+
 /*******************************************************************************
 **
 ** Function         btif_in_fetch_bonded_devices
@@ -534,7 +585,7 @@ int btif_in_load_device_iter_cb(char *key, char *value, void *userdata)
 ** Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
-static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_devices)
+static bt_status_t btif_in_fetch_and_load_bonded_devices(btif_bonded_devices_t *p_bonded_devices)
 {
     char *fname;
     int ret;
@@ -553,6 +604,27 @@ static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_
 
     return BT_STATUS_SUCCESS;
 }
+
+static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_devices)
+{
+    char *fname;
+    int ret;
+
+    memset(p_bonded_devices, 0, sizeof(btif_bonded_devices_t));
+
+    fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_REMOTE_LINKKEYS);
+
+    if (fname == NULL)
+        return BT_STATUS_FAIL;
+
+    ret = unv_read_key_iter(fname, btif_in_get_device_iter_cb, p_bonded_devices);
+
+    if (ret < 0)
+        return BT_STATUS_FAIL;
+
+    return BT_STATUS_SUCCESS;
+}
+
 static int hex_str_to_int(const char* str, int size)
 {
     int  n = 0;
@@ -1083,7 +1155,7 @@ bt_status_t btif_storage_load_bonded_devices(void)
     bt_uuid_t remote_uuids[BT_MAX_NUM_UUIDS];
     uint32_t cod, devtype;
 
-    btif_in_fetch_bonded_devices(&bonded_devices);
+    btif_in_fetch_and_load_bonded_devices(&bonded_devices);
 
     /* Now send the adapter_properties_cb with all adapter_properties */
     {
