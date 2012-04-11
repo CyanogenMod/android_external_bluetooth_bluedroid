@@ -2,19 +2,6 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-vnd_targetfile = $(LOCAL_PATH)/include/$(addprefix vnd_, $(addsuffix .txt,$(basename $(TARGET_DEVICE))))
-vnd_cfgfile    = $(LOCAL_PATH)/include/vnd_buildcfg.h
-
-vnd_build_cfg = $(shell if [ -f $(vnd_cfgfile) ] && [ `stat -c %Y $(vnd_targetfile)` -lt `stat -c %Y $(vnd_cfgfile)` ]; then echo 0; else echo 1; fi)
-
-ifeq ($(vnd_build_cfg),1)
-$(info "Creating $(vnd_cfgfile) from $(vnd_targetfile)")
-$(shell echo "#ifndef VND_BUILDCFG_H" > $(vnd_cfgfile))
-$(shell echo "#define VND_BUILDCFG_H" >> $(vnd_cfgfile))
-$(shell sed -e '/^#/d' -e '/^$$/d' -e '/# Makefile only$$/d' -e 's/^/#define /' -e 's/=/ /' $(vnd_targetfile) >> $(vnd_cfgfile))
-$(shell echo "#endif" >> $(vnd_cfgfile))
-endif
-
 LOCAL_SRC_FILES := \
         src/bt_vendor_brcm.c \
         src/hci_h4.c \
@@ -33,5 +20,8 @@ LOCAL_SHARED_LIBRARIES := \
 
 LOCAL_MODULE := libbt-vendor
 LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+
+include $(LOCAL_PATH)/vnd_buildcfg.mk
 
 include $(BUILD_SHARED_LIBRARY)

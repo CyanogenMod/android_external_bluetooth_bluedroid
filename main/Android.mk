@@ -1,7 +1,5 @@
 LOCAL_PATH:= $(call my-dir)
 
-include $(LOCAL_PATH)/../include/buildcfg.mk
-
 #
 # Bluetooth HW module
 #
@@ -120,6 +118,8 @@ LOCAL_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_bta libbt-brcm_stack
 LOCAL_MODULE := bluetooth.default
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 
+include $(LOCAL_PATH)/../include/buildcfg.mk
 
 include $(BUILD_SHARED_LIBRARY)
