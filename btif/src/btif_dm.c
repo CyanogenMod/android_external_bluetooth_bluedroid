@@ -89,6 +89,11 @@ typedef struct {
     UINT8   pin_code_len;
 } btif_dm_pairing_cb_t;
 
+typedef struct {
+    BD_ADDR bd_addr;
+    BD_NAME bd_name;
+} btif_dm_remote_name_t;
+
 #define BTA_SERVICE_ID_TO_SERVICE_MASK(id)       (1 << (id))
 
 /******************************************************************************
@@ -98,6 +103,7 @@ static btif_dm_pairing_cb_t pairing_cb;
 static void btif_dm_generic_evt(UINT16 event, char* p_param);
 static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr);
 static void btif_dm_cb_hid_remote_name(tBTM_REMOTE_DEV_NAME *p_remote_name);
+static void btif_update_remote_name(btif_dm_remote_name_t remote_param);
 
 /******************************************************************************
 **  Externs
@@ -266,6 +272,24 @@ static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond
 
 }
 
+
+static void btif_update_remote_name(btif_dm_remote_name_t remote_param)
+{
+    if (strlen((const char *) remote_param.bd_name))
+    {
+        bt_property_t properties[1];
+        bt_bdaddr_t bdaddr;
+        bt_status_t status;
+        properties[0].type = BT_PROPERTY_BDNAME;
+        properties[0].val = remote_param.bd_name;
+        properties[0].len = strlen((char *)remote_param.bd_name)+1;
+        bdcpy(bdaddr.address, remote_param.bd_addr);
+        status = btif_storage_set_remote_device_property(&bdaddr, &properties[0]);
+        ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device property", status);
+        HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+                         status, &bdaddr, 1, properties);
+    }
+}
 /*******************************************************************************
 **
 ** Function         hid_remote_name_cback
@@ -419,11 +443,16 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     bt_bdaddr_t bd_addr;
     bt_bdname_t bd_name;
     UINT32 cod;
+    btif_dm_remote_name_t remote_param;
 
     bdcpy(bd_addr.address, p_pin_req->bd_addr);
     memcpy(bd_name.name, p_pin_req->bd_name, BD_NAME_LEN);
 
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
+    /* Remote name update */
+    bdcpy(remote_param.bd_addr , p_pin_req->bd_addr);
+    memcpy(remote_param.bd_name, p_pin_req->bd_name, BD_NAME_LEN);
+    btif_update_remote_name(remote_param);
 
     cod = devclass2uint(p_pin_req->dev_class);
 
@@ -450,6 +479,7 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     bt_bdaddr_t bd_addr;
     bt_bdname_t bd_name;
     UINT32 cod;
+    btif_dm_remote_name_t remote_param;
 
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
     bdcpy(bd_addr.address, p_ssp_cfm_req->bd_addr);
@@ -457,6 +487,10 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
 
     /* Set the pairing_cb based on the local & remote authentication requirements */
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
+    /* Remote name update */
+    bdcpy(remote_param.bd_addr , p_ssp_cfm_req->bd_addr);
+    memcpy(remote_param.bd_name, p_ssp_cfm_req->bd_name, BD_NAME_LEN);
+    btif_update_remote_name(remote_param);
 
     if ((p_ssp_cfm_req->loc_auth_req >= BTM_AUTH_AP_NO && p_ssp_cfm_req->rmt_auth_req >= BTM_AUTH_AP_NO) ||
         (p_ssp_cfm_req->loc_auth_req == BTM_AUTH_AP_NO || p_ssp_cfm_req->loc_auth_req == BTM_AUTH_AP_YES) ||
@@ -490,12 +524,17 @@ static void btif_dm_ssp_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif)
     bt_bdaddr_t bd_addr;
     bt_bdname_t bd_name;
     UINT32 cod;
+    btif_dm_remote_name_t remote_param;
 
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
     bdcpy(bd_addr.address, p_ssp_key_notif->bd_addr);
     memcpy(bd_name.name, p_ssp_key_notif->bd_name, BD_NAME_LEN);
 
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
+    /* Remote name update */
+    bdcpy(remote_param.bd_addr , p_ssp_key_notif->bd_addr);
+    memcpy(remote_param.bd_name, p_ssp_key_notif->bd_name, BD_NAME_LEN);
+    btif_update_remote_name(remote_param);
 
     cod = devclass2uint(p_ssp_key_notif->dev_class);
 
