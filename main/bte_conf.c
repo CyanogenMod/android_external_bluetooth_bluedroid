@@ -59,8 +59,11 @@
 #include <utils/Log.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 #include "bt_target.h"
+#include "bta_api.h"
 
 /******************************************************************************
 **  Externs
@@ -77,6 +80,13 @@ DEV_CLASS local_device_default_class = {0x40, 0x02, 0x0C};
 /******************************************************************************
 **  Local type definitions
 ******************************************************************************/
+#define CONF_DBG          0
+#define info(format, ...) LOGI (format, ## __VA_ARGS__)
+#define debug(format, ...) if (CONF_DBG) LOGD (format, ## __VA_ARGS__)
+#define error(format, ...) LOGE (format, ## __VA_ARGS__)
+
+#define CONF_KEY_LEN   32
+#define CONF_VALUE_LEN 96
 
 #define CONF_COMMENT '#'
 #define CONF_DELIMITERS " =\n\r\t"
@@ -91,6 +101,25 @@ typedef struct {
     conf_action_t *p_action;
 } conf_entry_t;
 
+typedef struct {
+    char key[CONF_KEY_LEN];
+    char value[CONF_VALUE_LEN];
+} tKEY_VALUE_PAIRS;
+
+enum {
+    CONF_DID,
+    CONF_DID_RECORD_NUM,
+    CONF_DID_PRIMARY_RECORD,
+    CONF_DID_VENDOR_ID,
+    CONF_DID_VENDOR_ID_SOURCE,
+    CONF_DID_PRODUCT_ID,
+    CONF_DID_VERSION,
+    CONF_DID_CLIENT_EXECUTABLE_URL,
+    CONF_DID_SERVICE_DESCRIPTION,
+    CONF_DID_DOCUMENTATION_URL,
+    CONF_DID_MAX
+};
+typedef UINT8 tCONF_DID;
 /******************************************************************************
 **  Static variables
 ******************************************************************************/
@@ -106,6 +135,18 @@ static const conf_entry_t conf_table[] = {
     {(const char *) NULL, NULL}
 };
 
+static tKEY_VALUE_PAIRS did_conf_pairs[CONF_DID_MAX] = {
+    { "[DID]",               "" },
+    { "recordNumber",        "" },
+    { "primaryRecord",       "" },
+    { "vendorId",            "" },
+    { "vendorIdSource",      "" },
+    { "productId",           "" },
+    { "version",             "" },
+    { "clientExecutableURL", "" },
+    { "serviceDescription",  "" },
+    { "documentationURL",    "" },
+};
 /*****************************************************************************
 **   FUNCTIONS
 *****************************************************************************/
@@ -216,6 +257,201 @@ void bte_load_conf(const char *p_path)
     else
     {
         LOGI( "bte_load_conf file >%s< not found", p_path);
+    }
+}
+
+/*******************************************************************************
+**
+** Function        bte_parse_did_conf
+**
+** Description     Read conf entry from p_path file one by one and get
+**                 the corresponding config value
+**
+** Returns         TRUE if success, else FALSE
+**
+*******************************************************************************/
+static BOOLEAN bte_parse_did_conf (const char *p_path, UINT32 num,
+    tKEY_VALUE_PAIRS *conf_pairs, UINT32 conf_pairs_num)
+{
+    UINT32 i, param_num=0, count=0, start_count=0, end_count=0, conf_num=0;
+    BOOLEAN key=TRUE, conf_found=FALSE;
+
+    FILE    *p_file;
+    char    *p;
+    char    line[CONF_MAX_LINE_LEN+1]; /* add 1 for \0 char */
+
+    LOGI("Attempt to load did conf from %s", p_path);
+
+    if ((p_file = fopen(p_path, "r")) != NULL)
+    {
+        /* read line by line */
+        while (fgets(line, CONF_MAX_LINE_LEN+1, p_file) != NULL)
+        {
+            count++;
+            if (line[0] == CONF_COMMENT)
+                continue;
+
+            if (conf_found && (conf_num == num) && (*line == '[')) {
+                conf_found = FALSE;
+                end_count = count-1;
+                break;
+            }
+
+            p = strtok(line, CONF_DELIMITERS);
+            while (p != NULL) {
+                if (conf_num <= num) {
+                    if (key) {
+                        if (!strcmp(p, conf_pairs[0].key)) {
+                            if (++conf_num == num) {
+                                conf_found = TRUE;
+                                start_count = count;
+                                strncpy(conf_pairs[0].value, "1", CONF_VALUE_LEN);
+                            }
+                        } else {
+                            if (conf_num == num) {
+                                for (i=1; i<conf_pairs_num; i++) {
+                                    if (!strcmp(p, conf_pairs[i].key)) {
+                                        param_num = i;
+                                        break;
+                                    }
+                                }
+                                if (i == conf_pairs_num) {
+                                    error("Attribute %s does not belong to %s configuration",
+                                        p, conf_pairs[0].key);
+                                    fclose(p_file);
+                                    return FALSE;
+                                }
+                            }
+                            key = FALSE;
+                        }
+                    } else {
+                        if ((conf_num == num) && param_num) {
+                            strncpy(conf_pairs[param_num].value, p, CONF_VALUE_LEN-1);
+                            param_num = 0;
+                        }
+                        key = TRUE;
+                    }
+                }
+                p = strtok(NULL, CONF_DELIMITERS);
+            }
+        }
+
+        fclose(p_file);
+   }
+   else
+   {
+        LOGI( "bte_parse_did_conf file >%s< not found", p_path);
+   }
+   if (!end_count)
+       end_count = count;
+
+   if (start_count) {
+        debug("Read %s configuration #%u from lines %u to %u in file %s",
+            conf_pairs[0].key, (unsigned int)num, (unsigned int)start_count,
+            (unsigned int)end_count, p_path);
+        return TRUE;
+   }
+
+   error("%s configuration not found in file %s", conf_pairs[0].key, p_path);
+        return FALSE;
+}
+
+/*******************************************************************************
+**
+** Function        bte_load_did_conf
+**
+** Description     Set local Device ID records, reading from configuration files
+**
+** Returns         None
+**
+*******************************************************************************/
+
+void bte_load_did_conf (const char *p_path)
+{
+    tBTA_DI_RECORD rec;
+    UINT32 rec_num, i, j;
+
+    for (i=1; i<=BTA_DI_NUM_MAX; i++) {
+        for (j=0; j<CONF_DID_MAX; j++) {
+            *did_conf_pairs[j].value = 0;
+        }
+
+        if (bte_parse_did_conf(p_path, i, did_conf_pairs, CONF_DID_MAX)) {
+            memset(&rec, 0, sizeof(rec));
+
+            if (*did_conf_pairs[CONF_DID_RECORD_NUM].value) {
+                rec_num = (UINT32)(strtoul(did_conf_pairs[CONF_DID_RECORD_NUM].value, NULL, 0)-1);
+            } else {
+                debug("[%d] Unknown %s", (unsigned int)i, did_conf_pairs[CONF_DID_RECORD_NUM].key);
+                continue;
+            }
+
+            if (*did_conf_pairs[CONF_DID_VENDOR_ID].value) {
+                rec.vendor = (UINT16)strtoul(did_conf_pairs[CONF_DID_VENDOR_ID].value, NULL, 0);
+            } else {
+                rec.vendor = LMP_COMPID_BROADCOM;
+            }
+
+            if (*did_conf_pairs[CONF_DID_VENDOR_ID_SOURCE].value) {
+                rec.vendor_id_source = (UINT16)strtoul(did_conf_pairs[CONF_DID_VENDOR_ID_SOURCE].value, NULL, 0);
+            } else {
+                rec.vendor_id_source = DI_VENDOR_ID_SOURCE_BTSIG;
+            }
+
+            if ((*did_conf_pairs[CONF_DID].value == 0) ||
+                (rec_num >= BTA_DI_NUM_MAX) ||
+                (!((rec.vendor_id_source >= DI_VENDOR_ID_SOURCE_BTSIG) &&
+                   (rec.vendor_id_source <= DI_VENDOR_ID_SOURCE_USBIF))) ||
+                (rec.vendor == DI_VENDOR_ID_DEFAULT)) {
+
+                error("DID record #%u not set", (unsigned int)i);
+                for (j=0; j<CONF_DID_MAX; j++) {
+                    error("%s:%s", did_conf_pairs[j].key, did_conf_pairs[j].value);
+                }
+                continue;
+            }
+
+            rec.product = (UINT16)strtoul(did_conf_pairs[CONF_DID_PRODUCT_ID].value, NULL, 0);
+            rec.version = (UINT16)strtoul(did_conf_pairs[CONF_DID_VERSION].value, NULL, 0);
+
+            strncpy(rec.client_executable_url,
+                did_conf_pairs[CONF_DID_CLIENT_EXECUTABLE_URL].value,
+                SDP_MAX_ATTR_LEN);
+            strncpy(rec.service_description,
+                did_conf_pairs[CONF_DID_SERVICE_DESCRIPTION].value,
+                SDP_MAX_ATTR_LEN);
+            strncpy(rec.documentation_url,
+                did_conf_pairs[CONF_DID_DOCUMENTATION_URL].value,
+                SDP_MAX_ATTR_LEN);
+
+            for (j=0; j<strlen(did_conf_pairs[CONF_DID_PRIMARY_RECORD].value); j++) {
+                did_conf_pairs[CONF_DID_PRIMARY_RECORD].value[j] =
+                    tolower(did_conf_pairs[CONF_DID_PRIMARY_RECORD].value[j]);
+            }
+            if ((!strcmp(did_conf_pairs[CONF_DID_PRIMARY_RECORD].value, "true")) ||
+                (!strcmp(did_conf_pairs[CONF_DID_PRIMARY_RECORD].value, "1"))) {
+                rec.primary_record = TRUE;
+            } else {
+                rec.primary_record = FALSE;
+            }
+
+            info("[%u] primary_record=%d vendor_id=0x%04X vendor_id_source=0x%04X product_id=0x%04X version=0x%04X",
+                (unsigned int)rec_num+1, rec.primary_record, rec.vendor,
+                rec.vendor_id_source, rec.product, rec.version);
+            if (*rec.client_executable_url) {
+                info(" client_executable_url=%s", rec.client_executable_url);
+            }
+            if (*rec.service_description) {
+                info(" service_description=%s", rec.service_description);
+            }
+            if (*rec.documentation_url) {
+                info(" documentation_url=%s", rec.documentation_url);
+            }
+
+            if (BTA_DmSetLocalDiRecord(&rec, &rec_num) != BTA_SUCCESS) {
+                error("SetLocalDiInfo failed for #%u!", (unsigned int)i);
+            }
+        }
     }
 }
 

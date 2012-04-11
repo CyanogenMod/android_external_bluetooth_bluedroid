@@ -11,6 +11,14 @@ LOCAL_MODULE_TAGS := eng
 
 LOCAL_SRC_FILES := $(LOCAL_MODULE)
 
+LOCAL_MODULE := bt_did.conf
+LOCAL_MODULE_CLASS := ETC
+LOCAL_MODULE_PATH := $(TARGET_OUT)/etc/bluetooth
+
+LOCAL_MODULE_TAGS := eng
+
+LOCAL_SRC_FILES := bt_did.conf
+
 include $(BUILD_PREBUILT)
 
 ifeq ($(TARGET_PRODUCT), full_maguro)

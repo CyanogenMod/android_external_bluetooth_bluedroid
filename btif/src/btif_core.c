@@ -76,6 +76,10 @@
 #define BTIF_TASK_STACK_SIZE       0x2000         /* In bytes */
 #endif
 
+#ifndef BTE_DID_CONF_FILE
+#define BTE_DID_CONF_FILE "/etc/bluetooth/bt_did.conf"
+#endif
+
 #define BTIF_TASK_STR        ((INT8 *) "BTIF")
 static UINT32 btif_task_stack[(BTIF_TASK_STACK_SIZE + 3) / 4];
 
@@ -119,6 +123,7 @@ static void btif_sendmsg(void *p_msg);
 /************************************************************************************
 **  Externs
 ************************************************************************************/
+extern void bte_load_did_conf(const char *p_path);
 
 /** TODO: Move these to _common.h */
 void bte_main_boot_entry(void);
@@ -428,6 +433,7 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
         btif_enabled = 1;
         //init rfcomm & l2cap api
         btif_sock_init();
+        bte_load_did_conf(BTE_DID_CONF_FILE);
         HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_ON);
     }
     else
