@@ -164,13 +164,10 @@ enum
 
 /* Define the bitrate step when trying to match bitpool value */
 #ifndef BTIF_MEDIA_BITRATE_STEP
-#define BTIF_MEDIA_BITRATE_STEP 10
+#define BTIF_MEDIA_BITRATE_STEP 5
 #endif
 
-
-
 #define DEFAULT_SBC_BITRATE 220
-
 
 #ifndef A2DP_MEDIA_TASK_STACK_SIZE
 #define A2DP_MEDIA_TASK_STACK_SIZE       0x2000         /* In bytes */
@@ -204,7 +201,7 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 /* trigger rate adjustment if deviation is more than threshold */
 #define BTIF_RA_OFFSET_TRIGGER_US 3000
 
-#define BTIF_MEDIA_VERBOSE_ENABLED
+//#define BTIF_MEDIA_VERBOSE_ENABLED
 
 #ifdef BTIF_MEDIA_VERBOSE_ENABLED
 #define VERBOSE(fmt, ...) \
@@ -627,6 +624,8 @@ static void btif_a2dp_encoder_init(void)
     msg.SamplingFreq = freq_block_tbl[sbc_config.samp_freq >> 5];
     msg.MtuSize = minmtu;
 
+    APPL_TRACE_EVENT1("msg.ChannelMode %x", msg.ChannelMode);
+
     /* Init the media task to encode SBC properly */
     btif_media_task_enc_init_req(&msg);
 }
@@ -636,6 +635,8 @@ static void btif_a2dp_encoder_update(void)
     UINT16 minmtu;
     tA2D_SBC_CIE sbc_config;
     tBTIF_MEDIA_UPDATE_AUDIO msg;
+    UINT8 pref_min;
+    UINT8 pref_max;
 
     APPL_TRACE_DEBUG0("btif_a2dp_encoder_update");
 
@@ -651,9 +652,35 @@ static void btif_a2dp_encoder_update(void)
         APPL_TRACE_ERROR0("btif_a2dp_encoder_update: ERROR btif_a2dp_encoder_update min_bitpool > max_bitpool");
     }
 
-    msg.MinBitPool = sbc_config.min_bitpool;
-    msg.MaxBitPool = sbc_config.max_bitpool;
+    /* check if remote sink has a preferred bitpool range */
+    if (bta_av_co_get_remote_bitpool_pref(&pref_min, &pref_max) == TRUE)
+    {
+        /* adjust our preferred bitpool with the remote preference if within
+           our capable range */
+
+        if (pref_min < sbc_config.min_bitpool)
+            pref_min = sbc_config.min_bitpool;
+
+        if (pref_max > sbc_config.max_bitpool)
+            pref_max = sbc_config.max_bitpool;
+
+        msg.MinBitPool = pref_min;
+        msg.MaxBitPool = pref_max;
+
+        if ((pref_min != sbc_config.min_bitpool) || (pref_max != sbc_config.max_bitpool))
+        {
+            APPL_TRACE_EVENT2("## adjusted our bitpool range to peer pref [%d:%d] ##",
+                pref_min, pref_max);
+        }
+    }
+    else
+    {
+        msg.MinBitPool = sbc_config.min_bitpool;
+        msg.MaxBitPool = sbc_config.max_bitpool;
+    }
+
     msg.MinMtuSize = minmtu;
+
     /* Update the media task to encode SBC properly */
     btif_media_task_enc_update_req(&msg);
 }
@@ -730,6 +757,50 @@ void btif_a2dp_on_init(void)
     //tput_mon(1, 0, 1);
 }
 
+
+/*****************************************************************************
+**
+** Function        btif_a2dp_setup_codec
+**
+** Description
+**
+** Returns
+**
+*******************************************************************************/
+
+void btif_a2dp_setup_codec(void)
+{
+    tBTIF_AV_MEDIA_FEEDINGS media_feeding;
+    tBTIF_STATUS status;
+
+    APPL_TRACE_EVENT0("## A2DP SETUP CODEC ##");
+
+    GKI_disable();
+
+    /* for now hardcode 44.1 khz 16 bit stereo */
+    media_feeding.cfg.pcm.sampling_freq = 44100;
+    media_feeding.cfg.pcm.bit_per_sample = 16;
+    media_feeding.cfg.pcm.num_channel = 2;
+    media_feeding.format = BTIF_AV_CODEC_PCM;
+
+    if (bta_av_co_audio_set_codec(&media_feeding, &status))
+    {
+        tBTIF_MEDIA_INIT_AUDIO_FEEDING mfeed;
+
+        /* Init the encoding task */
+        btif_a2dp_encoder_init();
+
+        /* Build the media task configuration */
+        mfeed.feeding = media_feeding;
+        mfeed.feeding_mode = BTIF_AV_FEEDING_ASYNCHRONOUS;
+        /* Send message to Media task to configure transcoding */
+        btif_media_task_audio_feeding_init_req(&mfeed);
+    }
+
+    GKI_enable();
+}
+
+
 /*****************************************************************************
 **
 ** Function        btif_a2dp_on_idle
@@ -785,30 +856,6 @@ void btif_a2dp_on_started(tBTA_AV_START *p_av)
 
     APPL_TRACE_EVENT0("## ON A2DP STARTED ##");
 
-    GKI_disable();
-
-    /* for now hardcode 44.1 khz 16 bit stereo */
-    media_feeding.cfg.pcm.sampling_freq = 44100;
-    media_feeding.cfg.pcm.bit_per_sample = 16;
-    media_feeding.cfg.pcm.num_channel = 2;
-    media_feeding.format = BTIF_AV_CODEC_PCM;
-
-    if (bta_av_co_audio_set_codec(&media_feeding, &status))
-    {
-        tBTIF_MEDIA_INIT_AUDIO_FEEDING mfeed;
-
-        /* Init the encoding task */
-        btif_a2dp_encoder_init();
-
-        /* Build the media task configuration */
-        mfeed.feeding = media_feeding;
-        mfeed.feeding_mode = BTIF_AV_FEEDING_ASYNCHRONOUS;
-        /* Send message to Media task to configure transcoding */
-        btif_media_task_audio_feeding_init_req(&mfeed);
-    }
-
-    GKI_enable();
-
     if (p_av->status == BTA_AV_SUCCESS)
     {
         if (p_av->suspending == FALSE)
@@ -819,7 +866,9 @@ void btif_a2dp_on_started(tBTA_AV_START *p_av)
             }
             else
             {
-                /* we were remotely started */
+                /* we were remotely started,  make sure codec
+                   is setup before datapath is started */
+                btif_a2dp_setup_codec();
             }
 
             /* media task is autostarted upon a2dp audiopath connection */
@@ -1511,11 +1560,11 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
     SINT16 s16FrameLen;
     UINT8 protect = 0;
 
-    APPL_TRACE_DEBUG3("btif_media_task_enc_update (minmtu %d, maxbp %d. minbp %d",
+    APPL_TRACE_DEBUG3("btif_media_task_enc_update : minmtu %d, maxbp %d minbp %d",
             pUpdateAudio->MinMtuSize, pUpdateAudio->MaxBitPool, pUpdateAudio->MinBitPool);
 
     /* Only update the bitrate and MTU size while timer is running to make sure it has been initialized */
-    if (btif_media_cb.is_tx_timer)
+    //if (btif_media_cb.is_tx_timer)
     {
         btif_media_cb.TxAaMtuSize = ((BTIF_MEDIA_AA_BUF_SIZE - BTIF_MEDIA_AA_SBC_OFFSET - sizeof(BT_HDR))
                 < pUpdateAudio->MinMtuSize) ? (BTIF_MEDIA_AA_BUF_SIZE - BTIF_MEDIA_AA_SBC_OFFSET
@@ -1523,6 +1572,7 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
 
         /* Set the initial target bit rate */
         pstrEncParams->u16BitRate = DEFAULT_SBC_BITRATE;
+
         if (pstrEncParams->s16SamplingFreq == SBC_sf16000)
             s16SamplingFreq = 16000;
         else if (pstrEncParams->s16SamplingFreq == SBC_sf32000)
@@ -1582,6 +1632,8 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
                 s16BitPool = 0;
             }
 
+            APPL_TRACE_EVENT2("bitpool candidate : %d (%d kbps)", s16BitPool, pstrEncParams->u16BitRate);
+
             if (s16BitPool > pUpdateAudio->MaxBitPool)
             {
                 APPL_TRACE_WARNING1("btif_media_task_enc_update computed bitpool too large (%d)", s16BitPool);
@@ -1615,6 +1667,9 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
 
         APPL_TRACE_DEBUG2("btif_media_task_enc_update final bit rate %d, final bit pool %d",
                 btif_media_cb.encoder.u16BitRate, btif_media_cb.encoder.s16BitPool);
+
+        /* make sure we reinitialize encoder with new settings */
+        SBC_Encoder_Init(&(btif_media_cb.encoder));
     }
 }
 
@@ -1674,10 +1729,10 @@ static void btif_media_task_pcm2sbc_init(tBTIF_MEDIA_INIT_AUDIO_FEEDING * p_feed
     }
 
     /* Some AV Headsets do not support Mono => always ask for Stereo */
-    if (btif_media_cb.encoder.s16ChannelMode != SBC_STEREO)
+    if (btif_media_cb.encoder.s16ChannelMode == SBC_MONO)
     {
         APPL_TRACE_DEBUG0("SBC Reconfiguration needed in Stereo");
-        btif_media_cb.encoder.s16ChannelMode = SBC_STEREO;
+        btif_media_cb.encoder.s16ChannelMode = SBC_JOINT_STEREO;
         reconfig_needed = TRUE;
     }
 

@@ -186,4 +186,18 @@ void bta_av_co_init(void);
  *******************************************************************************/
 BOOLEAN bta_av_co_peer_cp_supported(tBTA_AV_HNDL hndl);
 
+/*******************************************************************************
+ **
+ ** Function         bta_av_co_get_remote_bitpool_pref
+ **
+ ** Description      Check if remote side did a setconfig within the limits
+ **                  of our exported bitpool range. If set we will set the
+ **                  remote preference.
+ **
+ ** Returns          TRUE if config set, FALSE otherwize
+ **
+ *******************************************************************************/
+BOOLEAN bta_av_co_get_remote_bitpool_pref(UINT8 *min, UINT8 *max);
+
+
 #endif

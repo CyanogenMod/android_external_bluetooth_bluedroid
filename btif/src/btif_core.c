@@ -453,7 +453,9 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
     {
         /* cleanup rfcomm & l2cap api */
         btif_sock_cleanup();
+
         btif_pan_cleanup();
+
         btif_enabled = 0;
 
         HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
@@ -486,7 +488,9 @@ bt_status_t btif_disable_bluetooth(void)
 
     /* cleanup rfcomm & l2cap api */
     btif_sock_cleanup();
+
     btif_pan_cleanup();
+
     status = BTA_DisableBluetooth();
 
     if (status != BTA_SUCCESS)
@@ -954,9 +958,9 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
             break;
         case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
             {
-                //Nothing to do beside store the value in NV.  Java
-                //will change the SCAN_MODE property after setting timeout,
-                //if required.
+                /* Nothing to do beside store the value in NV.  Java
+                   will change the SCAN_MODE property after setting timeout,
+                   if required */
                 storage_req_id = BTIF_CORE_STORAGE_ADAPTER_WRITE;
             }
             break;

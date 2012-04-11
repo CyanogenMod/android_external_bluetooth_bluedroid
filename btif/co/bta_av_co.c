@@ -48,9 +48,7 @@
 #define BTA_AV_CO_SBC_MIN_BITPOOL_OFF  5
 #define BTA_AV_CO_SBC_MAX_BITPOOL_OFF  6
 
-
-#define BTA_AV_CO_SBC_MAX_BITPOOL  0x59
-
+#define BTA_AV_CO_SBC_MAX_BITPOOL  53
 
 /* SCMS-T protect info */
 const UINT8 bta_av_co_cp_scmst[BTA_AV_CP_INFO_LEN] = "\x02\x02\x00";
@@ -75,7 +73,7 @@ const tA2D_SBC_CIE bta_av_co_sbc_caps =
 const tA2D_SBC_CIE btif_av_sbc_default_config =
 {
     BTIF_AV_SBC_DEFAULT_SAMP_FREQ,   /* samp_freq */
-    A2D_SBC_IE_CH_MD_STEREO,        /* ch_mode */
+    A2D_SBC_IE_CH_MD_JOINT,         /* ch_mode */
     A2D_SBC_IE_BLOCKS_16,           /* block_len */
     A2D_SBC_IE_SUBBAND_8,           /* num_subbands */
     A2D_SBC_IE_ALLOC_MD_L,          /* alloc_mthd */
@@ -125,6 +123,8 @@ typedef struct
     tBTA_AV_CO_PEER peers[BTA_AV_NUM_STRS];
     /* Current codec configuration - access to this variable must be protected */
     tBTIF_AV_CODEC_INFO codec_cfg;
+    tBTIF_AV_CODEC_INFO codec_cfg_setconfig; /* remote peer setconfig preference */
+
     tBTA_AV_CO_CP cp;
 } tBTA_AV_CO_CB;
 
@@ -262,6 +262,9 @@ BOOLEAN bta_av_co_audio_init(UINT8 *p_codec_type, UINT8 *p_codec_info, UINT8 *p_
     *p_num_protect = 0;
     *p_protect_info = 0;
 #endif
+
+    /* reset remote preference through setconfig */
+    bta_av_co_cb.codec_cfg_setconfig.id = BTIF_AV_CODEC_NONE;
 
     switch (index)
     {
@@ -565,6 +568,15 @@ BTA_API void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_ty
                 {
                     recfg_needed = TRUE;
                 }
+
+                /* if remote side requests a restricted notify sinks preferred bitpool range as all other params are
+                   already checked for validify */
+                APPL_TRACE_EVENT2("remote peer setconfig bitpool range [%d:%d]",
+                   p_codec_info[BTA_AV_CO_SBC_MIN_BITPOOL_OFF],
+                   p_codec_info[BTA_AV_CO_SBC_MAX_BITPOOL_OFF] );
+
+                bta_av_co_cb.codec_cfg_setconfig.id = BTIF_AV_CODEC_SBC;
+                memcpy(bta_av_co_cb.codec_cfg_setconfig.info, p_codec_info, AVDT_CODEC_SIZE);
                 break;
 
 
@@ -667,6 +679,9 @@ BTA_API void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, 
     {
         APPL_TRACE_ERROR0("bta_av_co_audio_close could not find peer entry");
     }
+
+    /* reset remote preference through setconfig */
+    bta_av_co_cb.codec_cfg_setconfig.id = BTIF_AV_CODEC_NONE;
 }
 
 /*******************************************************************************
@@ -825,6 +840,10 @@ static BOOLEAN bta_av_co_audio_codec_build_config(const UINT8 *p_codec_caps, UIN
         /* Update the bit pool boundaries with the codec capabilities */
         p_codec_cfg[BTA_AV_CO_SBC_MIN_BITPOOL_OFF] = p_codec_caps[BTA_AV_CO_SBC_MIN_BITPOOL_OFF];
         p_codec_cfg[BTA_AV_CO_SBC_MAX_BITPOOL_OFF] = p_codec_caps[BTA_AV_CO_SBC_MAX_BITPOOL_OFF];
+
+        APPL_TRACE_EVENT2("bta_av_co_audio_codec_build_config : bitpool min %d, max %d",
+                    p_codec_cfg[BTA_AV_CO_SBC_MIN_BITPOOL_OFF],
+                    p_codec_caps[BTA_AV_CO_SBC_MAX_BITPOOL_OFF]);
         break;
     default:
         APPL_TRACE_ERROR1("bta_av_co_audio_codec_build_config: unsupported codec id %d", bta_av_co_cb.codec_cfg.id);
@@ -850,6 +869,13 @@ static BOOLEAN bta_av_co_audio_codec_cfg_matches_caps(UINT8 codec_id, const UINT
     switch(codec_id)
     {
     case BTIF_AV_CODEC_SBC:
+
+        APPL_TRACE_EVENT4("bta_av_co_audio_codec_cfg_matches_caps : min %d/%d max %d/%d",
+           p_codec_caps[BTA_AV_CO_SBC_MIN_BITPOOL_OFF],
+           p_codec_cfg[BTA_AV_CO_SBC_MIN_BITPOOL_OFF],
+           p_codec_caps[BTA_AV_CO_SBC_MAX_BITPOOL_OFF],
+           p_codec_cfg[BTA_AV_CO_SBC_MAX_BITPOOL_OFF]);
+
         /* Must match all items exactly except bitpool boundaries which can be adjusted */
         if (!((p_codec_caps[BTA_AV_CO_SBC_FREQ_CHAN_OFF] & p_codec_cfg[BTA_AV_CO_SBC_FREQ_CHAN_OFF]) &&
               (p_codec_caps[BTA_AV_CO_SBC_BLOCK_BAND_OFF] & p_codec_cfg[BTA_AV_CO_SBC_BLOCK_BAND_OFF])))
@@ -1090,7 +1116,6 @@ BOOLEAN bta_av_co_audio_codec_supported(tBTIF_STATUS *p_status)
 
     FUNC_TRACE();
 
-
     APPL_TRACE_DEBUG0("bta_av_co_audio_codec_supported");
 
     /* Check AV feeding is supported */
@@ -1291,7 +1316,7 @@ BOOLEAN bta_av_co_audio_get_sbc_config(tA2D_SBC_CIE *p_sbc_config, UINT16 *p_min
     tBTA_AV_CO_PEER *p_peer;
     tBTA_AV_CO_SINK *p_sink;
 
-    FUNC_TRACE();
+    APPL_TRACE_EVENT1("bta_av_co_cb.codec_cfg.id : codec 0x%x", bta_av_co_cb.codec_cfg.id);
 
     /* Minimum MTU is by default very large */
     *p_minmtu = 0xFFFF;
@@ -1322,6 +1347,8 @@ BOOLEAN bta_av_co_audio_get_sbc_config(tA2D_SBC_CIE *p_sbc_config, UINT16 *p_min
                             p_sbc_config->max_bitpool =
                                BTA_AV_CO_MIN(p_sink->codec_caps[BTA_AV_CO_SBC_MAX_BITPOOL_OFF],
                                              p_sbc_config->max_bitpool);
+                            APPL_TRACE_EVENT2("bta_av_co_audio_get_sbc_config : sink bitpool min %d, max %d",
+                                 p_sbc_config->min_bitpool, p_sbc_config->max_bitpool);
                             break;
                         }
                     }
@@ -1431,3 +1458,30 @@ BOOLEAN bta_av_co_peer_cp_supported(tBTA_AV_HNDL hndl)
     APPL_TRACE_ERROR0("bta_av_co_peer_cp_supported did not find SBC sink");
     return FALSE;
 }
+
+
+/*******************************************************************************
+ **
+ ** Function         bta_av_co_get_remote_bitpool_pref
+ **
+ ** Description      Check if remote side did a setconfig within the limits
+ **                  of our exported bitpool range. If set we will set the
+ **                  remote preference.
+ **
+ ** Returns          TRUE if config set, FALSE otherwize
+ **
+ *******************************************************************************/
+
+BOOLEAN bta_av_co_get_remote_bitpool_pref(UINT8 *min, UINT8 *max)
+{
+    /* check if remote peer did a set config */
+    if (bta_av_co_cb.codec_cfg_setconfig.id == BTIF_AV_CODEC_NONE)
+        return FALSE;
+
+    *min = bta_av_co_cb.codec_cfg_setconfig.info[BTA_AV_CO_SBC_MIN_BITPOOL_OFF];
+    *max = bta_av_co_cb.codec_cfg_setconfig.info[BTA_AV_CO_SBC_MAX_BITPOOL_OFF];
+
+    return TRUE;
+}
+
+

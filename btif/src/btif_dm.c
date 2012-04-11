@@ -987,7 +987,8 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 
         case BTA_DM_DEV_UNPAIRED_EVT:
             bdcpy(bd_addr.address, p_data->link_down.bd_addr);
-                    /*special handling for HID devices */
+
+            /*special handling for HID devices */
             #if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
             if (check_cod(&bd_addr, COD_HID_POINTING ) || check_cod(&bd_addr, COD_HID_KEYBOARD )|| check_cod(&bd_addr, COD_HID_COMBO)) {
                 btif_hh_remove_device(bd_addr);
@@ -1487,11 +1488,12 @@ void btif_dm_execute_service_request(UINT16 event, char *p_param)
     {
         bt_property_t property;
         bt_uuid_t local_uuids[BT_MAX_NUM_UUIDS];
-         /* Now send the UUID_PROPERTY_CHANGED event to the upper layer */
+
+        /* Now send the UUID_PROPERTY_CHANGED event to the upper layer */
         BTIF_STORAGE_FILL_PROPERTY(&property, BT_PROPERTY_UUIDS,
                                     sizeof(local_uuids), local_uuids);
-         btif_storage_get_adapter_property(&property);
-         HAL_CBACK(bt_hal_cbacks, adapter_properties_cb,
+        btif_storage_get_adapter_property(&property);
+        HAL_CBACK(bt_hal_cbacks, adapter_properties_cb,
                           BT_STATUS_SUCCESS, 1, &property);
     }
     return;

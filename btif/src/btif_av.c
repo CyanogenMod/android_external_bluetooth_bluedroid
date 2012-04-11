@@ -467,6 +467,7 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             break;
 
         case BTIF_AV_START_STREAM_REQ_EVT:
+            btif_a2dp_setup_codec();
             BTA_AvStart();
             break;
 
