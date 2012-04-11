@@ -143,6 +143,9 @@ void bte_main_in_hw_init(void)
 ******************************************************************************/
 void bte_main_boot_entry(void)
 {
+    /* initialize OS */
+    GKI_init();
+
     bte_main_in_hw_init();
 
     bte_load_conf(BTE_STACK_CONF_FILE);
@@ -184,7 +187,7 @@ void bte_main_shutdown()
 ** Returns          None
 **
 ******************************************************************************/
-void bte_main_enable(void)
+void bte_main_enable(uint8_t *local_addr)
 {
     APPL_TRACE_DEBUG1("%s", __FUNCTION__);
 
@@ -195,7 +198,7 @@ void bte_main_enable(void)
 
     if (bt_vendor_if)
     {
-        int result = bt_vendor_if->init(&vnd_callbacks);
+        int result = bt_vendor_if->init(&vnd_callbacks, local_addr);
         APPL_TRACE_EVENT1("libbt-vendor init returns %d", result);
 
         /* toggle chip power to ensure we will reset chip in case

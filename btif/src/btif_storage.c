@@ -112,6 +112,7 @@
 #include "bta_hh_api.h"
 #include "btif_hh.h"
 
+
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
@@ -202,7 +203,7 @@ typedef struct {
 **  Extern variables
 ************************************************************************************/
 extern UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID];
-
+extern bt_bdaddr_t btif_local_bd_addr;
 /************************************************************************************
 **  Static variables
 ************************************************************************************/
@@ -760,10 +761,9 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
     {
         BD_ADDR addr;
         bt_bdaddr_t *bd_addr = (bt_bdaddr_t*)property->val;
-        BTM_GetLocalDeviceAddr(addr);
-        bdcpy(bd_addr->address, addr);
+        /* This has been cached in btif. Just fetch it from there */
+        memcpy(bd_addr, &btif_local_bd_addr, sizeof(bt_bdaddr_t));
         property->len = sizeof(bt_bdaddr_t);
-
         return BT_STATUS_SUCCESS;
     }
     else if (property->type == BT_PROPERTY_ADAPTER_BONDED_DEVICES)

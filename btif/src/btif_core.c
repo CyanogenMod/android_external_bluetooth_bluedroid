@@ -54,9 +54,17 @@
  *
  ***********************************************************************************/
 
+#include <stdlib.h>
 #include <hardware/bluetooth.h>
 
 #include <string.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <ctype.h>
+#include <cutils/properties.h>
 
 #define LOG_TAG "BTIF_CORE"
 
@@ -113,7 +121,7 @@ typedef union {
 /************************************************************************************
 **  Static variables
 ************************************************************************************/
-
+bt_bdaddr_t btif_local_bd_addr;
 /************************************************************************************
 **  Static functions
 ************************************************************************************/
@@ -130,7 +138,7 @@ extern void bte_load_did_conf(const char *p_path);
 
 /** TODO: Move these to _common.h */
 void bte_main_boot_entry(void);
-void bte_main_enable(void);
+void bte_main_enable(uint8_t *local_addr);
 void bte_main_disable(void);
 void bte_main_shutdown(void);
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
@@ -287,18 +295,6 @@ static void btif_task(UINT32 params)
 
     btif_disassociate_evt();
 
-    GKI_task_self_cleanup(BTIF_TASK);
-
-    bte_main_shutdown();
-
-    if (btif_shutdown_pending)
-    {
-        btif_shutdown_pending = 0;
-
-        /* shutdown complete, all events notified and we reset HAL callbacks */
-        bt_hal_cbacks = NULL;
-    }
-
     BTIF_TRACE_DEBUG0("btif task exiting");
 }
 
@@ -316,6 +312,76 @@ static void btif_task(UINT32 params)
 void btif_sendmsg(void *p_msg)
 {
     GKI_send_msg(BTIF_TASK, BTU_BTIF_MBOX, p_msg);
+}
+
+static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
+{
+    char val[256];
+    uint8_t valid_bda = FALSE;
+    const uint8_t null_bdaddr[BD_ADDR_LEN] = {0,0,0,0,0,0};
+
+    BTIF_TRACE_DEBUG1("Look for bdaddr storage path in prop %s", PROPERTY_BT_BDADDR_PATH);
+
+    /* Get local bdaddr storage path from property */
+    if (property_get(PROPERTY_BT_BDADDR_PATH, val, NULL))
+    {
+        int addr_fd;
+
+        BTIF_TRACE_DEBUG1("local bdaddr is stored in %s", val);
+
+        if ((addr_fd = open(val, O_RDONLY)) != -1)
+        {
+            memset(val, 0, sizeof(val));
+            read(addr_fd, val, FACTORY_BT_BDADDR_STORAGE_LEN);
+            str2bd(val, local_addr);
+            /* If this is not a reserved/special bda, then use it */
+            if (memcmp(local_addr->address, null_bdaddr, BD_ADDR_LEN) != 0)
+            {
+                valid_bda = TRUE;
+                BTIF_TRACE_DEBUG6("Got Factory BDA %02X:%02X:%02X:%02X:%02X:%02X",
+                    local_addr->address[0], local_addr->address[1], local_addr->address[2],
+                    local_addr->address[3], local_addr->address[4], local_addr->address[5]);
+            }
+
+            close(addr_fd);
+        }
+    }
+
+    /* No factory BDADDR found. Look for previously generated random BDA */
+    if ((!valid_bda) && \
+        (property_get(PERSIST_BDADDR_PROPERTY, val, NULL)))
+    {
+        str2bd(val, local_addr);
+        valid_bda = TRUE;
+        BTIF_TRACE_DEBUG6("Got prior random BDA %02X:%02X:%02X:%02X:%02X:%02X",
+            local_addr->address[0], local_addr->address[1], local_addr->address[2],
+            local_addr->address[3], local_addr->address[4], local_addr->address[5]);
+    }
+
+    /* Generate new BDA if necessary */
+    if (!valid_bda)
+    {
+        bdstr_t bdstr;
+        /* Seed the random number generator */
+        srand((unsigned int) (time(0)));
+
+        /* No autogen BDA. Generate one now. */
+        local_addr->address[0] = 0x22;
+        local_addr->address[1] = 0x22;
+        local_addr->address[2] = (uint8_t) ((rand() >> 8) & 0xFF);
+        local_addr->address[3] = (uint8_t) ((rand() >> 8) & 0xFF);
+        local_addr->address[4] = (uint8_t) ((rand() >> 8) & 0xFF);
+        local_addr->address[5] = (uint8_t) ((rand() >> 8) & 0xFF);
+
+        /* Convert to ascii, and store as a persistent property */
+        bd2str(local_addr, &bdstr);
+
+        BTIF_TRACE_DEBUG2("No preset BDA. Generating BDA: %s for prop %s",
+             (char*)bdstr, PERSIST_BDADDR_PROPERTY);
+
+        if (property_set(PERSIST_BDADDR_PROPERTY, (char*)bdstr) < 0)
+            BTIF_TRACE_ERROR1("Failed to set random BDA in prop %s",PERSIST_BDADDR_PROPERTY);
+    }
 }
 
 /*****************************************************************************
@@ -336,7 +402,21 @@ void btif_sendmsg(void *p_msg)
 
 bt_status_t btif_init_bluetooth(void)
 {
+    UINT8 status;
+
     bte_main_boot_entry();
+
+    /* As part of the init, fetch the local BD ADDR */
+    memset(&btif_local_bd_addr, 0, sizeof(bt_bdaddr_t));
+    btif_fetch_local_bdaddr(&btif_local_bd_addr);
+
+    /* start btif task */
+    status = GKI_create_task(btif_task, BTIF_TASK, BTIF_TASK_STR,
+                (UINT16 *) ((UINT8 *)btif_task_stack + BTIF_TASK_STACK_SIZE),
+                sizeof(btif_task_stack));
+
+    if (status != GKI_SUCCESS)
+        return BT_STATUS_FAIL;
 
     return BT_STATUS_SUCCESS;
 }
@@ -377,27 +457,19 @@ bt_status_t btif_enable_bluetooth(void)
 
     LOGI("btif_enable_bluetooth");
 
-    /* initialize OS */
-    GKI_init();
-
     if (btif_enabled == 1)
     {
         LOGD("already enabled\n");
         return BT_STATUS_DONE;
     }
 
-    /* Start the BTIF task */
-    status = GKI_create_task(btif_task, BTIF_TASK, BTIF_TASK_STR,
-                (UINT16 *) ((UINT8 *)btif_task_stack + BTIF_TASK_STACK_SIZE),
-                sizeof(btif_task_stack));
-
-    if (status != BTA_SUCCESS)
-        return BT_STATUS_FAIL;
-
     /* add return status for create tasks functions ? */
 
     /* Create the GKI tasks and run them */
-    bte_main_enable();
+    bte_main_enable(btif_local_bd_addr.address);
+
+    if (status != BTA_SUCCESS)
+        return BT_STATUS_FAIL;
 
     return BT_STATUS_SUCCESS;
 }
@@ -525,7 +597,10 @@ void btif_disable_bluetooth_evt(void)
     /* update local state */
     btif_enabled = 0;
 
-    GKI_send_event(BTIF_TASK, EVENT_MASK(GKI_SHUTDOWN_EVT));
+    if (btif_shutdown_pending)
+    {
+        btif_shutdown_bluetooth();
+    }
 }
 
 
@@ -554,10 +629,11 @@ bt_status_t btif_shutdown_bluetooth(void)
         return BT_STATUS_SUCCESS;
     }
 
-    bte_main_shutdown();
+    btif_shutdown_pending = 0;
 
-    /* shutdown complete, all events notified and we reset HAL callbacks */
-    bt_hal_cbacks = NULL;
+    GKI_destroy_task(BTIF_TASK);
+
+    bte_main_shutdown();
 
     return BT_STATUS_SUCCESS;
 }
@@ -579,6 +655,9 @@ static bt_status_t btif_disassociate_evt(void)
     BTIF_TRACE_DEBUG1("%s: notify DISASSOCIATE_JVM", __FUNCTION__);
 
     HAL_CBACK(bt_hal_cbacks, thread_evt_cb, DISASSOCIATE_JVM);
+
+    /* shutdown complete, all events notified and we reset HAL callbacks */
+    bt_hal_cbacks = NULL;
 
     return BT_STATUS_SUCCESS;
 }
@@ -732,7 +811,6 @@ static void execute_storage_request(UINT16 event, char *p_param)
             prop.type = p_req->read_req.type;
             prop.val = (void*)buf;
             prop.len = sizeof(buf);
-
             status = btif_storage_get_adapter_property(&prop);
             HAL_CBACK(bt_hal_cbacks, adapter_properties_cb, status, 1, &prop);
         } break;
@@ -875,7 +953,8 @@ bt_status_t btif_get_adapter_property(bt_property_type_t type)
 
     BTIF_TRACE_EVENT2("%s %d", __FUNCTION__, type);
 
-    if (btif_enabled == 0)
+    /* Allow get_adapter_property only for BDADDR and BDNAME if BT is disabled */
+    if ((btif_enabled == 0) && (type != BT_PROPERTY_BDADDR) && (type != BT_PROPERTY_BDNAME))
         return BT_STATUS_FAIL;
 
     memset(&(req.read_req.bd_addr), 0, sizeof(bt_bdaddr_t));

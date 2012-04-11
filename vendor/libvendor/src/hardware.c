@@ -198,14 +198,12 @@ void hw_config_cback(VND_BT_HDR *p_evt_buf);
 uint8_t hci_h4_send_int_cmd(uint16_t opcode, VND_BT_HDR *p_buf, \
                                   tINT_CMD_CBACK p_cback);
 
-
+extern uint8_t vendor_local_bd_addr[BD_ADDR_LEN];
 /******************************************************************************
 **  Static variables
 ******************************************************************************/
 
 static char fw_patchfile_path[256] = FW_PATCHFILE_LOCATION;
-static uint8_t local_bd_addr[BD_ADDR_LEN]={0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-static const uint8_t null_bdaddr[BD_ADDR_LEN] = {0,0,0,0,0,0};
 
 static bt_hw_cfg_cb_t hw_cfg_cb;
 static bt_lpm_cb_t hw_lpm_cb;
@@ -392,154 +390,6 @@ static uint8_t hw_config_findpatch(char *p_chip_id_str)
 
 /*******************************************************************************
 **
-** Function         hw_ascii_2_bdaddr
-**
-** Description      This function converts ASCII string of Bluetooth device
-**                  address (xx:xx:xx:xx:xx:xx) into a BD_ADDR type
-**
-** Returns          None
-**
-*******************************************************************************/
-void hw_ascii_2_bdaddr (char *p_ascii, uint8_t *p_bd)
-{
-    int     x;
-    uint8_t c;
-
-    for (x = 0; x < BD_ADDR_LEN; x++)
-    {
-        if ((*p_ascii>='0') && (*p_ascii<='9'))
-            c = (*p_ascii - '0') << 4;
-        else
-            c = (toupper(*p_ascii) - 'A' + 10) << 4;
-
-        p_ascii++;
-        if ((*p_ascii>='0') && (*p_ascii<='9'))
-            c |= (*p_ascii - '0');
-        else
-            c |= (toupper(*p_ascii) - 'A' + 10);
-
-        p_ascii+=2;  // skip ':' and point to next valid digit
-        *p_bd++ = c;
-    }
-}
-
-/*******************************************************************************
-**
-** Function         hw_bdaddr_2_ascii
-**
-** Description      This function converts a BD_ADDR type address into ASCII
-**                  string of Bluetooth device address (xx:xx:xx:xx:xx:xx)
-**
-** Returns          None
-**
-*******************************************************************************/
-void hw_bdaddr_2_ascii (uint8_t *p_bd, char *p_ascii)
-{
-    int     x;
-    uint8_t c;
-
-    for (x = 0; x < BD_ADDR_LEN; x++)
-    {
-        c = (*p_bd >> 4) & 0x0f;
-        if (c < 10)
-            *p_ascii++ = c + '0';
-        else
-            *p_ascii++ = c - 10 + 'A';
-
-        c = *p_bd & 0x0f;
-        if (c < 10)
-            *p_ascii++ = c + '0';
-        else
-            *p_ascii++ = c - 10 + 'A';
-
-        p_bd++;
-        *p_ascii++ = ':';
-    }
-    *--p_ascii = '\0';
-}
-
-
-/*******************************************************************************
-**
-** Function         hw_config_get_bdaddr
-**
-** Description      Get Bluetooth Device Address
-**
-** Returns          None
-**
-*******************************************************************************/
-void hw_config_get_bdaddr(uint8_t *local_addr)
-{
-    char val[LOCAL_BDADDR_PATH_BUFFER_LEN];
-    uint8_t bHaveValidBda = FALSE;
-
-    BTHWDBG("Look for bdaddr storage path in prop %s", PROPERTY_BT_BDADDR_PATH);
-
-    /* Get local bdaddr storage path from property */
-    if (property_get(PROPERTY_BT_BDADDR_PATH, val, NULL))
-    {
-        int addr_fd;
-
-        BTHWDBG("local bdaddr is stored in %s", val);
-
-        if ((addr_fd = open(val, O_RDONLY)) != -1)
-        {
-            memset(val, 0, LOCAL_BDADDR_PATH_BUFFER_LEN);
-            read(addr_fd, val, FACTORY_BT_BDADDR_STORAGE_LEN);
-            hw_ascii_2_bdaddr(val, local_addr);
-
-            /* If this is not a reserved/special bda, then use it */
-            if (memcmp(local_addr, null_bdaddr, BD_ADDR_LEN) != 0)
-            {
-                bHaveValidBda = TRUE;
-                LOGI("Got Factory BDA %02X:%02X:%02X:%02X:%02X:%02X",
-                    local_addr[0], local_addr[1], local_addr[2],
-                    local_addr[3], local_addr[4], local_addr[5]);
-            }
-
-            close(addr_fd);
-        }
-    }
-
-    /* No factory BDADDR found. Look for previously generated random BDA */
-    if ((!bHaveValidBda) && \
-        (property_get(PERSIST_BDADDR_PROPERTY, val, NULL)))
-    {
-        hw_ascii_2_bdaddr(val, local_addr);
-        bHaveValidBda = TRUE;
-        LOGI("Got prior random BDA %02X:%02X:%02X:%02X:%02X:%02X",
-            local_addr[0], local_addr[1], local_addr[2],
-            local_addr[3], local_addr[4], local_addr[5]);
-    }
-
-    /* Generate new BDA if necessary */
-    if (!bHaveValidBda)
-    {
-        /* Seed the random number generator */
-        srand((unsigned int) (time(0)));
-
-        /* No autogen BDA. Generate one now. */
-        local_addr[0] = 0x22;
-        local_addr[1] = 0x22;
-        local_addr[2] = (uint8_t) ((rand() >> 8) & 0xFF);
-        local_addr[3] = (uint8_t) ((rand() >> 8) & 0xFF);
-        local_addr[4] = (uint8_t) ((rand() >> 8) & 0xFF);
-        local_addr[5] = (uint8_t) ((rand() >> 8) & 0xFF);
-
-        /* Convert to ascii, and store as a persistent property */
-        hw_bdaddr_2_ascii(local_addr, val);
-
-        LOGI("No preset BDA. Generating BDA: %s for prop %s",
-             val, PERSIST_BDADDR_PROPERTY);
-
-        if (property_set(PERSIST_BDADDR_PROPERTY, val) < 0)
-            LOGE("Failed to set random BDA in prop %s",PERSIST_BDADDR_PROPERTY);
-    }
-} /* btl_cfg_get_bdaddr() */
-
-
-/*******************************************************************************
-**
 ** Function         hw_config_set_bdaddr
 **
 ** Description      Program controller's Bluetooth Device Address
@@ -553,28 +403,24 @@ static uint8_t hw_config_set_bdaddr(VND_BT_HDR *p_buf)
     uint8_t retval = FALSE;
     uint8_t *p = (uint8_t *) (p_buf + 1);
 
-    /* See if bdaddr needs to be programmed */
-    if (memcmp(local_bd_addr, null_bdaddr, BD_ADDR_LEN) != 0)
-    {
-        LOGI("Setting local bd addr to %02X:%02X:%02X:%02X:%02X:%02X",
-            local_bd_addr[0], local_bd_addr[1], local_bd_addr[2],
-            local_bd_addr[3], local_bd_addr[4], local_bd_addr[5]);
+    LOGI("Setting local bd addr to %02X:%02X:%02X:%02X:%02X:%02X",
+        vendor_local_bd_addr[0], vendor_local_bd_addr[1], vendor_local_bd_addr[2],
+        vendor_local_bd_addr[3], vendor_local_bd_addr[4], vendor_local_bd_addr[5]);
 
-        UINT16_TO_STREAM(p, HCI_VSC_WRITE_BD_ADDR);
-        *p++ = BD_ADDR_LEN; /* parameter length */
-        *p++ = local_bd_addr[5];
-        *p++ = local_bd_addr[4];
-        *p++ = local_bd_addr[3];
-        *p++ = local_bd_addr[2];
-        *p++ = local_bd_addr[1];
-        *p = local_bd_addr[0];
+    UINT16_TO_STREAM(p, HCI_VSC_WRITE_BD_ADDR);
+    *p++ = BD_ADDR_LEN; /* parameter length */
+    *p++ = vendor_local_bd_addr[5];
+    *p++ = vendor_local_bd_addr[4];
+    *p++ = vendor_local_bd_addr[3];
+    *p++ = vendor_local_bd_addr[2];
+    *p++ = vendor_local_bd_addr[1];
+    *p = vendor_local_bd_addr[0];
 
-        p_buf->len = HCI_CMD_PREAMBLE_SIZE + BD_ADDR_LEN;
-        hw_cfg_cb.state = HW_CFG_SET_BD_ADDR;
+    p_buf->len = HCI_CMD_PREAMBLE_SIZE + BD_ADDR_LEN;
+    hw_cfg_cb.state = HW_CFG_SET_BD_ADDR;
 
-        retval = hci_h4_send_int_cmd(HCI_VSC_WRITE_BD_ADDR, p_buf, \
-                                     hw_config_cback);
-    }
+    retval = hci_h4_send_int_cmd(HCI_VSC_WRITE_BD_ADDR, p_buf, \
+                                 hw_config_cback);
 
     return (retval);
 }
@@ -1045,17 +891,6 @@ void hw_config_start(void)
     hw_cfg_cb.fw_fd = -1;
     hw_cfg_cb.f_set_baud_2 = FALSE;
     hw_lpm_cb.state = HW_LPM_DISABLED;
-
-    /****************************************
-     * !!! TODO !!!
-     *
-     * === Custom Porting Required ===
-     *
-     * Unique Bluetooth address should be
-     * assigned to local_bd_addr[6] in
-     * production line for each device.
-     ****************************************/
-    hw_config_get_bdaddr(local_bd_addr);
 
     /* Start from sending HCI_RESET */
 

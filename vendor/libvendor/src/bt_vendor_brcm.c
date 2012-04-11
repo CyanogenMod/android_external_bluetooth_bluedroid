@@ -151,8 +151,9 @@ void btvnd_signal_event(uint16_t event)
 **   BLUETOOTH VENDOR LIBRARY INTERFACE FUNCTIONS
 **
 *****************************************************************************/
+uint8_t vendor_local_bd_addr[6]={0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-static int init(const bt_vendor_callbacks_t* p_cb)
+static int init(const bt_vendor_callbacks_t* p_cb, unsigned char *local_bdaddr)
 {
     pthread_attr_t thread_attr;
     struct sched_param param;
@@ -170,6 +171,9 @@ static int init(const bt_vendor_callbacks_t* p_cb)
 
     /* store reference to user callbacks */
     bt_vendor_cbacks = (bt_vendor_callbacks_t *) p_cb;
+
+    /* This is handed over from the stack */
+    memcpy(vendor_local_bd_addr, local_bdaddr, 6);
 
     utils_init();
     upio_init();

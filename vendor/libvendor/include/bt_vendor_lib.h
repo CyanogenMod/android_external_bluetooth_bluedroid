@@ -187,7 +187,7 @@ typedef struct {
      * Opens the interface and provides the callback routines
      * to the implemenation of this interface.
      */
-    int   (*init)(const bt_vendor_callbacks_t* p_cb);
+    int   (*init)(const bt_vendor_callbacks_t* p_cb, unsigned char *local_bdaddr);
 
     /** Chip power control */
     void (*set_power)(bt_vendor_chip_power_state_t state); 
