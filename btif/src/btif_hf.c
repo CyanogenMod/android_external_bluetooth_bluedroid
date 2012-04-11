@@ -788,6 +788,7 @@ static bt_status_t at_response(bthf_at_response_t response_code)
         /* TODO: Fix the errcode */
         send_at_result((response_code == BTHF_AT_RESPONSE_OK) ? BTA_AG_OK_DONE
                         : BTA_AG_OK_ERROR, 0);
+        return BT_STATUS_SUCCESS;
     }
 
 
@@ -1002,13 +1003,15 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
 
     memset(&ag_res, 0, sizeof(tBTA_AG_RES_DATA));
 
-    /* Active Changed? */
-    if ((num_active != btif_hf_cb.num_active) && !activeCallUpdated)
+    /* per the errata 2043, call=1 implies atleast one call is in progress (active/held)
+    ** https://www.bluetooth.org/errata/errata_view.cfm?errata_id=2043
+    ** Handle call indicator change
+    **/
+    if (!activeCallUpdated && ((num_active + num_held) != (btif_hf_cb.num_active + btif_hf_cb.num_held)) )
     {
         BTIF_TRACE_DEBUG3("%s: Active call states changed. old: %d new: %d", __FUNCTION__, btif_hf_cb.num_active, num_active);
-        send_indicator_update(BTA_AG_IND_CALL, (num_active ? 1 : 0));
+        send_indicator_update(BTA_AG_IND_CALL, ((num_active + num_held) > 0) ? 1 : 0);
     }
-
 
     /* Held Changed? */
     if (num_held != btif_hf_cb.num_held)
