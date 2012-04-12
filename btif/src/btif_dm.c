@@ -445,14 +445,15 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     UINT32 cod;
     btif_dm_remote_name_t remote_param;
 
-    bdcpy(bd_addr.address, p_pin_req->bd_addr);
-    memcpy(bd_name.name, p_pin_req->bd_name, BD_NAME_LEN);
-
-    bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
     /* Remote name update */
     bdcpy(remote_param.bd_addr , p_pin_req->bd_addr);
     memcpy(remote_param.bd_name, p_pin_req->bd_name, BD_NAME_LEN);
     btif_update_remote_name(remote_param);
+
+    bdcpy(bd_addr.address, p_pin_req->bd_addr);
+    memcpy(bd_name.name, p_pin_req->bd_name, BD_NAME_LEN);
+
+    bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
 
     cod = devclass2uint(p_pin_req->dev_class);
 
@@ -482,16 +483,17 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     btif_dm_remote_name_t remote_param;
 
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
-    bdcpy(bd_addr.address, p_ssp_cfm_req->bd_addr);
-    memcpy(bd_name.name, p_ssp_cfm_req->bd_name, BD_NAME_LEN);
 
-    /* Set the pairing_cb based on the local & remote authentication requirements */
-    bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
     /* Remote name update */
     bdcpy(remote_param.bd_addr , p_ssp_cfm_req->bd_addr);
     memcpy(remote_param.bd_name, p_ssp_cfm_req->bd_name, BD_NAME_LEN);
     btif_update_remote_name(remote_param);
 
+    bdcpy(bd_addr.address, p_ssp_cfm_req->bd_addr);
+    memcpy(bd_name.name, p_ssp_cfm_req->bd_name, BD_NAME_LEN);
+
+    /* Set the pairing_cb based on the local & remote authentication requirements */
+    bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
     if ((p_ssp_cfm_req->loc_auth_req >= BTM_AUTH_AP_NO && p_ssp_cfm_req->rmt_auth_req >= BTM_AUTH_AP_NO) ||
         (p_ssp_cfm_req->loc_auth_req == BTM_AUTH_AP_NO || p_ssp_cfm_req->loc_auth_req == BTM_AUTH_AP_YES) ||
         (p_ssp_cfm_req->rmt_auth_req == BTM_AUTH_AP_NO || p_ssp_cfm_req->rmt_auth_req == BTM_AUTH_AP_YES))
@@ -527,15 +529,16 @@ static void btif_dm_ssp_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif)
     btif_dm_remote_name_t remote_param;
 
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
-    bdcpy(bd_addr.address, p_ssp_key_notif->bd_addr);
-    memcpy(bd_name.name, p_ssp_key_notif->bd_name, BD_NAME_LEN);
 
-    bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
     /* Remote name update */
     bdcpy(remote_param.bd_addr , p_ssp_key_notif->bd_addr);
     memcpy(remote_param.bd_name, p_ssp_key_notif->bd_name, BD_NAME_LEN);
     btif_update_remote_name(remote_param);
 
+    bdcpy(bd_addr.address, p_ssp_key_notif->bd_addr);
+    memcpy(bd_name.name, p_ssp_key_notif->bd_name, BD_NAME_LEN);
+
+    bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
     cod = devclass2uint(p_ssp_key_notif->dev_class);
 
     if ( cod == 0) {
