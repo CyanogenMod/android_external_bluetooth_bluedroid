@@ -96,6 +96,9 @@ typedef struct {
 
 #define BTA_SERVICE_ID_TO_SERVICE_MASK(id)       (1 << (id))
 
+/* This flag will be true if HCI_Inquiry is in progress */
+static BOOLEAN btif_dm_inquiry_in_progress = FALSE;
+
 /******************************************************************************
 **  Static functions
 ******************************************************************************/
@@ -740,6 +743,22 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
             HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb, BT_DISCOVERY_STOPPED);
         }
         break;
+        case BTA_DM_SEARCH_CANCEL_CMPL_EVT:
+        {
+           /* if inquiry is not in progress and we get a cancel event, then
+            * it means we are done with inquiry, but remote_name fetches are in
+            * progress
+            *
+            * if inquiry  is in progress, then we don't want to act on this cancel_cmpl_evt
+            * but instead wait for the cancel_cmpl_evt via the Busy Level
+            *
+            */
+           if (btif_dm_inquiry_in_progress == FALSE)
+           {
+               HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb, BT_DISCOVERY_STOPPED);
+           }
+        }
+        break;
     }
 }
 
@@ -976,10 +995,17 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
                 {
                        HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb,
                                                 BT_DISCOVERY_STARTED);
-                } else if (busy_level == BTM_BL_INQUIRY_CANCELLED)
+                       btif_dm_inquiry_in_progress = TRUE;
+                }
+                else if (busy_level == BTM_BL_INQUIRY_CANCELLED)
                 {
                        HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb,
                                                 BT_DISCOVERY_STOPPED);
+                       btif_dm_inquiry_in_progress = FALSE;
+                }
+                else if (busy_level == BTM_BL_INQUIRY_COMPLETE)
+                {
+                       btif_dm_inquiry_in_progress = FALSE;
                 }
             }
         }break;
@@ -1183,6 +1209,8 @@ bt_status_t btif_dm_start_discovery(void)
     inq_params.filter_type = BTA_DM_INQ_CLR;
     /* TODO: Filter device by BDA needs to be implemented here */
 
+    /* Will be enabled to TRUE once inquiry busy level has been received */
+    btif_dm_inquiry_in_progress = FALSE;
     /* find nearby devices */
     BTA_DmSearch(&inq_params, services, bte_search_devices_evt);
 
