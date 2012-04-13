@@ -844,7 +844,10 @@ void BTM_PINCodeReply (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len, UINT8 *p_pin, 
 
     if (res != BTM_SUCCESS)
     {
-        if (btm_cb.pairing_flags & BTM_PAIR_FLAGS_PEER_STARTED_DD)
+        /* if peer started dd OR we started dd and pre-fetch pin was not used send negative reply */
+        if ((btm_cb.pairing_flags & BTM_PAIR_FLAGS_PEER_STARTED_DD) ||
+            ((btm_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD) &&
+            (btm_cb.pairing_flags & BTM_PAIR_FLAGS_DISC_WHEN_DONE)) )
         {
             /* use BTM_PAIR_STATE_WAIT_AUTH_COMPLETE to report authentication failed event */
             btm_sec_change_pairing_state (BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);

@@ -87,6 +87,7 @@ typedef struct {
     BD_ADDR bd_addr;
     UINT8   is_temp;
     UINT8   pin_code_len;
+    UINT8   is_ssp;
 } btif_dm_pairing_cb_t;
 
 typedef struct {
@@ -504,6 +505,8 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     else
         pairing_cb.is_temp = TRUE;
 
+    pairing_cb.is_ssp = TRUE;
+
     /* If JustWorks auto-accept */
     if (p_ssp_cfm_req->just_works)
     {
@@ -542,6 +545,7 @@ static void btif_dm_ssp_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif)
     memcpy(bd_name.name, p_ssp_key_notif->bd_name, BD_NAME_LEN);
 
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
+    pairing_cb.is_ssp = TRUE;
     cod = devclass2uint(p_ssp_key_notif->dev_class);
 
     if ( cod == 0) {
@@ -966,6 +970,14 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             btif_dm_auth_cmpl_evt(&p_data->auth_cmpl);
             break;
 
+        case BTA_DM_BOND_CANCEL_CMPL_EVT:
+            if (pairing_cb.state == BT_BOND_STATE_BONDING)
+            {
+                bdcpy(bd_addr.address, pairing_cb.bd_addr);
+                bond_state_changed(p_data->bond_cancel_cmpl.result, &bd_addr, BT_BOND_STATE_NONE);
+            }
+            break;
+
         case BTA_DM_SP_CFM_REQ_EVT:
             btif_dm_ssp_cfm_req_evt(&p_data->cfm_req);
             break;
@@ -1009,10 +1021,10 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
                 }
             }
         }break;
+
         case BTA_DM_AUTHORIZE_EVT:
         case BTA_DM_LINK_DOWN_EVT:
         case BTA_DM_SIG_STRENGTH_EVT:
-        case BTA_DM_BOND_CANCEL_CMPL_EVT:
         case BTA_DM_SP_RMT_OOB_EVT:
         case BTA_DM_SP_KEYPRESS_EVT:
         case BTA_DM_ROLE_CHG_EVT:
@@ -1274,11 +1286,23 @@ bt_status_t btif_dm_cancel_bond(const bt_bdaddr_t *bd_addr)
     BTIF_TRACE_EVENT2("%s: bd_addr=%s", __FUNCTION__, bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
 
     /* TODO:
-    **  1. Check if ACL is already up with this device
-    **  2. Restore scan modes
-    **  3. special handling for HID devices
+    **  1. Restore scan modes
+    **  2. special handling for HID devices
     */
-    BTA_DmBondCancel ((UINT8 *)bd_addr->address);
+    if (pairing_cb.state == BT_BOND_STATE_BONDING)
+    {
+        if (pairing_cb.is_ssp)
+        {
+            BTA_DmConfirm( (UINT8 *)bd_addr->address, FALSE);
+        }
+        else
+        {
+            BTA_DmPinReply( (UINT8 *)bd_addr->address, FALSE, 0, NULL);
+            if (!BTM_IsAclConnectionUp((UINT8 *)bd_addr->address))
+                BTA_DmBondCancel ((UINT8 *)bd_addr->address);
+        }
+    }
+
     return BT_STATUS_SUCCESS;
 }
 
