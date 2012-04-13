@@ -151,6 +151,17 @@ BOOLEAN btif_av_stream_started(void);
 /* used to pass events to AV statemachine from other tasks */
 void btif_dispatch_sm_event(btif_av_sm_event_t event, void *p_data, int len);
 
+/*******************************************************************************
+**
+** Function         btif_av_init
+**
+** Description      Initializes btif AV if not already done
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+
+bt_status_t btif_av_init(void);
 
 #endif /* BTIF_AV_H */
 

@@ -671,6 +671,8 @@ static void btif_a2dp_encoder_update(void)
 
 int btif_a2dp_start_media_task(void)
 {
+    int retval;
+
     if (media_task_running)
     {
         APPL_TRACE_ERROR0("warning : media task already running");
@@ -679,13 +681,22 @@ int btif_a2dp_start_media_task(void)
 
     APPL_TRACE_EVENT0("## A2DP START MEDIA TASK ##");
 
-    media_task_running = 1;
-
     /* start a2dp media task */
-    return GKI_create_task((TASKPTR)btif_media_task, A2DP_MEDIA_TASK,
+    retval = GKI_create_task((TASKPTR)btif_media_task, A2DP_MEDIA_TASK,
                 A2DP_MEDIA_TASK_TASK_STR,
                 (UINT16 *) ((UINT8 *)a2dp_media_task_stack + A2DP_MEDIA_TASK_STACK_SIZE),
                 sizeof(a2dp_media_task_stack));
+
+    if (retval != GKI_SUCCESS)
+        return retval;
+
+    /* wait for task to come up to sure we are able to send messages to it */
+    while (media_task_running == 0)
+        usleep(10);
+
+    APPL_TRACE_EVENT0("## A2DP MEDIA TASK STARTED ##");
+
+    return retval;
 }
 
 /*****************************************************************************
@@ -1122,6 +1133,8 @@ int btif_media_task(void *p)
     VERBOSE("================ MEDIA TASK STARTING ================");
 
     btif_media_task_init();
+
+    media_task_running = 1;
 
     while (1)
     {

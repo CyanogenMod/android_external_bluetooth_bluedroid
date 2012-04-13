@@ -55,6 +55,7 @@
  ***********************************************************************************/
 
 #include <hardware/bluetooth.h>
+
 #include <string.h>
 
 #define LOG_TAG "BTIF_CORE"
@@ -65,9 +66,11 @@
 #include "btu.h"
 #include "bte.h"
 #include "bd.h"
+#include "btif_av.h"
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "btif_sock.h"
+
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
@@ -431,16 +434,25 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
     {
         /* store state */
         btif_enabled = 1;
-        //init rfcomm & l2cap api
+
+        /* check if we have a deferred av init */
+        btif_av_init();
+
+        /* init rfcomm & l2cap api */
         btif_sock_init();
+
+        /* load did configuration */
         bte_load_did_conf(BTE_DID_CONF_FILE);
+
         HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_ON);
     }
     else
     {
-        //cleanup rfcomm & l2cap api
+        /* cleanup rfcomm & l2cap api */
         btif_sock_cleanup();
+
         btif_enabled = 0;
+
         HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
     }
 }
@@ -456,6 +468,7 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
 ** Returns          void
 **
 *******************************************************************************/
+
 bt_status_t btif_disable_bluetooth(void)
 {
     tBTA_STATUS status;
@@ -467,8 +480,10 @@ bt_status_t btif_disable_bluetooth(void)
     }
 
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
-    //cleanup rfcomm & l2cap api
+
+    /* cleanup rfcomm & l2cap api */
     btif_sock_cleanup();
+
     status = BTA_DisableBluetooth();
 
     if (status != BTA_SUCCESS)
@@ -1075,6 +1090,11 @@ bt_status_t btif_get_remote_service_record(bt_bdaddr_t *remote_addr,
 tBTA_SERVICE_MASK btif_get_enabled_services_mask(void)
 {
     return btif_enabled_services;
+}
+
+int btif_is_enabled(void)
+{
+    return btif_enabled;
 }
 
 /*******************************************************************************

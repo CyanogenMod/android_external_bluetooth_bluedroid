@@ -100,7 +100,8 @@ static btif_av_cb_t btif_av_cb;
 
 static TIMER_LIST_ENT tle_av_open_on_rc;
 
-#define CHECK_BTAV_INIT() if (bt_av_callbacks == NULL)\
+/* both interface and media task needs to be ready to alloc incoming request */
+#define CHECK_BTAV_INIT() if ((bt_av_callbacks == NULL) || (btif_av_cb.sm_handle == NULL))\
 {\
      BTIF_TRACE_WARNING1("%s: BTAV not initialized", __FUNCTION__);\
      return BT_STATUS_NOT_READY;\
@@ -663,6 +664,39 @@ static void bte_av_callback(tBTA_AV_EVT event, tBTA_AV *p_data)
 
 /*******************************************************************************
 **
+** Function         btif_av_init
+**
+** Description      Initializes btif AV if not already done
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+
+bt_status_t btif_av_init(void)
+{
+    if (btif_av_cb.sm_handle == NULL)
+{
+        if (btif_a2dp_start_media_task() != GKI_SUCCESS)
+        return BT_STATUS_FAIL;
+
+    btif_enable_service(BTA_A2DP_SERVICE_ID);
+
+    /* Initialize the AVRC CB */
+    btif_rc_init();
+
+    /* Also initialize the AV state machine */
+    btif_av_cb.sm_handle = btif_sm_init((const btif_sm_handler_t*)btif_av_state_handlers, BTIF_AV_STATE_IDLE);
+
+    btif_a2dp_on_init();
+
+    return BT_STATUS_SUCCESS;
+}
+
+    return BT_STATUS_DONE;
+}
+
+/*******************************************************************************
+**
 ** Function         init
 **
 ** Description      Initializes the AV interface
@@ -677,24 +711,22 @@ static bt_status_t init(btav_callbacks_t* callbacks )
 
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
 
-    status = btif_a2dp_start_media_task();
-
-    if (status != GKI_SUCCESS)
-        return BT_STATUS_FAIL;
+    if (bt_av_callbacks)
+        return BT_STATUS_DONE;
 
     bt_av_callbacks = callbacks;
+    btif_av_cb.sm_handle = NULL;
 
-    btif_enable_service(BTA_A2DP_SERVICE_ID);
+    /* check if stack/gki is started/enabled yet, if not defer until bluetooth
+       is enabled */
 
-    /* Initialize the AVRC CB */
-    btif_rc_init();
+    if (btif_is_enabled() == 0)
+    {
+        BTIF_TRACE_EVENT0("deferred av init until gki is enabled");
+        return BT_STATUS_SUCCESS;
+    }
 
-    /* Also initialize the AV state machine */
-    btif_av_cb.sm_handle = btif_sm_init((const btif_sm_handler_t*)btif_av_state_handlers, BTIF_AV_STATE_IDLE);
-
-    btif_a2dp_on_init();
-
-    return BT_STATUS_SUCCESS;
+    return btif_av_init();
 }
 
 /*******************************************************************************
@@ -863,6 +895,7 @@ bt_status_t btif_av_execute_service(BOOLEAN b_enable)
          /* TODO: Removed BTA_SEC_AUTHORIZE since the Java/App does not
           * handle this request in order to allow incoming connections to succeed.
           * We need to put this back once support for this is added */
+
          /* Added BTA_AV_FEAT_NO_SCO_SSPD - this ensures that the BTA does not
           * auto-suspend av streaming on AG events(SCO or Call). The suspend shall
           * be initiated by the app/audioflinger layers */
