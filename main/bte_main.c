@@ -233,8 +233,8 @@ void bte_main_disable(void)
 
     if (bt_vendor_if)
     {
-        bt_vendor_if->set_power(BT_VENDOR_CHIP_PWR_OFF);
         bt_vendor_if->cleanup();
+        bt_vendor_if->set_power(BT_VENDOR_CHIP_PWR_OFF);
     }
 
 }
