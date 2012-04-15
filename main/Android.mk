@@ -20,32 +20,34 @@ LOCAL_SRC_FILES+= \
 
 # BTIF
 LOCAL_SRC_FILES += \
-	../btif/src/btif_core.c \
-	../btif/src/btif_dm.c \
-	../btif/src/btif_storage.c \
-	../btif/src/btif_util.c \
-	../btif/src/btif_sm.c \
-	../btif/src/btif_hf.c \
-	../btif/src/btif_av.c \
-	../btif/src/btif_rc.c \
-	../btif/src/btif_media_task.c \
-        ../btif/src/btif_hh.c \
-	../btif/src/btif_hl.c \
-        ../btif/src/btif_sock.c \
-        ../btif/src/btif_sock_rfc.c \
-        ../btif/src/btif_sock_thread.c \
-        ../btif/src/btif_sock_sdp.c \
-        ../btif/src/btif_sock_util.c
+    ../btif/src/btif_core.c \
+    ../btif/src/btif_dm.c \
+    ../btif/src/btif_storage.c \
+    ../btif/src/btif_util.c \
+    ../btif/src/btif_sm.c \
+    ../btif/src/btif_hf.c \
+    ../btif/src/btif_av.c \
+    ../btif/src/btif_rc.c \
+    ../btif/src/btif_media_task.c \
+    ../btif/src/btif_hh.c \
+    ../btif/src/btif_hl.c \
+    ../btif/src/btif_sock.c \
+    ../btif/src/btif_sock_rfc.c \
+    ../btif/src/btif_sock_thread.c \
+    ../btif/src/btif_sock_sdp.c \
+    ../btif/src/btif_pan.c \
+    ../btif/src/btif_sock_util.c
 
 # callouts
 LOCAL_SRC_FILES+= \
-	../btif/co/bta_sys_co.c \
-	../btif/co/bta_fs_co.c \
-	../btif/co/bta_ag_co.c \
-	../btif/co/bta_dm_co.c \
-	../btif/co/bta_av_co.c \
-        ../btif/co/bta_hh_co.c \
-	../btif/co/bta_hl_co.c
+    ../btif/co/bta_sys_co.c \
+    ../btif/co/bta_fs_co.c \
+    ../btif/co/bta_ag_co.c \
+    ../btif/co/bta_dm_co.c \
+    ../btif/co/bta_av_co.c \
+    ../btif/co/bta_hh_co.c \
+    ../btif/co/bta_hl_co.c \
+    ../btif/co/bta_pan_co.c
 
 # sbc encoder
 LOCAL_SRC_FILES+= \

@@ -209,8 +209,14 @@ static int alloc_thread_slot()
     int i;
     //revserd order to save guard uninitialized access to 0 index
     for(i = MAX_THREAD - 1; i >=0; i--)
+    {
+        debug("ts[%d].used:%d", i, ts[i].used);
         if(!ts[i].used)
+        {
+            ts[i].used = 1;
             return i;
+        }
+    }
     error("execeeded max thread count");
     return -1;
 }
@@ -245,11 +251,13 @@ int btsock_thread_create(btsock_signaled_cb callback)
     lock_slot(&thread_slot_lock);
     int h = alloc_thread_slot();
     unlock_slot(&thread_slot_lock);
+    debug("alloc_thread_slot ret:%d", h);
     if(h >= 0)
     {
         init_poll(h);
         if((ts[h].thread_id = create_thread(sock_poll_thread, (void*)h)) != -1)
         {
+            debug("h:%d, thread id:%d", h, ts[h].thread_id);
             ts[h].callback = callback;
         }
         else
@@ -310,7 +318,8 @@ int btsock_thread_add_fd(int h, int fd, int type, int flags, uint32_t user_id)
     if(flags & SOCK_THREAD_ADD_FD_SYNC)
     {
         //must executed in socket poll thread
-        asrt(ts[h].thread_id == gettid());
+        //debug("ts[%d].thread_id:%d, pthread self:%d", h, ts[h].thread_id, (int)pthread_self());
+        asrt(ts[h].thread_id == pthread_self());
         //cleanup one-time flags
         flags &= ~SOCK_THREAD_ADD_FD_SYNC;
         add_poll(h, fd, type, flags, user_id);
@@ -362,7 +371,6 @@ int btsock_thread_exit(int h)
 static void init_poll(int h)
 {
     int i;
-    ts[h].used = 0;
     ts[h].poll_count = 0;
     ts[h].thread_id = -1;
     ts[h].callback = NULL;
@@ -551,18 +559,18 @@ static void *sock_poll_thread(void *arg)
     for(;;)
     {
         prepare_poll_fds(h, pfds);
-        debug("call poll, thread handle:%d, cmd fd read:%d, ts[h].poll_count:%d",
+        debug("call poll, thread handle h:%d, cmd fd read:%d, ts[h].poll_count:%d",
                 h, ts[h].cmd_fdr, ts[h].poll_count);
         int ret = poll(pfds, ts[h].poll_count, -1);
         if(ret == -1)
         {
             error("poll ret -1, exit the thread, errno:%d, err:%s", errno, strerror(errno));
-            debug("ts[h].poll_count:%d", ts[h].poll_count);
+            debug("ts[%d].poll_count:%d", h, ts[h].poll_count);
             break;
         }
         if(ret != 0)
         {
-            debug("select wake up, ret:%d, ts[h].poll_count:%d", ret, ts[h].poll_count);
+            debug("select wake up, h:%d, ret:%d, ts[h].poll_count:%d", h, ret, ts[h].poll_count);
             int need_process_data_fd = TRUE;
             if(pfds[0].revents) //cmd fd always is the first one
             {
@@ -572,7 +580,7 @@ static void *sock_poll_thread(void *arg)
                 asrt(pfds[0].fd == ts[h].cmd_fdr);
                 if(!process_cmd_sock(h))
                 {
-                    debug("process_cmd_sock failed, exit...");
+                    debug("h:%d, process_cmd_sock failed, exit...", h);
                     break;
                 }
                 if(ret == 1)
@@ -585,7 +593,7 @@ static void *sock_poll_thread(void *arg)
         else debug("no data, select ret: %d", ret);
     }
     ts[h].thread_id = -1;
-    debug("socket poll thread exiting");
+    debug("socket poll thread exiting, h:%d", h);
     return 0;
 }
 

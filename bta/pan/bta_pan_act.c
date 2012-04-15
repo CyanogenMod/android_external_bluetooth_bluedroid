@@ -34,7 +34,7 @@
 ** Function         bta_pan_conn_state_cback
 **
 ** Description      Connection state callback from Pan profile
-**                  
+**
 **
 ** Returns          void
 **
@@ -77,7 +77,7 @@ static void bta_pan_conn_state_cback(UINT16 handle, BD_ADDR bd_addr, tPAN_RESULT
             else if (src_role == PAN_ROLE_GN_SERVER)
                 p_scb->app_id = bta_pan_cb.app_id[1];
             else if (src_role == PAN_ROLE_NAP_SERVER)
-                p_scb->app_id = bta_pan_cb.app_id[2]; 
+                p_scb->app_id = bta_pan_cb.app_id[2];
 
         }
         else if((state != PAN_SUCCESS) && !is_role_change)
@@ -105,7 +105,7 @@ static void bta_pan_conn_state_cback(UINT16 handle, BD_ADDR bd_addr, tPAN_RESULT
 ** Function         bta_pan_data_flow_cb
 **
 ** Description      Data flow status callback from PAN
-**                  
+**
 **
 ** Returns          void
 **
@@ -146,7 +146,7 @@ static void bta_pan_data_flow_cb(UINT16 handle, tPAN_RESULT result)
 ** Function         bta_pan_data_buf_ind_cback
 **
 ** Description      data indication callback from pan profile
-**                  
+**
 **
 ** Returns          void
 **
@@ -190,7 +190,7 @@ static void bta_pan_data_buf_ind_cback(UINT16 handle, BD_ADDR src, BD_ADDR dst, 
 
     if((p_scb = bta_pan_scb_by_handle(handle)) == NULL)
     {
-        
+
         GKI_freebuf( p_new_buf );
         return;
     }
@@ -210,8 +210,8 @@ static void bta_pan_data_buf_ind_cback(UINT16 handle, BD_ADDR src, BD_ADDR dst, 
 **
 ** Function         bta_pan_pfilt_ind_cback
 **
-** Description      
-**                  
+** Description
+**
 **
 ** Returns          void
 **
@@ -231,8 +231,8 @@ static void bta_pan_pfilt_ind_cback(UINT16 handle, BOOLEAN indication,tBNEP_RESU
 **
 ** Function         bta_pan_mfilt_ind_cback
 **
-** Description      
-**                  
+** Description
+**
 **
 ** Returns          void
 **
@@ -251,9 +251,9 @@ static void bta_pan_mfilt_ind_cback(UINT16 handle, BOOLEAN indication,tBNEP_RESU
 **
 ** Function         bta_pan_enable
 **
-** Description      
-**                  
-**                  
+** Description
+**
+**
 **
 ** Returns          void
 **
@@ -279,7 +279,7 @@ void bta_pan_enable(tBTA_PAN_DATA *p_data)
     reg_data.pan_tx_data_flow_cb = bta_pan_data_flow_cb;
 
     /* read connectability and discoverability settings.
-    Pan profile changes the settings. We have to change it back to 
+    Pan profile changes the settings. We have to change it back to
     be consistent with other bta subsystems */
     initial_connectability = BTM_ReadConnectability(&c_window, &c_interval);
     initial_discoverability = BTM_ReadDiscoverability(&d_window, &d_interval);
@@ -301,8 +301,8 @@ void bta_pan_enable(tBTA_PAN_DATA *p_data)
 **
 ** Function         bta_pan_set_role
 **
-** Description      
-**                  
+** Description
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -327,6 +327,7 @@ void bta_pan_set_role(tBTA_PAN_DATA *p_data)
                                      p_data->api_set_role.gn_name,
                                      p_data->api_set_role.nap_name);
 
+    set_role.role = p_data->api_set_role.role;
     if(status == PAN_SUCCESS)
     {
         if(p_data->api_set_role.role & PAN_ROLE_NAP_SERVER )
@@ -344,21 +345,18 @@ void bta_pan_set_role(tBTA_PAN_DATA *p_data)
         else
             bta_sys_remove_uuid(UUID_SERVCLASS_PANU);
 
-        set_role.role = p_data->api_set_role.role;
-        bta_pan_cb.p_cback(BTA_PAN_SET_ROLE_EVT, (tBTA_PAN *)&set_role);
+        set_role.status = BTA_PAN_SUCCESS;
     }
     /* if status is not success clear everything */
     else
     {
         PAN_SetRole(0, 0, NULL, NULL, NULL);
-
         bta_sys_remove_uuid(UUID_SERVCLASS_NAP);
         bta_sys_remove_uuid(UUID_SERVCLASS_GN);
         bta_sys_remove_uuid(UUID_SERVCLASS_PANU);
-        set_role.role = 0;
-        bta_pan_cb.p_cback(BTA_PAN_SET_ROLE_EVT, (tBTA_PAN *)&set_role);
+        set_role.status = BTA_PAN_FAIL;
     }
-
+    bta_pan_cb.p_cback(BTA_PAN_SET_ROLE_EVT, (tBTA_PAN *)&set_role);
 }
 
 
@@ -367,9 +365,9 @@ void bta_pan_set_role(tBTA_PAN_DATA *p_data)
 **
 ** Function         bta_pan_disable
 **
-** Description      
-**                  
-**                  
+** Description
+**
+**
 **
 ** Returns          void
 **
@@ -397,7 +395,7 @@ void bta_pan_disable(void)
         {
             while((p_buf = (BT_HDR *)GKI_dequeue(&p_scb->data_queue)) != NULL)
                 GKI_freebuf(p_buf);
-        
+
             bta_pan_co_close(p_scb->handle, p_scb->app_id);
 
         }
@@ -413,7 +411,7 @@ void bta_pan_disable(void)
 **
 ** Function         bta_pan_open
 **
-** Description                       
+** Description
 **
 ** Returns          void
 **
@@ -425,7 +423,7 @@ void bta_pan_open(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
     tBTA_PAN_OPENING    opening;
 
 
-    status = PAN_Connect (p_data->api_open.bd_addr, p_data->api_open.local_role, p_data->api_open.peer_role, 
+    status = PAN_Connect (p_data->api_open.bd_addr, p_data->api_open.local_role, p_data->api_open.peer_role,
                         &p_scb->handle);
 
 
@@ -456,9 +454,9 @@ void bta_pan_open(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 **
 ** Function         bta_pan_close
 **
-** Description      
-**                  
-**                  
+** Description
+**
+**
 **
 ** Returns          void
 **
@@ -488,7 +486,7 @@ void bta_pan_api_close (tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 ** Function         bta_pan_conn_open
 **
 ** Description      process connection open event
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -529,8 +527,8 @@ void bta_pan_conn_open(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 ** Function         bta_pan_conn_close
 **
 ** Description      process connection close event
-**                  
-**                  
+**
+**
 **
 ** Returns          void
 **
@@ -569,7 +567,7 @@ void bta_pan_conn_close(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 **
 ** Description      Handle data on the RX path (data sent from the phone to
 **                  BTA).
-**                  
+**
 **
 ** Returns          void
 **
@@ -589,8 +587,8 @@ void bta_pan_rx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
     /* else data path configured for rx push */
     else
     {
-        
-    }    
+
+    }
 }
 
 /*******************************************************************************
@@ -598,14 +596,14 @@ void bta_pan_rx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 ** Function         bta_pan_tx_path
 **
 ** Description      Handle the TX data path (data sent from BTA to the phone).
-**                  
+**
 **
 ** Returns          void
 **
 *******************************************************************************/
 void bta_pan_tx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 {
-    
+
     BT_HDR * p_buf;
     /* if data path configured for tx pull */
     if ((bta_pan_cb.flow_mask & BTA_PAN_TX_MASK) == BTA_PAN_TX_PULL)
@@ -663,7 +661,7 @@ void bta_pan_tx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 ** Function         bta_pan_tx_flow
 **
 ** Description      Set the application flow control state.
-**                  
+**
 **
 ** Returns          void
 **
@@ -678,7 +676,7 @@ void bta_pan_tx_flow(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 ** Function         bta_pan_write_buf
 **
 ** Description      Handle a bta_pan_ci_rx_writebuf() and send data to PAN.
-**                  
+**
 **
 ** Returns          void
 **
@@ -703,7 +701,7 @@ void bta_pan_write_buf(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 ** Function         bta_pan_free_buf
 **
 ** Description      Frees the data buffer during closing state
-**                  
+**
 **
 ** Returns          void
 **

@@ -70,7 +70,7 @@
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "btif_sock.h"
-
+#include "btif_pan.h"
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
@@ -440,7 +440,10 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
 
         /* init rfcomm & l2cap api */
         btif_sock_init();
-
+		
+		/* init pan */
+        btif_pan_init();
+		
         /* load did configuration */
         bte_load_did_conf(BTE_DID_CONF_FILE);
 
@@ -450,7 +453,7 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
     {
         /* cleanup rfcomm & l2cap api */
         btif_sock_cleanup();
-
+        btif_pan_cleanup();
         btif_enabled = 0;
 
         HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
@@ -483,7 +486,7 @@ bt_status_t btif_disable_bluetooth(void)
 
     /* cleanup rfcomm & l2cap api */
     btif_sock_cleanup();
-
+    btif_pan_cleanup();
     status = BTA_DisableBluetooth();
 
     if (status != BTA_SUCCESS)

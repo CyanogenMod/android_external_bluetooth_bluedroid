@@ -70,7 +70,7 @@ tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info)
         return BNEP_SECURITY_FAIL;
 
     bnep_cb.profile_registered  = TRUE;
-
+    BTM_GetLocalDeviceAddr (bnep_cb.my_bda);
     return BNEP_SUCCESS;
 }
 

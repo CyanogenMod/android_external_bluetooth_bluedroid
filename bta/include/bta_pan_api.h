@@ -56,6 +56,7 @@ typedef struct
 /* Event associated with BTA_PAN_SET_ROLE_EVT */
 typedef struct
 {
+    tBTA_PAN_STATUS status;     /* status of set role event */
     tBTA_PAN_ROLE   role;       /* PAN roles successfully registered */
 } tBTA_PAN_SET_ROLE;
 
