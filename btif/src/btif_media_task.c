@@ -739,7 +739,7 @@ int btif_a2dp_start_media_task(void)
 void btif_a2dp_stop_media_task(void)
 {
     APPL_TRACE_EVENT0("## A2DP STOP MEDIA TASK ##");
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_KILL, NULL);
+    GKI_send_event(BT_MEDIA_TASK, BTIF_MEDIA_TASK_KILL);
 }
 
 /*****************************************************************************
@@ -1225,6 +1225,9 @@ int btif_media_task(void *p)
             break;
         }
     }
+
+    /* Clear media task flag */
+    media_task_running = 0;
 
     APPL_TRACE_DEBUG0("MEDIA TASK EXITING");
 

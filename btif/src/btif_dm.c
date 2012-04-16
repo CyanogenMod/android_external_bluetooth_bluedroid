@@ -139,7 +139,7 @@ bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
          case BTA_HID_SERVICE_ID:
          {
               btif_hh_execute_service(b_enable);
-         }
+         }break;
 
          default:
               BTIF_TRACE_ERROR1("%s: Unknown service being enabled", __FUNCTION__);
