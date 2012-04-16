@@ -2020,7 +2020,7 @@ static void bta_jv_port_mgmt_sr_cback(UINT32 code, UINT16 port_handle)
     {
         evt_data.rfc_srv_open.handle = p_pcb->handle;
         evt_data.rfc_srv_open.status = BTA_JV_SUCCESS;
-        bdcpy(evt_data.rfc_open.rem_bda, rem_bda);
+        bdcpy(evt_data.rfc_srv_open.rem_bda, rem_bda);
         p_pcb->state = BTA_JV_ST_SR_OPEN;
         tBTA_JV_PCB *p_pcb_new_listen  = bta_jv_add_rfc_port(p_cb);
         if(p_pcb_new_listen)
