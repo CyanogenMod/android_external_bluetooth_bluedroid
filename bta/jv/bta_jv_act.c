@@ -2040,20 +2040,14 @@ static void bta_jv_port_mgmt_sr_cback(UINT32 code, UINT16 port_handle)
         {
             evt_data.rfc_close.async = FALSE;
         }
-        p_pcb->state = BTA_JV_ST_SR_LISTEN;
         p_pcb->cong = FALSE;
         p_cback = p_cb->p_cback;
-        num = bta_jv_get_num_rfc_listen(p_cb);
-        APPL_TRACE_DEBUG1( "num:%d",num);
-        if (num > 1)
-        {
-            APPL_TRACE_DEBUG1( "removing rfc handle:0x%x", p_pcb->handle);
-            si = BTA_JV_RFC_HDL_TO_SIDX(p_pcb->handle);
-            p_cb->rfc_hdl[si] = 0;
-            p_pcb->state = BTA_JV_ST_NONE;
-            p_pcb->handle = 0;
-            RFCOMM_RemoveServer(port_handle);
-        }
+        APPL_TRACE_DEBUG1( "removing rfc handle:0x%x", p_pcb->handle);
+        si = BTA_JV_RFC_HDL_TO_SIDX(p_pcb->handle);
+        p_cb->rfc_hdl[si] = 0;
+        p_pcb->state = BTA_JV_ST_NONE;
+        p_pcb->handle = 0;
+        RFCOMM_RemoveServer(port_handle);
         evt_data.rfc_close.port_status = code;
         p_cback(BTA_JV_RFCOMM_CLOSE_EVT, &evt_data, user_data);
     }
