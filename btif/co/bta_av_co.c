@@ -1411,6 +1411,8 @@ void bta_av_co_init(void)
     /* Reset the control block */
     memset(&bta_av_co_cb, 0, sizeof(bta_av_co_cb));
 
+    bta_av_co_cb.codec_cfg_setconfig.id = BTIF_AV_CODEC_NONE;
+
 #if defined(BTA_AV_CO_CP_SCMS_T) && (BTA_AV_CO_CP_SCMS_T == TRUE)
     bta_av_co_cp_set_flag(BTA_AV_CP_SCMS_COPY_NEVER);
 #else
