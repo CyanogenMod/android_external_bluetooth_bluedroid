@@ -59,6 +59,4 @@
 #define btif_pan_h_
 #include <hardware/bt_pan.h>
 btpan_interface_t *btif_pan_interface();
-void btif_pan_init();
-void btif_pan_cleanup();
 #endif

@@ -513,9 +513,6 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
         /* init rfcomm & l2cap api */
         btif_sock_init();
 
-        /* init pan */
-        btif_pan_init();
-
         /* load did configuration */
         bte_load_did_conf(BTE_DID_CONF_FILE);
 
@@ -525,8 +522,6 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
     {
         /* cleanup rfcomm & l2cap api */
         btif_sock_cleanup();
-
-        btif_pan_cleanup();
 
         btif_enabled = 0;
 
@@ -561,7 +556,7 @@ bt_status_t btif_disable_bluetooth(void)
     /* cleanup rfcomm & l2cap api */
     btif_sock_cleanup();
 
-    btif_pan_cleanup();
+    //btif_pan_cleanup();
 
     status = BTA_DisableBluetooth();
 
@@ -590,6 +585,7 @@ void btif_disable_bluetooth_evt(void)
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
 
     bte_main_disable();
+    BTIF_TRACE_DEBUG1("%s: returning from bte_main_disable", __FUNCTION__);
 
     /* callback to HAL */
     HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
@@ -599,6 +595,7 @@ void btif_disable_bluetooth_evt(void)
 
     if (btif_shutdown_pending)
     {
+      BTIF_TRACE_DEBUG1("%s: calling btif_shutdown_bluetooth", __FUNCTION__);
         btif_shutdown_bluetooth();
     }
 }
@@ -632,8 +629,9 @@ bt_status_t btif_shutdown_bluetooth(void)
     btif_shutdown_pending = 0;
 
     GKI_destroy_task(BTIF_TASK);
-
+    BTIF_TRACE_DEBUG1("%s: calling bte_main_shutdown", __FUNCTION__);
     bte_main_shutdown();
+    BTIF_TRACE_DEBUG1("Leaving %s", __FUNCTION__);
 
     return BT_STATUS_SUCCESS;
 }
@@ -1232,7 +1230,7 @@ bt_status_t btif_disable_service(tBTA_SERVICE_ID service_id)
       */
      btif_enabled_services &=  (tBTA_SERVICE_MASK)(~(1<<service_id));
      BTIF_TRACE_ERROR2("%s: Current Services:0x%x", __FUNCTION__, btif_enabled_services);
-     if (btif_enabled == 1)
+    if (btif_enabled == 1)
      {
           btif_transfer_context(btif_dm_execute_service_request,
                                 BTIF_DM_DISABLE_SERVICE,

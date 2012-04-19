@@ -133,11 +133,13 @@ btpan_interface_t *btif_pan_get_interface()
 {
     return &pan_if;
 }
-void btif_pan_init()
+
+static btpan_callbacks_t callback;
+static bt_status_t btpan_init(const btpan_callbacks_t* callbacks)
 {
+    //static volatile int binit;
+
     debug("in, btpan_cb.enabled:%d", btpan_cb.enabled);
-    //btif_enable_service(BTA_PANU_SERVICE_ID);
-    //btif_enable_service(BTA_NAP_SERVICE_ID);
     if (!btpan_cb.enabled)
     {
         //btui_cfg.pan_security = PAN_SECURITY;
@@ -156,10 +158,15 @@ void btif_pan_init()
         btpan_enable(BTPAN_ROLE_PANU);
         //debug("set to BTPAN_ROLE_PANNAP for testing");
         //btpan_enable(BTPAN_ROLE_PANNAP);
+	callback = *callbacks;
+	return BT_STATUS_SUCCESS;
     }
+    return BT_STATUS_FAIL;
 }
-void btif_pan_cleanup()
+
+static void btpan_cleanup()
 {
+    debug("in, btpan_cb.enabled:%d", btpan_cb.enabled);
     debug("in, bt is shuting down...");
     //bt is shuting down, invalid all bta pan handles
     int i;
@@ -167,19 +174,7 @@ void btif_pan_cleanup()
     {
         btpan_cleanup_conn(&btpan_cb.conns[i]);
     }
-    btpan_cleanup();
-}
-static btpan_callbacks_t callback;
-static bt_status_t btpan_init(const btpan_callbacks_t* callbacks)
-{
-    debug("in, btpan_cb.enabled:%d", btpan_cb.enabled);
-    static volatile int binit;
-    callback = *callbacks;
-    return BT_STATUS_SUCCESS;
-}
-static void btpan_cleanup()
-{
-    debug("in, btpan_cb.enabled:%d", btpan_cb.enabled);
+
     if (btpan_cb.enabled)
     {
         btpan_cb.enabled = 0;
@@ -191,7 +186,9 @@ static void btpan_cleanup()
             btpan_cb.tap_fd = -1;
         }
     }
+    debug("out, %s", __FUNCTION__);
 }
+
 static inline int bta_role_to_btpan(int bta_pan_role)
 {
     int btpan_role = 0;

@@ -714,12 +714,6 @@ static bt_status_t init(btav_callbacks_t* callbacks )
     /* check if stack/gki is started/enabled yet, if not defer until bluetooth
        is enabled */
 
-    if (btif_is_enabled() == 0)
-    {
-        BTIF_TRACE_EVENT0("deferred av init until gki is enabled");
-        return BT_STATUS_SUCCESS;
-    }
-
     return btif_av_init();
 }
 
