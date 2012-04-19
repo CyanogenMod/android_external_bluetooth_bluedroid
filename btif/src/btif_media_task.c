@@ -134,6 +134,11 @@ enum
     BTIF_MEDIA_AUDIO_RECEIVING_INIT
 };
 
+enum {
+    MEDIA_TASK_STATE_OFF = 0,
+    MEDIA_TASK_STATE_ON = 1,
+    MEDIA_TASK_STATE_SHUTTING_DOWN = 2
+};
 
 /* Macro to multiply the media task tick */
 #ifndef BTIF_MEDIA_NUM_TICK
@@ -275,7 +280,7 @@ typedef struct {
  *****************************************************************************/
 
 static tBTIF_MEDIA_CB btif_media_cb;
-static int media_task_running = 0;
+static int media_task_running = MEDIA_TASK_STATE_OFF;
 
 
 /*****************************************************************************
@@ -473,6 +478,12 @@ static void btif_recv_ctrl_data(void)
     {
         case A2DP_CTRL_CMD_CHECK_READY:
 
+            if (media_task_running == MEDIA_TASK_STATE_SHUTTING_DOWN)
+            {
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+                return;
+            }
+
             /* check whether avdtp is ready to start */
             if (btif_av_stream_ready() == TRUE)
             {
@@ -547,8 +558,9 @@ static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
             break;
 
         case UIPC_CLOSE_EVT:
-            /* restart ctrl server */
-            UIPC_Open(UIPC_CH_ID_AV_CTRL , btif_a2dp_ctrl_cb);
+            /* restart ctrl server unless we are shutting down */
+            if (media_task_running != MEDIA_TASK_STATE_SHUTTING_DOWN)
+                UIPC_Open(UIPC_CH_ID_AV_CTRL , btif_a2dp_ctrl_cb);
             break;
 
         case UIPC_RX_DATA_READY_EVT:
@@ -573,11 +585,11 @@ static void btif_a2dp_data_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
                 connection events */
             UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_REG_REMOVE_ACTIVE_READSET, NULL);
 
-            /* make sure we update any changed sbc encoder params */
-            btif_a2dp_encoder_update();
-
             /* Start the media task to encode SBC */
             btif_media_task_start_aa_req();
+
+            /* make sure we update any changed sbc encoder params */
+            btif_a2dp_encoder_update();
 
             /* ack back when media task is fully started */
             break;
@@ -700,7 +712,7 @@ int btif_a2dp_start_media_task(void)
 {
     int retval;
 
-    if (media_task_running)
+    if (media_task_running != MEDIA_TASK_STATE_OFF)
     {
         APPL_TRACE_ERROR0("warning : media task already running");
         return GKI_FAILURE;
@@ -718,7 +730,7 @@ int btif_a2dp_start_media_task(void)
         return retval;
 
     /* wait for task to come up to sure we are able to send messages to it */
-    while (media_task_running == 0)
+    while (media_task_running == MEDIA_TASK_STATE_OFF)
         usleep(10);
 
     APPL_TRACE_EVENT0("## A2DP MEDIA TASK STARTED ##");
@@ -1183,7 +1195,7 @@ int btif_media_task(void *p)
 
     btif_media_task_init();
 
-    media_task_running = 1;
+    media_task_running = MEDIA_TASK_STATE_ON;
 
     while (1)
     {
@@ -1221,13 +1233,17 @@ int btif_media_task(void *p)
         /* When we get this event we exit the task  - should only happen on GKI_shutdown  */
         if (event & BTIF_MEDIA_TASK_KILL)
         {
+            /* make sure no channels are restarted while shutting down */
+            media_task_running = MEDIA_TASK_STATE_SHUTTING_DOWN;
+
+			/* this calls blocks until uipc is fully closed */
             UIPC_Close(UIPC_CH_ID_ALL);
             break;
         }
     }
 
     /* Clear media task flag */
-    media_task_running = 0;
+    media_task_running = MEDIA_TASK_STATE_OFF;
 
     APPL_TRACE_DEBUG0("MEDIA TASK EXITING");
 

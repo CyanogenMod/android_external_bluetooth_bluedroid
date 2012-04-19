@@ -239,7 +239,7 @@ static int accept_server_socket(int sfd)
 {
     struct sockaddr_un remote;
     int fd;
-    int t;
+    int t = sizeof(struct sockaddr);
 
     //BTIF_TRACE_EVENT1("accept fd %d", sfd);
 
@@ -294,12 +294,14 @@ void uipc_main_cleanup(void)
 {
     int i;
 
+    BTIF_TRACE_EVENT0("uipc_main_cleanup");
+
     close(uipc_main.signal_fds[0]);
     close(uipc_main.signal_fds[1]);
 
     /* close any open channels */
     for (i=0; i<UIPC_CH_NUM; i++)
-        UIPC_Close(i);
+        uipc_close_ch_locked(i);
 }
 
 
@@ -480,14 +482,6 @@ static int uipc_close_ch_locked(tUIPC_CH_ID ch_id)
     if (ch_id >= UIPC_CH_NUM)
         return -1;
 
-    if (ch_id == UIPC_CH_ID_ALL)
-    {
-        /* shutdown read thread */
-        uipc_main.running = 0;
-        uipc_wakeup_locked();
-        return 0;
-    }
-
     if (uipc_main.ch[ch_id].srvfd != UIPC_DISCONNECTED)
     {
         BTIF_TRACE_EVENT1("CLOSE SERVER (FD %d)", uipc_main.ch[ch_id].srvfd);
@@ -577,9 +571,13 @@ static void uipc_read_task(void *arg)
         UIPC_UNLOCK();
     }
 
-    BTIF_TRACE_EVENT0("UIPC READ THEAD EXITING");
+    BTIF_TRACE_EVENT0("UIPC READ THREAD EXITING");
 
     uipc_main_cleanup();
+
+    uipc_main.tid = 0;
+
+    BTIF_TRACE_EVENT0("UIPC READ THREAD DONE");
 }
 
 
@@ -594,6 +592,20 @@ int uipc_start_main_server_thread(void)
     }
 
     return 0;
+}
+
+/* blocking call */
+void uipc_stop_main_server_thread(void)
+{
+    /* request shutdown of read thread */
+    UIPC_LOCK();
+    uipc_main.running = 0;
+    uipc_wakeup_locked();
+    UIPC_UNLOCK();
+
+    /* wait until read thread is fully terminated */
+    if (uipc_main.tid > 0)
+        pthread_join(uipc_main.tid, NULL);
 }
 
 /*******************************************************************************
@@ -678,6 +690,14 @@ UDRV_API void UIPC_Close(tUIPC_CH_ID ch_id)
     UIPC_LOCK();
     uipc_close_locked(ch_id);
     UIPC_UNLOCK();
+
+    /* special case handling uipc shutdown */
+    if (ch_id == UIPC_CH_ID_ALL)
+    {
+        BTIF_TRACE_DEBUG0("UIPC_Close : waiting for shutdown to complete");
+        uipc_stop_main_server_thread();
+        BTIF_TRACE_DEBUG0("UIPC_Close : shutdown complete");
+    }
 }
 
 /*******************************************************************************
@@ -785,7 +805,8 @@ UDRV_API UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UI
         pfd.fd = fd;
         pfd.events = POLLIN|POLLHUP;
 
-        /* make sure there is data prior to attempting read */
+        /* make sure there is data prior to attempting read to avoid blocking
+           a read for more than poll timeout */
         if (poll(&pfd, 1, uipc_main.ch[ch_id].read_poll_tmo_ms) == 0)
         {
             BTIF_TRACE_EVENT1("poll timeout (%d ms)", uipc_main.ch[ch_id].read_poll_tmo_ms);
