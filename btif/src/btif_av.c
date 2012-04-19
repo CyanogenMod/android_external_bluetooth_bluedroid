@@ -371,7 +371,6 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
             /* inform the application of the event */
             HAL_CBACK(bt_av_callbacks, connection_state_cb,
                              state, &(btif_av_cb.peer_bda));
-
             /* change state to open/idle based on the status */
             btif_sm_change_state(btif_av_cb.sm_handle, av_state);
         } break;
@@ -537,10 +536,8 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
     switch (event)
     {
         case BTIF_SM_ENTER_EVT:
-#ifdef ENABLE_AUDIO_STATE_CB
             HAL_CBACK(bt_av_callbacks, audio_state_cb,
                 BTAV_AUDIO_STATE_STARTED, &(btif_av_cb.peer_bda));
-#endif
             break;
 
         case BTIF_SM_EXIT_EVT:
@@ -590,7 +587,6 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
                 return FALSE;
             }
 
-#ifdef ENABLE_AUDIO_STATE_CB
             if (p_av->suspend.initiator != TRUE)
             {
                 /* remote suspend, notify HAL and await audioflinger to
@@ -604,7 +600,6 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
                 HAL_CBACK(bt_av_callbacks, audio_state_cb,
                         BTAV_AUDIO_STATE_STOPPED, &(btif_av_cb.peer_bda));
             }
-#endif
             btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENED);
             break;
 
@@ -612,10 +607,8 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
 
             btif_a2dp_on_stopped(&p_av->suspend);
 
-#ifdef ENABLE_AUDIO_STATE_CB
             HAL_CBACK(bt_av_callbacks, audio_state_cb,
                       BTAV_AUDIO_STATE_STOPPED, &(btif_av_cb.peer_bda));
-#endif
 
             /* if stop was successful, change state to open */
             if (p_av->suspend.status == BTA_AV_SUCCESS)
