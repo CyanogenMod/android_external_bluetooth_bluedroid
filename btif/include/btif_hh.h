@@ -92,8 +92,9 @@ typedef enum
     BTIF_HH_ENABLED,
     BTIF_HH_DISABLING,
     BTIF_HH_DEV_UNKNOWN,
-    BTIF_HH_DEV_PAIRED,
-    BTIF_HH_DEV_CONNECTED
+    BTIF_HH_DEV_CONNECTING,
+    BTIF_HH_DEV_CONNECTED,
+    BTIF_HH_DEV_DISCONNECTED
 } BTIF_HH_STATUS;
 
 // BTIF-HH control block to maintain added devices and current connected hid device
@@ -111,7 +112,7 @@ extern btif_hh_cb_t btif_hh_cb;
 extern btif_hh_device_t *btif_hh_find_connected_dev_by_handle(UINT8 handle);
 extern void btif_hh_remove_device(bt_bdaddr_t bd_addr);
 BOOLEAN btif_hh_add_added_dev(bt_bdaddr_t bda, tBTA_HH_ATTR_MASK attr_mask);
-extern void btif_hh_virtual_unpug(bt_bdaddr_t *bd_addr);
+extern bt_status_t btif_hh_virtual_unpug(bt_bdaddr_t *bd_addr);
 extern void btif_hh_disconnect(bt_bdaddr_t *bd_addr);
 
 BOOLEAN btif_hh_add_added_dev(bt_bdaddr_t bd_addr, tBTA_HH_ATTR_MASK attr_mask);

@@ -116,6 +116,7 @@ extern UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID];
 extern bt_status_t btif_hf_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_av_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_hh_execute_service(BOOLEAN b_enable);
+extern int btif_hh_connect(bt_bdaddr_t *bd_addr);
 
 
 /******************************************************************************
@@ -334,13 +335,21 @@ static void btif_dm_cb_hid_remote_name(tBTM_REMOTE_DEV_NAME *p_remote_name)
         if (p_remote_name->status == BTM_SUCCESS)
         {
             bond_state_changed(BT_STATUS_SUCCESS, &remote_bd, BT_BOND_STATE_BONDED);
-            //btif_hh_mouse_pairing(remote_bd);
         }
         else
             bond_state_changed(BT_STATUS_FAIL, &remote_bd, BT_BOND_STATE_NONE);
     }
 }
 
+int remove_hid_bond(bt_bdaddr_t *bd_addr)
+{
+        /* For HID mouse,we did connection before pairing
+             * so we need to do virtual unplug
+             */
+        bdstr_t bdstr;
+        BTIF_TRACE_DEBUG2("%s---Removing HID mouse bond--%s", __FUNCTION__,bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
+        return btif_hh_virtual_unpug(bd_addr);
+}
 /*******************************************************************************
 **
 ** Function         btif_dm_cb_create_bond
@@ -354,8 +363,14 @@ static void btif_dm_cb_hid_remote_name(tBTM_REMOTE_DEV_NAME *p_remote_name)
 static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr)
 {
     bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDING);
-
-    BTA_DmBond ((UINT8 *)bd_addr->address);
+    if (check_cod(bd_addr, COD_HID_POINTING)){
+            int status;
+            status = btif_hh_connect(bd_addr);
+            if(status != BT_STATUS_SUCCESS)
+                bond_state_changed(status, bd_addr, BT_BOND_STATE_NONE);
+    }
+    else
+        BTA_DmBond ((UINT8 *)bd_addr->address);
 
 }
 
@@ -372,15 +387,25 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr)
 void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr)
 {
      bdstr_t bdstr;
-    if (BTA_DmRemoveDevice((UINT8 *)bd_addr->address) == BTA_SUCCESS)
+     /*special handling for HID devices */
+     if (check_cod(bd_addr, COD_HID_POINTING))
     {
-        BTIF_TRACE_DEBUG1("Successfully removed bonding with device: %s",
-                                            bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
+        #if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
+        if(remove_hid_bond(bd_addr) != BTA_SUCCESS)
+            BTA_DmRemoveDevice((UINT8 *)bd_addr->address);
+        #endif
     }
     else
-        BTIF_TRACE_DEBUG1("Removed bonding with device failed: %s",
+    {
+        if (BTA_DmRemoveDevice((UINT8 *)bd_addr->address) == BTA_SUCCESS)
+        {
+            BTIF_TRACE_DEBUG1("Successfully removed bonding with device: %s",
                                             bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
-
+        }
+        else
+            BTIF_TRACE_DEBUG1("Removed bonding with device failed: %s",
+                                            bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
+    }
 }
 
 /*******************************************************************************
@@ -990,7 +1015,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 
             /*special handling for HID devices */
             #if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
-            if (check_cod(&bd_addr, COD_HID_POINTING ) || check_cod(&bd_addr, COD_HID_KEYBOARD )|| check_cod(&bd_addr, COD_HID_COMBO)) {
+            if (check_cod(&bd_addr, COD_HID_KEYBOARD )|| check_cod(&bd_addr, COD_HID_COMBO) || check_cod(&bd_addr, COD_HID_POINTING)) {
                 btif_hh_remove_device(bd_addr);
             }
             #endif
@@ -1260,7 +1285,6 @@ bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr)
     bdstr_t bdstr;
 
     BTIF_TRACE_EVENT2("%s: bd_addr=%s", __FUNCTION__, bd2str((bt_bdaddr_t *) bd_addr, &bdstr));
-
     if (pairing_cb.state != BT_BOND_STATE_NONE)
         return BT_STATUS_BUSY;
 

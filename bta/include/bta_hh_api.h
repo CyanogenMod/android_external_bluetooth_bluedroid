@@ -376,6 +376,29 @@ BTA_API extern void BTA_HhSendCtrl(UINT8 dev_handle,
 
 /*******************************************************************************
 **
+** Function         BTA_HhSetIdle
+**
+** Description      send SET_IDLE to device.
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate);
+
+
+/*******************************************************************************
+**
+** Function         BTA_HhGetIdle
+**
+** Description      Send a GET_IDLE from HID device.
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HhGetIdle(UINT8 dev_handle);
+
+/*******************************************************************************
+**
 ** Function         BTA_HhSendData
 **
 ** Description      Send DATA transaction to a HID device.
