@@ -369,12 +369,6 @@ BTA_API UINT8 bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_t
     APPL_TRACE_DEBUG4("bta_av_co_audio_getconfig peer(o=%d,n_snks=%d,n_rx_snks=%d,n_sup_snks=%d)",
             p_peer->opened, p_peer->num_snks, p_peer->num_rx_snks, p_peer->num_sup_snks);
 
-    /* Sanity check: should not be opened at this point */
-    if (p_peer->opened)
-    {
-        APPL_TRACE_ERROR0("bta_av_co_audio_getconfig peer already in use");
-    }
-
     /* Increment the number of received sinks capabilities */
     p_peer->num_rx_snks++;
 
@@ -385,7 +379,6 @@ BTA_API UINT8 bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_t
     case BTA_AV_CODEC_SBC:
         supported = TRUE;
         break;
-
 
     default:
         break;
@@ -427,6 +420,13 @@ BTA_API UINT8 bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_t
         /* Find a sink that matches the codec config */
         if (bta_av_co_audio_peer_supports_codec(p_peer, &index))
         {
+            /* stop fetching caps once we retrieved a supported codec */
+            if (p_peer->acp)
+            {
+                *p_sep_info_idx = p_peer->num_snks;
+                APPL_TRACE_EVENT0("no need to fetch more SEPs");
+            }
+
             p_sink = &p_peer->snks[index];
 
             /* Build the codec configuration for this sink */
