@@ -3,44 +3,44 @@
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed 
- *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
- *  Except as set forth in an Authorized License, Broadcom grants no license 
- *  (express or implied), right to use, or waiver of any kind with respect to 
- *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE 
- *  ALL USE OF THE SOFTWARE.  
+ *  licensors, and may only be used, duplicated, modified or distributed
+ *  pursuant to the terms and conditions of a separate, written license
+ *  agreement executed between you and Broadcom (an "Authorized License").
+ *  Except as set forth in an Authorized License, Broadcom grants no license
+ *  (express or implied), right to use, or waiver of any kind with respect to
+ *  the Software, and Broadcom expressly reserves all rights in and to the
+ *  Software and all intellectual property rights therein.
+ *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
+ *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ *  ALL USE OF THE SOFTWARE.
  *
  *  Except as expressly set forth in the Authorized License,
  *
- *  1.     This program, including its structure, sequence and organization, 
- *         constitutes the valuable trade secrets of Broadcom, and you shall 
- *         use all reasonable efforts to protect the confidentiality thereof, 
- *         and to use this information only in connection with your use of 
+ *  1.     This program, including its structure, sequence and organization,
+ *         constitutes the valuable trade secrets of Broadcom, and you shall
+ *         use all reasonable efforts to protect the confidentiality thereof,
+ *         and to use this information only in connection with your use of
  *         Broadcom integrated circuit products.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED 
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, 
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, 
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY 
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, 
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES, 
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR 
+ *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+ *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
  *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
  *         OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
  *
  *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
- *         OR ITS LICENSORS BE LIABLE FOR 
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY 
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO 
+ *         OR ITS LICENSORS BE LIABLE FOR
+ *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
+ *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
  *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR 
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE 
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE 
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
+ *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
+ *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
+ *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
+ *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
  *****************************************************************************/
@@ -49,7 +49,7 @@
 **
 **  Name        gki_linux_pthreads.c
 **
-**  Function    pthreads version of Linux GKI. This version is used for 
+**  Function    pthreads version of Linux GKI. This version is used for
 **              settop projects that already use pthreads and not pth.
 **
 *****************************************************************************/
@@ -75,10 +75,11 @@
 #define GKI_TICK_TIMER_DEBUG FALSE
 #endif
 
+#define GKI_INFO(fmt, ...) LOGI ("%s: " fmt, __FUNCTION__, ## __VA_ARGS__)
 
 /* always log errors */
 #define GKI_ERROR_LOG(fmt, ...)  LOGE ("##### ERROR : %s: " fmt "#####", __FUNCTION__, ## __VA_ARGS__)
-    
+
 #if defined (GKI_TICK_TIMER_DEBUG) && (GKI_TICK_TIMER_DEBUG == TRUE)
 #define GKI_TIMER_TRACE(fmt, ...) LOGI ("%s: " fmt, __FUNCTION__, ## __VA_ARGS__)
 #else
@@ -168,16 +169,18 @@ void gki_task_entry(UINT32 params)
 {
     gki_pthread_info_t *p_pthread_info = (gki_pthread_info_t *)params;
     gki_cb.os.thread_id[p_pthread_info->task_id] = pthread_self();
-    
+
     prctl(PR_SET_NAME, (unsigned long)gki_cb.com.OSTName[p_pthread_info->task_id], 0, 0, 0);
-    
-    GKI_TRACE("gki_task_entry task_id=%i\n", p_pthread_info->task_id);    
-    
+
+    GKI_INFO("gki_task_entry task_id=%i [%s] starting\n", p_pthread_info->task_id,
+                gki_cb.com.OSTName[p_pthread_info->task_id]);
+
     /* Call the actual thread entry point */
     (p_pthread_info->task_entry)(p_pthread_info->params);
 
-    GKI_TRACE("gki_task task_id=%i terminating\n", p_pthread_info->task_id);    
-    
+    GKI_INFO("gki_task task_id=%i [%s] terminating\n", p_pthread_info->task_id,
+                gki_cb.com.OSTName[p_pthread_info->task_id]);
+
     pthread_exit(0);    /* GKI tasks have no return value */
 }
 /* end android */
@@ -267,13 +270,13 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
     struct sched_param param;
     int policy, ret = 0;
     pthread_attr_t attr1;
-    
-    GKI_TRACE( "GKI_create_task %x %d %s %x %d", (int)task_entry, (int)task_id, 
+
+    GKI_TRACE( "GKI_create_task %x %d %s %x %d", (int)task_entry, (int)task_id,
             (char*) taskname, (int) stack, (int)stacksize);
 
     if (task_id >= GKI_MAX_TASKS)
     {
-        GKI_TRACE("Error! task ID > max task allowed");
+        GKI_ERROR_LOG("Error! task ID > max task allowed");
         return (GKI_FAILURE);
     }
 
@@ -294,9 +297,9 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
 #if ( FALSE == GKI_PTHREAD_JOINABLE )
     pthread_attr_setdetachstate(&attr1, PTHREAD_CREATE_DETACHED);
 
-    GKI_TRACE("GKI creating task %i\n", task_id);    
+    GKI_TRACE("GKI creating task %i\n", task_id);
 #else
-    GKI_TRACE("GKI creating JOINABLE task %i\n", task_id);    
+    GKI_TRACE("GKI creating JOINABLE task %i\n", task_id);
 #endif
 
     /* On Android, the new tasks starts running before 'gki_cb.os.thread_id[task_id]' is initialized */
@@ -304,18 +307,18 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
     gki_pthread_info[task_id].task_id = task_id;
     gki_pthread_info[task_id].task_entry = task_entry;
     gki_pthread_info[task_id].params = 0;
-    
+
     ret = pthread_create( &gki_cb.os.thread_id[task_id],
               &attr1,
               (void *)gki_task_entry,
               &gki_pthread_info[task_id]);
-    
+
     if (ret != 0)
     {
-         printf("pthread_create failed(%d), %s!\n\r", ret, taskname);
+         GKI_ERROR_LOG("pthread_create failed(%d), %s!\n\r", ret, taskname);
          return GKI_FAILURE;
     }
-    
+
     if(pthread_getschedparam(gki_cb.os.thread_id[task_id], &policy, &param)==0)
      {
 #if (GKI_LINUX_BASE_POLICY!=GKI_SCHED_NORMAL)
@@ -325,7 +328,7 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
              GKI_TRACE("PBS SQL lowest priority task");
              policy = SCHED_NORMAL;
          }
-         else 
+         else
 #endif
 #endif
          {
@@ -337,12 +340,12 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
          }
          pthread_setschedparam(gki_cb.os.thread_id[task_id], policy, &param);
      }
-    
-    GKI_TRACE( "Leaving GKI_create_task %x %d %x %s %x %d\n", 
+
+    GKI_TRACE( "Leaving GKI_create_task %x %d %x %s %x %d\n",
               (int)task_entry,
               (int)task_id,
               (int)gki_cb.os.thread_id[task_id],
-              (char*)taskname, 
+              (char*)taskname,
               (int)stack,
               (int)stacksize);
 
@@ -395,13 +398,12 @@ void GKI_destroy_task(UINT8 task_id)
         result = pthread_join( gki_cb.os.thread_id[task_id], NULL );
         if ( result < 0 )
         {
-            GKI_TRACE( "pthread_join() FAILED: result: %d", result );
+            GKI_ERROR_LOG( "pthread_join() FAILED: result: %d", result );
         }
 #endif
-        GKI_ERROR_LOG( "GKI_shutdown(): task %s dead\n", gki_cb.com.OSTName[task_id]);
         GKI_exit_task(task_id);
+        GKI_INFO( "GKI_shutdown(): task [%s] terminated\n", gki_cb.com.OSTName[task_id]);
     }
-
 }
 
 
@@ -432,7 +434,7 @@ void GKI_task_self_cleanup(UINT8 task_id)
                       __FUNCTION__, my_task_id, task_id);
         return;
     }
-    
+
     if (gki_cb.com.OSRdyTbl[task_id] != TASK_DEAD)
     {
         /* paranoi settings, make sure that we do not execute any mailbox events */
@@ -617,7 +619,7 @@ void* timer_thread(void *arg)
 {
     struct timespec delay;
     int err;
-    
+
     while(!shutdown_timer)
     {
         delay.tv_sec = LINUX_SEC / 1000;
@@ -661,7 +663,7 @@ static void gki_set_timer_scheduling( void )
         GKI_TRACE("gki_set_timer_scheduling(()::scheduler current policy: %d", policy);
 
         /* ensure highest priority in the system + 2 to allow space for read threads */
-        param.sched_priority = GKI_LINUX_TIMER_TICK_PRIORITY; 
+        param.sched_priority = GKI_LINUX_TIMER_TICK_PRIORITY;
 
         if ( 0!=sched_setscheduler(main_pid, GKI_LINUX_TIMER_POLICY, &param ) )
         {
@@ -672,7 +674,7 @@ static void gki_set_timer_scheduling( void )
     {
         GKI_TRACE( "getscheduler failed: %d", errno);
     }
-} 
+}
 
 
 /*****************************************************************************
@@ -681,7 +683,7 @@ static void gki_set_timer_scheduling( void )
 **
 ** Description     Freeze GKI. Relevant only when NO_GKI_RUN_RETURN is defined
 **
-** Returns         
+** Returns
 **
 *******************************************************************************/
 
@@ -700,7 +702,7 @@ void GKI_freeze()
 **
 ** Description     Main GKI loop
 **
-** Returns         
+** Returns
 **
 *******************************************************************************/
 
@@ -731,13 +733,13 @@ void GKI_run (void *p_task_id)
               timer_thread,
               NULL) != 0 )
     {
-        printf("GKI_run: pthread_create failed to create timer_thread!\n\r");
+        GKI_ERROR_LOG("pthread_create failed to create timer_thread!\n\r");
         return;
     }
 
     prctl(PR_SET_NAME, (unsigned long)"gki timer", 0, 0, 0);
 
-#else   
+#else
     GKI_TRACE("GKI_run ");
     for (;;)
     {
@@ -775,7 +777,7 @@ void GKI_run (void *p_task_id)
                     *p_run_cond );
 
     }
-#endif  
+#endif
     return;
 }
 
@@ -798,10 +800,10 @@ void GKI_run (void *p_task_id)
 void GKI_stop (void)
 {
     UINT8 task_id;
-    
+
     /*  gki_queue_timer_cback(FALSE); */
     /* TODO - add code here if needed*/
- 
+
     for(task_id = 0; task_id<GKI_MAX_TASKS; task_id++)
     {
         if(gki_cb.com.OSRdyTbl[task_id] != TASK_DEAD)
@@ -821,9 +823,9 @@ void GKI_stop (void)
 **                  that it wants to wait for, or 0 if infinite.
 **
 ** Parameters:      flag -    (input) the event or set of events to wait for
-**                  timeout - (input) the duration that the task wants to wait 
+**                  timeout - (input) the duration that the task wants to wait
 **                                    for the specific events (in system ticks)
-**                  
+**
 **
 ** Returns          the event mask of received events or zero if timeout
 **
@@ -877,7 +879,7 @@ UINT16 GKI_wait (UINT16 flag, UINT32 timeout)
          should NOT be lost! */
 
         /* we are waking up after waiting for some events, so refresh variables
-           no need to call GKI_disable() here as we know that we will have some events as we've been waking 
+           no need to call GKI_disable() here as we know that we will have some events as we've been waking
            up after condition pending or timeout */
 
         if (gki_cb.com.OSTaskQFirst[rtask][0])
@@ -942,7 +944,7 @@ void GKI_delay (UINT32 timeout)
     /* [u]sleep can't be used because it uses SIGALRM */
 
     do {
-        err = nanosleep(&delay, &delay); 
+        err = nanosleep(&delay, &delay);
     } while (err < 0 && errno ==EINTR);
 
     /* Check if task was killed while sleeping */
@@ -1071,7 +1073,7 @@ UINT8 GKI_get_taskid (void)
 **                  name is returned
 **
 ** Parameters:      task_id -  (input) The id of the task whose name is being
-**                  sought. GKI_MAX_TASKS is passed to get the name of the 
+**                  sought. GKI_MAX_TASKS is passed to get the name of the
 **                  currently running task.
 **
 ** Returns          pointer to task name
@@ -1117,7 +1119,7 @@ void GKI_enable (void)
     return;
 }
 
- 
+
 /*******************************************************************************
 **
 ** Function         GKI_disable
@@ -1159,16 +1161,16 @@ void GKI_exception (UINT16 code, char *msg)
     int i = 0;
 
     GKI_ERROR_LOG( "GKI_exception(): Task State Table\n");
- 
+
     for(task_id = 0; task_id < GKI_MAX_TASKS; task_id++)
     {
-        GKI_ERROR_LOG( "TASK ID [%d] task name [%s] state [%d]\n", 
-                         task_id, 
-                         gki_cb.com.OSTName[task_id], 
+        GKI_ERROR_LOG( "TASK ID [%d] task name [%s] state [%d]\n",
+                         task_id,
+                         gki_cb.com.OSTName[task_id],
                          gki_cb.com.OSRdyTbl[task_id]);
     }
 
-    GKI_TRACE("GKI_exception %d %s", code, msg);
+    GKI_ERROR_LOG("GKI_exception %d %s", code, msg);
     GKI_ERROR_LOG( "\n********************************************************************\n");
     GKI_ERROR_LOG( "* GKI_exception(): %d %s\n", code, msg);
     GKI_ERROR_LOG( "********************************************************************\n");
@@ -1190,8 +1192,6 @@ void GKI_exception (UINT16 code, char *msg)
 #endif
 
     GKI_TRACE("GKI_exception %d %s done", code, msg);
-
-
     return;
 }
 
@@ -1202,9 +1202,9 @@ void GKI_exception (UINT16 code, char *msg)
 **
 ** Description      This function formats the time into a user area
 **
-** Parameters:      tbuf -  (output) the address to the memory containing the 
+** Parameters:      tbuf -  (output) the address to the memory containing the
 **                  formatted time
-**                  
+**
 ** Returns          the address of the user area containing the formatted time
 **                  The format of the time is ????
 **
@@ -1383,18 +1383,18 @@ void GKI_exit_task (UINT8 task_id)
 {
     GKI_disable();
     gki_cb.com.OSRdyTbl[task_id] = TASK_DEAD;
-    
+
     /* Destroy mutex and condition variable objects */
     pthread_mutex_destroy(&gki_cb.os.thread_evt_mutex[task_id]);
     pthread_cond_destroy (&gki_cb.os.thread_evt_cond[task_id]);
     pthread_mutex_destroy(&gki_cb.os.thread_timeout_mutex[task_id]);
     pthread_cond_destroy (&gki_cb.os.thread_timeout_cond[task_id]);
-    
+
     GKI_enable();
 
     //GKI_send_event(task_id, EVENT_MASK(GKI_SHUTDOWN_EVT));
 
-    GKI_TRACE("GKI_exit_task %d done", task_id);
+    GKI_INFO("GKI_exit_task %d done", task_id);
     return;
 }
 

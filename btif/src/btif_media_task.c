@@ -505,7 +505,9 @@ static void btif_recv_ctrl_data(void)
                 /* post start event and wait for audio path to open */
                 btif_dispatch_sm_event(BTIF_AV_START_STREAM_REQ_EVT, NULL, 0);
 
-                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+                /* don't ack back until we are fully started */
+                //a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+
             }
             else if (btif_av_stream_started())
             {

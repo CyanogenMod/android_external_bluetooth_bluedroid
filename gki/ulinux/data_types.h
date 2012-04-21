@@ -10,7 +10,7 @@
 **  -----------------------
 **  3/12/99    Create
 **  07/27/00    Added nettohs macro for Little Endian
-**                                                                         
+**
 **  Copyright (c) 1999- 2002, Widcomm Inc., All Rights Reserved.
 **  Proprietary and confidential.
 **

@@ -238,12 +238,26 @@ static inline int create_server_socket(const char* name)
 static int accept_server_socket(int sfd)
 {
     struct sockaddr_un remote;
+    struct pollfd pfd;
     int fd;
-    int t = sizeof(struct sockaddr);
+    int len = sizeof(struct sockaddr_un);
 
-    //BTIF_TRACE_EVENT1("accept fd %d", sfd);
+    BTIF_TRACE_EVENT1("accept fd %d", sfd);
 
-    if ((fd = accept(sfd, (struct sockaddr *)&remote, &t)) == -1) {
+    /* make sure there is data to process */
+    pfd.fd = sfd;
+    pfd.events = POLLIN;
+
+    if (poll(&pfd, 1, 0) == 0)
+    {
+        BTIF_TRACE_EVENT0("accept poll timeout");
+        return -1;
+    }
+
+    //BTIF_TRACE_EVENT1("poll revents 0x%x", pfd.revents);
+
+    if ((fd = accept(sfd, (struct sockaddr *)&remote, &len)) == -1)
+    {
          BTIF_TRACE_ERROR1("sock accept failed (%s)", strerror(errno));
          return -1;
     }
@@ -339,9 +353,9 @@ static int uipc_check_fd_locked(tUIPC_CH_ID ch_id)
 
         uipc_main.ch[ch_id].fd = accept_server_socket(uipc_main.ch[ch_id].srvfd);
 
-        //BTIF_TRACE_EVENT1("NEW FD %d", uipc_main.ch[ch_id].fd);
+        BTIF_TRACE_EVENT1("NEW FD %d", uipc_main.ch[ch_id].fd);
 
-        if (uipc_main.ch[ch_id].cback)
+        if ((uipc_main.ch[ch_id].fd > 0) && uipc_main.ch[ch_id].cback)
         {
             /*  if we have a callback we should add this fd to the active set
                 and notify user with callback event */
@@ -687,12 +701,14 @@ UDRV_API void UIPC_Close(tUIPC_CH_ID ch_id)
 {
     BTIF_TRACE_DEBUG1("UIPC_Close : ch_id %d", ch_id);
 
-    UIPC_LOCK();
-    uipc_close_locked(ch_id);
-    UIPC_UNLOCK();
-
     /* special case handling uipc shutdown */
-    if (ch_id == UIPC_CH_ID_ALL)
+    if (ch_id != UIPC_CH_ID_ALL)
+    {
+        UIPC_LOCK();
+        uipc_close_locked(ch_id);
+        UIPC_UNLOCK();
+    }
+    else
     {
         BTIF_TRACE_DEBUG0("UIPC_Close : waiting for shutdown to complete");
         uipc_stop_main_server_thread();
@@ -823,8 +839,6 @@ UDRV_API UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UI
             UIPC_UNLOCK();
             return 0;
         }
-
-        UIPC_UNLOCK();
 
         n = recv(fd, p_buf, len, 0);
 
