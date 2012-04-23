@@ -58,7 +58,7 @@
 #include <utils/Log.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include "bt_vendor_brcm.h"
+#include "bt_hci_bdroid.h"
 #include "userial.h"
 #include "utils.h"
 
@@ -71,9 +71,7 @@
 #endif
 
 #if (HCIH4_DBG == TRUE)
-#define HCIH4DBG(param, ...) {if (dbg_mode & traces & (1 << TRACE_HCI)) \
-                                LOGD(param, ## __VA_ARGS__);\
-                             }
+#define HCIH4DBG(param, ...) {LOGD(param, ## __VA_ARGS__);}
 #else
 #define HCIH4DBG(param, ...) {}
 #endif
@@ -115,10 +113,10 @@ static const uint8_t hci_preamble_table[] =
 
 static const uint16_t msg_evt_table[] =
 {
-    MSG_VND_TO_STACK_HCI_ERR,       /* H4_TYPE_COMMAND */
-    MSG_VND_TO_STACK_HCI_ACL,       /* H4_TYPE_ACL_DATA */
-    MSG_VND_TO_STACK_HCI_SCO,       /* H4_TYPE_SCO_DATA */
-    MSG_VND_TO_STACK_HCI_EVT        /* H4_TYPE_EVENT */
+    MSG_HC_TO_STACK_HCI_ERR,       /* H4_TYPE_COMMAND */
+    MSG_HC_TO_STACK_HCI_ACL,       /* H4_TYPE_ACL_DATA */
+    MSG_HC_TO_STACK_HCI_SCO,       /* H4_TYPE_SCO_DATA */
+    MSG_HC_TO_STACK_HCI_EVT        /* H4_TYPE_EVENT */
 };
 
 #define ACL_RX_PKT_START        2
@@ -149,7 +147,7 @@ typedef enum {
 } tHCI_H4_RCV_STATE;
 
 /* Callback function for the returned event of internal issued command */
-typedef void (*tINT_CMD_CBACK)(VND_BT_HDR *p_buf);
+typedef void (*tINT_CMD_CBACK)(void *p_mem);
 
 typedef struct
 {
@@ -161,7 +159,7 @@ typedef struct
 /* Control block for HCISU_H4 */
 typedef struct
 {
-    VND_BT_HDR *p_rcv_msg;          /* Buffer to hold current rx HCI message */
+    HC_BT_HDR *p_rcv_msg;          /* Buffer to hold current rx HCI message */
     uint16_t rcv_len;               /* Size of current incoming message */
     uint8_t rcv_msg_type;           /* Current incoming message type */
     tHCI_H4_RCV_STATE rcv_state;    /* Receive state of current rx message */
@@ -183,14 +181,13 @@ typedef struct
 extern BUFFER_Q tx_q;
 
 void btsnoop_init(void);
-void btsnoop_open(void);
 void btsnoop_close(void);
 void btsnoop_cleanup (void);
-void btsnoop_capture(VND_BT_HDR *p_buf, uint8_t is_rcvd);
-uint8_t hci_h4_send_int_cmd(uint16_t opcode, VND_BT_HDR *p_buf, \
+void btsnoop_capture(HC_BT_HDR *p_buf, uint8_t is_rcvd);
+uint8_t hci_h4_send_int_cmd(uint16_t opcode, HC_BT_HDR *p_buf, \
                                   tINT_CMD_CBACK p_cback);
-void hw_lpm_assert_bt_wake(void);
-void hw_lpm_tx_done(uint8_t is_tx_done);
+void lpm_wake_assert(void);
+void lpm_tx_done(uint8_t is_tx_done);
 
 /******************************************************************************
 **  Variables
@@ -220,10 +217,11 @@ static tHCI_H4_CB       h4_cb;
 ** Returns          None
 **
 *******************************************************************************/
-void get_acl_data_length_cback(VND_BT_HDR *p_buf)
+void get_acl_data_length_cback(void *p_mem)
 {
     uint8_t     *p, status;
     uint16_t    opcode, len=0;
+    HC_BT_HDR   *p_buf = (HC_BT_HDR *) p_mem;
 
     p = (uint8_t *)(p_buf + 1) + 3;
     STREAM_TO_UINT16(opcode, p)
@@ -237,7 +235,7 @@ void get_acl_data_length_cback(VND_BT_HDR *p_buf)
             h4_cb.hc_acl_data_size = len;
 
         /* reuse the rx buffer for sending HCI_LE_READ_BUFFER_SIZE command */
-        p_buf->event = MSG_STACK_TO_VND_HCI_CMD;
+        p_buf->event = MSG_STACK_TO_HC_HCI_CMD;
         p_buf->offset = 0;
         p_buf->layer_specific = 0;
         p_buf->len = 3;
@@ -249,8 +247,8 @@ void get_acl_data_length_cback(VND_BT_HDR *p_buf)
         if ((status = hci_h4_send_int_cmd(HCI_LE_READ_BUFFER_SIZE, p_buf, \
                                            get_acl_data_length_cback)) == FALSE)
         {
-            bt_vendor_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
-            bt_vendor_cbacks->postload_cb(NULL, BT_VENDOR_POSTLOAD_SUCCESS);
+            bt_hc_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
+            bt_hc_cbacks->postload_cb(NULL, BT_HC_POSTLOAD_SUCCESS);
         }
     }
     else if (opcode == HCI_LE_READ_BUFFER_SIZE)
@@ -258,11 +256,11 @@ void get_acl_data_length_cback(VND_BT_HDR *p_buf)
         if (status == 0)
             h4_cb.hc_ble_acl_data_size = (len) ? len : h4_cb.hc_acl_data_size;
 
-        if (bt_vendor_cbacks)
+        if (bt_hc_cbacks)
         {
-            bt_vendor_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
+            bt_hc_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
             LOGE("vendor lib postload completed");
-            bt_vendor_cbacks->postload_cb(NULL, BT_VENDOR_POSTLOAD_SUCCESS);
+            bt_hc_cbacks->postload_cb(NULL, BT_HC_POSTLOAD_SUCCESS);
         }
     }
 }
@@ -342,14 +340,14 @@ uint8_t internal_event_intercept(void)
 **                  into one buffer.
 **
 *******************************************************************************/
-static VND_BT_HDR *acl_rx_frame_buffer_alloc (void)
+static HC_BT_HDR *acl_rx_frame_buffer_alloc (void)
 {
     uint8_t     *p;
     uint16_t    handle;
     uint16_t    hci_len;
     uint16_t    total_len;
     uint8_t     pkt_type;
-    VND_BT_HDR  *p_return_buf = NULL;
+    HC_BT_HDR  *p_return_buf = NULL;
     tHCI_H4_CB  *p_cb = &h4_cb;
 
 
@@ -365,7 +363,7 @@ static VND_BT_HDR *acl_rx_frame_buffer_alloc (void)
     if (p_cb->acl_rx_q.count)
     {
         uint16_t save_handle;
-        VND_BT_HDR *p_hdr = p_cb->acl_rx_q.p_first;
+        HC_BT_HDR *p_hdr = p_cb->acl_rx_q.p_first;
 
         while (p_hdr != NULL)
         {
@@ -395,20 +393,20 @@ static VND_BT_HDR *acl_rx_frame_buffer_alloc (void)
 
             utils_remove_from_queue(&(p_cb->acl_rx_q), p_return_buf);
 
-            if (bt_vendor_cbacks)
+            if (bt_hc_cbacks)
             {
-                bt_vendor_cbacks->dealloc((TRANSAC) p_return_buf, \
+                bt_hc_cbacks->dealloc((TRANSAC) p_return_buf, \
                                           (char *) (p_return_buf + 1));
             }
             p_return_buf = NULL;
         }
 
         /* Allocate a buffer for message */
-        if (bt_vendor_cbacks)
+        if (bt_hc_cbacks)
         {
             int len = total_len + HCI_ACL_PREAMBLE_SIZE + L2CAP_HEADER_SIZE + \
-                      BT_VND_HDR_SIZE;
-            p_return_buf = (VND_BT_HDR *) bt_vendor_cbacks->alloc(len);
+                      BT_HC_HDR_SIZE;
+            p_return_buf = (HC_BT_HDR *) bt_hc_cbacks->alloc(len);
         }
 
         if (p_return_buf)
@@ -416,7 +414,7 @@ static VND_BT_HDR *acl_rx_frame_buffer_alloc (void)
             /* Initialize buffer with preloaded data */
             p_return_buf->offset = 0;
             p_return_buf->layer_specific = 0;
-            p_return_buf->event = MSG_VND_TO_STACK_HCI_ACL;
+            p_return_buf->event = MSG_HC_TO_STACK_HCI_ACL;
             p_return_buf->len = p_cb->preload_count;
             memcpy((uint8_t *)(p_return_buf + 1), p_cb->preload_buffer, \
                    p_cb->preload_count);
@@ -465,7 +463,7 @@ static uint8_t acl_rx_frame_end_chk (void)
 {
     uint8_t     *p;
     uint16_t    handle, hci_len, l2cap_len;
-    VND_BT_HDR  *p_buf;
+    HC_BT_HDR  *p_buf;
     tHCI_H4_CB  *p_cb = &h4_cb;
     uint8_t     frame_end=TRUE; 
 
@@ -578,7 +576,6 @@ void hci_h4_init(void)
     h4_cb.hc_ble_acl_data_size = 27;
 
     btsnoop_init();
-    btsnoop_open();
 }
 
 /*******************************************************************************
@@ -608,7 +605,7 @@ void hci_h4_cleanup(void)
 ** Returns         None
 **
 *******************************************************************************/
-void hci_h4_send_msg(VND_BT_HDR *p_msg)
+void hci_h4_send_msg(HC_BT_HDR *p_msg)
 {
     uint8_t type = 0;
     uint16_t handle;
@@ -620,13 +617,13 @@ void hci_h4_send_msg(VND_BT_HDR *p_msg)
     uint16_t bytes_sent;
 
     /* wake up BT device if its in sleep mode */
-    hw_lpm_assert_bt_wake();
+    lpm_wake_assert();
 
-    if (event == MSG_STACK_TO_VND_HCI_ACL)
+    if (event == MSG_STACK_TO_HC_HCI_ACL)
         type = H4_TYPE_ACL_DATA;
-    else if (event == MSG_STACK_TO_VND_HCI_SCO)
+    else if (event == MSG_STACK_TO_HC_HCI_SCO)
         type = H4_TYPE_SCO_DATA;
-    else if (event == MSG_STACK_TO_VND_HCI_CMD)
+    else if (event == MSG_STACK_TO_HC_HCI_CMD)
         type = H4_TYPE_COMMAND;
 
     if (sub_event == LOCAL_BR_EDR_CONTROLLER_ID)
@@ -641,7 +638,7 @@ void hci_h4_send_msg(VND_BT_HDR *p_msg)
     }
 
     /* Check if sending ACL data that needs fragmenting */
-    if ((event == MSG_STACK_TO_VND_HCI_ACL) && (p_msg->len > acl_pkt_size))
+    if ((event == MSG_STACK_TO_HC_HCI_ACL) && (p_msg->len > acl_pkt_size))
     {
         /* Get the handle from the packet */
         STREAM_TO_UINT16 (handle, p);
@@ -689,13 +686,13 @@ void hci_h4_send_msg(VND_BT_HDR *p_msg)
             {
                 if (--p_msg->layer_specific == 0)
                 {
-                    p_msg->event = MSG_VND_TO_STACK_L2C_SEG_XMIT;
+                    p_msg->event = MSG_HC_TO_STACK_L2C_SEG_XMIT;
 
-                    if (bt_vendor_cbacks)
+                    if (bt_hc_cbacks)
                     {
-                        bt_vendor_cbacks->tx_result((TRANSAC) p_msg, \
+                        bt_hc_cbacks->tx_result((TRANSAC) p_msg, \
                                                     (char *) (p_msg + 1), \
-                                                    BT_VENDOR_TX_FRAGMENT);
+                                                    BT_HC_TX_FRAGMENT);
                     }
 
                     return;
@@ -718,7 +715,7 @@ void hci_h4_send_msg(VND_BT_HDR *p_msg)
 
     p_msg->layer_specific = lay_spec;
 
-    if (event == MSG_STACK_TO_VND_HCI_CMD)
+    if (event == MSG_STACK_TO_HC_HCI_CMD)
     {
         num_hci_cmd_pkts--;
 
@@ -733,23 +730,23 @@ void hci_h4_send_msg(VND_BT_HDR *p_msg)
     /* generate snoop trace message */
     btsnoop_capture(p_msg, FALSE);
 
-    if (bt_vendor_cbacks)
+    if (bt_hc_cbacks)
     {
-        if ((event == MSG_STACK_TO_VND_HCI_CMD) && \
+        if ((event == MSG_STACK_TO_HC_HCI_CMD) && \
             (h4_cb.int_cmd_rsp_pending > 0) && \
             (p_msg->layer_specific == lay_spec))
         {
             /* dealloc buffer of internal command */
-            bt_vendor_cbacks->dealloc((TRANSAC) p_msg, (char *) (p_msg + 1));
+            bt_hc_cbacks->dealloc((TRANSAC) p_msg, (char *) (p_msg + 1));
         }
         else
         {
-            bt_vendor_cbacks->tx_result((TRANSAC) p_msg, (char *) (p_msg + 1), \
-                                        BT_VENDOR_TX_SUCCESS);
+            bt_hc_cbacks->tx_result((TRANSAC) p_msg, (char *) (p_msg + 1), \
+                                        BT_HC_TX_SUCCESS);
         }
     }
 
-    hw_lpm_tx_done(TRUE);
+    lpm_tx_done(TRUE);
 
     return;
 }
@@ -851,11 +848,11 @@ uint16_t hci_h4_receive_msg(void)
                     p_cb->rcv_len = msg_len;
 
                     /* Allocate a buffer for message */
-                    if (bt_vendor_cbacks)
+                    if (bt_hc_cbacks)
                     {
-                        len = msg_len + p_cb->preload_count + BT_VND_HDR_SIZE;
+                        len = msg_len + p_cb->preload_count + BT_HC_HDR_SIZE;
                         p_cb->p_rcv_msg = \
-                            (VND_BT_HDR *) bt_vendor_cbacks->alloc(len);
+                            (HC_BT_HDR *) bt_hc_cbacks->alloc(len);
                     }
 
                     if (p_cb->p_rcv_msg)
@@ -971,17 +968,17 @@ uint16_t hci_h4_receive_msg(void)
 
             /* generate snoop trace message */
             /* ACL packet tracing had done in acl_rx_frame_end_chk() */
-            if (p_cb->p_rcv_msg->event != MSG_VND_TO_STACK_HCI_ACL) 
+            if (p_cb->p_rcv_msg->event != MSG_HC_TO_STACK_HCI_ACL) 
                 btsnoop_capture(p_cb->p_rcv_msg, TRUE);
 
-            if (p_cb->p_rcv_msg->event == MSG_VND_TO_STACK_HCI_EVT)
+            if (p_cb->p_rcv_msg->event == MSG_HC_TO_STACK_HCI_EVT)
                 intercepted = internal_event_intercept();
 
-            if ((bt_vendor_cbacks) && (intercepted == FALSE)) 
+            if ((bt_hc_cbacks) && (intercepted == FALSE)) 
             {
-                bt_vendor_cbacks->data_ind((TRANSAC) p_cb->p_rcv_msg, \
+                bt_hc_cbacks->data_ind((TRANSAC) p_cb->p_rcv_msg, \
                                        (char *) (p_cb->p_rcv_msg + 1), \
-                                       p_cb->p_rcv_msg->len + BT_VND_HDR_SIZE);
+                                       p_cb->p_rcv_msg->len + BT_HC_HDR_SIZE);
             }
             p_cb->p_rcv_msg = NULL;
         }
@@ -1001,7 +998,7 @@ uint16_t hci_h4_receive_msg(void)
 ** Returns         TRUE/FALSE
 **
 *******************************************************************************/
-uint8_t hci_h4_send_int_cmd(uint16_t opcode, VND_BT_HDR *p_buf, \
+uint8_t hci_h4_send_int_cmd(uint16_t opcode, HC_BT_HDR *p_buf, \
                                   tINT_CMD_CBACK p_cback)
 {
     if (h4_cb.int_cmd_rsp_pending > INT_CMD_PKT_MAX_COUNT)
@@ -1021,7 +1018,7 @@ uint8_t hci_h4_send_int_cmd(uint16_t opcode, VND_BT_HDR *p_buf, \
     p_buf->layer_specific = opcode;
 
     utils_enqueue(&tx_q, (void *) p_buf);
-    btvnd_signal_event(VND_EVENT_TX);
+    bthc_signal_event(HC_EVENT_TX);
 
     return TRUE;
 }
@@ -1039,18 +1036,18 @@ uint8_t hci_h4_send_int_cmd(uint16_t opcode, VND_BT_HDR *p_buf, \
 *******************************************************************************/
 void hci_h4_get_acl_data_length(void)
 {
-    VND_BT_HDR  *p_buf = NULL;
+    HC_BT_HDR  *p_buf = NULL;
     uint8_t     *p, ret;
 
-    if (bt_vendor_cbacks)
+    if (bt_hc_cbacks)
     {
-        p_buf = (VND_BT_HDR *) bt_vendor_cbacks->alloc(BT_VND_HDR_SIZE + \
+        p_buf = (HC_BT_HDR *) bt_hc_cbacks->alloc(BT_HC_HDR_SIZE + \
                                                        HCI_CMD_PREAMBLE_SIZE);
     }
 
     if (p_buf)
     {
-        p_buf->event = MSG_STACK_TO_VND_HCI_CMD;
+        p_buf->event = MSG_STACK_TO_HC_HCI_CMD;
         p_buf->offset = 0;
         p_buf->layer_specific = 0;
         p_buf->len = HCI_CMD_PREAMBLE_SIZE;
@@ -1062,16 +1059,16 @@ void hci_h4_get_acl_data_length(void)
         if ((ret = hci_h4_send_int_cmd(HCI_READ_BUFFER_SIZE, p_buf, \
                                        get_acl_data_length_cback)) == FALSE)
         {
-            bt_vendor_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
+            bt_hc_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
         }
         else
             return;
     }
 
-    if (bt_vendor_cbacks)
+    if (bt_hc_cbacks)
     {
         LOGE("vendor lib postload aborted");
-        bt_vendor_cbacks->postload_cb(NULL, BT_VENDOR_POSTLOAD_FAIL);
+        bt_hc_cbacks->postload_cb(NULL, BT_HC_POSTLOAD_FAIL);
     }
 }
 

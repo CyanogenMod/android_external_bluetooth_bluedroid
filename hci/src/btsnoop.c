@@ -82,7 +82,7 @@
 #define LOG_TAG "BTSNOOP-DISP"
 #include <cutils/log.h>
 
-#include "bt_vendor_brcm.h"
+#include "bt_hci_bdroid.h"
 #include "utils.h"
 
 #ifndef BTSNOOP_DBG
@@ -90,29 +90,13 @@
 #endif
 
 #if (BTSNOOP_DBG == TRUE)
-#define SNOOPDBG(param, ...) {if (dbg_mode & traces & (1 << TRACE_BTSNOOP)) \
-                                LOGD(param, ## __VA_ARGS__);\
-                             }
+#define SNOOPDBG(param, ...) {LOGD(param, ## __VA_ARGS__);}
 #else
 #define SNOOPDBG(param, ...) {}
 #endif
 
 /* file descriptor of the BT snoop file (by default, -1 means disabled) */
 int hci_btsnoop_fd = -1;
-
-#if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
-
-/* by default, btsnoop log is off */
-uint8_t btsnoop_log_enabled = 0;
-
-/* if not specified in .txt file then use this as default  */
-#ifndef BTSNOOP_FILENAME
-#define BTSNOOP_FILENAME  "/data/misc/bluedroid/btsnoop_hci.log"
-#endif  /* BTSNOOP_FILENAME      */
-
-static char btsnoop_logfile[256] = BTSNOOP_FILENAME;
-
-#endif  /* BTSNOOPDISP_INCLUDED  */
 
 /* Macro to perform a multiplication of 2 unsigned 32bit values and store the result
  * in an unsigned 64 bit value (as two 32 bit variables):
@@ -244,7 +228,7 @@ int btsnoop_is_open(void)
  **
  ** Returns          None
 *******************************************************************************/
-static int btsnoop_log_open(void)
+static int btsnoop_log_open(char *btsnoop_logfile)
 {
 #if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
     hci_btsnoop_fd = -1;
@@ -252,7 +236,7 @@ static int btsnoop_log_open(void)
     SNOOPDBG("btsnoop_log_open: snoop log file = %s\n", btsnoop_logfile);
 
     /* write the BT snoop header */
-    if (strlen(btsnoop_logfile) != 0)
+    if ((btsnoop_logfile != NULL) && (strlen(btsnoop_logfile) != 0))
     {
         hci_btsnoop_fd = open(btsnoop_logfile, \
                               O_WRONLY|O_CREAT|O_TRUNC, \
@@ -625,25 +609,6 @@ void btsnoop_stop_listener(void)
     ext_parser_detached();
 }
 
-int btsnoop_set_logfile(char *p_conf_name, char *p_conf_value, int param)
-{
-#if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
-    strcpy(btsnoop_logfile, p_conf_value);
-#endif
-    return 0;
-}
-
-int btsnoop_enable_logging(char *p_conf_name, char *p_conf_value, int param)
-{
-#if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
-    if (strcmp(p_conf_value, "true") == 0)
-        btsnoop_log_enabled = 1;
-    else
-        btsnoop_log_enabled = 0;
-#endif // BTSNOOPDISP_INCLUDED
-    return 0;
-}
-
 void btsnoop_init(void)
 {
     LOGD("btsnoop_init");
@@ -654,14 +619,11 @@ void btsnoop_init(void)
       perror("pthread_create");
 }
 
-void btsnoop_open(void)
+void btsnoop_open(char *p_path)
 {
 #if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
-    if (btsnoop_log_enabled)
-    {
-        LOGD("btsnoop_open");
-        btsnoop_log_open();
-    }
+    LOGD("btsnoop_open");
+    btsnoop_log_open(p_path);
 #endif // BTSNOOPDISP_INCLUDED
 }
 
@@ -687,7 +649,7 @@ void btsnoop_cleanup (void)
 #define HCIT_TYPE_SCO_DATA  3
 #define HCIT_TYPE_EVENT     4
 
-void btsnoop_capture(VND_BT_HDR *p_buf, uint8_t is_rcvd)
+void btsnoop_capture(HC_BT_HDR *p_buf, uint8_t is_rcvd)
 {
     uint8_t *p = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
@@ -703,18 +665,18 @@ void btsnoop_capture(VND_BT_HDR *p_buf, uint8_t is_rcvd)
 
         switch (p_buf->event & MSG_EVT_MASK)
         {
-              case MSG_VND_TO_STACK_HCI_EVT:
+              case MSG_HC_TO_STACK_HCI_EVT:
                   *p = HCIT_TYPE_EVENT;
                   break;
-              case MSG_VND_TO_STACK_HCI_ACL:
-              case MSG_STACK_TO_VND_HCI_ACL:
+              case MSG_HC_TO_STACK_HCI_ACL:
+              case MSG_STACK_TO_HC_HCI_ACL:
                   *p = HCIT_TYPE_ACL_DATA;
                   break;
-              case MSG_VND_TO_STACK_HCI_SCO:
-              case MSG_STACK_TO_VND_HCI_SCO:
+              case MSG_HC_TO_STACK_HCI_SCO:
+              case MSG_STACK_TO_HC_HCI_SCO:
                   *p = HCIT_TYPE_SCO_DATA;
                   break;
-              case MSG_STACK_TO_VND_HCI_CMD:
+              case MSG_STACK_TO_HC_HCI_CMD:
                   *p = HCIT_TYPE_COMMAND;
                   break;
         }
@@ -730,21 +692,21 @@ void btsnoop_capture(VND_BT_HDR *p_buf, uint8_t is_rcvd)
 
     switch (p_buf->event & MSG_EVT_MASK)
     {
-        case MSG_VND_TO_STACK_HCI_EVT:
+        case MSG_HC_TO_STACK_HCI_EVT:
             SNOOPDBG("TYPE : EVT");
             btsnoop_hci_evt(p);
             break;
-        case MSG_VND_TO_STACK_HCI_ACL:
-        case MSG_STACK_TO_VND_HCI_ACL:
+        case MSG_HC_TO_STACK_HCI_ACL:
+        case MSG_STACK_TO_HC_HCI_ACL:
             SNOOPDBG("TYPE : ACL");
             btsnoop_acl_data(p, is_rcvd);
             break;
-        case MSG_VND_TO_STACK_HCI_SCO:
-        case MSG_STACK_TO_VND_HCI_SCO:
+        case MSG_HC_TO_STACK_HCI_SCO:
+        case MSG_STACK_TO_HC_HCI_SCO:
             SNOOPDBG("TYPE : SCO");
             btsnoop_sco_data(p, is_rcvd);
             break;
-        case MSG_STACK_TO_VND_HCI_CMD:
+        case MSG_STACK_TO_HC_HCI_CMD:
             SNOOPDBG("TYPE : CMD");
             btsnoop_hci_cmd(p);
             break;

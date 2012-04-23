@@ -3,44 +3,44 @@
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed 
- *  pursuant to the terms and conditions of a separate, written license 
- *  agreement executed between you and Broadcom (an "Authorized License").  
- *  Except as set forth in an Authorized License, Broadcom grants no license 
- *  (express or implied), right to use, or waiver of any kind with respect to 
- *  the Software, and Broadcom expressly reserves all rights in and to the 
- *  Software and all intellectual property rights therein.  
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS 
+ *  licensors, and may only be used, duplicated, modified or distributed
+ *  pursuant to the terms and conditions of a separate, written license
+ *  agreement executed between you and Broadcom (an "Authorized License").
+ *  Except as set forth in an Authorized License, Broadcom grants no license
+ *  (express or implied), right to use, or waiver of any kind with respect to
+ *  the Software, and Broadcom expressly reserves all rights in and to the
+ *  Software and all intellectual property rights therein.
+ *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
  *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
- *  ALL USE OF THE SOFTWARE.  
+ *  ALL USE OF THE SOFTWARE.
  *
  *  Except as expressly set forth in the Authorized License,
  *
- *  1.     This program, including its structure, sequence and organization, 
- *         constitutes the valuable trade secrets of Broadcom, and you shall 
- *         use all reasonable efforts to protect the confidentiality thereof, 
- *         and to use this information only in connection with your use of 
+ *  1.     This program, including its structure, sequence and organization,
+ *         constitutes the valuable trade secrets of Broadcom, and you shall
+ *         use all reasonable efforts to protect the confidentiality thereof,
+ *         and to use this information only in connection with your use of
  *         Broadcom integrated circuit products.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED 
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, 
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, 
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY 
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, 
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES, 
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR 
+ *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+ *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
  *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING OUT
  *         OF USE OR PERFORMANCE OF THE SOFTWARE.
  *
  *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM OR
- *         ITS LICENSORS BE LIABLE FOR 
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY 
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO 
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM 
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR 
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE 
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE 
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF 
+ *         ITS LICENSORS BE LIABLE FOR
+ *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
+ *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
+ *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+ *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
+ *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
+ *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
+ *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
  ******************************************************************************/
@@ -50,17 +50,18 @@
  *  Filename:      bte_main.c
  *
  *  Description:   Contains BTE core stack initialization and shutdown code
- * 
+ *
  ******************************************************************************/
 #include <fcntl.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "gki.h"
 #include "bd.h"
 #include "btu.h"
 #include "bte.h"
 #include "bta_api.h"
-#include "bt_vendor_lib.h"
+#include "bt_hci_lib.h"
 
 /*******************************************************************************
 **  Constants & Macros
@@ -71,15 +72,27 @@
 #define BTE_STACK_CONF_FILE "/etc/bluetooth/bt_stack.conf"
 #endif
 
+/* if not specified in .txt file then use this as default  */
+#ifndef HCI_LOGGING_FILENAME
+#define HCI_LOGGING_FILENAME  "/data/misc/bluedroid/btsnoop_hci.log"
+#endif
+
 /*******************************************************************************
 **  Local type definitions
 *******************************************************************************/
 
+/******************************************************************************
+**  Variables
+******************************************************************************/
+BOOLEAN hci_logging_enabled = FALSE;    /* by default, turn hci log off */
+char hci_logfile[256] = HCI_LOGGING_FILENAME;
+
+
 /*******************************************************************************
 **  Static variables
 *******************************************************************************/
-static bt_vendor_interface_t *bt_vendor_if=NULL;
-static const bt_vendor_callbacks_t vnd_callbacks;
+static bt_hc_interface_t *bt_hc_if=NULL;
+static const bt_hc_callbacks_t hc_callbacks;
 static BOOLEAN lpm_enabled = FALSE;
 
 /*******************************************************************************
@@ -95,12 +108,7 @@ BTU_API extern void BTE_Init (void);
 BT_API extern void BTE_LoadStack(void);
 BT_API void BTE_UnloadStack(void);
 extern void scru_flip_bda (BD_ADDR dst, const BD_ADDR src);
-extern void btsnoop_init(void);
-extern void btsnoop_open(void);
-extern void btsnoop_close(void);
-extern void btsnoop_cleanup (void);
 extern void bte_load_conf(const char *p_path);
-
 
 
 /*******************************************************************************
@@ -125,10 +133,10 @@ UINT32 bte_btu_stack[(BTE_BTU_STACK_SIZE + 3) / 4];
 ******************************************************************************/
 void bte_main_in_hw_init(void)
 {
-    if ( (bt_vendor_if = (bt_vendor_interface_t *) bt_vendor_get_interface()) \
+    if ( (bt_hc_if = (bt_hc_interface_t *) bt_hc_get_interface()) \
          == NULL)
     {
-        APPL_TRACE_ERROR0("!!! Failed to get BtVendorInterface !!!");
+        APPL_TRACE_ERROR0("!!! Failed to get BtHostControllerInterface !!!");
     }
 }
 
@@ -154,7 +162,6 @@ void bte_main_boot_entry(void)
     /* Initialize trace feature */
     BTTRC_TraceInit(MAX_TRACE_RAM_SIZE, &BTE_TraceLogBuf[0], BTTRC_METHOD_RAM);
 #endif
-
 }
 
 /******************************************************************************
@@ -168,12 +175,6 @@ void bte_main_boot_entry(void)
 ******************************************************************************/
 void bte_main_shutdown()
 {
-#if 0
-    if (bt_vendor_if)
-        bt_vendor_if->cleanup();
-#endif
-
-    //bt_vendor_if = NULL;
     GKI_shutdown();
 }
 
@@ -196,17 +197,22 @@ void bte_main_enable(uint8_t *local_addr)
 
     lpm_enabled = FALSE;
 
-    if (bt_vendor_if)
+    if (bt_hc_if)
     {
-        int result = bt_vendor_if->init(&vnd_callbacks, local_addr);
-        APPL_TRACE_EVENT1("libbt-vendor init returns %d", result);
+        int result = bt_hc_if->init(&hc_callbacks, local_addr);
+        APPL_TRACE_EVENT1("libbt-hci init returns %d", result);
+
+        assert(result == BT_HC_STATUS_SUCCESS);
+
+        if (hci_logging_enabled == TRUE)
+            bt_hc_if->logging(BT_HC_LOGGING_ON, hci_logfile);
 
         /* toggle chip power to ensure we will reset chip in case
            a previous stack shutdown wasn't completed gracefully */
-        bt_vendor_if->set_power(BT_VENDOR_CHIP_PWR_OFF);
-        bt_vendor_if->set_power(BT_VENDOR_CHIP_PWR_ON);
+        bt_hc_if->set_power(BT_HC_CHIP_PWR_OFF);
+        bt_hc_if->set_power(BT_HC_CHIP_PWR_ON);
 
-        bt_vendor_if->preload(NULL);
+        bt_hc_if->preload(NULL);
     }
 
     GKI_create_task((TASKPTR)btu_task, BTU_TASK, BTE_BTU_TASK_STR,
@@ -234,12 +240,11 @@ void bte_main_disable(void)
 
     GKI_freeze();
 
-    if (bt_vendor_if)
+    if (bt_hc_if)
     {
-        bt_vendor_if->cleanup();
-        bt_vendor_if->set_power(BT_VENDOR_CHIP_PWR_OFF);
+        bt_hc_if->cleanup();
+        bt_hc_if->set_power(BT_HC_CHIP_PWR_OFF);
     }
-
 }
 
 /******************************************************************************
@@ -253,8 +258,8 @@ void bte_main_disable(void)
 ******************************************************************************/
 void bte_main_postload_cfg(void)
 {
-    if (bt_vendor_if)
-        bt_vendor_if->postload(NULL);
+    if (bt_hc_if)
+        bt_hc_if->postload(NULL);
 }
 
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
@@ -271,12 +276,12 @@ void bte_main_enable_lpm(BOOLEAN enable)
 {
     int result = -1;
 
-    if (bt_vendor_if)
-        result = bt_vendor_if->lpm( \
-        (enable == TRUE) ? BT_VENDOR_LPM_ENABLE : BT_VENDOR_LPM_DISABLE \
+    if (bt_hc_if)
+        result = bt_hc_if->lpm( \
+        (enable == TRUE) ? BT_HC_LPM_ENABLE : BT_HC_LPM_DISABLE \
         );
 
-    APPL_TRACE_EVENT2("vendor lib lpm enable=%d return %d", enable, result);
+    APPL_TRACE_EVENT2("HC lib lpm enable=%d return %d", enable, result);
 }
 
 /******************************************************************************
@@ -292,10 +297,10 @@ void bte_main_lpm_allow_bt_device_sleep()
 {
     int result = -1;
 
-    if ((bt_vendor_if) && (lpm_enabled == TRUE))
-        result = bt_vendor_if->lpm(BT_VENDOR_LPM_WAKE_DEASSERT);
+    if ((bt_hc_if) && (lpm_enabled == TRUE))
+        result = bt_hc_if->lpm(BT_HC_LPM_WAKE_DEASSERT);
 
-    APPL_TRACE_DEBUG1("vendor lib lpm deassertion return %d", result);
+    APPL_TRACE_DEBUG1("HC lib lpm deassertion return %d", result);
 }
 
 /******************************************************************************
@@ -311,10 +316,10 @@ void bte_main_lpm_wake_bt_device()
 {
     int result = -1;
 
-    if ((bt_vendor_if) && (lpm_enabled == TRUE))
-        result = bt_vendor_if->lpm(BT_VENDOR_LPM_WAKE_ASSERT);
+    if ((bt_hc_if) && (lpm_enabled == TRUE))
+        result = bt_hc_if->lpm(BT_HC_LPM_WAKE_ASSERT);
 
-    APPL_TRACE_DEBUG1("vendor lib lpm assertion return %d", result);
+    APPL_TRACE_DEBUG1("HC lib lpm assertion return %d", result);
 }
 #endif  // HCILP_INCLUDED
 
@@ -340,8 +345,8 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
     if((sub_event == LOCAL_BR_EDR_CONTROLLER_ID) || \
        (sub_event == LOCAL_BLE_CONTROLLER_ID))
     {
-        if (bt_vendor_if)
-            bt_vendor_if->transmit_buf((TRANSAC)p_msg, \
+        if (bt_hc_if)
+            bt_hc_if->transmit_buf((TRANSAC)p_msg, \
                                        (char *) (p_msg + 1), \
                                         p_msg->len);
         else
@@ -371,7 +376,7 @@ void bte_main_post_reset_init()
 
 /*****************************************************************************
 **
-**   libbt-vendor Callback Functions
+**   libbt-hci Callback Functions
 **
 *****************************************************************************/
 
@@ -379,76 +384,73 @@ void bte_main_post_reset_init()
 **
 ** Function         preload_cb
 **
-** Description      VENDOR LIB CALLBACK API - This function is called
-**                  when vendor lib completed stack preload process
+** Description      HOST/CONTROLLER LIB CALLBACK API - This function is called
+**                  when the libbt-hci completed stack preload process
 **
 ** Returns          None
 **
 ******************************************************************************/
-static void preload_cb(TRANSAC transac, bt_vendor_preload_result_t result)
+static void preload_cb(TRANSAC transac, bt_hc_preload_result_t result)
 {
-    APPL_TRACE_EVENT1("vnd preload_cb %d [0:SUCCESS 1:FAIL]", result);
+    APPL_TRACE_EVENT1("HC preload_cb %d [0:SUCCESS 1:FAIL]", result);
 
-//    if (result == BT_VENDOR_PRELOAD_SUCCESS)
-    /* keep going even if firmware patch file is missing */
-    {
-        /* notify BTU task that libbt-vendor is ready */
-        GKI_send_event(BTU_TASK, TASK_MBOX_0_EVT_MASK);
-    }
+    /* notify BTU task that libbt-hci is ready */
+    /* even if PRELOAD process failed */
+    GKI_send_event(BTU_TASK, TASK_MBOX_0_EVT_MASK);
 }
 
 /******************************************************************************
 **
 ** Function         postload_cb
 **
-** Description      VENDOR LIB CALLBACK API - This function is called
-**                  when vendor lib completed stack postload process
+** Description      HOST/CONTROLLER LIB CALLBACK API - This function is called
+**                  when the libbt-hci lib completed stack postload process
 **
 ** Returns          None
 **
 ******************************************************************************/
-static void postload_cb(TRANSAC transac, bt_vendor_postload_result_t result)
+static void postload_cb(TRANSAC transac, bt_hc_postload_result_t result)
 {
-    APPL_TRACE_EVENT1("vnd postload_cb %d", result);
+    APPL_TRACE_EVENT1("HC postload_cb %d", result);
 }
 
 /******************************************************************************
 **
 ** Function         lpm_cb
 **
-** Description      VENDOR LIB CALLBACK API - This function is called
-**                  back from vendor lib to indicate the current LPM state
+** Description      HOST/CONTROLLER LIB CALLBACK API - This function is called
+**                  back from the libbt-hci to indicate the current LPM state
 **
 ** Returns          None
 **
 ******************************************************************************/
-static void lpm_cb(bt_vendor_lpm_request_result_t result)
+static void lpm_cb(bt_hc_lpm_request_result_t result)
 {
-    APPL_TRACE_EVENT1("vnd lpm_result_cb %d", result);
-    lpm_enabled = (result == BT_VENDOR_LPM_ENABLED) ? TRUE : FALSE;
+    APPL_TRACE_EVENT1("HC lpm_result_cb %d", result);
+    lpm_enabled = (result == BT_HC_LPM_ENABLED) ? TRUE : FALSE;
 }
 
 /******************************************************************************
 **
 ** Function         hostwake_ind
 **
-** Description      VENDOR LIB CALLOUT API - This function is called
-**                  from vendor lib to indicate the HostWake event
+** Description      HOST/CONTROLLER LIB CALLOUT API - This function is called
+**                  from the libbt-hci to indicate the HostWake event
 **
 ** Returns          None
 **
 ******************************************************************************/
-static void hostwake_ind(bt_vendor_low_power_event_t event)
+static void hostwake_ind(bt_hc_low_power_event_t event)
 {
-    APPL_TRACE_EVENT1("vnd hostwake_ind %d", event);
+    APPL_TRACE_EVENT1("HC hostwake_ind %d", event);
 }
 
 /******************************************************************************
 **
 ** Function         alloc
 **
-** Description      VENDOR LIB CALLOUT API - This function is called
-**                  from vendor lib to request for data buffer allocation
+** Description      HOST/CONTROLLER LIB CALLOUT API - This function is called
+**                  from the libbt-hci to request for data buffer allocation
 **
 ** Returns          NULL / pointer to allocated buffer
 **
@@ -458,7 +460,7 @@ static char *alloc(int size)
     BT_HDR *p_hdr = NULL;
 
     /*
-    APPL_TRACE_DEBUG1("vnd alloc size=%d", size);
+    APPL_TRACE_DEBUG1("HC alloc size=%d", size);
     */
 
     p_hdr = (BT_HDR *) GKI_getbuf ((UINT16) size);
@@ -475,31 +477,42 @@ static char *alloc(int size)
 **
 ** Function         dealloc
 **
-** Description      VENDOR LIB CALLOUT API - This function is called
-**                  from vendor lib to release the data buffer allocated
+** Description      HOST/CONTROLLER LIB CALLOUT API - This function is called
+**                  from the libbt-hci to release the data buffer allocated
 **                  through the alloc call earlier
 **
-** Returns          bt_vnd_status_t
+**                  Bluedroid libbt-hci library uses 'transac' parameter to
+**                  pass data-path buffer/packet across bt_hci_lib interface
+**                  boundary. The 'p_buf' is not intended to be used here
+**                  but might point to data portion of data-path buffer.
+**
+** Returns          bt_hc_status_t
 **
 ******************************************************************************/
 static int dealloc(TRANSAC transac, char *p_buf)
 {
     GKI_freebuf(transac);
-    return BT_VENDOR_STATUS_SUCCESS;
+    return BT_HC_STATUS_SUCCESS;
 }
 
 /******************************************************************************
 **
 ** Function         data_ind
 **
-** Description      VENDOR LIB CALLOUT API - This function is called
-**                  from vendor lib to pass in the received HCI packets
+** Description      HOST/CONTROLLER LIB CALLOUT API - This function is called
+**                  from the libbt-hci to pass in the received HCI packets
 **
 **                  The core stack is responsible for releasing the data buffer
-**                  passed in from vendor lib once the core stack has done with
-**                  it.
+**                  passed in from the libbt-hci once the core stack has done
+**                  with it.
 **
-** Returns          bt_vnd_status_t
+**                  Bluedroid libbt-hci library uses 'transac' parameter to
+**                  pass data-path buffer/packet across bt_hci_lib interface
+**                  boundary. The 'p_buf' and 'len' parameters are not intended
+**                  to be used here but might point to data portion in data-
+**                  path buffer and length of valid data respectively.
+**
+** Returns          bt_hc_status_t
 **
 ******************************************************************************/
 static int data_ind(TRANSAC transac, char *p_buf, int len)
@@ -507,37 +520,42 @@ static int data_ind(TRANSAC transac, char *p_buf, int len)
     BT_HDR *p_msg = (BT_HDR *) transac;
 
     /*
-    APPL_TRACE_DEBUG2("vnd data_ind event=0x%04X (len=%d)", p_msg->event, len);
+    APPL_TRACE_DEBUG2("HC data_ind event=0x%04X (len=%d)", p_msg->event, len);
     */
 
     GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, transac);
-    return BT_VENDOR_STATUS_SUCCESS;
+    return BT_HC_STATUS_SUCCESS;
 }
 
 /******************************************************************************
 **
 ** Function         tx_result
 **
-** Description      VENDOR LIB CALLBACK API - This function is called
-**                  from vendor lib once it has processed/sent the prior data
+** Description      HOST/CONTROLLER LIB CALLBACK API - This function is called
+**                  from the libbt-hci once it has processed/sent the prior data
 **                  buffer which core stack passed to it through transmit_buf
 **                  call earlier.
 **
 **                  The core stack is responsible for releasing the data buffer
 **                  if it has been completedly processed.
 **
-** Returns          bt_vnd_status_t
+**                  Bluedroid libbt-hci library uses 'transac' parameter to
+**                  pass data-path buffer/packet across bt_hci_lib interface
+**                  boundary. The 'p_buf' is not intended to be used here
+**                  but might point to data portion in data-path buffer.
+**
+** Returns          bt_hc_status_t
 **
 ******************************************************************************/
 static int tx_result(TRANSAC transac, char *p_buf, \
-                      bt_vendor_transmit_result_t result)
+                      bt_hc_transmit_result_t result)
 {
     /*
-    APPL_TRACE_DEBUG2("vnd tx_result %d (event=%04X)", result, \
+    APPL_TRACE_DEBUG2("HC tx_result %d (event=%04X)", result, \
                       ((BT_HDR *)transac)->event);
     */
 
-    if (result == BT_VENDOR_TX_FRAGMENT)
+    if (result == BT_HC_TX_FRAGMENT)
     {
         GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, transac);
     }
@@ -546,14 +564,14 @@ static int tx_result(TRANSAC transac, char *p_buf, \
         GKI_freebuf(transac);
     }
 
-    return BT_VENDOR_STATUS_SUCCESS;
+    return BT_HC_STATUS_SUCCESS;
 }
 
 /*****************************************************************************
-**   The libbt-vendor Callback Functions Table
+**   The libbt-hci Callback Functions Table
 *****************************************************************************/
-static const bt_vendor_callbacks_t vnd_callbacks = {
-    sizeof(bt_vendor_callbacks_t),
+static const bt_hc_callbacks_t hc_callbacks = {
+    sizeof(bt_hc_callbacks_t),
     preload_cb,
     postload_cb,
     lpm_cb,

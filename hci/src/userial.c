@@ -57,14 +57,14 @@
 
 #include <utils/Log.h>
 #include <pthread.h>
-#include <termios.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <stdio.h>
 #include <sys/socket.h>
-#include "bt_vendor_brcm.h"
+#include "bt_hci_bdroid.h"
 #include "userial.h"
 #include "utils.h"
+#include "bt_vendor_lib.h"
 
 /******************************************************************************
 **  Constants & Macros
@@ -75,21 +75,25 @@
 #endif
 
 #if (USERIAL_DBG == TRUE)
-#define USERIALDBG(param, ...) {if (dbg_mode & traces & (1 << TRACE_USERIAL)) \
-                                LOGD(param, ## __VA_ARGS__);\
-                               }
+#define USERIALDBG(param, ...) {LOGD(param, ## __VA_ARGS__);}
 #else
 #define USERIALDBG(param, ...) {}
 #endif
 
 #define MAX_SERIAL_PORT (USERIAL_PORT_3 + 1)
-#define READ_LIMIT (BTVND_USERIAL_READ_MEM_SIZE - BT_VND_HDR_SIZE)
+#define READ_LIMIT (BTHC_USERIAL_READ_MEM_SIZE - BT_HC_HDR_SIZE)
 
 enum {
     USERIAL_RX_EXIT,
     USERIAL_RX_FLOW_OFF,
     USERIAL_RX_FLOW_ON
 };
+
+/******************************************************************************
+**  Externs
+******************************************************************************/
+
+extern bt_vendor_interface_t *bt_vnd_if;
 
 /******************************************************************************
 **  Local type definitions
@@ -102,7 +106,7 @@ typedef struct
     pthread_t       read_thread;
     tUSERIAL_CFG    cfg;
     BUFFER_Q        rx_q;
-    VND_BT_HDR      *p_rx_hdr;
+    HC_BT_HDR      *p_rx_hdr;
 } tUSERIAL_CB;
 
 /******************************************************************************
@@ -111,12 +115,6 @@ typedef struct
 
 static tUSERIAL_CB userial_cb;
 static volatile uint8_t userial_running = 0;
-
-/* Mapping of USERIAL_PORT_x to device ports */
-char userial_dev[][256] =
-{
-    BLUETOOTH_UART_DEVICE_PORT       /* USERIAL_PORT_1 (HCI)*/
-};
 
 /* for friendly debugging outpout string */
 static uint32_t userial_baud_tbl[] =
@@ -262,7 +260,7 @@ static int select_read(int fd, uint8_t *pbuf, int len)
 static void *userial_read_thread(void *arg)
 {
     int rx_length = 0;
-    VND_BT_HDR *p_buf = NULL;
+    HC_BT_HDR *p_buf = NULL;
     uint8_t *p;
 
     USERIALDBG("Entering userial_read_thread()");
@@ -272,10 +270,10 @@ static void *userial_read_thread(void *arg)
 
     while (userial_running)
     {
-        if (bt_vendor_cbacks)
+        if (bt_hc_cbacks)
         {
-            p_buf = (VND_BT_HDR *) bt_vendor_cbacks->alloc( \
-                                                BTVND_USERIAL_READ_MEM_SIZE);
+            p_buf = (HC_BT_HDR *) bt_hc_cbacks->alloc( \
+                                                BTHC_USERIAL_READ_MEM_SIZE);
         }
         else
             p_buf = NULL;
@@ -301,14 +299,14 @@ static void *userial_read_thread(void *arg)
         {
             p_buf->len = (uint16_t)rx_length;
             utils_enqueue(&(userial_cb.rx_q), p_buf);
-            btvnd_signal_event(VND_EVENT_RX);
+            bthc_signal_event(HC_EVENT_RX);
         }
         else /* either 0 or < 0 */
         {
             LOGW("select_read return size <=0:%d, exiting userial_read_thread",\
                  rx_length);
             /* if we get here, we should have a buffer */
-            bt_vendor_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
+            bt_hc_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
             /* negative value means exit thread */
             break;
         }
@@ -320,83 +318,6 @@ static void *userial_read_thread(void *arg)
 
     return NULL;    // Compiler friendly
 }
-
-
-/*****************************************************************************
-**   Helper Functions
-*****************************************************************************/
-
-/*******************************************************************************
-**
-** Function        baud_userial_to_tcio
-**
-** Description     helper function converts USERIAL baud rates into TCIO
-**                  conforming baud rates
-**
-** Returns         TRUE/FALSE
-**
-*******************************************************************************/
-uint8_t userial_to_tcio_baud(uint8_t cfg_baud, uint32_t *baud)
-{
-    if (cfg_baud == USERIAL_BAUD_600)
-        *baud = B600;
-    else if (cfg_baud == USERIAL_BAUD_1200)
-        *baud = B1200;
-    else if (cfg_baud == USERIAL_BAUD_9600)
-        *baud = B9600;
-    else if (cfg_baud == USERIAL_BAUD_19200)
-        *baud = B19200;
-    else if (cfg_baud == USERIAL_BAUD_57600)
-        *baud = B57600;
-    else if (cfg_baud == USERIAL_BAUD_115200)
-        *baud = B115200;
-    else if (cfg_baud == USERIAL_BAUD_230400)
-        *baud = B230400;
-    else if (cfg_baud == USERIAL_BAUD_460800)
-        *baud = B460800;
-    else if (cfg_baud == USERIAL_BAUD_921600)
-        *baud = B921600;
-    else if (cfg_baud == USERIAL_BAUD_1M)
-        *baud = B1000000;
-    else if (cfg_baud == USERIAL_BAUD_2M)
-        *baud = B2000000;
-    else if (cfg_baud == USERIAL_BAUD_3M)
-        *baud = B3000000;
-    else if (cfg_baud == USERIAL_BAUD_4M)
-        *baud = B4000000;
-    else
-    {
-        LOGE( "userial_open: unsupported baud idx %i", cfg_baud);
-        *baud = B115200;
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-#if (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
-/*******************************************************************************
-**
-** Function        userial_ioctl_init_bt_wake
-**
-** Description     helper function to set the open state of the bt_wake if ioctl
-**                  is used. it should not hurt in the rfkill case but it might
-**                  be better to compile it out.
-**
-** Returns         none
-**
-*******************************************************************************/
-void userial_ioctl_init_bt_wake(int fd)
-{
-    uint32_t bt_wake_state;
-
-    /* assert BT_WAKE through ioctl */
-    ioctl( fd, USERIAL_IOCTL_BT_WAKE_ASSERT, NULL);
-    ioctl( fd, USERIAL_IOCTL_BT_WAKE_GET_ST, &bt_wake_state);
-    USERIALDBG("userial_ioctl_init_bt_wake read back BT_WAKE state=%i", \
-               bt_wake_state);
-}
-#endif // (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
 
 
 /*****************************************************************************
@@ -433,15 +354,9 @@ uint8_t userial_init(void)
 *******************************************************************************/
 uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
 {
-    uint32_t baud;
-    uint8_t data_bits;
-    uint16_t parity;
-    uint8_t stop_bits;
-    struct termios termios;
     struct sched_param param;
-    int policy;
+    int policy, result;
     pthread_attr_t thread_attr;
-    char device_name[32];
 
     USERIALDBG("userial_open(port:%d, baud:%d)", port, p_cfg->baud);
 
@@ -458,94 +373,51 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
         return FALSE;
     }
 
-    if (!userial_to_tcio_baud(p_cfg->baud, &baud))
+    /* Calling vendor-specific part */
+    if (bt_vnd_if)
     {
-        return FALSE;
+        userial_cb.sock = bt_vnd_if->op(BT_VND_OP_USERIAL_OPEN, p_cfg);
     }
-
-    if(p_cfg->fmt & USERIAL_DATABITS_8)
-        data_bits = CS8;
-    else if(p_cfg->fmt & USERIAL_DATABITS_7)
-        data_bits = CS7;
-    else if(p_cfg->fmt & USERIAL_DATABITS_6)
-        data_bits = CS6;
-    else if(p_cfg->fmt & USERIAL_DATABITS_5)
-        data_bits = CS5;
     else
     {
-        LOGE("userial_open: unsupported data bits");
+        LOGE("userial_open: missing vendor lib interface !!!");
+        LOGE("userial_open: unable to open UART port");
         return FALSE;
     }
 
-    if(p_cfg->fmt & USERIAL_PARITY_NONE)
-        parity = 0;
-    else if(p_cfg->fmt & USERIAL_PARITY_EVEN)
-        parity = PARENB;
-    else if(p_cfg->fmt & USERIAL_PARITY_ODD)
-        parity = (PARENB | PARODD);
-    else
+    if (userial_cb.sock == -1)
     {
-        LOGE("userial_open: unsupported parity bit mode");
+        LOGE("userial_open: failed to open UART port");
         return FALSE;
     }
 
-    if(p_cfg->fmt & USERIAL_STOPBITS_1)
-        stop_bits = 0;
-    else if(p_cfg->fmt & USERIAL_STOPBITS_2)
-        stop_bits = CSTOPB;
-    else
-    {
-        LOGE("userial_open: unsupported stop bits");
-        return FALSE;
-    }
-
-    sprintf(device_name, "%s", userial_dev[port]);
-    LOGI("userial_open: opening %s", device_name);
-
-    if ((userial_cb.sock = open(device_name, O_RDWR)) == -1)
-    {
-        LOGE("userial_open: unable to open %s", device_name);
-        return FALSE;
-    }
-
-    tcflush(userial_cb.sock, TCIOFLUSH);
-
-    tcgetattr(userial_cb.sock, &termios);
-    cfmakeraw(&termios);
-    termios.c_cflag |= (CRTSCTS | stop_bits);
-    tcsetattr(userial_cb.sock, TCSANOW, &termios);
-
-    tcflush(userial_cb.sock, TCIOFLUSH);
-
-    /* set input/output baudrate */
-    cfsetospeed(&termios, baud);
-    cfsetispeed(&termios, baud);
-    tcsetattr(userial_cb.sock, TCSANOW, &termios);
-
-#if (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
-    userial_ioctl_init_bt_wake(userial_cb.sock);
-#endif
 
     USERIALDBG( "sock = %d", userial_cb.sock);
 
     userial_cb.port = port;
     memcpy(&userial_cb.cfg, p_cfg, sizeof(tUSERIAL_CFG));
 
-
     pthread_attr_init(&thread_attr);
 
     if (pthread_create(&(userial_cb.read_thread), &thread_attr, \
                        userial_read_thread, NULL) != 0 )
     {
-        LOGE("pthread_create failed!\n\r");
+        LOGE("pthread_create failed!");
         return FALSE;
     }
 
     if(pthread_getschedparam(userial_cb.read_thread, &policy, &param)==0)
     {
-        policy = SCHED_FIFO;
-        param.sched_priority = BTVND_USERIAL_READ_THREAD_PRIORITY;
-        pthread_setschedparam(userial_cb.read_thread, policy, &param);
+        policy = BTHC_LINUX_BASE_POLICY;
+#if (BTHC_LINUX_BASE_POLICY!=SCHED_NORMAL)
+        param.sched_priority = BTHC_USERIAL_READ_THREAD_PRIORITY;
+#endif
+        result = pthread_setschedparam(userial_cb.read_thread, policy, &param);
+        if (result != 0)
+        {
+            LOGW("userial_open: pthread_setschedparam failed (%s)", \
+                  strerror(result));
+        }
     }
 
     return TRUE;
@@ -588,8 +460,8 @@ uint16_t  userial_read(uint8_t *p_buffer, uint16_t len)
 
             if(userial_cb.p_rx_hdr->len == 0)
             {
-                if (bt_vendor_cbacks)
-                    bt_vendor_cbacks->dealloc((TRANSAC) userial_cb.p_rx_hdr, \
+                if (bt_hc_cbacks)
+                    bt_hc_cbacks->dealloc((TRANSAC) userial_cb.p_rx_hdr, \
                                               (char *) (userial_cb.p_rx_hdr+1));
 
                 userial_cb.p_rx_hdr = NULL;
@@ -598,14 +470,9 @@ uint16_t  userial_read(uint8_t *p_buffer, uint16_t len)
 
         if(userial_cb.p_rx_hdr == NULL)
         {
-            userial_cb.p_rx_hdr=(VND_BT_HDR *)utils_dequeue(&(userial_cb.rx_q));
+            userial_cb.p_rx_hdr=(HC_BT_HDR *)utils_dequeue(&(userial_cb.rx_q));
         }
     } while ((userial_cb.p_rx_hdr != NULL) && (total_len < len));
-
-#if 0
-    if (total_len < len)
-        USERIALDBG("userial_read() gives %d when asks %d", total_len, len);
-#endif
 
     return total_len;
 }
@@ -630,11 +497,6 @@ uint16_t userial_write(uint8_t *p_data, uint16_t len)
         total += ret;
         len -= ret;
     }
-
-#if 0
-    if (total < len)
-        USERIALDBG("userial_write() does %d when asks %d", total, len);
-#endif
 
     return ((uint16_t)total);
 }
@@ -661,21 +523,20 @@ void userial_close(void)
     if ((result=pthread_join(userial_cb.read_thread, NULL)) < 0)
         LOGE( "pthread_join() FAILED result:%d", result);
 
-#if (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
-    /* de-assert bt_wake BEFORE closing port */
-    ioctl(userial_cb.sock, USERIAL_IOCTL_BT_WAKE_DEASSERT, NULL);
-#endif
+    /* Calling vendor-specific part */
+    if (bt_vnd_if)
+        bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
 
     if ((result=close(userial_cb.sock)) < 0)
         LOGE( "close(sock:%d) FAILED result:%d", userial_cb.sock, result);
 
     userial_cb.sock = -1;
 
-    if (bt_vendor_cbacks)
+    if (bt_hc_cbacks)
     {
         while ((p_buf = utils_dequeue (&(userial_cb.rx_q))) != NULL)
         {
-            bt_vendor_cbacks->dealloc(p_buf, (char *) ((VND_BT_HDR *)p_buf+1));
+            bt_hc_cbacks->dealloc(p_buf, (char *) ((HC_BT_HDR *)p_buf+1));
         }
     }
 }
@@ -691,8 +552,6 @@ void userial_close(void)
 *******************************************************************************/
 void userial_change_baud(uint8_t baud)
 {
-    struct termios termios;
-
     USERIALDBG("userial_change_baud: Closing UART Port");
     userial_close();
 
@@ -730,42 +589,9 @@ void userial_ioctl(userial_ioctl_op_t op, void *p_data)
                 send_wakeup_signal(USERIAL_RX_FLOW_OFF);
             break;
 
-#if (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
-        case USERIAL_OP_ASSERT_BT_WAKE:
-            USERIALDBG("##### userial_ioctl: Asserting BT_Wake ####");
-            ioctl(userial_cb.sock, USERIAL_IOCTL_BT_WAKE_ASSERT, NULL);
-            break;
-
-        case USERIAL_OP_DEASSERT_BT_WAKE:
-            USERIALDBG("##### userial_ioctl: De-asserting BT_Wake ####");
-            ioctl(userial_cb.sock, USERIAL_IOCTL_BT_WAKE_DEASSERT, NULL);
-            break;
-
-        case USERIAL_OP_GET_BT_WAKE_STATE:
-            ioctl(userial_cb.sock, USERIAL_IOCTL_BT_WAKE_GET_ST, p_data);
-            break;
-#endif  //  (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
-
         case USERIAL_OP_INIT:
         default:
             break;
     }
-}
-
-/*******************************************************************************
-**
-** Function        userial_set_port
-**
-** Description     Configure UART port name
-**
-** Returns         0 : Success
-**                 Otherwise : Fail
-**
-*******************************************************************************/
-int userial_set_port(char *p_conf_name, char *p_conf_value, int param)
-{
-    strcpy(userial_dev[USERIAL_PORT_1], p_conf_value);
-
-    return 0;
 }
 

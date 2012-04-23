@@ -82,7 +82,7 @@ LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../udrv/include \
 	$(LOCAL_PATH)/../btif/include \
 	$(LOCAL_PATH)/../btif/co \
-	$(LOCAL_PATH)/../vendor/libvendor/include\
+	$(LOCAL_PATH)/../hci/include\
 	$(LOCAL_PATH)/../brcm/include \
 	$(LOCAL_PATH)/../embdrv/sbc/encoder/include \
 	$(LOCAL_PATH)/../audio_a2dp_hw
@@ -109,7 +109,7 @@ endif
 LOCAL_SHARED_LIBRARIES := \
     libcutils \
     libpower \
-    libbt-vendor
+    libbt-hci
 
 #LOCAL_WHOLE_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_stack libbt-brcm_bta
 LOCAL_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_bta libbt-brcm_stack
@@ -118,6 +118,7 @@ LOCAL_MODULE := bluetooth.default
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+LOCAL_REQUIRED_MODULES := libbt-hci libbt-vendor bt_stack.conf bt_did.conf auto_pair_devlist.conf
 
 include $(LOCAL_PATH)/../include/buildcfg.mk
 

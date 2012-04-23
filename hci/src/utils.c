@@ -56,7 +56,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <time.h>
-#include "bt_vendor_brcm.h"
+#include "bt_hci_bdroid.h"
 #include "utils.h"
 
 /******************************************************************************
@@ -122,16 +122,16 @@ void utils_queue_init (BUFFER_Q *p_q)
 *******************************************************************************/
 void utils_enqueue (BUFFER_Q *p_q, void *p_buf)
 {
-    VND_BUFFER_HDR_T    *p_hdr;
+    HC_BUFFER_HDR_T    *p_hdr;
 
-    p_hdr = (VND_BUFFER_HDR_T *) ((uint8_t *) p_buf - BT_VND_BUFFER_HDR_SIZE);
+    p_hdr = (HC_BUFFER_HDR_T *) ((uint8_t *) p_buf - BT_HC_BUFFER_HDR_SIZE);
 
     pthread_mutex_lock(&utils_mutex);
 
     if (p_q->p_last)
     {
-        VND_BUFFER_HDR_T *p_last_hdr = \
-          (VND_BUFFER_HDR_T *)((uint8_t *)p_q->p_last - BT_VND_BUFFER_HDR_SIZE);
+        HC_BUFFER_HDR_T *p_last_hdr = \
+          (HC_BUFFER_HDR_T *)((uint8_t *)p_q->p_last - BT_HC_BUFFER_HDR_SIZE);
 
         p_last_hdr->p_next = p_hdr;
     }
@@ -157,7 +157,7 @@ void utils_enqueue (BUFFER_Q *p_q, void *p_buf)
 *******************************************************************************/
 void *utils_dequeue (BUFFER_Q *p_q)
 {
-    VND_BUFFER_HDR_T    *p_hdr;
+    HC_BUFFER_HDR_T    *p_hdr;
 
     pthread_mutex_lock(&utils_mutex);
 
@@ -167,10 +167,10 @@ void *utils_dequeue (BUFFER_Q *p_q)
         return (NULL);
     }
 
-    p_hdr=(VND_BUFFER_HDR_T *)((uint8_t *)p_q->p_first-BT_VND_BUFFER_HDR_SIZE);
+    p_hdr=(HC_BUFFER_HDR_T *)((uint8_t *)p_q->p_first-BT_HC_BUFFER_HDR_SIZE);
 
     if (p_hdr->p_next)
-        p_q->p_first = ((uint8_t *)p_hdr->p_next + BT_VND_BUFFER_HDR_SIZE);
+        p_q->p_first = ((uint8_t *)p_hdr->p_next + BT_HC_BUFFER_HDR_SIZE);
     else
     {
         p_q->p_first = NULL;
@@ -183,7 +183,7 @@ void *utils_dequeue (BUFFER_Q *p_q)
 
     pthread_mutex_unlock(&utils_mutex);
 
-    return ((uint8_t *)p_hdr + BT_VND_BUFFER_HDR_SIZE);
+    return ((uint8_t *)p_hdr + BT_HC_BUFFER_HDR_SIZE);
 }
 
 /*******************************************************************************
@@ -199,12 +199,12 @@ void *utils_dequeue (BUFFER_Q *p_q)
 *******************************************************************************/
 void *utils_getnext (void *p_buf)
 {
-    VND_BUFFER_HDR_T    *p_hdr;
+    HC_BUFFER_HDR_T    *p_hdr;
 
-    p_hdr = (VND_BUFFER_HDR_T *) ((uint8_t *) p_buf - BT_VND_BUFFER_HDR_SIZE);
+    p_hdr = (HC_BUFFER_HDR_T *) ((uint8_t *) p_buf - BT_HC_BUFFER_HDR_SIZE);
 
     if (p_hdr->p_next)
-        return ((uint8_t *)p_hdr->p_next + BT_VND_BUFFER_HDR_SIZE);
+        return ((uint8_t *)p_hdr->p_next + BT_HC_BUFFER_HDR_SIZE);
     else
         return (NULL);
 }
@@ -220,8 +220,8 @@ void *utils_getnext (void *p_buf)
 *******************************************************************************/
 void *utils_remove_from_queue (BUFFER_Q *p_q, void *p_buf)
 {
-    VND_BUFFER_HDR_T    *p_prev;
-    VND_BUFFER_HDR_T    *p_buf_hdr;
+    HC_BUFFER_HDR_T    *p_prev;
+    HC_BUFFER_HDR_T    *p_buf_hdr;
 
     pthread_mutex_lock(&utils_mutex);
 
@@ -231,8 +231,8 @@ void *utils_remove_from_queue (BUFFER_Q *p_q, void *p_buf)
         return (utils_dequeue (p_q));
     }
 
-    p_buf_hdr = (VND_BUFFER_HDR_T *)((uint8_t *)p_buf - BT_VND_BUFFER_HDR_SIZE);
-    p_prev=(VND_BUFFER_HDR_T *)((uint8_t *)p_q->p_first-BT_VND_BUFFER_HDR_SIZE);
+    p_buf_hdr = (HC_BUFFER_HDR_T *)((uint8_t *)p_buf - BT_HC_BUFFER_HDR_SIZE);
+    p_prev=(HC_BUFFER_HDR_T *)((uint8_t *)p_q->p_first-BT_HC_BUFFER_HDR_SIZE);
 
     for ( ; p_prev; p_prev = p_prev->p_next)
     {

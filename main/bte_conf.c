@@ -68,10 +68,14 @@
 /******************************************************************************
 **  Externs
 ******************************************************************************/
+extern BOOLEAN hci_logging_enabled;
+extern char hci_logfile[256];
 extern BOOLEAN trace_conf_enabled;
 void bte_trace_conf(char *p_name, char *p_conf_value);
 int device_name_cfg(char *p_conf_name, char *p_conf_value);
 int device_class_cfg(char *p_conf_name, char *p_conf_value);
+int logging_cfg_onoff(char *p_conf_name, char *p_conf_value);
+int logging_set_filepath(char *p_conf_name, char *p_conf_value);
 int trace_cfg_onoff(char *p_conf_name, char *p_conf_value);
 
 BD_NAME local_device_default_name = BTM_DEF_LOCAL_NAME;
@@ -131,6 +135,8 @@ typedef UINT8 tCONF_DID;
 static const conf_entry_t conf_table[] = {
     /*{"Name", device_name_cfg},
     {"Class", device_class_cfg},*/
+    {"BtSnoopLogOutput", logging_cfg_onoff},
+    {"BtSnoopFileName", logging_set_filepath},
     {"TraceConf", trace_cfg_onoff},
     {(const char *) NULL, NULL}
 };
@@ -172,6 +178,21 @@ int device_class_cfg(char *p_conf_name, char *p_conf_value)
     sscanf(p_token, "%x", &x);
     local_device_default_class[2] = (UINT8) x;
 
+    return 0;
+}
+
+int logging_cfg_onoff(char *p_conf_name, char *p_conf_value)
+{
+    if (strcmp(p_conf_value, "true") == 0)
+        hci_logging_enabled = TRUE;
+    else
+        hci_logging_enabled = FALSE;
+    return 0;
+}
+
+int logging_set_filepath(char *p_conf_name, char *p_conf_value)
+{
+    strcpy(hci_logfile, p_conf_value);
     return 0;
 }
 

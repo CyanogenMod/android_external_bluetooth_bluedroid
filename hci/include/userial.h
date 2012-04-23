@@ -120,28 +120,7 @@ typedef enum {
     USERIAL_OP_INIT,
     USERIAL_OP_RXFLOW_ON,
     USERIAL_OP_RXFLOW_OFF,
-#if (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
-    USERIAL_OP_ASSERT_BT_WAKE,
-    USERIAL_OP_DEASSERT_BT_WAKE,
-    USERIAL_OP_GET_BT_WAKE_STATE
-#endif
 } userial_ioctl_op_t;
-
-#if (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
-/* These are the ioctl values used for bt_wake ioctl via UART driver. you may 
- * need to redefine them on you platform! 
- * Logically they need to be unique and not colide with existing uart ioctl's.
- */
-#ifndef USERIAL_IOCTL_BT_WAKE_ASSERT
-#define USERIAL_IOCTL_BT_WAKE_ASSERT   0x8003
-#endif
-#ifndef USERIAL_IOCTL_BT_WAKE_DEASSERT
-#define USERIAL_IOCTL_BT_WAKE_DEASSERT 0x8004
-#endif
-#ifndef USERIAL_IOCTL_BT_WAKE_GET_ST
-#define USERIAL_IOCTL_BT_WAKE_GET_ST   0x8005
-#endif
-#endif // (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
 
 /******************************************************************************
 **  Type definitions
@@ -240,18 +219,6 @@ void userial_change_baud(uint8_t baud);
 **
 *******************************************************************************/
 void userial_ioctl(userial_ioctl_op_t op, void *p_data);
-
-/*******************************************************************************
-**
-** Function        userial_set_port
-**
-** Description     Configure UART port name
-**
-** Returns         0 : Success
-**                 Otherwise : Fail
-**
-*******************************************************************************/
-int userial_set_port(char *p_conf_name, char *p_conf_value, int param);
 
 #endif /* USERIAL_H */
 
