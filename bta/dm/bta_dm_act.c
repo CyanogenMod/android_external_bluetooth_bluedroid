@@ -1525,7 +1525,8 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
             {
             /* SDP_DB_FULL means some records with the 
                required attributes were received */
-            if((p_data->sdp_event.sdp_result == SDP_DB_FULL) || 
+            if(((p_data->sdp_event.sdp_result == SDP_DB_FULL) &&
+                    bta_dm_search_cb.services != BTA_ALL_SERVICE_MASK) ||
                     (p_sdp_rec  != NULL))
             {
                 /* If Plug and Play service record, check to see if Broadcom stack */
