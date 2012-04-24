@@ -330,6 +330,35 @@ SDP_API extern tSDP_DISC_REC *SDP_FindServiceUUIDInDb (tSDP_DISCOVERY_DB *p_db,
                                                        tBT_UUID *p_uuid,
                                                        tSDP_DISC_REC *p_start_rec);
 
+/*******************************************************************************
+**
+** Function         SDP_FindServiceUUIDInRec_128bit
+**
+** Description      This function is called to read the 128-bit service UUID within a record
+**                  if there is any.
+**
+** Parameters:      p_rec      - pointer to a SDP record.
+**                  p_uuid     - output parameter to save the UUID found.
+**
+** Returns          TRUE if found, otherwise FALSE.
+**
+*******************************************************************************/
+SDP_API extern BOOLEAN SDP_FindServiceUUIDInRec_128bit(tSDP_DISC_REC *p_rec, tBT_UUID * p_uuid);
+
+/*******************************************************************************
+**
+** Function         SDP_FindServiceInDb_128bit
+**
+** Description      This function queries an SDP database for a specific service.
+**                  If the p_start_rec pointer is NULL, it looks from the beginning
+**                  of the database, else it continues from the next record after
+**                  p_start_rec.
+**
+** Returns          Pointer to record containing service class, or NULL
+**
+*******************************************************************************/
+SDP_API extern tSDP_DISC_REC *SDP_FindServiceInDb_128bit(tSDP_DISCOVERY_DB *p_db,
+                                                       tSDP_DISC_REC *p_start_rec);
 
 /*******************************************************************************
 **

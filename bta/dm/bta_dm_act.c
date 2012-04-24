@@ -88,12 +88,14 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data);
     #endif
 #endif
 
+extern void sdpu_uuid16_to_uuid128(UINT16 uuid16, UINT8* p_uuid128);
+
 const UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID] =
 {
     UUID_SERVCLASS_PNP_INFORMATION,         /* Reserved */
     UUID_SERVCLASS_SERIAL_PORT,             /* BTA_SPP_SERVICE_ID */
     UUID_SERVCLASS_DIALUP_NETWORKING,       /* BTA_DUN_SERVICE_ID */
-    UUID_SERVCLASS_FAX,                     /* BTA_FAX_SERVICE_ID */
+    UUID_SERVCLASS_AUDIO_SOURCE,            /* BTA_A2DP_SOURCE_SERVICE_ID */
     UUID_SERVCLASS_LAN_ACCESS_USING_PPP,    /* BTA_LAP_SERVICE_ID */
     UUID_SERVCLASS_HEADSET,                 /* BTA_HSP_HS_SERVICE_ID */
     UUID_SERVCLASS_HF_HANDSFREE,            /* BTA_HFP_HS_SERVICE_ID */
@@ -136,7 +138,7 @@ const UINT32 bta_service_id_to_btm_srv_id_lkup_tbl [BTA_MAX_SERVICE_ID] =
     0,                                      /* Reserved */
     BTM_SEC_SERVICE_SERIAL_PORT,            /* BTA_SPP_SERVICE_ID */
     BTM_SEC_SERVICE_DUN,                    /* BTA_DUN_SERVICE_ID */
-    BTM_SEC_SERVICE_FAX,                    /* BTA_FAX_SERVICE_ID */
+    BTM_SEC_SERVICE_AVDTP,                  /* BTA_AUDIO_SOURCE_SERVICE_ID */
     BTM_SEC_SERVICE_LAN_ACCESS,             /* BTA_LAP_SERVICE_ID */
     BTM_SEC_SERVICE_HEADSET_AG,             /* BTA_HSP_SERVICE_ID */
     BTM_SEC_SERVICE_AG_HANDSFREE,           /* BTA_HFP_SERVICE_ID */
@@ -1458,6 +1460,9 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
     tBT_UUID            service_uuid;
 #endif
 
+    UINT32 num_uuids = 0;
+    UINT8  uuid_list[32][MAX_UUID_SIZE]; // assuming a max of 32 services
+
     if((p_data->sdp_event.sdp_result == SDP_SUCCESS)
         || (p_data->sdp_event.sdp_result == SDP_NO_RECS_MATCH) 
         || (p_data->sdp_event.sdp_result == SDP_DB_FULL))
@@ -1480,10 +1485,9 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
             } 
             else
             {
-            service = bta_service_id_to_uuid_lkup_tbl[bta_dm_search_cb.service_index-1];
+                service = bta_service_id_to_uuid_lkup_tbl[bta_dm_search_cb.service_index-1];
                 p_sdp_rec = SDP_FindServiceInDb(bta_dm_search_cb.p_sdp_db, service, p_sdp_rec);
             }
-                        
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
             /* finished with BR/EDR services, now we check the result for GATT based service UUID */
             if (bta_dm_search_cb.service_index == BTA_MAX_SERVICE_ID)
@@ -1547,8 +1551,13 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
 
                 if (service_found)
                 {
+                    UINT16 tmp_svc = 0xFFFF;
                     bta_dm_search_cb.services_found |=
                         (tBTA_SERVICE_MASK)(BTA_SERVICE_ID_TO_SERVICE_MASK(bta_dm_search_cb.service_index-1));
+                    tmp_svc = bta_service_id_to_uuid_lkup_tbl[bta_dm_search_cb.service_index-1];
+                    /* Add to the list of UUIDs */
+                    sdpu_uuid16_to_uuid128(tmp_svc, uuid_list[num_uuids]);
+                    num_uuids++;
                 }
             }
             }
@@ -1576,6 +1585,25 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
 //        bta_dm_search_cb.p_sdp_db = NULL;
         APPL_TRACE_DEBUG1("bta_dm_sdp_result services_found = %04x", bta_dm_search_cb.services_found);
 
+        /* Collect the 128-bit services here and put them into the list */
+        if(bta_dm_search_cb.services == BTA_ALL_SERVICE_MASK)
+        {
+            p_sdp_rec = NULL;
+            do
+            {
+                tBT_UUID temp_uuid;
+                /* find a service record, report it */
+                p_sdp_rec = SDP_FindServiceInDb_128bit(bta_dm_search_cb.p_sdp_db, p_sdp_rec);
+                if (p_sdp_rec)
+                {
+                    if (SDP_FindServiceUUIDInRec_128bit(p_sdp_rec, &temp_uuid))
+                    {
+                        memcpy(uuid_list[num_uuids], temp_uuid.uu.uuid128, MAX_UUID_SIZE);
+                        num_uuids++;
+                    }
+                }
+            } while (p_sdp_rec);
+        }
         /* if there are more services to search for */
         if(bta_dm_search_cb.services_to_search)
         {
@@ -1597,7 +1625,18 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
                 p_msg->disc_result.result.disc_res.result = BTA_SUCCESS;
                 p_msg->disc_result.result.disc_res.p_raw_data = NULL;
                 p_msg->disc_result.result.disc_res.raw_data_size = 0;
-                
+                p_msg->disc_result.result.disc_res.num_uuids = num_uuids;
+                p_msg->disc_result.result.disc_res.p_uuid_list = NULL;
+                if (num_uuids > 0) {
+                    p_msg->disc_result.result.disc_res.p_uuid_list = (UINT8*)GKI_getbuf(num_uuids*MAX_UUID_SIZE);
+                    if (p_msg->disc_result.result.disc_res.p_uuid_list) {
+                        memcpy(p_msg->disc_result.result.disc_res.p_uuid_list, uuid_list,
+                               num_uuids*MAX_UUID_SIZE);
+                    } else {
+                       p_msg->disc_result.result.disc_res.num_uuids = 0;
+                       APPL_TRACE_ERROR1("%s: Unable to allocate memory for uuid_list", __FUNCTION__);
+                    }
+                }
                 //copy the raw_data to the discovery result  structure
                 //
                 APPL_TRACE_DEBUG2("bta_dm_sdp_result (raw_data used = 0x%x raw_data_ptr = 0x%x)\r\n",bta_dm_search_cb.p_sdp_db->raw_used, bta_dm_search_cb.p_sdp_db->raw_data);
@@ -1635,7 +1674,7 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
                 {
                   p_msg->disc_result.result.disc_res.result = (3 + bta_dm_search_cb.peer_scn);
                   p_msg->disc_result.result.disc_res.services |= BTA_USER_SERVICE_MASK;
-				  
+
                   APPL_TRACE_EVENT1(" Piggy back the SCN over result field  SCN=%d", bta_dm_search_cb.peer_scn);
 
                 }

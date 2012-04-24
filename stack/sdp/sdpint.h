@@ -283,7 +283,7 @@ extern UINT16 sdpu_get_list_len( tSDP_UUID_SEQ   *uid_seq, tSDP_ATTR_SEQ   *attr
 extern UINT16 sdpu_get_attrib_seq_len(tSDP_RECORD *p_rec, tSDP_ATTR_SEQ *attr_seq);
 extern UINT16 sdpu_get_attrib_entry_len(tSDP_ATTRIBUTE *p_attr);
 extern UINT8 *sdpu_build_partial_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr, UINT16 len, UINT16 *offset);
-
+extern void sdpu_uuid16_to_uuid128(UINT16 uuid16, UINT8* p_uuid128);
 
 /* Functions provided by sdp_db.c
 */

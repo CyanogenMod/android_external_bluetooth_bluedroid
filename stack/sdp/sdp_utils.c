@@ -10,6 +10,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <netinet/in.h>
 #include <stdio.h>
 
 #include "gki.h"
@@ -1002,3 +1003,24 @@ UINT8 *sdpu_build_partial_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr, UI
     return p_out;
 }
 
+/*******************************************************************************
+**
+** Function         sdpu_uuid16_to_uuid128
+**
+** Description      This function converts UUID-16 to UUID-128 by including the base UUID
+**
+**                  uuid16: 2-byte UUID
+**                  p_uuid128: Expanded 128-bit UUID 
+**
+** Returns          None
+**
+*******************************************************************************/
+void sdpu_uuid16_to_uuid128(UINT16 uuid16, UINT8* p_uuid128)
+{
+    UINT16 uuid16_bo;
+    memset(p_uuid128, 0, 16);
+
+    memcpy(p_uuid128, sdp_base_uuid, MAX_UUID_SIZE);
+    uuid16_bo = ntohs(uuid16);
+    memcpy(p_uuid128+ 2, &uuid16_bo, sizeof(uint16_t));
+}

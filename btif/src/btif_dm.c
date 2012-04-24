@@ -456,6 +456,25 @@ static void search_devices_copy_cb(UINT16 event, char *p_dest, char *p_src)
     }
 }
 
+static void search_services_copy_cb(UINT16 event, char *p_dest, char *p_src)
+{
+    tBTA_DM_SEARCH *p_dest_data =  (tBTA_DM_SEARCH *) p_dest;
+    tBTA_DM_SEARCH *p_src_data =  (tBTA_DM_SEARCH *) p_src;
+
+    if (!p_src)
+        return;
+    memcpy(p_dest_data, p_src_data, sizeof(tBTA_DM_SEARCH));
+    switch (event)
+    {
+         case BTA_DM_DISC_RES_EVT:
+         {
+              if (p_src_data->disc_res.num_uuids > 0)
+                  p_dest_data->disc_res.p_uuid_list = (UINT8*)(p_dest + sizeof(tBTA_DM_SEARCH));
+                  memcpy(p_dest_data->disc_res.p_uuid_list, p_src_data->disc_res.p_uuid_list,
+                                                      p_src_data->disc_res.num_uuids*MAX_UUID_SIZE);
+         } break;
+    }
+}
 /******************************************************************************
 **
 **  BTIF DM callback events
@@ -824,18 +843,17 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
             BTIF_TRACE_DEBUG3("%s:(result=0x%x, services 0x%x)", __FUNCTION__,
                     p_data->disc_res.result, p_data->disc_res.services);
             prop.type = BT_PROPERTY_UUIDS;
-            prop.val = (void*)uuid_arr;
             prop.len = 0;
-            for (i=0; i < BTA_MAX_SERVICE_ID; i++)
+            if (p_data->disc_res.num_uuids > 0)
             {
-                if(p_data->disc_res.services
-                    &(tBTA_SERVICE_MASK)(BTA_SERVICE_ID_TO_SERVICE_MASK(i)))
-                {
-                     memset(&uuid_arr[j], 0, sizeof(bt_uuid_t));
-                     uuid16_to_uuid128(bta_service_id_to_uuid_lkup_tbl[i], &uuid_arr[j]);
-                     prop.len += sizeof(bt_uuid_t);
-                     j++;
-                }
+                 prop.val = p_data->disc_res.p_uuid_list;
+                 prop.len = p_data->disc_res.num_uuids * MAX_UUID_SIZE;
+                 for (i=0; i < p_data->disc_res.num_uuids; i++)
+                 {
+                      char temp[256];
+                      uuid_to_string((bt_uuid_t*)(p_data->disc_res.p_uuid_list + (i*MAX_UUID_SIZE)), temp);
+                      BTIF_TRACE_ERROR2("Index: %d uuid:%s", i, temp);
+                 }
             }
             /* Also write this to the NVRAM */
             ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
@@ -1207,8 +1225,22 @@ static void bte_search_devices_evt(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_d
 *******************************************************************************/
 static void bte_dm_search_services_evt(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data)
 {
-   /* TODO: The only member that needs a deep copy is the p_raw_data. But not sure yet if this is needed. */
-   btif_transfer_context(btif_dm_search_services_evt, event, (char*)p_data, sizeof(tBTA_DM_SEARCH), NULL);
+    UINT16 param_len = 0;
+   if (p_data)
+       param_len += sizeof(tBTA_DM_SEARCH);
+   switch (event)
+   {
+         case BTA_DM_DISC_RES_EVT:
+         {
+             if (p_data->disc_res.num_uuids > 0) {
+                  param_len += (p_data->disc_res.num_uuids * MAX_UUID_SIZE);
+             }
+         } break;
+   }
+   /* TODO: The only other member that needs a deep copy is the p_raw_data. But not sure
+    * if raw_data is needed. */
+   btif_transfer_context(btif_dm_search_services_evt, event, (char*)p_data, param_len,
+         (param_len > sizeof(tBTA_DM_SEARCH)) ? search_services_copy_cb : NULL);
 }
 
 /*******************************************************************************

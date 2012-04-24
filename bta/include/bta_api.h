@@ -47,7 +47,7 @@ typedef UINT8 tBTA_STATUS;
 #define BTA_RES_SERVICE_ID      0           /* Reserved */
 #define BTA_SPP_SERVICE_ID      1           /* Serial port profile. */
 #define BTA_DUN_SERVICE_ID      2           /* Dial-up networking profile. */
-#define BTA_FAX_SERVICE_ID      3           /* Fax profile. */
+#define BTA_A2DP_SOURCE_SERVICE_ID      3   /* A2DP Source profile. */
 #define BTA_LAP_SERVICE_ID      4           /* LAN access profile. */
 #define BTA_HSP_SERVICE_ID      5           /* Headset profile. */
 #define BTA_HFP_SERVICE_ID      6           /* Hands-free profile. */
@@ -62,7 +62,7 @@ typedef UINT8 tBTA_STATUS;
 #define BTA_NAP_SERVICE_ID      15          /* PAN Network access point */
 #define BTA_GN_SERVICE_ID       16          /* PAN Group Ad-hoc networks */
 #define BTA_SAP_SERVICE_ID      17          /* SIM Access profile */
-#define BTA_A2DP_SERVICE_ID     18          /* Advanced audio distribution */
+#define BTA_A2DP_SERVICE_ID     18          /* A2DP Sink */
 #define BTA_AVRCP_SERVICE_ID    19          /* A/V remote control */
 #define BTA_HID_SERVICE_ID      20          /* HID */
 #define BTA_VDP_SERVICE_ID      21          /* Video distribution */
@@ -751,6 +751,8 @@ typedef struct
     UINT8           *   p_raw_data;     /* Raw data for discovery DB */
     UINT32              raw_data_size;  /* size of raw data */
     tBT_DEVICE_TYPE     device_type;    /* device type in case it is BLE device */    
+    UINT32              num_uuids;
+    UINT8               *p_uuid_list;
 // btla-specific --
     tBTA_STATUS         result;
 } tBTA_DM_DISC_RES;

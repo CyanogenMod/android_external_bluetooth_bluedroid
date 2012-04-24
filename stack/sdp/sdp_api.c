@@ -392,6 +392,63 @@ BOOLEAN SDP_FindServiceUUIDInRec(tSDP_DISC_REC *p_rec, tBT_UUID * p_uuid)
 
 /*******************************************************************************
 **
+** Function         SDP_FindServiceUUIDInRec_128bit
+**
+** Description      This function is called to read the 128-bit service UUID within a record
+**                  if there is any.
+**
+** Parameters:      p_rec      - pointer to a SDP record.
+**                  p_uuid     - output parameter to save the UUID found.
+**
+** Returns          TRUE if found, otherwise FALSE.
+**
+*******************************************************************************/
+BOOLEAN SDP_FindServiceUUIDInRec_128bit(tSDP_DISC_REC *p_rec, tBT_UUID * p_uuid)
+{
+#if SDP_CLIENT_ENABLED == TRUE
+    tSDP_DISC_ATTR  *p_attr, *p_sattr, *p_extra_sattr;
+
+    p_attr = p_rec->p_first_attr;
+
+    while (p_attr)
+    {
+        if ((p_attr->attr_id == ATTR_ID_SERVICE_CLASS_ID_LIST)
+           && (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == DATA_ELE_SEQ_DESC_TYPE))
+        {
+            for (p_sattr = p_attr->attr_value.v.p_sub_attr; p_sattr; p_sattr = p_sattr->p_next_attr)
+            {
+                if (SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE)
+                {
+                    /* only support 128 bits UUID for now */
+                    if (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == 16)
+                    {
+                        p_uuid->len = 16;
+                        memcpy(p_uuid->uu.uuid128, p_sattr->attr_value.v.array, MAX_UUID_SIZE);
+                    }
+                    return (TRUE);
+                }
+            }
+            break;
+        }
+        else if (p_attr->attr_id == ATTR_ID_SERVICE_ID)
+        {
+            if ((SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UUID_DESC_TYPE)
+            /* only support 128 bits UUID for now */
+             && (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 16))
+            {
+                p_uuid->len = 16;
+                memcpy(p_uuid->uu.uuid128, p_sattr->attr_value.v.array, MAX_UUID_SIZE);
+                return (TRUE);
+            }
+        }
+        p_attr = p_attr->p_next_attr;
+    }
+    return FALSE;
+#endif
+}
+
+/*******************************************************************************
+**
 ** Function         SDP_FindServiceInDb
 **
 ** Description      This function queries an SDP database for a specific service.
@@ -466,6 +523,71 @@ tSDP_DISC_REC *SDP_FindServiceInDb (tSDP_DISCOVERY_DB *p_db, UINT16 service_uuid
                  && (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2)
                  /* find a specific UUID or anyone */
                  && ((p_attr->attr_value.v.u16 == service_uuid) || service_uuid == 0))
+                    return (p_rec);
+            }
+
+            p_attr = p_attr->p_next_attr;
+        }
+
+        p_rec = p_rec->p_next_rec;
+    }
+#endif
+    /* If here, no matching UUID found */
+    return (NULL);
+}
+
+/*******************************************************************************
+**
+** Function         SDP_FindServiceInDb_128bit
+**
+** Description      This function queries an SDP database for a specific service.
+**                  If the p_start_rec pointer is NULL, it looks from the beginning
+**                  of the database, else it continues from the next record after
+**                  p_start_rec.
+**
+**                  This function is kept separate from SDP_FindServiceInDb since
+**                  that API is expected to return only 16-bit UUIDs
+**
+** Returns          Pointer to record containing service class, or NULL
+**
+*******************************************************************************/
+tSDP_DISC_REC *SDP_FindServiceInDb_128bit(tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_start_rec)
+{
+#if SDP_CLIENT_ENABLED == TRUE
+    tSDP_DISC_REC   *p_rec;
+    tSDP_DISC_ATTR  *p_attr, *p_sattr, *p_extra_sattr;
+
+    /* Must have a valid database */
+    if (p_db == NULL)
+        return (NULL);
+
+    if (!p_start_rec)
+        p_rec = p_db->p_first_rec;
+    else
+        p_rec = p_start_rec->p_next_rec;
+
+    while (p_rec)
+    {
+        p_attr = p_rec->p_first_attr;
+        while (p_attr)
+        {
+            if ((p_attr->attr_id == ATTR_ID_SERVICE_CLASS_ID_LIST)
+             && (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == DATA_ELE_SEQ_DESC_TYPE))
+            {
+                for (p_sattr = p_attr->attr_value.v.p_sub_attr; p_sattr; p_sattr = p_sattr->p_next_attr)
+                {
+                    if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE)
+                       && (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == 16))
+                    {
+                        return (p_rec);
+                    }
+                }
+                break;
+            }
+            else if (p_attr->attr_id == ATTR_ID_SERVICE_ID)
+            {
+                if ((SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UUID_DESC_TYPE)
+                 && (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 16))
                     return (p_rec);
             }
 
