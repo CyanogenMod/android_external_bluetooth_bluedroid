@@ -254,6 +254,10 @@ static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond
     if ( (pairing_cb.state == state) && (state == BT_BOND_STATE_BONDING) )
         return;
 
+    if (pairing_cb.is_temp)
+    {
+       state = BT_BOND_STATE_NONE;
+    }
     BTIF_TRACE_DEBUG3("%s: state=%d prev_state=%d", __FUNCTION__, state, pairing_cb.state);
 
     HAL_CBACK(bt_hal_cbacks, bond_state_changed_cb, status, bd_addr, state);
