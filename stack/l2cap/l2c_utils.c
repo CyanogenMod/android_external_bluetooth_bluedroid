@@ -2336,14 +2336,15 @@ BOOLEAN l2cu_lcb_disconnecting (void)
 ** Returns          TRUE if a valid channel, else FALSE
 **
 *******************************************************************************/
+
 BOOLEAN l2cu_set_acl_priority (BD_ADDR bd_addr, UINT8 priority, BOOLEAN reset_after_rs)
 {
     tL2C_LCB            *p_lcb;
-#ifdef BRCM_VS
     UINT8               *pp;
     UINT8                command[HCI_BRCM_ACL_PRIORITY_PARAM_SIZE];
     UINT8                vs_param;
-#endif
+
+    APPL_TRACE_EVENT1("SET ACL PRIORITY %d", priority);
 
     /* Find the link control block for the acl channel */
     if ((p_lcb = l2cu_find_lcb_by_bd_addr(bd_addr)) == NULL)
@@ -2352,23 +2353,21 @@ BOOLEAN l2cu_set_acl_priority (BD_ADDR bd_addr, UINT8 priority, BOOLEAN reset_af
         return (FALSE);
     }
 
-#ifdef BRCM_VS
     if (BTM_IS_BRCM_CONTROLLER())
     {
         /* Called from above L2CAP through API; send VSC if changed */
         if ((!reset_after_rs && (priority != p_lcb->acl_priority)) ||
-            
               /* Called because of a master/slave role switch; if high resend VSC */
             ( reset_after_rs && p_lcb->acl_priority == L2CAP_PRIORITY_HIGH))
         {
             pp = command;
 
-                vs_param = (priority == L2CAP_PRIORITY_HIGH) ? HCI_BRCM_ACL_PRIORITY_HIGH : HCI_BRCM_ACL_PRIORITY_LOW;
+            vs_param = (priority == L2CAP_PRIORITY_HIGH) ? HCI_BRCM_ACL_PRIORITY_HIGH : HCI_BRCM_ACL_PRIORITY_LOW;
 
-                UINT16_TO_STREAM (pp, p_lcb->handle);
-                UINT8_TO_STREAM  (pp, vs_param);
+            UINT16_TO_STREAM (pp, p_lcb->handle);
+            UINT8_TO_STREAM  (pp, vs_param);
 
-                BTM_VendorSpecificCommand (HCI_BRCM_SET_ACL_PRIORITY, HCI_BRCM_ACL_PRIORITY_PARAM_SIZE, command, NULL);
+            BTM_VendorSpecificCommand (HCI_BRCM_SET_ACL_PRIORITY, HCI_BRCM_ACL_PRIORITY_PARAM_SIZE, command, NULL);
 
             /* Adjust lmp buffer allocation for this channel if priority changed */
             if (p_lcb->acl_priority != priority)
@@ -2378,7 +2377,6 @@ BOOLEAN l2cu_set_acl_priority (BD_ADDR bd_addr, UINT8 priority, BOOLEAN reset_af
             }
         }
     }
-#endif
     return(TRUE);
 }
 

@@ -996,6 +996,12 @@ typedef struct
 
 #define HCIT_LM_DIAG_LENGTH 63
 
+/* Parameter information for HCI_BRCM_SET_ACL_PRIORITY */
+#define HCI_BRCM_ACL_PRIORITY_PARAM_SIZE    3
+#define HCI_BRCM_ACL_PRIORITY_LOW           0x00
+#define HCI_BRCM_ACL_PRIORITY_HIGH          0xFF
+#define HCI_BRCM_SET_ACL_PRIORITY           (0x0057 | HCI_GRP_VENDOR_SPECIFIC)
+
 /* Define values for LMP Test Control parameters 
 ** Test Scenario, Hopping Mode, Power Control Mode
 */
