@@ -1160,13 +1160,7 @@ static void btu_hcif_command_complete_evt (UINT8 controller_id, UINT8 *p, UINT16
                 p_cplt_cback = *((void **)(p_cmd + 1));
             }
 
-// btla-specific ++
-#if (defined(BTE_HCIUTILS_HOOK_INCLUDED) && (BTE_HCIUTILS_HOOK_INCLUDED == TRUE))
-           HCIUTILS_COPY_AND_SEND_TO_BTE_APPL(BT_EVT_TO_LM_HCI_CMD, p_cmd);
-#else
             GKI_freebuf (p_cmd);
-#endif
-// btla-specific --
 
             break;
         }
@@ -1436,13 +1430,7 @@ static void btu_hcif_command_status_evt (UINT8 controller_id, UINT8 *p, UINT16 e
     /* free stored command */
     if (p_cmd != NULL)
     {
-// btla-specific ++
-#if (defined(BTE_HCIUTILS_HOOK_INCLUDED) && (BTE_HCIUTILS_HOOK_INCLUDED == TRUE))
-           HCIUTILS_COPY_AND_SEND_TO_BTE_APPL(BT_EVT_TO_LM_HCI_CMD, p_cmd);
-#else
         GKI_freebuf (p_cmd);
-#endif
-// btla-specific --
     }
 
     /* See if we can forward any more commands */

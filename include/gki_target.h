@@ -298,22 +298,19 @@ eL2CAP requires Pool ID 5
 If BTM_SCO_HCI_INCLUDED is FALSE, Pool ID 6 is unnecessary, otherwise set to 7 
 If BTA_HL_INCLUDED is FALSE then Pool ID 7 is uncessary and set the following to 7, otherwise set to 8
 If BLE_INCLUDED is FALSE then Pool ID 8 is uncessary and set the following to 8, otherwise set to 9
-If HCIUTILS_HOOK_INCLUDED is TRUE then Pool ID 9 is needed
+POOL_ID 9 is a public pool meant for large buffer needs such as SDP_DB
 */
 // btla-specific ++
 #ifndef GKI_NUM_FIXED_BUF_POOLS
-#if (defined(BTE_HCIUTILS_HOOK_INCLUDED) && (BTE_HCIUTILS_HOOK_INCLUDED == TRUE))
 #define GKI_NUM_FIXED_BUF_POOLS     10
-#else
-#define GKI_NUM_FIXED_BUF_POOLS     9
 #endif
-#endif
-// btla-specific --
 
 /* The buffer pool usage mask. */
 #ifndef GKI_DEF_BUFPOOL_PERM_MASK
-#define GKI_DEF_BUFPOOL_PERM_MASK   0xfff0
+/* Setting POOL_ID 9 as a public pool meant for large buffers such as SDP_DB */
+#define GKI_DEF_BUFPOOL_PERM_MASK   0xfdf0
 #endif
+// btla-specific --
 
 /* The number of fixed and dynamic buffer pools */
 #ifndef GKI_NUM_TOTAL_BUF_POOLS
@@ -441,17 +438,17 @@ over HCI data and intentionally kept out of order */
 #endif
 
 // btla-specific ++
-/* The following pool is a dedicated pool for HCIUTILS */
+/* The following pool is  meant for large allocations such as SDP_DB */
 #ifndef GKI_POOL_ID_9
 #define GKI_POOL_ID_9              9
 #endif
 
 #ifndef GKI_BUF9_SIZE
-#define GKI_BUF9_SIZE            256
+#define GKI_BUF9_SIZE            8192
 #endif
 
 #ifndef GKI_BUF9_MAX
-#define GKI_BUF9_MAX           250
+#define GKI_BUF9_MAX           5
 #endif
 // btla-specific --
 
