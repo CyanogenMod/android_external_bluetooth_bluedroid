@@ -515,7 +515,8 @@ static void bta_ag_send_ind(tBTA_AG_SCB *p_scb, UINT16 id, UINT16 value, BOOLEAN
 
     if ((id == BTA_AG_IND_CALLHELD) && (on_demand == FALSE))
     {
-        if (value == p_scb->callheld_ind)
+        /* call swap could result in sending callheld=1 multiple times */
+        if ((value != 1) && (value == p_scb->callheld_ind))
             return;
 
         p_scb->callheld_ind = (UINT8)value;

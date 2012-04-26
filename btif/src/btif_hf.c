@@ -726,14 +726,17 @@ static bt_status_t cind_response(int svc, int num_active, int num_held,
         tBTA_AG_RES_DATA    ag_res;
 
         memset (&ag_res, 0, sizeof (ag_res));
+        /* per the errata 2043, call=1 implies atleast one call is in progress (active/held)
+        ** https://www.bluetooth.org/errata/errata_view.cfm?errata_id=2043
+        **/
         sprintf (ag_res.str, "%d,%d,%d,%d,%d,%d,%d",
-                (num_active ? 1 : 0),           /* Call state */
-                callstate_to_callsetup(call_setup_state), /* Callsetup state */
-                svc,                            /* network service */
-                signal,                         /* Signal strength */
-                roam,                           /* Roaming indicator */
-                batt_chg,                       /* Battery level */
-                (num_held ? 1 : 0));            /* Call held */
+                (num_active + num_held) ? 1 : 0,                       /* Call state */
+                callstate_to_callsetup(call_setup_state),              /* Callsetup state */
+                svc,                                                   /* network service */
+                signal,                                                /* Signal strength */
+                roam,                                                  /* Roaming indicator */
+                batt_chg,                                              /* Battery level */
+                ((num_held == 0) ? 0 : ((num_active == 0) ? 2 : 1))); /* Call held */
 
         BTA_AgResult (btif_hf_cb.handle, BTA_AG_CIND_RES, &ag_res);
 
