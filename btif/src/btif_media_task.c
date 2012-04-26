@@ -1069,7 +1069,7 @@ static int ra_adjust(void)
     time_elapsed_us = (now.tv_sec - btif_media_cb.ra.time_start.tv_sec) * USEC_PER_SEC + \
                       (now.tv_nsec - btif_media_cb.ra.time_start.tv_nsec)/1000;
 
-    VERBOSE("tx_pcmtime_us : %d us, elapsed : %d us", btif_media_cb.ra.tx_pcmtime_us,
+    VERBOSE("tx_pcmtime_us : %llu us, elapsed : %llu us", btif_media_cb.ra.tx_pcmtime_us,
                        time_elapsed_us);
 
     /* compare elapsed time vs read pcm time */
@@ -2007,6 +2007,7 @@ BT_HDR *btif_media_aa_readbuf(void)
  ** Returns          void
  **
  *******************************************************************************/
+
 BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
 {
     UINT16 event;

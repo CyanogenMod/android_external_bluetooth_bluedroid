@@ -669,22 +669,22 @@ static void bte_av_callback(tBTA_AV_EVT event, tBTA_AV *p_data)
 bt_status_t btif_av_init(void)
 {
     if (btif_av_cb.sm_handle == NULL)
-{
+    {
         if (btif_a2dp_start_media_task() != GKI_SUCCESS)
-        return BT_STATUS_FAIL;
+            return BT_STATUS_FAIL;
 
-    btif_enable_service(BTA_A2DP_SERVICE_ID);
+        btif_enable_service(BTA_A2DP_SERVICE_ID);
 
-    /* Initialize the AVRC CB */
-    btif_rc_init();
+        /* Initialize the AVRC CB */
+        btif_rc_init();
 
-    /* Also initialize the AV state machine */
-    btif_av_cb.sm_handle = btif_sm_init((const btif_sm_handler_t*)btif_av_state_handlers, BTIF_AV_STATE_IDLE);
+        /* Also initialize the AV state machine */
+        btif_av_cb.sm_handle = btif_sm_init((const btif_sm_handler_t*)btif_av_state_handlers, BTIF_AV_STATE_IDLE);
 
-    btif_a2dp_on_init();
+        btif_a2dp_on_init();
 
-    return BT_STATUS_SUCCESS;
-}
+        return BT_STATUS_SUCCESS;
+    }
 
     return BT_STATUS_DONE;
 }
@@ -710,9 +710,6 @@ static bt_status_t init(btav_callbacks_t* callbacks )
 
     bt_av_callbacks = callbacks;
     btif_av_cb.sm_handle = NULL;
-
-    /* check if stack/gki is started/enabled yet, if not defer until bluetooth
-       is enabled */
 
     return btif_av_init();
 }
@@ -821,8 +818,16 @@ btif_sm_handle_t btif_av_get_sm_handle(void)
 BOOLEAN btif_av_stream_ready(void)
 {
     btif_sm_state_t state = btif_sm_get_state(btif_av_cb.sm_handle);
+
     BTIF_TRACE_EVENT2("btif_av_stream_ready : sm hdl %d, state %d",
                 btif_av_cb.sm_handle, state);
+
+    /* also make sure main adapter is enabled */
+    if (btif_is_enabled() == 0)
+    {
+        BTIF_TRACE_EVENT0("main adapter not enabled");
+        return FALSE;
+    }
     return (state == BTIF_AV_STATE_OPENED);
 }
 

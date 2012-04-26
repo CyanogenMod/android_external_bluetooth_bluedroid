@@ -56,9 +56,7 @@
 
 #include <stdlib.h>
 #include <hardware/bluetooth.h>
-
 #include <string.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -67,7 +65,6 @@
 #include <cutils/properties.h>
 
 #define LOG_TAG "BTIF_CORE"
-
 #include "btif_api.h"
 #include "bta_api.h"
 #include "gki.h"
@@ -79,6 +76,7 @@
 #include "btif_util.h"
 #include "btif_sock.h"
 #include "btif_pan.h"
+
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
@@ -92,18 +90,14 @@
 #endif
 
 #define BTIF_TASK_STR        ((INT8 *) "BTIF")
-static UINT32 btif_task_stack[(BTIF_TASK_STACK_SIZE + 3) / 4];
 
-
-/* checks whether any HAL operation other than enable is permitted */
-static int btif_enabled = 0;
-static int btif_shutdown_pending = 0;
-static tBTA_SERVICE_MASK btif_enabled_services = 0;
 /************************************************************************************
 **  Local type definitions
 ************************************************************************************/
+
 /* These type definitions are used when passing data from the HAL to BTIF context
 *  in the downstream path for the adapter and remote_device property APIs */
+
 typedef struct {
   bt_bdaddr_t bd_addr;
   bt_property_type_t type;
@@ -118,10 +112,28 @@ typedef union {
   btif_storage_read_t read_req;
   btif_storage_write_t write_req;
 } btif_storage_req_t;
+
+typedef enum {
+    BTIF_CORE_STATE_DISABLED = 0,
+    BTIF_CORE_STATE_ENABLING,
+    BTIF_CORE_STATE_ENABLED,
+    BTIF_CORE_STATE_DISABLING
+} btif_core_state_t;
+
 /************************************************************************************
 **  Static variables
 ************************************************************************************/
+
 bt_bdaddr_t btif_local_bd_addr;
+
+static UINT32 btif_task_stack[(BTIF_TASK_STACK_SIZE + 3) / 4];
+
+/* holds main adapter state */
+static btif_core_state_t btif_core_state = BTIF_CORE_STATE_DISABLED;
+
+static int btif_shutdown_pending = 0;
+static tBTA_SERVICE_MASK btif_enabled_services = 0;
+
 /************************************************************************************
 **  Static functions
 ************************************************************************************/
@@ -231,6 +243,22 @@ bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_p
         /* let caller deal with a failed allocation */
         return BT_STATUS_NOMEM;
     }
+}
+
+
+/*******************************************************************************
+**
+** Function         btif_is_enabled
+**
+** Description      checks if main adapter is fully enabled
+**
+** Returns          1 if fully enabled, otherwize 0
+**
+*******************************************************************************/
+
+int btif_is_enabled(void)
+{
+    return (btif_core_state == BTIF_CORE_STATE_ENABLED);
 }
 
 /*******************************************************************************
@@ -453,23 +481,18 @@ static bt_status_t btif_associate_evt(void)
 
 bt_status_t btif_enable_bluetooth(void)
 {
-    tBTA_STATUS status = BT_STATUS_SUCCESS;
+    BTIF_TRACE_DEBUG0("BTIF ENABLE BLUETOOTH");
 
-    LOGI("btif_enable_bluetooth");
-
-    if (btif_enabled == 1)
+    if (btif_core_state != BTIF_CORE_STATE_DISABLED)
     {
-        LOGD("already enabled\n");
+        LOGD("not disabled\n");
         return BT_STATUS_DONE;
     }
 
-    /* add return status for create tasks functions ? */
+    btif_core_state = BTIF_CORE_STATE_ENABLING;
 
     /* Create the GKI tasks and run them */
     bte_main_enable(btif_local_bd_addr.address);
-
-    if (status != BTA_SUCCESS)
-        return BT_STATUS_FAIL;
 
     return BT_STATUS_SUCCESS;
 }
@@ -494,7 +517,6 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
     bdcpy(bd_addr.address, local_bd);
     BTIF_TRACE_DEBUG3("%s: status %d, local bd [%s]", __FUNCTION__, status,
                                                      bd2str(&bd_addr, &bdstr));
-
     bte_main_postload_cfg();
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
     bte_main_enable_lpm(TRUE);
@@ -504,19 +526,20 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
     /* callback to HAL */
     if (status == BTA_SUCCESS)
     {
-        /* store state */
-        btif_enabled = 1;
-
-        /* check if we have a deferred av init */
+        /* initialize a2dp service */
         btif_av_init();
 
         /* init rfcomm & l2cap api */
         btif_sock_init();
+
         /* init pan */
         btif_pan_init();
 
         /* load did configuration */
         bte_load_did_conf(BTE_DID_CONF_FILE);
+
+        /* now fully enabled, update state */
+        btif_core_state = BTIF_CORE_STATE_ENABLED;
 
         HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_ON);
     }
@@ -527,7 +550,8 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
 
         btif_pan_cleanup();
 
-        btif_enabled = 0;
+        /* we failed to enable, reset state */
+        btif_core_state = BTIF_CORE_STATE_DISABLED;
 
         HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
     }
@@ -549,25 +573,30 @@ bt_status_t btif_disable_bluetooth(void)
 {
     tBTA_STATUS status;
 
-    if (btif_enabled == 0)
+    if (!btif_is_enabled())
     {
         BTIF_TRACE_ERROR0("btif_disable_bluetooth : not yet enabled");
-        return BT_STATUS_FAIL;
+        return BT_STATUS_NOT_READY;
     }
 
-    BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
+    BTIF_TRACE_DEBUG0("BTIF DISABLE BLUETOOTH");
+
+    btif_core_state = BTIF_CORE_STATE_DISABLING;
 
     /* cleanup rfcomm & l2cap api */
     btif_sock_cleanup();
 
     btif_pan_cleanup();
 
-
     status = BTA_DisableBluetooth();
 
     if (status != BTA_SUCCESS)
     {
         BTIF_TRACE_ERROR1("disable bt failed (%d)", status);
+
+        /* reset the original state to allow attempting disable again */
+        btif_core_state = BTIF_CORE_STATE_ENABLED;
+
         return BT_STATUS_FAIL;
     }
     return BT_STATUS_SUCCESS;
@@ -590,17 +619,16 @@ void btif_disable_bluetooth_evt(void)
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
 
     bte_main_disable();
-    BTIF_TRACE_DEBUG1("%s: returning from bte_main_disable", __FUNCTION__);
+
+    /* update local state */
+    btif_core_state = BTIF_CORE_STATE_DISABLED;
 
     /* callback to HAL */
     HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
 
-    /* update local state */
-    btif_enabled = 0;
-
     if (btif_shutdown_pending)
     {
-      BTIF_TRACE_DEBUG1("%s: calling btif_shutdown_bluetooth", __FUNCTION__);
+        BTIF_TRACE_DEBUG1("%s: calling btif_shutdown_bluetooth", __FUNCTION__);
         btif_shutdown_bluetooth();
     }
 }
@@ -621,22 +649,22 @@ bt_status_t btif_shutdown_bluetooth(void)
 {
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
 
-    if (btif_enabled)
+    if (btif_is_enabled())
     {
         BTIF_TRACE_WARNING0("shutdown while still enabled, initiate disable");
 
         /* shutdown called prior to disabling, initiate disable */
         btif_disable_bluetooth();
         btif_shutdown_pending = 1;
-        return BT_STATUS_SUCCESS;
+        return BT_STATUS_NOT_READY;
     }
 
     btif_shutdown_pending = 0;
 
     GKI_destroy_task(BTIF_TASK);
-    BTIF_TRACE_DEBUG1("%s: calling bte_main_shutdown", __FUNCTION__);
     bte_main_shutdown();
-    BTIF_TRACE_DEBUG1("Leaving %s", __FUNCTION__);
+
+    BTIF_TRACE_DEBUG1("%s done", __FUNCTION__);
 
     return BT_STATUS_SUCCESS;
 }
@@ -932,8 +960,8 @@ bt_status_t btif_get_adapter_properties(void)
 {
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
 
-    if (btif_enabled == 0)
-        return BT_STATUS_FAIL;
+    if (!btif_is_enabled())
+        return BT_STATUS_NOT_READY;
 
     return btif_transfer_context(execute_storage_request,
                                  BTIF_CORE_STORAGE_ADAPTER_READ_ALL,
@@ -957,8 +985,8 @@ bt_status_t btif_get_adapter_property(bt_property_type_t type)
     BTIF_TRACE_EVENT2("%s %d", __FUNCTION__, type);
 
     /* Allow get_adapter_property only for BDADDR and BDNAME if BT is disabled */
-    if ((btif_enabled == 0) && (type != BT_PROPERTY_BDADDR) && (type != BT_PROPERTY_BDNAME))
-        return BT_STATUS_FAIL;
+    if (!btif_is_enabled() && (type != BT_PROPERTY_BDADDR) && (type != BT_PROPERTY_BDNAME))
+        return BT_STATUS_NOT_READY;
 
     memset(&(req.read_req.bd_addr), 0, sizeof(bt_bdaddr_t));
     req.read_req.type = type;
@@ -988,8 +1016,8 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
     BTIF_TRACE_EVENT3("btif_set_adapter_property type: %d, len %d, 0x%x",
                       property->type, property->len, property->val);
 
-    if (btif_enabled == 0)
-        return BT_STATUS_FAIL;
+    if (!btif_is_enabled())
+        return BT_STATUS_NOT_READY;
 
     switch(property->type)
     {
@@ -1093,8 +1121,8 @@ bt_status_t btif_get_remote_device_property(bt_bdaddr_t *remote_addr,
 {
     btif_storage_req_t req;
 
-    if (btif_enabled == 0)
-        return BT_STATUS_FAIL;
+    if (!btif_is_enabled())
+        return BT_STATUS_NOT_READY;
 
     memcpy(&(req.read_req.bd_addr), remote_addr, sizeof(bt_bdaddr_t));
     req.read_req.type = type;
@@ -1117,8 +1145,8 @@ bt_status_t btif_get_remote_device_properties(bt_bdaddr_t *remote_addr)
 {
     btif_storage_req_t req;
 
-    if (btif_enabled == 0)
-    return BT_STATUS_FAIL;
+    if (!btif_is_enabled())
+        return BT_STATUS_NOT_READY;
 
     memcpy(&(req.read_req.bd_addr), remote_addr, sizeof(bt_bdaddr_t));
     return btif_transfer_context(execute_storage_remote_request,
@@ -1143,8 +1171,8 @@ bt_status_t btif_set_remote_device_property(bt_bdaddr_t *remote_addr,
 {
     btif_storage_req_t req;
 
-    if (btif_enabled == 0)
-        return BT_STATUS_FAIL;
+    if (!btif_is_enabled())
+        return BT_STATUS_NOT_READY;
 
     memcpy(&(req.write_req.bd_addr), remote_addr, sizeof(bt_bdaddr_t));
     memcpy(&(req.write_req.prop), property, sizeof(bt_property_t));
@@ -1170,20 +1198,26 @@ bt_status_t btif_set_remote_device_property(bt_bdaddr_t *remote_addr,
 bt_status_t btif_get_remote_service_record(bt_bdaddr_t *remote_addr,
                                                bt_uuid_t *uuid)
 {
-    if (btif_enabled == 0)
-        return BT_STATUS_FAIL;
+    if (!btif_is_enabled())
+        return BT_STATUS_NOT_READY;
 
     return btif_dm_get_remote_service_record(remote_addr, uuid);
 }
 
+
+/*******************************************************************************
+**
+** Function         btif_get_enabled_services_mask
+**
+** Description      Fetches currently enabled services
+**
+** Returns          tBTA_SERVICE_MASK
+**
+*******************************************************************************/
+
 tBTA_SERVICE_MASK btif_get_enabled_services_mask(void)
 {
     return btif_enabled_services;
-}
-
-int btif_is_enabled(void)
-{
-    return btif_enabled;
 }
 
 /*******************************************************************************
@@ -1199,21 +1233,26 @@ int btif_is_enabled(void)
 *******************************************************************************/
 bt_status_t btif_enable_service(tBTA_SERVICE_ID service_id)
 {
-      tBTA_SERVICE_ID *p_id = &service_id;
-     /* If BT is enabled, we need to switch to BTIF context and trigger the
-      * enable for that profile
-      *
-      * Otherwise, we just set the flag. On BT_Enable, the DM will trigger
-      * enable for the profiles that have been enabled */
-     btif_enabled_services |= (1 << service_id);
-     BTIF_TRACE_ERROR2("%s: Current Services:0x%x", __FUNCTION__, btif_enabled_services);
-     if (btif_enabled == 1)
-     {
-          btif_transfer_context(btif_dm_execute_service_request,
-                                BTIF_DM_ENABLE_SERVICE,
-                                (char*)p_id, sizeof(tBTA_SERVICE_ID), NULL);
-     }
-     return BT_STATUS_SUCCESS;
+    tBTA_SERVICE_ID *p_id = &service_id;
+
+    /* If BT is enabled, we need to switch to BTIF context and trigger the
+     * enable for that profile
+     *
+     * Otherwise, we just set the flag. On BT_Enable, the DM will trigger
+     * enable for the profiles that have been enabled */
+
+    btif_enabled_services |= (1 << service_id);
+
+    BTIF_TRACE_ERROR2("%s: current services:0x%x", __FUNCTION__, btif_enabled_services);
+
+    if (btif_is_enabled())
+    {
+        btif_transfer_context(btif_dm_execute_service_request,
+                              BTIF_DM_ENABLE_SERVICE,
+                              (char*)p_id, sizeof(tBTA_SERVICE_ID), NULL);
+    }
+
+    return BT_STATUS_SUCCESS;
 }
 /*******************************************************************************
 **
@@ -1228,18 +1267,23 @@ bt_status_t btif_enable_service(tBTA_SERVICE_ID service_id)
 *******************************************************************************/
 bt_status_t btif_disable_service(tBTA_SERVICE_ID service_id)
 {
-      tBTA_SERVICE_ID *p_id = &service_id;
-     /* If BT is enabled, we need to switch to BTIF context and trigger the
-      * disable for that profile so that the appropriate uuid_property_changed will
-      * be triggerred. Otherwise, we just need to clear the service_id in the mask
-      */
-     btif_enabled_services &=  (tBTA_SERVICE_MASK)(~(1<<service_id));
-     BTIF_TRACE_ERROR2("%s: Current Services:0x%x", __FUNCTION__, btif_enabled_services);
-    if (btif_enabled == 1)
-     {
-          btif_transfer_context(btif_dm_execute_service_request,
-                                BTIF_DM_DISABLE_SERVICE,
-                                (char*)p_id, sizeof(tBTA_SERVICE_ID), NULL);
-     }
-     return BT_STATUS_SUCCESS;
+    tBTA_SERVICE_ID *p_id = &service_id;
+
+    /* If BT is enabled, we need to switch to BTIF context and trigger the
+     * disable for that profile so that the appropriate uuid_property_changed will
+     * be triggerred. Otherwise, we just need to clear the service_id in the mask
+     */
+
+    btif_enabled_services &=  (tBTA_SERVICE_MASK)(~(1<<service_id));
+
+    BTIF_TRACE_ERROR2("%s: Current Services:0x%x", __FUNCTION__, btif_enabled_services);
+
+    if (btif_is_enabled())
+    {
+        btif_transfer_context(btif_dm_execute_service_request,
+                              BTIF_DM_DISABLE_SERVICE,
+                              (char*)p_id, sizeof(tBTA_SERVICE_ID), NULL);
+    }
+
+    return BT_STATUS_SUCCESS;
 }
