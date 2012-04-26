@@ -258,35 +258,35 @@ void bta_hl_co_delete_mdl(UINT8 app_id, UINT8 item_idx)
 BOOLEAN bta_hl_co_load_mdl_config (UINT8 app_id, UINT8 buffer_size,
                                    tBTA_HL_MDL_CFG *p_mdl_buf )
 {
-    tBTA_HL_MDL_CFG *p;
-    BOOLEAN success = TRUE;
+    BOOLEAN result = TRUE;
     UINT8 i;
+    tBTA_HL_MDL_CFG *p;
 
-
-    BTIF_TRACE_DEBUG3("%s app_id=%d, buffer_size=%d",
+    BTIF_TRACE_DEBUG3("%s app_id=%d, num_items=%d",
                       __FUNCTION__, app_id, buffer_size);
-
 
     if (buffer_size > BTA_HL_NUM_MDL_CFGS)
     {
-        success= FALSE;
-        return success;
+        result = FALSE;
+        return result;
     }
+    result = btif_hl_load_mdl_config(app_id, buffer_size, p_mdl_buf);
 
-    p = p_mdl_buf;
-
-    for (i=0; i < buffer_size; i++, p++)
+    if (result)
     {
-        memset(p, 0, sizeof(tBTA_HL_MDL_CFG));
-        /* todo load from NV */
+        for (i=0, p=p_mdl_buf; i<buffer_size; i++, p++ )
+        {
+            if (p->active)
+            {
+                BTIF_TRACE_DEBUG6("i=%d mdl_id=0x%x dch_mode=%d local mdep_role=%d mdep_id=%d mtu=%d",
+                                  i, p->mdl_id, p->dch_mode, p->local_mdep_role, p->local_mdep_role, p->mtu);
+            }
+        }
     }
 
+    BTIF_TRACE_DEBUG3("%s success=%d num_items=%d", __FUNCTION__, result, buffer_size);
 
-    BTIF_TRACE_DEBUG3("%s success=%d num_items=%d",
-                      __FUNCTION__, success, buffer_size);
-
-
-    return success;
+    return result;
 }
 
 /*******************************************************************************

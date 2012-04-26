@@ -199,7 +199,66 @@ int unv_write_key( const char *path,
 
 int unv_remove_key( const char *path,
                     const char *key );
-
+/*******************************************************************************
+**
+** Function         unv_read_hl_apps_cb
+**
+** Description      read HL applciation contorl block
+**
+** Parameters
+**                  path        : path of file
+**                  value       : pointer to value
+**                  value_size  : size of value
+**
+** Returns         0 if successful, -1 if failure
+**
+******************************************************************************/
+int unv_read_hl_apps_cb(const char *path, char *value, int value_size);
+/*******************************************************************************
+**
+** Function         unv_write_hl_apps_cb
+**
+** Description      write HL applciation contorl block
+**
+** Parameters
+**                  path        : path of file
+**                  value       : pointer to value
+**                  value_size  : size of value
+**
+** Returns         0 if successful, -1 if failure
+**
+******************************************************************************/
+int unv_write_hl_apps_cb(const char *path, char *value, int value_size);
+/*******************************************************************************
+**
+** Function         unv_read_hl_data
+**
+** Description      read HL applciation data
+**
+** Parameters
+**                  path        : path of file
+**                  value       : pointer to value
+**                  value_size  : size of value
+**
+** Returns         0 if successful, -1 if failure
+**
+******************************************************************************/
+int unv_read_hl_data(const char *path, char *value, int value_size);
+/*******************************************************************************
+**
+** Function         unv_write_hl_data
+**
+** Description      write HL applciation data
+**
+** Parameters
+**                  path        : path of file
+**                  value       : pointer to value
+**                  value_size  : size of value
+**
+** Returns         0 if successful, -1 if failure
+**
+******************************************************************************/
+int unv_write_hl_data(const char *path, char *value, int value_size);
 #endif /* UNV_H */
 
 

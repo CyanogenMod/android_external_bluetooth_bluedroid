@@ -65,7 +65,7 @@
 **  Constants & Macros
 ************************************************************************************/
 #define BTIF_STORAGE_FILL_PROPERTY(p_prop, t, l, p_v) \
-		 (p_prop)->type = t;(p_prop)->len = l; (p_prop)->val = (p_v);
+         (p_prop)->type = t;(p_prop)->len = l; (p_prop)->val = (p_v);
 
 /************************************************************************************
 **  Type definitions for callback functions
@@ -184,6 +184,73 @@ bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t *remote_bd_addr);
 **
 *******************************************************************************/
 bt_status_t btif_storage_load_bonded_devices(void);
+/*******************************************************************************
+**
+** Function         btif_storage_read_hl_apps_cb
+**
+** Description      BTIF storage API - Read HL application control block from NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the operation was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size);
+
+/*******************************************************************************
+**
+** Function         btif_storage_write_hl_apps_cb
+**
+** Description      BTIF storage API - Write HL application control block to NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the operation was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_write_hl_apps_cb(char *value, int value_size);
+/*******************************************************************************
+**
+** Function         btif_storage_read_hl_apps_cb
+**
+** Description      BTIF storage API - Read HL application configuration from NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the operation was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_read_hl_app_data(UINT8 app_idx, char *value, int value_size);
+/*******************************************************************************
+**
+** Function         btif_storage_write_hl_app_data
+**
+** Description      BTIF storage API - Write HL application configuration to NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the operation was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_write_hl_app_data(UINT8 app_idx, char *value, int value_size);
+/*******************************************************************************
+**
+** Function         btif_storage_read_hl_mdl_data
+**
+** Description      BTIF storage API - Read HL application MDL configuration from NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the operation was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_read_hl_mdl_data(UINT8 app_idx, char *value, int value_size);
+/*******************************************************************************
+**
+** Function         btif_storage_write_hl_mdl_data
+**
+** Description      BTIF storage API - Write HL application MDL configuration from NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the operation was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_write_hl_mdl_data(UINT8 app_idx, char *value, int value_size);
 
 /*******************************************************************************
 **

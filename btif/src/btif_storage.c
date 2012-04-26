@@ -188,13 +188,19 @@
 
 /* check against unv max entry size at compile time */
 #if (BTIF_STORAGE_ENTRY_MAX_SIZE > UNV_MAXLINE_LENGTH)
-#error "btif storage entry size exceeds unv max line size"
+    #error "btif storage entry size exceeds unv max line size"
 #endif
 
+
+
+#define BTIF_STORAGE_HL_APP_CB "hl_app_cb"
+#define BTIF_STORAGE_HL_APP_DATA "hl_app_data_"
+#define BTIF_STORAGE_HL_APP_MDL_DATA "hl_app_mdl_data_"
 /************************************************************************************
 **  Local type definitions
 ************************************************************************************/
-typedef struct {
+typedef struct
+{
     uint32_t num_devices;
     bt_bdaddr_t devices[BTM_SEC_MAX_DEVICE_RECORDS];
 } btif_bonded_devices_t;
@@ -223,22 +229,22 @@ extern bt_bdaddr_t btif_local_bd_addr;
 *******************************************************************************/
 static char* btif_in_make_filename(bt_bdaddr_t *bd_addr, char *fname)
 {
-   static char path[256];
-   bdstr_t bdstr;
+    static char path[256];
+    bdstr_t bdstr;
 
-   if (fname == NULL)return NULL;
-   if (bd_addr)
-   {
+    if (fname == NULL)return NULL;
+    if (bd_addr)
+    {
         sprintf(path, "%s/%s/%s", BTIF_STORAGE_PATH_BLUEDROID,
-                             bd2str(bd_addr, &bdstr), fname);
-   }
-   else
-   {
+                bd2str(bd_addr, &bdstr), fname);
+    }
+    else
+    {
         /* local adapter */
         sprintf(path, "%s/LOCAL/%s", BTIF_STORAGE_PATH_BLUEDROID, fname);
-   }
+    }
 
-   return (char*)path;
+    return(char*)path;
 }
 
 /*******************************************************************************
@@ -253,8 +259,8 @@ static char* btif_in_make_filename(bt_bdaddr_t *bd_addr, char *fname)
 *******************************************************************************/
 static const char *btif_in_get_adapter_key_from_type(bt_property_type_t type)
 {
-     switch (type)
-     {
+    switch (type)
+    {
         case BT_PROPERTY_BDNAME:
             return BTIF_STORAGE_KEY_ADAPTER_NAME;
         case BT_PROPERTY_ADAPTER_SCAN_MODE:
@@ -264,7 +270,7 @@ static const char *btif_in_get_adapter_key_from_type(bt_property_type_t type)
         default:
             /* return valid string to avoid passing NULL to NV RAM driver */
             return "NO_KEY";
-     }
+    }
 }
 
 /*******************************************************************************
@@ -278,7 +284,7 @@ static const char *btif_in_get_adapter_key_from_type(bt_property_type_t type)
 **
 *******************************************************************************/
 static void btif_in_split_uuids_string_to_list(char *str, bt_uuid_t *p_uuid,
-                                                uint32_t *p_num_uuid)
+                                               uint32_t *p_num_uuid)
 {
     char buf[64];
     char *p_start = str;
@@ -317,59 +323,60 @@ static bt_status_t btif_in_str_to_property(char *value, bt_property_t *property)
 
     /* if Value is NULL, then just set the property->len to 0 and return.
        This is possible if the entry does not exist  */
-    if (value == NULL) {
+    if (value == NULL)
+    {
         status = BT_STATUS_FAIL;
     }
     switch (property->type)
     {
         case BT_PROPERTY_BDNAME:
         case BT_PROPERTY_REMOTE_FRIENDLY_NAME:
-        {
-            *((char*)property->val) = 0;
-            if (value)
             {
-                property->len = strlen(value)+1;
-                strcpy((char*)property->val, value);
-            }
-        } break;
+                *((char*)property->val) = 0;
+                if (value)
+                {
+                    property->len = strlen(value)+1;
+                    strcpy((char*)property->val, value);
+                }
+            } break;
         case BT_PROPERTY_ADAPTER_SCAN_MODE:
         case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
-        {
-            *((uint32_t *)property->val) = 0;
-            if (value)
             {
-                uint32_t ival;
-                property->len = sizeof(uint32_t);
-                ival = atoi(value);
-                memcpy((uint32_t*)property->val, &ival, sizeof(uint32_t));
-            }
-        } break;
+                *((uint32_t *)property->val) = 0;
+                if (value)
+                {
+                    uint32_t ival;
+                    property->len = sizeof(uint32_t);
+                    ival = atoi(value);
+                    memcpy((uint32_t*)property->val, &ival, sizeof(uint32_t));
+                }
+            } break;
         case BT_PROPERTY_CLASS_OF_DEVICE:
         case BT_PROPERTY_TYPE_OF_DEVICE:
-        {
-            *((uint32_t *)property->val) = 0;
-            if (value)
             {
-                uint32_t ival;
-                property->len = sizeof(uint32_t);
-                ival = strtol(value, NULL, 16);
-                memcpy((uint32_t*)property->val, &ival, sizeof(uint32_t));
-            }
-        } break;
+                *((uint32_t *)property->val) = 0;
+                if (value)
+                {
+                    uint32_t ival;
+                    property->len = sizeof(uint32_t);
+                    ival = strtol(value, NULL, 16);
+                    memcpy((uint32_t*)property->val, &ival, sizeof(uint32_t));
+                }
+            } break;
         case BT_PROPERTY_UUIDS:
-        {
-            if (value)
             {
-                bt_uuid_t *p_uuid = (bt_uuid_t*)property->val;
-                uint32_t num_uuids = 0;
-                btif_in_split_uuids_string_to_list(value, p_uuid, &num_uuids);
-                property->len = num_uuids * sizeof(bt_uuid_t);
-            }
-        } break;
+                if (value)
+                {
+                    bt_uuid_t *p_uuid = (bt_uuid_t*)property->val;
+                    uint32_t num_uuids = 0;
+                    btif_in_split_uuids_string_to_list(value, p_uuid, &num_uuids);
+                    property->len = num_uuids * sizeof(bt_uuid_t);
+                }
+            } break;
         default:
-        {
-            break;
-        }
+            {
+                break;
+            }
     }
     return status;
 }
@@ -389,43 +396,43 @@ static bt_status_t btif_in_property_to_str(bt_property_t *property, char *value)
     switch (property->type)
     {
         case BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP:
-        {
-           sprintf(value, "%d", (int)time(NULL));
-        }break;
+            {
+                sprintf(value, "%d", (int)time(NULL));
+            }break;
         case BT_PROPERTY_BDNAME:
         case BT_PROPERTY_REMOTE_FRIENDLY_NAME:
-        {
-            strcpy(value, (char*)property->val);
-        }break;
+            {
+                strcpy(value, (char*)property->val);
+            }break;
         case BT_PROPERTY_ADAPTER_SCAN_MODE:
         case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
-        {
-           sprintf(value, "%d", *((uint32_t*)property->val));
-        }break;
+            {
+                sprintf(value, "%d", *((uint32_t*)property->val));
+            }break;
         case BT_PROPERTY_CLASS_OF_DEVICE:
         case BT_PROPERTY_TYPE_OF_DEVICE:
-        {
-            sprintf(value, "0x%x", *((uint32_t*)property->val));
-        }break;
-        case BT_PROPERTY_UUIDS:
-        {
-            uint32_t i;
-            char buf[64];
-            value[0] = 0;
-            for (i=0; i < (property->len)/sizeof(bt_uuid_t); i++)
             {
-                bt_uuid_t *p_uuid = (bt_uuid_t*)property->val + i;
-                memset(buf, 0, sizeof(buf));
-                uuid_to_string(p_uuid, buf);
-                strcat(value, buf);
-                strcat(value, ";");
-            }
-            value[strlen(value)] = 0;
-        }break;
+                sprintf(value, "0x%x", *((uint32_t*)property->val));
+            }break;
+        case BT_PROPERTY_UUIDS:
+            {
+                uint32_t i;
+                char buf[64];
+                value[0] = 0;
+                for (i=0; i < (property->len)/sizeof(bt_uuid_t); i++)
+                {
+                    bt_uuid_t *p_uuid = (bt_uuid_t*)property->val + i;
+                    memset(buf, 0, sizeof(buf));
+                    uuid_to_string(p_uuid, buf);
+                    strcat(value, buf);
+                    strcat(value, ";");
+                }
+                value[strlen(value)] = 0;
+            }break;
         default:
-        {
-           return BT_STATUS_FAIL;
-        }
+            {
+                return BT_STATUS_FAIL;
+            }
     }
     return BT_STATUS_SUCCESS;
 }
@@ -442,24 +449,24 @@ static bt_status_t btif_in_property_to_str(bt_property_t *property, char *value)
 *******************************************************************************/
 static char* btif_in_get_remote_device_path_from_property(bt_property_type_t type)
 {
-     switch (type)
-     {
-         case BT_PROPERTY_BDADDR:
-         case BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP:
-              return BTIF_STORAGE_PATH_REMOTE_DEVICES;
-         case BT_PROPERTY_BDNAME:
-              return BTIF_STORAGE_PATH_REMOTE_NAMES;
-         case BT_PROPERTY_CLASS_OF_DEVICE:
-              return BTIF_STORAGE_PATH_REMOTE_DEVCLASSES;
-         case BT_PROPERTY_TYPE_OF_DEVICE:
-              return BTIF_STORAGE_PATH_REMOTE_DEVTYPES;
-         case BT_PROPERTY_REMOTE_FRIENDLY_NAME:
-              return BTIF_STORAGE_PATH_REMOTE_ALIASES;
-         case BT_PROPERTY_UUIDS:
-              return BTIF_STORAGE_PATH_REMOTE_SERVICES;
-         default:
-              return NULL;
-     }
+    switch (type)
+    {
+        case BT_PROPERTY_BDADDR:
+        case BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP:
+            return BTIF_STORAGE_PATH_REMOTE_DEVICES;
+        case BT_PROPERTY_BDNAME:
+            return BTIF_STORAGE_PATH_REMOTE_NAMES;
+        case BT_PROPERTY_CLASS_OF_DEVICE:
+            return BTIF_STORAGE_PATH_REMOTE_DEVCLASSES;
+        case BT_PROPERTY_TYPE_OF_DEVICE:
+            return BTIF_STORAGE_PATH_REMOTE_DEVTYPES;
+        case BT_PROPERTY_REMOTE_FRIENDLY_NAME:
+            return BTIF_STORAGE_PATH_REMOTE_ALIASES;
+        case BT_PROPERTY_UUIDS:
+            return BTIF_STORAGE_PATH_REMOTE_SERVICES;
+        default:
+            return NULL;
+    }
 }
 
 /*******************************************************************************
@@ -519,7 +526,7 @@ int btif_in_load_device_iter_cb(char *key, char *value, void *userdata)
     /* add extracted information to BTA security manager */
     BTA_DmAddDevice(bd_addr.address, dev_class, link_key, 0, 0, key_type, 0);
 
-     /* Fill in the bonded devices */
+    /* Fill in the bonded devices */
     memcpy(&p_bonded_devices->devices[p_bonded_devices->num_devices++], &bd_addr, sizeof(bt_bdaddr_t));
 
     return 0;
@@ -630,7 +637,8 @@ static int hex_str_to_int(const char* str, int size)
 {
     int  n = 0;
     char c = *str++;
-    while (size-- != 0) {
+    while (size-- != 0)
+    {
         n <<= 4;
         if (c >= '0' && c <= '9') {
             n |= c - '0';
@@ -638,7 +646,8 @@ static int hex_str_to_int(const char* str, int size)
         else if (c >= 'a' && c <= 'z') {
             n |= c - 'a' + 10;
         }
-        else { // (c >= 'A' && c <= 'Z')
+        else // (c >= 'A' && c <= 'Z')
+        {
             n |= c - 'A' + 10;
         }
 
@@ -795,26 +804,27 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
         for (i=0; i < BTA_MAX_SERVICE_ID; i++)
         {
             /* This should eventually become a function when more services are enabled */
-            if(service_mask
+            if (service_mask
                 &(tBTA_SERVICE_MASK)(1 << i))
             {
-                 switch (i) {
-                     case BTA_HFP_SERVICE_ID:
-                     {
-                          uuid16_to_uuid128(UUID_SERVCLASS_AG_HANDSFREE,
-                                            p_uuid+num_uuids);
-                 num_uuids++;
-                          uuid16_to_uuid128(UUID_SERVCLASS_HEADSET_AUDIO_GATEWAY,
-                                       p_uuid+num_uuids);
-                     num_uuids++;
-                     }break;
-                     case BTA_A2DP_SERVICE_ID:
-                     {
-                          uuid16_to_uuid128(UUID_SERVCLASS_AUDIO_SOURCE,
-                                            p_uuid+num_uuids);
-                          num_uuids++;
-                     }break;
-                 }
+                switch (i)
+                {
+                    case BTA_HFP_SERVICE_ID:
+                        {
+                            uuid16_to_uuid128(UUID_SERVCLASS_AG_HANDSFREE,
+                                              p_uuid+num_uuids);
+                            num_uuids++;
+                            uuid16_to_uuid128(UUID_SERVCLASS_HEADSET_AUDIO_GATEWAY,
+                                              p_uuid+num_uuids);
+                            num_uuids++;
+                        }break;
+                    case BTA_A2DP_SERVICE_ID:
+                        {
+                            uuid16_to_uuid128(UUID_SERVCLASS_AUDIO_SOURCE,
+                                              p_uuid+num_uuids);
+                            num_uuids++;
+                        }break;
+                }
             }
         }
         property->len = (num_uuids)*sizeof(bt_uuid_t);
@@ -911,7 +921,7 @@ bt_status_t btif_storage_set_adapter_property(bt_property_t *property)
 **
 *******************************************************************************/
 bt_status_t btif_storage_get_remote_device_property(bt_bdaddr_t *remote_bd_addr,
-                                                           bt_property_t *property)
+                                                    bt_property_t *property)
 {
     char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
     char *fname;
@@ -920,11 +930,13 @@ bt_status_t btif_storage_get_remote_device_property(bt_bdaddr_t *remote_bd_addr,
     bdstr_t bdstr;
 
     fname = btif_in_make_filename(NULL,
-                  btif_in_get_remote_device_path_from_property(property->type));
+                                  btif_in_get_remote_device_path_from_property(property->type));
+
     if (fname == NULL)
     {
         return BT_STATUS_FAIL;
     }
+
 
     ret = unv_create_file(fname);
     if (ret < 0)
@@ -949,7 +961,7 @@ bt_status_t btif_storage_get_remote_device_property(bt_bdaddr_t *remote_bd_addr,
 **
 *******************************************************************************/
 bt_status_t btif_storage_set_remote_device_property(bt_bdaddr_t *remote_bd_addr,
-                                                          bt_property_t *property)
+                                                    bt_property_t *property)
 {
     char value[1200];
     char *fname;
@@ -957,11 +969,15 @@ bt_status_t btif_storage_set_remote_device_property(bt_bdaddr_t *remote_bd_addr,
     int ret;
 
     fname = btif_in_make_filename(NULL,
-                  btif_in_get_remote_device_path_from_property(property->type));
+                                  btif_in_get_remote_device_path_from_property(property->type));
+
+
     if (fname == NULL)
     {
         return BT_STATUS_FAIL;
     }
+
+
     ret = unv_create_file(fname);
     if (ret < 0)
     {
@@ -996,8 +1012,8 @@ bt_status_t btif_storage_set_remote_device_property(bt_bdaddr_t *remote_bd_addr,
 **
 *******************************************************************************/
 bt_status_t btif_storage_add_remote_device(bt_bdaddr_t *remote_bdaddr,
-                                                 uint32_t num_properties,
-                                                 bt_property_t *properties)
+                                           uint32_t num_properties,
+                                           bt_property_t *properties)
 {
     uint32_t i = 0;
     /* TODO: If writing a property, fails do we go back undo the earlier
@@ -1039,9 +1055,9 @@ bt_status_t btif_storage_add_remote_device(bt_bdaddr_t *remote_bdaddr,
 *******************************************************************************/
 
 bt_status_t btif_storage_add_bonded_device(bt_bdaddr_t *remote_bd_addr,
-                                                 LINK_KEY link_key,
-                                                 uint8_t key_type,
-                                                 uint8_t pin_length)
+                                           LINK_KEY link_key,
+                                           uint8_t key_type,
+                                           uint8_t pin_length)
 {
     char value[STORAGE_REMOTE_LINKKEYS_ENTRY_SIZE];
     uint32_t i = 0;
@@ -1073,7 +1089,7 @@ bt_status_t btif_storage_add_bonded_device(bt_bdaddr_t *remote_bd_addr,
     memset(value, 0, sizeof(value));
 
     for (i = 0; i < LINK_KEY_LEN; i++)
-       sprintf(value + (i * 2), "%2.2X", link_key[i]);
+        sprintf(value + (i * 2), "%2.2X", link_key[i]);
 
     sprintf(value + (LINK_KEY_LEN*2), " %d %d", key_type, pin_length);
 
@@ -1159,55 +1175,55 @@ bt_status_t btif_storage_load_bonded_devices(void)
 
     /* Now send the adapter_properties_cb with all adapter_properties */
     {
-         memset(adapter_props, 0, sizeof(adapter_props));
+        memset(adapter_props, 0, sizeof(adapter_props));
 
-         /* BD_ADDR */
-         BTIF_STORAGE_GET_ADAPTER_PROP(BT_PROPERTY_BDADDR, &addr, sizeof(addr),
+        /* BD_ADDR */
+        BTIF_STORAGE_GET_ADAPTER_PROP(BT_PROPERTY_BDADDR, &addr, sizeof(addr),
                                       adapter_props[num_props]);
-         num_props++;
+        num_props++;
 
-         /* BD_NAME */
-         BTIF_STORAGE_GET_ADAPTER_PROP(BT_PROPERTY_BDNAME, &name, sizeof(name),
-                                       adapter_props[num_props]);
-         num_props++;
+        /* BD_NAME */
+        BTIF_STORAGE_GET_ADAPTER_PROP(BT_PROPERTY_BDNAME, &name, sizeof(name),
+                                      adapter_props[num_props]);
+        num_props++;
 
-         /* SCAN_MODE */
-         /* TODO: At the time of BT on, always report the scan mode as 0 irrespective
-          of the scan_mode during the previous enable cycle.
-          This needs to be re-visited as part of the app/stack enable sequence
-          synchronization */
-         mode = BT_SCAN_MODE_NONE;
-         adapter_props[num_props].type = BT_PROPERTY_ADAPTER_SCAN_MODE;
-         adapter_props[num_props].len = sizeof(mode);
-         adapter_props[num_props].val = &mode;
-         num_props++;
+        /* SCAN_MODE */
+        /* TODO: At the time of BT on, always report the scan mode as 0 irrespective
+         of the scan_mode during the previous enable cycle.
+         This needs to be re-visited as part of the app/stack enable sequence
+         synchronization */
+        mode = BT_SCAN_MODE_NONE;
+        adapter_props[num_props].type = BT_PROPERTY_ADAPTER_SCAN_MODE;
+        adapter_props[num_props].len = sizeof(mode);
+        adapter_props[num_props].val = &mode;
+        num_props++;
 
-         /* DISC_TIMEOUT */
-         BTIF_STORAGE_GET_ADAPTER_PROP(BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT,
+        /* DISC_TIMEOUT */
+        BTIF_STORAGE_GET_ADAPTER_PROP(BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT,
                                       &disc_timeout, sizeof(disc_timeout),
                                       adapter_props[num_props]);
-         num_props++;
+        num_props++;
 
-         /* BONDED_DEVICES */
-         devices_list = (bt_bdaddr_t*)malloc(sizeof(bt_bdaddr_t)*bonded_devices.num_devices);
-         adapter_props[num_props].type = BT_PROPERTY_ADAPTER_BONDED_DEVICES;
-         adapter_props[num_props].len = bonded_devices.num_devices * sizeof(bt_bdaddr_t);
-         adapter_props[num_props].val = devices_list;
-         for (i=0; i < bonded_devices.num_devices; i++)
-         {
-             memcpy(devices_list + i, &bonded_devices.devices[i], sizeof(bt_bdaddr_t));
-         }
-         num_props++;
+        /* BONDED_DEVICES */
+        devices_list = (bt_bdaddr_t*)malloc(sizeof(bt_bdaddr_t)*bonded_devices.num_devices);
+        adapter_props[num_props].type = BT_PROPERTY_ADAPTER_BONDED_DEVICES;
+        adapter_props[num_props].len = bonded_devices.num_devices * sizeof(bt_bdaddr_t);
+        adapter_props[num_props].val = devices_list;
+        for (i=0; i < bonded_devices.num_devices; i++)
+        {
+            memcpy(devices_list + i, &bonded_devices.devices[i], sizeof(bt_bdaddr_t));
+        }
+        num_props++;
 
-         /* LOCAL UUIDs */
-         BTIF_STORAGE_GET_ADAPTER_PROP(BT_PROPERTY_UUIDS,
-                                       local_uuids, sizeof(local_uuids),
-                                             adapter_props[num_props]);
-         num_props++;
+        /* LOCAL UUIDs */
+        BTIF_STORAGE_GET_ADAPTER_PROP(BT_PROPERTY_UUIDS,
+                                      local_uuids, sizeof(local_uuids),
+                                      adapter_props[num_props]);
+        num_props++;
 
-         btif_adapter_properties_evt(BT_STATUS_SUCCESS, num_props, adapter_props);
+        btif_adapter_properties_evt(BT_STATUS_SUCCESS, num_props, adapter_props);
 
-         free(devices_list);
+        free(devices_list);
     }
 
     BTIF_TRACE_EVENT2("%s: %d bonded devices found", __FUNCTION__, bonded_devices.num_devices);
@@ -1215,39 +1231,39 @@ bt_status_t btif_storage_load_bonded_devices(void)
     {
         for (i = 0; i < bonded_devices.num_devices; i++)
         {
-             bt_bdaddr_t *p_remote_addr;
+            bt_bdaddr_t *p_remote_addr;
 
-             num_props = 0;
-             p_remote_addr = &bonded_devices.devices[i];
-             memset(remote_properties, 0, sizeof(remote_properties));
-             BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_BDNAME,
-                                          &name, sizeof(name),
-                                          remote_properties[num_props]);
-             num_props++;
+            num_props = 0;
+            p_remote_addr = &bonded_devices.devices[i];
+            memset(remote_properties, 0, sizeof(remote_properties));
+            BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_BDNAME,
+                                         &name, sizeof(name),
+                                         remote_properties[num_props]);
+            num_props++;
 
-             BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_REMOTE_FRIENDLY_NAME,
-                                          &alias, sizeof(alias),
-                                          remote_properties[num_props]);
-             num_props++;
+            BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_REMOTE_FRIENDLY_NAME,
+                                         &alias, sizeof(alias),
+                                         remote_properties[num_props]);
+            num_props++;
 
-             BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_CLASS_OF_DEVICE,
-                                          &cod, sizeof(cod),
-                                          remote_properties[num_props]);
-             num_props++;
+            BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_CLASS_OF_DEVICE,
+                                         &cod, sizeof(cod),
+                                         remote_properties[num_props]);
+            num_props++;
 
-             BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_TYPE_OF_DEVICE,
-                                          &devtype, sizeof(devtype),
-                                          remote_properties[num_props]);
-             num_props++;
+            BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_TYPE_OF_DEVICE,
+                                         &devtype, sizeof(devtype),
+                                         remote_properties[num_props]);
+            num_props++;
 
-             BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_UUIDS,
-                                          remote_uuids, sizeof(remote_uuids),
-                                          remote_properties[num_props]);
-             num_props++;
+            BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_UUIDS,
+                                         remote_uuids, sizeof(remote_uuids),
+                                         remote_properties[num_props]);
+            num_props++;
 
-             btif_remote_properties_evt(BT_STATUS_SUCCESS, p_remote_addr,
-                                        num_props, remote_properties);
-         }
+            btif_remote_properties_evt(BT_STATUS_SUCCESS, p_remote_addr,
+                                       num_props, remote_properties);
+        }
     }
     return BT_STATUS_SUCCESS;
 }
@@ -1426,3 +1442,249 @@ bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr)
     return BT_STATUS_SUCCESS;
 }
 
+/*******************************************************************************
+**
+** Function         btif_storage_read_hl_apps_cb
+**
+** Description      BTIF storage API - Read HL application control block from NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the operation was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size)
+{
+    char  fname[256],  tmp[3];
+    bt_status_t bt_status = BT_STATUS_SUCCESS;
+    int   status=FALSE, i, buf_size;
+    char *p_buf;
+
+    BTIF_TRACE_DEBUG1("%s ", __FUNCTION__);
+    sprintf(fname, "%s/LOCAL/%s", BTIF_STORAGE_PATH_BLUEDROID, BTIF_STORAGE_HL_APP_CB);
+    buf_size = value_size*2;
+    p_buf = malloc(buf_size);
+    BTIF_TRACE_DEBUG2("value_size=%d buf_size=%d", value_size, buf_size);
+    if (p_buf)
+    {
+        if ((status = unv_read_hl_apps_cb(fname, p_buf, buf_size))!=0)
+        {
+            bt_status = BT_STATUS_FAIL;
+        }
+        else
+        {
+            for (i = 0; i < value_size; i++)
+            {
+                memcpy(tmp, p_buf + (i * 2), 2);
+                value[i] = (uint8_t) strtol(tmp, NULL, 16);
+            }
+        }
+
+        free(p_buf);
+    }
+    else
+    {
+        bt_status = BT_STATUS_FAIL;
+    }
+
+    BTIF_TRACE_DEBUG4("%s read file:(%s) read status=%d bt_status=%d", __FUNCTION__,  fname, status, bt_status);
+    return bt_status;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_write_hl_apps_cb
+**
+** Description      BTIF storage API - Write HL application control block to NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the operation was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_write_hl_apps_cb(char *value, int value_size)
+{
+    char  fname[256];
+    bt_status_t bt_status = BT_STATUS_SUCCESS;
+    int   status=FALSE, i, buf_size;
+    char *p_buf;
+
+    BTIF_TRACE_DEBUG1("%s ", __FUNCTION__);
+    sprintf(fname, "%s/LOCAL/%s", BTIF_STORAGE_PATH_BLUEDROID, BTIF_STORAGE_HL_APP_CB);
+    buf_size = value_size * 2;
+    p_buf = malloc(buf_size);
+    BTIF_TRACE_DEBUG2("value_size=%d buf_size=%d", value_size, buf_size);
+    if (p_buf)
+    {
+        for (i = 0; i < value_size; i++)
+            sprintf(p_buf + (i * 2), "%2.2X", value[i]);
+
+        if ((status = unv_write_hl_apps_cb(fname, p_buf, buf_size))!=0)
+            bt_status = BT_STATUS_FAIL;
+
+        free(p_buf);
+    }
+    else
+    {
+        bt_status = BT_STATUS_FAIL;
+    }
+    BTIF_TRACE_DEBUG4("%s write file:(%s) write status=%d bt_status=%d", __FUNCTION__,  fname, status, bt_status);
+    return bt_status;
+}
+
+bt_status_t btif_storage_read_hl_data(char *fname, char *value, int value_size)
+{
+    char            tmp[3];
+    bt_status_t     bt_status = BT_STATUS_SUCCESS;
+    int             i, buf_size;
+    char            *p_buf;
+
+    buf_size = value_size*2;
+    p_buf = malloc(buf_size);
+    BTIF_TRACE_DEBUG3("%s value_size=%d buf_size=%d", __FUNCTION__, value_size, buf_size);
+    if (p_buf)
+    {
+        if (unv_read_hl_data(fname, p_buf, buf_size) != 0)
+        {
+            bt_status = BT_STATUS_FAIL;
+        }
+        else
+        {
+            for (i = 0; i < value_size; i++)
+            {
+                memcpy(tmp, p_buf + (i * 2), 2);
+                value[i] = (uint8_t) strtol(tmp, NULL, 16);
+            }
+        }
+        free(p_buf);
+    }
+    else
+    {
+        bt_status = BT_STATUS_FAIL;
+    }
+    BTIF_TRACE_DEBUG1("bt_status=%d",   bt_status);
+    return bt_status;
+}
+
+bt_status_t btif_storage_write_hl_data(char *fname, char *value, int value_size)
+{
+    bt_status_t bt_status = BT_STATUS_SUCCESS;
+    int         i, buf_size;
+    char        *p_buf;
+
+    buf_size = value_size * 2;
+    p_buf = malloc(buf_size);
+    BTIF_TRACE_DEBUG3("%s value_size=%d buf_size=%d", __FUNCTION__, value_size, buf_size);
+    if (p_buf)
+    {
+        for (i = 0; i < value_size; i++)
+            sprintf(p_buf + (i * 2), "%2.2X", value[i]);
+
+        if ( unv_write_hl_data(fname, p_buf, buf_size)!= 0)
+            bt_status = BT_STATUS_FAIL;
+
+        free(p_buf);
+    }
+    else
+    {
+        bt_status = BT_STATUS_FAIL;
+    }
+    BTIF_TRACE_DEBUG1("bt_status=%d",   bt_status);
+
+    return bt_status;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_read_hl_apps_cb
+**
+** Description      BTIF storage API - Read HL application configuration from NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the operation was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_read_hl_app_data(UINT8 app_idx, char *value, int value_size)
+{
+    char  fname[256];
+    bt_status_t bt_status = BT_STATUS_SUCCESS;
+
+    BTIF_TRACE_DEBUG1("%s ", __FUNCTION__);
+    sprintf(fname, "%s/LOCAL/%s%d", BTIF_STORAGE_PATH_BLUEDROID, BTIF_STORAGE_HL_APP_DATA, app_idx);
+    bt_status = btif_storage_read_hl_data(fname,  value, value_size);
+    BTIF_TRACE_DEBUG3("%s read file:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
+
+    return bt_status;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_read_hl_mdl_data
+**
+** Description      BTIF storage API - Read HL application MDL configuration from NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the operation was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_write_hl_app_data(UINT8 app_idx, char *value, int value_size)
+{
+    char  fname[256];
+    bt_status_t bt_status = BT_STATUS_SUCCESS;
+
+
+    BTIF_TRACE_DEBUG1("%s ", __FUNCTION__);
+    sprintf(fname, "%s/LOCAL/%s%d", BTIF_STORAGE_PATH_BLUEDROID, BTIF_STORAGE_HL_APP_DATA, app_idx);
+    bt_status = btif_storage_write_hl_data(fname,  value, value_size);
+    BTIF_TRACE_DEBUG3("%s write file:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
+
+    return bt_status;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_read_hl_mdl_data
+**
+** Description      BTIF storage API - Read HL application MDL configuration from NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the operation was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_read_hl_mdl_data(UINT8 app_idx, char *value, int value_size)
+{
+    char  fname[256],  tmp[3];
+    bt_status_t bt_status = BT_STATUS_SUCCESS;
+    int   status, i, buf_size;
+    char *p_buf;
+
+    BTIF_TRACE_DEBUG1("%s ", __FUNCTION__);
+    sprintf(fname, "%s/LOCAL/%s%d", BTIF_STORAGE_PATH_BLUEDROID, BTIF_STORAGE_HL_APP_MDL_DATA, app_idx);
+    bt_status = btif_storage_read_hl_data(fname,  value, value_size);
+    BTIF_TRACE_DEBUG3("%s read file:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
+
+    return bt_status;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_write_hl_mdl_data
+**
+** Description      BTIF storage API - Write HL application MDL configuration from NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the operation was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_write_hl_mdl_data(UINT8 app_idx, char *value, int value_size)
+{
+    char  fname[256];
+    bt_status_t bt_status = BT_STATUS_SUCCESS;
+    int   status, i, buf_size;
+    char *p_buf;
+
+    BTIF_TRACE_DEBUG1("%s ", __FUNCTION__);
+    sprintf(fname, "%s/LOCAL/%s%d", BTIF_STORAGE_PATH_BLUEDROID, BTIF_STORAGE_HL_APP_MDL_DATA, app_idx);
+    bt_status = btif_storage_write_hl_data(fname,  value, value_size);
+    BTIF_TRACE_DEBUG3("%s write file:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
+
+    return bt_status;
+}

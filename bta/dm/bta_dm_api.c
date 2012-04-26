@@ -42,16 +42,16 @@ static const tBTA_SYS_REG bta_dm_search_reg =
 **
 ** Description      Enables bluetooth service.  This function must be
 **                  called before any other functions in the BTA API are called.
-**                  
 **
-** Returns          tBTA_STATUS 
+**
+** Returns          tBTA_STATUS
 **
 *******************************************************************************/
 tBTA_STATUS BTA_EnableBluetooth(tBTA_DM_SEC_CBACK *p_cback)
 {
 
     tBTA_DM_API_ENABLE    *p_msg;
-       
+
     /* Bluetooth disabling is in progress */
     if (bta_dm_cb.disabling)
         return BTA_FAILURE;
@@ -66,7 +66,7 @@ tBTA_STATUS BTA_EnableBluetooth(tBTA_DM_SEC_CBACK *p_cback)
     bta_sys_eir_register(bta_dm_eir_update_uuid);
 
     GKI_sched_unlock();
-    
+
     if ((p_msg = (tBTA_DM_API_ENABLE *) GKI_getbuf(sizeof(tBTA_DM_API_ENABLE))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_ENABLE_EVT;
@@ -84,14 +84,14 @@ tBTA_STATUS BTA_EnableBluetooth(tBTA_DM_SEC_CBACK *p_cback)
 **
 ** Description      Disables bluetooth service.  This function is called when
 **                  the application no longer needs bluetooth service
-** 
-** Returns          void                 
+**
+** Returns          void
 **
 *******************************************************************************/
 tBTA_STATUS BTA_DisableBluetooth(void)
 {
 
-    BT_HDR    *p_msg;        
+    BT_HDR    *p_msg;
 
     if ((p_msg = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
@@ -102,7 +102,7 @@ tBTA_STATUS BTA_DisableBluetooth(void)
     {
         return BTA_FAILURE;
     }
-    
+
     return BTA_SUCCESS;
 }
 
@@ -111,15 +111,15 @@ tBTA_STATUS BTA_DisableBluetooth(void)
 ** Function         BTA_EnableTestMode
 **
 ** Description      Enables bluetooth device under test mode
-**                  
 **
-** Returns          tBTA_STATUS 
+**
+** Returns          tBTA_STATUS
 **
 *******************************************************************************/
 tBTA_STATUS BTA_EnableTestMode(void)
 {
-    BT_HDR    *p_msg;        
-    
+    BT_HDR    *p_msg;
+
     APPL_TRACE_API0("BTA_EnableTestMode");
 
     if ((p_msg = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
@@ -136,15 +136,15 @@ tBTA_STATUS BTA_EnableTestMode(void)
 ** Function         BTA_DisableTestMode
 **
 ** Description      Disable bluetooth device under test mode
-**                  
 **
-** Returns          None 
+**
+** Returns          None
 **
 *******************************************************************************/
 void BTA_DisableTestMode(void)
 {
-    BT_HDR    *p_msg;        
-    
+    BT_HDR    *p_msg;
+
     APPL_TRACE_API0("BTA_DisableTestMode");
 
     if ((p_msg = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
@@ -160,8 +160,8 @@ void BTA_DisableTestMode(void)
 **
 ** Description      Called during startup to check whether the bluetooth module
 **                  is up and ready
-**  
-** Returns          BOOLEAN               
+**
+** Returns          BOOLEAN
 **
 *******************************************************************************/
 BOOLEAN BTA_DmIsDeviceUp(void)
@@ -181,23 +181,23 @@ BOOLEAN BTA_DmIsDeviceUp(void)
 ** Function         BTA_DmSetDeviceName
 **
 ** Description      This function sets the Bluetooth name of local device
-**                  
 **
-** Returns          void                  
+**
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmSetDeviceName(char *p_name)
 {
 
-    tBTA_DM_API_SET_NAME    *p_msg;        
-    
+    tBTA_DM_API_SET_NAME    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_SET_NAME *) GKI_getbuf(sizeof(tBTA_DM_API_SET_NAME))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_SET_NAME_EVT;
         /* truncate the name if needed */
         BCM_STRNCPY_S(p_msg->name, sizeof(p_msg->name), p_name, BD_NAME_LEN-1);
         p_msg->name[BD_NAME_LEN-1]=0;
-        
+
         bta_sys_sendmsg(p_msg);
     }
 
@@ -210,16 +210,16 @@ void BTA_DmSetDeviceName(char *p_name)
 **
 ** Description      This function sets the Bluetooth connectable,
 **                  discoverable, pairable and conn paired only modes of local device
-**                  
 **
-** Returns          void                  
+**
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 pairable_mode, UINT8 conn_filter )
 {
 
-    tBTA_DM_API_SET_VISIBILITY    *p_msg;        
-    
+    tBTA_DM_API_SET_VISIBILITY    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_SET_VISIBILITY *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_SET_VISIBILITY_EVT;
@@ -228,7 +228,7 @@ void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 p
         p_msg->pair_mode = pairable_mode;
         p_msg->conn_paired_only = conn_filter;
 
-        
+
         bta_sys_sendmsg(p_msg);
     }
 
@@ -241,9 +241,9 @@ void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 p
 **
 ** Description      This function sets the parameters for page scan and
 **                  inquiry scan.
-**                  
 **
-** Returns          void                  
+**
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmSetScanParam (UINT16 page_scan_interval, UINT16 page_scan_window,
@@ -267,14 +267,14 @@ void BTA_DmSetScanParam (UINT16 page_scan_interval, UINT16 page_scan_window,
 **                  last disable channel, so channels within
 **                  that range are disabled.
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmSetAfhChannels(UINT8 first, UINT8 last)
 {
 
-    tBTA_DM_API_SET_AFH_CHANNELS_EVT    *p_msg;        
-    
+    tBTA_DM_API_SET_AFH_CHANNELS_EVT    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_SET_AFH_CHANNELS_EVT *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_SET_AFH_CHANNELS_EVT;
@@ -297,11 +297,11 @@ void BTA_DmSetAfhChannels(UINT8 first, UINT8 last)
 *******************************************************************************/
 void BTA_DmSetAfhChannelAssessment (BOOLEAN enable_or_disable)
 {
-    tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT *p_msg;			
+    tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT *p_msg;
 
     if ((p_msg = (tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT *) GKI_getbuf(sizeof(tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT))) != NULL)
     {
-        p_msg->hdr.event	= BTA_DM_API_SET_AFH_CHANNEL_ASSESMENT_EVT;
+        p_msg->hdr.event    = BTA_DM_API_SET_AFH_CHANNEL_ASSESMENT_EVT;
         p_msg->enable_or_disable = enable_or_disable;
         bta_sys_sendmsg(p_msg);
     }
@@ -313,19 +313,19 @@ void BTA_DmSetAfhChannelAssessment (BOOLEAN enable_or_disable)
 **
 ** Description      This function sends the vendor specific command
 **                  to the controller
-**                  
 **
-** Returns          tBTA_STATUS                  
+**
+** Returns          tBTA_STATUS
 **
 *******************************************************************************/
 tBTA_STATUS BTA_DmVendorSpecificCommand (UINT16 opcode, UINT8 param_len,
-                                         UINT8 *p_param_buf, 
+                                         UINT8 *p_param_buf,
                                          tBTA_VENDOR_CMPL_CBACK *p_cback)
 {
 
     tBTA_DM_API_VENDOR_SPECIFIC_COMMAND    *p_msg;
     UINT16 size;
-    
+
     /* If p_cback is NULL, Notify application */
     if (p_cback == NULL)
     {
@@ -353,19 +353,19 @@ tBTA_STATUS BTA_DmVendorSpecificCommand (UINT16 opcode, UINT8 param_len,
 **
 ** Function         BTA_DmSearch
 **
-** Description      This function searches for peer Bluetooth devices. It performs 
-**                  an inquiry and gets the remote name for devices. Service 
+** Description      This function searches for peer Bluetooth devices. It performs
+**                  an inquiry and gets the remote name for devices. Service
 **                  discovery is done if services is non zero
-**                  
 **
-** Returns          void                  
+**
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmSearch(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK services, tBTA_DM_SEARCH_CBACK *p_cback)
 {
 
-    tBTA_DM_API_SEARCH    *p_msg;        
-    
+    tBTA_DM_API_SEARCH    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_SEARCH *) GKI_getbuf(sizeof(tBTA_DM_API_SEARCH))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_SEARCH));
@@ -385,16 +385,16 @@ void BTA_DmSearch(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK services, tBTA_DM_SEA
 **
 ** Function         BTA_DmSearchCancel
 **
-** Description      This function  cancels a search initiated by BTA_DmSearch       
+** Description      This function  cancels a search initiated by BTA_DmSearch
 **
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmSearchCancel(void)
 {
-    BT_HDR    *p_msg;        
-    
+    BT_HDR    *p_msg;
+
     if ((p_msg = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
         p_msg->event = BTA_DM_API_SEARCH_CANCEL_EVT;
@@ -407,18 +407,18 @@ void BTA_DmSearchCancel(void)
 **
 ** Function         BTA_DmDiscover
 **
-** Description      This function does service discovery for services of a        
+** Description      This function does service discovery for services of a
 **                  peer device
 **
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
-void BTA_DmDiscover(BD_ADDR bd_addr, tBTA_SERVICE_MASK services, 
+void BTA_DmDiscover(BD_ADDR bd_addr, tBTA_SERVICE_MASK services,
                     tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search)
 {
-    tBTA_DM_API_DISCOVER    *p_msg;          
-    
+    tBTA_DM_API_DISCOVER    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_DISCOVER *) GKI_getbuf(sizeof(tBTA_DM_API_DISCOVER))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_DISCOVER));
@@ -499,13 +499,13 @@ BOOLEAN BTA_DmIsMaster(BD_ADDR bd_addr)
 **                  device
 **
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmBond(BD_ADDR bd_addr)
 {
-    tBTA_DM_API_BOND    *p_msg;        
-    
+    tBTA_DM_API_BOND    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_BOND *) GKI_getbuf(sizeof(tBTA_DM_API_BOND))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BOND_EVT;
@@ -524,13 +524,13 @@ void BTA_DmBond(BD_ADDR bd_addr)
 **                  device
 **
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmBondCancel(BD_ADDR bd_addr)
 {
-    tBTA_DM_API_BOND_CANCEL    *p_msg;        
-    
+    tBTA_DM_API_BOND_CANCEL    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_BOND_CANCEL *) GKI_getbuf(sizeof(tBTA_DM_API_BOND_CANCEL))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BOND_CANCEL_EVT;
@@ -549,14 +549,14 @@ void BTA_DmBondCancel(BD_ADDR bd_addr)
 **                  one is requested by DM through BTA_DM_PIN_REQ_EVT
 **
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_len, UINT8 *p_pin)
 
 {
-    tBTA_DM_API_PIN_REPLY    *p_msg;        
-    
+    tBTA_DM_API_PIN_REPLY    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_PIN_REPLY *) GKI_getbuf(sizeof(tBTA_DM_API_PIN_REPLY))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_PIN_REPLY_EVT;
@@ -587,8 +587,8 @@ void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_len, UINT8 *p_pin
 void BTA_DmLinkPolicy(BD_ADDR bd_addr, tBTA_DM_LP_MASK policy_mask,
                       BOOLEAN set)
 {
-    tBTA_DM_API_LINK_POLICY    *p_msg;        
-    
+    tBTA_DM_API_LINK_POLICY    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_LINK_POLICY *) GKI_getbuf(sizeof(tBTA_DM_API_LINK_POLICY))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_LINK_POLICY_EVT;
@@ -608,13 +608,13 @@ void BTA_DmLinkPolicy(BD_ADDR bd_addr, tBTA_DM_LP_MASK policy_mask,
 ** Description      This function retrieves the OOB data from local controller.
 **                  The result is reported by bta_dm_co_loc_oob().
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmLocalOob(void)
 {
-    tBTA_DM_API_LOC_OOB    *p_msg;        
-    
+    tBTA_DM_API_LOC_OOB    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_LOC_OOB *) GKI_getbuf(sizeof(tBTA_DM_API_LOC_OOB))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_LOC_OOB_EVT;
@@ -629,13 +629,13 @@ void BTA_DmLocalOob(void)
 ** Description      This function accepts or rejects the numerical value of the
 **                  Simple Pairing process on BTA_DM_SP_CFM_REQ_EVT
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmConfirm(BD_ADDR bd_addr, BOOLEAN accept)
 {
-    tBTA_DM_API_CONFIRM    *p_msg;        
-    
+    tBTA_DM_API_CONFIRM    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_CONFIRM *) GKI_getbuf(sizeof(tBTA_DM_API_CONFIRM))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_CONFIRM_EVT;
@@ -652,14 +652,14 @@ void BTA_DmConfirm(BD_ADDR bd_addr, BOOLEAN accept)
 ** Description      This function is called to cancel the simple pairing process
 **                  reported by BTA_DM_SP_KEY_NOTIF_EVT
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 #if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)
 void BTA_DmPasskeyCancel(BD_ADDR bd_addr)
 {
-    tBTA_DM_API_PASKY_CANCEL    *p_msg;        
-    
+    tBTA_DM_API_PASKY_CANCEL    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_PASKY_CANCEL *) \
         GKI_getbuf(sizeof(tBTA_DM_API_PASKY_CANCEL))) != NULL)
     {
@@ -675,11 +675,11 @@ void BTA_DmPasskeyCancel(BD_ADDR bd_addr)
 **
 ** Function         BTA_DmAddDevice
 **
-** Description      This function adds a device to the security database list of 
+** Description      This function adds a device to the security database list of
 **                  peer device
 **
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
@@ -687,8 +687,8 @@ void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
                      UINT8 key_type, tBTA_IO_CAP io_cap)
 {
 
-    tBTA_DM_API_ADD_DEVICE *p_msg;        
-    
+    tBTA_DM_API_ADD_DEVICE *p_msg;
+
     if ((p_msg = (tBTA_DM_API_ADD_DEVICE *) GKI_getbuf(sizeof(tBTA_DM_API_ADD_DEVICE))) != NULL)
     {
         memset (p_msg, 0, sizeof(tBTA_DM_API_ADD_DEVICE));
@@ -725,11 +725,11 @@ void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
 **
 ** Function         BTA_DmRemoveDevice
 **
-** Description      This function removes a device fromthe security database list of 
+** Description      This function removes a device fromthe security database list of
 **                  peer device
 **
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr)
@@ -760,7 +760,7 @@ tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr)
 **                  which added bd_name and features as input parameters.
 **
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
@@ -769,7 +769,7 @@ void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
                                       BOOLEAN is_trusted, UINT8 key_type, tBTA_IO_CAP io_cap)
 {
     tBTA_DM_API_ADD_DEVICE *p_msg;
-    
+
     if ((p_msg = (tBTA_DM_API_ADD_DEVICE *) GKI_getbuf(sizeof(tBTA_DM_API_ADD_DEVICE))) != NULL)
     {
         memset (p_msg, 0, sizeof(tBTA_DM_API_ADD_DEVICE));
@@ -808,18 +808,18 @@ void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
 **
 ** Function         BTA_DmAuthorizeReply
 **
-** Description      This function provides an authorization reply when authorization 
+** Description      This function provides an authorization reply when authorization
 **                  is requested by BTA through BTA_DM_AUTHORIZE_EVT
 **
 **
-** Returns          tBTA_STATUS                  
+** Returns          tBTA_STATUS
 **
 *******************************************************************************/
 void BTA_DmAuthorizeReply(BD_ADDR bd_addr, tBTA_SERVICE_ID service, tBTA_AUTH_RESP response)
 {
 
-    tBTA_DM_API_AUTH_REPLY    *p_msg;        
-    
+    tBTA_DM_API_AUTH_REPLY    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_AUTH_REPLY *) GKI_getbuf(sizeof(tBTA_DM_API_AUTH_REPLY))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_AUTH_REPLY_EVT;
@@ -836,11 +836,11 @@ void BTA_DmAuthorizeReply(BD_ADDR bd_addr, tBTA_SERVICE_ID service, tBTA_AUTH_RE
 **
 ** Function         BTA_DmSignalStrength
 **
-** Description      This function initiates RSSI and channnel quality 
+** Description      This function initiates RSSI and channnel quality
 **                  measurments. BTA_DM_SIG_STRENGTH_EVT is sent to
 **                  application with the values of RSSI and channel
 **                  quality
-**                  
+**
 **
 ** Returns          void
 **
@@ -848,8 +848,8 @@ void BTA_DmAuthorizeReply(BD_ADDR bd_addr, tBTA_SERVICE_ID service, tBTA_AUTH_RE
 void BTA_DmSignalStrength(tBTA_SIG_STRENGTH_MASK mask, UINT16 period, BOOLEAN start)
 {
 
-    tBTA_API_DM_SIG_STRENGTH    *p_msg;        
-    
+    tBTA_API_DM_SIG_STRENGTH    *p_msg;
+
     if ((p_msg = (tBTA_API_DM_SIG_STRENGTH *) GKI_getbuf(sizeof(tBTA_API_DM_SIG_STRENGTH))) != NULL)
     {
         p_msg->hdr.event = BTA_API_DM_SIG_STRENGTH_EVT;
@@ -867,8 +867,8 @@ void BTA_DmSignalStrength(tBTA_SIG_STRENGTH_MASK mask, UINT16 period, BOOLEAN st
 **
 ** Function         BTA_DmWriteInqTxPower
 **
-** Description      This command is used to write the inquiry transmit power level 
-**                  used to transmit the inquiry (ID) data packets.               
+** Description      This command is used to write the inquiry transmit power level
+**                  used to transmit the inquiry (ID) data packets.
 **
 ** Parameters       tx_power - tx inquiry power to use, valid value is -70 ~ 20
 
@@ -878,8 +878,8 @@ void BTA_DmSignalStrength(tBTA_SIG_STRENGTH_MASK mask, UINT16 period, BOOLEAN st
 void BTA_DmWriteInqTxPower(INT8 tx_power)
 {
 
-    tBTA_API_DM_TX_INQPWR    *p_msg;        
-    
+    tBTA_API_DM_TX_INQPWR    *p_msg;
+
     if ((p_msg = (tBTA_API_DM_TX_INQPWR *) GKI_getbuf(sizeof(tBTA_API_DM_TX_INQPWR))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_TX_INQPWR_EVT;
@@ -898,14 +898,14 @@ void BTA_DmWriteInqTxPower(INT8 tx_power)
 **
 ** Parameters       tBT_UUID - UUID
 **
-** Returns          None 
+** Returns          None
 **
 *******************************************************************************/
 void BTA_DmEirAddUUID (tBT_UUID *p_uuid)
 {
 #if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
-    tBTA_DM_API_UPDATE_EIR_UUID    *p_msg;        
-    
+    tBTA_DM_API_UPDATE_EIR_UUID    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_UPDATE_EIR_UUID *) GKI_getbuf(sizeof(tBTA_DM_API_UPDATE_EIR_UUID))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_UPDATE_EIR_UUID_EVT;
@@ -925,14 +925,14 @@ void BTA_DmEirAddUUID (tBT_UUID *p_uuid)
 **
 ** Parameters       tBT_UUID - UUID
 **
-** Returns          None 
+** Returns          None
 **
 *******************************************************************************/
 void BTA_DmEirRemoveUUID (tBT_UUID *p_uuid)
 {
 #if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
-    tBTA_DM_API_UPDATE_EIR_UUID    *p_msg;        
-    
+    tBTA_DM_API_UPDATE_EIR_UUID    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_UPDATE_EIR_UUID *) GKI_getbuf(sizeof(tBTA_DM_API_UPDATE_EIR_UUID))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_UPDATE_EIR_UUID_EVT;
@@ -954,14 +954,14 @@ void BTA_DmEirRemoveUUID (tBT_UUID *p_uuid)
 **
 ** Parameters       Pointer to User defined EIR config
 **
-** Returns          None 
+** Returns          None
 **
 *******************************************************************************/
 void BTA_DmSetEIRConfig (tBTA_DM_EIR_CONF *p_eir_cfg)
 {
 #if (BTM_EIR_SERVER_INCLUDED == TRUE)
-    tBTA_DM_API_SET_EIR_CONFIG  *p_msg;        
-    
+    tBTA_DM_API_SET_EIR_CONFIG  *p_msg;
+
     if ((p_msg = (tBTA_DM_API_SET_EIR_CONFIG *) GKI_getbuf(sizeof(tBTA_DM_API_SET_EIR_CONFIG))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_SET_EIR_CONFIG_EVT;
@@ -982,7 +982,7 @@ void BTA_DmSetEIRConfig (tBTA_DM_EIR_CONF *p_eir_cfg)
 **                  type   - finding EIR data type
 **                  p_length - return the length of EIR data
 **
-** Returns          pointer of EIR data 
+** Returns          pointer of EIR data
 **
 *******************************************************************************/
 UINT8 *BTA_CheckEirData( UINT8 *p_eir, UINT8 type, UINT8 *p_length )
@@ -1003,7 +1003,7 @@ UINT8 *BTA_CheckEirData( UINT8 *p_eir, UINT8 type, UINT8 *p_length )
 ** Parameters       p_eir - pointer of EIR significant part
 **                  p_services - return the BTA service mask
 **
-** Returns          None 
+** Returns          None
 **
 *******************************************************************************/
 extern const UINT16 bta_service_id_to_uuid_lkup_tbl [];
@@ -1033,6 +1033,12 @@ void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_services )
         /* for HSP v1.2 only device */
         if (*(p_uuid16 + xx) == UUID_SERVCLASS_HEADSET_HS)
             *p_services |= BTA_HSP_SERVICE_MASK;
+
+       if (*(p_uuid16 + xx) == UUID_SERVCLASS_HDP_SOURCE)
+            *p_services |= BTA_HL_SERVICE_MASK;
+
+        if (*(p_uuid16 + xx) == UUID_SERVCLASS_HDP_SINK)
+            *p_services |= BTA_HL_SERVICE_MASK;
     }
 #endif
 }
@@ -1068,8 +1074,8 @@ BOOLEAN BTA_DmUseSsr( BD_ADDR bd_addr )
 ** Returns          BTA_SUCCESS if record set sucessfully, otherwise error code.
 **
 *******************************************************************************/
-tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info, 
-	                          UINT32 *p_handle )
+tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info,
+                              UINT32 *p_handle )
 {
     tBTA_STATUS  status = BTA_FAILURE;
 
@@ -1095,9 +1101,9 @@ tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info,
 **
 ** Function         BTA_DmGetLocalDiRecord
 **
-** Description      Get a specified DI record to the local SDP database. If no  
-**                  record handle is provided, the primary DI record will be 
-**                  returned. 
+** Description      Get a specified DI record to the local SDP database. If no
+**                  record handle is provided, the primary DI record will be
+**                  returned.
 **
 **                  Fills in the device information of the record
 **                  p_handle - if p_handle == 0, the primary record is returned
@@ -1105,8 +1111,8 @@ tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info,
 ** Returns          BTA_SUCCESS if record set sucessfully, otherwise error code.
 **
 *******************************************************************************/
-tBTA_STATUS BTA_DmGetLocalDiRecord( tBTA_DI_GET_RECORD *p_device_info, 
-	                          UINT32 *p_handle )
+tBTA_STATUS BTA_DmGetLocalDiRecord( tBTA_DI_GET_RECORD *p_device_info,
+                              UINT32 *p_handle )
 {
     UINT16  status;
 
@@ -1135,8 +1141,8 @@ tBTA_STATUS BTA_DmGetLocalDiRecord( tBTA_DI_GET_RECORD *p_device_info,
 void BTA_DmDiDiscover( BD_ADDR remote_device, tBTA_DISCOVERY_DB *p_db,
                        UINT32 len, tBTA_DM_SEARCH_CBACK *p_cback )
 {
-    tBTA_DM_API_DI_DISC    *p_msg;          
-    
+    tBTA_DM_API_DI_DISC    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_DI_DISC *) GKI_getbuf(sizeof(tBTA_DM_API_DI_DISC))) != NULL)
     {
         bdcpy(p_msg->bd_addr, remote_device);
@@ -1193,13 +1199,13 @@ void BTA_SysFeatures (UINT16 sys_features)
 **                  This API was named in lower case because it is only intended
 **                  for the internal customers(like BTIF).
 **
-** Returns          void                  
+** Returns          void
 **
 *******************************************************************************/
 void bta_dmexecutecallback (tBTA_DM_EXEC_CBACK* p_callback, void * p_param)
 {
-    tBTA_DM_API_EXECUTE_CBACK *p_msg;        
-    
+    tBTA_DM_API_EXECUTE_CBACK *p_msg;
+
     if ((p_msg = (tBTA_DM_API_EXECUTE_CBACK *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_EXECUTE_CBACK_EVT;
@@ -1213,8 +1219,8 @@ void bta_dmexecutecallback (tBTA_DM_EXEC_CBACK* p_callback, void * p_param)
 **
 ** Function         BTA_DmAddBleKey
 **
-** Description      Add/modify LE device information.  This function will be 
-**                  normally called during host startup to restore all required 
+** Description      Add/modify LE device information.  This function will be
+**                  normally called during host startup to restore all required
 **                  information stored in the NVRAM.
 **
 ** Parameters:      bd_addr          - BD address of the peer
@@ -1228,8 +1234,8 @@ void BTA_DmAddBleKey (BD_ADDR bd_addr, tBTA_LE_KEY_VALUE *p_le_key, tBTA_LE_KEY_
 {
 #if BLE_INCLUDED == TRUE
 
-    tBTA_DM_API_ADD_BLEKEY *p_msg;        
-    
+    tBTA_DM_API_ADD_BLEKEY *p_msg;
+
     if ((p_msg = (tBTA_DM_API_ADD_BLEKEY *) GKI_getbuf(sizeof(tBTA_DM_API_ADD_BLEKEY))) != NULL)
     {
         memset (p_msg, 0, sizeof(tBTA_DM_API_ADD_BLEKEY));
@@ -1263,8 +1269,8 @@ void BTA_DmAddBleKey (BD_ADDR bd_addr, tBTA_LE_KEY_VALUE *p_le_key, tBTA_LE_KEY_
 void BTA_DmAddBleDevice(BD_ADDR bd_addr, tBLE_ADDR_TYPE addr_type, tBT_DEVICE_TYPE dev_type)
 {
 #if BLE_INCLUDED == TRUE
-    tBTA_DM_API_ADD_BLE_DEVICE *p_msg;        
-    
+    tBTA_DM_API_ADD_BLE_DEVICE *p_msg;
+
     if ((p_msg = (tBTA_DM_API_ADD_BLE_DEVICE *) GKI_getbuf(sizeof(tBTA_DM_API_ADD_BLE_DEVICE))) != NULL)
     {
         memset (p_msg, 0, sizeof(tBTA_DM_API_ADD_BLE_DEVICE));
@@ -1286,7 +1292,7 @@ void BTA_DmAddBleDevice(BD_ADDR bd_addr, tBLE_ADDR_TYPE addr_type, tBT_DEVICE_TY
 **
 ** Parameters:      bd_addr          - BD address of the peer
 **                  accept           - passkey entry sucessful or declined.
-**                  passkey          - passkey value, must be a 6 digit number, 
+**                  passkey          - passkey value, must be a 6 digit number,
 **                                     can be lead by 0.
 **
 ** Returns          void
@@ -1295,12 +1301,12 @@ void BTA_DmAddBleDevice(BD_ADDR bd_addr, tBLE_ADDR_TYPE addr_type, tBT_DEVICE_TY
 void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, BOOLEAN accept, UINT32 passkey)
 {
 #if BLE_INCLUDED == TRUE
-    tBTA_DM_API_PASSKEY_REPLY    *p_msg;        
-    
+    tBTA_DM_API_PASSKEY_REPLY    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_PASSKEY_REPLY *) GKI_getbuf(sizeof(tBTA_DM_API_PASSKEY_REPLY))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_PASSKEY_REPLY));
-            
+
         p_msg->hdr.event = BTA_DM_API_BLE_PASSKEY_REPLY_EVT;
         bdcpy(p_msg->bd_addr, bd_addr);
         p_msg->accept = accept;
@@ -1328,12 +1334,12 @@ void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, BOOLEAN accept, UINT32 passkey)
 void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRANT res)
 {
 #if BLE_INCLUDED == TRUE
-    tBTA_DM_API_BLE_SEC_GRANT    *p_msg;        
-    
+    tBTA_DM_API_BLE_SEC_GRANT    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_BLE_SEC_GRANT *) GKI_getbuf(sizeof(tBTA_DM_API_BLE_SEC_GRANT))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_SEC_GRANT));
-            
+
         p_msg->hdr.event = BTA_DM_API_BLE_SEC_GRANT_EVT;
         bdcpy(p_msg->bd_addr, bd_addr);
         p_msg->res = res;
@@ -1346,7 +1352,7 @@ void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRANT res)
 **
 ** Function         BTA_DmSetBlePrefConnParams
 **
-** Description      This function is called to set the preferred connection 
+** Description      This function is called to set the preferred connection
 **                  parameters when default connection parameter is not desired.
 **
 ** Parameters:      bd_addr          - BD address of the peripheral
@@ -1357,21 +1363,21 @@ void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRANT res)
 **                  slave_latency    - preferred slave latency
 **                  supervision_tout - preferred supervision timeout
 **
-**              
+**
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr, 
+void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
                                UINT16 min_conn_int, UINT16 max_conn_int,
                                UINT16 slave_latency, UINT16 supervision_tout )
 {
 #if BLE_INCLUDED == TRUE
-    tBTA_DM_API_BLE_CONN_PARAMS    *p_msg;        
-    
+    tBTA_DM_API_BLE_CONN_PARAMS    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_BLE_CONN_PARAMS *) GKI_getbuf(sizeof(tBTA_DM_API_BLE_CONN_PARAMS))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_CONN_PARAMS));
-            
+
         p_msg->hdr.event = BTA_DM_API_BLE_CONN_PARAM_EVT;
 
         memcpy(p_msg->peer_bda, bd_addr, BD_ADDR_LEN);
@@ -1390,24 +1396,24 @@ void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
 **
 ** Function         BTA_DmSetBleConnScanParams
 **
-** Description      This function is called to set scan parameters used in 
+** Description      This function is called to set scan parameters used in
 **                  BLE connection request
 **
 ** Parameters:      scan_interval    - scan interval
 **                  scan_window      - scan window
-**              
+**
 ** Returns          void
 **
 *******************************************************************************/
 void BTA_DmSetBleConnScanParams(UINT16 scan_interval, UINT16 scan_window )
 {
 #if BLE_INCLUDED == TRUE
-    tBTA_DM_API_BLE_SCAN_PARAMS    *p_msg;        
-    
+    tBTA_DM_API_BLE_SCAN_PARAMS    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS *) GKI_getbuf(sizeof(tBTA_DM_API_BLE_SCAN_PARAMS))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_SCAN_PARAMS));
-            
+
         p_msg->hdr.event = BTA_DM_API_BLE_SCAN_PARAM_EVT;
 
         p_msg->scan_int         = scan_interval;
@@ -1421,11 +1427,11 @@ void BTA_DmSetBleConnScanParams(UINT16 scan_interval, UINT16 scan_window )
 /*******************************************************************************
 **
 ** Function         BTA_DmBleSetBgConnType
-** 
-** Description      This function is called to set BLE connectable mode for a 
+**
+** Description      This function is called to set BLE connectable mode for a
 **                  peripheral device.
 **
-** Parameters       bg_conn_type: it can be auto connection, or selective connection.     
+** Parameters       bg_conn_type: it can be auto connection, or selective connection.
 **                  p_select_cback: callback function when selective connection procedure
 **                              is being used.
 **
@@ -1435,12 +1441,12 @@ void BTA_DmSetBleConnScanParams(UINT16 scan_interval, UINT16 scan_window )
 void BTA_DmBleSetBgConnType(tBTA_DM_BLE_CONN_TYPE bg_conn_type, tBTA_DM_BLE_SEL_CBACK *p_select_cback)
 {
 #if BLE_INCLUDED == TRUE
-    tBTA_DM_API_BLE_SET_BG_CONN_TYPE    *p_msg;        
-    
+    tBTA_DM_API_BLE_SET_BG_CONN_TYPE    *p_msg;
+
     if ((p_msg = (tBTA_DM_API_BLE_SET_BG_CONN_TYPE *) GKI_getbuf(sizeof(tBTA_DM_API_BLE_SET_BG_CONN_TYPE))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_SET_BG_CONN_TYPE));
-            
+
         p_msg->hdr.event        = BTA_DM_API_BLE_SET_BG_CONN_TYPE;
         p_msg->bg_conn_type     = bg_conn_type;
         p_msg->p_select_cback   = p_select_cback;
@@ -1453,22 +1459,22 @@ void BTA_DmBleSetBgConnType(tBTA_DM_BLE_CONN_TYPE bg_conn_type, tBTA_DM_BLE_SEL_
 **
 ** Function         BTA_DmDiscoverExt
 **
-** Description      This function does service discovery for services of a        
+** Description      This function does service discovery for services of a
 **                  peer device. When services.num_uuid is 0, it indicates all
 **                  GATT based services are to be searched; other wise a list of
-**                  UUID of interested services should be provided through 
+**                  UUID of interested services should be provided through
 **                  p_services->p_uuid.
-**          
 **
 **
-** Returns          void                  
+**
+** Returns          void
 **
 *******************************************************************************/
-void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services, 
+void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
                     tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search)
 {
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
-    tBTA_DM_API_DISCOVER    *p_msg;          
+    tBTA_DM_API_DISCOVER    *p_msg;
     UINT16  len = p_services ? (sizeof(tBTA_DM_API_DISCOVER) + sizeof(tBT_UUID) * p_services->num_uuid) :
                     sizeof(tBTA_DM_API_DISCOVER);
 
@@ -1503,25 +1509,25 @@ void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
 **
 ** Function         BTA_DmSearchExt
 **
-** Description      This function searches for peer Bluetooth devices. It performs 
-**                  an inquiry and gets the remote name for devices. Service 
+** Description      This function searches for peer Bluetooth devices. It performs
+**                  an inquiry and gets the remote name for devices. Service
 **                  discovery is done if services is non zero
-**              
+**
 ** Parameters       p_dm_inq: inquiry conditions
 **                  p_services: if service is not empty, service discovery will be done.
-**                            for all GATT based service condition, put num_uuid, and 
+**                            for all GATT based service condition, put num_uuid, and
 **                            p_uuid is the pointer to the list of UUID values.
-**                  p_cback: callback functino when search is completed.          
-**                  
-**                  
+**                  p_cback: callback functino when search is completed.
 **
-** Returns          void                  
+**
+**
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services, tBTA_DM_SEARCH_CBACK *p_cback)
 {
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
-    tBTA_DM_API_SEARCH    *p_msg;        
+    tBTA_DM_API_SEARCH    *p_msg;
     UINT16  len = p_services ? (sizeof(tBTA_DM_API_SEARCH) + sizeof(tBT_UUID) * p_services->num_uuid) :
                     sizeof(tBTA_DM_API_SEARCH);
 
@@ -1567,19 +1573,19 @@ void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services, t
 ** Parameters:      bd_addr       - Address of the peer device
 **                  p_callback    - Pointer to callback function to indicat the
 **                                  link encryption status
-**                  sec_act       - This is the security action to indicate           
+**                  sec_act       - This is the security action to indicate
 **                                  what knid of BLE security level is required for
-**                                  the BLE link if the BLE is supported 
+**                                  the BLE link if the BLE is supported
 **                                  Note: This parameter is ignored for the BR/EDR link
-**                                        or the BLE is not supported 
-** 
-** Returns          void                  
+**                                        or the BLE is not supported
+**
+** Returns          void
 **
 *******************************************************************************/
 void BTA_DmSetEncryption(BD_ADDR bd_addr, tBTA_DM_ENCRYPT_CBACK *p_callback,
                             tBTA_DM_BLE_SEC_ACT sec_act)
 {
-    tBTA_DM_API_SET_ENCRYPTION   *p_msg;        
+    tBTA_DM_API_SET_ENCRYPTION   *p_msg;
 
     APPL_TRACE_API0("BTA_DmSetEncryption"); //todo
     if ((p_msg = (tBTA_DM_API_SET_ENCRYPTION *) GKI_getbuf(sizeof(tBTA_DM_API_SET_ENCRYPTION))) != NULL)

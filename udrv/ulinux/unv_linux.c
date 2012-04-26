@@ -193,7 +193,8 @@ static int rm_dir(const char *path)
 
     status = rmdir(path);
 
-    if (status < 0) {
+    if (status < 0)
+    {
         error("rmdir %s failed (%s)", path, strerror(errno));
         return -1;
     }
@@ -600,9 +601,10 @@ char* unv_read_key( const char *path,
 
     fd = open(path, O_RDONLY, FILE_MODE);
 
-    if (fd < 0) {
-       error("file failed to open %s (%s)", path, strerror(errno));
-       return NULL;
+    if (fd < 0)
+    {
+        error("file failed to open %s (%s)", path, strerror(errno));
+        return NULL;
     }
 
     p_search = get_keyval(fd, key, p_out, out_len, NULL, NULL);
@@ -646,21 +648,22 @@ int unv_read_key_iter( const char *path,
 
     fd = open(path, O_RDONLY, FILE_MODE);
 
-    if (fd < 0) {
-       error("file failed to open %s (%s)", path, strerror(errno));
-       return -1;
+    if (fd < 0)
+    {
+        error("file failed to open %s (%s)", path, strerror(errno));
+        return -1;
     }
 
     if (fstat(fd, &st) != 0)
     {
-       error("stat failed (%s)", strerror(errno));
-       return -1;
+        error("stat failed (%s)", strerror(errno));
+        return -1;
     }
 
     p_buf = malloc(st.st_size + 1);
 
     if (!p_buf)
-       return -1;
+        return -1;
 
     p = p_buf;
 
@@ -739,8 +742,8 @@ int unv_write_key( const char *path,
 
     if (fd < 0)
     {
-       error("file failed to create %s (%s)", path, strerror(errno));
-       return -1;
+        error("file failed to create %s (%s)", path, strerror(errno));
+        return -1;
     }
 
     /* check if key already present */
@@ -799,9 +802,10 @@ int unv_remove_key( const char *path,
 
     fd = open(path, O_RDWR, FILE_MODE);
 
-    if (fd < 0) {
-       error("file failed to open %s (%s)", path, strerror(errno));
-       return -1;
+    if (fd < 0)
+    {
+        error("file failed to open %s (%s)", path, strerror(errno));
+        return -1;
     }
 
     p_search = get_keyval(fd, key, p_line, UNV_MAXLINE_LENGTH, &pos_begin, &pos_stop);
@@ -812,7 +816,235 @@ int unv_remove_key( const char *path,
         update_key(fd, key, NULL, pos_begin, pos_stop);
     }
 
-    return (p_search ? 0 : -1);
+    return(p_search ? 0 : -1);
 }
 
 
+/*******************************************************************************
+**
+** Function         unv_read_hl_apps_cb
+**
+** Description      read HL applciation contorl block
+**
+** Parameters
+**                  path        : path of file
+**                  value       : pointer to value
+**                  value_size  : size of value
+**
+** Returns         0 if successful, -1 if failure
+**
+******************************************************************************/
+
+int unv_read_hl_apps_cb(const char *path, char *value, int value_size)
+{
+    struct stat st;
+    int fd, len, i, data_size;
+    int status = 0;
+
+    debug("unv_read_hl_apps_cb path=%s value_size=%d ", path, value_size);
+
+    if (check_caller_context() == 0)
+    {
+        return -1;
+    }
+
+    if (stat(path, &st) != 0)
+    {
+        debug("%s does not exist open a file to write", path);
+        fd = open(path, O_WRONLY|O_CREAT, FILE_MODE);
+        if (fd < 0)
+        {
+            error("file failed to open %s (%s)", path, strerror(errno));
+            return -1;
+        }
+        data_size = value_size >> 1;
+        for (i = 0; i < data_size; i++)
+            sprintf(value + (i * 2), "%2.2X", 0);
+        len = write(fd, value, value_size);
+        if (len < value_size)
+        {
+            error("write failed len=%d < value_size=%d", len, value_size);
+            status = -1;
+        }
+        else
+        {
+            debug("write OK len=%d value size=%d", len, value_size);
+        }
+        close(fd);
+    }
+    else
+    {
+        fd = open(path, O_RDONLY, FILE_MODE);
+        if (fd < 0)
+        {
+            error("file failed to open %s (%s)", path, strerror(errno));
+            return -1;
+        }
+        len = read(fd, value,  value_size);
+        if (len < value_size)
+        {
+            error("read failed len=%d < value_size=%d", len, value_size);
+            status = -1;
+        }
+        else
+        {
+            debug("read OK len=%d value size=%d", len, value_size);
+        }
+        close(fd);
+    }
+
+
+    return status;
+}
+
+/*******************************************************************************
+**
+** Function         unv_write_hl_apps_cb
+**
+** Description      write HL applciation contorl block
+**
+** Parameters
+**                  path        : path of file
+**                  value       : pointer to value
+**                  value_size  : size of value
+**
+** Returns         0 if successful, -1 if failure
+**
+******************************************************************************/
+int unv_write_hl_apps_cb(const char *path, char *value, int value_size)
+{
+    struct stat st;
+    int fd, len;
+    int status = 0;
+
+    debug("unv_write_hl_apps_cb %s value_size=%d ", path, value_size);
+
+    if (check_caller_context() == 0)
+    {
+        return -1;
+    }
+
+    fd = open(path, O_WRONLY|O_CREAT, FILE_MODE);
+    if (fd < 0)
+    {
+        error("file failed to open %s (%s)", path, strerror(errno));
+        return -1;
+    }
+    len = write(fd, value, value_size);
+    if (len < value_size)
+    {
+        error("write failed len=%d < value_size=%d", len, value_size);
+        status = -1;
+    }
+    else
+    {
+        debug("write OK len=%d value size=%d", len, value_size);
+    }
+    close(fd);
+
+    return status;
+}
+/*******************************************************************************
+**
+** Function         unv_read_hl_data
+**
+** Description      read HL applciation data
+**
+** Parameters
+**                  path        : path of file
+**                  value       : pointer to value
+**                  value_size  : size of value
+**
+** Returns         0 if successful, -1 if failure
+**
+******************************************************************************/
+int unv_read_hl_data(const char *path, char *value, int value_size)
+{
+    struct stat st;
+    int fd, len;
+    int status = 0;
+
+    debug("unv_read_hl_data %s value_size=%d ", path, value_size);
+
+    if (check_caller_context() == 0)
+    {
+        return -1;
+    }
+
+    if (stat(path, &st) != 0)
+    {
+        debug("%s does not exist", path);
+        status = -1;;
+    }
+    else
+    {
+        fd = open(path, O_RDONLY, FILE_MODE);
+        if (fd < 0)
+        {
+            error("file failed to open %s (%s)", path, strerror(errno));
+            status = -1;
+        }
+        else
+        {
+            len = read(fd, value,  value_size);
+            if (len < value_size)
+            {
+                error("read failed len=%d < value_size=%d", len, value_size);
+                status = -1;
+            }
+            debug("read OK len=%d value size=%d", len, value_size);
+            close(fd);
+        }
+    }
+
+
+    return status;
+}
+
+/*******************************************************************************
+**
+** Function         unv_write_hl_data
+**
+** Description      write HL applciation data
+**
+** Parameters
+**                  path        : path of file
+**                  value       : pointer to value
+**                  value_size  : size of value
+**
+** Returns         0 if successful, -1 if failure
+**
+******************************************************************************/
+int unv_write_hl_data(const char *path, char *value, int value_size)
+{
+    struct stat st;
+    int fd, len;
+    int status = 0;
+
+    debug("unv_write_hl_data %s value_size=%d ", path, value_size);
+
+    if (check_caller_context() == 0)
+    {
+        return -1;
+    }
+
+    debug("%s exist", path);
+    fd = open(path,  O_WRONLY|O_CREAT, FILE_MODE);
+    if (fd < 0)
+    {
+        error("file failed to open %s (%s)", path, strerror(errno));
+        status = -1;
+    }
+    else
+    {
+        len = write(fd, value, value_size);
+        if (len < value_size)
+        {
+            error("write failed len=%d < value_size=%d", len, value_size);
+            status = -1;
+        }
+        debug("write OK len=%d value size=%d", len, value_size);
+        close(fd);
+    }
+    return status;
+}
