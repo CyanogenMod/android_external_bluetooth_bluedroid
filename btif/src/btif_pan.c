@@ -89,11 +89,11 @@
 
 
 #include <cutils/log.h>
-#define info(fmt, ...)  LOGI ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define debug(fmt, ...) LOGD ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define warn(fmt, ...) LOGW ("## WARNING : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define error(fmt, ...) LOGE ("## ERROR : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define asrt(s) if(!(s)) LOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define info(fmt, ...)  LOGI ("btif_pan: %s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
+#define debug(fmt, ...) LOGD ("btif_pan: %s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
+#define warn(fmt, ...) LOGW ("btif_pan: ## WARNING : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
+#define error(fmt, ...) LOGE ("btif_pan: ## ERROR : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
+#define asrt(s) if(!(s)) LOGE ("btif_pan: ## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
 
 
@@ -133,13 +133,11 @@ btpan_interface_t *btif_pan_get_interface()
 {
     return &pan_if;
 }
-
-static btpan_callbacks_t callback;
-static bt_status_t btpan_init(const btpan_callbacks_t* callbacks)
+void btif_pan_init()
 {
-    //static volatile int binit;
-
-    debug("in, btpan_cb.enabled:%d", btpan_cb.enabled);
+    debug("btpan_cb.enabled:%d", btpan_cb.enabled);
+    //btif_enable_service(BTA_PANU_SERVICE_ID);
+    //btif_enable_service(BTA_NAP_SERVICE_ID);
     if (!btpan_cb.enabled)
     {
         //btui_cfg.pan_security = PAN_SECURITY;
@@ -158,23 +156,36 @@ static bt_status_t btpan_init(const btpan_callbacks_t* callbacks)
         btpan_enable(BTPAN_ROLE_PANU);
         //debug("set to BTPAN_ROLE_PANNAP for testing");
         //btpan_enable(BTPAN_ROLE_PANNAP);
-	callback = *callbacks;
-	return BT_STATUS_SUCCESS;
     }
-    return BT_STATUS_FAIL;
-}
+    debug("leaving");
 
-static void btpan_cleanup()
+}
+void btif_pan_cleanup()
 {
-    debug("in, btpan_cb.enabled:%d", btpan_cb.enabled);
-    debug("in, bt is shuting down...");
+    debug("");
     //bt is shuting down, invalid all bta pan handles
     int i;
     for(i = 0; i < MAX_PAN_CONNS; i++)
     {
         btpan_cleanup_conn(&btpan_cb.conns[i]);
     }
+    debug("calling btpan_cleanup");
+    btpan_cleanup();
+    debug("done calling btpan_cleanup");
 
+}
+static btpan_callbacks_t callback;
+static bt_status_t btpan_init(const btpan_callbacks_t* callbacks)
+{
+    debug(" btpan_cb.enabled:%d", btpan_cb.enabled);
+    static volatile int binit;
+    callback = *callbacks;
+    debug(" leaving");
+    return BT_STATUS_SUCCESS;
+}
+static void btpan_cleanup()
+{
+    debug("btpan_cb.enabled:%d", btpan_cb.enabled);
     if (btpan_cb.enabled)
     {
         btpan_cb.enabled = 0;
@@ -186,9 +197,8 @@ static void btpan_cleanup()
             btpan_cb.tap_fd = -1;
         }
     }
-    debug("out, %s", __FUNCTION__);
+    debug("leaving");
 }
-
 static inline int bta_role_to_btpan(int bta_pan_role)
 {
     int btpan_role = 0;

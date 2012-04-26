@@ -512,6 +512,8 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
 
         /* init rfcomm & l2cap api */
         btif_sock_init();
+        /* init pan */
+        btif_pan_init();
 
         /* load did configuration */
         bte_load_did_conf(BTE_DID_CONF_FILE);
@@ -522,6 +524,8 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
     {
         /* cleanup rfcomm & l2cap api */
         btif_sock_cleanup();
+
+        btif_pan_cleanup();
 
         btif_enabled = 0;
 
@@ -556,7 +560,8 @@ bt_status_t btif_disable_bluetooth(void)
     /* cleanup rfcomm & l2cap api */
     btif_sock_cleanup();
 
-    //btif_pan_cleanup();
+    btif_pan_cleanup();
+
 
     status = BTA_DisableBluetooth();
 

@@ -68,10 +68,10 @@
 #include "btif_sock_thread.h"
 #include "btif_sock_rfc.h"
 #include <cutils/log.h>
-#define info(fmt, ...)  LOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define debug(fmt, ...) LOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) LOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define asrt(s) if(!(s)) LOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define info(fmt, ...)  LOGI ("btif_sock: %s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define debug(fmt, ...) LOGD ("btif_sock: %s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define error(fmt, ...) LOGE ("btif_sock: ## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
+#define asrt(s) if(!(s)) LOGE ("btif_sock: ## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
 static bt_status_t btsock_listen(btsock_type_t type, const char* service_name,
                                 const uint8_t* uuid, int channel, int* sock_fd, int flags);
@@ -100,6 +100,9 @@ btsock_interface_t *btif_sock_get_interface()
 }
 bt_status_t btif_sock_init()
 {
+    debug("");
+
+
     static volatile int binit;
     if(!binit)
     {
@@ -119,9 +122,11 @@ bt_status_t btif_sock_init()
 }
 void btif_sock_cleanup()
 {
-    debug("btif_sock_cleanup()");
+    debug("");
     btsock_rfc_cleanup();
+    debug("leaving");
 }
+
 static bt_status_t btsock_listen(btsock_type_t type, const char* service_name,
         const uint8_t* service_uuid, int channel, int* sock_fd, int flags)
 {
