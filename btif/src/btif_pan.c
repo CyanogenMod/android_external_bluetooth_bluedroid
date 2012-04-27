@@ -152,8 +152,7 @@ void btif_pan_init()
 
         BTA_PanEnable(bta_pan_callback);
         btpan_cb.enabled = 1;
-        //panu by default
-        btpan_enable(BTPAN_ROLE_PANU);
+        btpan_enable(BTPAN_ROLE_PANU | BTPAN_ROLE_PANNAP);
         //debug("set to BTPAN_ROLE_PANNAP for testing");
         //btpan_enable(BTPAN_ROLE_PANNAP);
     }

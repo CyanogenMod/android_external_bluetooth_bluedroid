@@ -111,9 +111,9 @@ int sock_send_all(int sock_fd, const uint8_t* buf, int len)
     {
         do ret = send(sock_fd, buf, s, 0);
         while(ret < 0 && errno == EINTR);
-        if(ret < 0)
+        if(ret <= 0)
         {
-            error("sock fd:%d send errno:%d", sock_fd, errno);
+            error("sock fd:%d send errno:%d, ret:%d", sock_fd, errno, ret);
             return -1;
         }
         buf += ret;
@@ -129,9 +129,9 @@ int sock_recv_all(int sock_fd, uint8_t* buf, int len)
     {
         do ret = recv(sock_fd, buf, r, MSG_WAITALL);
         while(ret < 0 && errno == EINTR);
-        if(ret < 0)
+        if(ret <= 0)
         {
-            error("sock fd:%d recv errno:%d", sock_fd, errno);
+            error("sock fd:%d recv errno:%d, ret:%d", sock_fd, errno, ret);
             return -1;
         }
         buf += ret;

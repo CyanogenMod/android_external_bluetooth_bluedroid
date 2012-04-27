@@ -318,12 +318,14 @@ int btsock_thread_add_fd(int h, int fd, int type, int flags, uint32_t user_id)
     if(flags & SOCK_THREAD_ADD_FD_SYNC)
     {
         //must executed in socket poll thread
-        //debug("ts[%d].thread_id:%d, pthread self:%d", h, ts[h].thread_id, (int)pthread_self());
-        asrt(ts[h].thread_id == pthread_self());
-        //cleanup one-time flags
-        flags &= ~SOCK_THREAD_ADD_FD_SYNC;
-        add_poll(h, fd, type, flags, user_id);
-        return TRUE;
+        if(ts[h].thread_id == pthread_self())
+        {
+            //cleanup one-time flags
+            flags &= ~SOCK_THREAD_ADD_FD_SYNC;
+            add_poll(h, fd, type, flags, user_id);
+            return TRUE;
+        }
+        debug("SOCK_THREAD_ADD_FD_SYNC is not called in poll thread context, fallback to async");
     }
     sock_cmd_t cmd = {CMD_ADD_FD, fd, type, flags, user_id};
     debug("adding fd:%d, flags:0x%x", fd, flags);
@@ -580,7 +582,7 @@ static void *sock_poll_thread(void *arg)
                 asrt(pfds[0].fd == ts[h].cmd_fdr);
                 if(!process_cmd_sock(h))
                 {
-                    debug("h:%d, process_cmd_sock failed, exit...", h);
+                    debug("h:%d, process_cmd_sock return false, exit...", h);
                     break;
                 }
                 if(ret == 1)
