@@ -641,7 +641,6 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
                 __FUNCTION__, p_auth_cmpl->key_type, pairing_cb.is_temp);
         }
     }
-
     if (p_auth_cmpl->success)
     {
         status = BT_STATUS_SUCCESS;
@@ -650,7 +649,25 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         /* Trigger SDP on the device */
         btif_dm_get_remote_services(&bd_addr);
     }
+    else
+    {
+         /*Map the HCI fail reason  to  bt status  */
+        switch(p_auth_cmpl->fail_reason)
+        {
+            case HCI_ERR_PAGE_TIMEOUT:
+            case HCI_ERR_CONNECTION_TOUT:
+                status =  BT_STATUS_RMT_DEV_DOWN;
+                break;
 
+            case HCI_ERR_AUTH_FAILURE:
+                status =  BT_STATUS_AUTH_FAILURE;
+                break;
+
+            default:
+                status =  BT_STATUS_FAIL;
+        }
+
+    }
     bond_state_changed(status, &bd_addr, state);
 }
 

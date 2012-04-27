@@ -4358,7 +4358,7 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
                 result = HCI_ERR_HOST_REJECT_SECURITY;
             }
             (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr,     p_dev_rec->dev_class,
-                                                    p_dev_rec->sec_bd_name, reason);
+                                                    p_dev_rec->sec_bd_name, result);
         }
     }
 
