@@ -470,7 +470,7 @@ static void btif_recv_ctrl_data(void)
         return;
     }
 
-    APPL_TRACE_EVENT1("a2dp-ctrl-cmd : %s", dump_a2dp_ctrl_event(cmd));
+    APPL_TRACE_DEBUG1("a2dp-ctrl-cmd : %s", dump_a2dp_ctrl_event(cmd));
 
     btif_media_cb.a2dp_cmd_pending = cmd;
 
@@ -484,8 +484,8 @@ static void btif_recv_ctrl_data(void)
                 return;
             }
 
-            /* check whether avdtp is ready to start */
-            if (btif_av_stream_ready() == TRUE)
+            /* check whether av is ready to setup a2dp datapath */
+            if ((btif_av_stream_ready() == TRUE) || (btif_av_stream_started() == TRUE))
             {
                 a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
             }
@@ -504,14 +504,11 @@ static void btif_recv_ctrl_data(void)
 
                 /* post start event and wait for audio path to open */
                 btif_dispatch_sm_event(BTIF_AV_START_STREAM_REQ_EVT, NULL, 0);
-
-                /* don't ack back until we are fully started */
-                //a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
-
             }
             else if (btif_av_stream_started())
             {
-                /* setup audio data channel listener */
+                /* already started, setup audio data channel listener
+                   and ack back immediately */
                 UIPC_Open(UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb);
 
                 a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
@@ -545,7 +542,7 @@ static void btif_recv_ctrl_data(void)
             a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
             break;
     }
-    APPL_TRACE_EVENT1("a2dp-ctrl-cmd : %s DONE", dump_a2dp_ctrl_event(cmd));
+    APPL_TRACE_DEBUG1("a2dp-ctrl-cmd : %s DONE", dump_a2dp_ctrl_event(cmd));
 }
 
 static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
