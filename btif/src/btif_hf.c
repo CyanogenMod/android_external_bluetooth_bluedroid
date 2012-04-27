@@ -77,7 +77,8 @@
                              BTA_AG_FEAT_ECS    | \
                              BTA_AG_FEAT_EXTERR | \
                              BTA_AG_FEAT_BTRH   | \
-                             BTA_AG_FEAT_VREC)
+                             BTA_AG_FEAT_VREC   | \
+                             BTA_AG_FEAT_UNAT)
 #define BTIF_HSAG_SERVICE_NAME ("Headset Gateway")
 #define BTIF_HFAG_SERVICE_NAME ("Handsfree Gateway")
 
@@ -782,15 +783,14 @@ static bt_status_t formatted_at_response(const char *rsp)
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-static bt_status_t at_response(bthf_at_response_t response_code)
+static bt_status_t at_response(bthf_at_response_t response_code, int error_code)
 {
     CHECK_BTHF_INIT();
 
     if (is_connected(NULL))
     {
-        /* TODO: Fix the errcode */
         send_at_result((response_code == BTHF_AT_RESPONSE_OK) ? BTA_AG_OK_DONE
-                        : BTA_AG_OK_ERROR, 0);
+                        : BTA_AG_OK_ERROR, error_code);
         return BT_STATUS_SUCCESS;
     }
 
