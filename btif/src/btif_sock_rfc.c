@@ -48,7 +48,7 @@
 
 /************************************************************************************
  *
- *  Filename:      btif_hf.c
+ *  Filename:      btif_sock_rfc.c
  *
  *  Description:   Handsfree Profile Bluetooth Interface
  *
@@ -133,8 +133,7 @@ typedef struct {
 
 static rfc_slot_t rfc_slots[MAX_RFC_CHANNEL];
 static uint32_t rfc_slot_id;
-static int pth = -1; //poll thread handle
-
+static volatile int pth = -1; //poll thread handle
 static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data);
 static void cleanup_rfc_slot(rfc_slot_t* rs);
 static inline void close_rfc_connection(int rfc_handle, int server);
@@ -142,6 +141,7 @@ static bt_status_t dm_get_remote_service_record(bt_bdaddr_t *remote_addr,
                                                     bt_uuid_t *uuid);
 
 static pthread_mutex_t slot_lock;
+#define is_init_done() (pth != -1)
 static inline void clear_slot_flag(flags_t* f)
 {
     memset(f, 0, sizeof(*f));
@@ -184,7 +184,9 @@ bt_status_t btsock_rfc_init(int poll_thread_handle)
 }
 void btsock_rfc_cleanup()
 {
-    btsock_thread_exit(pth);
+    int curr_pth = pth;
+    pth = -1;
+    btsock_thread_exit(curr_pth);
     lock_slot(&slot_lock);
     int i;
     for(i = 0; i < MAX_RFC_CHANNEL; i++)
@@ -342,8 +344,10 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
         error("invalid rfc channel:%d or sock_fd:%p, uuid:%p", channel, sock_fd, service_uuid);
         return BT_STATUS_PARM_INVALID;
     }
-
-    //Check the service_uuid. If it uses a reserved channel number, use it
+    *sock_fd = -1;
+    if(!is_init_done())
+        return BT_STATUS_NOT_READY;
+   //Check the service_uuid. If it uses a reserved channel number, use it
     int reserved_channel = get_reserved_rfc_channel(service_uuid);
     if(reserved_channel >0)
     {
@@ -351,7 +355,6 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
     }
 
     int status = BT_STATUS_FAIL;
-    *sock_fd = -1;
     lock_slot(&slot_lock);
     rfc_slot_t* rs = alloc_rfc_slot(NULL, service_name, service_uuid, channel, flags, TRUE);
     if(rs)
@@ -375,8 +378,10 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t* servic
         error("invalid rfc channel:%d or sock_fd:%p, uuid:%p", channel, sock_fd, service_uuid);
         return BT_STATUS_PARM_INVALID;
     }
-    int status = BT_STATUS_FAIL;
     *sock_fd = -1;
+    if(!is_init_done())
+        return BT_STATUS_NOT_READY;
+    int status = BT_STATUS_FAIL;
     lock_slot(&slot_lock);
     rfc_slot_t* rs = alloc_rfc_slot(bd_addr, NULL, service_uuid, channel, flags, FALSE);
     if(rs)
