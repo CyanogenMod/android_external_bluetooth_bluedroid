@@ -335,7 +335,7 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
         return;
     }
 
-    p_dev->dev_status = BTIF_HH_DEV_UNKNOWN;
+    p_dev->dev_status = BTHH_CONN_STATE_UNKNOWN;
     p_dev->dev_handle = BTA_HH_INVALID_HANDLE;
     if (btif_hh_cb.device_num > 0) {
         btif_hh_cb.device_num--;
