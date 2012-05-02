@@ -3305,6 +3305,8 @@ void btm_proc_sp_req_evt (tBTM_SP_EVT event, UINT8 *p)
 
                 evt_data.cfm_req.loc_auth_req   = btm_cb.devcb.loc_auth_req;
                 evt_data.cfm_req.rmt_auth_req   = p_dev_rec->rmt_auth_req;
+                evt_data.cfm_req.loc_io_caps    = btm_cb.devcb.loc_io_caps;
+                evt_data.cfm_req.rmt_io_caps    = p_dev_rec->rmt_io_caps;
                 break;
 
             case BTM_SP_KEY_NOTIF_EVT:

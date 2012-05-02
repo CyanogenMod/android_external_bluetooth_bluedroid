@@ -533,6 +533,7 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     bt_bdname_t bd_name;
     UINT32 cod;
     btif_dm_remote_name_t remote_param;
+    BOOLEAN is_incoming = !(pairing_cb.state == BT_BOND_STATE_BONDING);
 
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
 
@@ -546,21 +547,36 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
 
     /* Set the pairing_cb based on the local & remote authentication requirements */
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
-    if ((p_ssp_cfm_req->loc_auth_req >= BTM_AUTH_AP_NO && p_ssp_cfm_req->rmt_auth_req >= BTM_AUTH_AP_NO) ||
-        (p_ssp_cfm_req->loc_auth_req == BTM_AUTH_AP_NO || p_ssp_cfm_req->loc_auth_req == BTM_AUTH_AP_YES) ||
-        (p_ssp_cfm_req->rmt_auth_req == BTM_AUTH_AP_NO || p_ssp_cfm_req->rmt_auth_req == BTM_AUTH_AP_YES))
-        pairing_cb.is_temp = FALSE;
-    else
+
+    /* if just_works and bonding bit is not set treat this as temporary */
+    if (p_ssp_cfm_req->just_works && !(p_ssp_cfm_req->loc_auth_req & BTM_AUTH_BONDS) &&
+        !(p_ssp_cfm_req->rmt_auth_req & BTM_AUTH_BONDS))
         pairing_cb.is_temp = TRUE;
+    else
+        pairing_cb.is_temp = FALSE;
 
     pairing_cb.is_ssp = TRUE;
 
     /* If JustWorks auto-accept */
     if (p_ssp_cfm_req->just_works)
     {
-        BTIF_TRACE_EVENT1("%s: Auto-accept JustWorks pairing", __FUNCTION__);
-        btif_dm_ssp_reply(&bd_addr, BT_SSP_VARIANT_CONSENT, TRUE, 0);
-        return;
+        /* Pairing consent for JustWorks needed if:
+         * 1. Incoming pairing is detected AND
+         * 2. local IO capabilities are DisplayYesNo AND
+         * 3. remote IO capabiltiies are DisplayOnly or NoInputNoOutput;
+         */
+        if ((is_incoming) && ((p_ssp_cfm_req->loc_io_caps == 0x01) &&
+                (p_ssp_cfm_req->rmt_io_caps == 0x00 || p_ssp_cfm_req->rmt_io_caps == 0x03)))
+        {
+            BTIF_TRACE_EVENT3("%s: User consent needed for incoming pairing request. loc_io_caps: %d, rmt_io_caps: %d",
+                __FUNCTION__, p_ssp_cfm_req->loc_io_caps, p_ssp_cfm_req->rmt_io_caps);
+        }
+        else
+        {
+            BTIF_TRACE_EVENT1("%s: Auto-accept JustWorks pairing", __FUNCTION__);
+            btif_dm_ssp_reply(&bd_addr, BT_SSP_VARIANT_CONSENT, TRUE, 0);
+            return;
+        }
     }
 
     cod = devclass2uint(p_ssp_cfm_req->dev_class);
@@ -570,8 +586,8 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
         cod = COD_UNCLASSIFIED;
     }
 
-    HAL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name,
-                     cod, BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
+    HAL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name, cod,
+                     (p_ssp_cfm_req->just_works ? BT_SSP_VARIANT_CONSENT : BT_SSP_VARIANT_PASSKEY_CONFIRMATION),
                      p_ssp_cfm_req->num_val);
 }
 

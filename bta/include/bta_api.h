@@ -624,6 +624,8 @@ typedef struct
     BOOLEAN         just_works;     /* TRUE, if "Just Works" association model */
     tBTA_AUTH_REQ   loc_auth_req;   /* Authentication required for local device */
     tBTA_AUTH_REQ   rmt_auth_req;   /* Authentication required for peer device */
+    tBTA_IO_CAP     loc_io_caps;    /* IO Capabilities of local device */
+    tBTA_AUTH_REQ   rmt_io_caps;    /* IO Capabilities of remote device */
 } tBTA_DM_SP_CFM_REQ;
 
 enum

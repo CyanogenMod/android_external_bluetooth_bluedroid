@@ -2827,6 +2827,8 @@ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
         bta_dm_cb.just_works = sec_event.cfm_req.just_works = p_data->cfm_req.just_works;
         sec_event.cfm_req.loc_auth_req = p_data->cfm_req.loc_auth_req;
         sec_event.cfm_req.rmt_auth_req = p_data->cfm_req.rmt_auth_req;
+        sec_event.cfm_req.loc_io_caps = p_data->cfm_req.loc_io_caps;
+        sec_event.cfm_req.rmt_io_caps = p_data->cfm_req.rmt_io_caps;
         /* continue to next case */
 #if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)
     /* Passkey entry mode, mobile device with output capability is very 
