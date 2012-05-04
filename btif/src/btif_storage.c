@@ -135,7 +135,7 @@
 #define BTIF_STORAGE_KEY_ADAPTER_DISC_TIMEOUT "discovery_timeout"
 
 
-#define BTIF_AUTO_PAIR_CONF_FILE  "/etc/bluetooth/auto_pairing.conf"
+#define BTIF_AUTO_PAIR_CONF_FILE  "/etc/bluetooth/auto_pair_devlist.conf"
 #define BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST "auto_pair_blacklist"
 #define BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_ADDR "AddressBlacklist"
 #define BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_EXACTNAME "ExactNameBlacklist"
