@@ -96,6 +96,9 @@
 #define KEYSTATE_MASK_CAPSLOCK   0x02
 #define KEYSTATE_MASK_SCROLLLOCK 0x04
 
+//For Apple Magic Mouse
+#define MAGICMOUSE_VENDOR_ID 0x05ac
+#define MAGICMOUSE_PRODUCT_ID 0x030d
 
 extern const int BT_UID;
 extern const int BT_GID;
@@ -693,6 +696,14 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 }
 
                 BTIF_TRACE_WARNING2("%s: name = %s", __FUNCTION__, cached_name);
+
+                //Fix for Apple Magic Mouse
+                //For Apple Magic Mouse change the product id and version in order to bind to generic-bluetooth driver
+                if((p_data->dscp_info.vendor_id == MAGICMOUSE_VENDOR_ID) && (p_data->dscp_info.product_id == MAGICMOUSE_PRODUCT_ID))
+                {
+                    p_data->dscp_info.product_id = 0x30c; /* Product id for Mighty mouse*/
+                    p_data->dscp_info.version = 0x0200;   /* Version for Mighty mouse*/
+                }
 
                 bta_hh_co_send_hid_info(p_dev, cached_name,
                     p_data->dscp_info.vendor_id, p_data->dscp_info.product_id,
