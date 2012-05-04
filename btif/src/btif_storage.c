@@ -98,6 +98,7 @@
  ***********************************************************************************/
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #include <hardware/bluetooth.h>
 
@@ -128,10 +129,26 @@
 #define BTIF_STORAGE_PATH_REMOTE_ALIASES "remote_aliases"
 #define BTIF_STORAGE_PATH_REMOTE_SERVICES "remote_services"
 #define BTIF_STORAGE_PATH_REMOTE_HIDINFO "hid_info"
-
+#define BTIF_STORAGE_PATH_DYNAMIC_AUTOPAIR_BLACKLIST ""
 #define BTIF_STORAGE_KEY_ADAPTER_NAME "name"
 #define BTIF_STORAGE_KEY_ADAPTER_SCANMODE "scan_mode"
 #define BTIF_STORAGE_KEY_ADAPTER_DISC_TIMEOUT "discovery_timeout"
+
+
+#define BTIF_AUTO_PAIR_CONF_FILE  "/etc/bluetooth/auto_pairing.conf"
+#define BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST "auto_pair_blacklist"
+#define BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_ADDR "AddressBlacklist"
+#define BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_EXACTNAME "ExactNameBlacklist"
+#define BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_PARTIALNAME "PartialNameBlacklist"
+#define BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST "FixedPinZerosKeyboardBlacklist"
+#define BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST "FixedPinZerosKeyboardBlacklist"
+#define BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLIACKLIST_ADDR "DynamicAddressBlacklist"
+
+#define BTIF_AUTO_PAIR_CONF_VALUE_SEPERATOR ","
+#define BTIF_AUTO_PAIR_CONF_SPACE ' '
+#define BTIF_AUTO_PAIR_CONF_COMMENT '#'
+#define BTIF_AUTO_PAIR_CONF_KEY_VAL_DELIMETER "="
+
 
 /* This is a local property to add a device found */
 #define BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP 0xFF
@@ -1687,4 +1704,251 @@ bt_status_t btif_storage_write_hl_mdl_data(UINT8 app_idx, char *value, int value
     BTIF_TRACE_DEBUG3("%s write file:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
 
     return bt_status;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_load_autopair_device_list
+**
+** Description      BTIF storage API - Populates auto pair device list
+**
+** Returns          BT_STATUS_SUCCESS if the auto pair blacklist is successfully populated
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_load_autopair_device_list()
+{
+    char *fname, *key_name, *key_value;
+    int ret , i=0;
+    char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
+    char *line;
+    FILE *fp;
+
+    /* check if the auto pair device list is already present in the  NV memory */
+    fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST);
+
+    if (fname == NULL)
+    {
+        return BT_STATUS_FAIL;
+    }
+
+    key_value = unv_read_key(fname,BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_ADDR,linebuf, BTIF_STORAGE_MAX_LINE_SZ);
+
+    if (key_value  ==  NULL)
+    {
+        /* first time loading of auto pair blacklist configuration  */
+        ret = unv_create_file(fname);
+
+        if (ret < 0)
+        {
+            LOGE("%s: Failed to create dynamic auto pair blacklist", __FUNCTION__);
+            return BT_STATUS_FAIL;
+        }
+        fp = fopen (BTIF_AUTO_PAIR_CONF_FILE, "r");
+
+        if (fp == NULL)
+        {
+            LOGE("%s: Failed to open auto pair blacklist conf file at %s", __FUNCTION__,BTIF_AUTO_PAIR_CONF_FILE );
+            return BT_STATUS_FAIL;
+        }
+
+        /* read through auto_pairing.conf file and create the key value pairs specific to  auto pair blacklist devices */
+        while (fgets(linebuf, BTIF_STORAGE_MAX_LINE_SZ, fp) != NULL)
+        {
+            /* trip  leading white spaces */
+            while (linebuf[i] == BTIF_AUTO_PAIR_CONF_SPACE)
+                i++;
+
+            /* skip  commented lines */
+            if (linebuf[i] == BTIF_AUTO_PAIR_CONF_COMMENT)
+                continue;
+
+            line = (char*)&(linebuf[i]);
+
+            if (line == NULL)
+                continue;
+
+            key_name = strtok(line, BTIF_AUTO_PAIR_CONF_KEY_VAL_DELIMETER);
+
+            if (key_name == NULL)
+                continue;
+            else if((strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_ADDR) == 0) ||
+                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_EXACTNAME) ==0) ||
+                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST) ==0 ) ||
+                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_PARTIALNAME) == 0) ||
+                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLIACKLIST_ADDR) == 0))
+            {
+                key_value = strtok(NULL, BTIF_AUTO_PAIR_CONF_KEY_VAL_DELIMETER);
+                unv_write_key (fname, key_name, key_value);
+            }
+        }
+        fclose(fp);
+    }
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_is_device_autopair_blacklisted
+**
+** Description      BTIF storage API  Checks if the given device is blacklisted for auto pairing
+**
+** Returns          TRUE if the device is found in the auto pair blacklist
+**                  FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_addr)
+{
+    char *fname;
+    char *value, *token;
+    int ret;
+    bdstr_t bdstr;
+    char bd_addr_lap[9];
+    char *dev_name_str;
+    char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
+
+    bd2str(remote_dev_addr, &bdstr);
+
+    /* create a string with  Lower Address Part from BD Address */
+      snprintf(bd_addr_lap, 9,  "%s",  (char*)bdstr);
+
+    /* create filepath */
+    fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST);
+
+    /* check if this device address LAP is same as one of the auto pair blackliseted LAP */
+    value = unv_read_key( fname,
+                          BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_ADDR,
+                          linebuf, BTIF_STORAGE_MAX_LINE_SZ);
+    if (value != NULL)
+    {
+        if (strstr(value,bd_addr_lap) != NULL)
+        return TRUE;
+    }
+
+    dev_name_str = BTM_SecReadDevName((remote_dev_addr->address));
+
+    if (dev_name_str != NULL)
+    {
+        value = unv_read_key( fname,
+                              BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_EXACTNAME,
+                              linebuf, BTIF_STORAGE_MAX_LINE_SZ);
+        if (value != NULL)
+        {
+            if (strstr(value,dev_name_str) != NULL)
+                return TRUE;
+        }
+
+        value = unv_read_key( fname,
+                              BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_PARTIALNAME,
+                              linebuf, BTIF_STORAGE_MAX_LINE_SZ);
+        if (value != NULL)
+        {
+            token = strtok(value, BTIF_AUTO_PAIR_CONF_VALUE_SEPERATOR);
+            while (token != NULL)
+            {
+                if (strstr(dev_name_str, token) != NULL)
+                    return TRUE;
+
+                token = strtok(NULL, BTIF_AUTO_PAIR_CONF_VALUE_SEPERATOR);
+            }
+        }
+    }
+
+    value = unv_read_key( fname,
+                          BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLIACKLIST_ADDR,
+                          linebuf, BTIF_STORAGE_MAX_LINE_SZ);
+    if (value != NULL)
+    {
+        if (strstr(value,bdstr) != NULL)
+            return TRUE;
+    }
+   return FALSE;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_add_device_to_autopair_blacklist
+**
+** Description      BTIF storage API - Add a remote device to the auto pairing blacklist
+**
+** Returns          BT_STATUS_SUCCESS if the device is successfully added to the auto pair blacklist
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_dev_addr)
+{
+    char *fname;
+    char *value;
+    int ret;
+    bdstr_t bdstr;
+    char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
+    char input_value [20];
+
+    bd2str(remote_dev_addr, &bdstr);
+    strncpy(input_value, (char*)bdstr, 20);
+    strncat (input_value,BTIF_AUTO_PAIR_CONF_VALUE_SEPERATOR, 20);
+
+    /* create filepath */
+    fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST);
+
+    if (fname == NULL)
+    {
+        return BT_STATUS_FAIL;
+    }
+
+    value = unv_read_key( fname,
+                          BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLIACKLIST_ADDR,
+                          linebuf, BTIF_STORAGE_MAX_LINE_SZ);
+    if (value != NULL)
+    {
+        /* Append this address to the dynamic List of BD address  */
+        strncat (linebuf, input_value, BTIF_STORAGE_MAX_LINE_SZ);
+    }
+    else
+    {
+        strncpy( linebuf,input_value, BTIF_STORAGE_MAX_LINE_SZ);
+    }
+
+    /* Write back the key value */
+    ret = unv_write_key (fname, BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLIACKLIST_ADDR,( const char *)linebuf);
+
+    return (ret == 0 ? BT_STATUS_SUCCESS:BT_STATUS_FAIL);
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_is_fixed_pin_zeros_keyboard
+**
+** Description      BTIF storage API - checks if this device has fixed PIN key device list
+**
+** Returns          TRUE   if the device is found in the fixed pin keyboard device list
+**                  FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_dev_addr)
+{
+    char *fname;
+    char *value;
+    int ret;
+    bdstr_t bdstr;
+    char bd_addr_lap[9];
+    char *dev_name_str;
+    char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
+
+    bd2str(remote_dev_addr, &bdstr);
+    snprintf(bd_addr_lap, 9, "%s",  (char*)bdstr);
+
+    /* create filepath */
+    fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST);
+
+    value = unv_read_key( fname,
+                          BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST,
+                          linebuf, BTIF_STORAGE_MAX_LINE_SZ);
+
+    if (value != NULL)
+    {
+        if (strstr(bd_addr_lap, value) != NULL)
+            return TRUE;
+    }
+    return FALSE;
 }

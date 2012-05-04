@@ -269,7 +269,6 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
                                                     UINT16 product_id, UINT16 version,
                                                     UINT8 ctry_code, UINT16 dl_len, UINT8 *dsc_list);
 
-
 /*******************************************************************************
 **
 ** Function         btif_storage_load_bonded_hid_info
@@ -282,7 +281,68 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
 *******************************************************************************/
 bt_status_t btif_storage_load_bonded_hid_info(void);
 
+/*******************************************************************************
+**
+** Function         btif_storage_remove_hid_info
+**
+** Description      BTIF storage API - Deletes the bonded hid device info from NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the deletion was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+
 bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr);
+
+/*******************************************************************************
+**
+** Function         btif_storage_load_autopair_device_list
+**
+** Description      BTIF storage API - Populates auto pair device list
+**
+** Returns          BT_STATUS_SUCCESS if the auto pair blacklist is successfully populated
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_load_autopair_device_list();
+
+/*******************************************************************************
+**
+** Function         btif_storage_is_device_autopair_blacklisted
+**
+** Description      BTIF storage API  Checks if the given device is blacklisted for auto pairing
+**
+** Returns          TRUE if the device is found in the auto pair blacklist
+**                  FALSE otherwise
+**
+*******************************************************************************/
+
+BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_addr);
+
+/*******************************************************************************
+**
+** Function         btif_storage_add_device_to_autopair_blacklist
+**
+** Description      BTIF storage API - Add a remote device to the auto pairing blacklist
+**
+** Returns          BT_STATUS_SUCCESS if the device is successfully added to the auto pair blacklist
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+
+bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_dev_addr);
+
+/*******************************************************************************
+**
+** Function         btif_storage_is_fixed_pin_zeros_keyboard
+**
+** Description      BTIF storage API - checks if this device has fixed PIN key device list
+**
+** Returns          TRUE   if the device is found in the fixed pin keyboard device list
+**                  FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_dev_addr);
 
 
 

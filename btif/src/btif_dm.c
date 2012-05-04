@@ -75,9 +75,15 @@
 ******************************************************************************/
 
 #define COD_UNCLASSIFIED ((0x1F) << 8)
-#define COD_HID_KEYBOARD  0x0540
-#define COD_HID_POINTING  0x0580
-#define COD_HID_COMBO     0x05C0
+#define COD_HID_KEYBOARD       0x0540
+#define COD_HID_POINTING       0x0580
+#define COD_HID_COMBO          0x05C0
+#define COD_AV_HEADSETS        0x0404
+#define COD_AV_HANDSFREE       0x0408
+#define COD_AV_HEADPHONES      0x0418
+#define COD_AV_PORTABLE_AUDIO  0x041C
+#define COD_AV_HIFI_AUDIO      0x0428
+
 
 #define BTIF_DM_DEFAULT_INQ_MAX_RESULTS     0
 #define BTIF_DM_DEFAULT_INQ_MAX_DURATION    10
@@ -88,6 +94,7 @@ typedef struct {
     UINT8   is_temp;
     UINT8   pin_code_len;
     UINT8   is_ssp;
+    UINT8   autopair_attempts;
 } btif_dm_pairing_cb_t;
 
 typedef struct {
@@ -496,6 +503,7 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     bt_bdname_t bd_name;
     UINT32 cod;
     btif_dm_remote_name_t remote_param;
+    bt_pin_code_t pin_code;
 
     /* Remote name update */
     bdcpy(remote_param.bd_addr , p_pin_req->bd_addr);
@@ -510,8 +518,49 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     cod = devclass2uint(p_pin_req->dev_class);
 
     if ( cod == 0) {
-        LOGD("cod is 0, set as unclassified");
+        BTIF_TRACE_DEBUG1("%s():cod is 0, set as unclassified", __FUNCTION__);
         cod = COD_UNCLASSIFIED;
+    }
+
+    if (check_cod(&bd_addr, COD_AV_HEADSETS) ||
+        check_cod(&bd_addr, COD_AV_HANDSFREE) ||
+        check_cod(&bd_addr, COD_AV_HEADPHONES) ||
+        check_cod(&bd_addr, COD_AV_PORTABLE_AUDIO) ||
+        check_cod(&bd_addr, COD_AV_HIFI_AUDIO) ||
+        check_cod(&bd_addr, COD_HID_POINTING))
+    {
+        BTIF_TRACE_DEBUG1("%s()cod matches for auto pair", __FUNCTION__);
+        /*  Check if this device can be auto paired  */
+        if ((btif_storage_is_device_autopair_blacklisted(&bd_addr) == FALSE) &&
+            (pairing_cb.autopair_attempts == 0))
+        {
+            BTIF_TRACE_DEBUG1("%s() Attempting auto pair", __FUNCTION__);
+            pin_code.pin[0] = 0x30;
+            pin_code.pin[1] = 0x30;
+            pin_code.pin[2] = 0x30;
+            pin_code.pin[3] = 0x30;
+
+            pairing_cb.autopair_attempts++;
+            BTA_DmPinReply( (UINT8*)bd_addr.address, TRUE, 4, pin_code.pin);
+            return;
+        }
+    }
+    else if (check_cod(&bd_addr, COD_HID_KEYBOARD) ||
+             check_cod(&bd_addr, COD_HID_COMBO))
+    {
+        if(( btif_storage_is_fixed_pin_zeros_keyboard (&bd_addr) == TRUE) &&
+           (pairing_cb.autopair_attempts == 0))
+        {
+            BTIF_TRACE_DEBUG1("%s() Attempting auto pair", __FUNCTION__);
+            pin_code.pin[0] = 0x30;
+            pin_code.pin[1] = 0x30;
+            pin_code.pin[2] = 0x30;
+            pin_code.pin[3] = 0x30;
+
+            pairing_cb.autopair_attempts++;
+            BTA_DmPinReply( (UINT8*)bd_addr.address, TRUE, 4, pin_code.pin);
+            return;
+        }
     }
 
     HAL_CBACK(bt_hal_cbacks, pin_request_cb,
@@ -676,13 +725,37 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
                 break;
 
             case HCI_ERR_AUTH_FAILURE:
-                status =  BT_STATUS_AUTH_FAILURE;
+                BTIF_TRACE_DEBUG1(" %s() Authentication fail ", __FUNCTION__);
+                if (pairing_cb.autopair_attempts  == 1)
+                {
+                    BTIF_TRACE_DEBUG1("%s(): Adding device to blacklist ", __FUNCTION__);
+
+                    /* Add the device to dynamic black list only if this device belongs to Audio/pointing dev class  */
+                    if (check_cod(&bd_addr, COD_AV_HEADSETS) ||
+                        check_cod(&bd_addr, COD_AV_HANDSFREE) ||
+                        check_cod(&bd_addr, COD_AV_HEADPHONES) ||
+                        check_cod(&bd_addr, COD_AV_PORTABLE_AUDIO) ||
+                        check_cod(&bd_addr, COD_AV_HIFI_AUDIO) ||
+                        check_cod(&bd_addr, COD_HID_POINTING))
+                    {
+                        btif_storage_add_device_to_autopair_blacklist (&bd_addr);
+                    }
+                    pairing_cb.autopair_attempts++;
+
+                    /* Create the Bond once again */
+                    BTIF_TRACE_DEBUG1("%s() auto pair failed. Reinitiate Bond", __FUNCTION__);
+                    btif_dm_cb_create_bond (&bd_addr);
+                    return;
+                }
+                else if (pairing_cb.autopair_attempts > 1)
+                {
+                    status =  BT_STATUS_AUTH_FAILURE;
+                }
                 break;
 
             default:
                 status =  BT_STATUS_FAIL;
         }
-
     }
     bond_state_changed(status, &bd_addr, state);
 }
@@ -1022,6 +1095,8 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
              ** and bonded_devices_info_cb
              */
              btif_storage_load_bonded_devices();
+
+             btif_storage_load_autopair_device_list();
 
              btif_enable_bluetooth_evt(p_data->enable.status, p_data->enable.bd_addr);
         }
