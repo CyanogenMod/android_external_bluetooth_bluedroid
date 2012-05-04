@@ -51,8 +51,9 @@
 #include "bta_sys.h"
 #include "bta_dm_co.h"
 #include "bta_dm_ci.h"
-
-
+#if (BTM_OOB_INCLUDED == TRUE)
+#include "btif_dm.h"
+#endif
 /*******************************************************************************
 **
 ** Function         bta_dm_co_get_compress_memory
@@ -89,6 +90,13 @@ BOOLEAN bta_dm_co_get_compress_memory(tBTA_SYS_ID id, UINT8 **memory_p, UINT32 *
 void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap, tBTA_OOB_DATA *p_oob_data,
                       tBTA_AUTH_REQ *p_auth_req, BOOLEAN is_orig)
 {
+#if (BTM_OOB_INCLUDED == TRUE)
+    btif_dm_set_oob_for_io_req(p_oob_data);
+#endif
+    BTIF_TRACE_DEBUG1("bta_dm_co_io_req *p_oob_data = %d", *p_oob_data);
+    BTIF_TRACE_DEBUG1("bta_dm_co_io_req *p_io_cap = %d", *p_io_cap);
+    BTIF_TRACE_DEBUG1("bta_dm_co_io_req *p_auth_req = %d", *p_auth_req);
+    BTIF_TRACE_DEBUG1("bta_dm_co_io_req is_orig = %d", is_orig);
 }
 
 /*******************************************************************************
@@ -145,6 +153,10 @@ void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, BOOLEAN *p_upgrade )
 *******************************************************************************/
 void bta_dm_co_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
 {
+    BTIF_TRACE_DEBUG1("bta_dm_co_loc_oob, valid = %d", valid);
+#ifdef BTIF_DM_OOB_TEST
+    btif_dm_proc_loc_oob(valid, c, r);
+#endif
 }
 
 /*******************************************************************************
@@ -162,6 +174,16 @@ void bta_dm_co_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
 *******************************************************************************/
 void bta_dm_co_rmt_oob(BD_ADDR bd_addr)
 {
+    BT_OCTET16 p_c;
+    BT_OCTET16 p_r;
+    BOOLEAN result = FALSE;
+
+#ifdef BTIF_DM_OOB_TEST
+    result = btif_dm_proc_rmt_oob(bd_addr, p_c, p_r);
+#endif
+
+    BTIF_TRACE_DEBUG1("bta_dm_co_rmt_oob: result=%d",result);
+    bta_dm_ci_rmt_oob(result, bd_addr, p_c, p_r);
 }
 
 #endif /* BTM_OOB_INCLUDED */

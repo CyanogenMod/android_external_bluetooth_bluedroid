@@ -158,6 +158,9 @@ void bte_main_enable_lpm(BOOLEAN enable);
 #endif
 void bte_main_postload_cfg(void);
 void btif_dm_execute_service_request(UINT16 event, char *p_param);
+#ifdef BTIF_DM_OOB_TEST
+void btif_dm_load_local_oob(void);
+#endif
 
 /************************************************************************************
 **  Functions
@@ -538,6 +541,9 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
         /* load did configuration */
         bte_load_did_conf(BTE_DID_CONF_FILE);
 
+#ifdef BTIF_DM_OOB_TEST
+        btif_dm_load_local_oob();
+#endif
         /* now fully enabled, update state */
         btif_core_state = BTIF_CORE_STATE_ENABLED;
 

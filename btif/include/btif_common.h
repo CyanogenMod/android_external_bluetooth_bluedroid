@@ -138,6 +138,7 @@ enum
     BTIF_DM_CB_CREATE_BOND,   /* Create bond */
     BTIF_DM_CB_REMOVE_BOND,   /*Remove bond */
     BTIF_DM_CB_HID_REMOTE_NAME,   /* Remote name callback for HID device */
+    BTIF_DM_CB_BOND_STATE_BONDING
 };
 
 /* Macro definitions for BD ADDR persistence */
