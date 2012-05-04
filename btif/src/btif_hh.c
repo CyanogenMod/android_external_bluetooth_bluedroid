@@ -400,7 +400,7 @@ bt_status_t btif_hh_virtual_unpug(bt_bdaddr_t *bd_addr)
             bd_addr->address[0],  bd_addr->address[1],  bd_addr->address[2],  bd_addr->address[3],
             bd_addr->address[4], bd_addr->address[5]);
     p_dev = btif_hh_find_dev_by_bda(bd_addr);
-    if (p_dev != NULL)
+    if ((p_dev != NULL) && (p_dev->dev_status == BTHH_CONN_STATE_CONNECTED))
     {
         BTIF_TRACE_DEBUG1("%s Sending BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG", __FUNCTION__);
         BTA_HhSendCtrl(p_dev->dev_handle, BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG);
