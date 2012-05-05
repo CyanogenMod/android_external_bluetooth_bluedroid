@@ -95,6 +95,7 @@ typedef struct {
     UINT8   pin_code_len;
     UINT8   is_ssp;
     UINT8   autopair_attempts;
+    UINT8   is_local_initiated;
 } btif_dm_pairing_cb_t;
 
 typedef struct {
@@ -383,6 +384,9 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr)
     else
         BTA_DmBond ((UINT8 *)bd_addr->address);
 
+        /*  Track  originator of bond creation  */
+        pairing_cb.is_local_initiated = TRUE;
+
 }
 
 /*******************************************************************************
@@ -522,47 +526,50 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
         cod = COD_UNCLASSIFIED;
     }
 
-    if (check_cod(&bd_addr, COD_AV_HEADSETS) ||
-        check_cod(&bd_addr, COD_AV_HANDSFREE) ||
-        check_cod(&bd_addr, COD_AV_HEADPHONES) ||
-        check_cod(&bd_addr, COD_AV_PORTABLE_AUDIO) ||
-        check_cod(&bd_addr, COD_AV_HIFI_AUDIO) ||
-        check_cod(&bd_addr, COD_HID_POINTING))
+    /* check for auto pair possiblity only if bond was initiated by local device */
+    if (pairing_cb.is_local_initiated)
     {
-        BTIF_TRACE_DEBUG1("%s()cod matches for auto pair", __FUNCTION__);
-        /*  Check if this device can be auto paired  */
-        if ((btif_storage_is_device_autopair_blacklisted(&bd_addr) == FALSE) &&
-            (pairing_cb.autopair_attempts == 0))
+        if (check_cod(&bd_addr, COD_AV_HEADSETS) ||
+            check_cod(&bd_addr, COD_AV_HANDSFREE) ||
+            check_cod(&bd_addr, COD_AV_HEADPHONES) ||
+            check_cod(&bd_addr, COD_AV_PORTABLE_AUDIO) ||
+            check_cod(&bd_addr, COD_AV_HIFI_AUDIO) ||
+            check_cod(&bd_addr, COD_HID_POINTING))
         {
-            BTIF_TRACE_DEBUG1("%s() Attempting auto pair", __FUNCTION__);
-            pin_code.pin[0] = 0x30;
-            pin_code.pin[1] = 0x30;
-            pin_code.pin[2] = 0x30;
-            pin_code.pin[3] = 0x30;
+            BTIF_TRACE_DEBUG1("%s()cod matches for auto pair", __FUNCTION__);
+            /*  Check if this device can be auto paired  */
+            if ((btif_storage_is_device_autopair_blacklisted(&bd_addr) == FALSE) &&
+                (pairing_cb.autopair_attempts == 0))
+            {
+                BTIF_TRACE_DEBUG1("%s() Attempting auto pair", __FUNCTION__);
+                pin_code.pin[0] = 0x30;
+                pin_code.pin[1] = 0x30;
+                pin_code.pin[2] = 0x30;
+                pin_code.pin[3] = 0x30;
 
-            pairing_cb.autopair_attempts++;
-            BTA_DmPinReply( (UINT8*)bd_addr.address, TRUE, 4, pin_code.pin);
-            return;
+                pairing_cb.autopair_attempts++;
+                BTA_DmPinReply( (UINT8*)bd_addr.address, TRUE, 4, pin_code.pin);
+                return;
+            }
+        }
+        else if (check_cod(&bd_addr, COD_HID_KEYBOARD) ||
+                 check_cod(&bd_addr, COD_HID_COMBO))
+        {
+            if(( btif_storage_is_fixed_pin_zeros_keyboard (&bd_addr) == TRUE) &&
+               (pairing_cb.autopair_attempts == 0))
+            {
+                BTIF_TRACE_DEBUG1("%s() Attempting auto pair", __FUNCTION__);
+                pin_code.pin[0] = 0x30;
+                pin_code.pin[1] = 0x30;
+                pin_code.pin[2] = 0x30;
+                pin_code.pin[3] = 0x30;
+
+                pairing_cb.autopair_attempts++;
+                BTA_DmPinReply( (UINT8*)bd_addr.address, TRUE, 4, pin_code.pin);
+                return;
+            }
         }
     }
-    else if (check_cod(&bd_addr, COD_HID_KEYBOARD) ||
-             check_cod(&bd_addr, COD_HID_COMBO))
-    {
-        if(( btif_storage_is_fixed_pin_zeros_keyboard (&bd_addr) == TRUE) &&
-           (pairing_cb.autopair_attempts == 0))
-        {
-            BTIF_TRACE_DEBUG1("%s() Attempting auto pair", __FUNCTION__);
-            pin_code.pin[0] = 0x30;
-            pin_code.pin[1] = 0x30;
-            pin_code.pin[2] = 0x30;
-            pin_code.pin[3] = 0x30;
-
-            pairing_cb.autopair_attempts++;
-            BTA_DmPinReply( (UINT8*)bd_addr.address, TRUE, 4, pin_code.pin);
-            return;
-        }
-    }
-
     HAL_CBACK(bt_hal_cbacks, pin_request_cb,
                      &bd_addr, &bd_name, cod);
 }
