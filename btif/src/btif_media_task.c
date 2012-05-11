@@ -238,6 +238,11 @@ typedef union
 typedef struct {
     struct timespec time_start;        /* offset used to calculate time elapsed */
     unsigned long long tx_pcmtime_us;  /* track pcm time transmitted since stream start */
+
+    /* stats */
+    int ra_adjust_cnt;                 /* tracks nbr of frame intervals adjusted */
+    int ra_adjust_pcmtime;             /* pcmtime adjusted each stats interval */
+
     /* add latency tracker */
 } tBTIF_MEDIA_RA;
 
@@ -1016,6 +1021,8 @@ static void ra_reset(void)
     btif_media_cb.ra.time_start.tv_nsec = 0;
     btif_media_cb.ra.time_start.tv_sec = 0;
     btif_media_cb.ra.tx_pcmtime_us= 0;
+    btif_media_cb.ra.ra_adjust_cnt = 0;
+    btif_media_cb.ra.ra_adjust_pcmtime = 0;
 }
 
 /*****************************************************************************
@@ -1030,11 +1037,36 @@ static void ra_reset(void)
 
 static void ra_update(UINT32 bytes_processed)
 {
+#define RA_STATS_INTERVAL 3
+    static unsigned long ra_stats_update = 0;
+    int pcmtime_equivalent;
+
     /* if this is the first frame we will initialize tx start time */
     if ( (btif_media_cb.ra.time_start.tv_sec == 0) && (btif_media_cb.ra.time_start.tv_nsec == 0) )
         clock_gettime(CLOCK_MONOTONIC, &btif_media_cb.ra.time_start);
 
-    btif_media_cb.ra.tx_pcmtime_us += btif_calc_pcmtime(bytes_processed);
+    pcmtime_equivalent = btif_calc_pcmtime(bytes_processed);
+    btif_media_cb.ra.tx_pcmtime_us += pcmtime_equivalent;
+
+    ra_stats_update += pcmtime_equivalent;
+
+    /* converts adjusted frame count to adjusted pcmtime equivalent */
+    btif_media_cb.ra.ra_adjust_pcmtime += (btif_media_cb.ra.ra_adjust_cnt)*pcmtime_equivalent;
+
+    APPL_TRACE_EVENT2("ra adjust %d %d", btif_media_cb.ra.ra_adjust_cnt, btif_media_cb.ra.ra_adjust_pcmtime);
+
+    /* check pcmtime adjustments every stats interval */
+    if (ra_stats_update > (RA_STATS_INTERVAL*1000000L))
+    {
+        APPL_TRACE_EVENT2("ra estimate : %d us (%d ppm)", btif_media_cb.ra.ra_adjust_pcmtime,
+                           btif_media_cb.ra.ra_adjust_pcmtime/RA_STATS_INTERVAL);
+        btif_media_cb.ra.ra_adjust_pcmtime = 0;
+        ra_stats_update = 0;
+
+    }
+
+    /* reset count for next conversion */
+    btif_media_cb.ra.ra_adjust_cnt = 0;
 }
 
 /*****************************************************************************
@@ -1063,7 +1095,7 @@ static int ra_adjust(void)
 
     clock_gettime(CLOCK_MONOTONIC, &now);
 
-    time_elapsed_us = (now.tv_sec - btif_media_cb.ra.time_start.tv_sec) * USEC_PER_SEC + \
+    time_elapsed_us = ((unsigned long long)(now.tv_sec - btif_media_cb.ra.time_start.tv_sec)) * USEC_PER_SEC + \
                       (now.tv_nsec - btif_media_cb.ra.time_start.tv_nsec)/1000;
 
     VERBOSE("tx_pcmtime_us : %llu us, elapsed : %llu us", btif_media_cb.ra.tx_pcmtime_us,
@@ -1080,6 +1112,7 @@ static int ra_adjust(void)
 
             /* adjust by sending one frame less this time slice */
             adjust--;
+            btif_media_cb.ra.ra_adjust_cnt--;
         }
     }
     else if (btif_media_cb.ra.tx_pcmtime_us < time_elapsed_us)
@@ -1092,6 +1125,7 @@ static int ra_adjust(void)
 
             /* adjust by sending one frame more this time slice */
             adjust++;
+            btif_media_cb.ra.ra_adjust_cnt++;
         }
     }
 
