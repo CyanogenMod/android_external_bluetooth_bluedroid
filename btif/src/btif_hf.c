@@ -68,9 +68,27 @@
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
-/* TODO: Should these be moved to a conf file? */
-#define BTIF_HF_SERVICES    (BTA_HSP_SERVICE_MASK | BTA_HFP_SERVICE_MASK)
+#ifndef BTIF_HSAG_SERVICE_NAME
+#define BTIF_HSAG_SERVICE_NAME ("Headset Gateway")
+#endif
+
+#ifndef BTIF_HFAG_SERVICE_NAME
+#define BTIF_HFAG_SERVICE_NAME ("Handsfree Gateway")
+#endif
+
+#ifndef BTIF_HF_SERVICES
+#define BTIF_HF_SERVICES    (BTA_HSP_SERVICE_MASK | BTA_HFP_SERVICE_MASK )
+#endif
+
+#ifndef BTIF_HF_SERVICE_NAMES
+#define BTIF_HF_SERVICE_NAMES {BTIF_HSAG_SERVICE_NAME , BTIF_HFAG_SERVICE_NAME}
+#endif
+
+#ifndef BTIF_HF_SECURITY
 #define BTIF_HF_SECURITY    (BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT)
+#endif
+
+#ifndef BTIF_HF_FEATURES
 #define BTIF_HF_FEATURES   ( BTA_AG_FEAT_3WAY | \
                              BTA_AG_FEAT_ECNR   | \
                              BTA_AG_FEAT_REJECT | \
@@ -79,8 +97,7 @@
                              BTA_AG_FEAT_BTRH   | \
                              BTA_AG_FEAT_VREC   | \
                              BTA_AG_FEAT_UNAT)
-#define BTIF_HSAG_SERVICE_NAME ("Headset Gateway")
-#define BTIF_HFAG_SERVICE_NAME ("Handsfree Gateway")
+#endif
 
 #define BTIF_HF_ID_1        0
 
@@ -483,8 +500,7 @@ static bt_status_t connect( bt_bdaddr_t *bd_addr )
         bdcpy(btif_hf_cb.connected_bda.address, bd_addr->address);
 
         BTA_AgOpen(btif_hf_cb.handle, btif_hf_cb.connected_bda.address,
-                   BTIF_HF_SECURITY, BTA_HSP_SERVICE_MASK | BTA_HFP_SERVICE_MASK);
-
+                   BTIF_HF_SECURITY, BTIF_HF_SERVICES);
         return BT_STATUS_SUCCESS;
     }
 
@@ -1092,7 +1108,7 @@ static const bthf_interface_t bthfInterface = {
 *******************************************************************************/
 bt_status_t btif_hf_execute_service(BOOLEAN b_enable)
 {
-    char * p_service_names[] = {BTIF_HSAG_SERVICE_NAME, BTIF_HFAG_SERVICE_NAME};
+     char * p_service_names[] = BTIF_HF_SERVICE_NAMES;
      if (b_enable)
      {
           /* Enable and register with BTA-AG */

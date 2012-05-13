@@ -100,7 +100,7 @@
 btpan_cb_t btpan_cb;
 
 BD_ADDR local_addr;
-
+static int btpan_initialized;
 static bt_status_t btpan_init(const btpan_callbacks_t* callbacks);
 static void btpan_cleanup();
 static bt_status_t btpan_connect(const bt_bdaddr_t *bd_addr, int local_role, int remote_role);
@@ -135,56 +135,52 @@ btpan_interface_t *btif_pan_get_interface()
 }
 void btif_pan_init()
 {
-    debug("btpan_cb.enabled:%d", btpan_cb.enabled);
-    //btif_enable_service(BTA_PANU_SERVICE_ID);
-    //btif_enable_service(BTA_NAP_SERVICE_ID);
-    if (!btpan_cb.enabled)
+    debug("btpan_initialized = %d, btpan_cb.enabled:%d", btpan_initialized, btpan_cb.enabled);    
+    if (btpan_initialized && !btpan_cb.enabled)
     {
-        //btui_cfg.pan_security = PAN_SECURITY;
-        //strncpy(btui_cfg.pannap_service_name, PAN_NAP_SERVICE_NAME, sizeof(btui_cfg.pannap_service_name) - 1);
-        //btui_cfg.pannap_service_name[sizeof(btui_cfg.pannap_service_name) - 1] = 0;
-        //btui_cfg.p_sc_menu = NULL;
+        debug("Enabling PAN....");
         memset(&btpan_cb, 0, sizeof(btpan_cb));
         btpan_cb.tap_fd = -1;
         int i;
         for(i = 0; i < MAX_PAN_CONNS; i++)
             btpan_cleanup_conn(&btpan_cb.conns[i]);
-
         BTA_PanEnable(bta_pan_callback);
         btpan_cb.enabled = 1;
         btpan_enable(BTPAN_ROLE_PANU | BTPAN_ROLE_PANNAP);
-        //debug("set to BTPAN_ROLE_PANNAP for testing");
-        //btpan_enable(BTPAN_ROLE_PANNAP);
     }
     debug("leaving");
-
 }
+
 void btif_pan_cleanup()
 {
-    debug("");
-    //bt is shuting down, invalid all bta pan handles
-    int i;
-    for(i = 0; i < MAX_PAN_CONNS; i++)
+    debug("btpan_initialized = %d, btpan_cb.enabled:%d", btpan_initialized, btpan_cb.enabled);
+    if (btpan_initialized)
     {
-        btpan_cleanup_conn(&btpan_cb.conns[i]);
+        //bt is shuting down, invalid all bta pan handles
+        int i;
+        for(i = 0; i < MAX_PAN_CONNS; i++)
+        {
+            btpan_cleanup_conn(&btpan_cb.conns[i]);
+        }
+        btpan_cleanup();
+        debug("leaving");
     }
-    debug("calling btpan_cleanup");
-    btpan_cleanup();
-    debug("done calling btpan_cleanup");
-
 }
+
 static btpan_callbacks_t callback;
 static bt_status_t btpan_init(const btpan_callbacks_t* callbacks)
 {
-    debug(" btpan_cb.enabled:%d", btpan_cb.enabled);
+    btpan_initialized=1;
+    debug("btpan_initialized = %d, btpan_cb.enabled:%d", btpan_initialized, btpan_cb.enabled);
     static volatile int binit;
     callback = *callbacks;
     debug(" leaving");
     return BT_STATUS_SUCCESS;
 }
+
 static void btpan_cleanup()
 {
-    debug("btpan_cb.enabled:%d", btpan_cb.enabled);
+    debug("btpan_initialized =%d, btpan_cb.enabled:%d", btpan_initialized, btpan_cb.enabled);
     if (btpan_cb.enabled)
     {
         btpan_cb.enabled = 0;
@@ -195,6 +191,10 @@ static void btpan_cleanup()
             btpan_tap_close(btpan_cb.tap_fd);
             btpan_cb.tap_fd = -1;
         }
+    }
+    if (btpan_initialized)
+    {
+        btpan_initialized=0;
     }
     debug("leaving");
 }
