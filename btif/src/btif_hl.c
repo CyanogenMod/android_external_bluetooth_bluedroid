@@ -4142,7 +4142,7 @@ static bt_status_t connect_channel(int app_id, bt_bdaddr_t *bd_addr, int mdep_cf
     UINT8                   app_idx, mcl_idx;
     btif_hl_app_cb_t        *p_acb = NULL;
     btif_hl_mcl_cb_t        *p_mcb=NULL;
-    BOOLEAN                 status = FALSE;
+    bt_status_t             status = BT_STATUS_SUCCESS;
     tBTA_HL_DCH_OPEN_PARAM  dch_open;
     BD_ADDR                 bda;
     UINT8 i;
@@ -4178,8 +4178,12 @@ static bt_status_t connect_channel(int app_id, bt_bdaddr_t *bd_addr, int mdep_cf
                     }
                     dch_open.sec_mask = (BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT);
 
-                    status = btif_hl_dch_open(p_acb->app_id, bda, &dch_open,
-                                              mdep_cfg_index, BTIF_HL_PEND_DCH_OP_OPEN, channel_id );
+                    if( !btif_hl_dch_open(p_acb->app_id, bda, &dch_open,
+                                              mdep_cfg_index, BTIF_HL_PEND_DCH_OP_OPEN, channel_id ))
+                    {
+                        status = BT_STATUS_FAIL;
+                        BTIF_TRACE_EVENT1("%s loc0 status = BT_STATUS_FAIL", __FUNCTION__);
+                    }
                 }
                 else
                 {
