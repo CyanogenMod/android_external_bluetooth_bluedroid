@@ -61,6 +61,7 @@
 #define LOG_TAG "BTIF_HF"
 #include "btif_common.h"
 #include "btif_util.h"
+#include "btif_profile_queue.h"
 
 #include "bd.h"
 #include "bta_ag_api.h"
@@ -313,6 +314,9 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
 
             if (btif_hf_cb.state == BTHF_CONNECTION_STATE_DISCONNECTED)
                 bdsetany(btif_hf_cb.connected_bda.address);
+
+            if (p_data->open.status != BTA_AG_SUCCESS)
+                btif_queue_advance();
             break;
 
         case BTA_AG_CLOSE_EVT:
@@ -321,7 +325,6 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
             bdsetany(btif_hf_cb.connected_bda.address);
             btif_hf_cb.peer_feat = 0;
             clear_phone_state();
-
             break;
 
         case BTA_AG_CONN_EVT:
@@ -330,7 +333,7 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
 
             HAL_CBACK(bt_hf_callbacks, connection_state_cb, btif_hf_cb.state,
                              &btif_hf_cb.connected_bda);
-
+            btif_queue_advance();
             break;
 
         case BTA_AG_AUDIO_OPEN_EVT:
@@ -490,7 +493,7 @@ static bt_status_t init( bthf_callbacks_t* callbacks )
 ** Returns         bt_status_t
 **
 *******************************************************************************/
-static bt_status_t connect( bt_bdaddr_t *bd_addr )
+static bt_status_t connect_int( bt_bdaddr_t *bd_addr )
 {
     CHECK_BTHF_INIT();
 
@@ -505,6 +508,12 @@ static bt_status_t connect( bt_bdaddr_t *bd_addr )
     }
 
     return BT_STATUS_BUSY;
+}
+
+static bt_status_t connect( bt_bdaddr_t *bd_addr )
+{
+    CHECK_BTHF_INIT();
+    return btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int);
 }
 
 /*******************************************************************************

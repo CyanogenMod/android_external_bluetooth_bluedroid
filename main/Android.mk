@@ -35,8 +35,9 @@ LOCAL_SRC_FILES += \
     ../btif/src/btif_sock_rfc.c \
     ../btif/src/btif_sock_thread.c \
     ../btif/src/btif_sock_sdp.c \
-	../btif/src/btif_sock_util.c \
-	../btif/src/btif_pan.c
+    ../btif/src/btif_sock_util.c \
+    ../btif/src/btif_pan.c \
+    ../btif/src/btif_profile_queue.c
 
 # callouts
 LOCAL_SRC_FILES+= \

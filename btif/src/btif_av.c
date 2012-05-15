@@ -61,6 +61,7 @@
 
 #include "btif_av.h"
 #include "btif_util.h"
+#include "btif_profile_queue.h"
 #include "bta_api.h"
 #include "btif_media.h"
 #include "bta_av_api.h"
@@ -373,6 +374,8 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
                              state, &(btif_av_cb.peer_bda));
             /* change state to open/idle based on the status */
             btif_sm_change_state(btif_av_cb.sm_handle, av_state);
+            btif_queue_advance();
+
         } break;
 
         CHECK_RC_EVENT(event, p_data);
@@ -723,16 +726,26 @@ static bt_status_t init(btav_callbacks_t* callbacks )
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-static bt_status_t connect(bt_bdaddr_t *bd_addr)
+
+static bt_status_t connect_int(bt_bdaddr_t *bd_addr)
 {
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
 
     BTIF_TRACE_ERROR1("callbacks is 0x%x", bt_av_callbacks);
     CHECK_BTAV_INIT();
 
-    /* Switch to BTIF context */
-    return btif_transfer_context(btif_av_handle_event, BTIF_AV_CONNECT_REQ_EVT,
-                                 (char*)bd_addr, sizeof(bt_bdaddr_t), NULL);
+    memcpy(&btif_av_cb.peer_bda, bd_addr, sizeof(bt_bdaddr_t));
+    BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
+                    TRUE, BTA_SEC_NONE);
+    btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
+
+    return BT_STATUS_SUCCESS;
+}
+
+static bt_status_t connect(bt_bdaddr_t *bd_addr)
+{
+    CHECK_BTAV_INIT();
+    return btif_queue_connect(UUID_SERVCLASS_AUDIO_SOURCE, bd_addr, connect_int);
 }
 
 /*******************************************************************************
