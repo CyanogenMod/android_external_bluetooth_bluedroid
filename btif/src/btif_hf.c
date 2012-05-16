@@ -495,8 +495,6 @@ static bt_status_t init( bthf_callbacks_t* callbacks )
 *******************************************************************************/
 static bt_status_t connect_int( bt_bdaddr_t *bd_addr )
 {
-    CHECK_BTHF_INIT();
-
     if (!is_connected(bd_addr))
     {
         btif_hf_cb.state = BTHF_CONNECTION_STATE_CONNECTING;

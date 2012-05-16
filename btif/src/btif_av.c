@@ -731,20 +731,16 @@ static bt_status_t connect_int(bt_bdaddr_t *bd_addr)
 {
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
 
-    BTIF_TRACE_ERROR1("callbacks is 0x%x", bt_av_callbacks);
-    CHECK_BTAV_INIT();
-
-    memcpy(&btif_av_cb.peer_bda, bd_addr, sizeof(bt_bdaddr_t));
-    BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
-                    TRUE, BTA_SEC_NONE);
-    btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
+    btif_sm_dispatch(btif_av_cb.sm_handle, BTIF_AV_CONNECT_REQ_EVT, (char*)bd_addr);
 
     return BT_STATUS_SUCCESS;
 }
 
 static bt_status_t connect(bt_bdaddr_t *bd_addr)
 {
+    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
     CHECK_BTAV_INIT();
+
     return btif_queue_connect(UUID_SERVCLASS_AUDIO_SOURCE, bd_addr, connect_int);
 }
 
