@@ -74,6 +74,10 @@
 #error "AVRCP 1.3 is not supported on Bluedroid yet."
 #endif
 
+/* cod value for Headsets */
+#define COD_AV_HEADSETS        0x0404
+
+
 /*****************************************************************************
 **  Local type definitions
 ******************************************************************************/
@@ -127,6 +131,9 @@ static btif_rc_cb_t btif_rc_cb;
 /*****************************************************************************
 **  Externs
 ******************************************************************************/
+extern BOOLEAN btif_hf_call_terminated_recently();
+extern BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
+
 
 /*****************************************************************************
 **  Functions
@@ -325,6 +332,21 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
     } else {
         status = "pressed";
         pressed = 1;
+    }
+
+    /* If this is Play command (press or release)  before processing, check the following
+        *a voice call has ended recently
+        * the remote device is not of type headset
+        * If the above conditions meet, drop the Play command
+        *This fix is to interop with certain carkits which sends an automatic  PLAY commands right after call ends
+        */
+    if((p_remote_cmd->rc_id  ==  BTA_AV_RC_PLAY )&&
+       (btif_hf_call_terminated_recently() == TRUE) &&
+       (check_cod( (const bt_bdaddr_t*)&(btif_rc_cb.rc_addr), COD_AV_HEADSETS) != TRUE))
+    {
+        BTIF_TRACE_DEBUG1("%s:Dropping the play command received right after call end",
+                          __FUNCTION__);
+        return;
     }
 
     for (i = 0; key_map[i].name != NULL; i++) {

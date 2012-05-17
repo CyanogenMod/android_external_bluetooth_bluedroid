@@ -102,6 +102,8 @@
 
 #define BTIF_HF_ID_1        0
 
+#define BTIF_HF_CALL_END_TIMEOUT       6
+
 /************************************************************************************
 **  Local type definitions
 ************************************************************************************/
@@ -146,6 +148,7 @@ typedef struct _btif_hf_cb
     tBTA_AG_PEER_FEAT       peer_feat;
     int                     num_active;
     int                     num_held;
+    struct timespec         call_end_timestamp;
     bthf_call_state_t       call_setup_state;
 } btif_hf_cb_t;
 
@@ -480,6 +483,9 @@ static bt_status_t init( bthf_callbacks_t* callbacks )
     /* Invoke the enable service API to the core to set the appropriate service_id
      * Internally, the HSP_SERVICE_ID shall also be enabled */
     btif_enable_service(BTA_HFP_SERVICE_ID);
+
+    btif_hf_cb.call_end_timestamp.tv_sec = 0;
+    btif_hf_cb.call_end_timestamp.tv_nsec = 0;
 
     return BT_STATUS_SUCCESS;
 }
@@ -904,6 +910,13 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
     if (num_active == 0 && num_held == 0 && call_setup_state == BTHF_CALL_STATE_IDLE)
     {
         BTIF_TRACE_DEBUG1("%s: Phone on hook", __FUNCTION__);
+
+        /* record call termination timestamp  if  there was an active/held call  or callsetup state > BTHF_CALL_STATE_IDLE */
+        if ((btif_hf_cb.call_setup_state != BTHF_CALL_STATE_IDLE ) || (btif_hf_cb.num_active) ||(btif_hf_cb.num_held))
+        {
+            BTIF_TRACE_DEBUG1("%s: Record call termination timestamp", __FUNCTION__);
+            clock_gettime(CLOCK_MONOTONIC, &btif_hf_cb.call_end_timestamp);
+        }
         BTA_AgResult (BTA_AG_HANDLE_ALL, BTA_AG_END_CALL_RES, NULL);
 
         /* if held call was present, reset that as well */
@@ -1062,6 +1075,32 @@ update_call_states:
     btif_hf_cb.call_setup_state = call_setup_state;
 
     return status;
+}
+
+
+/*******************************************************************************
+**
+** Function         btif_hf_call_terminated_recently
+**
+** Description      Checks if a call has been terminated
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+BOOLEAN btif_hf_call_terminated_recently()
+{
+      struct timespec         now;
+
+      clock_gettime(CLOCK_MONOTONIC, &now);
+      if (now.tv_sec < btif_hf_cb.call_end_timestamp.tv_sec + BTIF_HF_CALL_END_TIMEOUT)
+      {
+          return TRUE;
+      }
+      else
+      {
+          btif_hf_cb.call_end_timestamp.tv_sec = 0;
+          return FALSE;
+      }
 }
 
 /*******************************************************************************
