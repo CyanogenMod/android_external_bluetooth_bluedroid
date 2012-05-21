@@ -86,6 +86,18 @@
 #include "btif_sock_util.h"
 #include "btif_pan_internal.h"
 
+//#define PANU_DISABLED TRUE
+
+#if (PAN_NAP_DISABLED == TRUE) && (PANU_DISABLED == TRUE)
+#define BTPAN_LOCAL_ROLE BTPAN_ROLE_NONE
+#elif PAN_NAP_DISABLED == TRUE
+#define BTPAN_LOCAL_ROLE BTPAN_ROLE_PANU
+#elif PANU_DISABLED == TRUE
+#define BTPAN_LOCAL_ROLE BTPAN_ROLE_PANNAP
+#else
+#define BTPAN_LOCAL_ROLE (BTPAN_ROLE_PANU | BTPAN_ROLE_PANNAP)
+#endif
+
 
 
 #include <cutils/log.h>
@@ -100,9 +112,9 @@
 btpan_cb_t btpan_cb;
 
 BD_ADDR local_addr;
-static int btpan_initialized;
-static bt_status_t btpan_init(const btpan_callbacks_t* callbacks);
-static void btpan_cleanup();
+static int jni_initialized, stack_initialized;
+static bt_status_t btpan_jni_init(const btpan_callbacks_t* callbacks);
+static void btpan_jni_cleanup();
 static bt_status_t btpan_connect(const bt_bdaddr_t *bd_addr, int local_role, int remote_role);
 static bt_status_t btpan_disconnect(const bt_bdaddr_t *bd_addr);
 static bt_status_t btpan_enable(int local_role);
@@ -115,19 +127,19 @@ static void bta_pan_callback(tBTA_PAN_EVT event, tBTA_PAN *p_data);
  **
  ** Function         btpan_ini
  **
- ** Description     initializes the bt socket interface
+ ** Description     initializes the pan interface
  **
  ** Returns         bt_status_t
  **
  *******************************************************************************/
 static btpan_interface_t pan_if = {
     sizeof(pan_if),
-    btpan_init,
+    btpan_jni_init,
     btpan_enable,
     btpan_get_local_role,
     btpan_connect,
     btpan_disconnect,
-    btpan_cleanup
+    btpan_jni_cleanup
 };
 btpan_interface_t *btif_pan_get_interface()
 {
@@ -135,8 +147,9 @@ btpan_interface_t *btif_pan_get_interface()
 }
 void btif_pan_init()
 {
-    debug("btpan_initialized = %d, btpan_cb.enabled:%d", btpan_initialized, btpan_cb.enabled);    
-    if (btpan_initialized && !btpan_cb.enabled)
+    debug("jni_initialized = %d, btpan_cb.enabled:%d", jni_initialized, btpan_cb.enabled);
+    stack_initialized = TRUE;
+    if (jni_initialized && !btpan_cb.enabled)
     {
         debug("Enabling PAN....");
         memset(&btpan_cb, 0, sizeof(btpan_cb));
@@ -146,42 +159,13 @@ void btif_pan_init()
             btpan_cleanup_conn(&btpan_cb.conns[i]);
         BTA_PanEnable(bta_pan_callback);
         btpan_cb.enabled = 1;
-        btpan_enable(BTPAN_ROLE_PANU | BTPAN_ROLE_PANNAP);
+        btpan_enable(BTPAN_LOCAL_ROLE);
     }
     debug("leaving");
 }
-
-void btif_pan_cleanup()
+static void pan_disable()
 {
-    debug("btpan_initialized = %d, btpan_cb.enabled:%d", btpan_initialized, btpan_cb.enabled);
-    if (btpan_initialized)
-    {
-        //bt is shuting down, invalid all bta pan handles
-        int i;
-        for(i = 0; i < MAX_PAN_CONNS; i++)
-        {
-            btpan_cleanup_conn(&btpan_cb.conns[i]);
-        }
-        btpan_cleanup();
-        debug("leaving");
-    }
-}
-
-static btpan_callbacks_t callback;
-static bt_status_t btpan_init(const btpan_callbacks_t* callbacks)
-{
-    btpan_initialized=1;
-    debug("btpan_initialized = %d, btpan_cb.enabled:%d", btpan_initialized, btpan_cb.enabled);
-    static volatile int binit;
-    callback = *callbacks;
-    debug(" leaving");
-    return BT_STATUS_SUCCESS;
-}
-
-static void btpan_cleanup()
-{
-    debug("btpan_initialized =%d, btpan_cb.enabled:%d", btpan_initialized, btpan_cb.enabled);
-    if (btpan_cb.enabled)
+    if(btpan_cb.enabled)
     {
         btpan_cb.enabled = 0;
         BTA_PanDisable();
@@ -192,10 +176,37 @@ static void btpan_cleanup()
             btpan_cb.tap_fd = -1;
         }
     }
-    if (btpan_initialized)
+}
+void btif_pan_cleanup()
+{
+    if(stack_initialized)
     {
-        btpan_initialized=0;
+        //bt is shuting down, invalid all bta pan handles
+        int i;
+        for(i = 0; i < MAX_PAN_CONNS; i++)
+            btpan_cleanup_conn(&btpan_cb.conns[i]);
+        pan_disable();
+        debug("leaving");
     }
+    stack_initialized = FALSE;
+}
+
+static btpan_callbacks_t callback;
+static bt_status_t btpan_jni_init(const btpan_callbacks_t* callbacks)
+{
+    debug("stack_initialized = %d, btpan_cb.enabled:%d", stack_initialized, btpan_cb.enabled);
+    jni_initialized = TRUE;
+    if(stack_initialized && !btpan_cb.enabled)
+        btif_pan_init();
+    callback = *callbacks;
+    debug(" leaving");
+    return BT_STATUS_SUCCESS;
+}
+
+static void btpan_jni_cleanup()
+{
+    pan_disable();
+    jni_initialized = FALSE;
     debug("leaving");
 }
 static inline int bta_role_to_btpan(int bta_pan_role)

@@ -175,8 +175,11 @@ void bta_pan_co_close(UINT16 handle, UINT8 app_id)
         if(btpan_cb.open_count == 0)
         {
             destroy_tap_read_thread();
-            btpan_tap_close(btpan_cb.tap_fd);
-            btpan_cb.tap_fd = -1;
+            if(btpan_cb.tap_fd != -1)
+            {
+                btpan_tap_close(btpan_cb.tap_fd);
+                btpan_cb.tap_fd = -1;
+            }
         }
     }
 }
