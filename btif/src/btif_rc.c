@@ -133,7 +133,7 @@ static btif_rc_cb_t btif_rc_cb;
 ******************************************************************************/
 extern BOOLEAN btif_hf_call_terminated_recently();
 extern BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
-
+BOOLEAN btif_av_is_rc_open_without_a2dp(void);
 
 /*****************************************************************************
 **  Functions
@@ -326,6 +326,29 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
     const char *status;
     int pressed, i;
 
+    btif_rc_cb.rc_handle = p_remote_cmd->rc_handle;
+
+    /* If AVRC is open and peer sends PLAY but there is no AVDT, then we queue-up this PLAY */
+    if (p_remote_cmd)
+    {
+        /* queue AVRC PLAY if GAVDTP Open notification to app is pending (2 second timer) */
+        if ((p_remote_cmd->rc_id == BTA_AV_RC_PLAY) && btif_av_is_rc_open_without_a2dp())
+        {
+            if (p_remote_cmd->key_state == AVRC_STATE_PRESS)
+            {
+                APPL_TRACE_WARNING1("%s: AVDT not open, queuing the PLAY command", __FUNCTION__);
+                btif_rc_cb.rc_pending_play = TRUE;
+            }
+            return;
+        }
+
+        if ((p_remote_cmd->rc_id == BTA_AV_RC_PAUSE) && (btif_rc_cb.rc_pending_play))
+        {
+            APPL_TRACE_WARNING1("%s: Clear the pending PLAY on PAUSE received", __FUNCTION__);
+            btif_rc_cb.rc_pending_play = FALSE;
+            return;
+        }
+    }
     if (p_remote_cmd->key_state == AVRC_STATE_RELEASE) {
         status = "released";
         pressed = 0;
@@ -455,3 +478,47 @@ BOOLEAN btif_rc_get_connected_peer(BD_ADDR peer_addr)
     }
     return FALSE;
 }
+
+/***************************************************************************
+ **
+ ** Function       btif_rc_check_handle_pending_play
+ **
+ ** Description    Clears the queued PLAY command. if bSend is TRUE, forwards to app
+ **
+ ***************************************************************************/
+
+/* clear the queued PLAY command. if bSend is TRUE, forward to app */
+void btif_rc_check_handle_pending_play (BD_ADDR peer_addr, BOOLEAN bSendToApp)
+{
+    LOGV("btapp_rc_check_handle_pending_play: bSendToApp=%d", bSendToApp);
+    if (btif_rc_cb.rc_pending_play)
+    {
+        if (bSendToApp)
+        {
+            tBTA_AV_REMOTE_CMD remote_cmd;
+            APPL_TRACE_DEBUG1("%s: Sending queued PLAYED event to app", __FUNCTION__);
+
+            memset (&remote_cmd, 0, sizeof(tBTA_AV_REMOTE_CMD));
+            remote_cmd.rc_handle  = btif_rc_cb.rc_handle;
+            remote_cmd.rc_id      = AVRC_ID_PLAY;
+            remote_cmd.hdr.ctype  = AVRC_CMD_CTRL;
+            remote_cmd.hdr.opcode = AVRC_OP_PASS_THRU;
+
+            /* delay sending to app, else there is a timing issue in the framework,
+             ** which causes the audio to be on th device's speaker. Delay between
+             ** OPEN & RC_PLAYs
+            */
+            GKI_delay (200);
+            /* send to app - both PRESSED & RELEASED */
+            remote_cmd.key_state  = AVRC_STATE_PRESS;
+            handle_rc_passthrough_cmd( &remote_cmd );
+
+            GKI_delay (100);
+
+            remote_cmd.key_state  = AVRC_STATE_RELEASE;
+            handle_rc_passthrough_cmd( &remote_cmd );
+        }
+        btif_rc_cb.rc_pending_play = FALSE;
+    }
+}
+

@@ -145,6 +145,7 @@ static const btif_sm_handler_t btif_av_state_handlers[] =
 extern void btif_rc_init(void);
 extern void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data);
 extern BOOLEAN btif_rc_get_connected_peer(BD_ADDR peer_addr);
+extern void btif_rc_check_handle_pending_play (BD_ADDR peer_addr, BOOLEAN bSendToApp);
 
 /*****************************************************************************
 ** Local helper functions
@@ -374,8 +375,10 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
                              state, &(btif_av_cb.peer_bda));
             /* change state to open/idle based on the status */
             btif_sm_change_state(btif_av_cb.sm_handle, av_state);
+            /* if queued PLAY command,  send it now */
+            btif_rc_check_handle_pending_play(p_bta_data->open.bd_addr,
+                                             (p_bta_data->open.status == BTA_AV_SUCCESS));
             btif_queue_advance();
-
         } break;
 
         CHECK_RC_EVENT(event, p_data);
@@ -926,4 +929,18 @@ const btav_interface_t *btif_av_get_interface(void)
 {
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
     return &bt_av_interface;
+}
+
+/*******************************************************************************
+**
+** Function         btif_av_is_rc_open_without_a2dp
+**
+** Description      Checks if GAVDTP Open notification to app is pending (2 second timer)
+**
+** Returns          boolean
+**
+*******************************************************************************/
+BOOLEAN btif_av_is_rc_open_without_a2dp(void)
+{
+    return (tle_av_open_on_rc.in_use);
 }
