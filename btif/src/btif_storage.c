@@ -99,6 +99,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <ctype.h>
+
 
 #include <hardware/bluetooth.h>
 
@@ -140,7 +142,6 @@
 #define BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_ADDR "AddressBlacklist"
 #define BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_EXACTNAME "ExactNameBlacklist"
 #define BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_PARTIALNAME "PartialNameBlacklist"
-#define BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST "FixedPinZerosKeyboardBlacklist"
 #define BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST "FixedPinZerosKeyboardBlacklist"
 #define BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLIACKLIST_ADDR "DynamicAddressBlacklist"
 
@@ -1805,6 +1806,7 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_add
     bdstr_t bdstr;
     char bd_addr_lap[9];
     char *dev_name_str;
+    uint8_t i = 0;
     char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
 
     bd2str(remote_dev_addr, &bdstr);
@@ -1812,6 +1814,10 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_add
     /* create a string with  Lower Address Part from BD Address */
       snprintf(bd_addr_lap, 9,  "%s",  (char*)bdstr);
 
+     for ( i =0; i <strlen(bd_addr_lap) ;i++)
+     {
+         bd_addr_lap[i] = toupper(bd_addr_lap[i]);
+     }
     /* create filepath */
     fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST);
 
@@ -1933,10 +1939,16 @@ BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_dev_addr)
     bdstr_t bdstr;
     char bd_addr_lap[9];
     char *dev_name_str;
+    uint8_t i = 0;
     char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
 
     bd2str(remote_dev_addr, &bdstr);
     snprintf(bd_addr_lap, 9, "%s",  (char*)bdstr);
+
+    for ( i =0; i <strlen(bd_addr_lap) ;i++)
+    {
+        bd_addr_lap[i] = toupper(bd_addr_lap[i]);
+    }
 
     /* create filepath */
     fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST);
