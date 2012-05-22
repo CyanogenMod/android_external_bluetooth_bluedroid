@@ -4608,6 +4608,25 @@ static void btm_sec_pairing_timeout (TIMER_LIST_ENT *p_tle)
             btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
             break;
 
+        case BTM_PAIR_STATE_WAIT_AUTH_COMPLETE:
+            /* We need to notify the UI that timeout has happened while waiting for authentication*/
+            btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
+            if (btm_cb.api.p_auth_complete_callback)
+            {
+                if (p_dev_rec == NULL)
+                {
+                    name[0] = 0;
+                    (*btm_cb.api.p_auth_complete_callback) (p_cb->pairing_bda,
+                                                            NULL,
+                                                            name, HCI_ERR_CONNECTION_TOUT);
+                }
+                else
+                    (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr,
+                                                            p_dev_rec->dev_class,
+                                                            p_dev_rec->sec_bd_name, HCI_ERR_CONNECTION_TOUT);
+            }
+            break;
+
         default:
             BTM_TRACE_WARNING1 ("btm_sec_pairing_timeout() not processed state: %s", btm_pair_state_descr(btm_cb.pairing_state));
             btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
