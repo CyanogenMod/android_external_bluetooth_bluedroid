@@ -1056,6 +1056,42 @@ BOOLEAN btif_hl_find_mdl_idx_using_channel_id(int channel_id,
 
 /*******************************************************************************
 **
+** Function      btif_hl_find_channel_id_using_mdl_id
+**
+** Description  Find channel id using mdl_id'
+**
+** Returns      BOOLEAN
+*********************************************************************************/
+BOOLEAN btif_hl_find_channel_id_using_mdl_id(UINT8 app_idx, tBTA_HL_MDL_ID mdl_id,
+                                            int *p_channel_id){
+    btif_hl_app_cb_t      *p_acb;
+    btif_hl_mdl_cfg_t     *p_mdl;
+    BOOLEAN found=FALSE;
+    UINT8 j=0;
+    int mdl_cfg_channel_id;
+    p_acb =BTIF_HL_GET_APP_CB_PTR(app_idx);
+    if (p_acb && p_acb->in_use)
+        {
+            for (j=0; j< BTA_HL_NUM_MDL_CFGS; j++)
+                {
+                    p_mdl =BTIF_HL_GET_MDL_CFG_PTR(app_idx,j);
+                    mdl_cfg_channel_id = *(BTIF_HL_GET_MDL_CFG_CHANNEL_ID_PTR(app_idx,j));
+                    if ( p_mdl->base.active && (p_mdl->base.mdl_id == mdl_id))
+                    {
+                            found = TRUE;
+                            *p_channel_id = mdl_cfg_channel_id;
+                            break;
+                    }
+                }
+        }
+    BTIF_TRACE_EVENT6("%s found=%d channel_id=0x%08x, mdl_id=0x%x app_idx=%d mdl_cfg_idx=%d  ",
+                    __FUNCTION__,found,*p_channel_id,mdl_id, app_idx,j );
+    return found;
+}
+
+
+/*******************************************************************************
+**
 ** Function      btif_hl_find_mdl_idx_using_handle
 **
 ** Description  Find the MDL index using handle
@@ -1675,10 +1711,13 @@ BOOLEAN  btif_hl_save_mdl_cfg(UINT8 app_id, UINT8 item_idx,
         if (p_mdl)
         {
             memcpy(&p_mdl->base, p_mdl_cfg, sizeof(tBTA_HL_MDL_CFG));
-            if (btif_hl_find_mcl_idx(app_idx, p_mdl->base.peer_bd_addr  , &mcl_idx))
+            if (btif_hl_find_mcl_idx(app_idx, p_mdl->base.peer_bd_addr , &mcl_idx))
             {
                 p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-                *p_channel_id = p_mcb->pcb.channel_id ;
+                if (p_mcb->pcb.in_use)
+                    *p_channel_id = p_mcb->pcb.channel_id;
+                else
+                    *p_channel_id = btif_hl_get_next_channel_id(p_acb->app_id);
                 p_mdl->extra.mdep_cfg_idx = p_mcb->pcb.mdep_cfg_idx;
                 p_mdl->extra.data_type = p_acb->sup_feature.mdep[p_mcb->pcb.mdep_cfg_idx].mdep_cfg.data_cfg[0].data_type;
 
@@ -2796,12 +2835,19 @@ static void btif_hl_proc_dch_open_ind(tBTA_HL *p_data)
                 p_dcb->is_the_first_reliable = p_data->dch_open_ind.first_reliable;
                 p_dcb->mtu                  = p_data->dch_open_ind.mtu;
 
-                p_dcb->channel_id = btif_hl_get_next_channel_id(p_acb->app_id);
-                BTIF_TRACE_DEBUG4(" app_idx=%d mcl_idx=%d mdl_idx=%d channel_id=%d",
-                                  app_idx, mcl_idx, mdl_idx, p_dcb->channel_id  );
-                if (!btif_hl_create_socket(app_idx, mcl_idx, mdl_idx))
+                if(btif_hl_find_channel_id_using_mdl_id(app_idx,p_dcb->mdl_id , &p_dcb->channel_id))
                 {
-                    BTIF_TRACE_ERROR0("Unable to create socket");
+                    BTIF_TRACE_DEBUG4(" app_idx=%d mcl_idx=%d mdl_idx=%d channel_id=%d",
+                                        app_idx, mcl_idx, mdl_idx, p_dcb->channel_id  );
+                    if (!btif_hl_create_socket(app_idx, mcl_idx, mdl_idx))
+                    {
+                        BTIF_TRACE_ERROR0("Unable to create socket");
+                        close_dch = TRUE;
+                    }
+                }
+                else
+                {
+                    BTIF_TRACE_ERROR1("Unable find channel id for mdl_id=0x%x", p_dcb->mdl_id  );
                     close_dch = TRUE;
                 }
             }
