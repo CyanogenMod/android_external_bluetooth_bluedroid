@@ -100,6 +100,7 @@ typedef struct
     BD_ADDR         addr;               /* address of audio/video peer */
     tBTA_AV_CO_SINK snks[BTIF_SV_AV_AA_SEP_INDEX]; /* array of supported sinks */
     UINT8           num_snks;           /* total number of sinks at peer */
+    UINT8           num_seps;           /* total number of seids at peer */
     UINT8           num_rx_snks;        /* number of received sinks */
     UINT8           num_sup_snks;       /* number of supported sinks in the snks array */
     tBTA_AV_CO_SINK *p_snk;             /* currently selected sink */
@@ -324,6 +325,7 @@ BTA_API void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, UINT8 num_seps, UINT8 n
     /* Copy the discovery results */
     bdcpy(p_peer->addr, addr);
     p_peer->num_snks = num_snk;
+    p_peer->num_seps = num_seps;
     p_peer->num_rx_snks = 0;
     p_peer->num_sup_snks = 0;
 }
@@ -423,7 +425,7 @@ BTA_API UINT8 bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_t
             /* stop fetching caps once we retrieved a supported codec */
             if (p_peer->acp)
             {
-                *p_sep_info_idx = p_peer->num_snks;
+                *p_sep_info_idx = p_peer->num_seps;
                 APPL_TRACE_EVENT0("no need to fetch more SEPs");
             }
 
