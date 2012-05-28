@@ -400,7 +400,9 @@ bt_status_t btif_hh_virtual_unpug(bt_bdaddr_t *bd_addr)
             bd_addr->address[0],  bd_addr->address[1],  bd_addr->address[2],  bd_addr->address[3],
             bd_addr->address[4], bd_addr->address[5]);
     p_dev = btif_hh_find_dev_by_bda(bd_addr);
-    if ((p_dev != NULL) && (p_dev->dev_status == BTHH_CONN_STATE_CONNECTED))
+	BTIF_TRACE_DEBUG2("%s mask : 0x%x", __func__, p_dev->attr_mask);
+    if ((p_dev != NULL) && (p_dev->dev_status == BTHH_CONN_STATE_CONNECTED)
+        && (p_dev->attr_mask & HID_VIRTUAL_CABLE))
     {
         BTIF_TRACE_DEBUG1("%s Sending BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG", __FUNCTION__);
         BTA_HhSendCtrl(p_dev->dev_handle, BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG);
@@ -751,6 +753,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 if (memcmp(btif_hh_cb.added_devices[i].bd_addr.address, p_data->dev_info.bda, 6) == 0) {
                     if (p_data->dev_info.status == BTA_HH_OK) {
                         btif_hh_cb.added_devices[i].dev_handle = p_data->dev_info.handle;
+                        btif_hh_cb.added_devices[i].attr_mask = p_data->dev_info.attr_mask;
                     }
                     else {
                         memset(btif_hh_cb.added_devices[i].bd_addr.address, 0, 6);

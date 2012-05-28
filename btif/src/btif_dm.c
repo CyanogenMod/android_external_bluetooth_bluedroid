@@ -362,11 +362,11 @@ static void btif_dm_cb_hid_remote_name(tBTM_REMOTE_DEV_NAME *p_remote_name)
 
 int remove_hid_bond(bt_bdaddr_t *bd_addr)
 {
-        /* For HID mouse,we did connection before pairing
-             * so we need to do virtual unplug
+        /* For HID device, inorder to avoid the HID device from re-connecting again after unpairing,
+             * we need to do virtual unplug
              */
         bdstr_t bdstr;
-        BTIF_TRACE_DEBUG2("%s---Removing HID mouse bond--%s", __FUNCTION__,bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
+        BTIF_TRACE_DEBUG2("%s---Removing HID bond--%s", __FUNCTION__,bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
         return btif_hh_virtual_unpug(bd_addr);
 }
 /*******************************************************************************
@@ -410,7 +410,9 @@ void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr)
 {
      bdstr_t bdstr;
      /*special handling for HID devices */
-     if (check_cod(bd_addr, COD_HID_POINTING))
+     if (check_cod(bd_addr, COD_HID_POINTING) ||
+        check_cod(bd_addr, COD_HID_KEYBOARD) ||
+        check_cod(bd_addr, COD_HID_COMBO))
     {
         #if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
         if(remove_hid_bond(bd_addr) != BTA_SUCCESS)
