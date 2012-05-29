@@ -76,6 +76,7 @@
 #include "btif_util.h"
 #include "btif_sock.h"
 #include "btif_pan.h"
+#include "btif_profile_queue.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -668,6 +669,7 @@ bt_status_t btif_shutdown_bluetooth(void)
     btif_shutdown_pending = 0;
 
     GKI_destroy_task(BTIF_TASK);
+    btif_queue_release();
     bte_main_shutdown();
 
     BTIF_TRACE_DEBUG1("%s done", __FUNCTION__);

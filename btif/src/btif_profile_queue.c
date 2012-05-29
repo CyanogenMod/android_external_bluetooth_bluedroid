@@ -190,3 +190,27 @@ void btif_queue_advance()
                           NULL, 0, NULL);
 }
 
+
+/*******************************************************************************
+**
+** Function         btif_queue_release
+**
+** Description      Free up all the queue nodes and set the queue head to NULL
+**
+** Returns          void
+**
+*******************************************************************************/
+void btif_queue_release()
+{
+    connect_node_t *current = connect_queue;
+
+    while (current != NULL)
+    {
+         connect_node_t *next = current->p_next;
+         GKI_freebuf(current);
+         current = next;
+    }
+
+    connect_queue = NULL;
+}
+
