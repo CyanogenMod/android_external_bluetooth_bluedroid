@@ -484,8 +484,8 @@ static bt_status_t init( bthf_callbacks_t* callbacks )
      * Internally, the HSP_SERVICE_ID shall also be enabled */
     btif_enable_service(BTA_HFP_SERVICE_ID);
 
-    btif_hf_cb.call_end_timestamp.tv_sec = 0;
-    btif_hf_cb.call_end_timestamp.tv_nsec = 0;
+    memset(&btif_hf_cb, 0, sizeof(btif_hf_cb_t));
+    clear_phone_state();
 
     return BT_STATUS_SUCCESS;
 }

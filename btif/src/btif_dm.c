@@ -1107,6 +1107,9 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
                      btif_in_execute_service_request(i, TRUE);
                  }
              }
+             /* clear control blocks */
+             memset(&pairing_cb, 0, sizeof(btif_dm_pairing_cb_t));
+
              /* This function will also trigger the adapter_properties_cb
              ** and bonded_devices_info_cb
              */
@@ -1501,9 +1504,9 @@ bt_status_t btif_dm_cancel_bond(const bt_bdaddr_t *bd_addr)
         else
         {
             BTA_DmPinReply( (UINT8 *)bd_addr->address, FALSE, 0, NULL);
-            if (!BTM_IsAclConnectionUp((UINT8 *)bd_addr->address))
-                BTA_DmBondCancel ((UINT8 *)bd_addr->address);
         }
+        /* Cancel bonding, in case it is in ACL connection setup state */
+        BTA_DmBondCancel ((UINT8 *)bd_addr->address);
     }
 
     return BT_STATUS_SUCCESS;
@@ -1831,3 +1834,15 @@ BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r)
 }
 #endif /*  BTIF_DM_OOB_TEST */
 
+void btif_dm_on_disable()
+{
+    /* cancel any pending pairing requests */
+    if (pairing_cb.state == BT_BOND_STATE_BONDING)
+    {
+        bt_bdaddr_t bd_addr;
+
+        BTIF_TRACE_DEBUG1("%s: Cancel pending pairing request", __FUNCTION__);
+        bdcpy(bd_addr.address, pairing_cb.bd_addr);
+        btif_dm_cancel_bond(&bd_addr);
+    }
+}

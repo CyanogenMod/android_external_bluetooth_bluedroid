@@ -575,7 +575,6 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
 ** Returns          void
 **
 *******************************************************************************/
-
 bt_status_t btif_disable_bluetooth(void)
 {
     tBTA_STATUS status;
@@ -588,6 +587,7 @@ bt_status_t btif_disable_bluetooth(void)
 
     BTIF_TRACE_DEBUG0("BTIF DISABLE BLUETOOTH");
 
+    btif_dm_on_disable();
     btif_core_state = BTIF_CORE_STATE_DISABLING;
 
     /* cleanup rfcomm & l2cap api */

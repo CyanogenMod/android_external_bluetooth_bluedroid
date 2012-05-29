@@ -76,4 +76,7 @@ BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r);
 #endif /* BTIF_DM_OOB_TEST */
 #endif /* BTM_OOB_INCLUDED */
 
+/* Notify BT disable being initiated. DM may chose to abort pending commands, like pairing*/
+void btif_dm_on_disable(void);
+
 #endif
