@@ -485,6 +485,7 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
         return BT_STATUS_FAIL;
 
     }
+    HAL_CBACK(bt_hh_callbacks, connection_state_cb, bd_addr, BTHH_CONN_STATE_CONNECTING);
     return BT_STATUS_SUCCESS;
 }
 
