@@ -128,15 +128,15 @@ BOOLEAN btif_av_stream_ready(void);
 
 /*******************************************************************************
 **
-** Function         btif_av_stream_started
+** Function         btif_av_stream_started_ready
 **
-** Description      Checks whether AV is already started (remotely)
+** Description      Checks whether AV ready for media start in streaming state
 **
 ** Returns          None
 **
 *******************************************************************************/
 
-BOOLEAN btif_av_stream_started(void);
+BOOLEAN btif_av_stream_started_ready(void);
 
 /*******************************************************************************
 **

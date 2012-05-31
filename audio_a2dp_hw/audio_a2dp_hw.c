@@ -89,6 +89,8 @@
 #define FNLOG()             LOGV("%s", __FUNCTION__);
 #define DEBUG(fmt, ...)     LOGD ("%s: " fmt,__FUNCTION__, ## __VA_ARGS__)
 
+#define ASSERTC(cond, msg, val) if (!(cond)) {LOGE("### ASSERT : %s line %d %s (%d) ###", __FILE__, __LINE__, msg, val);}
+
 /*****************************************************************************
 **  Local type definitions
 ******************************************************************************/
@@ -192,6 +194,16 @@ static void ts_log(char *tag, int val, struct timespec *pprev_opt)
         prev = now;
         DEBUG("[%s] ts %08lld, diff %08lld, val %d", tag, now_us, diff_us, val);
     }
+}
+
+static int calc_audiotime(struct a2dp_config cfg, int bytes)
+{
+    int chan_count = popcount(cfg.channel_flags);
+
+    ASSERTC(cfg.format == AUDIO_FORMAT_PCM_16_BIT,
+            "unsupported sample sz", cfg.format);
+
+    return bytes*(1000000/(chan_count*2))/cfg.rate;
 }
 
 /*****************************************************************************
@@ -467,7 +479,17 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
         (out->state == AUDIO_A2DP_STATE_STANDBY))
     {
         if (start_audio_datapath(out) < 0)
+        {
+            /* emulate time this write represents to avoid very fast write
+               failures during transition periods or remote suspend */
+
+            int us_delay = calc_audiotime(out->cfg, bytes);
+
+            DEBUG("emulate a2dp write delay (%d us)", us_delay);
+
+            usleep(us_delay);
             return -1;
+        }
     }
     else if (out->state != AUDIO_A2DP_STATE_STARTED)
     {

@@ -139,11 +139,11 @@
 
 #define BTIF_AUTO_PAIR_CONF_FILE  "/etc/bluetooth/auto_pair_devlist.conf"
 #define BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST "auto_pair_blacklist"
-#define BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_ADDR "AddressBlacklist"
-#define BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_EXACTNAME "ExactNameBlacklist"
-#define BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_PARTIALNAME "PartialNameBlacklist"
+#define BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_ADDR "AddressBlacklist"
+#define BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_EXACTNAME "ExactNameBlacklist"
+#define BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_PARTIALNAME "PartialNameBlacklist"
 #define BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST "FixedPinZerosKeyboardBlacklist"
-#define BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLIACKLIST_ADDR "DynamicAddressBlacklist"
+#define BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR "DynamicAddressBlacklist"
 
 #define BTIF_AUTO_PAIR_CONF_VALUE_SEPERATOR ","
 #define BTIF_AUTO_PAIR_CONF_SPACE ' '
@@ -1717,6 +1717,7 @@ bt_status_t btif_storage_write_hl_mdl_data(UINT8 app_idx, char *value, int value
 **                  BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
+
 bt_status_t btif_storage_load_autopair_device_list()
 {
     char *fname, *key_name, *key_value;
@@ -1733,7 +1734,7 @@ bt_status_t btif_storage_load_autopair_device_list()
         return BT_STATUS_FAIL;
     }
 
-    key_value = unv_read_key(fname,BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_ADDR,linebuf, BTIF_STORAGE_MAX_LINE_SZ);
+    key_value = unv_read_key(fname,BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_ADDR,linebuf, BTIF_STORAGE_MAX_LINE_SZ);
 
     if (key_value  ==  NULL)
     {
@@ -1773,11 +1774,11 @@ bt_status_t btif_storage_load_autopair_device_list()
 
             if (key_name == NULL)
                 continue;
-            else if((strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_ADDR) == 0) ||
-                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_EXACTNAME) ==0) ||
+            else if((strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_ADDR) == 0) ||
+                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_EXACTNAME) ==0) ||
                     (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST) ==0 ) ||
-                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_PARTIALNAME) == 0) ||
-                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLIACKLIST_ADDR) == 0))
+                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_PARTIALNAME) == 0) ||
+                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR) == 0))
             {
                 key_value = strtok(NULL, BTIF_AUTO_PAIR_CONF_KEY_VAL_DELIMETER);
                 unv_write_key (fname, key_name, key_value);
@@ -1823,7 +1824,7 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_add
 
     /* check if this device address LAP is same as one of the auto pair blackliseted LAP */
     value = unv_read_key( fname,
-                          BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_ADDR,
+                          BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_ADDR,
                           linebuf, BTIF_STORAGE_MAX_LINE_SZ);
     if (value != NULL)
     {
@@ -1836,7 +1837,7 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_add
     if (dev_name_str != NULL)
     {
         value = unv_read_key( fname,
-                              BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_EXACTNAME,
+                              BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_EXACTNAME,
                               linebuf, BTIF_STORAGE_MAX_LINE_SZ);
         if (value != NULL)
         {
@@ -1845,7 +1846,7 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_add
         }
 
         value = unv_read_key( fname,
-                              BTIF_STORAGE_KEY_AUTOPAIR_BLIACKLIST_PARTIALNAME,
+                              BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_PARTIALNAME,
                               linebuf, BTIF_STORAGE_MAX_LINE_SZ);
         if (value != NULL)
         {
@@ -1861,7 +1862,7 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_add
     }
 
     value = unv_read_key( fname,
-                          BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLIACKLIST_ADDR,
+                          BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR,
                           linebuf, BTIF_STORAGE_MAX_LINE_SZ);
     if (value != NULL)
     {
@@ -1903,7 +1904,7 @@ bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_de
     }
 
     value = unv_read_key( fname,
-                          BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLIACKLIST_ADDR,
+                          BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR,
                           linebuf, BTIF_STORAGE_MAX_LINE_SZ);
     if (value != NULL)
     {
@@ -1916,7 +1917,7 @@ bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_de
     }
 
     /* Write back the key value */
-    ret = unv_write_key (fname, BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLIACKLIST_ADDR,( const char *)linebuf);
+    ret = unv_write_key (fname, BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR,( const char *)linebuf);
 
     return (ret == 0 ? BT_STATUS_SUCCESS:BT_STATUS_FAIL);
 }

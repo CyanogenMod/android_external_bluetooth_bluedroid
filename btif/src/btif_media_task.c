@@ -490,7 +490,7 @@ static void btif_recv_ctrl_data(void)
             }
 
             /* check whether av is ready to setup a2dp datapath */
-            if ((btif_av_stream_ready() == TRUE) || (btif_av_stream_started() == TRUE))
+            if ((btif_av_stream_ready() == TRUE) || (btif_av_stream_started_ready() == TRUE))
             {
                 a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
             }
@@ -510,7 +510,7 @@ static void btif_recv_ctrl_data(void)
                 /* post start event and wait for audio path to open */
                 btif_dispatch_sm_event(BTIF_AV_START_STREAM_REQ_EVT, NULL, 0);
             }
-            else if (btif_av_stream_started())
+            else if (btif_av_stream_started_ready())
             {
                 /* already started, setup audio data channel listener
                    and ack back immediately */
@@ -539,7 +539,17 @@ static void btif_recv_ctrl_data(void)
 
         case A2DP_CTRL_CMD_SUSPEND:
             /* local suspend */
-            btif_dispatch_sm_event(BTIF_AV_SUSPEND_STREAM_REQ_EVT, NULL, 0);
+            if (btif_av_stream_started_ready())
+            {
+                btif_dispatch_sm_event(BTIF_AV_SUSPEND_STREAM_REQ_EVT, NULL, 0);
+            }
+            else
+            {
+                /* if we are not in started state, just ack back ok and let
+                   audioflinger close the channel. This can happen if we are
+                   remotely suspended */
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+            }
             break;
 
         default:
@@ -1053,7 +1063,7 @@ static void ra_update(UINT32 bytes_processed)
     /* converts adjusted frame count to adjusted pcmtime equivalent */
     btif_media_cb.ra.ra_adjust_pcmtime += (btif_media_cb.ra.ra_adjust_cnt)*pcmtime_equivalent;
 
-    APPL_TRACE_EVENT2("ra adjust %d %d", btif_media_cb.ra.ra_adjust_cnt, btif_media_cb.ra.ra_adjust_pcmtime);
+    VERBOSE("ra adjust %d %d", btif_media_cb.ra.ra_adjust_cnt, btif_media_cb.ra.ra_adjust_pcmtime);
 
     /* check pcmtime adjustments every stats interval */
     if (ra_stats_update > (RA_STATS_INTERVAL*1000000L))

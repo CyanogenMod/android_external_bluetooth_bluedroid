@@ -84,21 +84,31 @@ typedef enum {
     BTIF_AV_STATE_CLOSING
 } btif_av_state_t;
 
+/* Should not need dedicated suspend state as actual actions are no
+   different than open state. Suspend flags are needed however to prevent
+   media task from trying to restart stream during remote suspend or while
+   we are in the process of a local suspend */
+
+#define BTIF_AV_FLAG_LOCAL_SUSPEND_PENDING 0x1
+#define BTIF_AV_FLAG_REMOTE_SUSPEND        0x2
+
 /*****************************************************************************
 **  Local type definitions
 ******************************************************************************/
+
 typedef struct
 {
     tBTA_AV_HNDL bta_handle;
     bt_bdaddr_t peer_bda;
     btif_sm_handle_t sm_handle;
+    UINT8 flags;
 } btif_av_cb_t;
+
 /*****************************************************************************
 **  Static variables
 ******************************************************************************/
 static btav_callbacks_t *bt_av_callbacks = NULL;
 static btif_av_cb_t btif_av_cb;
-
 static TIMER_LIST_ENT tle_av_open_on_rc;
 
 /* both interface and media task needs to be ready to alloc incoming request */
@@ -246,13 +256,15 @@ static void btif_initiate_av_open_tmr_hdlr(TIMER_LIST_ENT *tle)
 
 static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
 {
-    BTIF_TRACE_DEBUG2("%s event:%s", __FUNCTION__, dump_av_sm_event_name(event));
+    BTIF_TRACE_DEBUG3("%s event:%s flags %x", __FUNCTION__,
+                     dump_av_sm_event_name(event), btif_av_cb.flags);
 
     switch (event)
     {
         case BTIF_SM_ENTER_EVT:
             /* clear the peer_bda */
             memset(&btif_av_cb.peer_bda, 0, sizeof(bt_bdaddr_t));
+            btif_av_cb.flags = 0;
             btif_a2dp_on_idle();
             break;
 
@@ -337,7 +349,8 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
 
 static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data)
 {
-    BTIF_TRACE_DEBUG2("%s event:%s", __FUNCTION__, dump_av_sm_event_name(event));
+    BTIF_TRACE_DEBUG3("%s event:%s flags %x", __FUNCTION__,
+                     dump_av_sm_event_name(event), btif_av_cb.flags);
 
     switch (event)
     {
@@ -406,7 +419,8 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
 
 static BOOLEAN btif_av_state_closing_handler(btif_sm_event_t event, void *p_data)
 {
-    BTIF_TRACE_DEBUG2("%s event:%s", __FUNCTION__, dump_av_sm_event_name(event));
+    BTIF_TRACE_DEBUG3("%s event:%s flags %x", __FUNCTION__,
+                     dump_av_sm_event_name(event), btif_av_cb.flags);
 
     switch (event)
     {
@@ -461,7 +475,8 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
 {
     tBTA_AV *p_av = (tBTA_AV*)p_data;
 
-    BTIF_TRACE_DEBUG2("%s event:%s", __FUNCTION__, dump_av_sm_event_name(event));
+    BTIF_TRACE_DEBUG3("%s event:%s flags %x", __FUNCTION__,
+                     dump_av_sm_event_name(event), btif_av_cb.flags);
 
     switch (event)
     {
@@ -537,11 +552,16 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
 {
     tBTA_AV *p_av = (tBTA_AV*)p_data;
 
-    BTIF_TRACE_DEBUG2("%s event:%s", __FUNCTION__, dump_av_sm_event_name(event));
+    BTIF_TRACE_DEBUG3("%s event:%s flags %x", __FUNCTION__,
+                     dump_av_sm_event_name(event), btif_av_cb.flags);
 
     switch (event)
     {
         case BTIF_SM_ENTER_EVT:
+
+            /* we are again in started state, clear any remote suspend flags */
+            btif_av_cb.flags &= ~BTIF_AV_FLAG_REMOTE_SUSPEND;
+
             HAL_CBACK(bt_av_callbacks, audio_state_cb,
                 BTAV_AUDIO_STATE_STARTED, &(btif_av_cb.peer_bda));
             break;
@@ -549,16 +569,19 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
         case BTIF_SM_EXIT_EVT:
             break;
 
+        /* fixme -- use suspend = true always to work around issue with BTA AV */
         case BTIF_AV_STOP_STREAM_REQ_EVT:
-            /* immediately flush any pending tx frames while suspend is pending */
-            btif_a2dp_set_tx_flush(TRUE);
-
-            BTA_AvStop(TRUE);
-            break;
-
         case BTIF_AV_SUSPEND_STREAM_REQ_EVT:
 
-            /* immediately stop transmission of frames whiel suspend is pending */
+            /* set pending flag to ensure btif task is not trying to restart
+               stream while suspend is in progress */
+            btif_av_cb.flags |= BTIF_AV_FLAG_LOCAL_SUSPEND_PENDING;
+
+            /* if we were remotely suspended but suspend locally, local suspend
+               always overrides */
+            btif_av_cb.flags &= ~BTIF_AV_FLAG_REMOTE_SUSPEND;
+
+            /* immediately stop transmission of frames while suspend is pending */
             btif_a2dp_set_tx_flush(TRUE);
 
             BTA_AvStop(TRUE);
@@ -588,6 +611,8 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
             /* if not successful, remain in current state */
             if (p_av->suspend.status != BTA_AV_SUCCESS)
             {
+                btif_av_cb.flags &= ~BTIF_AV_FLAG_LOCAL_SUSPEND_PENDING;
+
                 /* suspend failed, reset back tx flush state */
                 btif_a2dp_set_tx_flush(FALSE);
                 return FALSE;
@@ -598,6 +623,11 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
                 /* remote suspend, notify HAL and await audioflinger to
                    suspend/stop stream */
 
+                /* set remote suspend flag to block media task from restarting
+                   stream only if we did not already initiate a local suspend */
+                if ((btif_av_cb.flags & BTIF_AV_FLAG_LOCAL_SUSPEND_PENDING) == 0)
+                    btif_av_cb.flags |= BTIF_AV_FLAG_REMOTE_SUSPEND;
+
                 HAL_CBACK(bt_av_callbacks, audio_state_cb,
                         BTAV_AUDIO_STATE_REMOTE_SUSPEND, &(btif_av_cb.peer_bda));
             }
@@ -606,7 +636,11 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
                 HAL_CBACK(bt_av_callbacks, audio_state_cb,
                         BTAV_AUDIO_STATE_STOPPED, &(btif_av_cb.peer_bda));
             }
+
             btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENED);
+
+            /* suspend completed and state changed, clear pending status */
+            btif_av_cb.flags &= ~BTIF_AV_FLAG_LOCAL_SUSPEND_PENDING;
             break;
 
         case BTA_AV_STOP_EVT:
@@ -831,8 +865,8 @@ BOOLEAN btif_av_stream_ready(void)
 {
     btif_sm_state_t state = btif_sm_get_state(btif_av_cb.sm_handle);
 
-    BTIF_TRACE_EVENT2("btif_av_stream_ready : sm hdl %d, state %d",
-                btif_av_cb.sm_handle, state);
+    BTIF_TRACE_DEBUG3("btif_av_stream_ready : sm hdl %d, state %d, flags %x",
+                btif_av_cb.sm_handle, state, btif_av_cb.flags);
 
     /* also make sure main adapter is enabled */
     if (btif_is_enabled() == 0)
@@ -840,24 +874,36 @@ BOOLEAN btif_av_stream_ready(void)
         BTIF_TRACE_EVENT0("main adapter not enabled");
         return FALSE;
     }
+
+    /* check if we are remotely suspended */
+    if (btif_av_cb.flags & BTIF_AV_FLAG_REMOTE_SUSPEND)
+        return FALSE;
+
     return (state == BTIF_AV_STATE_OPENED);
 }
 
 /*******************************************************************************
 **
-** Function         btif_av_stream_started
+** Function         btif_av_stream_started_ready
 **
-** Description      Checks whether AV is already started (remotely)
+** Description      Checks whether AV ready for media start in streaming state
 **
 ** Returns          None
 **
 *******************************************************************************/
 
-BOOLEAN btif_av_stream_started(void)
+BOOLEAN btif_av_stream_started_ready(void)
 {
     btif_sm_state_t state = btif_sm_get_state(btif_av_cb.sm_handle);
-    BTIF_TRACE_EVENT2("btif_av_stream_started : sm hdl %d, state %d",
-                btif_av_cb.sm_handle, state);
+
+    BTIF_TRACE_DEBUG3("btif_av_stream_started : sm hdl %d, state %d, flags %x",
+                btif_av_cb.sm_handle, state, btif_av_cb.flags);
+
+    /* don't allow media task to start if we are suspending or
+       remotely suspended (not yet changed state) */
+    if (btif_av_cb.flags & (BTIF_AV_FLAG_LOCAL_SUSPEND_PENDING | BTIF_AV_FLAG_REMOTE_SUSPEND))
+        return FALSE;
+
     return (state == BTIF_AV_STATE_STARTED);
 }
 
