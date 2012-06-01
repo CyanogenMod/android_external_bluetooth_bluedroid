@@ -1102,6 +1102,8 @@ void bta_av_security_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     UINT8   num = p_data->ci_setconfig.num_seid + 1;
+    UINT8   *p_seid = p_data->ci_setconfig.p_seid;
+    int     i;
 
     /* we like this codec_type. find the sep_idx */
     bta_av_adjust_seps_idx(p_scb);
@@ -1125,10 +1127,31 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         if (p_scb->cur_psc_mask & AVDT_PSC_DELAY_RPT)
             p_scb->avdt_version = AVDT_VERSION_SYNC;
 
-        /* We need to know all the SEPs on SNK              */
-        /* Getcap for all SEPs will follow after Discover   */
-        APPL_TRACE_DEBUG0("bta_av_setconfig_rsp: start DISCOVER");
-        bta_av_discover_req(p_scb, NULL);
+
+        if (p_scb->codec_type == BTA_AV_CODEC_SBC || num > 1)
+        {
+            /* if SBC is used by the SNK as INT, discover req is not sent in bta_av_config_ind.
+             * call disc_res now */
+            p_scb->p_cos->disc_res(p_scb->hndl, num, num, p_scb->peer_addr);
+        }
+        else
+        {
+            /* we do not know the peer device and it is using non-SBC codec
+             * we need to know all the SEPs on SNK */
+            bta_av_discover_req(p_scb, NULL);
+            return;
+        }
+
+        for (i = 1; i < num; i++)
+        {
+            APPL_TRACE_DEBUG2("sep_info[%d] SEID: %d", i, p_seid[i-1]);
+            /* initialize the sep_info[] to get capabilities */
+            p_scb->sep_info[i].in_use = FALSE;
+            p_scb->sep_info[i].tsep = AVDT_TSEP_SNK; 
+            p_scb->sep_info[i].media_type = p_scb->media_type;
+            p_scb->sep_info[i].seid = p_seid[i-1];
+        }
+        bta_av_next_getcap(p_scb, p_data);
     }
 }
 
