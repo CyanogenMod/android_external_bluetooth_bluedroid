@@ -400,7 +400,6 @@ bt_status_t btif_hh_virtual_unpug(bt_bdaddr_t *bd_addr)
             bd_addr->address[0],  bd_addr->address[1],  bd_addr->address[2],  bd_addr->address[3],
             bd_addr->address[4], bd_addr->address[5]);
     p_dev = btif_hh_find_dev_by_bda(bd_addr);
-	BTIF_TRACE_DEBUG2("%s mask : 0x%x", __func__, p_dev->attr_mask);
     if ((p_dev != NULL) && (p_dev->dev_status == BTHH_CONN_STATE_CONNECTED)
         && (p_dev->attr_mask & HID_VIRTUAL_CABLE))
     {
