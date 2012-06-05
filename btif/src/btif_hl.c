@@ -53,6 +53,8 @@
  *
  *
  ***********************************************************************************/
+#define LOG_TAG "BTIF_HL"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -84,7 +86,6 @@
 #include "btif_hl.h"
 #include "btif_storage.h"
 #include "btu.h"
-
 
 extern int btif_hl_update_maxfd( int max_org_s);
 extern void btif_hl_select_monitor_callback( fd_set *p_cur_set, fd_set *p_org_set );
@@ -121,6 +122,7 @@ static BUFFER_Q soc_queue;
 static inline int btif_hl_select_wakeup(void);
 static inline int btif_hl_select_exit(void);
 static inline int btif_hl_select_close_connected(void);
+static inline int btif_hl_close_select_thread(void);
 static UINT8 btif_hl_get_next_app_id(void);
 static int btif_hl_get_next_channel_id(UINT8 app_id);
 static void btif_hl_init_next_app_id(void);
@@ -4561,6 +4563,7 @@ static void  cleanup( void ){
     }
 
     btif_hl_disable();
+    btif_hl_close_select_thread();
 }
 
 static const bthl_interface_t bthlInterface = {
@@ -5028,6 +5031,36 @@ static inline int btif_hl_select_close_connected(void){
     BTIF_TRACE_DEBUG0("btif_hl_select_close_connected");
     return send(signal_fds[1], &sig_on, sizeof(sig_on), 0);
 }
+
+/*******************************************************************************
+**
+** Function btif_hl_close_select_thread
+**
+** Description send signal to close the thread and then close all signal FDs
+**
+** Returns int
+**
+*******************************************************************************/
+static inline int btif_hl_close_select_thread(void)
+{
+    int result = 0;
+    char sig_on = btif_hl_signal_select_exit;
+    BTIF_TRACE_DEBUG0("btif_hl_signal_select_exit");
+    result = send(signal_fds[1], &sig_on, sizeof(sig_on), 0);
+   /* Cleanup signal sockets */
+    if(signal_fds[0] != -1)
+    {
+        close(signal_fds[0]);
+        signal_fds[0] = -1;
+    }
+    if(signal_fds[1] != -1)
+    {
+        close(signal_fds[1]);
+        signal_fds[1] = -1;
+    }
+    return result;
+}
+
 /*******************************************************************************
 **
 ** Function btif_hl_select_wake_reset
@@ -5120,6 +5153,12 @@ static void *btif_hl_select_thread(void *arg){
                 if (r == btif_hl_signal_select_wakeup || r == btif_hl_signal_select_close_connected )
                 {
                     btif_hl_select_wakeup_callback(&org_set, r);
+                }
+                else if( r == btif_hl_signal_select_exit)
+                {
+                    btif_hl_thread_cleanup();
+                    BTIF_TRACE_DEBUG0("Exit hl_select_thread for btif_hl_signal_select_exit");
+                    return 0;
                 }
             }
 

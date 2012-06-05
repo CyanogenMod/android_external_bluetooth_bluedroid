@@ -657,13 +657,17 @@ int unv_read_key_iter( const char *path,
     if (fstat(fd, &st) != 0)
     {
         error("stat failed (%s)", strerror(errno));
+        close(fd);
         return -1;
     }
 
     p_buf = malloc(st.st_size + 1);
 
     if (!p_buf)
+    {
+        close(fd);
         return -1;
+    }
 
     p = p_buf;
 
@@ -671,6 +675,7 @@ int unv_read_key_iter( const char *path,
     {
         error("read failed %s", strerror(errno));
         free(p_buf);
+        close(fd);
         return -1;
     }
 
