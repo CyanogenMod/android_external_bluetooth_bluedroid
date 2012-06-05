@@ -3398,6 +3398,11 @@ The maximum number of payload octets that the local device can receive in a sing
 #define BTA_AG_CHLD_VAL  "(0,1,2,3)"
 #endif
 
+/* Set the CIND to match HFP 1.5 */
+#ifndef BTA_AG_CIND_INFO
+#define BTA_AG_CIND_INFO "(\"call\",(0,1)),(\"callsetup\",(0-3)),(\"service\",(0-1)),(\"signal\",(0-5)),(\"roam\",(0,1)),(\"battchg\",(0-5)),(\"callheld\",(0-2))"
+#endif
+
 
 /******************************************************************************
 **
