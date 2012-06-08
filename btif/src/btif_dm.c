@@ -122,7 +122,8 @@ static btif_dm_oob_cb_t     oob_cb;
 static void btif_dm_generic_evt(UINT16 event, char* p_param);
 static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr);
 static void btif_dm_cb_hid_remote_name(tBTM_REMOTE_DEV_NAME *p_remote_name);
-static void btif_update_remote_name(btif_dm_remote_name_t remote_param);
+static void btif_update_remote_properties(BD_ADDR bd_addr, BD_NAME bd_name,
+                                          DEV_CLASS dev_class, tBT_DEVICE_TYPE dev_type);
 
 /******************************************************************************
 **  Externs
@@ -290,22 +291,53 @@ static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond
 }
 
 
-static void btif_update_remote_name(btif_dm_remote_name_t remote_param)
+static void btif_update_remote_properties(BD_ADDR bd_addr, BD_NAME bd_name,
+                                          DEV_CLASS dev_class, tBT_DEVICE_TYPE device_type)
 {
-    if (strlen((const char *) remote_param.bd_name))
+    int num_properties = 0;
+    bt_property_t properties[3];
+    bt_bdaddr_t bdaddr;
+    bt_status_t status;
+
+    bdcpy(bdaddr.address, bd_addr);
+
+    /* remote name */
+    if (strlen((const char *) bd_name))
     {
-        bt_property_t properties[1];
-        bt_bdaddr_t bdaddr;
-        bt_status_t status;
-        properties[0].type = BT_PROPERTY_BDNAME;
-        properties[0].val = remote_param.bd_name;
-        properties[0].len = strlen((char *)remote_param.bd_name)+1;
-        bdcpy(bdaddr.address, remote_param.bd_addr);
-        status = btif_storage_set_remote_device_property(&bdaddr, &properties[0]);
-        ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device property", status);
-        HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
-                         status, &bdaddr, 1, properties);
+        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                            BT_PROPERTY_BDNAME, strlen((char *)bd_name)+1, bd_name);
+        status = btif_storage_set_remote_device_property(&bdaddr, &properties[num_properties]);
+        ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device name", status);
+        num_properties++;
     }
+
+    /* class of device */
+    {
+        UINT32 cod = devclass2uint(dev_class);
+        if ( cod == 0) {
+            BTIF_TRACE_DEBUG1("%s():cod is 0, set as unclassified", __FUNCTION__);
+            cod = COD_UNCLASSIFIED;
+        }
+
+        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                            BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod), &cod);
+        status = btif_storage_set_remote_device_property(&bdaddr, &properties[num_properties]);
+        ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device class", status);
+        num_properties++;
+    }
+
+    /* device type */
+    {
+        bt_device_type_t dev_type = device_type;
+        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                            BT_PROPERTY_TYPE_OF_DEVICE, sizeof(dev_type), &dev_type);
+        status = btif_storage_set_remote_device_property(&bdaddr, &properties[num_properties]);
+        ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device type", status);
+        num_properties++;
+    }
+
+    HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+                     status, &bdaddr, num_properties, properties);
 }
 /*******************************************************************************
 **
@@ -508,13 +540,11 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     bt_bdaddr_t bd_addr;
     bt_bdname_t bd_name;
     UINT32 cod;
-    btif_dm_remote_name_t remote_param;
     bt_pin_code_t pin_code;
 
-    /* Remote name update */
-    bdcpy(remote_param.bd_addr , p_pin_req->bd_addr);
-    memcpy(remote_param.bd_name, p_pin_req->bd_name, BD_NAME_LEN);
-    btif_update_remote_name(remote_param);
+    /* Remote properties update */
+    btif_update_remote_properties(p_pin_req->bd_addr, p_pin_req->bd_name,
+                                  p_pin_req->dev_class, BT_DEVICE_TYPE_BREDR);
 
     bdcpy(bd_addr.address, p_pin_req->bd_addr);
     memcpy(bd_name.name, p_pin_req->bd_name, BD_NAME_LEN);
@@ -590,15 +620,13 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     bt_bdaddr_t bd_addr;
     bt_bdname_t bd_name;
     UINT32 cod;
-    btif_dm_remote_name_t remote_param;
     BOOLEAN is_incoming = !(pairing_cb.state == BT_BOND_STATE_BONDING);
 
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
 
-    /* Remote name update */
-    bdcpy(remote_param.bd_addr , p_ssp_cfm_req->bd_addr);
-    memcpy(remote_param.bd_name, p_ssp_cfm_req->bd_name, BD_NAME_LEN);
-    btif_update_remote_name(remote_param);
+    /* Remote properties update */
+    btif_update_remote_properties(p_ssp_cfm_req->bd_addr, p_ssp_cfm_req->bd_name,
+                                  p_ssp_cfm_req->dev_class, BT_DEVICE_TYPE_BREDR);
 
     bdcpy(bd_addr.address, p_ssp_cfm_req->bd_addr);
     memcpy(bd_name.name, p_ssp_cfm_req->bd_name, BD_NAME_LEN);
@@ -654,14 +682,12 @@ static void btif_dm_ssp_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif)
     bt_bdaddr_t bd_addr;
     bt_bdname_t bd_name;
     UINT32 cod;
-    btif_dm_remote_name_t remote_param;
 
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
 
-    /* Remote name update */
-    bdcpy(remote_param.bd_addr , p_ssp_key_notif->bd_addr);
-    memcpy(remote_param.bd_name, p_ssp_key_notif->bd_name, BD_NAME_LEN);
-    btif_update_remote_name(remote_param);
+    /* Remote properties update */
+    btif_update_remote_properties(p_ssp_key_notif->bd_addr, p_ssp_key_notif->bd_name,
+                                  p_ssp_key_notif->dev_class, BT_DEVICE_TYPE_BREDR);
 
     bdcpy(bd_addr.address, p_ssp_key_notif->bd_addr);
     memcpy(bd_name.name, p_ssp_key_notif->bd_name, BD_NAME_LEN);
