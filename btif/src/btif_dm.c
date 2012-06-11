@@ -748,6 +748,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
 
         /* Trigger SDP on the device */
         btif_dm_get_remote_services(&bd_addr);
+        /* Do not call bond_state_changed_cb yet. Wait till fetch remote service is complete */
     }
     else
     {
@@ -791,8 +792,8 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             default:
                 status =  BT_STATUS_FAIL;
         }
+        bond_state_changed(status, &bd_addr, state);
     }
-    bond_state_changed(status, &bd_addr, state);
 }
 
 /******************************************************************************
@@ -1003,6 +1004,13 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
             /* Send the event to the BTIF */
             HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
                              BT_STATUS_SUCCESS, &bd_addr, 1, &prop);
+            if ((pairing_cb.state == BT_BOND_STATE_BONDING) &&
+                bdcmp(p_data->disc_res.bd_addr, pairing_cb.bd_addr) == 0)
+            {
+                 BTIF_TRACE_DEBUG1("%s Remote Service SDP done. Call bond_state_changed_cb BONDED",
+                                   __FUNCTION__);
+                 bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDED);
+            }
         }
         break;
 
