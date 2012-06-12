@@ -513,10 +513,13 @@ static void search_services_copy_cb(UINT16 event, char *p_dest, char *p_src)
     {
          case BTA_DM_DISC_RES_EVT:
          {
-              if (p_src_data->disc_res.num_uuids > 0)
+              if ((p_src_data->disc_res.result == BTA_SUCCESS) &&
+                  (p_src_data->disc_res.num_uuids > 0))
+              {
                   p_dest_data->disc_res.p_uuid_list = (UINT8*)(p_dest + sizeof(tBTA_DM_SEARCH));
                   memcpy(p_dest_data->disc_res.p_uuid_list, p_src_data->disc_res.p_uuid_list,
-                                                      p_src_data->disc_res.num_uuids*MAX_UUID_SIZE);
+                         p_src_data->disc_res.num_uuids*MAX_UUID_SIZE);
+              }
          } break;
     }
 }
@@ -986,7 +989,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                     p_data->disc_res.result, p_data->disc_res.services);
             prop.type = BT_PROPERTY_UUIDS;
             prop.len = 0;
-            if (p_data->disc_res.num_uuids > 0)
+            if ((p_data->disc_res.result == BTA_SUCCESS) && (p_data->disc_res.num_uuids > 0))
             {
                  prop.val = p_data->disc_res.p_uuid_list;
                  prop.len = p_data->disc_res.num_uuids * MAX_UUID_SIZE;
@@ -1391,7 +1394,7 @@ static void bte_dm_search_services_evt(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH 
    {
          case BTA_DM_DISC_RES_EVT:
          {
-             if (p_data->disc_res.num_uuids > 0) {
+             if ((p_data->disc_res.result == BTA_SUCCESS) && (p_data->disc_res.num_uuids > 0)) {
                   param_len += (p_data->disc_res.num_uuids * MAX_UUID_SIZE);
              }
          } break;
