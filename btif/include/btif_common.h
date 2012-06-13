@@ -84,6 +84,7 @@
 #define BTIF_DM             1
 #define BTIF_HFP            2
 #define BTIF_AV             3
+#define BTIF_PAN            4
 
 extern bt_callbacks_t *bt_hal_cbacks;
 
@@ -138,7 +139,10 @@ enum
     BTIF_DM_CB_CREATE_BOND,   /* Create bond */
     BTIF_DM_CB_REMOVE_BOND,   /*Remove bond */
     BTIF_DM_CB_HID_REMOTE_NAME,   /* Remote name callback for HID device */
-    BTIF_DM_CB_BOND_STATE_BONDING
+    BTIF_DM_CB_BOND_STATE_BONDING,
+
+    BTIF_PAN_CB_START = BTIF_SIG_CB_START(BTIF_PAN),
+    BTIF_PAN_CB_DISCONNECTING, /* PAN Disconnect has been sent to BTA successfully */
 };
 
 /* Macro definitions for BD ADDR persistence */
