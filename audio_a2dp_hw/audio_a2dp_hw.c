@@ -555,14 +555,14 @@ static uint32_t out_get_channels(const struct audio_stream *stream)
     return out->cfg.channel_flags;
 }
 
-static int out_get_format(const struct audio_stream *stream)
+static audio_format_t out_get_format(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
     DEBUG("format 0x%x", out->cfg.format);
     return out->cfg.format;
 }
 
-static int out_set_format(struct audio_stream *stream, int format)
+static int out_set_format(struct audio_stream *stream, audio_format_t format)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
     DEBUG("setting format not yet supported (0x%x)", format);
@@ -724,13 +724,13 @@ static uint32_t in_get_channels(const struct audio_stream *stream)
     return AUDIO_CHANNEL_IN_MONO;
 }
 
-static int in_get_format(const struct audio_stream *stream)
+static audio_format_t in_get_format(const struct audio_stream *stream)
 {
     FNLOG();
     return AUDIO_FORMAT_PCM_16_BIT;
 }
 
-static int in_set_format(struct audio_stream *stream, int format)
+static int in_set_format(struct audio_stream *stream, audio_format_t format)
 {
     FNLOG();
     return 0;
@@ -794,9 +794,12 @@ static int in_remove_audio_effect(const struct audio_stream *stream, effect_hand
 }
 
 static int adev_open_output_stream(struct audio_hw_device *dev,
-                                   uint32_t devices, int *format,
-                                   uint32_t *channels, uint32_t *sample_rate,
+                                   audio_io_handle_t handle,
+                                   audio_devices_t devices,
+                                   audio_output_flags_t flags,
+                                   struct audio_config *config,
                                    struct audio_stream_out **stream_out)
+
 {
     struct a2dp_audio_device *a2dp_dev = (struct a2dp_audio_device *)dev;
     struct a2dp_stream_out *out;
@@ -830,14 +833,13 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     /* initialize a2dp specifics */
     a2dp_stream_out_init(out);
 
-    /* set output variables */
-    if (format)
-        *format = out_get_format((const struct audio_stream *)&out->stream);
-    if (channels)
-        *channels = out_get_channels((const struct audio_stream *)&out->stream);
-    if (sample_rate)
-        *sample_rate = out_get_sample_rate((const struct audio_stream *)&out->stream);
-
+   /* set output config values */
+   if (config)
+   {
+      config->format = out_get_format((const struct audio_stream *)&out->stream);
+      config->sample_rate = out_get_sample_rate((const struct audio_stream *)&out->stream);
+      config->channel_mask = out_get_channels((const struct audio_stream *)&out->stream);
+   }
     *stream_out = &out->stream;
     a2dp_dev->output = out;
 
@@ -972,18 +974,17 @@ static int adev_get_mic_mute(const struct audio_hw_device *dev, bool *state)
 }
 
 static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev,
-                                         uint32_t sample_rate, int format,
-                                         int channel_count)
+                                         const struct audio_config *config)
 {
     FNLOG();
 
     return 320;
 }
 
-static int adev_open_input_stream(struct audio_hw_device *dev, uint32_t devices,
-                                  int *format, uint32_t *channels,
-                                  uint32_t *sample_rate,
-                                  audio_in_acoustics_t acoustics,
+static int adev_open_input_stream(struct audio_hw_device *dev,
+                                  audio_io_handle_t handle,
+                                  audio_devices_t devices,
+                                  struct audio_config *config,
                                   struct audio_stream_in **stream_in)
 {
     struct a2dp_audio_device *ladev = (struct a2dp_audio_device *)dev;
@@ -1058,6 +1059,7 @@ static int adev_open(const hw_module_t* module, const char* name,
     struct a2dp_audio_device *adev;
     int ret;
 
+    DEBUG (" adev_open in A2dp_hw module");
     FNLOG();
 
     if (strcmp(name, AUDIO_HARDWARE_INTERFACE) != 0)
@@ -1072,7 +1074,7 @@ static int adev_open(const hw_module_t* module, const char* name,
         return -ENOMEM;
 
     adev->device.common.tag = HARDWARE_DEVICE_TAG;
-    adev->device.common.version = 0;
+    adev->device.common.version = AUDIO_DEVICE_API_VERSION_CURRENT;
     adev->device.common.module = (struct hw_module_t *) module;
     adev->device.common.close = adev_close;
 
@@ -1093,6 +1095,7 @@ static int adev_open(const hw_module_t* module, const char* name,
     adev->device.dump = adev_dump;
 
     adev->output = NULL;
+
 
     *device = &adev->device.common;
 
