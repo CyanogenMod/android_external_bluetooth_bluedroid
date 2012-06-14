@@ -1000,13 +1000,10 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                       BTIF_TRACE_ERROR2("Index: %d uuid:%s", i, temp);
                  }
             }
-            /* Also write this to the NVRAM */
-            ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
-            ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed", ret);
 
-            /* Send the event to the BTIF */
-            HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
-                             BT_STATUS_SUCCESS, &bd_addr, 1, &prop);
+            /* onUuidChanged requires getBondedDevices to be populated.
+            ** bond_state_changed needs to be sent prior to remote_device_property
+            */
             if ((pairing_cb.state == BT_BOND_STATE_BONDING) &&
                 bdcmp(p_data->disc_res.bd_addr, pairing_cb.bd_addr) == 0)
             {
@@ -1014,6 +1011,13 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                                    __FUNCTION__);
                  bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDED);
             }
+
+            /* Also write this to the NVRAM */
+            ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
+            ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed", ret);
+            /* Send the event to the BTIF */
+            HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+                             BT_STATUS_SUCCESS, &bd_addr, 1, &prop);
         }
         break;
 
