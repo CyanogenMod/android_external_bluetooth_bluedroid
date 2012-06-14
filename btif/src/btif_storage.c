@@ -1889,7 +1889,7 @@ bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_de
     char *value;
     int ret;
     bdstr_t bdstr;
-    char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
+    char linebuf[BTIF_STORAGE_MAX_LINE_SZ+20];
     char input_value [20];
 
     bd2str(remote_dev_addr, &bdstr);
