@@ -328,6 +328,10 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
             bdsetany(btif_hf_cb.connected_bda.address);
             btif_hf_cb.peer_feat = 0;
             clear_phone_state();
+            /* If AG_OPEN was received but SLC was not setup in a specified time (10 seconds),
+            ** then AG_CLOSE may be received. We need to advance the queue here
+            */
+            btif_queue_advance();
             break;
 
         case BTA_AG_CONN_EVT:

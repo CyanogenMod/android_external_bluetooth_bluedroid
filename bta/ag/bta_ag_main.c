@@ -205,7 +205,7 @@ const UINT8 bta_ag_st_open[][BTA_AG_NUM_COLS] =
 /* DISC_FAIL_EVT */         {BTA_AG_IGNORE,         BTA_AG_IGNORE,          BTA_AG_OPEN_ST},
 /* CI_RX_WRITE_EVT */       {BTA_AG_CI_RX_DATA,     BTA_AG_IGNORE,          BTA_AG_OPEN_ST},
 /* RING_TOUT_EVT */         {BTA_AG_SEND_RING,      BTA_AG_IGNORE,          BTA_AG_OPEN_ST},
-/* SVC_TOUT_EVT */          {BTA_AG_SVC_CONN_OPEN,  BTA_AG_IGNORE,          BTA_AG_OPEN_ST},
+/* SVC_TOUT_EVT */          {BTA_AG_START_CLOSE,    BTA_AG_IGNORE,          BTA_AG_CLOSING_ST},
 /* CI_SCO_DATA_EVT */       {BTA_AG_CI_SCO_DATA,    BTA_AG_IGNORE,          BTA_AG_OPEN_ST},
 /* CI_SLC_READY_EVT */      {BTA_AG_RCVD_SLC_READY, BTA_AG_IGNORE,          BTA_AG_OPEN_ST}
 };
