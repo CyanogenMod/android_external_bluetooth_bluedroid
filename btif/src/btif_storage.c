@@ -420,7 +420,8 @@ static bt_status_t btif_in_property_to_str(bt_property_t *property, char *value)
         case BT_PROPERTY_BDNAME:
         case BT_PROPERTY_REMOTE_FRIENDLY_NAME:
             {
-                strcpy(value, (char*)property->val);
+                strncpy(value, (char*)property->val, property->len);
+                value[property->len]='\0';
             }break;
         case BT_PROPERTY_ADAPTER_SCAN_MODE:
         case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
