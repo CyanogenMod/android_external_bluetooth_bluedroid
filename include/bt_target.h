@@ -3022,16 +3022,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define AVCT_NUM_CONN               3
 #endif
 
-/* TRUE to support the browsing channel. */
-#ifndef AVCT_BROWSE_INCLUDED
-#define AVCT_BROWSE_INCLUDED        TRUE
-#endif
-
-#if ((L2CAP_FCR_INCLUDED == FALSE) && (AVCT_BROWSE_INCLUDED == TRUE))
-#undef AVCT_BROWSE_INCLUDED
-#define AVCT_BROWSE_INCLUDED        FALSE
-#endif
-
 /* Pool ID where to reassemble the SDU.
    This Pool allows buffers to be used that are larger than
    the L2CAP_MAX_MTU. */
@@ -3111,16 +3101,6 @@ Range: Minimum 12000 (12 secs) when supporting PBF.
 
 #ifndef AVRC_INCLUDED
 #define AVRC_INCLUDED               FALSE
-#endif
-
-/* TRUE to support AVRCP 1.3 - Metadata. */
-#ifndef AVRC_METADATA_INCLUDED
-#define AVRC_METADATA_INCLUDED      TRUE
-#endif
-
-/* TRUE to support AVRCP 1.4 - Advanced Control. */
-#ifndef AVRC_ADV_CTRL_INCLUDED
-#define AVRC_ADV_CTRL_INCLUDED      TRUE
 #endif
 
 /******************************************************************************

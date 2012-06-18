@@ -67,12 +67,8 @@
 /*****************************************************************************
 **  Constants & Macros
 ******************************************************************************/
-#if (!defined(AVRC_METADATA_INCLUDED) || (AVRC_METADATA_INCLUDED == FALSE))
 #define BTIF_RC_USE_UINPUT TRUE
 #include "uinput.h"
-#else
-#error "AVRCP 1.3 is not supported on Bluedroid yet."
-#endif
 
 /* cod value for Headsets */
 #define COD_AV_HEADSETS        0x0404

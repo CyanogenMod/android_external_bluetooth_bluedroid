@@ -58,8 +58,6 @@
 #include "gki.h"
 #include "bta_fs_co.h"
 #include "bta_fs_ci.h"
-//#include "btui.h"
-//#include "btui_int.h"
 #include <inttypes.h>
 
 #ifndef AID_SYSTEM

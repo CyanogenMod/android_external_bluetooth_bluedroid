@@ -49,15 +49,7 @@ const UINT16  bta_av_audio_flush_to[] = {
 };     /* AVDTP audio transport channel flush timeout */
 
 /* Note: Android doesnt support AVRC_SUPF_TG_GROUP_NAVI  */
-#if AVRC_ADV_CTRL_INCLUDED == TRUE
-#define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1|AVRC_SUPF_TG_APP_SETTINGS|AVRC_SUPF_TG_BROWSE|AVRC_SUPF_TG_MULTI_PLAYER)
-#else
-#if AVRC_METADATA_INCLUDED == TRUE
-#define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1|AVRC_SUPF_TG_APP_SETTINGS)
-#else
 #define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1)
-#endif
-#endif
 
 
 /*
@@ -68,13 +60,6 @@ const UINT8  bta_av_meta_caps_evt_ids[] = {
     AVRC_EVT_TRACK_CHANGE,
     AVRC_EVT_PLAY_POS_CHANGED,
     AVRC_EVT_APP_SETTING_CHANGE,
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
-	AVRC_EVT_NOW_PLAYING_CHANGE,
-	AVRC_EVT_AVAL_PLAYERS_CHANGE,
-	AVRC_EVT_ADDR_PLAYER_CHANGE,
-//	AVRC_EVT_UIDS_CHANGE,
-	AVRC_EVT_VOLUME_CHANGE
-#endif
 };
 #ifndef BTA_AV_NUM_RC_EVT_IDS
 #define BTA_AV_NUM_RC_EVT_IDS   (sizeof(bta_av_meta_caps_evt_ids) / sizeof(bta_av_meta_caps_evt_ids[0]))
@@ -84,15 +69,7 @@ const UINT8  bta_av_meta_caps_evt_ids[] = {
 #else /* !ANDROID_APP_INCLUDED */
 
 /* Note: if AVRC_SUPF_TG_GROUP_NAVI is set, bta_av_cfg.avrc_group should be TRUE */
-#if AVRC_ADV_CTRL_INCLUDED == TRUE
-#define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1|AVRC_SUPF_TG_APP_SETTINGS|AVRC_SUPF_TG_GROUP_NAVI|AVRC_SUPF_TG_BROWSE|AVRC_SUPF_TG_MULTI_PLAYER)
-#else
-#if AVRC_METADATA_INCLUDED == TRUE
-#define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1|AVRC_SUPF_TG_APP_SETTINGS|AVRC_SUPF_TG_GROUP_NAVI)
-#else
 #define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1)
-#endif
-#endif
 
 const UINT16  bta_av_audio_flush_to[] = {
     120, /* 1 stream  */
@@ -115,21 +92,10 @@ const UINT8  bta_av_meta_caps_evt_ids[] = {
     AVRC_EVT_BATTERY_STATUS_CHANGE,
     AVRC_EVT_SYSTEM_STATUS_CHANGE,
     AVRC_EVT_APP_SETTING_CHANGE,
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
-    AVRC_EVT_NOW_PLAYING_CHANGE,
-    AVRC_EVT_AVAL_PLAYERS_CHANGE,
-    AVRC_EVT_ADDR_PLAYER_CHANGE,
-    AVRC_EVT_UIDS_CHANGE,
-    AVRC_EVT_VOLUME_CHANGE
-#endif
 };
 
 #ifndef BTA_AV_NUM_RC_EVT_IDS
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
-#define BTA_AV_NUM_RC_EVT_IDS   13
-#else
 #define BTA_AV_NUM_RC_EVT_IDS   8
-#endif
 #endif
 
 #endif /* ANDROID_APP_INCLUDED */
@@ -142,13 +108,8 @@ const UINT8  bta_av_meta_caps_evt_ids[] = {
 const tBTA_AV_CFG bta_av_cfg =
 {
     AVRC_CO_BROADCOM,       /* AVRCP Company ID */
-#if AVRC_METADATA_INCLUDED == TRUE
-    512,                    /* AVRCP MTU at L2CAP for control channel */
-    BTA_AV_MAX_RC_BR_MTU,   /* AVRCP MTU at L2CAP for browsing channel */
-#else
     48,                     /* AVRCP MTU at L2CAP for control channel */
     BTA_AV_MAX_RC_BR_MTU,   /* AVRCP MTU at L2CAP for browsing channel */
-#endif
     BTA_AV_RC_SUPF_CT,      /* AVRCP controller categories */
     BTA_AV_RC_SUPF_TG,      /* AVRCP target categories */
     672,                    /* AVDTP signaling channel MTU at L2CAP */

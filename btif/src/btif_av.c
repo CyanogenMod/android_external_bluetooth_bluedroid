@@ -938,11 +938,6 @@ bt_status_t btif_av_execute_service(BOOLEAN b_enable)
 {
      if (b_enable)
      {
-#if (AVRC_METADATA_INCLUDED == TRUE)
-         BTA_AvEnable(BTA_SEC_AUTHENTICATE|BTA_SEC_AUTHORIZE,
-                      BTA_AV_FEAT_RCTG|BTA_AV_FEAT_METADATA|BTA_AV_FEAT_VENDOR,
-                      bte_av_callback);
-#else
          /* TODO: Removed BTA_SEC_AUTHORIZE since the Java/App does not
           * handle this request in order to allow incoming connections to succeed.
           * We need to put this back once support for this is added */
@@ -952,7 +947,6 @@ bt_status_t btif_av_execute_service(BOOLEAN b_enable)
           * be initiated by the app/audioflinger layers */
          BTA_AvEnable(BTA_SEC_AUTHENTICATE, (BTA_AV_FEAT_RCTG | BTA_AV_FEAT_NO_SCO_SSPD),
                       bte_av_callback);
-#endif
          BTA_AvRegister(BTA_AV_CHNL_AUDIO, BTIF_AV_SERVICE_NAME, 0);
      }
      else {

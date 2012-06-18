@@ -19,27 +19,6 @@ LOCAL_SRC_FILES:= \
     ./dm/bta_dm_cfg.c \
     ./dm/bta_dm_api.c \
     ./dm/bta_dm_sco.c \
-    ./op/bta_op_vcal.c \
-    ./op/bta_opc_utils.c \
-    ./op/bta_opc_main.c \
-    ./op/bta_opc_api.c \
-    ./op/bta_opc_act.c \
-    ./op/bta_ops_utils.c \
-    ./op/bta_op_vcard.c \
-    ./op/bta_ops_main.c \
-    ./op/bta_op_vnote.c \
-    ./op/bta_op_fmt.c \
-    ./op/bta_ops_act.c \
-    ./op/bta_ops_api.c \
-    ./ma/bta_mse_ci.c \
-    ./ma/bta_mse_api.c \
-    ./ma/bta_mse_act.c \
-    ./ma/bta_mse_sdp.c \
-    ./ma/bta_ma_util.c \
-    ./ma/bta_ma_api.c \
-    ./ma/bta_mse_utils.c \
-    ./ma/bta_mse_main.c \
-    ./ma/bta_mse_cfg.c \
     ./gatt/bta_gattc_api.c \
     ./gatt/bta_gatts_act.c \
     ./gatt/bta_gatts_main.c \
@@ -50,10 +29,6 @@ LOCAL_SRC_FILES:= \
     ./gatt/bta_gattc_act.c \
     ./gatt/bta_gattc_cache.c \
     ./gatt/bta_gatts_utils.c \
-    ./hd/bta_hd_cfg.c \
-    ./hd/bta_hd_api.c \
-    ./hd/bta_hd_main.c \
-    ./hd/bta_hd_act.c \
     ./ag/bta_ag_sdp.c \
     ./ag/bta_ag_sco.c \
     ./ag/bta_ag_cfg.c \
@@ -69,27 +44,6 @@ LOCAL_SRC_FILES:= \
     ./hh/bta_hh_api.c \
     ./hh/bta_hh_utils.c \
     ./hh/bta_hh_main.c \
-    ./dg/bta_dg_act.c \
-    ./dg/bta_dg_main.c \
-    ./dg/bta_dg_api.c \
-    ./dg/bta_dg_cfg.c \
-    ./dg/bta_dg_ci.c \
-    ./ft/bta_ft_cfg.c \
-    ./ft/bta_ftc_main.c \
-    ./ft/bta_fts_utils.c \
-    ./ft/bta_fts_sdp.c \
-    ./ft/bta_ftc_api.c \
-    ./ft/bta_ftc_act.c \
-    ./ft/bta_fts_act.c \
-    ./ft/bta_fts_api.c \
-    ./ft/bta_fts_main.c \
-    ./ft/bta_ftc_utils.c \
-    ./pb/bta_pbs_act.c \
-    ./pb/bta_pbs_api.c \
-    ./pb/bta_pbs_sdp.c \
-    ./pb/bta_pbs_utils.c \
-    ./pb/bta_pbs_ci.c \
-    ./pb/bta_pbs_main.c \
     ./pb/bta_pbs_cfg.c \
     ./fs/bta_fs_ci.c \
     ./fs/bta_fs_cfg.c \

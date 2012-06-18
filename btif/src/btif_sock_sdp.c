@@ -78,9 +78,8 @@
 #include "btm_int.h"
 #include "btif_sock_sdp.h"
 #include "utl.h"
-#include "../bta/ft/bta_fts_int.h"
 #include "../bta/pb/bta_pbs_int.h"
-#include "../bta/op/bta_ops_int.h"
+#include "../include/bta_op_api.h"
 #include <cutils/log.h>
 #define info(fmt, ...)  LOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
 #define debug(fmt, ...) LOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
@@ -100,140 +99,11 @@ static const UINT8  UUID_OBEX_OBJECT_PUSH[] = {0x00, 0x00, 0x11, 0x05, 0x00, 0x0
 static const UINT8  UUID_PBAP_PSE[] =          {0x00, 0x00, 0x11, 0x2F, 0x00, 0x00, 0x10, 0x00,
                                                0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 
-static const UINT8  UUID_OBEX_FILE_TRANSFER[] = {0x00, 0x00, 0x11, 0x06, 0x00, 0x00, 0x10, 0x00,
-                                                 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
+
 
 #define IS_UUID(u1,u2)  !memcmp(u1,u2,UUID_MAX_LENGTH)
 
-static int add_ftp_sdp(const char *p_service_name, int scn)
-{
-    tSDP_PROTOCOL_ELEM  protoList [3];
-    UINT16              ftp_service = UUID_SERVCLASS_OBEX_FILE_TRANSFER;
-    UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-    BOOLEAN             status = FALSE;
-    int sdp_handle;
 
-    info("scn: %d, service name: %s", scn, p_service_name);
-    tBTA_UTL_COD         cod;
-
-
-    /* also set cod service bit for now */
-    cod.service = BTM_COD_SERVICE_OBJ_TRANSFER;
-    utl_set_device_class(&cod, BTA_UTL_SET_COD_SERVICE_CLASS);
-
-    if ((sdp_handle = SDP_CreateRecord()) == 0)
-    {
-        error("FTS SDP: Unable to register FTP Service");
-        return sdp_handle;
-    }
-
-    /* add service class */
-    if (SDP_AddServiceClassIdList(sdp_handle, 1, &ftp_service))
-    {
-        /* add protocol list, including RFCOMM scn */
-        protoList[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
-        protoList[0].num_params = 0;
-        protoList[1].protocol_uuid = UUID_PROTOCOL_RFCOMM;
-        protoList[1].num_params = 1;
-        protoList[1].params[0] = scn;
-        protoList[2].protocol_uuid = UUID_PROTOCOL_OBEX;
-        protoList[2].num_params = 0;
-
-        if (SDP_AddProtocolList(sdp_handle, 3, protoList))
-        {
-            status = TRUE;  /* All mandatory fields were successful */
-
-            /* optional:  if name is not "", add a name entry */
-            if (*p_service_name != '\0')
-                SDP_AddAttribute(sdp_handle,
-                                 (UINT16)ATTR_ID_SERVICE_NAME,
-                                 (UINT8)TEXT_STR_DESC_TYPE,
-                                 (UINT32)(strlen(p_service_name) + 1),
-                                 (UINT8 *)p_service_name);
-
-            /* Add in the Bluetooth Profile Descriptor List */
-            SDP_AddProfileDescriptorList(sdp_handle,
-                                             UUID_SERVCLASS_OBEX_FILE_TRANSFER,
-                                             BTA_FTS_DEFAULT_VERSION);
-
-        } /* end of setting mandatory protocol list */
-    } /* end of setting mandatory service class */
-
-    /* Make the service browseable */
-    SDP_AddUuidSequence (sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, &browse);
-
-    if (!status)
-    {
-        SDP_DeleteRecord(sdp_handle);
-        sdp_handle = 0;
-        error("bta_fts_sdp_register FAILED");
-    }
-    else
-    {
-        bta_sys_add_uuid(ftp_service); /* UUID_SERVCLASS_OBEX_FILE_TRANSFER */
-        error("FTS:  SDP Registered (handle 0x%08x)", sdp_handle);
-    }
-
-    return sdp_handle;
-}
-
-
-static int add_spp_sdp(const char *service_name, int scn)
-{
-#if 0
-    tSPP_STATUS         status = SPP_SUCCESS;
-    UINT16              serviceclassid = UUID_SERVCLASS_SERIAL_PORT;
-    tSDP_PROTOCOL_ELEM  proto_elem_list[SPP_NUM_PROTO_ELEMS];
-    int              sdp_handle;
-
-    info("scn %d, service name %s", scn, service_name);
-
-    /* register the service */
-    if ((sdp_handle = SDP_CreateRecord()) != FALSE)
-    {
-        /*** Fill out the protocol element sequence for SDP ***/
-        proto_elem_list[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
-        proto_elem_list[0].num_params = 0;
-        proto_elem_list[1].protocol_uuid = UUID_PROTOCOL_RFCOMM;
-        proto_elem_list[1].num_params = 1;
-
-        proto_elem_list[1].params[0] = scn;
-
-        if (SDP_AddProtocolList(sdp_handle, SPP_NUM_PROTO_ELEMS,
-            proto_elem_list))
-        {
-            if (SDP_AddServiceClassIdList(sdp_handle, 1, &serviceclassid))
-            {
-                if ((SDP_AddAttribute(sdp_handle, ATTR_ID_SERVICE_NAME,
-                    TEXT_STR_DESC_TYPE, (UINT32)(strlen(service_name)+1),
-                    (UINT8 *)service_name)) == FALSE)
-
-                    status = SPP_ERR_SDP_ATTR;
-                else
-                {
-                    UINT16  list[1];
-
-                    /* Make the service browseable */
-                    list[0] = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-                    if ((SDP_AddUuidSequence (sdp_handle,  ATTR_ID_BROWSE_GROUP_LIST,
-                        1, list)) == FALSE)
-
-                        status = SPP_ERR_SDP_CLASSID;
-                }
-            }
-            else
-                status = SPP_ERR_SDP_CLASSID;
-        }
-        else
-            status = SPP_ERR_SDP_PROTO;
-    }
-    else
-        status = SPP_ERR_SDP_REG;
-
-    return spb_handle;
-#endif
-    return 0;
-}
 #define BTM_NUM_PROTO_ELEMS 2
 static int add_sdp_by_uuid(const char *name,  const uint8_t *service_uuid, UINT16 channel)
 {
@@ -410,11 +280,9 @@ static int add_ops_sdp(const char *p_service_name,int scn)
 
 
     tSDP_PROTOCOL_ELEM  protoList [BTA_OPS_PROTOCOL_COUNT];
-    tOBX_StartParams    start_params;
     UINT16      servclass = UUID_SERVCLASS_OBEX_OBJECT_PUSH;
     int         i, j;
     tBTA_UTL_COD cod;
-    tOBX_STATUS status;
     UINT8       desc_type[BTA_OPS_NUM_FMTS];
     UINT8       type_len[BTA_OPS_NUM_FMTS];
     UINT8       *type_value[BTA_OPS_NUM_FMTS];
@@ -512,12 +380,6 @@ static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
     {
         handle = add_pbap_sdp(name, final_scn); //PBAP Server is always 19
     }
-    else if (IS_UUID(UUID_OBEX_FILE_TRANSFER,uuid))
-    {
-        APPL_TRACE_EVENT0("Stopping btld ftp serivce when 3-party registering ftp service");
-        //BTA_FtsDisable();
-        handle = add_sdp_by_uuid(name, uuid, final_scn);
-    }
     else
     {
         handle = add_sdp_by_uuid(name, uuid, final_scn);
@@ -563,8 +425,7 @@ int add_rfc_sdp_rec(const char* name, const uint8_t* uuid, int scn)
              case RESERVED_SCN_OPS:
                 add_ops_sdp(name,scn);
                 break;
-            default://serial port profile
-                sdp_handle = add_spp_sdp(name, scn);
+            default:
                 break;
         }
     }

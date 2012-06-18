@@ -13,16 +13,11 @@ LOCAL_C_INCLUDES:= . \
                    $(LOCAL_PATH)/avdt \
                    $(LOCAL_PATH)/gatt \
                    $(LOCAL_PATH)/gap \
-                   $(LOCAL_PATH)/bip \
                    $(LOCAL_PATH)/pan \
-                   $(LOCAL_PATH)/bpp \
                    $(LOCAL_PATH)/bnep \
                    $(LOCAL_PATH)/hid \
-                   $(LOCAL_PATH)/obx \
                    $(LOCAL_PATH)/sdp \
                    $(LOCAL_PATH)/smp \
-                   $(LOCAL_PATH)/amp \
-                   $(LOCAL_PATH)/amp/security \
                    $(LOCAL_PATH)/../include \
                    $(LOCAL_PATH)/../gki/common \
                    $(LOCAL_PATH)/../gki/ulinux \
@@ -41,25 +36,13 @@ endif
 
 LOCAL_PRELINK_MODULE:=false
 LOCAL_SRC_FILES:= \
-    ./dun/dun_api.c \
     ./a2dp/a2d_api.c \
-    ./a2dp/a2d_m24.c \
-    ./a2dp/a2d_m12.c \
     ./a2dp/a2d_sbc.c \
-    ./avrc/avrc_bld_tg.c \
     ./avrc/avrc_api.c \
-    ./avrc/avrc_utils.c \
-    ./avrc/avrc_pars_ct.c \
     ./avrc/avrc_sdp.c \
-    ./avrc/avrc_pars_tg.c \
-    ./avrc/avrc_bld_ct.c \
     ./avrc/avrc_opt.c \
-    ./hid/hidd_conn.c \
-    ./hid/hidd_mgmt.c \
     ./hid/hidh_api.c \
-    ./hid/hidd_pm.c \
     ./hid/hidh_conn.c \
-    ./hid/hidd_api.c \
     ./bnep/bnep_main.c \
     ./bnep/bnep_utils.c \
     ./bnep/bnep_api.c \
@@ -102,33 +85,6 @@ LOCAL_SRC_FILES:= \
     ./gatt/att_protocol.c \
     ./gatt/gatt_attr.c \
     ./gatt/gatt_db.c \
-    ./obx/hdrs/obx_dutf.c \
-    ./obx/hdrs/obx_dwchar.c \
-    ./obx/hdrs/obx_gen.c \
-    ./obx/hdrs/obx_dunic.c \
-    ./obx/hdrs/utfc.c \
-    ./obx/hdrs/obx_dbtp.c \
-    ./obx/hdrs/obx_dauth.c \
-    ./obx/hdrs/obx_ebtp.c \
-    ./obx/hdrs/obx_wchar.c \
-    ./obx/hdrs/obx_eunic.c \
-    ./obx/hdrs/obx_eopt.c \
-    ./obx/hdrs/obx_dopt.c \
-    ./obx/hdrs/obx_ewchar.c \
-    ./obx/hdrs/obx_eutf.c \
-    ./obx/obx_csm.c \
-    ./obx/obx_ssm.c \
-    ./obx/obx_cact.c \
-    ./obx/obx_md5.c \
-    ./obx/obx_rfc.c \
-    ./obx/obx_main.c \
-    ./obx/obx_sapi.c \
-    ./obx/obx_l2c.c \
-    ./obx/obx_sact.c \
-    ./obx/obx_utils.c \
-    ./obx/obx_capi.c \
-    ./avct/avct_bcb_act.c \
-    ./avct/avct_l2c_br.c \
     ./avct/avct_api.c \
     ./avct/avct_l2c.c \
     ./avct/avct_lcb.c \
@@ -156,12 +112,6 @@ LOCAL_SRC_FILES:= \
     ./sdp/sdp_utils.c \
     ./sdp/sdp_api.c \
     ./sdp/sdp_discovery.c \
-    ./xml/xml_parse.c \
-    ./xml/xml_vlist.c \
-    ./xml/xml_erp.c \
-    ./xml/xml_flp.c \
-    ./xml/xml_mlp.c \
-    ./xml/xml_bld.c \
     ./pan/pan_main.c \
     ./pan/pan_api.c \
     ./pan/pan_utils.c \
@@ -175,10 +125,7 @@ LOCAL_SRC_FILES:= \
     ./l2cap/l2c_utils.c \
     ./l2cap/l2c_csm.c \
     ./l2cap/l2c_link.c \
-    ./l2cap/l2c_ble.c \
-    ./goep/goep_fs.c \
-    ./goep/goep_trace.c \
-    ./goep/goep_util.c 
+    ./l2cap/l2c_ble.c
 
 LOCAL_MODULE := libbt-brcm_stack 
 LOCAL_MODULE_TAGS := optional

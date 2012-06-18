@@ -64,8 +64,7 @@
 #include "btif_media.h"
 #include "a2d_api.h"
 #include "a2d_sbc.h"
-#include "a2d_m12.h"
-#include "a2d_m24.h"
+
 
 /*****************************************************************************
  **  Constants and data types

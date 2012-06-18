@@ -267,15 +267,6 @@ static void bta_av_rc_msg_cback(UINT8 handle, UINT8 label, UINT8 opcode, tAVRC_M
             memcpy((UINT8 *)(p_buf + 1), p_data, data_len);
             *p_p_data = (UINT8 *)(p_buf + 1);
         }
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
-#if (AVCT_BROWSE_INCLUDED == TRUE)
-        if (opcode == AVRC_OP_BROWSE)
-        {
-            /* set p_pkt to NULL, so avrc would not free the GKI buffer */
-            p_msg->browse.p_browse_pkt = NULL;
-        }
-#endif
-#endif
         bta_sys_sendmsg(p_buf);
     }
 }
@@ -489,12 +480,6 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         return;
     }
 
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE && AVCT_BROWSE_INCLUDED == TRUE)
-    /* listen to browsing channel when the connection is open,
-     - if peer initiated AVRCP connection and local device supports browsing channel */
-    if ((p_cb->features & BTA_AV_FEAT_BROWSE) && (p_cb->rcb[i].peer_features == 0))
-        AVRC_OpenBrowse (p_data->rc_conn_chg.handle, AVCT_ACP);
-#endif
 
     if (p_cb->rcb[i].lidx == (BTA_AV_NUM_LINKS + 1) && shdl != 0)
     {
@@ -552,15 +537,6 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     }
     (*p_cb->p_cback)(BTA_AV_RC_OPEN_EVT, (tBTA_AV *) &rc_open);
 
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE && AVCT_BROWSE_INCLUDED == TRUE)
-    /* if local initiated AVRCP connection and both peer and locals device support
-     * browsing channel, open the browsing channel now */
-    if ((p_cb->features & BTA_AV_FEAT_BROWSE) && (rc_open.peer_features & BTA_AV_FEAT_BROWSE) &&
-        ((p_cb->rcb[i].status & BTA_AV_RC_ROLE_MASK) == BTA_AV_RC_ROLE_INT))
-    {
-        AVRC_OpenBrowse (p_data->rc_conn_chg.handle, AVCT_INT);
-    }
-#endif
 }
 
 
@@ -691,14 +667,6 @@ void bta_av_rc_free_rsp (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 *******************************************************************************/
 void bta_av_rc_free_msg (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
-#if (AVCT_BROWSE_INCLUDED == TRUE)
-    if (p_data->rc_msg.opcode == AVRC_OP_BROWSE)
-    {
-        utl_freebuf ((void **)&p_data->rc_msg.msg.browse.p_browse_pkt);
-    }
-#endif
-#endif
 }
 
 
@@ -772,15 +740,6 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
         p_vendor->hdr.ctype = BTA_AV_RSP_NOT_IMPL;
         AVRC_VendorRsp(p_msg->handle, p_msg->label, &p_msg->msg.vendor); 
     }
-#if (AVRC_METADATA_INCLUDED == TRUE)
-    else if (!AVRC_IsValidAvcType(pdu, p_vendor->hdr.ctype) )
-    {
-        APPL_TRACE_DEBUG2("Invalid pdu/ctype: 0x%x, %d", pdu, p_vendor->hdr.ctype);
-        /* reject invalid message without reporting to app */
-        evt = 0;
-        p_rc_rsp->rsp.status = AVRC_STS_BAD_CMD;
-    }
-#endif
     else
     {
         switch (pdu)
@@ -852,13 +811,6 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     tBTA_AV     av;
     BT_HDR      *p_pkt = NULL;
     tAVRC_MSG_VENDOR    *p_vendor = &p_data->rc_msg.msg.vendor;
-#if (AVRC_METADATA_INCLUDED == TRUE)
-    tAVRC_STS   res;
-    UINT8       ctype;
-    tAVRC_RESPONSE  rc_rsp;
-
-    rc_rsp.rsp.status = BTA_AV_STS_NO_RSP;
-#endif
 
     if (p_data->rc_msg.opcode == AVRC_OP_PASS_THRU)
     {
@@ -869,12 +821,6 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             if (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VENDOR)
             {
                 p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_NOT_IMPL;
-#if (AVRC_METADATA_INCLUDED == TRUE)
-                if (p_cb->features & BTA_AV_FEAT_METADATA)
-                    p_data->rc_msg.msg.hdr.ctype =
-                       bta_av_group_navi_supported(p_data->rc_msg.msg.pass.pass_len,
-                       p_data->rc_msg.msg.pass.p_pass_data);
-#endif
             }
             else
             {
@@ -928,30 +874,12 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         if ((p_cb->features & BTA_AV_FEAT_VENDOR)  && 
             p_data->rc_msg.msg.hdr.ctype <= AVRC_CMD_GEN_INQ)
         {
-#if (AVRC_METADATA_INCLUDED == TRUE)
-            if ((p_cb->features & BTA_AV_FEAT_METADATA) &&
-               (p_vendor->company_id == AVRC_CO_METADATA))
-            {
-                av.meta_msg.p_msg = &p_data->rc_msg.msg;
-                evt = bta_av_proc_meta_cmd (&rc_rsp, &p_data->rc_msg, &ctype);
-            }
-            else
-#endif
                 evt = BTA_AV_VENDOR_CMD_EVT;
         }
         /* else if configured to support vendor specific and it's a response */
         else if ((p_cb->features & BTA_AV_FEAT_VENDOR) && 
                  p_data->rc_msg.msg.hdr.ctype >= AVRC_RSP_ACCEPT)
         {
-#if (AVRC_METADATA_INCLUDED == TRUE)
-            if ((p_cb->features & BTA_AV_FEAT_METADATA) &&
-               (p_vendor->company_id == AVRC_CO_METADATA))
-            {
-                av.meta_msg.p_msg = &p_data->rc_msg.msg;
-                evt = BTA_AV_META_MSG_EVT;
-            }
-            else
-#endif
                 evt = BTA_AV_VENDOR_RSP_EVT;
 
         }
@@ -964,49 +892,12 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             AVRC_VendorRsp(p_data->rc_msg.handle, p_data->rc_msg.label, &p_data->rc_msg.msg.vendor); 
         }
     }
-#if (AVRC_METADATA_INCLUDED == TRUE)
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
-#if (AVCT_BROWSE_INCLUDED == TRUE)
-    else if (p_data->rc_msg.opcode == AVRC_OP_BROWSE)
-    {
-        /* set up for callback */
-        av.meta_msg.code = p_data->rc_msg.msg.hdr.ctype;
-        av.meta_msg.company_id = p_vendor->company_id;
-        av.meta_msg.label = p_data->rc_msg.label;
-        av.meta_msg.p_data = p_data->rc_msg.msg.browse.p_browse_data;
-        av.meta_msg.len = p_data->rc_msg.msg.browse.browse_len;
-        av.meta_msg.p_msg = &p_data->rc_msg.msg;
-        evt = BTA_AV_META_MSG_EVT;
-    }
-#endif
-#endif
-
-    if (evt == 0 && rc_rsp.rsp.status != BTA_AV_STS_NO_RSP)
-    {
-        if (!p_pkt)
-        {
-            rc_rsp.rsp.opcode = p_data->rc_msg.opcode;
-            res = AVRC_BldResponse (0, &rc_rsp, &p_pkt);
-        }
-        if (p_pkt)
-            AVRC_MsgReq (p_data->rc_msg.handle, p_data->rc_msg.label, ctype, p_pkt);
-    }
-#endif
 
     /* call callback */
     if (evt != 0)
     {
         av.remote_cmd.rc_handle = p_data->rc_msg.handle;
         (*p_cb->p_cback)(evt, &av);
-#if (AVRC_METADATA_INCLUDED == TRUE)
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
-#if (AVCT_BROWSE_INCLUDED == TRUE)
-        /* If the application does not free the buffer or claim the ownership, free the buffer now */
-        if (p_data->rc_msg.opcode == AVRC_OP_BROWSE)
-            utl_freebuf((void **)&p_data->rc_msg.msg.browse.p_browse_pkt);
-#endif
-#endif
-#endif
     }
 }
 

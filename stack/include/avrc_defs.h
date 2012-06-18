@@ -825,13 +825,8 @@ typedef union
 /* macros */
 #define AVRC_IS_VALID_CAP_ID(a)           (((a == AVRC_CAP_COMPANY_ID) || (a == AVRC_CAP_EVENTS_SUPPORTED)) ? TRUE : FALSE)
 
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
-#define AVRC_IS_VALID_EVENT_ID(a)           (((a >= AVRC_EVT_PLAY_STATUS_CHANGE) && \
-                                              (a <= AVRC_EVT_VOLUME_CHANGE)) ? TRUE : FALSE)  
-#else /* AVRCP 1.3 */
 #define AVRC_IS_VALID_EVENT_ID(a)           (((a >= AVRC_EVT_PLAY_STATUS_CHANGE) && \
                                               (a <= AVRC_EVT_APP_SETTING_CHANGE)) ? TRUE : FALSE)  
-#endif
 
 #define AVRC_IS_VALID_ATTRIBUTE(a)          (((((a > 0) && a <= AVRC_PLAYER_SETTING_SCAN)) || \
                                                ((a >= AVRC_PLAYER_SETTING_LOW_MENU_EXT) && \
