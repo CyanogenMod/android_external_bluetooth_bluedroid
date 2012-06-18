@@ -436,6 +436,7 @@ static int suspend_audio_datapath(struct a2dp_stream_out *out, bool standby)
 
     /* disconnect audio path */
     skt_disconnect(out->audio_fd);
+
     out->audio_fd = AUDIO_SKT_DISCONNECTED;
 
     return 0;
@@ -478,6 +479,8 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
     if ((out->state == AUDIO_A2DP_STATE_STOPPED) ||
         (out->state == AUDIO_A2DP_STATE_STANDBY))
     {
+        pthread_mutex_lock(&out->lock);
+
         if (start_audio_datapath(out) < 0)
         {
             /* emulate time this write represents to avoid very fast write
@@ -488,8 +491,11 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
             DEBUG("emulate a2dp write delay (%d us)", us_delay);
 
             usleep(us_delay);
+            pthread_mutex_unlock(&out->lock);
             return -1;
         }
+
+        pthread_mutex_unlock(&out->lock);
     }
     else if (out->state != AUDIO_A2DP_STATE_STARTED)
     {
@@ -572,6 +578,7 @@ static int out_set_format(struct audio_stream *stream, audio_format_t format)
 static int out_standby(struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
+    int retval = 0;
 
     int retVal = 0;
 
@@ -915,9 +922,7 @@ static int adev_set_parameters(struct audio_hw_device *dev, const char *kvpairs)
 
     DEBUG("state %d", out->state);
 
-    pthread_mutex_lock(&out->lock);
     retval = out->stream.common.set_parameters((struct audio_stream *)out, kvpairs);
-    pthread_mutex_unlock(&out->lock);
 
     return retval;
 }
@@ -1124,3 +1129,4 @@ struct audio_module HAL_MODULE_INFO_SYM = {
         .methods = &hal_module_methods,
     },
 };
+

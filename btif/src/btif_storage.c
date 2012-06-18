@@ -145,7 +145,7 @@
 #define BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST "FixedPinZerosKeyboardBlacklist"
 #define BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR "DynamicAddressBlacklist"
 
-#define BTIF_AUTO_PAIR_CONF_VALUE_SEPERATOR ","
+#define BTIF_AUTO_PAIR_CONF_VALUE_SEPARATOR ","
 #define BTIF_AUTO_PAIR_CONF_SPACE ' '
 #define BTIF_AUTO_PAIR_CONF_COMMENT '#'
 #define BTIF_AUTO_PAIR_CONF_KEY_VAL_DELIMETER "="
@@ -1851,13 +1851,13 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_add
                               linebuf, BTIF_STORAGE_MAX_LINE_SZ);
         if (value != NULL)
         {
-            token = strtok(value, BTIF_AUTO_PAIR_CONF_VALUE_SEPERATOR);
+            token = strtok(value, BTIF_AUTO_PAIR_CONF_VALUE_SEPARATOR);
             while (token != NULL)
             {
                 if (strstr(dev_name_str, token) != NULL)
                     return TRUE;
 
-                token = strtok(NULL, BTIF_AUTO_PAIR_CONF_VALUE_SEPERATOR);
+                token = strtok(NULL, BTIF_AUTO_PAIR_CONF_VALUE_SEPARATOR);
             }
         }
     }
@@ -1894,7 +1894,7 @@ bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_de
 
     bd2str(remote_dev_addr, &bdstr);
     strncpy(input_value, (char*)bdstr, 20);
-    strncat (input_value,BTIF_AUTO_PAIR_CONF_VALUE_SEPERATOR, 20);
+    strncat (input_value,BTIF_AUTO_PAIR_CONF_VALUE_SEPARATOR, 20);
 
     /* create filepath */
     fname = btif_in_make_filename(NULL, BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST);
