@@ -471,6 +471,34 @@ static void bte_hf_evt(tBTA_AG_EVT event, tBTA_AG *p_data)
 
 /*******************************************************************************
 **
+** Function         btif_in_hf_generic_evt
+**
+** Description     Processes generic events to be sent to JNI that are not triggered from the BTA.
+**                      Always runs in BTIF context
+**
+** Returns          void
+**
+*******************************************************************************/
+static void btif_in_hf_generic_evt(UINT16 event, char *p_param)
+{
+    BTIF_TRACE_EVENT2("%s: event=%d", __FUNCTION__, event);
+    switch (event) {
+        case BTIF_HFP_CB_AUDIO_CONNECTING:
+        {
+            HAL_CBACK(bt_hf_callbacks, audio_state_cb, BTHF_AUDIO_STATE_CONNECTING,
+                      &btif_hf_cb.connected_bda);
+        } break;
+        default:
+        {
+            BTIF_TRACE_WARNING2("%s : Unknown event 0x%x", __FUNCTION__, event);
+        }
+        break;
+    }
+}
+
+
+/*******************************************************************************
+**
 ** Function         btif_hf_init
 **
 ** Description     initializes the hf interface
@@ -562,6 +590,10 @@ static bt_status_t connect_audio( bt_bdaddr_t *bd_addr )
     if (is_connected(bd_addr))
     {
         BTA_AgAudioOpen(btif_hf_cb.handle);
+
+        /* Inform the application that the audio connection has been initiated successfully */
+        btif_transfer_context(btif_in_hf_generic_evt, BTIF_HFP_CB_AUDIO_CONNECTING,
+                              (char *)bd_addr, sizeof(bt_bdaddr_t), NULL);
         return BT_STATUS_SUCCESS;
     }
 
