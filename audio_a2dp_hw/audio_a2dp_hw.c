@@ -89,7 +89,7 @@
 #define FNLOG()             ALOGV("%s", __FUNCTION__);
 #define DEBUG(fmt, ...)     ALOGD ("%s: " fmt,__FUNCTION__, ## __VA_ARGS__)
 
-#define ASSERTC(cond, msg, val) if (!(cond)) {LOGE("### ASSERT : %s line %d %s (%d) ###", __FILE__, __LINE__, msg, val);}
+#define ASSERTC(cond, msg, val) if (!(cond)) {ALOGE("### ASSERT : %s line %d %s (%d) ###", __FILE__, __LINE__, msg, val);}
 
 /*****************************************************************************
 **  Local type definitions
@@ -573,12 +573,19 @@ static int out_standby(struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
+    int retVal = 0;
+
     FNLOG();
 
+    pthread_mutex_lock(&out->lock);
+
     if (out->state == AUDIO_A2DP_STATE_STARTED)
-        return suspend_audio_datapath(out, true);
+        retVal =  suspend_audio_datapath(out, true);
     else
-        return 0;
+        retVal = 0;
+    pthread_mutex_unlock (&out->lock);
+
+    return retVal;
 }
 
 static int out_dump(const struct audio_stream *stream, int fd)
