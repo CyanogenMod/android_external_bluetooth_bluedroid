@@ -640,9 +640,13 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
         }
         else
         {
-            /* only start stream if we were previously suspended */
+            /* Do not start the streaming automatically. If the phone was streaming
+             * prior to being suspended, the next out_write shall trigger the
+             * AVDTP start procedure */
             if (out->state == AUDIO_A2DP_STATE_SUSPENDED)
-                retval = start_audio_datapath(out);
+                out->state = AUDIO_A2DP_STATE_STANDBY;
+            /* Irrespective of the state, return 0 */
+            retval = 0;
         }
     }
 
