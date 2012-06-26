@@ -478,6 +478,13 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
     BTIF_TRACE_DEBUG3("%s event:%s flags %x", __FUNCTION__,
                      dump_av_sm_event_name(event), btif_av_cb.flags);
 
+    if ( (event == BTA_AV_REMOTE_CMD_EVT) && (btif_av_cb.flags & BTIF_AV_FLAG_REMOTE_SUSPEND) &&
+         (p_av->remote_cmd.rc_id == BTA_AV_RC_PLAY) )
+    {
+        BTIF_TRACE_EVENT1("%s: Resetting remote suspend flag on RC PLAY", __FUNCTION__);
+        btif_av_cb.flags &= ~BTIF_AV_FLAG_REMOTE_SUSPEND;
+    }
+
     switch (event)
     {
         case BTIF_SM_ENTER_EVT:
