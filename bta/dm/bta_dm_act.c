@@ -3418,7 +3418,12 @@ static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
     {
         if(p_dev)
         {
-            p_dev->conn_state = BTA_DM_CONNECTED;
+            /* Do not set to connected if we are in the middle of unpairing. When AV stream is
+             * started it fakes out a SYS_CONN_OPEN to potentially trigger a role switch command.
+             * But this should not be done if we are in the middle of unpairing.
+             */
+            if (p_dev->conn_state != BTA_DM_UNPAIRING)
+                p_dev->conn_state = BTA_DM_CONNECTED;
 
             for(j=1; j<= p_bta_dm_rm_cfg[0].app_id; j++)
             {
