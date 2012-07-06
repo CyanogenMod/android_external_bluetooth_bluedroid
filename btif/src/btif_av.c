@@ -452,6 +452,11 @@ static BOOLEAN btif_av_state_closing_handler(btif_sm_event_t event, void *p_data
             btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
             break;
 
+        /* Handle the RC_CLOSE event for the cleanup */
+        case BTA_AV_RC_CLOSE_EVT:
+            btif_rc_handler(event, (tBTA_AV*)p_data);
+            break;
+
         default:
             BTIF_TRACE_WARNING2("%s : unhandled event:%s", __FUNCTION__,
                                 dump_av_sm_event_name(event));
