@@ -207,9 +207,24 @@ void bte_main_enable(uint8_t *local_addr)
         if (hci_logging_enabled == TRUE)
             bt_hc_if->logging(BT_HC_LOGGING_ON, hci_logfile);
 
+#if (defined (BT_CLEAN_TURN_ON_DISABLED) && BT_CLEAN_TURN_ON_DISABLED == TRUE)
+        APPL_TRACE_DEBUG1("%s  Not Turninig Off the BT before Turninig ON", __FUNCTION__);
+
+        /* Do not power off the chip before powering on  if BT_CLEAN_TURN_ON_DISABLED flag
+         is defined and set to TRUE to avoid below mentioned issue.
+
+         Wingray kernel driver maintains a combined  counter to keep track of
+         BT-Wifi state. Invoking  set_power(BT_HC_CHIP_PWR_OFF) when the BT is already
+         in OFF state causes this counter to be incorrectly decremented and results in undesired
+         behavior of the chip.
+
+         This is only a workaround and when the issue is fixed in the kernel this work around
+         should be removed. */
+#else
         /* toggle chip power to ensure we will reset chip in case
            a previous stack shutdown wasn't completed gracefully */
         bt_hc_if->set_power(BT_HC_CHIP_PWR_OFF);
+#endif
         bt_hc_if->set_power(BT_HC_CHIP_PWR_ON);
 
         bt_hc_if->preload(NULL);
