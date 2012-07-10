@@ -298,7 +298,10 @@ static void btif_update_remote_properties(BD_ADDR bd_addr, BD_NAME bd_name,
     bt_property_t properties[3];
     bt_bdaddr_t bdaddr;
     bt_status_t status;
+    UINT32 cod;
+    bt_device_type_t dev_type;
 
+    memset(properties, 0, sizeof(properties));
     bdcpy(bdaddr.address, bd_addr);
 
     /* remote name */
@@ -312,29 +315,25 @@ static void btif_update_remote_properties(BD_ADDR bd_addr, BD_NAME bd_name,
     }
 
     /* class of device */
-    {
-        UINT32 cod = devclass2uint(dev_class);
-        if ( cod == 0) {
-            BTIF_TRACE_DEBUG1("%s():cod is 0, set as unclassified", __FUNCTION__);
-            cod = COD_UNCLASSIFIED;
-        }
-
-        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
-                            BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod), &cod);
-        status = btif_storage_set_remote_device_property(&bdaddr, &properties[num_properties]);
-        ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device class", status);
-        num_properties++;
+    cod = devclass2uint(dev_class);
+    if ( cod == 0) {
+        BTIF_TRACE_DEBUG1("%s():cod is 0, set as unclassified", __FUNCTION__);
+        cod = COD_UNCLASSIFIED;
     }
+
+    BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                        BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod), &cod);
+    status = btif_storage_set_remote_device_property(&bdaddr, &properties[num_properties]);
+    ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device class", status);
+    num_properties++;
 
     /* device type */
-    {
-        bt_device_type_t dev_type = device_type;
-        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
-                            BT_PROPERTY_TYPE_OF_DEVICE, sizeof(dev_type), &dev_type);
-        status = btif_storage_set_remote_device_property(&bdaddr, &properties[num_properties]);
-        ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device type", status);
-        num_properties++;
-    }
+    dev_type = device_type;
+    BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                        BT_PROPERTY_TYPE_OF_DEVICE, sizeof(dev_type), &dev_type);
+    status = btif_storage_set_remote_device_property(&bdaddr, &properties[num_properties]);
+    ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device type", status);
+    num_properties++;
 
     HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
                      status, &bdaddr, num_properties, properties);
