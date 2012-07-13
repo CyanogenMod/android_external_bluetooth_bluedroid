@@ -192,27 +192,6 @@ static uint8_t xmit_cb(uint16_t opcode, void *p_buf, tINT_CMD_CBACK p_cback)
     return hci_h4_send_int_cmd(opcode, (HC_BT_HDR *)p_buf, p_cback);
 }
 
-/******************************************************************************
-**
-** Function         usrl_ctrl_cb
-**
-** Description      HOST/CONTROLLER VEDNOR LIB CALLOUT API - This function is
-**                  called from the libbt-vendor in order to configure userial
-**                  attributes.
-**
-** Returns          None
-**
-******************************************************************************/
-static void usrl_ctrl_cb(bt_vendor_userial_cid_t cid, void *param)
-{
-    if (cid == BT_VND_USERIAL_SET_BAUD)
-    {
-        uint8_t *baud = (uint8_t *) param;
-
-        userial_change_baud(*baud);
-    }
-}
-
 /*****************************************************************************
 **   The libbt-vendor Callback Functions Table
 *****************************************************************************/
@@ -223,8 +202,7 @@ static const bt_vendor_callbacks_t vnd_callbacks = {
     lpm_vnd_cb,
     alloc,
     dealloc,
-    xmit_cb,
-    usrl_ctrl_cb
+    xmit_cb
 };
 
 /******************************************************************************

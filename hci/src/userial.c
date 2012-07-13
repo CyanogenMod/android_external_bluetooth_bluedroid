@@ -116,27 +116,6 @@ typedef struct
 static tUSERIAL_CB userial_cb;
 static volatile uint8_t userial_running = 0;
 
-/* for friendly debugging outpout string */
-static uint32_t userial_baud_tbl[] =
-{
-    300,        /* USERIAL_BAUD_300          0 */
-    600,        /* USERIAL_BAUD_600          1 */
-    1200,       /* USERIAL_BAUD_1200         2 */
-    2400,       /* USERIAL_BAUD_2400         3 */
-    9600,       /* USERIAL_BAUD_9600         4 */
-    19200,      /* USERIAL_BAUD_19200        5 */
-    57600,      /* USERIAL_BAUD_57600        6 */
-    115200,     /* USERIAL_BAUD_115200       7 */
-    230400,     /* USERIAL_BAUD_230400       8 */
-    460800,     /* USERIAL_BAUD_460800       9 */
-    921600,     /* USERIAL_BAUD_921600       10 */
-    1000000,    /* USERIAL_BAUD_1M           11 */
-    1500000,    /* USERIAL_BAUD_1_5M         12 */
-    2000000,    /* USERIAL_BAUD_2M           13 */
-    3000000,    /* USERIAL_BAUD_3M           14 */
-    4000000     /* USERIAL_BAUD_4M           15 */
-};
-
 /******************************************************************************
 **  Static functions
 ******************************************************************************/
@@ -551,18 +530,16 @@ void userial_close(void)
 *******************************************************************************/
 void userial_change_baud(uint8_t baud)
 {
-    USERIALDBG("userial_change_baud: Closing UART Port");
-    userial_close();
-
-    utils_delay(100);
-
-    /* change baud rate in settings - leave everything else the same  */
-    userial_cb.cfg.baud = baud;
-
-    ALOGI("userial_change_rate: Attempting to reopen the UART Port at %i", \
-         (unsigned int)userial_baud_tbl[baud]);
-
-    userial_open(userial_cb.port, &userial_cb.cfg);
+    /* Calling vendor-specific part */
+    if (bt_vnd_if)
+    {
+        bt_vnd_if->op(BT_VND_OP_USERIAL_SET_BAUD, &baud);
+    }
+    else
+    {
+        ALOGE("userial_change_baud: missing vendor lib interface !!!");
+        ALOGE("userial_change_baud: unable to change UART baud rate");
+    }
 }
 
 /*******************************************************************************

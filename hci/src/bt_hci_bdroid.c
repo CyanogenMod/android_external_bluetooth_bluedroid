@@ -368,7 +368,7 @@ static void *bt_hc_worker_thread(void *arg)
     uint16_t events;
     HC_BT_HDR *p_msg, *p_next_msg;
 
-    BTHCDBG("bt_hc_worker_thread started");
+    ALOGI("bt_hc_worker_thread started");
     tx_cmd_pkts_pending = FALSE;
 
     while (lib_running)
@@ -497,7 +497,7 @@ static void *bt_hc_worker_thread(void *arg)
             break;
     }
 
-    BTHCDBG("bt_hc_worker_thread exiting");
+    ALOGI("bt_hc_worker_thread exiting");
 
     pthread_exit(NULL);
 

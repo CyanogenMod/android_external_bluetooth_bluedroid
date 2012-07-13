@@ -64,6 +64,7 @@ typedef enum {
     BT_VND_OP_SCO_CFG,
     BT_VND_OP_USERIAL_OPEN,
     BT_VND_OP_USERIAL_CLOSE,
+    BT_VND_OP_USERIAL_SET_BAUD,
     BT_VND_OP_GET_LPM_IDLE_TIMEOUT,
     BT_VND_OP_LPM_SET_MODE,
     BT_VND_OP_LPM_WAKE_SET_STATE,
@@ -87,11 +88,6 @@ typedef enum {
     BT_VND_OP_RESULT_FAIL,
 } bt_vendor_op_result_t;
 
-/** Userial control ID */
-typedef enum {
-    BT_VND_USERIAL_SET_BAUD,
-} bt_vendor_userial_cid_t;
-
 /*
  * Bluetooth Host/Controller Vendor callback structure.
  */
@@ -110,9 +106,6 @@ typedef void (*tINT_CMD_CBACK)(void *p_mem);
 
 /* hci command packet transmit callback (callout) */
 typedef uint8_t (*cmd_xmit_cb)(uint16_t opcode, void *p_buf, tINT_CMD_CBACK p_cback);
-
-/* userial control callback (callout) */
-typedef void (*userial_ctrl_cb)(bt_vendor_userial_cid_t cid, void *param);
 
 typedef struct {
     /** set to sizeof(bt_vendor_callbacks_t) */
@@ -135,9 +128,6 @@ typedef struct {
 
     /* hci command packet transmit request */
     cmd_xmit_cb xmit_cb;
-
-    /* userial control request */
-    userial_ctrl_cb usrl_ctrl_cb;
 } bt_vendor_callbacks_t;
 
 /*
