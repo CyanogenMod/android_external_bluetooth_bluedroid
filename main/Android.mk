@@ -88,7 +88,7 @@ LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../embdrv/sbc/encoder/include \
 	$(LOCAL_PATH)/../audio_a2dp_hw
 
-LOCAL_CFLAGS += -DBUILDCFG -Werror
+LOCAL_CFLAGS += -DBUILDCFG -Werror -Wno-error=maybe-uninitialized -Wno-error=uninitialized
 
 ifeq ($(TARGET_PRODUCT), full_crespo)
      LOCAL_CFLAGS += -DTARGET_CRESPO
