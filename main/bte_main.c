@@ -251,15 +251,15 @@ void bte_main_disable(void)
 {
     APPL_TRACE_DEBUG1("%s", __FUNCTION__);
 
-    GKI_destroy_task(BTU_TASK);
-
-    GKI_freeze();
-
     if (bt_hc_if)
     {
         bt_hc_if->cleanup();
         bt_hc_if->set_power(BT_HC_CHIP_PWR_OFF);
     }
+
+    GKI_destroy_task(BTU_TASK);
+
+    GKI_freeze();
 }
 
 /******************************************************************************
