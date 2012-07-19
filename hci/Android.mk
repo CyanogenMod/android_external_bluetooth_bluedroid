@@ -16,7 +16,7 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_SHARED_LIBRARIES := \
         libcutils \
-        libbt-vendor
+        libdl
 
 LOCAL_MODULE := libbt-hci
 LOCAL_MODULE_TAGS := optional

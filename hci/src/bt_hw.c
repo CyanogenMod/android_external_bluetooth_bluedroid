@@ -55,6 +55,7 @@
 
 #define LOG_TAG "bt_hw"
 
+#include <dlfcn.h>
 #include <utils/Log.h>
 #include <pthread.h>
 #include "bt_vendor_lib.h"
@@ -226,7 +227,6 @@ static const bt_vendor_callbacks_t vnd_callbacks = {
     usrl_ctrl_cb
 };
 
-
 /******************************************************************************
 **
 ** Function         init_vnd_if
@@ -238,7 +238,24 @@ static const bt_vendor_callbacks_t vnd_callbacks = {
 ******************************************************************************/
 void init_vnd_if(unsigned char *local_bdaddr)
 {
-    if ((bt_vnd_if=(bt_vendor_interface_t *) bt_vendor_get_interface())!=NULL)
+    bt_vendor_interface_t (*bt_vendor_get_interface_func)(void);
+    void *dlhandle;
+
+    dlhandle = dlopen("libbt-vendor.so", RTLD_NOW);
+    if (!dlhandle)
+    {
+        ALOGE("!!! Failed to load libbt-vendor.so !!!");
+        return;
+    }
+
+    bt_vendor_get_interface_func = dlsym(dlhandle, "bt_vendor_get_interface");
+    if (!bt_vendor_get_interface_func)
+    {
+        ALOGE("!!! Failed to get bt_vendor_get_interface !!!");
+        return;
+    }
+
+    if ((bt_vnd_if=(bt_vendor_interface_t *) bt_vendor_get_interface_func)!=NULL)
     {
         bt_vnd_if->init(&vnd_callbacks, local_bdaddr);
     }
