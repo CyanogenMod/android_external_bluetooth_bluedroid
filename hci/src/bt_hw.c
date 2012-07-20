@@ -238,7 +238,6 @@ static const bt_vendor_callbacks_t vnd_callbacks = {
 ******************************************************************************/
 void init_vnd_if(unsigned char *local_bdaddr)
 {
-    bt_vendor_interface_t (*bt_vendor_get_interface_func)(void);
     void *dlhandle;
 
     dlhandle = dlopen("libbt-vendor.so", RTLD_NOW);
@@ -248,20 +247,13 @@ void init_vnd_if(unsigned char *local_bdaddr)
         return;
     }
 
-    bt_vendor_get_interface_func = dlsym(dlhandle, "bt_vendor_get_interface");
-    if (!bt_vendor_get_interface_func)
+    bt_vnd_if = (bt_vendor_interface_t *) dlsym(dlhandle, "BLUETOOTH_VENDOR_LIB_INTERFACE");
+    if (!bt_vnd_if)
     {
-        ALOGE("!!! Failed to get bt_vendor_get_interface !!!");
+        ALOGE("!!! Failed to get bt vendor interface !!!");
         return;
     }
 
-    if ((bt_vnd_if=(bt_vendor_interface_t *) bt_vendor_get_interface_func)!=NULL)
-    {
-        bt_vnd_if->init(&vnd_callbacks, local_bdaddr);
-    }
-    else
-    {
-        ALOGE("!!! Failed to get BtVendorInterface !!!");
-    }
+    bt_vnd_if->init(&vnd_callbacks, local_bdaddr);
 }
 
