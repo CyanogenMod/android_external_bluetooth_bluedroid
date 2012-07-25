@@ -844,10 +844,8 @@ and USER_HW_DISABLE_API macros */
 #endif
 
 /* The maximum number of simultaneous links that L2CAP can support. */
-#ifndef MAX_ACL_CONNECTIONS
+#ifndef MAX_L2CAP_LINKS
 #define MAX_L2CAP_LINKS             4
-#else
-#define MAX_L2CAP_LINKS             MAX_ACL_CONNECTIONS
 #endif
 
 /* The maximum number of simultaneous channels that L2CAP can support. */
@@ -1224,10 +1222,8 @@ and USER_HW_DISABLE_API macros */
 #endif
 
 /* The maximum simultaneous links to different devices. */
-#ifndef MAX_ACL_CONNECTIONS
+#ifndef MAX_BD_CONNECTIONS
 #define MAX_BD_CONNECTIONS          1
-#else
-#define MAX_BD_CONNECTIONS          MAX_ACL_CONNECTIONS
 #endif
 
 /* The port receive queue low watermark level, in bytes. */
