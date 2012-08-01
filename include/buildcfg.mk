@@ -1,6 +1,10 @@
 intermediates := $(local-intermediates-dir)
 
 SRC := $(call my-dir)/$(addprefix bdroid_, $(addsuffix .txt,$(basename $(TARGET_DEVICE))))
+ifeq (,$(wildcard $(SRC)))
+# configuration file does not exist. Use default one
+SRC := $(call my-dir)/bdroid_generic.txt
+endif
 GEN := $(intermediates)/buildcfg.h
 TOOL := $(call my-dir)/../tools/gen-buildcfg.sh
 
