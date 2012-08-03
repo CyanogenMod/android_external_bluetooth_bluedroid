@@ -308,7 +308,7 @@ static void btif_update_remote_properties(BD_ADDR bd_addr, BD_NAME bd_name,
     if (strlen((const char *) bd_name))
     {
         BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
-                            BT_PROPERTY_BDNAME, strlen((char *)bd_name)+1, bd_name);
+                            BT_PROPERTY_BDNAME, strlen((char *)bd_name), bd_name);
         status = btif_storage_set_remote_device_property(&bdaddr, &properties[num_properties]);
         ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device name", status);
         num_properties++;
@@ -1638,7 +1638,7 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t *prop)
         {
             bt_bdname_t *bd_name = (bt_bdname_t*)prop->val;
             strcpy((char *)bd_name->name, (char *)BTM_DEF_LOCAL_NAME);
-            prop->len = strlen((char *)bd_name->name)+1;
+            prop->len = strlen((char *)bd_name->name);
         }
         break;
 

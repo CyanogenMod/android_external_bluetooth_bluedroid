@@ -353,7 +353,7 @@ static bt_status_t btif_in_str_to_property(char *value, bt_property_t *property)
                 *((char*)property->val) = 0;
                 if (value)
                 {
-                    property->len = strlen(value)+1;
+                    property->len = strlen(value);
                     strcpy((char*)property->val, value);
                 }
             } break;
