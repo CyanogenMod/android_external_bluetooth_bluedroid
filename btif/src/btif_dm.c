@@ -785,8 +785,9 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
                     btif_dm_cb_create_bond (&bd_addr);
                     return;
                 }
-                else if (pairing_cb.autopair_attempts > 1)
+                else
                 {
+                    /* if autopair attempts are more than 1, or not attempted */
                     status =  BT_STATUS_AUTH_FAILURE;
                 }
                 break;
