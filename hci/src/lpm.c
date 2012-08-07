@@ -336,8 +336,9 @@ void lpm_enable(uint8_t turn_on)
     /* Calling vendor-specific part */
     if (bt_vnd_if)
     {
+        uint8_t lpm_cmd = (turn_on) ? BT_VND_LPM_ENABLE : BT_VND_LPM_DISABLE;
         bt_lpm_cb.state = (turn_on) ? LPM_ENABLING : LPM_DISABLING;
-        bt_vnd_if->op(BT_VND_OP_LPM_SET_MODE, &turn_on);
+        bt_vnd_if->op(BT_VND_OP_LPM_SET_MODE, &lpm_cmd);
     }
 }
 

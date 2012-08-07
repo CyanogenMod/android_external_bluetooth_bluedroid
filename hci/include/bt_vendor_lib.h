@@ -57,16 +57,109 @@
 
 /** Typedefs and defines */
 
-/** Vendor operations */
+/** Vendor specific operations OPCODE */
 typedef enum {
+/*  [operation]
+ *      Power on or off the BT Controller.
+ *  [input param]
+ *      A pointer to int type with content of bt_vendor_power_state_t.
+ *      Typecasting conversion: (int *) param.
+ *  [return]
+ *      0 - default, don't care.
+ *  [callback]
+ *      None.
+ */
     BT_VND_OP_POWER_CTRL,
+
+/*  [operation]
+ *      Perform any vendor specific initialization or configuration
+ *      on the BT Controller. This is called before stack initialization.
+ *  [input param]
+ *      None.
+ *  [return]
+ *      0 - default, don't care.
+ *  [callback]
+ *      Must call fwcfg_cb to notify the stack of the completion of vendor
+ *      specific initialization once it has been done.
+ */
     BT_VND_OP_FW_CFG,
+
+/*  [operation]
+ *      Perform any vendor specific SCO/PCM configuration on the BT Controller.
+ *      This is called after stack initialization.
+ *  [input param]
+ *      None.
+ *  [return]
+ *      0 - default, don't care.
+ *  [callback]
+ *      Must call scocfg_cb to notify the stack of the completion of vendor
+ *      specific SCO configuration once it has been done.
+ */
     BT_VND_OP_SCO_CFG,
+
+/*  [operation]
+ *      Open UART port on where the BT Controller is attached.
+ *      This is called before stack initialization.
+ *  [input param]
+ *      None.
+ *  [return]
+ *      fd - the file descriptor of UART port for Bluetooth.
+ *  [callback]
+ *      None.
+ */
     BT_VND_OP_USERIAL_OPEN,
+
+/*  [operation]
+ *      Close the previously opened UART port.
+ *  [input param]
+ *      None.
+ *  [return]
+ *      0 - default, don't care.
+ *  [callback]
+ *      None.
+ */
     BT_VND_OP_USERIAL_CLOSE,
-    BT_VND_OP_USERIAL_SET_BAUD,
+
+/*  [operation]
+ *      Get the LPM idle timeout in milliseconds.
+ *      The stack uses this information to launch a timer delay before it
+ *      attempts to de-assert LPM WAKE signal once downstream HCI packet
+ *      has been delivered.
+ *  [input param]
+ *      A pointer to uint32_t type which is passed in by the stack. And, it
+ *      requires the vendor lib to fill up the content before returning
+ *      the call.
+ *      Typecasting conversion: (uint32_t *) param.
+ *  [return]
+ *      0 - default, don't care.
+ *  [callback]
+ *      None.
+ */
     BT_VND_OP_GET_LPM_IDLE_TIMEOUT,
+
+/*  [operation]
+ *      Enable or disable LPM mode on BT Controller.
+ *  [input param]
+ *      A pointer to uint8_t type with content of bt_vendor_lpm_mode_t.
+ *      Typecasting conversion: (uint8_t *) param.
+ *  [return]
+ *      0 - default, don't care.
+ *  [callback]
+ *      Must call lpm_cb to notify the stack of the completion of LPM
+ *      disable/enable process once it has been done.
+ */
     BT_VND_OP_LPM_SET_MODE,
+
+/*  [operation]
+ *      Assert or Deassert LPM WAKE on BT Controller.
+ *  [input param]
+ *      A pointer to uint8_t type with content of bt_vendor_lpm_wake_state_t.
+ *      Typecasting conversion: (uint8_t *) param.
+ *  [return]
+ *      0 - default, don't care.
+ *  [callback]
+ *      None.
+ */
     BT_VND_OP_LPM_WAKE_SET_STATE,
 } bt_vendor_opcode_t;
 
@@ -76,13 +169,19 @@ typedef enum {
     BT_VND_PWR_ON,
 }  bt_vendor_power_state_t;
 
+/** LPM disable/enable request */
+typedef enum {
+    BT_VND_LPM_DISABLE,
+    BT_VND_LPM_ENABLE,
+} bt_vendor_lpm_mode_t;
+
 /** LPM WAKE set state request */
 typedef enum {
     BT_VND_LPM_WAKE_ASSERT,
     BT_VND_LPM_WAKE_DEASSERT,
 } bt_vendor_lpm_wake_state_t;
 
-/** Result of vendor operations */
+/** Callback result values */
 typedef enum {
     BT_VND_OP_RESULT_SUCCESS,
     BT_VND_OP_RESULT_FAIL,
@@ -95,21 +194,82 @@ typedef enum {
 /* vendor initialization/configuration callback */
 typedef void (*cfg_result_cb)(bt_vendor_op_result_t result);
 
-/* datapath buffer allocation callback (callout) */
+/* datapath buffer allocation callback (callout)
+ *
+ *  Vendor lib needs to request a buffer through the alloc callout function
+ *  from HCI lib if the buffer is for constructing a HCI Command packet which
+ *  will be sent through xmit_cb to BT Controller.
+ *
+ *  For each buffer allocation, the requested size needs to be big enough to
+ *  accommodate the below header plus a complete HCI packet --
+ *      typedef struct
+ *      {
+ *          uint16_t          event;
+ *          uint16_t          len;
+ *          uint16_t          offset;
+ *          uint16_t          layer_specific;
+ *      } HC_BT_HDR;
+ *
+ *  HCI lib returns a pointer to the buffer where Vendor lib should use to
+ *  construct a HCI command packet as below format:
+ *
+ *  --------------------------------------------
+ *  |  HC_BT_HDR  |  HCI command               |
+ *  --------------------------------------------
+ *  where
+ *      HC_BT_HDR.event = 0x2000;
+ *      HC_BT_HDR.len = Length of HCI command;
+ *      HC_BT_HDR.offset = 0;
+ *      HC_BT_HDR.layer_specific = 0;
+ *
+ *  For example, a HCI_RESET Command will be formed as
+ *  ------------------------
+ *  |  HC_BT_HDR  |03|0c|00|
+ *  ------------------------
+ *  with
+ *      HC_BT_HDR.event = 0x2000;
+ *      HC_BT_HDR.len = 3;
+ *      HC_BT_HDR.offset = 0;
+ *      HC_BT_HDR.layer_specific = 0;
+ */
 typedef void* (*malloc_cb)(int size);
 
 /* datapath buffer deallocation callback (callout) */
 typedef void (*mdealloc_cb)(void *p_buf);
 
-/* define callback of the cmd_xmit_cb */
+/* define callback of the cmd_xmit_cb
+ *
+ *  The callback function which HCI lib will call with the return of command
+ *  complete packet. Vendor lib is responsible for releasing the buffer passed
+ *  in at the p_mem parameter by calling dealloc callout function.
+ */
 typedef void (*tINT_CMD_CBACK)(void *p_mem);
 
-/* hci command packet transmit callback (callout) */
+/* hci command packet transmit callback (callout)
+ *
+ *  Vendor lib calls xmit_cb callout function in order to send a HCI Command
+ *  packet to BT Controller. The buffer carrying HCI Command packet content
+ *  needs to be first allocated through the alloc callout function.
+ *  HCI lib will release the buffer for Vendor lib once it has delivered the
+ *  packet content to BT Controller.
+ *
+ *  Vendor lib needs also provide a callback function (p_cback) which HCI lib
+ *  will call with the return of command complete packet.
+ *
+ *  The opcode parameter gives the HCI OpCode (combination of OGF and OCF) of
+ *  HCI Command packet. For example, opcode = 0x0c03 for the HCI_RESET command
+ *  packet.
+ */
 typedef uint8_t (*cmd_xmit_cb)(uint16_t opcode, void *p_buf, tINT_CMD_CBACK p_cback);
 
 typedef struct {
     /** set to sizeof(bt_vendor_callbacks_t) */
     size_t         size;
+
+    /*
+     * Callback and callout functions have implemented in HCI libray
+     * (libbt-hci.so).
+     */
 
     /* notifies caller result of firmware configuration request */
     cfg_result_cb  fwcfg_cb;
@@ -137,8 +297,12 @@ typedef struct {
     /** Set to sizeof(bt_vndor_interface_t) */
     size_t          size;
 
+    /*
+     * Functions need to be implemented in Vendor libray (libbt-vendor.so).
+     */
+
     /**
-     * Opens the interface and provides the callback routines
+     * Caller will open the interface and pass in the callback routines
      * to the implemenation of this interface.
      */
     int   (*init)(const bt_vendor_callbacks_t* p_cb, unsigned char *local_bdaddr);
@@ -152,10 +316,16 @@ typedef struct {
 
 
 /*
- * External shared lib functions
+ * External shared lib functions/data
  */
 
-extern const bt_vendor_interface_t* bt_vendor_get_interface(void);
+/* Entry point of DLib --
+ *      Vendor library needs to implement the body of bt_vendor_interface_t
+ *      structure and uses the below name as the variable name. HCI library
+ *      will use this symbol name to get address of the object through the
+ *      dlsym call.
+ */
+extern const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE;
 
 #endif /* BT_VENDOR_LIB_H */
 

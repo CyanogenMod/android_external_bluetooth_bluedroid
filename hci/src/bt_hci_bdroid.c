@@ -122,12 +122,6 @@ static volatile uint8_t lib_running = 0;
 static volatile uint16_t ready_events = 0;
 static volatile uint8_t tx_cmd_pkts_pending = FALSE;
 
-static const tUSERIAL_CFG userial_init_cfg =
-{
-    (USERIAL_DATABITS_8 | USERIAL_PARITY_NONE | USERIAL_STOPBITS_1),
-    USERIAL_BAUD_115200
-};
-
 /******************************************************************************
 **  Functions
 ******************************************************************************/
@@ -398,7 +392,7 @@ static void *bt_hc_worker_thread(void *arg)
 
         if (events & HC_EVENT_PRELOAD)
         {
-            userial_open(USERIAL_PORT_1, (tUSERIAL_CFG *) &userial_init_cfg);
+            userial_open(USERIAL_PORT_1);
 
             /* Calling vendor-specific part */
             if (bt_vnd_if)

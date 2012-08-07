@@ -104,7 +104,6 @@ typedef struct
     int             sock;
     uint8_t         port;
     pthread_t       read_thread;
-    tUSERIAL_CFG    cfg;
     BUFFER_Q        rx_q;
     HC_BT_HDR      *p_rx_hdr;
 } tUSERIAL_CB;
@@ -326,18 +325,18 @@ uint8_t userial_init(void)
 **
 ** Function        userial_open
 **
-** Description     Open the indicated serial port with the given configuration
+** Description     Open Bluetooth device with the port ID
 **
 ** Returns         TRUE/FALSE
 **
 *******************************************************************************/
-uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
+uint8_t userial_open(uint8_t port)
 {
     struct sched_param param;
     int policy, result;
     pthread_attr_t thread_attr;
 
-    USERIALDBG("userial_open(port:%d, baud:%d)", port, p_cfg->baud);
+    USERIALDBG("userial_open(port:%d)", port);
 
     if (userial_running)
     {
@@ -355,7 +354,7 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
     /* Calling vendor-specific part */
     if (bt_vnd_if)
     {
-        userial_cb.sock = bt_vnd_if->op(BT_VND_OP_USERIAL_OPEN, p_cfg);
+        userial_cb.sock = bt_vnd_if->op(BT_VND_OP_USERIAL_OPEN, NULL);
     }
     else
     {
@@ -373,7 +372,6 @@ uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg)
     USERIALDBG( "sock = %d", userial_cb.sock);
 
     userial_cb.port = port;
-    memcpy(&userial_cb.cfg, p_cfg, sizeof(tUSERIAL_CFG));
 
     pthread_attr_init(&thread_attr);
 
@@ -516,29 +514,6 @@ void userial_close(void)
         {
             bt_hc_cbacks->dealloc(p_buf, (char *) ((HC_BT_HDR *)p_buf+1));
         }
-    }
-}
-
-/*******************************************************************************
-**
-** Function        userial_change_baud
-**
-** Description     Change baud rate of userial port
-**
-** Returns         None
-**
-*******************************************************************************/
-void userial_change_baud(uint8_t baud)
-{
-    /* Calling vendor-specific part */
-    if (bt_vnd_if)
-    {
-        bt_vnd_if->op(BT_VND_OP_USERIAL_SET_BAUD, &baud);
-    }
-    else
-    {
-        ALOGE("userial_change_baud: missing vendor lib interface !!!");
-        ALOGE("userial_change_baud: unable to change UART baud rate");
     }
 }
 

@@ -304,7 +304,20 @@ uint8_t internal_event_intercept(void)
                 HCIH4DBG( \
                 "Intercept CommandCompleteEvent for internal command (0x%04X)",\
                           opcode);
-                p_cb->int_cmd[p_cb->int_cmd_rd_idx].cback(p_cb->p_rcv_msg);
+                if (p_cb->int_cmd[p_cb->int_cmd_rd_idx].cback != NULL)
+                {
+                    p_cb->int_cmd[p_cb->int_cmd_rd_idx].cback(p_cb->p_rcv_msg);
+                }
+                else
+                {
+                    // Missing cback function!
+                    // Release the p_rcv_msg buffer.
+                    if (bt_hc_cbacks)
+                    {
+                        bt_hc_cbacks->dealloc((TRANSAC) p_cb->p_rcv_msg, \
+                                              (char *) (p_cb->p_rcv_msg + 1));
+                    }
+                }
                 p_cb->int_cmd_rd_idx = ((p_cb->int_cmd_rd_idx+1) & \
                                         INT_CMD_PKT_IDX_MASK);
                 p_cb->int_cmd_rsp_pending--;

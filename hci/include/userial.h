@@ -80,42 +80,6 @@
 #define USERIAL_PORT_17         16
 #define USERIAL_PORT_18         17
 
-/**** baud rates ****/
-#define USERIAL_BAUD_300        0
-#define USERIAL_BAUD_600        1
-#define USERIAL_BAUD_1200       2
-#define USERIAL_BAUD_2400       3
-#define USERIAL_BAUD_9600       4
-#define USERIAL_BAUD_19200      5
-#define USERIAL_BAUD_57600      6
-#define USERIAL_BAUD_115200     7
-#define USERIAL_BAUD_230400     8
-#define USERIAL_BAUD_460800     9
-#define USERIAL_BAUD_921600     10
-#define USERIAL_BAUD_1M         11
-#define USERIAL_BAUD_1_5M       12
-#define USERIAL_BAUD_2M         13
-#define USERIAL_BAUD_3M         14
-#define USERIAL_BAUD_4M         15
-#define USERIAL_BAUD_AUTO       16
-
-/**** Data Format ****/
-/* Stop Bits */
-#define USERIAL_STOPBITS_1      1
-#define USERIAL_STOPBITS_1_5    (1<<1)
-#define USERIAL_STOPBITS_2      (1<<2)
-
-/* Parity Bits */
-#define USERIAL_PARITY_NONE     (1<<3)
-#define USERIAL_PARITY_EVEN     (1<<4)
-#define USERIAL_PARITY_ODD      (1<<5)
-
-/* Data Bits */
-#define USERIAL_DATABITS_5      (1<<6)
-#define USERIAL_DATABITS_6      (1<<7)
-#define USERIAL_DATABITS_7      (1<<8)
-#define USERIAL_DATABITS_8      (1<<9)
-
 typedef enum {
     USERIAL_OP_INIT,
     USERIAL_OP_RXFLOW_ON,
@@ -125,13 +89,6 @@ typedef enum {
 /******************************************************************************
 **  Type definitions
 ******************************************************************************/
-
-/* Structure used to configure serial port during open */
-typedef struct
-{
-    uint16_t fmt;       /* Data format */
-    uint8_t  baud;      /* Baud rate */
-} tUSERIAL_CFG;
 
 /******************************************************************************
 **  Extern variables and functions
@@ -156,12 +113,12 @@ uint8_t userial_init(void);
 **
 ** Function        userial_open
 **
-** Description     Open the indicated serial port with the given configuration
+** Description     Open Bluetooth device with the port ID
 **
 ** Returns         TRUE/FALSE
 **
 *******************************************************************************/
-uint8_t userial_open(uint8_t port, tUSERIAL_CFG *p_cfg);
+uint8_t userial_open(uint8_t port);
 
 /*******************************************************************************
 **
@@ -197,17 +154,6 @@ uint16_t userial_write(uint8_t *p_data, uint16_t len);
 **
 *******************************************************************************/
 void userial_close(void);
-
-/*******************************************************************************
-**
-** Function        userial_change_baud
-**
-** Description     Change baud rate of userial port
-**
-** Returns         None
-**
-*******************************************************************************/
-void userial_change_baud(uint8_t baud);
 
 /*******************************************************************************
 **
