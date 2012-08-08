@@ -135,6 +135,14 @@ static btif_core_state_t btif_core_state = BTIF_CORE_STATE_DISABLED;
 static int btif_shutdown_pending = 0;
 static tBTA_SERVICE_MASK btif_enabled_services = 0;
 
+/*
+* This variable should be set to 1, if the Bluedroid+BTIF libraries are to
+* function in DUT mode.
+*
+* To set this, the btif_init_bluetooth needs to be called with argument as 1
+*/
+static UINT8 btif_dut_mode = 0;
+
 /************************************************************************************
 **  Static functions
 ************************************************************************************/
@@ -249,6 +257,20 @@ bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_p
     }
 }
 
+/*******************************************************************************
+**
+** Function         btif_is_dut_mode
+**
+** Description      checks if BTIF is currently in DUT mode
+**
+** Returns          1 if test mode, otherwize 0
+**
+*******************************************************************************/
+
+UINT8 btif_is_dut_mode(void)
+{
+    return (btif_dut_mode == 1);
+}
 
 /*******************************************************************************
 **
@@ -262,7 +284,7 @@ bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_p
 
 int btif_is_enabled(void)
 {
-    return (btif_core_state == BTIF_CORE_STATE_ENABLED);
+    return ((!btif_is_dut_mode()) && (btif_core_state == BTIF_CORE_STATE_ENABLED));
 }
 
 /*******************************************************************************
@@ -294,7 +316,6 @@ static void btif_task(UINT32 params)
          * Wait for the trigger to init chip and stack. This trigger will
          * be received by btu_task once the UART is opened and ready
          */
-
         if (event == BT_EVT_TRIGGER_STACK_INIT)
         {
             BTIF_TRACE_DEBUG0("btif_task: received trigger stack init event");
@@ -432,7 +453,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
 **
 *******************************************************************************/
 
-bt_status_t btif_init_bluetooth(void)
+bt_status_t btif_init_bluetooth()
 {
     UINT8 status;
 
@@ -672,6 +693,8 @@ bt_status_t btif_shutdown_bluetooth(void)
     btif_queue_release();
     bte_main_shutdown();
 
+    btif_dut_mode = 0;
+
     BTIF_TRACE_DEBUG1("%s done", __FUNCTION__);
 
     return BT_STATUS_SUCCESS;
@@ -701,8 +724,73 @@ static bt_status_t btif_disassociate_evt(void)
     return BT_STATUS_SUCCESS;
 }
 
+/****************************************************************************
+**
+**   BTIF Test Mode APIs
+**
+*****************************************************************************/
+/*******************************************************************************
+**
+** Function         btif_dut_mode_cback
+**
+** Description     Callback invoked on completion of vendor specific test mode command
+**
+** Returns          None
+**
+*******************************************************************************/
+static void btif_dut_mode_cback( tBTM_VSC_CMPL *p )
+{
+    /* For now nothing to be done. */
+}
 
+/*******************************************************************************
+**
+** Function         btif_dut_mode_configure
+**
+** Description      Configure Test Mode - 'enable' to 1 puts the device in test mode and 0 exits
+**                       test mode
+**
+** Returns          BT_STATUS_SUCCESS on success
+**
+*******************************************************************************/
+bt_status_t btif_dut_mode_configure(uint8_t enable)
+{
+    BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
 
+    if (btif_core_state != BTIF_CORE_STATE_ENABLED) {
+        BTIF_TRACE_ERROR0("btif_dut_mode_configure : Bluetooth not enabled");
+        return BT_STATUS_NOT_READY;
+    }
+
+    btif_dut_mode = enable;
+    if (enable == 1) {
+        BTA_EnableTestMode();
+    } else {
+        BTA_DisableTestMode();
+    }
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_dut_mode_send
+**
+** Description     Sends a HCI Vendor specific command to the controller
+**
+** Returns          BT_STATUS_SUCCESS on success
+**
+*******************************************************************************/
+bt_status_t btif_dut_mode_send(uint16_t opcode, uint8_t *buf, uint8_t len)
+{
+    /* TODO: Check that opcode is a vendor command group */
+    BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
+    if (!btif_is_dut_mode()) {
+         BTIF_TRACE_ERROR0("Bluedroid HAL needs to be init with test_mode set to 1.");
+         return BT_STATUS_FAIL;
+    }
+    BTM_VendorSpecificCommand(opcode, len, buf, btif_dut_mode_cback);
+    return BT_STATUS_SUCCESS;
+}
 /*****************************************************************************
 **
 **   btif api adapter property functions

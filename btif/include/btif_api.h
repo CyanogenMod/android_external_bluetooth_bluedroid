@@ -377,5 +377,28 @@ bt_status_t btif_dm_get_remote_service_record(bt_bdaddr_t *remote_addr,
 *******************************************************************************/
 bt_status_t btif_dm_get_remote_services(bt_bdaddr_t *remote_addr);
 
+/*******************************************************************************
+**
+** Function         btif_dut_mode_configure
+**
+** Description      Configure Test Mode - 'enable' to 1 puts the device in test mode and 0 exits
+**                       test mode
+**
+** Returns          BT_STATUS_SUCCESS on success
+**
+*******************************************************************************/
+bt_status_t btif_dut_mode_configure(uint8_t enable);
+
+/*******************************************************************************
+**
+** Function         btif_dut_mode_send
+**
+** Description     Sends a HCI Vendor specific command to the controller
+**
+** Returns          BT_STATUS_SUCCESS on success
+**
+*******************************************************************************/
+bt_status_t btif_dut_mode_send(uint16_t opcode, uint8_t *buf, uint8_t len);
+
 #endif /* BTIF_API_H */
 

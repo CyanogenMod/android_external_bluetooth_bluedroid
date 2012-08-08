@@ -109,4 +109,3 @@ void string_to_uuid(char *str, bt_uuid_t *p_uuid);
 int ascii_2_hex (char *p_ascii, int len, UINT8 *p_hex);
 
 #endif /* BTIF_UTIL_H */
-

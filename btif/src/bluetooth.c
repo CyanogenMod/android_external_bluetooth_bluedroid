@@ -347,6 +347,27 @@ static const void* get_profile_interface (const char *profile_id)
     return NULL;
 }
 
+int dut_mode_configure(uint8_t enable)
+{
+    ALOGI("dut_mode_configure");
+
+    /* sanity check */
+    if (interface_ready() == FALSE)
+        return BT_STATUS_NOT_READY;
+
+    return btif_dut_mode_configure(enable);
+}
+
+int dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len)
+{
+    ALOGI("dut_mode_send");
+
+    /* sanity check */
+    if (interface_ready() == FALSE)
+        return BT_STATUS_NOT_READY;
+
+    return btif_dut_mode_send(opcode, buf, len);
+}
 static const bt_interface_t bluetoothInterface = {
     sizeof(bt_interface_t),
     init,
@@ -368,7 +389,9 @@ static const bt_interface_t bluetoothInterface = {
     cancel_bond,
     pin_reply,
     ssp_reply,
-    get_profile_interface
+    get_profile_interface,
+    dut_mode_configure,
+    dut_mode_send
 };
 
 const bt_interface_t* bluetooth__get_bluetooth_interface ()
