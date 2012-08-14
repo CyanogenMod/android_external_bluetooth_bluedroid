@@ -53,45 +53,59 @@
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
+#include <linux/uhid.h>
 #include "btif_hh.h"
-
 #include "bta_api.h"
 #include "bta_hh_api.h"
 
 
 
-#define UINT8 uint8_t
-#define UINT16 uint16_t
+const char *dev_path = "/dev/uhid";
 
-#define BTHID_HID_INFO  1
-#define LOG_TAG "BTA_HH_CO"
-#define BTHID_MAX_DEV_NAME_LEN  128
-#define BTHID_MAX_DSCP_BUF_LEN  884
 
-typedef struct BTHID_CONTROL
+/*Internal function to perform UHID write and error checking*/
+static int uhid_write(int fd, const struct uhid_event *ev)
 {
-    int   dscp_len;
-    char  dscp_buf[BTHID_MAX_DSCP_BUF_LEN];
-    char  dev_name[BTHID_MAX_DEV_NAME_LEN];
-    unsigned short vendor_id;
-    unsigned short product_id;
-    unsigned short version;
-    unsigned short ctry_code;
-} tBTHID_CONTROL;
-
-
-static UINT8 HID_REPORT_START[] = {1,0,0};
-#define HID_REPORT_CAPSLOCK  0x39
-#define HID_REPORT_NUMLOCK   0x53
-#define HID_REPORT_SCROLLLOCK 0x47
-static int saved_keyevents =0;
-
-static void process_rpt_keys_with_state(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len)
-{
-/*
- --TODO
-   */
+    ssize_t ret;
+    ret = write(fd, ev, sizeof(*ev));
+    if (ret < 0){
+        int rtn = -errno;
+        BTIF_TRACE_ERROR2("%s: Cannot write to uhid:%s",__FUNCTION__,strerror(errno));
+        return rtn;
+    } else if (ret != sizeof(*ev)) {
+        BTIF_TRACE_ERROR3("%s: Wrong size written to uhid: %ld != %lu",
+                                                    __FUNCTION__, ret, sizeof(*ev));
+        return -EFAULT;
+    } else {
+        return 0;
+    }
 }
+
+void bta_hh_co_destroy(int fd)
+{
+    struct uhid_event ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.type = UHID_DESTROY;
+    uhid_write(fd, &ev);
+    close(fd);
+}
+
+int bta_hh_co_write(int fd, UINT8* rpt, UINT16 len)
+{
+    BTIF_TRACE_DEBUG0("bta_hh_co_data: UHID write");
+    struct uhid_event ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.type = UHID_INPUT;
+    ev.u.input.size = len;
+    if(len > sizeof(ev.u.input.data)){
+        BTIF_TRACE_WARNING1("%s:report size greater than allowed size",__FUNCTION__);
+        return -1;
+    }
+    memcpy(ev.u.input.data, rpt, len);
+    return uhid_write(fd, &ev);
+
+}
+
 
 /*******************************************************************************
 **
@@ -120,17 +134,22 @@ void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class, tBTA_HH_ATTR_MASK attr_ma
         p_dev = &btif_hh_cb.devices[i];
         if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN && p_dev->dev_handle == dev_handle) {
             // We found a device with the same handle. Must be a device reconnected.
-            BTIF_TRACE_WARNING2("%s: Found an existing device with the same handle. dev_status = %d",
-                 __FUNCTION__, p_dev->dev_status);
+            BTIF_TRACE_WARNING2("%s: Found an existing device with the same handle "
+                                                                "dev_status = %d",__FUNCTION__,
+                                                                p_dev->dev_status);
             BTIF_TRACE_WARNING6("%s:     bd_addr = [%02X:%02X:%02X:%02X:%02X:]", __FUNCTION__,
                  p_dev->bd_addr.address[0], p_dev->bd_addr.address[1], p_dev->bd_addr.address[2],
                  p_dev->bd_addr.address[3], p_dev->bd_addr.address[4]);
-                 BTIF_TRACE_WARNING4("%s:     attr_mask = 0x%04x, sub_class = 0x%02x, app_id = %d", __FUNCTION__,
-                 p_dev->attr_mask, p_dev->sub_class, p_dev->app_id);
+                 BTIF_TRACE_WARNING4("%s:     attr_mask = 0x%04x, sub_class = 0x%02x, app_id = %d",
+                                  __FUNCTION__, p_dev->attr_mask, p_dev->sub_class, p_dev->app_id);
 
             if(p_dev->fd<0) {
-                p_dev->fd = open("/dev/bthid", O_RDWR);
-                BTIF_TRACE_WARNING2("%s: bthid fd = %d", __FUNCTION__, p_dev->fd);
+                p_dev->fd = open(dev_path, O_RDWR | O_CLOEXEC);
+                if (p_dev->fd < 0){
+                    BTIF_TRACE_ERROR2("%s: Error: failed to open uhid, err:%s",
+                                                                    __FUNCTION__,strerror(errno));
+                }else
+                    BTIF_TRACE_DEBUG2("%s: uhid fd = %d", __FUNCTION__, p_dev->fd);
             }
 
             break;
@@ -149,21 +168,27 @@ void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class, tBTA_HH_ATTR_MASK attr_ma
                 p_dev->app_id     = app_id;
 
                 btif_hh_cb.device_num++;
-                // This is a new device,open the bthid driver now.
-                p_dev->fd = open("/dev/bthid", O_RDWR);
-                BTIF_TRACE_WARNING3("%s: bthid fd = %d, errno=%d", __FUNCTION__, p_dev->fd,errno);
+                // This is a new device,open the uhid driver now.
+                p_dev->fd = open(dev_path, O_RDWR | O_CLOEXEC);
+                if (p_dev->fd < 0){
+                    BTIF_TRACE_ERROR2("%s: Error: failed to open uhid, err:%s",
+                                                                    __FUNCTION__,strerror(errno));
+                }else
+                    BTIF_TRACE_DEBUG2("%s: uhid fd = %d", __FUNCTION__, p_dev->fd);
+
+
                 break;
             }
         }
     }
 
     if (p_dev == NULL) {
-        BTIF_TRACE_WARNING1("%s: Error: too many HID devices are connected", __FUNCTION__);
+        BTIF_TRACE_ERROR1("%s: Error: too many HID devices are connected", __FUNCTION__);
         return;
     }
 
     p_dev->dev_status = BTHH_CONN_STATE_CONNECTED;
-    BTIF_TRACE_WARNING2("%s: Return device status %d", __FUNCTION__, p_dev->dev_status);
+    BTIF_TRACE_DEBUG2("%s: Return device status %d", __FUNCTION__, p_dev->dev_status);
 }
 
 
@@ -205,7 +230,6 @@ void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len, tBTA_HH_PROTO_MO
                     UINT8 sub_class, UINT8 ctry_code, BD_ADDR peer_addr, UINT8 app_id)
 {
     btif_hh_device_t *p_dev;
-    //tBTA_HH_BOOT_RPT  rpt;
 
     BTIF_TRACE_WARNING6("%s: dev_handle = %d, subclass = 0x%02X, mode = %d, "
          "ctry_code = %d, app_id = %d",
@@ -218,12 +242,8 @@ void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len, tBTA_HH_PROTO_MO
     }
     // Send the HID report to the kernel.
     if (p_dev->fd >= 0) {
-        BTIF_TRACE_WARNING3("%s: fd = %d, len = %d", __FUNCTION__, p_dev->fd, len);
-        /* TODO: keystate
-        */
-        write(p_dev->fd, p_rpt, len);
-    }
-    else {
+        bta_hh_co_write(p_dev->fd, p_rpt, len);
+    }else {
         BTIF_TRACE_WARNING3("%s: Error: fd = %d, len = %d", __FUNCTION__, p_dev->fd, len);
     }
 }
@@ -246,50 +266,37 @@ void bta_hh_co_send_hid_info(btif_hh_device_t *p_dev, char *dev_name, UINT16 ven
                              int dscp_len, UINT8 *p_dscp)
 {
     int result;
-    tBTHID_CONTROL  ctrl;
+    struct uhid_event ev;
 
-    /*
-    int i;
-    for (i = 0; i < dscp_len; i += 16) {
-        LOGI("%02X %02X %02X %02X %02X %02X %02X %02X "
-             "%02X %02X %02X %02X %02X %02X %02X %02X",
-             p_dscp[i],    p_dscp[i+1],  p_dscp[i+2],  p_dscp[i+3],
-             p_dscp[i+4],  p_dscp[i+5],  p_dscp[i+6],  p_dscp[i+7],
-             p_dscp[i+8],  p_dscp[i+9],  p_dscp[i+10], p_dscp[i+11],
-             p_dscp[i+12], p_dscp[i+13], p_dscp[i+14], p_dscp[i+15]);
-    }
-    */
     if (p_dev->fd < 0) {
         BTIF_TRACE_WARNING3("%s: Error: fd = %d, dscp_len = %d", __FUNCTION__, p_dev->fd, dscp_len);
         return;
     }
 
-    if (dscp_len > BTHID_MAX_DSCP_BUF_LEN) {
-        BTIF_TRACE_WARNING2("%s: Error: HID report descriptor is too large. dscp_len = %d", __FUNCTION__, dscp_len);
-        return;
-    }
+    BTIF_TRACE_WARNING4("%s: fd = %d, name = [%s], dscp_len = %d", __FUNCTION__,
+                                                                    p_dev->fd, dev_name, dscp_len);
+    BTIF_TRACE_WARNING5("%s: vendor_id = 0x%04x, product_id = 0x%04x, version= 0x%04x,"
+                                                                    "ctry_code=0x%02x",__FUNCTION__,
+                                                                    vendor_id, product_id,
+                                                                    version, ctry_code);
 
-    BTIF_TRACE_WARNING4("%s: fd = %d, name = [%s], dscp_len = %d", __FUNCTION__, p_dev->fd, dev_name, dscp_len);
-    BTIF_TRACE_WARNING5("%s: vendor_id = 0x%04x, product_id = 0x%04x, version= 0x%04x, ctry_code=0x%02x",
-         __FUNCTION__, vendor_id, product_id, version, ctry_code);
+//Create and send hid descriptor to kernel
+    memset(&ev, 0, sizeof(ev));
+    ev.type = UHID_CREATE;
+    strncpy((char*)ev.u.create.name, dev_name, sizeof(ev.u.create.name) - 1);
+    ev.u.create.rd_size = dscp_len;
+    ev.u.create.rd_data = p_dscp;
+    ev.u.create.bus = BUS_BLUETOOTH;
+    ev.u.create.vendor = vendor_id;
+    ev.u.create.product = product_id;
+    ev.u.create.version = version;
+    ev.u.create.country = ctry_code;
+    result = uhid_write(p_dev->fd, &ev);
 
-    memset(&ctrl, 0, sizeof(tBTHID_CONTROL));
+    BTIF_TRACE_WARNING4("%s: fd = %d, dscp_len = %d, result = %d", __FUNCTION__,
+                                                                    p_dev->fd, dscp_len, result);
 
-    ctrl.dscp_len = dscp_len;
-    memcpy(ctrl.dscp_buf, p_dscp, dscp_len);
-    strncpy(ctrl.dev_name, dev_name, BTHID_MAX_DEV_NAME_LEN - 1);
-    ctrl.vendor_id  = vendor_id;
-    ctrl.product_id = product_id;
-    ctrl.version    = version;
-    ctrl.ctry_code  = ctry_code;
-
-    BTIF_TRACE_WARNING1("%s: send ioctl", __FUNCTION__);
-
-    result = ioctl(p_dev->fd, BTHID_HID_INFO, &ctrl);
-
-    BTIF_TRACE_WARNING4("%s: fd = %d, dscp_len = %d, result = %d", __FUNCTION__, p_dev->fd, dscp_len, result);
-
-    if (result != 0) {
+    if (result) {
         BTIF_TRACE_WARNING2("%s: Error: failed to send DSCP, result = %d", __FUNCTION__, result);
 
         /* The HID report descriptor is corrupted. Close the driver. */

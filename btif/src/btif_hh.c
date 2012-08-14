@@ -67,10 +67,6 @@
 #include "bd.h"
 #include "btif_storage.h"
 
-
-
-
-
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btif_hh.h"
@@ -163,7 +159,8 @@ static bthh_callbacks_t *bt_hh_callbacks = NULL;
 /************************************************************************************
 **  Externs
 ************************************************************************************/
-
+extern void bta_hh_co_destroy(int fd);
+extern void bta_hh_co_write(int fd, UINT8* rpt, UINT16 len);
 extern bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr);
 extern void bta_hh_co_send_hid_info(btif_hh_device_t *p_dev, char *dev_name, UINT16 vendor_id,
                                     UINT16 product_id, UINT16 version, UINT8 ctry_code,
@@ -350,9 +347,9 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
         GKI_freebuf(p_dev->p_buf);
         p_dev->p_buf = NULL;
     }
-    BTIF_TRACE_DEBUG2("%s: bthid fd = %d", __FUNCTION__, p_dev->fd);
+    BTIF_TRACE_DEBUG2("%s: uhid fd = %d", __FUNCTION__, p_dev->fd);
     if (p_dev->fd >= 0) {
-        close(p_dev->fd);
+        bta_hh_co_destroy(p_dev->fd);
         p_dev->fd = -1;
     }
 }
@@ -583,10 +580,9 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                     HAL_CBACK(bt_hh_callbacks, connection_state_cb, (bt_bdaddr_t*) &p_data->conn.bda,BTHH_CONN_STATE_DISCONNECTED);
                 }
                 else if (p_dev->fd < 0) {
-                    BTIF_TRACE_WARNING0("BTA_HH_OPEN_EVT: Error, failed to find the bthid driver...");
+                    BTIF_TRACE_WARNING0("BTA_HH_OPEN_EVT: Error, failed to find the uhid driver...");
                     memcpy(&(p_dev->bd_addr), p_data->conn.bda, BD_ADDR_LEN);
                     //remove the connection  and then try again to reconnect from the mouse side to recover
-                    //p_dev->dev_status = BTHH_CONN_STATE_FAILED_NO_BTHID_DRIVER;
                     btif_hh_cb.status = BTIF_HH_DEV_DISCONNECTED;
                     BTA_HhClose(p_data->conn.handle);
                 }
@@ -612,18 +608,18 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             p_data->dev_status.status, p_data->dev_status.handle);
             p_dev = btif_hh_find_connected_dev_by_handle(p_data->dev_status.handle);
             if (p_dev != NULL) {
-                BTIF_TRACE_DEBUG2("%s: bthid fd = %d", __FUNCTION__, p_dev->fd);
+                BTIF_TRACE_DEBUG2("%s: uhid fd = %d", __FUNCTION__, p_dev->fd);
                 if (p_dev->fd >= 0){
                     UINT8 hidreport[9];
                     memset(hidreport,0,9);
                     hidreport[0]=1;
-                    write(p_dev->fd, hidreport, 9);
+                    bta_hh_co_write(p_dev->fd , hidreport, sizeof(hidreport));
                 }
                 btif_hh_cb.status = BTIF_HH_DEV_DISCONNECTED;
                 p_dev->dev_status = BTHH_CONN_STATE_DISCONNECTED;
                 HAL_CBACK(bt_hh_callbacks, connection_state_cb,&(p_dev->bd_addr), p_dev->dev_status);
-                BTIF_TRACE_DEBUG2("%s: Closing bthid.ko fd = %d", __FUNCTION__, p_dev->fd);
-                close(p_dev->fd);
+                BTIF_TRACE_DEBUG2("%s: Closing uhid fd = %d", __FUNCTION__, p_dev->fd);
+                bta_hh_co_destroy(p_dev->fd);
                 p_dev->fd = -1;
             }
             else {
@@ -687,7 +683,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 return;
             }
             if (p_dev->fd < 0) {
-                ALOGE("BTA_HH_GET_DSCP_EVT: Error, failed to find the bthid driver...");
+                ALOGE("BTA_HH_GET_DSCP_EVT: Error, failed to find the uhid driver...");
                 return;
             }
             {
@@ -698,15 +694,6 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 }
 
                 BTIF_TRACE_WARNING2("%s: name = %s", __FUNCTION__, cached_name);
-
-                //Fix for Apple Magic Mouse
-                //For Apple Magic Mouse change the product id and version in order to bind to generic-bluetooth driver
-                if((p_data->dscp_info.vendor_id == MAGICMOUSE_VENDOR_ID) && (p_data->dscp_info.product_id == MAGICMOUSE_PRODUCT_ID))
-                {
-                    p_data->dscp_info.product_id = 0x30c; /* Product id for Mighty mouse*/
-                    p_data->dscp_info.version = 0x0200;   /* Version for Mighty mouse*/
-                }
-
                 bta_hh_co_send_hid_info(p_dev, cached_name,
                     p_data->dscp_info.vendor_id, p_data->dscp_info.product_id,
                     p_data->dscp_info.version,   p_data->dscp_info.ctry_code,
@@ -1411,8 +1398,8 @@ static void  cleanup( void )
     for (i = 0; i < BTIF_HH_MAX_HID; i++) {
          p_dev = &btif_hh_cb.devices[i];
          if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN && p_dev->fd >= 0) {
-             BTIF_TRACE_DEBUG2("%s: Closing bthid.ko fd = %d", __FUNCTION__, p_dev->fd);
-             close(p_dev->fd);
+             BTIF_TRACE_DEBUG2("%s: Closing uhid fd = %d", __FUNCTION__, p_dev->fd);
+             bta_hh_co_destroy(p_dev->fd);
              p_dev->fd = -1;
          }
      }
