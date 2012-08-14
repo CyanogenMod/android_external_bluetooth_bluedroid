@@ -61,6 +61,7 @@
 #include "bt_hci_bdroid.h"
 #include "bt_vendor_lib.h"
 #include "utils.h"
+#include "hci.h"
 #include "userial.h"
 
 #ifndef BTHC_DBG
@@ -79,11 +80,6 @@
 
 extern bt_vendor_interface_t *bt_vnd_if;
 extern int num_hci_cmd_pkts;
-void hci_h4_init(void);
-void hci_h4_cleanup(void);
-void hci_h4_send_msg(HC_BT_HDR *p_msg);
-uint16_t hci_h4_receive_msg(void);
-void hci_h4_get_acl_data_length(void);
 void lpm_init(void);
 void lpm_cleanup(void);
 void lpm_enable(uint8_t turn_on);
@@ -100,6 +96,7 @@ void btsnoop_close(void);
 
 bt_hc_callbacks_t *bt_hc_cbacks = NULL;
 BUFFER_Q tx_q;
+tHCI_IF *p_hci_if;
 
 /******************************************************************************
 **  Local type definitions
@@ -162,7 +159,16 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
     init_vnd_if(local_bdaddr);
 
     utils_init();
-    hci_h4_init();
+#ifdef HCI_USE_MCT
+    extern tHCI_IF hci_mct_func_table;
+    p_hci_if = &hci_mct_func_table;
+#else
+    extern tHCI_IF hci_h4_func_table;
+    p_hci_if = &hci_h4_func_table;
+#endif
+
+    p_hci_if->init();
+
     userial_init();
     lpm_init();
 
@@ -323,7 +329,7 @@ static void cleanup( void )
 
     lpm_cleanup();
     userial_close();
-    hci_h4_cleanup();
+    p_hci_if->cleanup();
     utils_cleanup();
 
     /* Calling vendor-specific part */
@@ -376,9 +382,10 @@ static void *bt_hc_worker_thread(void *arg)
         ready_events = 0;
         pthread_mutex_unlock(&hc_cb.mutex);
 
+#ifndef HCI_USE_MCT
         if (events & HC_EVENT_RX)
         {
-            hci_h4_receive_msg();
+            p_hci_if->rcv();
 
             if ((tx_cmd_pkts_pending == TRUE) && (num_hci_cmd_pkts > 0))
             {
@@ -389,6 +396,7 @@ static void *bt_hc_worker_thread(void *arg)
                 events |= HC_EVENT_TX;
             }
         }
+#endif
 
         if (events & HC_EVENT_PRELOAD)
         {
@@ -419,7 +427,7 @@ static void *bt_hc_worker_thread(void *arg)
                 result = bt_vnd_if->op(BT_VND_OP_SCO_CFG, NULL);
 
             if (result == -1)
-                hci_h4_get_acl_data_length();
+                p_hci_if->get_acl_max_len();
         }
 
         if (events & HC_EVENT_TX)
@@ -454,7 +462,7 @@ static void *bt_hc_worker_thread(void *arg)
                 p_msg = p_next_msg;
                 p_next_msg = utils_getnext(p_msg);
                 utils_remove_from_queue(&tx_q, p_msg);
-                hci_h4_send_msg(p_msg);
+                p_hci_if->send(p_msg);
             }
 
             if (tx_cmd_pkts_pending == TRUE)

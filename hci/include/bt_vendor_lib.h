@@ -101,9 +101,18 @@ typedef enum {
  *      Open UART port on where the BT Controller is attached.
  *      This is called before stack initialization.
  *  [input param]
- *      None.
+ *      A pointer to int array type for open file descriptors.
+ *      The mapping of HCI channel to fd slot in the int array is given in
+ *      bt_vendor_hci_channels_t.
+ *      And, it requires the vendor lib to fill up the content before returning
+ *      the call.
+ *      Typecasting conversion: (int (*)[]) param.
  *  [return]
- *      fd - the file descriptor of UART port for Bluetooth.
+ *      Numbers of opened file descriptors.
+     *      Valid number:
+     *          1 - CMD/EVT/ACL-In/ACL-Out via the same fd (e.g. UART)
+     *          2 - CMD/EVT on one fd, and ACL-In/ACL-Out on the other fd
+     *          4 - CMD, EVT, ACL-In, ACL-Out are on their individual fd
  *  [callback]
  *      None.
  */
@@ -168,6 +177,18 @@ typedef enum {
     BT_VND_PWR_OFF,
     BT_VND_PWR_ON,
 }  bt_vendor_power_state_t;
+
+/** Define HCI channel identifier in the file descriptors array
+    used in BT_VND_OP_USERIAL_OPEN operation.
+ */
+typedef enum {
+    CH_CMD,     // HCI Command channel
+    CH_EVT,     // HCI Event channel
+    CH_ACL_OUT, // HCI ACL downstream channel
+    CH_ACL_IN,  // HCI ACL upstream channel
+
+    CH_MAX      // Total channels
+}  bt_vendor_hci_channels_t;
 
 /** LPM disable/enable request */
 typedef enum {

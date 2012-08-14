@@ -47,13 +47,13 @@
 
 /******************************************************************************
  *
- *  Filename:      userial.c
+ *  Filename:      userial_mct.c
  *
- *  Description:   Contains open/read/write/close functions on serial port
+ *  Description:   Contains open/read/write/close functions on multi-channels
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_userial"
+#define LOG_TAG "bt_userial_mct"
 
 #include <utils/Log.h>
 #include <pthread.h>
@@ -70,6 +70,8 @@
 **  Constants & Macros
 ******************************************************************************/
 
+#define USERIAL_DBG TRUE
+
 #ifndef USERIAL_DBG
 #define USERIAL_DBG FALSE
 #endif
@@ -81,7 +83,6 @@
 #endif
 
 #define MAX_SERIAL_PORT (USERIAL_PORT_3 + 1)
-#define READ_LIMIT (BTHC_USERIAL_READ_MEM_SIZE - BT_HC_HDR_SIZE)
 
 enum {
     USERIAL_RX_EXIT,
@@ -94,6 +95,9 @@ enum {
 ******************************************************************************/
 
 extern bt_vendor_interface_t *bt_vnd_if;
+uint16_t hci_mct_receive_evt_msg(void);
+uint16_t hci_mct_receive_acl_msg(void);
+
 
 /******************************************************************************
 **  Local type definitions
@@ -101,7 +105,7 @@ extern bt_vendor_interface_t *bt_vnd_if;
 
 typedef struct
 {
-    int             fd;
+    int             fd[CH_MAX];
     uint8_t         port;
     pthread_t       read_thread;
     BUFFER_Q        rx_q;
@@ -155,21 +159,23 @@ static inline int is_signaled(fd_set* set)
 
 /*******************************************************************************
 **
-** Function        select_read
+** Function        userial_evt_read_thread
 **
-** Description     check if fd is ready for reading and listen for termination
-**                  signal. need to use select in order to avoid collision
-**                  between read and close on the same fd
+** Description     The reading thread on EVT and ACL_IN channels
 **
-** Returns         -1: termination
-**                 >=0: numbers of bytes read back from fd
+** Returns         void *
 **
 *******************************************************************************/
-static int select_read(int fd, uint8_t *pbuf, int len)
+static void *userial_read_thread(void *arg)
 {
     fd_set input;
-    int n = 0, ret = -1;
+    int n;
     char reason = 0;
+
+    USERIALDBG("Entering userial_read_thread()");
+
+    rx_flow_on = TRUE;
+    userial_running = 1;
 
     while (userial_running)
     {
@@ -177,20 +183,25 @@ static int select_read(int fd, uint8_t *pbuf, int len)
         FD_ZERO(&input);
         if (rx_flow_on == TRUE)
         {
-            FD_SET(fd, &input);
+            FD_SET(userial_cb.fd[CH_EVT], &input);
+            FD_SET(userial_cb.fd[CH_ACL_IN], &input);
         }
+
         int fd_max = create_signal_fds(&input);
-        fd_max = fd_max > fd ? fd_max : fd;
+        fd_max = (fd_max>userial_cb.fd[CH_EVT]) ? fd_max : userial_cb.fd[CH_EVT];
+        fd_max = (fd_max>userial_cb.fd[CH_ACL_IN]) ? fd_max : userial_cb.fd[CH_ACL_IN];
 
         /* Do the select */
+        n = 0;
         n = select(fd_max+1, &input, NULL, NULL, NULL);
         if(is_signaled(&input))
         {
             reason = reset_signal();
             if (reason == USERIAL_RX_EXIT)
             {
-                USERIALDBG("RX termination");
-                return -1;
+                ALOGI("exiting userial_read_thread");
+                userial_running = 0;
+                break;
             }
             else if (reason == USERIAL_RX_FLOW_OFF)
             {
@@ -207,91 +218,24 @@ static int select_read(int fd, uint8_t *pbuf, int len)
         if (n > 0)
         {
             /* We might have input */
-            if (FD_ISSET(fd, &input))
+            if (FD_ISSET(userial_cb.fd[CH_EVT], &input))
             {
-                ret = read(fd, pbuf, (size_t)len);
-                if (0 == ret)
-                    ALOGW( "read() returned 0!" );
+                hci_mct_receive_evt_msg();
+            }
 
-                return ret;
+            if (FD_ISSET(userial_cb.fd[CH_ACL_IN], &input))
+            {
+                hci_mct_receive_acl_msg();
             }
         }
         else if (n < 0)
             ALOGW( "select() Failed");
         else if (n == 0)
             ALOGW( "Got a select() TIMEOUT");
-
-    }
-
-    return ret;
-}
-
-/*******************************************************************************
-**
-** Function        userial_read_thread
-**
-** Description
-**
-** Returns         void *
-**
-*******************************************************************************/
-static void *userial_read_thread(void *arg)
-{
-    int rx_length = 0;
-    HC_BT_HDR *p_buf = NULL;
-    uint8_t *p;
-
-    USERIALDBG("Entering userial_read_thread()");
-
-    rx_flow_on = TRUE;
-    userial_running = 1;
-
-    while (userial_running)
-    {
-        if (bt_hc_cbacks)
-        {
-            p_buf = (HC_BT_HDR *) bt_hc_cbacks->alloc( \
-                                                BTHC_USERIAL_READ_MEM_SIZE);
-        }
-        else
-            p_buf = NULL;
-
-        if (p_buf != NULL)
-        {
-            p_buf->offset = 0;
-            p_buf->layer_specific = 0;
-
-            p = (uint8_t *) (p_buf + 1);
-            rx_length = select_read(userial_cb.fd, p, READ_LIMIT);
-        }
-        else
-        {
-            rx_length = 0;
-            utils_delay(100);
-            ALOGW("userial_read_thread() failed to gain buffers");
-            continue;
-        }
-
-
-        if (rx_length > 0)
-        {
-            p_buf->len = (uint16_t)rx_length;
-            utils_enqueue(&(userial_cb.rx_q), p_buf);
-            bthc_signal_event(HC_EVENT_RX);
-        }
-        else /* either 0 or < 0 */
-        {
-            ALOGW("select_read return size <=0:%d, exiting userial_read_thread",\
-                 rx_length);
-            /* if we get here, we should have a buffer */
-            bt_hc_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
-            /* negative value means exit thread */
-            break;
-        }
-    } /* for */
+    } /* while */
 
     userial_running = 0;
-    USERIALDBG("Leaving userial_read_thread()");
+    USERIALDBG("Leaving userial_evt_read_thread()");
     pthread_exit(NULL);
 
     return NULL;    // Compiler friendly
@@ -313,9 +257,12 @@ static void *userial_read_thread(void *arg)
 *******************************************************************************/
 uint8_t userial_init(void)
 {
+    int idx;
+
     USERIALDBG("userial_init");
     memset(&userial_cb, 0, sizeof(tUSERIAL_CB));
-    userial_cb.fd = -1;
+    for (idx=0; idx < CH_MAX; idx++)
+        userial_cb.fd[idx] = -1;
     utils_queue_init(&(userial_cb.rx_q));
     return TRUE;
 }
@@ -335,7 +282,6 @@ uint8_t userial_open(uint8_t port)
     struct sched_param param;
     int policy, result;
     pthread_attr_t thread_attr;
-    int fd_array[CH_MAX];
 
     USERIALDBG("userial_open(port:%d)", port);
 
@@ -355,42 +301,46 @@ uint8_t userial_open(uint8_t port)
     /* Calling vendor-specific part */
     if (bt_vnd_if)
     {
-        result = bt_vnd_if->op(BT_VND_OP_USERIAL_OPEN, &fd_array);
+        result = bt_vnd_if->op(BT_VND_OP_USERIAL_OPEN, &userial_cb.fd);
 
-        if (result != 1)
+        if ((result != 2) && (result != 4))
         {
             ALOGE("userial_open: wrong numbers of open fd in vendor lib [%d]!",
                     result);
-            ALOGE("userial_open: HCI UART expects only one open fd");
+            ALOGE("userial_open: HCI MCT expects 2 or 4 open file descriptors");
             bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
             return FALSE;
         }
-
-        userial_cb.fd = fd_array[0];
     }
     else
     {
         ALOGE("userial_open: missing vendor lib interface !!!");
-        ALOGE("userial_open: unable to open UART port");
+        ALOGE("userial_open: unable to open BT transport");
         return FALSE;
     }
 
-    if (userial_cb.fd == -1)
+    ALOGI("CMD=%d, EVT=%d, ACL_Out=%d, ACL_In=%d", \
+        userial_cb.fd[CH_CMD], userial_cb.fd[CH_EVT], \
+        userial_cb.fd[CH_ACL_OUT], userial_cb.fd[CH_ACL_IN]);
+
+    if ((userial_cb.fd[CH_CMD] == -1) || (userial_cb.fd[CH_EVT] == -1) ||
+        (userial_cb.fd[CH_ACL_OUT] == -1) || (userial_cb.fd[CH_ACL_IN] == -1))
     {
-        ALOGE("userial_open: failed to open UART port");
+        ALOGE("userial_open: failed to open BT transport");
+        bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
         return FALSE;
     }
-
-    USERIALDBG( "fd = %d", userial_cb.fd);
 
     userial_cb.port = port;
 
+    /* Start listening thread */
     pthread_attr_init(&thread_attr);
 
     if (pthread_create(&(userial_cb.read_thread), &thread_attr, \
                        userial_read_thread, NULL) != 0 )
     {
         ALOGE("pthread_create failed!");
+        bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
         return FALSE;
     }
 
@@ -400,7 +350,7 @@ uint8_t userial_open(uint8_t port)
 #if (BTHC_LINUX_BASE_POLICY!=SCHED_NORMAL)
         param.sched_priority = BTHC_USERIAL_READ_THREAD_PRIORITY;
 #endif
-        result = pthread_setschedparam(userial_cb.read_thread, policy, &param);
+        result=pthread_setschedparam(userial_cb.read_thread,policy,&param);
         if (result != 0)
         {
             ALOGW("userial_open: pthread_setschedparam failed (%s)", \
@@ -415,7 +365,7 @@ uint8_t userial_open(uint8_t port)
 **
 ** Function        userial_read
 **
-** Description     Read data from the userial port
+** Description     Read data from the userial channel
 **
 ** Returns         Number of bytes actually read from the userial port and
 **                 copied into p_data.  This may be less than len.
@@ -423,46 +373,14 @@ uint8_t userial_open(uint8_t port)
 *******************************************************************************/
 uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
 {
-    uint16_t total_len = 0;
-    uint16_t copy_len = 0;
-    uint8_t *p_data = NULL;
+    int ret = -1;
+    int ch_idx = (msg_id == MSG_HC_TO_STACK_HCI_EVT) ? CH_EVT : CH_ACL_IN;
 
-    do
-    {
-        if(userial_cb.p_rx_hdr != NULL)
-        {
-            p_data = ((uint8_t *)(userial_cb.p_rx_hdr + 1)) + \
-                     (userial_cb.p_rx_hdr->offset);
+    ret = read(userial_cb.fd[ch_idx], p_buffer, (size_t)len);
+    if (ret <= 0)
+        ALOGW( "userial_read: read() returned %d!", ret);
 
-            if((userial_cb.p_rx_hdr->len) <= (len - total_len))
-                copy_len = userial_cb.p_rx_hdr->len;
-            else
-                copy_len = (len - total_len);
-
-            memcpy((p_buffer + total_len), p_data, copy_len);
-
-            total_len += copy_len;
-
-            userial_cb.p_rx_hdr->offset += copy_len;
-            userial_cb.p_rx_hdr->len -= copy_len;
-
-            if(userial_cb.p_rx_hdr->len == 0)
-            {
-                if (bt_hc_cbacks)
-                    bt_hc_cbacks->dealloc((TRANSAC) userial_cb.p_rx_hdr, \
-                                              (char *) (userial_cb.p_rx_hdr+1));
-
-                userial_cb.p_rx_hdr = NULL;
-            }
-        }
-
-        if(userial_cb.p_rx_hdr == NULL)
-        {
-            userial_cb.p_rx_hdr=(HC_BT_HDR *)utils_dequeue(&(userial_cb.rx_q));
-        }
-    } while ((userial_cb.p_rx_hdr != NULL) && (total_len < len));
-
-    return total_len;
+    return (uint16_t) ((ret >= 0) ? ret : 0);
 }
 
 /*******************************************************************************
@@ -478,10 +396,11 @@ uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
 uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
 {
     int ret, total = 0;
+    int ch_idx = (msg_id == MSG_STACK_TO_HC_HCI_CMD) ? CH_CMD : CH_ACL_OUT;
 
     while(len != 0)
     {
-        ret = write(userial_cb.fd, p_data+total, len);
+        ret = write(userial_cb.fd[ch_idx], p_data+total, len);
         total += ret;
         len -= ret;
     }
@@ -500,10 +419,9 @@ uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
 *******************************************************************************/
 void userial_close(void)
 {
-    int result;
-    TRANSAC p_buf;
+    int idx, result;
 
-    USERIALDBG("userial_close(fd:%d)", userial_cb.fd);
+    USERIALDBG("userial_close");
 
     if (userial_running)
         send_wakeup_signal(USERIAL_RX_EXIT);
@@ -515,15 +433,8 @@ void userial_close(void)
     if (bt_vnd_if)
         bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
 
-    userial_cb.fd = -1;
-
-    if (bt_hc_cbacks)
-    {
-        while ((p_buf = utils_dequeue (&(userial_cb.rx_q))) != NULL)
-        {
-            bt_hc_cbacks->dealloc(p_buf, (char *) ((HC_BT_HDR *)p_buf+1));
-        }
-    }
+    for (idx=0; idx < CH_MAX; idx++)
+        userial_cb.fd[idx] = -1;
 }
 
 /*******************************************************************************

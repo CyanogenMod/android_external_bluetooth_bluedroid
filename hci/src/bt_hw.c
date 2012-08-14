@@ -60,16 +60,15 @@
 #include <pthread.h>
 #include "bt_vendor_lib.h"
 #include "bt_hci_bdroid.h"
+#include "hci.h"
 #include "userial.h"
 
 /******************************************************************************
 **  Externs
 ******************************************************************************/
 
-uint8_t hci_h4_send_int_cmd(uint16_t opcode, HC_BT_HDR *p_buf, \
-                                  tINT_CMD_CBACK p_cback);
+extern tHCI_IF *p_hci_if;
 void lpm_vnd_cback(uint8_t vnd_result);
-void hci_h4_get_acl_data_length(void);
 
 /******************************************************************************
 **  Variables
@@ -115,7 +114,7 @@ static void fwcfg_cb(bt_vendor_op_result_t result)
 static void scocfg_cb(bt_vendor_op_result_t result)
 {
     /* Continue rest of postload process*/
-    hci_h4_get_acl_data_length();
+    p_hci_if->get_acl_max_len();
 }
 
 /******************************************************************************
@@ -189,7 +188,7 @@ static void dealloc(void *p_buf)
 ******************************************************************************/
 static uint8_t xmit_cb(uint16_t opcode, void *p_buf, tINT_CMD_CBACK p_cback)
 {
-    return hci_h4_send_int_cmd(opcode, (HC_BT_HDR *)p_buf, p_cback);
+    return p_hci_if->send_int_cmd(opcode, (HC_BT_HDR *)p_buf, p_cback);
 }
 
 /*****************************************************************************
