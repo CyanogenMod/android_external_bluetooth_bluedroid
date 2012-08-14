@@ -130,7 +130,7 @@ uint8_t userial_open(uint8_t port);
 **                 copied into p_data.  This may be less than len.
 **
 *******************************************************************************/
-uint16_t  userial_read(uint8_t *p_buffer, uint16_t len);
+uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len);
 
 /*******************************************************************************
 **
@@ -142,7 +142,7 @@ uint16_t  userial_read(uint8_t *p_buffer, uint16_t len);
 **                 may be less than len.
 **
 *******************************************************************************/
-uint16_t userial_write(uint8_t *p_data, uint16_t len);
+uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len);
 
 /*******************************************************************************
 **
