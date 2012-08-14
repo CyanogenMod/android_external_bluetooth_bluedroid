@@ -513,6 +513,35 @@ static void bta_ag_send_ind(tBTA_AG_SCB *p_scb, UINT16 id, UINT16 value, BOOLEAN
         p_scb->callsetup_ind = (UINT8)value;
     }
 
+    if ((id == BTA_AG_IND_SERVICE) && (on_demand == FALSE))
+    {
+        if (value == p_scb->service_ind)
+            return;
+
+        p_scb->service_ind = (UINT8)value;
+    }
+    if ((id == BTA_AG_IND_SIGNAL) && (on_demand == FALSE))
+    {
+        if (value == p_scb->signal_ind)
+            return;
+
+        p_scb->signal_ind = (UINT8)value;
+    }
+    if ((id == BTA_AG_IND_ROAM) && (on_demand == FALSE))
+    {
+        if (value == p_scb->roam_ind)
+            return;
+
+        p_scb->roam_ind = (UINT8)value;
+    }
+    if ((id == BTA_AG_IND_BATTCHG) && (on_demand == FALSE))
+    {
+        if (value == p_scb->battchg_ind)
+            return;
+
+        p_scb->battchg_ind = (UINT8)value;
+    }
+
     if ((id == BTA_AG_IND_CALLHELD) && (on_demand == FALSE))
     {
         /* call swap could result in sending callheld=1 multiple times */
@@ -1558,6 +1587,10 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             /* store local values */
             p_scb->call_ind = p_result->data.str[0] - '0';
             p_scb->callsetup_ind = p_result->data.str[2] - '0';
+            p_scb->service_ind = p_result->data.str[4] - '0';
+            p_scb->signal_ind = p_result->data.str[6] - '0';
+            p_scb->roam_ind = p_result->data.str[8] - '0';
+            p_scb->battchg_ind = p_result->data.str[10] - '0';
             APPL_TRACE_DEBUG2("cind call:%d callsetup:%d", p_scb->call_ind, p_scb->callsetup_ind);
 
             bta_ag_send_result(p_scb, code, p_result->data.str, 0);     

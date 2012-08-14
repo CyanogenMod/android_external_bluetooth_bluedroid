@@ -270,6 +270,10 @@ typedef struct
     UINT8               post_sco;       /* action to perform after sco event */
     UINT8               call_ind;       /* CIEV call indicator value */
     UINT8               callsetup_ind;  /* CIEV callsetup indicator value */
+    UINT8               service_ind;    /* CIEV service indicator value */
+    UINT8               signal_ind;     /* CIEV signal indicator value */
+    UINT8               roam_ind;       /* CIEV roam indicator value */
+    UINT8               battchg_ind;    /* CIEV battery charge indicator value */
     UINT8               callheld_ind;   /* CIEV call held indicator value */
     BOOLEAN             retry_with_sco_only; /* indicator to try with SCO only when eSCO fails */
     UINT32              bia_masked_out; /* indicators HF does not want us to send */
