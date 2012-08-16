@@ -64,8 +64,10 @@
 int btsock_thread_init();
 int btsock_thread_add_fd(int handle, int fd, int type, int flags, uint32_t user_id);
 int btsock_thread_wakeup(int handle);
+int btsock_thread_post_cmd(int handle, int cmd_type, const unsigned char* cmd_data, int data_size, uint32_t user_id);
 typedef void (*btsock_signaled_cb)(int fd, int type, int flags, uint32_t user_id);
-int btsock_thread_create(btsock_signaled_cb callback);
+typedef void (*btsock_cmd_cb)(int cmd_fd, int type, int size, uint32_t user_id);
+int btsock_thread_create(btsock_signaled_cb callback, btsock_cmd_cb cmd_callback);
 int btsock_thread_exit(int handle);
 #endif
 

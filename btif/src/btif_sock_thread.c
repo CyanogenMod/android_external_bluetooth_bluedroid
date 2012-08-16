@@ -75,6 +75,7 @@
 #include <sys/select.h>
 #include <sys/poll.h>
 #include <cutils/sockets.h>
+#include <alloca.h>
 
 #define LOG_TAG "BTIF_SOCK"
 #include "btif_common.h"
@@ -110,9 +111,10 @@
 #define IS_READ(e) ((e) & POLLIN)
 #define IS_WRITE(e) ((e) & POLLOUT)
 /*cmd executes in socket poll thread */
-#define CMD_WAKEUP  1
-#define CMD_EXIT    2
-#define CMD_ADD_FD  3
+#define CMD_WAKEUP       1
+#define CMD_EXIT         2
+#define CMD_ADD_FD       3
+#define CMD_USER_PRIVATE 4
 
 typedef struct {
     struct pollfd pfd;
@@ -127,6 +129,7 @@ typedef struct {
     int psi[MAX_POLL]; //index of poll slot
     volatile pid_t thread_id;
     btsock_signaled_cb callback;
+    btsock_cmd_cb cmd_callback;
     int used;
 } thread_slot_t;
 static thread_slot_t ts[MAX_THREAD];
@@ -231,23 +234,29 @@ static void free_thread_slot(int h)
 }
 int btsock_thread_init()
 {
-    debug("in");
-    init_slot_lock(&thread_slot_lock);
-    int h;
-    for(h = 0; h < MAX_THREAD; h++)
+    static int initialized;
+    debug("in initialized:%d", initialized);
+    if(!initialized)
     {
-       ts[h].cmd_fdr = ts[h].cmd_fdw = -1;
-       ts[h].used = 0;
-       ts[h].thread_id = -1;
-       ts[h].poll_count = 0;
-       ts[h].callback = NULL;
+        initialized = 1;
+        init_slot_lock(&thread_slot_lock);
+        int h;
+        for(h = 0; h < MAX_THREAD; h++)
+        {
+            ts[h].cmd_fdr = ts[h].cmd_fdw = -1;
+            ts[h].used = 0;
+            ts[h].thread_id = -1;
+            ts[h].poll_count = 0;
+            ts[h].callback = NULL;
+            ts[h].cmd_callback = NULL;
+        }
     }
     return TRUE;
 }
-int btsock_thread_create(btsock_signaled_cb callback)
+int btsock_thread_create(btsock_signaled_cb callback, btsock_cmd_cb cmd_callback)
 {
     int ret = FALSE;
-    asrt(callback);
+    asrt(callback || cmd_callback);
     lock_slot(&thread_slot_lock);
     int h = alloc_thread_slot();
     unlock_slot(&thread_slot_lock);
@@ -259,6 +268,7 @@ int btsock_thread_create(btsock_signaled_cb callback)
         {
             debug("h:%d, thread id:%d", h, ts[h].thread_id);
             ts[h].callback = callback;
+            ts[h].cmd_callback = cmd_callback;
         }
         else
         {
@@ -331,7 +341,39 @@ int btsock_thread_add_fd(int h, int fd, int type, int flags, uint32_t user_id)
     debug("adding fd:%d, flags:0x%x", fd, flags);
     return send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0) == sizeof(cmd);
 }
-
+int btsock_thread_post_cmd(int h, int type, const unsigned char* data, int size, uint32_t user_id)
+{
+    if(h < 0 || h >= MAX_THREAD)
+    {
+        error("invalid bt thread handle:%d", h);
+        return FALSE;
+    }
+    if(ts[h].cmd_fdw == -1)
+    {
+        error("cmd socket is not created. socket thread may not initialized");
+        return FALSE;
+    }
+    sock_cmd_t cmd = {CMD_USER_PRIVATE, 0, type, size, user_id};
+    debug("post cmd type:%d, size:%d, h:%d, ", type, size, h);
+    sock_cmd_t* cmd_send = &cmd;
+    int size_send = sizeof(cmd);
+    if(data && size)
+    {
+        size_send = sizeof(cmd) + size;
+        cmd_send = (sock_cmd_t*)alloca(size_send);
+        if(cmd_send)
+        {
+            *cmd_send = cmd;
+            memcpy(cmd_send + 1, data, size);
+        }
+        else
+        {
+            error("alloca failed at h:%d, cmd type:%d, size:%d", h, type, size_send);
+            return FALSE;
+        }
+    }
+    return send(ts[h].cmd_fdw, cmd_send, size_send, 0) == size_send;
+}
 int btsock_thread_wakeup(int h)
 {
     if(h < 0 || h >= MAX_THREAD)
@@ -376,6 +418,7 @@ static void init_poll(int h)
     ts[h].poll_count = 0;
     ts[h].thread_id = -1;
     ts[h].callback = NULL;
+    ts[h].cmd_callback = NULL;
     for(i = 0; i < MAX_POLL; i++)
     {
         ts[h].ps[i].pfd.fd = -1;
@@ -476,6 +519,12 @@ static int process_cmd_sock(int h)
             break;
         case CMD_WAKEUP:
             debug("CMD_WAKEUP");
+            break;
+        case CMD_USER_PRIVATE:
+            debug("CMD_USER_PRIVATE");
+            asrt(ts[h].cmd_callback);
+            if(ts[h].cmd_callback)
+                ts[h].cmd_callback(fd, cmd.type, cmd.flags, cmd.user_id);
             break;
         case CMD_EXIT:
             debug("CMD_EXIT");

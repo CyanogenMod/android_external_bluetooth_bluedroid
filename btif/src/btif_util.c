@@ -137,6 +137,12 @@ UINT32 devclass2uint(DEV_CLASS dev_class)
 
     return cod;
 }
+void uint2devclass(UINT32 cod, DEV_CLASS dev_class)
+{
+    dev_class[2] = (UINT8)cod;
+    dev_class[1] = (UINT8)(cod >> 8);
+    dev_class[0] = (UINT8)(cod >> 16);
+}
 
 static const UINT8  sdp_base_uuid[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
                                        0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};

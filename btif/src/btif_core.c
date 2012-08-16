@@ -77,7 +77,7 @@
 #include "btif_sock.h"
 #include "btif_pan.h"
 #include "btif_profile_queue.h"
-
+#include "btif_config.h"
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
@@ -374,6 +374,13 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     const uint8_t null_bdaddr[BD_ADDR_LEN] = {0,0,0,0,0,0};
 
     BTIF_TRACE_DEBUG1("Look for bdaddr storage path in prop %s", PROPERTY_BT_BDADDR_PATH);
+    int val_size = sizeof(val);
+    if(btif_config_get_str("Local", "Adapter", "Address", val, &val_size))
+    {
+        str2bd(val, local_addr);
+        BTIF_TRACE_DEBUG1("local bdaddr from bt_config.xml is  %s", val);
+        return;
+    }
 
     /* Get local bdaddr storage path from property */
     if (property_get(PROPERTY_BT_BDADDR_PATH, val, NULL))
@@ -435,6 +442,11 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
         if (property_set(PERSIST_BDADDR_PROPERTY, (char*)bdstr) < 0)
             BTIF_TRACE_ERROR1("Failed to set random BDA in prop %s",PERSIST_BDADDR_PROPERTY);
     }
+    //save the bd address to config file
+    bdstr_t bdstr;
+    bd2str(local_addr, &bdstr);
+    btif_config_set_str("Local", "Adapter", "Address", bdstr);
+    btif_config_save();
 }
 
 /*****************************************************************************
@@ -456,7 +468,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
 bt_status_t btif_init_bluetooth()
 {
     UINT8 status;
-
+    btif_config_init();
     bte_main_boot_entry();
 
     /* As part of the init, fetch the local BD ADDR */
@@ -617,6 +629,8 @@ bt_status_t btif_disable_bluetooth(void)
     btif_pan_cleanup();
 
     status = BTA_DisableBluetooth();
+
+    btif_config_flush();
 
     if (status != BTA_SUCCESS)
     {

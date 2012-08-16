@@ -830,7 +830,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
 
                 properties[0].type = BT_PROPERTY_BDNAME;
                 properties[0].val = p_search_data->disc_res.bd_name;
-                properties[0].len = strlen((char *)p_search_data->disc_res.bd_name)+1;
+                properties[0].len = strlen((char *)p_search_data->disc_res.bd_name);
                 bdcpy(bdaddr.address, p_search_data->disc_res.bd_addr);
 
                 status = btif_storage_set_remote_device_property(&bdaddr, &properties[0]);
@@ -900,7 +900,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
                 if (bdname.name[0]) {
                     BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
                                                BT_PROPERTY_BDNAME,
-                                               strlen((char *)bdname.name)+1, &bdname);
+                                               strlen((char *)bdname.name), &bdname);
                     num_properties++;
                 }
 

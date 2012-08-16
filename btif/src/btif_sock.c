@@ -110,7 +110,7 @@ bt_status_t btif_sock_init()
         //binit = 1;
         debug("btsock initializing...");
         btsock_thread_init();
-        int handle = btsock_thread_create(btsock_signaled);
+        int handle = btsock_thread_create(btsock_signaled, NULL);
         if(handle >= 0 && btsock_rfc_init(handle) == BT_STATUS_SUCCESS)
         {
             debug("btsock successfully initialized");

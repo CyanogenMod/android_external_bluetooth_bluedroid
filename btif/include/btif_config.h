@@ -1,6 +1,6 @@
 /************************************************************************************
  *
- *  Copyright (C) 2009-2012 Broadcom Corporation
+ *  Copyright (C) 2009-2011 Broadcom Corporation
  *
  *  This program is the proprietary software of Broadcom Corporation and/or its
  *  licensors, and may only be used, duplicated, modified or distributed
@@ -45,68 +45,51 @@
  *
  ************************************************************************************/
 
+
 /************************************************************************************
  *
- *  Filename:      btif_util.h
+ *  Filename:      btif_config.h
  *
- *  Description:
+ *  Description:   Bluetooth configuration Interface
+ *
  *
  ***********************************************************************************/
 
-#ifndef BTIF_UTIL_H
-#define BTIF_UTIL_H
+#ifndef btif_config_h_
+#define btif_config_h_
+#ifdef __cplusplus
+#include <stdint.h>
+extern "C" {
+#endif
+#define BTIF_CFG_TYPE_INVALID   0
+#define BTIF_CFG_TYPE_STR       1
+#define BTIF_CFG_TYPE_INT      (1 << 1)
+#define BTIF_CFG_TYPE_BIN      (1 << 2)
+#define BTIF_CFG_TYPE_VOLATILE (1 << 15)
+int btif_config_init();
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_hf.h>
-#include <utils/Log.h>
+int btif_config_exist(const char* section, const char* key, const char* name);
+int btif_config_get_int(const char* section, const char* key, const char* name, int* value);
+int btif_config_set_int(const char* section, const char* key, const char* name, int value);
+int btif_config_get_str(const char* section, const char* key, const char* name, char* value, int* bytes);
+int btif_config_set_str(const char* section, const char* key, const char* name, const char* value);
 
-#include "data_types.h"
-#include "bt_types.h"
+int btif_config_get(const char* section, const char* key, const char* name, char* value, int* bytes, int* type);
+int btif_config_set(const char* section, const char* key, const char* name, const char*  value, int bytes, int type);
 
-/************************************************************************************
-**  Constants & Macros
-************************************************************************************/
+int btif_config_remove(const char* section, const char* key, const char* name);
 
-#define CASE_RETURN_STR(const) case const: return #const;
+short btif_config_next_key(short current_key_pos, const char* section, char * key_name, int* key_name_bytes);
+short btif_config_next_value(short pos, const char* section, const char* key, char* value_name, int* value_name_bytes);
 
-/************************************************************************************
-**  Type definitions for callback functions
-************************************************************************************/
+typedef void (*btif_config_enum_callback)(void* user_data, const char* section, const char* key, const char* name,
+                                          const char*  value, int bytes, int type);
+int btif_config_enum(btif_config_enum_callback cb, void* user_data);
 
-typedef char bdstr_t[18];
+int btif_config_save();
+void btif_config_flush();
+#ifdef __cplusplus
+}
+#endif
 
-/************************************************************************************
-**  Type definitions and return values
-************************************************************************************/
-
-
-/************************************************************************************
-**  Functions
-************************************************************************************/
-
-const char* dump_bt_status(bt_status_t status);
-const char* dump_dm_search_event(UINT16 event);
-const char* dump_hf_event(UINT16 event);
-const char* dump_hh_event(UINT16 event);
-const char* dump_hf_conn_state(UINT16 event);
-const char* dump_hf_call_state(bthf_call_state_t call_state);
-const char* dump_property_type(bt_property_type_t type);
-const char* dump_hf_audio_state(UINT16 event);
-const char* dump_adapter_scan_mode(bt_scan_mode_t mode);
-const char* dump_thread_evt(bt_cb_thread_evt evt);
-
-const char* dump_av_conn_state(UINT16 event);
-const char* dump_av_audio_state(UINT16 event);
-
-int str2bd(char *str, bt_bdaddr_t *addr);
-char *bd2str(bt_bdaddr_t *addr, bdstr_t *bdstr);
-
-UINT32 devclass2uint(DEV_CLASS dev_class);
-void uint2devclass(UINT32 dev, DEV_CLASS dev_class);
-void uuid16_to_uuid128(uint16_t uuid16, bt_uuid_t* uuid128);
-
-void uuid_to_string(bt_uuid_t *p_uuid, char *str);
-void string_to_uuid(char *str, bt_uuid_t *p_uuid);
-int ascii_2_hex (char *p_ascii, int len, UINT8 *p_hex);
-
-#endif /* BTIF_UTIL_H */
+#endif

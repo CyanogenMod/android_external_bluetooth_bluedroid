@@ -313,7 +313,7 @@ void create_tap_read_thread(int tap_fd)
     debug("in");
     if(pth < 0)
     {
-        pth = btsock_thread_create(btpan_tap_fd_signaled);
+        pth = btsock_thread_create(btpan_tap_fd_signaled, NULL);
         if(pth >= 0)
             btsock_thread_add_fd(pth, tap_fd, 0, SOCK_THREAD_FD_RD, 0);
     }

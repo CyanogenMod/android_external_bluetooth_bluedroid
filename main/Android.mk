@@ -37,6 +37,8 @@ LOCAL_SRC_FILES += \
     ../btif/src/btif_sock_sdp.c \
     ../btif/src/btif_sock_util.c \
     ../btif/src/btif_pan.c \
+    ../btif/src/btif_config.c \
+    ../btif/src/btif_config_util.cpp \
     ../btif/src/btif_profile_queue.c
 
 # callouts
@@ -88,6 +90,7 @@ LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../embdrv/sbc/encoder/include \
 	$(LOCAL_PATH)/../audio_a2dp_hw \
 	$(bdroid_C_INCLUDES) \
+	external/tinyxml2
 
 LOCAL_CFLAGS += -DBUILDCFG $(bdroid_CFLAGS) -Werror -Wno-error=maybe-uninitialized -Wno-error=uninitialized
 
@@ -114,7 +117,7 @@ LOCAL_SHARED_LIBRARIES := \
     libbt-hci
 
 #LOCAL_WHOLE_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_stack libbt-brcm_bta
-LOCAL_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_bta libbt-brcm_stack
+LOCAL_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_bta libbt-brcm_stack libtinyxml2
 
 LOCAL_MODULE := bluetooth.default
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
