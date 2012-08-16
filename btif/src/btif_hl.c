@@ -232,7 +232,8 @@ BOOLEAN btif_hl_if_channel_setup_pending(int channel_id, UINT8 *p_app_idx, UINT8
         if (found)
             break;
     }
-    BTIF_TRACE_DEBUG5("%s found=%d channel_id=0x%08x",  __FUNCTION__, found, channel_id, *p_app_idx, *p_mcl_idx);
+    BTIF_TRACE_DEBUG5("%s found=%d channel_id=0x%08x",
+                      __FUNCTION__, found, channel_id, *p_app_idx, *p_mcl_idx);
     return found;
 
 }
@@ -280,12 +281,13 @@ void btif_hl_tmr_hdlr(TIMER_LIST_ENT *tle)
 
             if (p_mcb->cch_timer_active)
             {
-                BTIF_TRACE_DEBUG5("%app_idx=%d, mcl_idx=%d timer_active=%d cch_time.in_use=%d mcl-connected=%d",
-                                  i, j, p_mcb->cch_timer_active,  p_mcb->cch_timer.in_use, p_mcb->is_connected);
+                BTIF_TRACE_DEBUG3("%app_idx=%d, mcl_idx=%d mcl-connected=%d",
+                                  i, j,  p_mcb->is_connected);
                 p_mcb->cch_timer_active = FALSE;
                 if (p_mcb->is_connected)
                 {
-                    BTIF_TRACE_DEBUG3("CCH idle timeout Close CCH app_idx=%d mcl_idx=%d mcl_handle=%d",i ,j,  p_mcb->mcl_handle);
+                    BTIF_TRACE_DEBUG3("Idle timeout Close CCH app_idx=%d mcl_idx=%d mcl_handle=%d",
+                                      i ,j, p_mcb->mcl_handle);
                     BTA_HlCchClose(p_mcb->mcl_handle);
                 }
                 else
@@ -329,7 +331,8 @@ void btif_hl_start_cch_timer(UINT8 app_idx, UINT8 mcl_idx)
 {
     btif_hl_mcl_cb_t    *p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
     BTIF_TRACE_DEBUG5("%s app_idx=%d, mcl_idx=%d  timer_active=%d timer_in_use=%d",
-                      __FUNCTION__,app_idx, mcl_idx,   p_mcb->cch_timer_active, p_mcb->cch_timer.in_use);
+                      __FUNCTION__,app_idx, mcl_idx,
+                      p_mcb->cch_timer_active, p_mcb->cch_timer.in_use);
 
     p_mcb->cch_timer_active = TRUE;
     if (!p_mcb->cch_timer.in_use)
@@ -643,6 +646,8 @@ BOOLEAN btif_hl_is_reconnect_possible(UINT8 app_idx, UINT8 mcl_idx,  int mdep_cf
     BOOLEAN              stream_mode_avail=FALSE;
     UINT16               data_type = p_acb->sup_feature.mdep[mdep_cfg_idx].mdep_cfg.data_cfg[0].data_type;
     tBTA_HL_MDEP_ID      peer_mdep_id = p_dch_open_api->peer_mdep_id;
+    UINT8                mdl_idx;
+
 
     BTIF_TRACE_DEBUG4("%s app_idx=%d mcl_idx=%d mdep_cfg_idx=%d",
                       __FUNCTION__, app_idx, mcl_idx, mdep_cfg_idx  );
@@ -679,9 +684,12 @@ BOOLEAN btif_hl_is_reconnect_possible(UINT8 app_idx, UINT8 mcl_idx,  int mdep_cf
         if (p_mdl->base.active &&
             p_mdl->extra.data_type ==data_type &&
             (p_mdl->extra.peer_mdep_id != BTA_HL_INVALID_MDEP_ID && p_mdl->extra.peer_mdep_id == peer_mdep_id) &&
-            memcpy(p_mdl->base.peer_bd_addr, p_mcb->bd_addr,sizeof(BD_ADDR) ))
+            memcpy(p_mdl->base.peer_bd_addr, p_mcb->bd_addr,sizeof(BD_ADDR) ) &&
+            p_mdl->base.mdl_id &&
+            !btif_hl_find_mdl_idx(app_idx, mcl_idx,p_mdl->base.mdl_id, &mdl_idx))
         {
-            BTIF_TRACE_DEBUG2("i=%d active=%d match step1", i, p_mdl->base.active );
+            BTIF_TRACE_DEBUG3("i=%d Matched active=%d   mdl_id =%d",
+                              i, p_mdl->base.active, p_mdl->base.mdl_id);
             if (!use_mdl_dch_mode)
             {
                 if (p_mdl->base.dch_mode == dch_mode)
@@ -1637,7 +1645,7 @@ static int btif_hl_get_next_channel_id(UINT8 app_id){
     int channel_id;
     btif_hl_cb.next_channel_id++;
     channel_id = (app_id << 16) + next_channel_id;
-    BTIF_TRACE_DEBUG4("%s channel_id=0x%08x, app_id=0x%02x0000 next_channel_id=0x%04x", __FUNCTION__,
+    BTIF_TRACE_DEBUG4("%s channel_id=0x%08x, app_id=0x%02x next_channel_id=0x%04x", __FUNCTION__,
                       channel_id, app_id,  next_channel_id);
     return channel_id;
 }
@@ -1725,17 +1733,13 @@ BOOLEAN  btif_hl_save_mdl_cfg(UINT8 app_id, UINT8 item_idx,
 
                 if (!btif_hl_find_peer_mdep_id(p_acb->app_id, p_mcb->bd_addr,
                                                p_acb->sup_feature.mdep[p_mcb->pcb.mdep_cfg_idx].mdep_cfg.mdep_role,
-                                               p_acb->sup_feature.mdep[p_mcb->pcb.mdep_cfg_idx].mdep_cfg.data_cfg[0].data_type, &p_mdl->extra.peer_mdep_id))
+                                               p_acb->sup_feature.mdep[p_mcb->pcb.mdep_cfg_idx].mdep_cfg.data_cfg[0].data_type,
+                                               &p_mdl->extra.peer_mdep_id))
                 {
                     p_mdl->extra.peer_mdep_id = BTA_HL_INVALID_MDEP_ID;
                 }
-                BTIF_TRACE_DEBUG6("channel_id=0x%08x mdep_cfg_idx=%d, data_type=0x%04x mdep_role=%d local_mdep_id=%d peer_mdep_id=%d",
-                                  *p_channel_id,
-                                  p_mdl->extra.mdep_cfg_idx,
-                                  p_mdl->extra.data_type,
-                                  p_mdl->base.local_mdep_role,
-                                  p_mdl->base.local_mdep_id,
-                                  p_mdl->extra.peer_mdep_id);
+                BTIF_TRACE_DEBUG4("%s app_idx=%d item_idx=%d mld_id=0x%x",
+                                  __FUNCTION__, app_idx, item_idx, p_mdl->base.mdl_id);
                 evt_param.update_mdl.app_idx = app_idx;
                 len = sizeof(btif_hl_update_mdl_t);
                 BTIF_TRACE_DEBUG1("send BTIF_HL_UPDATE_MDL event app_idx=%d  ",app_idx);
@@ -2921,7 +2925,8 @@ static BOOLEAN btif_hl_proc_dch_open_cfm(tBTA_HL *p_data)
                 if (btif_hl_create_socket(app_idx, mcl_idx, mdl_idx))
                 {
                     status = TRUE;
-                    BTIF_TRACE_DEBUG4("app_idx=%d mcl_idx=%d mdl_idx=%d p_dcb->channel_id=0x%08x",  app_idx, mcl_idx, mdl_idx, p_dcb->channel_id);
+                    BTIF_TRACE_DEBUG4("app_idx=%d mcl_idx=%d mdl_idx=%d p_dcb->channel_id=0x%08x",
+                                      app_idx, mcl_idx, mdl_idx, p_dcb->channel_id);
                     btif_hl_clean_pcb(p_pcb);
                 }
                 else
@@ -2994,7 +2999,8 @@ static BOOLEAN btif_hl_proc_dch_reconnect_cfm(tBTA_HL *p_data)
                 if (btif_hl_create_socket(app_idx, mcl_idx, mdl_idx))
                 {
                     status = TRUE;
-                    BTIF_TRACE_DEBUG4("app_idx=%d mcl_idx=%d mdl_idx=%d p_dcb->channel_id=0x%08x",  app_idx, mcl_idx, mdl_idx, p_dcb->channel_id);
+                    BTIF_TRACE_DEBUG4("app_idx=%d mcl_idx=%d mdl_idx=%d p_dcb->channel_id=0x%08x",
+                                      app_idx, mcl_idx, mdl_idx, p_dcb->channel_id);
                     btif_hl_clean_pcb(p_pcb);
                 }
                 else
@@ -3293,7 +3299,8 @@ static BOOLEAN btif_hl_proc_app_data(UINT8 app_idx){
             }
             else if (p_acb->sup_feature.advertize_source_sdp != p_nv->sup_feature.advertize_source_sdp)
             {
-                BTIF_TRACE_DEBUG1("advertize_source_sdp mismatch advertize_source_sdp=0x%x", p_nv->sup_feature.advertize_source_sdp);
+                BTIF_TRACE_DEBUG1("advertize_source_sdp mismatch advertize_source_sdp=0x%x",
+                                  p_nv->sup_feature.advertize_source_sdp);
             }
             else if (p_acb->sup_feature.num_of_mdeps != p_nv->sup_feature.num_of_mdeps)
             {
@@ -3301,6 +3308,7 @@ static BOOLEAN btif_hl_proc_app_data(UINT8 app_idx){
             }
             else
             {
+                 //TODO remove debug after testing completed
                 BTIF_TRACE_DEBUG1("Step1 match for app_idx=%d now check mdep cfg", app_idx);
                 is_match = TRUE;
                 num_mdeps = p_acb->sup_feature.num_of_mdeps;
@@ -3310,8 +3318,10 @@ static BOOLEAN btif_hl_proc_app_data(UINT8 app_idx){
                     p_cfg = &p_acb->sup_feature.mdep[i].mdep_cfg;
                     p_nv_cfg = &p_nv->sup_feature.mdep[i].mdep_cfg;
 
-                    BTIF_TRACE_DEBUG2("mdep-role=%d data_type=%d ", p_cfg->mdep_role,p_cfg->data_cfg[0].data_type );
-                    BTIF_TRACE_DEBUG2("from NV mdep-role=%d data_type=%d ",p_nv_cfg->mdep_role,p_nv_cfg->data_cfg[0].data_type );
+                    BTIF_TRACE_DEBUG2("mdep-role=%d data_type=%d ",
+                                      p_cfg->mdep_role,p_cfg->data_cfg[0].data_type );
+                    BTIF_TRACE_DEBUG2("from NV mdep-role=%d data_type=%d ",
+                                      p_nv_cfg->mdep_role,p_nv_cfg->data_cfg[0].data_type );
                     if (p_cfg->mdep_role != p_nv_cfg->mdep_role ||
                         p_cfg->data_cfg[0].data_type !=  p_nv_cfg->data_cfg[0].data_type )
                     {
@@ -3336,36 +3346,28 @@ static BOOLEAN btif_hl_proc_app_data(UINT8 app_idx){
 
     if (is_match)
     {
-        if ((bt_status = btif_storage_read_hl_mdl_data(p_data->app_nv_idx, (char *) &p_acb->mdl_cfg, sizeof(btif_hl_nv_mdl_data_t)))
+        if ((bt_status = btif_storage_read_hl_mdl_data(p_data->app_nv_idx,
+            (char *) &p_acb->mdl_cfg[0], sizeof(btif_hl_nv_mdl_data_t)))
             == BT_STATUS_SUCCESS)
         {
             p_data->app_idx = app_idx;
             p_acb->is_new_app = FALSE;
             p_acb->app_nv_idx = p_data->app_nv_idx;
-            BTIF_TRACE_DEBUG2("btif_storage_read_hl_mdl_data OK  app_idx=%d app_nv_idx=%d",app_idx, p_data->app_nv_idx );
+            BTIF_TRACE_DEBUG2("btif_storage_read_hl_mdl_data OK  app_idx=%d app_nv_idx=%d",
+                              app_idx, p_data->app_nv_idx );
 
             for (i=0; i<BTA_HL_NUM_MDL_CFGS; i++)
             {
+                //TODO remove debug after testing completed
                 if (p_acb->mdl_cfg[i].base.active)
                 {
-                    BTIF_TRACE_DEBUG6("i=%d mdl_id=0x%x dch_mode=%d local_mdep_role=%d local_mdep_id=%d peer_mdep_id=%d",
+                    BTIF_TRACE_DEBUG5("i=%d mdl_id=0x%x dch_mode=%d local_mdep_id=%d peer_mdep_id=%d",
                                       i,
                                       p_acb->mdl_cfg[i].base.mdl_id,
                                       p_acb->mdl_cfg[i].base.dch_mode,
-                                      p_acb->mdl_cfg[i].base.local_mdep_role,
                                       p_acb->mdl_cfg[i].base.local_mdep_id,
                                       p_acb->mdl_cfg[i].extra.peer_mdep_id );
-                    BTIF_TRACE_DEBUG3("data type=0x%08x mdep_cfg_idx=%d channel_id=0x%08x ",
-                                      p_acb->mdl_cfg[i].extra.data_type,
-                                      p_acb->mdl_cfg[i].extra.mdep_cfg_idx,
-                                      p_acb->mdl_cfg_channel_id[i]);
-                    BTIF_TRACE_DEBUG6("BD ADDR 0x%02x-%02x-%02x-%02x-%02x-%02x",
-                                      p_acb->mdl_cfg[i].base.peer_bd_addr[0],
-                                      p_acb->mdl_cfg[i].base.peer_bd_addr[1],
-                                      p_acb->mdl_cfg[i].base.peer_bd_addr[2],
-                                      p_acb->mdl_cfg[i].base.peer_bd_addr[3],
-                                      p_acb->mdl_cfg[i].base.peer_bd_addr[4],
-                                      p_acb->mdl_cfg[i].base.peer_bd_addr[5]);
+
                 }
 
             }
@@ -3527,8 +3529,10 @@ static void btif_hl_proc_cb_evt(UINT16 event, char* p_param){
             if (send_chan_cb)
             {
                 btif_hl_copy_bda(&bd_addr, p_data->chan_cb.bd_addr);
-                BTIF_TRACE_DEBUG5("call channel state callback  channel_id=0x%08x mdep_cfg_idx=%d,cb_state=%d  state=%d  fd=%d",p_data->chan_cb.channel_id,
-                                  p_data->chan_cb.mdep_cfg_index, p_data->chan_cb.cb_state, state,  p_data->chan_cb.fd);
+                BTIF_TRACE_DEBUG4("state callbk: ch_id=0x%08x cb_state=%d state=%d  fd=%d",
+                                  p_data->chan_cb.channel_id,
+                                  p_data->chan_cb.cb_state,
+                                  state,  p_data->chan_cb.fd);
                 btif_hl_display_bt_bda(&bd_addr);
                 BTIF_HL_CALL_CBACK(bt_hl_callbacks, channel_state_cb,  p_data->chan_cb.app_id,
                                    &bd_addr, p_data->chan_cb.mdep_cfg_index,
@@ -5225,12 +5229,17 @@ BOOLEAN btif_hl_load_mdl_config (UINT8 app_id, UINT8 buffer_size,
     UINT8 app_idx;
     BOOLEAN result = FALSE;
     btif_hl_app_cb_t          *p_acb;
+    tBTA_HL_MDL_CFG *p;
+    int i;
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
 
     if (btif_hl_find_app_idx(app_id, &app_idx))
     {
         p_acb  = BTIF_HL_GET_APP_CB_PTR(app_idx);
-        memcpy(p_mdl_buf, &p_acb->mdl_cfg[0], (sizeof(tBTA_HL_MDL_CFG)*buffer_size));
+        for (i=0, p=p_mdl_buf; i<buffer_size; i++, p++)
+        {
+            memcpy(p, &p_acb->mdl_cfg[i].base, sizeof(tBTA_HL_MDL_CFG));
+        }
         result = TRUE;
     }
 
