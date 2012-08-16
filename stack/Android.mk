@@ -27,7 +27,10 @@ LOCAL_C_INCLUDES:= . \
                    $(LOCAL_PATH)/../ctrlr/include \
                    $(LOCAL_PATH)/../bta/include \
                    $(LOCAL_PATH)/../bta/sys \
-                   $(LOCAL_PATH)/../brcm/include
+                   $(LOCAL_PATH)/../brcm/include \
+                   $(bdroid_C_INCLUDES) \
+
+LOCAL_CFLAGS += $(bdroid_CFLAGS)
 
 ifeq ($(BOARD_HAVE_BLUETOOTH_BCM),true)
 LOCAL_CFLAGS += \
@@ -131,8 +134,6 @@ LOCAL_MODULE := libbt-brcm_stack
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_SHARED_LIBRARIES := libcutils libc
-
-include $(LOCAL_PATH)/../include/buildcfg.mk
 
 include $(BUILD_STATIC_LIBRARY)
 

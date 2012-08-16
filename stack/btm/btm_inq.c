@@ -116,8 +116,8 @@ const UINT16 BTM_EIR_UUID_LKUP_TBL[BTM_EIR_MAX_SERVICES] =
 };
 #else
 /*
-If customized UUID look-up table needs to be used, 
-the followings should be defined in buildcfg.h.
+If customized UUID look-up table needs to be used,
+the followings should be defined in bdroid_buildcfg.h.
 BTM_EIR_UUID_LKUP_TBL = <customized UUID list>
 BTM_EIR_MAX_SERVICES = <number of UUID in list>
 */

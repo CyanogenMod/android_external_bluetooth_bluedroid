@@ -14,7 +14,7 @@
 #define DYN_MEM_H
 
 /****************************************************************************
-** Define memory usage for GKI (if not defined in buildcfg.h)
+** Define memory usage for GKI (if not defined in bdroid_buildcfg.h)
 **  The default for GKI is to use static memory allocation for its control
 **  block.
 */
@@ -23,7 +23,7 @@
 #endif
 
 /****************************************************************************
-** Define memory usage for each CORE component (if not defined in buildcfg.h)
+** Define memory usage for each CORE component (if not defined in bdroid_buildcfg.h)
 **  The default for each component is to use static memory allocations.
 */
 #ifndef BTU_DYNAMIC_MEMORY
@@ -79,7 +79,7 @@
 #endif
 
 /****************************************************************************
-** Define memory usage for each PROFILE component (if not defined in buildcfg.h)
+** Define memory usage for each PROFILE component (if not defined in bdroid_buildcfg.h)
 **  The default for each component is to use static memory allocations.
 */
 #ifndef A2D_DYNAMIC_MEMORY
@@ -163,7 +163,7 @@
 #endif
 
 /****************************************************************************
-** Define memory usage for BTA (if not defined in buildcfg.h)
+** Define memory usage for BTA (if not defined in bdroid_buildcfg.h)
 **  The default for each component is to use static memory allocations.
 */
 #ifndef BTA_DYNAMIC_MEMORY
@@ -171,7 +171,7 @@
 #endif
 
 /****************************************************************************
-** Define memory usage for BT Trace (if not defined in buildcfg.h)
+** Define memory usage for BT Trace (if not defined in bdroid_buildcfg.h)
 **  The default is to use static memory allocations.
 */
 #ifndef BTTRC_DYNAMIC_MEMORY

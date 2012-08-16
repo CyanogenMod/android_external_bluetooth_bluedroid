@@ -23,8 +23,26 @@
 #endif
 #include "data_types.h"
 
+
+#ifndef BTIF_HSAG_SERVICE_NAME
+#define BTIF_HSAG_SERVICE_NAME  ("Headset Gateway")
+#endif
+
+#ifndef BTIF_HFAG_SERVICE_NAME
+#define BTIF_HFAG_SERVICE_NAME  ("Handsfree Gateway")
+#endif
+
+
 #ifdef BUILDCFG
-#include "buildcfg.h"
+
+#if !defined(HAS_BDROID_BUILDCFG) && !defined(HAS_NO_BDROID_BUILDCFG)
+#error "An Android.mk file did not include bdroid_CFLAGS and possibly not bdorid_C_INCLUDES"
+#endif
+
+#ifdef HAS_BDROID_BUILDCFG
+#include "bdroid_buildcfg.h"
+#endif
+
 #endif
 
 /* Include common GKI definitions used by this platform */
@@ -32,6 +50,408 @@
 
 #include "bt_types.h"   /* This must be defined AFTER buildcfg.h */
 #include "dyn_mem.h"    /* defines static and/or dynamic memory for components */
+
+
+//------------------Added from Bluedroid buildcfg.h---------------------
+#ifndef UNV_INCLUDED
+#define UNV_INCLUDED FALSE
+#endif
+
+#ifndef GATT_PTS
+#define GATT_PTS FALSE
+#endif
+
+#ifndef L2CAP_INCLUDED
+#define L2CAP_INCLUDED TRUE
+#endif
+
+#ifndef L2CAP_EXTFEA_SUPPORTED_MASK
+#define L2CAP_EXTFEA_SUPPORTED_MASK (L2CAP_EXTFEA_ENH_RETRANS | L2CAP_EXTFEA_STREAM_MODE | L2CAP_EXTFEA_NO_CRC | L2CAP_EXTFEA_FIXED_CHNLS)
+#endif
+
+#ifndef BTUI_OPS_FORMATS
+#define BTUI_OPS_FORMATS (BTA_OP_VCARD21_MASK | BTA_OP_VCAL_MASK | BTA_OP_VNOTE_MASK | BTA_OP_ANY_MASK)
+#endif
+
+#ifndef BTA_RFC_MTU_SIZE
+#define BTA_RFC_MTU_SIZE (L2CAP_MTU_SIZE-L2CAP_MIN_OFFSET-RFCOMM_DATA_OVERHEAD)
+#endif
+
+#ifndef BTA_DUN_MTU
+#define BTA_DUN_MTU BTA_RFC_MTU_SIZE
+#endif
+
+#ifndef BTA_SPP_MTU
+#define BTA_SPP_MTU BTA_RFC_MTU_SIZE
+#endif
+
+#ifndef BTA_FAX_MTU
+#define BTA_FAX_MTU BTA_RFC_MTU_SIZE
+#endif
+
+#ifndef SDP_RAW_PDU_INCLUDED
+#define SDP_RAW_PDU_INCLUDED  TRUE
+#endif
+
+#ifndef GATTS_APPU_USE_GATT_TRACE
+#define GATTS_APPU_USE_GATT_TRACE FALSE
+#endif
+
+#ifndef SMP_HOST_ENCRYPT_INCLUDED
+#define SMP_HOST_ENCRYPT_INCLUDED FALSE
+#endif
+
+#ifndef SAP_INCLUDED
+#define SAP_INCLUDED FALSE
+#endif
+
+#ifndef SBC_NO_PCM_CPY_OPTION
+#define SBC_NO_PCM_CPY_OPTION FALSE
+#endif
+
+#ifndef SBC_IPAQ_OPT
+#define SBC_IPAQ_OPT FALSE
+#endif
+
+#ifndef SBC_IS_64_MULT_IN_QUANTIZER
+#define SBC_IS_64_MULT_IN_QUANTIZER FALSE
+#endif
+
+#ifndef BTA_INCLUDED
+#define BTA_INCLUDED TRUE
+#endif
+
+#ifndef BTA_AG_INCLUDED
+#define BTA_AG_INCLUDED  TRUE
+#endif
+
+#ifndef BTA_CT_INCLUDED
+#define BTA_CT_INCLUDED  FALSE
+#endif
+
+#ifndef BTA_CG_INCLUDED
+#define BTA_CG_INCLUDED  FALSE
+#endif
+
+#ifndef BTA_DG_INCLUDED
+#define BTA_DG_INCLUDED  FALSE
+#endif
+
+#ifndef BTA_FT_INCLUDED
+#define BTA_FT_INCLUDED FALSE
+#endif
+
+#ifndef BTA_OP_INCLUDED
+#define BTA_OP_INCLUDED FALSE
+#endif
+
+#ifndef BTA_PR_INCLUDED
+#define BTA_PR_INCLUDED FALSE
+#endif
+
+#ifndef BTA_SS_INCLUDED
+#define BTA_SS_INCLUDED FALSE
+#endif
+
+#ifndef BTA_DM_INCLUDED
+#define BTA_DM_INCLUDED TRUE
+#endif
+
+
+#ifndef BTA_DI_INCLUDED
+#define BTA_DI_INCLUDED FALSE
+#endif
+
+#ifndef BTA_BI_INCLUDED
+#define BTA_BI_INCLUDED FALSE
+#endif
+
+#ifndef BTA_SC_INCLUDED
+#define BTA_SC_INCLUDED FALSE
+#endif
+
+#ifndef BTA_PAN_INCLUDED
+#define BTA_PAN_INCLUDED TRUE
+#endif
+
+#ifndef BTA_FS_INCLUDED
+#define BTA_FS_INCLUDED TRUE
+#endif
+
+#ifndef BTA_AC_INCLUDED
+#define BTA_AC_INCLUDED FALSE
+#endif
+
+#ifndef BTA_HD_INCLUDED
+#define BTA_HD_INCLUDED FALSE
+#endif
+
+#ifndef BTA_HH_INCLUDED
+#define BTA_HH_INCLUDED TRUE
+#endif
+
+#ifndef BTA_HH_ROLE
+#define BTA_HH_ROLE BTA_MASTER_ROLE_PREF
+#endif
+
+#ifndef BTA_AR_INCLUDED
+#define BTA_AR_INCLUDED TRUE
+#endif
+
+#ifndef BTA_AV_INCLUDED
+#define BTA_AV_INCLUDED TRUE
+#endif
+
+#ifndef BTA_AV_VDP_INCLUDED
+#define BTA_AV_VDP_INCLUDED FALSE
+#endif
+
+#ifndef BTA_AVK_INCLUDED
+#define BTA_AVK_INCLUDED FALSE
+#endif
+
+#ifndef BTA_PBS_INCLUDED
+#define BTA_PBS_INCLUDED FALSE
+#endif
+
+#ifndef BTA_PBC_INCLUDED
+#define BTA_PBC_INCLUDED FALSE
+#endif
+
+#ifndef BTA_FM_INCLUDED
+#define BTA_FM_INCLUDED FALSE
+#endif
+
+#ifndef BTA_FM_DEBUG
+#define BTA_FM_DEBUG FALSE
+#endif
+
+#ifndef BTA_FMTX_INCLUDED
+#define BTA_FMTX_INCLUDED FALSE
+#endif
+
+#ifndef BTA_FMTX_DEBUG
+#define BTA_FMTX_DEBUG FALSE
+#endif
+
+#ifndef BTA_FMTX_FMRX_SWITCH_WORKAROUND
+#define BTA_FMTX_FMRX_SWITCH_WORKAROUND FALSE
+#endif
+
+#ifndef BTA_FMTX_US_FCC_RULES
+#define BTA_FMTX_US_FCC_RULES FALSE
+#endif
+
+#ifndef BTA_HS_INCLUDED
+#define BTA_HS_INCLUDED FALSE
+#endif
+
+#ifndef BTA_MSE_INCLUDED
+#define BTA_MSE_INCLUDED FALSE
+#endif
+
+#ifndef BTA_MCE_INCLUDED
+#define BTA_MCE_INCLUDED FALSE
+#endif
+
+#ifndef BTA_PLAYBACK_INCLUDED
+#define BTA_PLAYBACK_INCLUDED FALSE
+#endif
+
+#ifndef BTA_SSR_INCLUDED
+#define BTA_SSR_INCLUDED FALSE
+#endif
+
+#ifndef BTA_JV_INCLUDED
+#define BTA_JV_INCLUDED FALSE
+#endif
+
+#ifndef BTA_GATT_INCLUDED
+#define BTA_GATT_INCLUDED FALSE
+#endif
+
+#ifndef RPC_TRACE_ONLY
+#define RPC_TRACE_ONLY  FALSE
+#endif
+
+#ifndef ANDROID_APP_INCLUDED
+#define ANDROID_APP_INCLUDED  TRUE
+#endif
+
+#ifndef ANDROID_USE_LOGCAT
+#define ANDROID_USE_LOGCAT  TRUE
+#endif
+
+#ifndef LINUX_GKI_INCLUDED
+#define LINUX_GKI_INCLUDED  TRUE
+#endif
+
+#ifndef TICKS_PER_SEC
+#define TICKS_PER_SEC  100
+#endif
+
+#ifndef BTA_SYS_TIMER_PERIOD
+#define BTA_SYS_TIMER_PERIOD  100
+#endif
+
+#ifndef GKI_BUF1_SIZE
+#define GKI_BUF1_SIZE  288
+#endif
+
+#ifndef GKI_BUF3_MAX
+#define GKI_BUF3_MAX  200
+#endif
+
+#ifndef GKI_BUF3_SIZE
+#define GKI_BUF3_SIZE  (4096+16)
+#endif
+
+#ifndef GKI_BUF4_SIZE
+#define GKI_BUF4_SIZE  (8080+26)
+#endif
+
+#ifndef GKI_SHUTDOWN_EVT
+#define GKI_SHUTDOWN_EVT  APPL_EVT_7
+#endif
+
+#ifndef GKI_PTHREAD_JOINABLE
+#define GKI_PTHREAD_JOINABLE  TRUE
+#endif
+
+#ifndef LINUX_DRV_INCLUDED
+#define LINUX_DRV_INCLUDED  TRUE
+#endif
+
+#ifndef LINUX_OS
+#define LINUX_OS  TRUE
+#endif
+
+#ifndef BTU_TASK
+#define BTU_TASK  0
+#endif
+
+#ifndef BTIF_TASK
+#define BTIF_TASK  1
+#endif
+
+#ifndef A2DP_MEDIA_TASK
+#define A2DP_MEDIA_TASK  2
+#endif
+
+#ifndef GKI_MAX_TASKS
+#define GKI_MAX_TASKS  3
+#endif
+
+#ifndef BTM_APP_DEV_INIT
+#define BTM_APP_DEV_INIT  bte_main_post_reset_init
+#endif
+
+#ifndef SBC_FOR_EMBEDDED_LINUX
+#define SBC_FOR_EMBEDDED_LINUX TRUE
+#endif
+
+#ifndef BTA_DM_REMOTE_DEVICE_NAME_LENGTH
+#define BTA_DM_REMOTE_DEVICE_NAME_LENGTH 248
+#endif
+
+#ifndef AVDT_VERSION
+#define AVDT_VERSION  0x0102
+#endif
+
+#ifndef BTA_AG_AT_MAX_LEN
+#define BTA_AG_AT_MAX_LEN  512
+#endif
+
+#ifndef BTA_AVRCP_FF_RW_SUPPORT
+#define BTA_AVRCP_FF_RW_SUPPORT TRUE
+#endif
+
+#ifndef BTA_AG_SCO_PKT_TYPES
+#define BTA_AG_SCO_PKT_TYPES  (BTM_SCO_LINK_ONLY_MASK | BTM_SCO_PKT_TYPES_MASK_EV3 |  BTM_SCO_PKT_TYPES_MASK_NO_3_EV3 | BTM_SCO_PKT_TYPES_MASK_NO_2_EV5 | BTM_SCO_PKT_TYPES_MASK_NO_3_EV5)
+#endif
+
+#ifndef BTA_AV_MAX_A2DP_MTU
+#define BTA_AV_MAX_A2DP_MTU  668
+#endif
+
+#ifndef BTA_AV_RET_TOUT
+#define BTA_AV_RET_TOUT 15
+#endif
+
+#ifndef PORCHE_PAIRING_CONFLICT
+#define PORCHE_PAIRING_CONFLICT  TRUE
+#endif
+
+#ifndef BTA_AV_CO_CP_SCMS_T
+#define BTA_AV_CO_CP_SCMS_T  FALSE
+#endif
+
+#ifndef AVDT_CONNECT_CP_ONLY
+#define AVDT_CONNECT_CP_ONLY  FALSE
+#endif
+
+#ifndef BT_TRACE_PROTOCOL
+#define BT_TRACE_PROTOCOL  TRUE
+#endif
+
+#ifndef BT_USE_TRACES
+#define BT_USE_TRACES  TRUE
+#endif
+
+#ifndef BT_TRACE_BTIF
+#define BT_TRACE_BTIF  TRUE
+#endif
+
+#ifndef BTTRC_INCLUDED
+#define BTTRC_INCLUDED  FALSE
+#endif
+
+#ifndef BT_TRACE_VERBOSE
+#define BT_TRACE_VERBOSE  FALSE
+#endif
+
+#ifndef BTTRC_PARSER_INCLUDED
+#define BTTRC_PARSER_INCLUDED  FALSE
+#endif
+
+#ifndef MAX_TRACE_RAM_SIZE
+#define MAX_TRACE_RAM_SIZE  10000
+#endif
+
+#ifndef OBX_INITIAL_TRACE_LEVEL
+#define OBX_INITIAL_TRACE_LEVEL  BT_TRACE_LEVEL_ERROR
+#endif
+
+#ifndef PBAP_ZERO_VCARD_IN_DB
+#define PBAP_ZERO_VCARD_IN_DB  FALSE
+#endif
+
+#ifndef BTA_DM_SDP_DB_SIZE
+#define BTA_DM_SDP_DB_SIZE  8000
+#endif
+
+#ifndef FTS_REJECT_INVALID_OBEX_SET_PATH_REQ
+#define FTS_REJECT_INVALID_OBEX_SET_PATH_REQ FALSE
+#endif
+
+#ifndef HL_INCLUDED
+#define HL_INCLUDED  TRUE
+#endif
+
+#ifndef NO_GKI_RUN_RETURN
+#define NO_GKI_RUN_RETURN  TRUE
+#endif
+
+#ifndef AG_VOICE_SETTINGS
+#define AG_VOICE_SETTINGS  HCI_DEFAULT_VOICE_SETTINGS
+#endif
+
+#ifndef BTIF_DM_OOB_TEST
+#define BTIF_DM_OOB_TEST  TRUE
+#endif
+//------------------End added from Bluedroid buildcfg.h---------------------
+
+
 
 /* #define BYPASS_AVDATATRACE */
 
@@ -133,7 +553,7 @@
 
 /* Sends SDP data packets. */
 #ifndef SDP_POOL_ID
-#define SDP_POOL_ID                 GKI_POOL_ID_3
+#define SDP_POOL_ID                 3
 #endif
 
 /* Sends RFCOMM command packets. */
@@ -367,7 +787,7 @@
 **
 ******************************************************************************/
 #ifndef HCISU_H4_INCLUDED
-#define HCISU_H4_INCLUDED               FALSE
+#define HCISU_H4_INCLUDED               TRUE
 #endif
 
 #ifdef __cplusplus
@@ -436,7 +856,7 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 /* if L2CAP_FCR_INCLUDED is TRUE then it should have 100 millisecond resolution */
 /* if none of them is included then QUICK_TIMER_TICKS_PER_SEC is set to 0 to exclude quick timer */
 #ifndef QUICK_TIMER_TICKS_PER_SEC
-#define QUICK_TIMER_TICKS_PER_SEC   100       /* 10ms timer */
+#define QUICK_TIMER_TICKS_PER_SEC   10       /* 10ms timer */
 #endif
 
 /******************************************************************************
@@ -448,7 +868,7 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 set to FALSE for advanced start-up / shut-down procedures using USER_HW_ENABLE_API 
 and USER_HW_DISABLE_API macros */
 #ifndef BTM_AUTOMATIC_HCI_RESET
-#define BTM_AUTOMATIC_HCI_RESET      TRUE
+#define BTM_AUTOMATIC_HCI_RESET      FALSE
 #endif
 
 /* Include BTM Discovery database and code. */
@@ -488,7 +908,7 @@ and USER_HW_DISABLE_API macros */
 
 /* Includes WBS if TRUE */
 #ifndef BTM_WBS_INCLUDED
-#define BTM_WBS_INCLUDED            TRUE       /* TRUE includes WBS code */
+#define BTM_WBS_INCLUDED            FALSE       /* TRUE includes WBS code */
 #endif
 
 /* Includes PCM2 support if TRUE */
@@ -500,7 +920,7 @@ and USER_HW_DISABLE_API macros */
 **  issued while there is a role switch in progress
 */
 #ifndef BTM_DISC_DURING_RS
-#define BTM_DISC_DURING_RS FALSE
+#define BTM_DISC_DURING_RS TRUE
 #endif
 
 /**************************
@@ -518,7 +938,7 @@ and USER_HW_DISABLE_API macros */
 
 /* The size in bytes of the BTM inquiry database. */
 #ifndef BTM_INQ_DB_SIZE
-#define BTM_INQ_DB_SIZE             12
+#define BTM_INQ_DB_SIZE             40
 #endif
 
 /* This is set to enable automatic periodic inquiry at startup. */
@@ -578,7 +998,7 @@ and USER_HW_DISABLE_API macros */
 
 /* Should connections to unknown devices be allowed when not discoverable? */
 #ifndef BTM_ALLOW_CONN_IF_NONDISCOVER
-#define BTM_ALLOW_CONN_IF_NONDISCOVER   FALSE
+#define BTM_ALLOW_CONN_IF_NONDISCOVER   TRUE
 #endif
 
 /* When connectable mode is set to TRUE, the device will respond to paging. */
@@ -633,7 +1053,7 @@ and USER_HW_DISABLE_API macros */
 
 /* Whether BTA is included in BTU task. */
 #ifndef BTU_BTA_INCLUDED
-#define BTU_BTA_INCLUDED            FALSE
+#define BTU_BTA_INCLUDED            TRUE
 #endif
 
 /* Number of seconds to wait to send an HCI Reset command upon device initialization. */
@@ -653,7 +1073,7 @@ and USER_HW_DISABLE_API macros */
 
 /* The number of SCO links. */
 #ifndef BTM_MAX_SCO_LINKS
-#define BTM_MAX_SCO_LINKS           3
+#define BTM_MAX_SCO_LINKS           2
 #endif
 
 /* The preferred type of SCO links (2-eSCO, 0-SCO). */
@@ -663,33 +1083,33 @@ and USER_HW_DISABLE_API macros */
 
 /* The number of security records for peer devices. */
 #ifndef BTM_SEC_MAX_DEVICE_RECORDS
-#define BTM_SEC_MAX_DEVICE_RECORDS  8
+#define BTM_SEC_MAX_DEVICE_RECORDS  100
 #endif
 
 /* The number of security records for services. */
 #ifndef BTM_SEC_MAX_SERVICE_RECORDS
-#define BTM_SEC_MAX_SERVICE_RECORDS 30
+#define BTM_SEC_MAX_SERVICE_RECORDS 32
 #endif
 
 /* If True, force a retrieval of remote device name for each bond in case it's changed */
 #ifndef BTM_SEC_FORCE_RNR_FOR_DBOND
-#define BTM_SEC_FORCE_RNR_FOR_DBOND  TRUE
+#define BTM_SEC_FORCE_RNR_FOR_DBOND  FALSE
 #endif
 
 /* Maximum device name length used in btm database. */
 #ifndef BTM_MAX_REM_BD_NAME_LEN
-#define BTM_MAX_REM_BD_NAME_LEN     20
+#define BTM_MAX_REM_BD_NAME_LEN     248
 #endif
 
 /* Maximum local device name length stored btm database.
   '0' disables storage of the local name in BTM */
 #ifndef BTM_MAX_LOC_BD_NAME_LEN
-#define BTM_MAX_LOC_BD_NAME_LEN     31
+#define BTM_MAX_LOC_BD_NAME_LEN     248
 #endif
 
 /* TRUE if default string is used, FALSE if device name is set in the application */
 #ifndef BTM_USE_DEF_LOCAL_NAME
-#define BTM_USE_DEF_LOCAL_NAME      FALSE
+#define BTM_USE_DEF_LOCAL_NAME      TRUE
 #endif
 
 /* Fixed Default String (Ignored if BTM_USE_DEF_LOCAL_NAME is FALSE) */
@@ -840,12 +1260,12 @@ and USER_HW_DISABLE_API macros */
 /* Flow control and retransmission mode */
 
 #ifndef L2CAP_FCR_INCLUDED
-#define L2CAP_FCR_INCLUDED FALSE
+#define L2CAP_FCR_INCLUDED TRUE
 #endif
 
 /* The maximum number of simultaneous links that L2CAP can support. */
 #ifndef MAX_ACL_CONNECTIONS
-#define MAX_L2CAP_LINKS             4
+#define MAX_L2CAP_LINKS             7
 #else
 #define MAX_L2CAP_LINKS             MAX_ACL_CONNECTIONS
 #endif
@@ -857,12 +1277,12 @@ and USER_HW_DISABLE_API macros */
 
 /* The maximum number of simultaneous applications that can register with L2CAP. */
 #ifndef MAX_L2CAP_CLIENTS
-#define MAX_L2CAP_CLIENTS           8
+#define MAX_L2CAP_CLIENTS           15
 #endif
 
 /* The number of seconds of link inactivity before a link is disconnected. */
 #ifndef L2CAP_LINK_INACTIVITY_TOUT
-#define L2CAP_LINK_INACTIVITY_TOUT  3
+#define L2CAP_LINK_INACTIVITY_TOUT  4
 #endif
 
 /* The number of seconds of link inactivity after bonding before a link is disconnected. */
@@ -1128,24 +1548,25 @@ and USER_HW_DISABLE_API macros */
 
 /* The maximum number of attributes in each record. */
 #ifndef SDP_MAX_REC_ATTR
-#if defined(HID_DEV_INCLUDED) && (HID_DEV_INCLUDED==TRUE)
+//#if defined(HID_DEV_INCLUDED) && (HID_DEV_INCLUDED==TRUE)
 #define SDP_MAX_REC_ATTR            25
-#else
-#define SDP_MAX_REC_ATTR            13
-#endif
+//#else
+//#define SDP_MAX_REC_ATTR            13
+//#endif
 #endif
 
 #ifndef SDP_MAX_PAD_LEN
-#define SDP_MAX_PAD_LEN             350
+#define SDP_MAX_PAD_LEN             600
 #endif
 
 /* The maximum length, in bytes, of an attribute. */
 #ifndef SDP_MAX_ATTR_LEN
-#if defined(HID_DEV_INCLUDED) && (HID_DEV_INCLUDED==TRUE)
-#define SDP_MAX_ATTR_LEN            80
-#else
-#define SDP_MAX_ATTR_LEN            100
-#endif
+//#if defined(HID_DEV_INCLUDED) && (HID_DEV_INCLUDED==TRUE)
+//#define SDP_MAX_ATTR_LEN            80
+//#else
+//#define SDP_MAX_ATTR_LEN            100
+//#endif
+#define SDP_MAX_ATTR_LEN            400
 #endif
 
 /* The maximum number of attribute filters supported by SDP databases. */
@@ -1205,7 +1626,7 @@ and USER_HW_DISABLE_API macros */
 
 /* Device identification feature. */
 #ifndef SDP_DI_INCLUDED
-#define SDP_DI_INCLUDED             FALSE
+#define SDP_DI_INCLUDED             TRUE
 #endif
 
 /******************************************************************************
@@ -1215,69 +1636,69 @@ and USER_HW_DISABLE_API macros */
 ******************************************************************************/
 
 #ifndef RFCOMM_INCLUDED
-#define RFCOMM_INCLUDED             FALSE
+#define RFCOMM_INCLUDED             TRUE
 #endif
 
 /* The maximum number of ports supported. */
 #ifndef MAX_RFC_PORTS
-#define MAX_RFC_PORTS               5
+#define MAX_RFC_PORTS               30
 #endif
 
 /* The maximum simultaneous links to different devices. */
 #ifndef MAX_ACL_CONNECTIONS
-#define MAX_BD_CONNECTIONS          1
+#define MAX_BD_CONNECTIONS          7
 #else
 #define MAX_BD_CONNECTIONS          MAX_ACL_CONNECTIONS
 #endif
 
 /* The port receive queue low watermark level, in bytes. */
 #ifndef PORT_RX_LOW_WM
-#define PORT_RX_LOW_WM              5000
+#define PORT_RX_LOW_WM              (BTA_RFC_MTU_SIZE * PORT_RX_BUF_LOW_WM)
 #endif
 
 /* The port receive queue high watermark level, in bytes. */
 #ifndef PORT_RX_HIGH_WM
-#define PORT_RX_HIGH_WM             8000
+#define PORT_RX_HIGH_WM             (BTA_RFC_MTU_SIZE * PORT_RX_BUF_HIGH_WM)
 #endif
 
 /* The port receive queue critical watermark level, in bytes. */
 #ifndef PORT_RX_CRITICAL_WM
-#define PORT_RX_CRITICAL_WM         12000
+#define PORT_RX_CRITICAL_WM         (BTA_RFC_MTU_SIZE * PORT_RX_BUF_CRITICAL_WM)
 #endif
 
 /* The port receive queue low watermark level, in number of buffers. */
 #ifndef PORT_RX_BUF_LOW_WM
-#define PORT_RX_BUF_LOW_WM          8
+#define PORT_RX_BUF_LOW_WM          4
 #endif
 
 /* The port receive queue high watermark level, in number of buffers. */
 #ifndef PORT_RX_BUF_HIGH_WM
-#define PORT_RX_BUF_HIGH_WM         16
+#define PORT_RX_BUF_HIGH_WM         10
 #endif
 
 /* The port receive queue critical watermark level, in number of buffers. */
 #ifndef PORT_RX_BUF_CRITICAL_WM
-#define PORT_RX_BUF_CRITICAL_WM     22
+#define PORT_RX_BUF_CRITICAL_WM     15
 #endif
 
 /* The port transmit queue high watermark level, in bytes. */
 #ifndef PORT_TX_HIGH_WM
-#define PORT_TX_HIGH_WM             8000
+#define PORT_TX_HIGH_WM             (BTA_RFC_MTU_SIZE * PORT_TX_BUF_HIGH_WM)
 #endif
 
 /* The port transmit queue critical watermark level, in bytes. */
 #ifndef PORT_TX_CRITICAL_WM
-#define PORT_TX_CRITICAL_WM         10000
+#define PORT_TX_CRITICAL_WM         (BTA_RFC_MTU_SIZE * PORT_TX_BUF_CRITICAL_WM)
 #endif
 
 /* The port transmit queue high watermark level, in number of buffers. */
 #ifndef PORT_TX_BUF_HIGH_WM
-#define PORT_TX_BUF_HIGH_WM         16
+#define PORT_TX_BUF_HIGH_WM         10
 #endif
 
 /* The port transmit queue high watermark level, in number of buffers. */
 #ifndef PORT_TX_BUF_CRITICAL_WM
-#define PORT_TX_BUF_CRITICAL_WM     22
+#define PORT_TX_BUF_CRITICAL_WM     15
 #endif
 
 /* The RFCOMM multiplexer preferred flow control mechanism. */
@@ -1565,7 +1986,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 ******************************************************************************/
 
 #ifndef BNEP_INCLUDED
-#define BNEP_INCLUDED               FALSE
+#define BNEP_INCLUDED               TRUE
 #endif
 
 /* Protocol filtering is an optional feature. Bydefault it will be turned on */
@@ -1644,7 +2065,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 ******************************************************************************/
 
 #ifndef AVDT_INCLUDED
-#define AVDT_INCLUDED               FALSE
+#define AVDT_INCLUDED               TRUE
 #endif
 
 /* Include reporting capability in AVDTP */
@@ -1711,7 +2132,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 ******************************************************************************/
 
 #ifndef PAN_INCLUDED
-#define PAN_INCLUDED                     FALSE
+#define PAN_INCLUDED                     TRUE
 #endif
 
 /* This will enable the PANU role */
@@ -2059,7 +2480,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 
 /* keep the raw data received from SDP server in database. */
 #ifndef SDP_RAW_DATA_INCLUDED
-#define SDP_RAW_DATA_INCLUDED       FALSE
+#define SDP_RAW_DATA_INCLUDED       TRUE
 #endif
 
 /* TRUE, to allow JV to create L2CAP connection on SDP PSM. */
@@ -2449,7 +2870,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 ** Definitions for HID-Host
 */
 #ifndef  HID_HOST_INCLUDED
-#define HID_HOST_INCLUDED           FALSE
+#define HID_HOST_INCLUDED           TRUE
 #endif
 
 #ifndef HID_HOST_MAX_DEVICES
@@ -2465,7 +2886,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #endif
 
 #ifndef HID_HOST_MAX_CONN_RETRY
-#define HID_HOST_MAX_CONN_RETRY     (15)
+#define HID_HOST_MAX_CONN_RETRY     (3)
 #endif
 
 #ifndef HID_HOST_REPAGE_WIN
@@ -2496,7 +2917,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 
 /* This is set to enable GOEP non-blocking file system access functions. */
 #ifndef GOEP_FS_INCLUDED
-#define GOEP_FS_INCLUDED        TRUE
+#define GOEP_FS_INCLUDED        FALSE
 #endif
 
 /* GOEP authentication key size. */
@@ -2988,7 +3409,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
  * A2DP Definitions
  */
 #ifndef A2D_INCLUDED
-#define A2D_INCLUDED            FALSE
+#define A2D_INCLUDED            TRUE
 #endif
 
 /* TRUE to include SBC utility functions */
@@ -3013,7 +3434,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 ******************************************************************************/
 
 #ifndef AVCT_INCLUDED
-#define AVCT_INCLUDED               FALSE
+#define AVCT_INCLUDED               TRUE
 #endif
 
 /* Number of simultaneous ACL links to different peer devices. */
@@ -3104,7 +3525,7 @@ Range: Minimum 12000 (12 secs) when supporting PBF.
 ******************************************************************************/
 
 #ifndef AVRC_INCLUDED
-#define AVRC_INCLUDED               FALSE
+#define AVRC_INCLUDED               TRUE
 #endif
 
 /******************************************************************************
@@ -3341,12 +3762,12 @@ The maximum number of payload octets that the local device can receive in a sing
 ******************************************************************************/
 /* When TRUE indicates that an application task is to be run */
 #ifndef APPL_INCLUDED
-#define APPL_INCLUDED                FALSE
+#define APPL_INCLUDED                TRUE
 #endif
 
 /* When TRUE remote terminal code included (RPC MUST be included) */
 #ifndef RSI_INCLUDED
-#define RSI_INCLUDED                FALSE
+#define RSI_INCLUDED                TRUE
 #endif
 
 
@@ -3398,7 +3819,7 @@ The maximum number of payload octets that the local device can receive in a sing
 #endif
 
 #ifndef BTE_IDLE_TASK_INCLUDED 
-#define BTE_IDLE_TASK_INCLUDED TRUE
+#define BTE_IDLE_TASK_INCLUDED FALSE
 #endif
 
 #ifndef BTE_PLATFORM_INITHW
@@ -3408,7 +3829,6 @@ The maximum number of payload octets that the local device can receive in a sing
 #ifndef BTE_BTA_CODE_INCLUDED
 #define BTE_BTA_CODE_INCLUDED FALSE
 #endif
-
 
 /******************************************************************************
 **

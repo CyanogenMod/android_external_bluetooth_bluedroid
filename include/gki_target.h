@@ -16,11 +16,7 @@
 #ifndef GKI_TARGET_H
 #define GKI_TARGET_H
 
-#ifdef BUILDCFG
-#include "buildcfg.h"
-#endif
-
-#include "data_types.h"
+#include "bt_target.h"
 
 /* Operating System Selection */
 #ifndef BTE_SIM_APP

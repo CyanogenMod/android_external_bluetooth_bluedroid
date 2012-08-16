@@ -8,7 +8,7 @@ ifeq ($(BOARD_HAVE_BLUETOOTH_BCM),true)
 LOCAL_CFLAGS += \
 	-DBOARD_HAVE_BLUETOOTH_BCM
 endif
-LOCAL_CFLAGS += -DBUILDCFG
+LOCAL_CFLAGS += -DBUILDCFG $(bdroid_CFLAGS)
 
 LOCAL_PRELINK_MODULE:=false
 LOCAL_SRC_FILES:= \
@@ -96,8 +96,8 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/../hcis/patchram \
                    $(LOCAL_PATH)/../udrv/include \
                    $(LOCAL_PATH)/../brcm/include \
+                   $(bdroid_C_INCLUDES) \
 
-include $(LOCAL_PATH)/../include/buildcfg.mk
 
 include $(BUILD_STATIC_LIBRARY)
 
