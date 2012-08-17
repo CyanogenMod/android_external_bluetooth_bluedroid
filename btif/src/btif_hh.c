@@ -740,7 +740,6 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 if (memcmp(btif_hh_cb.added_devices[i].bd_addr.address, p_data->dev_info.bda, 6) == 0) {
                     if (p_data->dev_info.status == BTA_HH_OK) {
                         btif_hh_cb.added_devices[i].dev_handle = p_data->dev_info.handle;
-                        btif_hh_cb.added_devices[i].attr_mask = p_data->dev_info.attr_mask;
                     }
                     else {
                         memset(btif_hh_cb.added_devices[i].bd_addr.address, 0, 6);

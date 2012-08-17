@@ -873,14 +873,12 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                                           p_dev_info->app_id);
                 /* update cb_index[] map */
                 bta_hh_cb.cb_index[dev_handle] = p_cb->index;
-                dev_info.attr_mask = p_dev_info->attr_mask;
             }
         }
         else    /* device already been added */
         {
             dev_info.handle = p_cb->hid_handle;
             dev_info.status = BTA_HH_OK;
-            dev_info.attr_mask = p_dev_info->attr_mask;
         }
 #if BTA_HH_DEBUG
         bta_hh_trace_dev_db();
@@ -901,7 +899,6 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                 bta_hh_clean_up_kdev(p_cb);
             } 
         }
-		dev_info.attr_mask = 0; /* Reset the attribute mask */
         break;
 
     default:

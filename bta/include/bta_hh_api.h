@@ -173,7 +173,6 @@ typedef struct
     BD_ADDR         bda;                /* HID device bd address    */
     tBTA_HH_STATUS  status;             /* operation status         */
     UINT8           handle;             /* device handle            */
-    UINT16          attr_mask;          /* HID Device attribute Mask*/
 } tBTA_HH_CONN;
 
 typedef tBTA_HH_CONN tBTA_HH_DEV_INFO;
