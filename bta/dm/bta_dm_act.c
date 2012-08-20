@@ -228,17 +228,17 @@ static void bta_dm_app_ready_timer_cback (TIMER_LIST_ENT *p_tle)
 void bta_dm_enable(tBTA_DM_MSG *p_data)
 {
     tBTA_SYS_HW_MSG *sys_enable_event;
-    tBTA_DM_ENABLE enable_event;
+    tBTA_DM_SEC sec_event;
 
     
     /* if already in use, return an error */
     if( bta_dm_cb.is_bta_dm_active == TRUE  )
     {
         APPL_TRACE_WARNING0("bta_dm_enable - device already started by another application");     
-        memset(&enable_event, 0, sizeof ( tBTA_DM_ENABLE ));
-        enable_event.status = BTA_FAILURE;       
+        memset(&sec_event.enable, 0, sizeof ( tBTA_DM_ENABLE ));
+        sec_event.enable.status = BTA_FAILURE;
         if( p_data->enable.p_sec_cback != NULL  )
-            p_data->enable.p_sec_cback (BTA_DM_ENABLE_EVT, (tBTA_DM_SEC *)&enable_event );        
+            p_data->enable.p_sec_cback (BTA_DM_ENABLE_EVT, &sec_event);
         return;
     }
 
@@ -619,6 +619,7 @@ void bta_dm_remove_device (tBTA_DM_MSG *p_data)
 {
     tBTA_DM_API_REMOVE_DEVICE *p_dev = &p_data->remove_dev;
     int i;
+    tBTA_DM_SEC sec_event;
 
     if (BTM_IsAclConnectionUp(p_dev->bd_addr))
     {
@@ -640,7 +641,12 @@ void bta_dm_remove_device (tBTA_DM_MSG *p_data)
     {
         BTM_SecDeleteDevice(p_dev->bd_addr);
         if( bta_dm_cb.p_sec_cback )
-            bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, p_dev->bd_addr);
+        {
+            bdcpy(sec_event.link_down.bd_addr, p_dev->bd_addr);
+            /* No connection, set status to success (acl disc code not valid) */
+            sec_event.link_down.status = HCI_SUCCESS;
+            bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, &sec_event);
+        }
     }
 }
 
@@ -1655,7 +1661,6 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
                 
                     } else {
                         APPL_TRACE_DEBUG1("bta_dm_sdp_result GKI Alloc failed to allocate %d bytes !!\r\n",bta_dm_search_cb.p_sdp_db->raw_used);
-                        printf("bta_dm_sdp_result GKI Alloc failed to allocate %d bytes !!\r\n",bta_dm_search_cb.p_sdp_db->raw_used);                        
                     }
                     
                     bta_dm_search_cb.p_sdp_db->raw_data = NULL;     //no need to free this - it is a global assigned.
@@ -2918,13 +2923,13 @@ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
 *******************************************************************************/
 static void bta_dm_local_name_cback(UINT8 *p_name)
 {
-    tBTA_DM_ENABLE enable_event;
+    tBTA_DM_SEC sec_event;
 
-    BTM_GetLocalDeviceAddr(enable_event.bd_addr);
-    enable_event.status = BTA_SUCCESS;
+    BTM_GetLocalDeviceAddr(sec_event.enable.bd_addr);
+    sec_event.enable.status = BTA_SUCCESS;
 
     if(bta_dm_cb.p_sec_cback)
-        bta_dm_cb.p_sec_cback(BTA_DM_ENABLE_EVT, (tBTA_DM_SEC *)&enable_event);
+        bta_dm_cb.p_sec_cback(BTA_DM_ENABLE_EVT, &sec_event);
 }
 
 /*******************************************************************************
@@ -3168,7 +3173,10 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
     {
     case BTM_BL_UPDATE_EVT:     /* busy level update */
         if( bta_dm_cb.p_sec_cback )
-            bta_dm_cb.p_sec_cback(BTA_DM_BUSY_LEVEL_EVT, (tBTA_DM_SEC *)&p_data->acl_change.busy_level);
+        {
+            conn.busy_level.level = p_data->acl_change.busy_level;
+            bta_dm_cb.p_sec_cback(BTA_DM_BUSY_LEVEL_EVT, &conn);
+        }
         return;
 
     case BTM_BL_ROLE_CHG_EVT:   /* role change event */
@@ -3210,7 +3218,7 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
             bdcpy(conn.role_chg.bd_addr, p_bda);
             conn.role_chg.new_role = (UINT8) p_data->acl_change.new_role;
             if( bta_dm_cb.p_sec_cback )            
-                bta_dm_cb.p_sec_cback(BTA_DM_ROLE_CHG_EVT, (tBTA_DM_SEC *)&conn);
+                bta_dm_cb.p_sec_cback(BTA_DM_ROLE_CHG_EVT, &conn);
         }
         return;
     }
@@ -3251,7 +3259,7 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
         }
         APPL_TRACE_WARNING1("info:x%x", bta_dm_cb.device_list.peer_device[i].info);
         if( bta_dm_cb.p_sec_cback )          
-            bta_dm_cb.p_sec_cback(BTA_DM_LINK_UP_EVT, (tBTA_DM_SEC *)&conn);
+            bta_dm_cb.p_sec_cback(BTA_DM_LINK_UP_EVT, &conn);
 
     }
     else
@@ -3304,9 +3312,9 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
         conn.link_down.status = (UINT8) btm_get_acl_disc_reason_code();
         if( bta_dm_cb.p_sec_cback )  
         {
-            bta_dm_cb.p_sec_cback(BTA_DM_LINK_DOWN_EVT, (tBTA_DM_SEC *)&conn);
+            bta_dm_cb.p_sec_cback(BTA_DM_LINK_DOWN_EVT, &conn);
             if( issue_unpair_cb )
-                bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, (tBTA_DM_SEC *)&conn);
+                bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, &conn);
         }
     } 
 
@@ -3354,17 +3362,16 @@ static void bta_dm_disable_conn_down_timer_cback (TIMER_LIST_ENT *p_tle)
 *******************************************************************************/
 static void bta_dm_rssi_cback (tBTM_RSSI_RESULTS *p_result)
 {
-
-    tBTA_DM_SIG_STRENGTH  result;
+    tBTA_DM_SEC sec_event;
 
     if(p_result->status == BTM_SUCCESS)
     {
 
-        bdcpy(result.bd_addr, p_result->rem_bda);
-        result.mask = BTA_SIG_STRENGTH_RSSI_MASK;
-        result.rssi_value = p_result->rssi;
+        bdcpy(sec_event.sig_strength.bd_addr, p_result->rem_bda);
+        sec_event.sig_strength.mask = BTA_SIG_STRENGTH_RSSI_MASK;
+        sec_event.sig_strength.rssi_value = p_result->rssi;
         if( bta_dm_cb.p_sec_cback!= NULL )          
-            bta_dm_cb.p_sec_cback(BTA_DM_SIG_STRENGTH_EVT, (tBTA_DM_SEC *)&result);
+            bta_dm_cb.p_sec_cback(BTA_DM_SIG_STRENGTH_EVT, &sec_event);
 
     }
 }
@@ -3382,16 +3389,16 @@ static void bta_dm_rssi_cback (tBTM_RSSI_RESULTS *p_result)
 static void bta_dm_link_quality_cback (tBTM_LINK_QUALITY_RESULTS *p_result)
 {
 
-    tBTA_DM_SIG_STRENGTH  result;
+    tBTA_DM_SEC sec_event;
 
     if(p_result->status == BTM_SUCCESS)
     {
 
-        bdcpy(result.bd_addr, p_result->rem_bda);
-        result.mask = BTA_SIG_STRENGTH_LINK_QUALITY_MASK;
-        result.link_quality_value = p_result->link_quality;
+        bdcpy(sec_event.sig_strength.bd_addr, p_result->rem_bda);
+        sec_event.sig_strength.mask = BTA_SIG_STRENGTH_LINK_QUALITY_MASK;
+        sec_event.sig_strength.link_quality_value = p_result->link_quality;
         if( bta_dm_cb.p_sec_cback!= NULL )                     
-            bta_dm_cb.p_sec_cback(BTA_DM_SIG_STRENGTH_EVT, (tBTA_DM_SEC *)&result);
+            bta_dm_cb.p_sec_cback(BTA_DM_SIG_STRENGTH_EVT, &sec_event);
 
     }
 }
