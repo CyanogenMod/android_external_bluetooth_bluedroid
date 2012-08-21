@@ -12,9 +12,6 @@
 #ifndef GKI_H
 #define GKI_H
 
-#ifdef BUILDCFG
-#include "buildcfg.h"
-#endif
 
 /* Include platform-specific over-rides */
 #if (defined(NFC_STANDALONE) && (NFC_STANDALONE == TRUE))

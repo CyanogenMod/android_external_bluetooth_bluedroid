@@ -86,9 +86,10 @@ LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../hci/include\
 	$(LOCAL_PATH)/../brcm/include \
 	$(LOCAL_PATH)/../embdrv/sbc/encoder/include \
-	$(LOCAL_PATH)/../audio_a2dp_hw
+	$(LOCAL_PATH)/../audio_a2dp_hw \
+	$(bdroid_C_INCLUDES) \
 
-LOCAL_CFLAGS += -DBUILDCFG -Werror -Wno-error=maybe-uninitialized -Wno-error=uninitialized
+LOCAL_CFLAGS += -DBUILDCFG $(bdroid_CFLAGS) -Werror -Wno-error=maybe-uninitialized -Wno-error=uninitialized
 
 ifeq ($(TARGET_PRODUCT), full_crespo)
      LOCAL_CFLAGS += -DTARGET_CRESPO
@@ -120,7 +121,5 @@ LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 LOCAL_REQUIRED_MODULES := libbt-hci libbt-vendor bt_stack.conf bt_did.conf auto_pair_devlist.conf
-
-include $(LOCAL_PATH)/../include/buildcfg.mk
 
 include $(BUILD_SHARED_LIBRARY)

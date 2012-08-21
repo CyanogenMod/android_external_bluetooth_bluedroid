@@ -324,7 +324,7 @@ tBTA_DM_PM_TYPE_QUALIFIER tBTM_PM_PWR_MD bta_dm_pm_md[] =
 {
 /* more sniff parameter entries can be added for BTA_DM_PM_SNIFF3 - BTA_DM_PM_SNIFF7, if needed
 When entries are added or removed, BTA_DM_PM_PARK_IDX needs to be updated to reflect the actual index
-BTA_DM_PM_PARK_IDX is defined in bta_api.h and can be override by the buildcfg.h settings.
+BTA_DM_PM_PARK_IDX is defined in bta_api.h and can be override by the bdroid_buildcfg.h settings.
 The SNIFF table entries must be in the order from highest latency (biggest interval) to lowest latency.
 If there's a conflict among the connected services, the setting with lowest latency wins.
 */

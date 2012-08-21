@@ -60,7 +60,6 @@
 #define BT_HCI_BDROID_H
 
 #include "bt_hci_lib.h"
-//#include "hci_buildcfg.h"
 
 /******************************************************************************
 **  Constants & Macros
