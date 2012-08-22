@@ -96,6 +96,7 @@ typedef struct {
     UINT8   is_ssp;
     UINT8   autopair_attempts;
     UINT8   is_local_initiated;
+    UINT8   bonded_pending_sdp;
 } btif_dm_pairing_cb_t;
 
 typedef struct {
@@ -674,6 +675,7 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
         cod = COD_UNCLASSIFIED;
     }
 
+    pairing_cb.bonded_pending_sdp = FALSE;
     HAL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name, cod,
                      (p_ssp_cfm_req->just_works ? BT_SSP_VARIANT_CONSENT : BT_SSP_VARIANT_PASSKEY_CONFIRMATION),
                      p_ssp_cfm_req->num_val);
@@ -749,6 +751,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         state = BT_BOND_STATE_BONDED;
 
         /* Trigger SDP on the device */
+        pairing_cb.bonded_pending_sdp = TRUE;
         btif_dm_get_remote_services(&bd_addr);
         /* Do not call bond_state_changed_cb yet. Wait till fetch remote service is complete */
     }
@@ -1005,10 +1008,12 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
             ** bond_state_changed needs to be sent prior to remote_device_property
             */
             if ((pairing_cb.state == BT_BOND_STATE_BONDING) &&
-                bdcmp(p_data->disc_res.bd_addr, pairing_cb.bd_addr) == 0)
+                (bdcmp(p_data->disc_res.bd_addr, pairing_cb.bd_addr) == 0)&&
+                pairing_cb.bonded_pending_sdp == TRUE)
             {
                  BTIF_TRACE_DEBUG1("%s Remote Service SDP done. Call bond_state_changed_cb BONDED",
                                    __FUNCTION__);
+                 pairing_cb.bonded_pending_sdp = FALSE;
                  bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDED);
             }
 
