@@ -63,6 +63,7 @@
 #include "utils.h"
 #include "hci.h"
 #include "userial.h"
+#include <sys/prctl.h>
 
 #ifndef BTHC_DBG
 #define BTHC_DBG FALSE
@@ -369,6 +370,7 @@ static void *bt_hc_worker_thread(void *arg)
     HC_BT_HDR *p_msg, *p_next_msg;
 
     ALOGI("bt_hc_worker_thread started");
+    prctl(PR_SET_NAME, (unsigned long)"bt_hc_worker", 0, 0, 0);
     tx_cmd_pkts_pending = FALSE;
 
     while (lib_running)

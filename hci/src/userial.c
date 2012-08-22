@@ -65,6 +65,7 @@
 #include "userial.h"
 #include "utils.h"
 #include "bt_vendor_lib.h"
+#include <sys/prctl.h>
 
 /******************************************************************************
 **  Constants & Macros
@@ -242,6 +243,7 @@ static void *userial_read_thread(void *arg)
     uint8_t *p;
 
     USERIALDBG("Entering userial_read_thread()");
+    prctl(PR_SET_NAME, (unsigned long)"userial_read", 0, 0, 0);
 
     rx_flow_on = TRUE;
     userial_running = 1;
