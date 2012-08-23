@@ -1108,6 +1108,8 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
     btif_storage_req_t req;
     bt_status_t status = BT_STATUS_SUCCESS;
     int storage_req_id = BTIF_CORE_STORAGE_NOTIFY_STATUS; /* default */
+    char bd_name[BTM_MAX_LOC_BD_NAME_LEN +1];
+    UINT16  name_len = 0;
 
     BTIF_TRACE_EVENT3("btif_set_adapter_property type: %d, len %d, 0x%x",
                       property->type, property->len, property->val);
@@ -1119,9 +1121,14 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
     {
         case BT_PROPERTY_BDNAME:
             {
-                BTIF_TRACE_EVENT1("set property name : %s", (char *)property->val);
+                name_len = property->len > BTM_MAX_LOC_BD_NAME_LEN ? BTM_MAX_LOC_BD_NAME_LEN:
+                                                                     property->len;
+                memcpy(bd_name,property->val, name_len);
+                bd_name[name_len] = '\0';
 
-                BTA_DmSetDeviceName((char *)property->val);
+                BTIF_TRACE_EVENT1("set property name : %s", (char *)bd_name);
+
+                BTA_DmSetDeviceName((char *)bd_name);
 
                 storage_req_id = BTIF_CORE_STORAGE_ADAPTER_WRITE;
             }
