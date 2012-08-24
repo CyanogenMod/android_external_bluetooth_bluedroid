@@ -66,6 +66,11 @@
 #define BTIF_HH_MAX_HID         8
 #define BTIF_HH_MAX_ADDED_DEV   32
 
+#define BTIF_HH_MAX_KEYSTATES            3
+#define BTIF_HH_KEYSTATE_MASK_NUMLOCK    0x01
+#define BTIF_HH_KEYSTATE_MASK_CAPSLOCK   0x02
+#define BTIF_HH_KEYSTATE_MASK_SCROLLLOCK 0x04
+
 typedef struct
 {
     bthh_connection_state_t       dev_status;

@@ -83,18 +83,16 @@
 
 #define KEYSTATE_FILEPATH "/data/misc/bluedroid/bt_hh_ks" //keep this in sync with HID host jni
 
-#define HID_REPORT_CAPSLOCK  0x39
-#define HID_REPORT_NUMLOCK   0x53
+#define HID_REPORT_CAPSLOCK   0x39
+#define HID_REPORT_NUMLOCK    0x53
 #define HID_REPORT_SCROLLLOCK 0x47
-
-#define MAX_KEYSTATES  3
-#define KEYSTATE_MASK_NUMLOCK    0x01
-#define KEYSTATE_MASK_CAPSLOCK   0x02
-#define KEYSTATE_MASK_SCROLLLOCK 0x04
 
 //For Apple Magic Mouse
 #define MAGICMOUSE_VENDOR_ID 0x05ac
 #define MAGICMOUSE_PRODUCT_ID 0x030d
+
+#define LOGITECH_KB_MX5500_VENDOR_ID  0x046D
+#define LOGITECH_KB_MX5500_PRODUCT_ID 0xB30B
 
 extern const int BT_UID;
 extern const int BT_GID;
@@ -133,12 +131,30 @@ typedef enum
 **  Local type definitions
 ************************************************************************************/
 
+typedef struct hid_kb_list
+{
+    UINT16 product_id;
+    UINT16 version_id;
+    char*  kb_name;
+} tHID_KB_LIST;
+
 /************************************************************************************
 **  Static variables
 ************************************************************************************/
 btif_hh_cb_t btif_hh_cb;
 
 static bthh_callbacks_t *bt_hh_callbacks = NULL;
+
+/* List of HID keyboards for which the NUMLOCK state needs to be
+ * turned ON by default. Add devices to this list to apply the
+ * NUMLOCK state toggle on fpr first connect.*/
+static tHID_KB_LIST hid_kb_numlock_on_list[] =
+{
+    {LOGITECH_KB_MX5500_PRODUCT_ID,
+    LOGITECH_KB_MX5500_VENDOR_ID,
+    "Logitech MX5500 Keyboard"}
+};
+
 
 #define CHECK_BTHH_INIT() if (bt_hh_callbacks == NULL)\
     {\
@@ -169,9 +185,165 @@ extern BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
 extern void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr);
 extern int  scru_ascii_2_hex(char *p_ascii, int len, UINT8 *p_hex);
 
+/*****************************************************************************
+**  Local Function prototypes
+*****************************************************************************/
+static void set_keylockstate(int keymask, BOOLEAN isSet);
+static void toggle_os_keylockstates(int fd, int changedkeystates);
+static void sync_lockstate_on_connect(btif_hh_device_t *p_dev);
+//static void hh_update_keyboard_lockstates(btif_hh_device_t *p_dev);
+
+
 /************************************************************************************
 **  Functions
 ************************************************************************************/
+
+static int get_keylockstates()
+{
+    return btif_hh_keylockstates;
+}
+
+static void set_keylockstate(int keymask, BOOLEAN isSet)
+{
+    if(isSet)
+        btif_hh_keylockstates |= keymask;
+}
+
+/*******************************************************************************
+**
+** Function         toggle_os_keylockstates
+**
+** Description      Function to toggle the keyboard lock states managed by the linux.
+**                  This function is used in by two call paths
+**                  (1) if the lock state change occurred from an onscreen keyboard,
+**                  this function is called to update the lock state maintained
+                    for the HID keyboard(s)
+**                  (2) if a HID keyboard is disconnected and reconnected,
+**                  this function is called to update the lock state maintained
+                    for the HID keyboard(s)
+** Returns          void
+*******************************************************************************/
+
+static void toggle_os_keylockstates(int fd, int changedlockstates)
+{
+    BTIF_TRACE_EVENT3("%s: fd = %d, changedlockstates = 0x%x",
+        __FUNCTION__, fd, changedlockstates);
+    UINT8 hidreport[9];
+    int reportIndex;
+    memset(hidreport,0,9);
+    hidreport[0]=1;
+    reportIndex=4;
+
+    if (changedlockstates & BTIF_HH_KEYSTATE_MASK_CAPSLOCK) {
+        BTIF_TRACE_DEBUG1("%s Setting CAPSLOCK", __FUNCTION__);
+        hidreport[reportIndex++] = (UINT8)HID_REPORT_CAPSLOCK;
+    }
+
+    if (changedlockstates & BTIF_HH_KEYSTATE_MASK_NUMLOCK)  {
+        BTIF_TRACE_DEBUG1("%s Setting NUMLOCK", __FUNCTION__);
+        hidreport[reportIndex++] = (UINT8)HID_REPORT_NUMLOCK;
+    }
+
+    if (changedlockstates & BTIF_HH_KEYSTATE_MASK_SCROLLLOCK) {
+        BTIF_TRACE_DEBUG1("%s Setting SCROLLLOCK", __FUNCTION__);
+        hidreport[reportIndex++] = (UINT8) HID_REPORT_SCROLLLOCK;
+    }
+
+     BTIF_TRACE_DEBUG4("Writing hidreport #1 to os: "\
+        "%s:  %x %x %x", __FUNCTION__,
+         hidreport[0], hidreport[1], hidreport[2]);
+    BTIF_TRACE_DEBUG4("%s:  %x %x %x", __FUNCTION__,
+         hidreport[3], hidreport[4], hidreport[5]);
+    BTIF_TRACE_DEBUG4("%s:  %x %x %x", __FUNCTION__,
+         hidreport[6], hidreport[7], hidreport[8]);
+    bta_hh_co_write(fd , hidreport, sizeof(hidreport));
+    usleep(200000);
+    memset(hidreport,0,9);
+    hidreport[0]=1;
+    BTIF_TRACE_DEBUG4("Writing hidreport #2 to os: "\
+       "%s:  %x %x %x", __FUNCTION__,
+         hidreport[0], hidreport[1], hidreport[2]);
+    BTIF_TRACE_DEBUG4("%s:  %x %x %x", __FUNCTION__,
+         hidreport[3], hidreport[4], hidreport[5]);
+    BTIF_TRACE_DEBUG4("%s:  %x %x %x ", __FUNCTION__,
+         hidreport[6], hidreport[7], hidreport[8]);
+    bta_hh_co_write(fd , hidreport, sizeof(hidreport));
+}
+
+/*******************************************************************************
+**
+** Function         update_keyboard_lockstates
+**
+** Description      Sends a report to the keyboard to set the lock states of keys
+**
+*******************************************************************************/
+static void update_keyboard_lockstates(btif_hh_device_t *p_dev)
+{
+    UINT8 len = 2;  /* reportid + 1 byte report*/
+    BD_ADDR* bda;
+
+    /* Set report for other keyboards */
+    BTIF_TRACE_EVENT3("%s: setting report on dev_handle %d to 0x%x",
+         __FUNCTION__, p_dev->dev_handle, btif_hh_keylockstates);
+
+    if (p_dev->p_buf != NULL) {
+        GKI_freebuf(p_dev->p_buf);
+    }
+    /* Get SetReport buffer */
+    p_dev->p_buf = GKI_getbuf((UINT16) (len + BTA_HH_MIN_OFFSET +
+        sizeof(BT_HDR)));
+    if (p_dev->p_buf != NULL) {
+        p_dev->p_buf->len = len;
+        p_dev->p_buf->offset = BTA_HH_MIN_OFFSET;
+
+        /* LED status updated by data event */
+        UINT8 *pbuf_data  = (UINT8 *)(p_dev->p_buf + 1)
+            + p_dev->p_buf->offset;
+        pbuf_data[0]=0x01; /*report id */
+        pbuf_data[1]=btif_hh_keylockstates; /*keystate*/
+        bda = (BD_ADDR*) (&p_dev->bd_addr);
+        BTA_HhSendData(p_dev->dev_handle, *bda,
+            p_dev->p_buf);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         sync_lockstate_on_connect
+**
+** Description      Function to update the keyboard lock states managed by the OS
+**                  when a HID keyboard is connected or disconnected and reconnected
+** Returns          void
+*******************************************************************************/
+static void sync_lockstate_on_connect(btif_hh_device_t *p_dev)
+{
+    int keylockstates;
+
+    BTIF_TRACE_EVENT1("%s: Syncing keyboard lock states after "\
+        "reconnect...",__FUNCTION__);
+    /*If the device is connected, update keyboard state */
+    update_keyboard_lockstates(p_dev);
+
+    /*Check if the lockstate of caps,scroll,num is set.
+     If so, send a report to the kernel
+    so the lockstate is in sync */
+    keylockstates = get_keylockstates();
+    if (keylockstates)
+    {
+        BTIF_TRACE_DEBUG2("%s: Sending hid report to kernel "\
+            "indicating lock key state 0x%x",__FUNCTION__,
+            keylockstates);
+        usleep(200000);
+        toggle_os_keylockstates(p_dev->fd, keylockstates);
+    }
+    else
+    {
+        BTIF_TRACE_DEBUG2("%s: NOT sending hid report to kernel "\
+            "indicating lock key state 0x%x",__FUNCTION__,
+            keylockstates);
+    }
+}
+
 /*******************************************************************************
 **
 ** Function         btif_hh_find_dev_by_handle
@@ -533,7 +705,8 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
     tBTA_HH *p_data = (tBTA_HH *)p_param;
     bdstr_t bdstr;
     btif_hh_device_t *p_dev = NULL;
-    int len;
+    int i;
+    int len, tmplen;
 
     BTIF_TRACE_DEBUG2("%s: event=%s", __FUNCTION__, dump_hh_event(event));
 
@@ -729,6 +902,28 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 else {
                     //Device already added.
                     BTIF_TRACE_WARNING1("%s: Device already added ",__FUNCTION__);
+                }
+                /*Sync HID Keyboard lockstates */
+                tmplen = sizeof(hid_kb_numlock_on_list)
+                            / sizeof(tHID_KB_LIST);
+                for(i = 0; i< tmplen; i++)
+                {
+                    if(p_data->dscp_info.vendor_id
+                        == hid_kb_numlock_on_list[i].version_id &&
+                        p_data->dscp_info.product_id
+                        == hid_kb_numlock_on_list[i].product_id)
+                    {
+                        BTIF_TRACE_DEBUG3("%s() idx[%d] Enabling "\
+                            "NUMLOCK for device :: %s", __FUNCTION__,
+                            i, hid_kb_numlock_on_list[i].kb_name);
+                        /* Enable NUMLOCK by default so that numeric
+                            keys work from first keyboard connect */
+                        set_keylockstate(BTIF_HH_KEYSTATE_MASK_NUMLOCK,
+                                        TRUE);
+                        sync_lockstate_on_connect(p_dev);
+                        /* End Sync HID Keyboard lockstates */
+                        break;
+                    }
                 }
             }
             break;
