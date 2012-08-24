@@ -43,8 +43,6 @@ void btm_init (void)
 #else
     btm_cb.trace_level = BT_TRACE_LEVEL_NONE;    /* No traces */
 #endif
-    /* TODO Bluedroid - Hardcoded trace level. Needs to be configurable */
-    btm_cb.trace_level = BT_TRACE_LEVEL_DEBUG;
     /* Initialize BTM component structures */
     btm_inq_db_init();                  /* Inquiry Database and Structures */
     btm_acl_init();                     /* ACL Database and Structures */

@@ -34,7 +34,7 @@ const tBTA_SYS_CFG bta_sys_cfg =
     BTA_MBOX_EVT,               /* GKI mailbox event */
     BTA_MBOX,                   /* GKI mailbox id */
     BTA_TIMER,                  /* GKI timer id */
-    BT_TRACE_LEVEL_DEBUG //TODO: Fix this - APPL_INITIAL_TRACE_LEVEL    /* initial trace level */
+    APPL_INITIAL_TRACE_LEVEL    /* initial trace level */
 };
 
 tBTA_SYS_CFG *p_bta_sys_cfg = (tBTA_SYS_CFG *)&bta_sys_cfg;

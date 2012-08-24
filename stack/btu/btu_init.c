@@ -85,7 +85,7 @@ void BTE_Init(void)
 #if (BLE_INCLUDED == TRUE)
     btu_cb.hcit_ble_acl_pkt_size = BTU_DEFAULT_BLE_DATA_SIZE + HCI_DATA_PREAMBLE_SIZE;
 #endif
-    btu_cb.trace_level = BT_TRACE_LEVEL_DEBUG; //HCI_INITIAL_TRACE_LEVEL;
+    btu_cb.trace_level = HCI_INITIAL_TRACE_LEVEL;
 
     for ( i = 0; i < BTU_MAX_LOCAL_CTRLS; i++ ) /* include BR/EDR */
         btu_cb.hci_cmd_cb[i].cmd_window = 1;
