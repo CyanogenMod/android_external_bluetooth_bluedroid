@@ -67,7 +67,7 @@ static void bta_dm_search_timer_cback (TIMER_LIST_ENT *p_tle);
 static void bta_dm_disable_timer_cback (TIMER_LIST_ENT *p_tle);
 static void bta_dm_disable_conn_down_timer_cback (TIMER_LIST_ENT *p_tle);
 static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
-static void bta_dm_adjust_roles(void);
+static void bta_dm_adjust_roles(BOOLEAN delay_role_switch);
 static char *bta_dm_get_remname(void);
 static void bta_dm_bond_cancel_complete_cback(tBTM_STATUS result);
 
@@ -75,6 +75,10 @@ static BOOLEAN bta_dm_read_remote_device_name (BD_ADDR bd_addr);
 static void bta_dm_discover_device(BD_ADDR remote_bd_addr);
 
 static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status );
+
+static BOOLEAN bta_dm_dev_blacklisted_for_switch (BD_ADDR remote_bd_addr);
+static void bta_dm_delay_role_switch_cback (TIMER_LIST_ENT *p_tle);
+
 
 #if ((defined BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     #if ((defined SMP_INCLUDED) && (SMP_INCLUDED == TRUE))
@@ -191,6 +195,17 @@ const tBTM_APPL_INFO bta_security =
     ,&bta_dm_ble_id_key_cback
 #endif
 
+};
+
+/* TBD... To be moved to some conf file..? */
+#define BTA_DM_MAX_ROLE_SWITCH_BLACKLIST_COUNT   5
+const tBTA_DM_LMP_VER_INFO bta_role_switch_blacklist[BTA_DM_MAX_ROLE_SWITCH_BLACKLIST_COUNT] =
+{
+        {0x000F,0x2000,0x04},
+        {0x00,0x00,0x00},
+        {0x00,0x00,0x00},
+        {0x00,0x00,0x00},
+        {0x00,0x00,0x00}
 };
 
 #define MAX_DISC_RAW_DATA_BUF       (4096)
@@ -3318,7 +3333,7 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
         }
     } 
 
-    bta_dm_adjust_roles();
+    bta_dm_adjust_roles(TRUE);
 }
 
 /*******************************************************************************
@@ -3471,8 +3486,60 @@ static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
     }
 
 
-    bta_dm_adjust_roles();
+    bta_dm_adjust_roles(FALSE);
 
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_dev_blacklisted_for_switch
+**
+** Description      Checks if the device is blacklisted for immediate role switch after connection.
+**
+** Returns          TRUE if dev is blacklisted else FALSE
+**
+*******************************************************************************/
+static BOOLEAN bta_dm_dev_blacklisted_for_switch (BD_ADDR remote_bd_addr)
+{
+    UINT16 manufacturer = 0;
+    UINT16  lmp_sub_version = 0;
+    UINT8 lmp_version = 0;
+    UINT8 i = 0;
+
+    if (BTM_ReadRemoteVersion(remote_bd_addr, &lmp_version,
+        &manufacturer, &lmp_sub_version) == BTM_SUCCESS)
+    {
+        /* Check if this device version info matches with is
+           blacklisted versions for role switch  */
+        for (i = 0; i < BTA_DM_MAX_ROLE_SWITCH_BLACKLIST_COUNT; i++)
+        {
+             if ((bta_role_switch_blacklist[i].lmp_version == lmp_version) &&
+                 (bta_role_switch_blacklist[i].manufacturer == manufacturer)&&
+                 ((bta_role_switch_blacklist[i].lmp_sub_version & lmp_sub_version) ==
+                     bta_role_switch_blacklist[i].lmp_sub_version))
+                {
+                    APPL_TRACE_EVENT0("Black list F/W version matches.. Delay Role Switch...");
+                    return TRUE;
+                }
+
+        }
+    }
+    return FALSE;
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_delay_role_switch_cback
+**
+** Description      Callback from btm to delay a role switch
+**
+** Returns          void
+**
+*******************************************************************************/
+static void bta_dm_delay_role_switch_cback(TIMER_LIST_ENT *p_tle)
+{
+    APPL_TRACE_EVENT0("bta_dm_delay_role_switch_cback: initiating Delayed RS");
+    bta_dm_adjust_roles (FALSE);
 }
 
 /*******************************************************************************
@@ -3485,7 +3552,7 @@ static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
 ** Returns          void                  
 **
 *******************************************************************************/
-static void bta_dm_adjust_roles(void)
+static void bta_dm_adjust_roles(BOOLEAN delay_role_switch)
 {
 
     UINT8 i;
@@ -3520,8 +3587,25 @@ static void bta_dm_adjust_roles(void)
                     || (bta_dm_cb.device_list.count > 1))
                 {
 
-                    BTM_SwitchRole (bta_dm_cb.device_list.peer_device[i].peer_bdaddr, HCI_ROLE_MASTER, NULL);
+                /* Initiating immediate role switch with certain remote devices
+                  has caused issues due to role  switch colliding with link encryption setup and
+                  causing encryption (and in turn the link) to fail .  These device . Firmware
+                  versions are stored in a blacklist and role switch with these devices are
+                  delayed to avoid the collision with link encryption setup */
 
+                    if ((delay_role_switch == FALSE) ||
+                       (bta_dm_dev_blacklisted_for_switch(
+                                       bta_dm_cb.device_list.peer_device[i].peer_bdaddr) == FALSE))
+                    {
+                        BTM_SwitchRole (bta_dm_cb.device_list.peer_device[i].peer_bdaddr,
+                                        HCI_ROLE_MASTER, NULL);
+                    }
+                    else
+                    {
+                        bta_dm_cb.switch_delay_timer.p_cback =
+                            (TIMER_CBACK*)&bta_dm_delay_role_switch_cback;
+                        bta_sys_start_timer(&bta_dm_cb.switch_delay_timer, 0, 500);
+                    }
                 }
 
             }

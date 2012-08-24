@@ -705,6 +705,7 @@ typedef struct
 
     tBTA_DM_ENCRYPT_CBACK      *p_encrypt_cback;
     tBTA_DM_BLE_SEC_ACT         sec_act;
+    TIMER_LIST_ENT              switch_delay_timer;
 
 } tBTA_DM_CB;
 
@@ -837,6 +838,13 @@ typedef struct
     UINT16      min_rmt_to;
     UINT16      min_loc_to;
 } tBTA_DM_SSR_SPEC;
+
+typedef struct
+{
+   UINT16 manufacturer;
+   UINT16 lmp_sub_version;
+   UINT8 lmp_version;
+}tBTA_DM_LMP_VER_INFO;
 
 extern tBTA_DM_PM_CFG *p_bta_dm_pm_cfg;
 extern tBTA_DM_PM_SPEC *p_bta_dm_pm_spec;
