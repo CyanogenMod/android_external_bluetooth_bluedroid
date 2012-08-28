@@ -1064,13 +1064,6 @@ static int adev_close(hw_device_t *device)
     return 0;
 }
 
-static uint32_t adev_get_supported_devices(const struct audio_hw_device *dev)
-{
-    FNLOG();
-
-    return (AUDIO_DEVICE_OUT_ALL_A2DP);
-}
-
 static int adev_open(const hw_module_t* module, const char* name,
                      hw_device_t** device)
 {
@@ -1096,7 +1089,6 @@ static int adev_open(const hw_module_t* module, const char* name,
     adev->device.common.module = (struct hw_module_t *) module;
     adev->device.common.close = adev_close;
 
-    adev->device.get_supported_devices = adev_get_supported_devices;
     adev->device.init_check = adev_init_check;
     adev->device.set_voice_volume = adev_set_voice_volume;
     adev->device.set_master_volume = adev_set_master_volume;
