@@ -1107,7 +1107,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
     uint32_t i;
     bt_bdaddr_t bd_addr;
 
-    BTIF_TRACE_EVENT1("btif_dm_upstreams_cback  ev: %d", event);
+    BTIF_TRACE_EVENT1("btif_dm_upstreams_cback  ev: %s", dump_dm_event(event));
 
     switch (event)
     {
