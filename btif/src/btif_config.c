@@ -541,9 +541,10 @@ static cfg_node* find_node(const char* section, const char* key, const char* nam
 static short find_next_node(const cfg_node* p, short start, char* name, int* bytes)
 {
     asrt(0 <= start && start < GET_CHILD_MAX_COUNT(p));
-    //debug("in");
-    //dump_node("parent", p);
+    //debug("in, start:%d, max child count:%d", start, GET_CHILD_MAX_COUNT(p));
+    //dump_node("find_next_node, parent", p);
     short next = -1;
+    if(name) *name = 0;
     if(0 <= start && start < GET_CHILD_MAX_COUNT(p))
     {
         int i;
@@ -752,8 +753,9 @@ static void cfg_test_load()
     kname_size = sizeof(kname);
     kname[0] = 0;
     kpos = 0;
-    while((kpos = btif_config_next_key(kpos, "Remote Devices", kname, &kname_size)) != -1)
+    do
     {
+        kpos = btif_config_next_key(kpos, "Remote Devices", kname, &kname_size);
         debug("Remote devices:%s, size:%d", kname, kname_size);
         vpos = 0;
         vname[0] = 0;
@@ -772,7 +774,7 @@ static void cfg_test_load()
         }
         kname[0] = 0;
         kname_size = sizeof(kname);
-    }
+    } while(kpos != -1);
     debug("out");
 }
 static void cfg_test_write()
