@@ -69,7 +69,6 @@
 #include "btif_api.h"
 
 #include "btif_util.h"
-#include "unv.h"
 #include "bd.h"
 #include "gki.h"
 #include "bta_hh_api.h"
@@ -176,9 +175,9 @@
 #endif
 
 
-
-#define BTIF_STORAGE_HL_APP_CB "hl_app_cb"
-#define BTIF_STORAGE_HL_APP_DATA "hl_app_data_"
+#define BTIF_STORAGE_HL_APP          "hl_app"
+#define BTIF_STORAGE_HL_APP_CB       "hl_app_cb"
+#define BTIF_STORAGE_HL_APP_DATA     "hl_app_data_"
 #define BTIF_STORAGE_HL_APP_MDL_DATA "hl_app_mdl_data_"
 /************************************************************************************
 **  Local type definitions
@@ -1024,41 +1023,45 @@ bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr)
 *******************************************************************************/
 bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size)
 {
-    char  fname[256],  tmp[3];
     bt_status_t bt_status = BT_STATUS_SUCCESS;
-    int   status=FALSE, i, buf_size;
-    char *p_buf;
+    int read_size=value_size, read_type=BTIF_CFG_TYPE_BIN;
 
-    BTIF_TRACE_DEBUG1("%s ", __FUNCTION__);
-    sprintf(fname, "%s/LOCAL/%s", BTIF_STORAGE_PATH_BLUEDROID, BTIF_STORAGE_HL_APP_CB);
-    buf_size = value_size*2;
-    p_buf = malloc(buf_size);
-    BTIF_TRACE_DEBUG2("value_size=%d buf_size=%d", value_size, buf_size);
-    if (p_buf)
+    if (!btif_config_exist("Local", BTIF_STORAGE_HL_APP, BTIF_STORAGE_HL_APP_CB))
     {
-        if ((status = unv_read_hl_apps_cb(fname, p_buf, buf_size))!=0)
+        memset(value, value_size, 0);
+        if (!btif_config_set("Local", BTIF_STORAGE_HL_APP,BTIF_STORAGE_HL_APP_CB,
+                             value, value_size, BTIF_CFG_TYPE_BIN))
         {
             bt_status = BT_STATUS_FAIL;
         }
         else
         {
-            for (i = 0; i < value_size; i++)
-            {
-                memcpy(tmp, p_buf + (i * 2), 2);
-                value[i] = (uint8_t) strtol(tmp, NULL, 16);
-            }
+            btif_config_save();
         }
-
-        free(p_buf);
     }
     else
     {
-        bt_status = BT_STATUS_FAIL;
+        if (!btif_config_get("Local", BTIF_STORAGE_HL_APP, BTIF_STORAGE_HL_APP_CB,
+                             value, &read_size, &read_type))
+        {
+            bt_status = BT_STATUS_FAIL;
+        }
+        else
+        {
+            if ((read_size != value_size) || (read_type != BTIF_CFG_TYPE_BIN) )
+            {
+                BTIF_TRACE_ERROR4("%s  value_size=%d read_size=%d read_type=%d",
+                                  __FUNCTION__, value_size, read_size, read_type);
+                bt_status = BT_STATUS_FAIL;
+            }
+        }
+
     }
 
-    BTIF_TRACE_DEBUG4("%s read file:(%s) read status=%d bt_status=%d", __FUNCTION__,  fname, status, bt_status);
+    BTIF_TRACE_DEBUG3("%s  status=%d value_size=%d", __FUNCTION__, bt_status, value_size);
     return bt_status;
 }
+
 
 /*******************************************************************************
 **
@@ -1072,99 +1075,65 @@ bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size)
 *******************************************************************************/
 bt_status_t btif_storage_write_hl_apps_cb(char *value, int value_size)
 {
-    char  fname[256];
     bt_status_t bt_status = BT_STATUS_SUCCESS;
-    int   status=FALSE, i, buf_size;
-    char *p_buf;
 
-    BTIF_TRACE_DEBUG1("%s ", __FUNCTION__);
-    sprintf(fname, "%s/LOCAL/%s", BTIF_STORAGE_PATH_BLUEDROID, BTIF_STORAGE_HL_APP_CB);
-    buf_size = value_size * 2;
-    p_buf = malloc(buf_size);
-    BTIF_TRACE_DEBUG2("value_size=%d buf_size=%d", value_size, buf_size);
-    if (p_buf)
-    {
-        for (i = 0; i < value_size; i++)
-            sprintf(p_buf + (i * 2), "%2.2X", value[i]);
-
-        if ((status = unv_write_hl_apps_cb(fname, p_buf, buf_size))!=0)
-            bt_status = BT_STATUS_FAIL;
-
-        free(p_buf);
-    }
-    else
+    if (!btif_config_set("Local", BTIF_STORAGE_HL_APP, BTIF_STORAGE_HL_APP_CB,
+                         value, value_size, BTIF_CFG_TYPE_BIN))
     {
         bt_status = BT_STATUS_FAIL;
     }
-    BTIF_TRACE_DEBUG4("%s write file:(%s) write status=%d bt_status=%d", __FUNCTION__,  fname, status, bt_status);
+    else
+    {
+        btif_config_save();
+    }
+    BTIF_TRACE_DEBUG3("%s  status=%d value_size=%d", __FUNCTION__, bt_status, value_size);
+
     return bt_status;
 }
 
 bt_status_t btif_storage_read_hl_data(char *fname, char *value, int value_size)
 {
-    char            tmp[3];
-    bt_status_t     bt_status = BT_STATUS_SUCCESS;
-    int             i, buf_size;
-    char            *p_buf;
+    bt_status_t bt_status = BT_STATUS_SUCCESS;
+    int read_size=value_size, read_type=BTIF_CFG_TYPE_BIN;
 
-    buf_size = value_size*2;
-    p_buf = malloc(buf_size);
-    BTIF_TRACE_DEBUG3("%s value_size=%d buf_size=%d", __FUNCTION__, value_size, buf_size);
-    if (p_buf)
-    {
-        if (unv_read_hl_data(fname, p_buf, buf_size) != 0)
-        {
-            bt_status = BT_STATUS_FAIL;
-        }
-        else
-        {
-            for (i = 0; i < value_size; i++)
-            {
-                memcpy(tmp, p_buf + (i * 2), 2);
-                value[i] = (uint8_t) strtol(tmp, NULL, 16);
-            }
-        }
-        free(p_buf);
-    }
-    else
+    if (!btif_config_get("Local", BTIF_STORAGE_HL_APP, fname, value, &read_size, &read_type))
     {
         bt_status = BT_STATUS_FAIL;
     }
-    BTIF_TRACE_DEBUG1("bt_status=%d",   bt_status);
+    else
+    {
+        if ((read_size != value_size) || (read_type != BTIF_CFG_TYPE_BIN) )
+        {
+            BTIF_TRACE_ERROR4("%s  value_size=%d read_size=%d read_type=%d",
+                              __FUNCTION__, value_size, read_size, read_type);
+            bt_status = BT_STATUS_FAIL;
+        }
+    }
+
     return bt_status;
 }
 
 bt_status_t btif_storage_write_hl_data(char *fname, char *value, int value_size)
 {
     bt_status_t bt_status = BT_STATUS_SUCCESS;
-    int         i, buf_size;
-    char        *p_buf;
 
-    buf_size = value_size * 2;
-    p_buf = malloc(buf_size);
-    BTIF_TRACE_DEBUG3("%s value_size=%d buf_size=%d", __FUNCTION__, value_size, buf_size);
-    if (p_buf)
-    {
-        for (i = 0; i < value_size; i++)
-            sprintf(p_buf + (i * 2), "%2.2X", value[i]);
-
-        if ( unv_write_hl_data(fname, p_buf, buf_size)!= 0)
-            bt_status = BT_STATUS_FAIL;
-
-        free(p_buf);
-    }
-    else
+    if (!btif_config_set("Local", BTIF_STORAGE_HL_APP, fname, value, value_size, BTIF_CFG_TYPE_BIN))
     {
         bt_status = BT_STATUS_FAIL;
     }
-    BTIF_TRACE_DEBUG1("bt_status=%d",   bt_status);
+    else
+    {
+         btif_config_save();
+    }
+    BTIF_TRACE_DEBUG3("%s  status=%d value_size=%d", __FUNCTION__, bt_status, value_size);
 
     return bt_status;
+
 }
 
 /*******************************************************************************
 **
-** Function         btif_storage_read_hl_apps_cb
+** Function         btif_storage_read_hl_app_data
 **
 ** Description      BTIF storage API - Read HL application configuration from NVRAM
 **
@@ -1178,18 +1147,18 @@ bt_status_t btif_storage_read_hl_app_data(UINT8 app_idx, char *value, int value_
     bt_status_t bt_status = BT_STATUS_SUCCESS;
 
     BTIF_TRACE_DEBUG1("%s ", __FUNCTION__);
-    sprintf(fname, "%s/LOCAL/%s%d", BTIF_STORAGE_PATH_BLUEDROID, BTIF_STORAGE_HL_APP_DATA, app_idx);
+    sprintf(fname, "%s%d", BTIF_STORAGE_HL_APP_DATA, app_idx);
     bt_status = btif_storage_read_hl_data(fname,  value, value_size);
-    BTIF_TRACE_DEBUG3("%s read file:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
+    BTIF_TRACE_DEBUG3("%s read item:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
 
     return bt_status;
 }
 
 /*******************************************************************************
 **
-** Function         btif_storage_read_hl_mdl_data
+** Function         btif_storage_write_hl_app_data
 **
-** Description      BTIF storage API - Read HL application MDL configuration from NVRAM
+** Description      BTIF storage API - Write HL application MDL configuration from NVRAM
 **
 ** Returns          BT_STATUS_SUCCESS if the operation was successful,
 **                  BT_STATUS_FAIL otherwise
@@ -1202,9 +1171,9 @@ bt_status_t btif_storage_write_hl_app_data(UINT8 app_idx, char *value, int value
 
 
     BTIF_TRACE_DEBUG1("%s ", __FUNCTION__);
-    sprintf(fname, "%s/LOCAL/%s%d", BTIF_STORAGE_PATH_BLUEDROID, BTIF_STORAGE_HL_APP_DATA, app_idx);
+    sprintf(fname, "%s%d", BTIF_STORAGE_HL_APP_DATA, app_idx);
     bt_status = btif_storage_write_hl_data(fname,  value, value_size);
-    BTIF_TRACE_DEBUG3("%s write file:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
+    BTIF_TRACE_DEBUG3("%s write item:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
 
     return bt_status;
 }
@@ -1227,9 +1196,9 @@ bt_status_t btif_storage_read_hl_mdl_data(UINT8 app_idx, char *value, int value_
     char *p_buf;
 
     BTIF_TRACE_DEBUG1("%s ", __FUNCTION__);
-    sprintf(fname, "%s/LOCAL/%s%d", BTIF_STORAGE_PATH_BLUEDROID, BTIF_STORAGE_HL_APP_MDL_DATA, app_idx);
+    sprintf(fname, "%s%d", BTIF_STORAGE_HL_APP_MDL_DATA, app_idx);
     bt_status = btif_storage_read_hl_data(fname,  value, value_size);
-    BTIF_TRACE_DEBUG3("%s read file:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
+    BTIF_TRACE_DEBUG3("%s read item:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
 
     return bt_status;
 }
@@ -1252,9 +1221,9 @@ bt_status_t btif_storage_write_hl_mdl_data(UINT8 app_idx, char *value, int value
     char *p_buf;
 
     BTIF_TRACE_DEBUG1("%s ", __FUNCTION__);
-    sprintf(fname, "%s/LOCAL/%s%d", BTIF_STORAGE_PATH_BLUEDROID, BTIF_STORAGE_HL_APP_MDL_DATA, app_idx);
+    sprintf(fname, "%s%d", BTIF_STORAGE_HL_APP_MDL_DATA, app_idx);
     bt_status = btif_storage_write_hl_data(fname,  value, value_size);
-    BTIF_TRACE_DEBUG3("%s write file:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
+    BTIF_TRACE_DEBUG3("%s write item:(%s) bt_status=%d", __FUNCTION__, fname,   bt_status);
 
     return bt_status;
 }

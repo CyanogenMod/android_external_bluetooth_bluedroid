@@ -64,7 +64,6 @@ LOCAL_SRC_FILES+= \
 	../embdrv/sbc/encoder/srce/sbc_packing.c \
 
 LOCAL_SRC_FILES+= \
-	../udrv/ulinux/unv_linux.c\
 	../udrv/ulinux/uipc.c
 
 LOCAL_C_INCLUDES+= . \
