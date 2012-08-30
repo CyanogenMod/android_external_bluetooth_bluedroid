@@ -1340,7 +1340,6 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_add
     char *token;
     int ret;
     bdstr_t bdstr;
-    char bd_addr_lap[9];
     char *dev_name_str;
     uint8_t i = 0;
     char value[BTIF_STORAGE_MAX_LINE_SZ];
@@ -1348,17 +1347,13 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_add
 
     bd2str(remote_dev_addr, &bdstr);
 
-    /* create a string with  Lower Address Part from BD Address */
-    snprintf(bd_addr_lap, 9,  "%s",  (char*)bdstr);
+    /* Consider only  Lower Address Part from BD Address */
+    bdstr[8] = '\0';
 
-    for ( i =0; i <strlen(bd_addr_lap) ;i++)
-    {
-        bd_addr_lap[i] = toupper(bd_addr_lap[i]);
-    }
     if(btif_config_get_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
                 BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_ADDR, value, &value_size))
     {
-        if (strstr(value,bd_addr_lap) != NULL)
+        if (strcasestr(value,bdstr) != NULL)
             return TRUE;
     }
 
@@ -1449,24 +1444,22 @@ BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_dev_addr)
 {
     int ret;
     bdstr_t bdstr;
-    char bd_addr_lap[9];
     char *dev_name_str;
     uint8_t i = 0;
     char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
 
     bd2str(remote_dev_addr, &bdstr);
-    snprintf(bd_addr_lap, 9, "%s",  (char*)bdstr);
 
-    for ( i =0; i <strlen(bd_addr_lap) ;i++)
-    {
-        bd_addr_lap[i] = toupper(bd_addr_lap[i]);
-    }
+	/*consider on LAP part of BDA string*/
+	bdstr[8] = '\0';
+
     int line_size = sizeof(linebuf);
     if(btif_config_get_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
                             BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST, linebuf, &line_size))
     {
-        if (strstr(bd_addr_lap, linebuf) != NULL)
+        if (strcasestr(linebuf,bdstr) != NULL)
             return TRUE;
     }
     return FALSE;
+
 }
