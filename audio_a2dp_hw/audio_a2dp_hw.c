@@ -942,7 +942,9 @@ static char * adev_get_parameters(const struct audio_hw_device *dev,
 
     str_parms_dump(parms);
 
-    return NULL;
+    str_parms_destroy(parms);
+
+    return strdup("");
 }
 
 static int adev_init_check(const struct audio_hw_device *dev)
