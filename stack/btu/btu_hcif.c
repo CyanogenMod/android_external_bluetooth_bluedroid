@@ -1597,7 +1597,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
 *******************************************************************************/
 static void btu_hcif_hardware_error_evt (UINT8 *p, UINT16 evt_len)
 {
-    BT_TRACE_0 (TRACE_LAYER_HCI, TRACE_TYPE_ERROR, "Ctlr H/w error event");
+    BT_TRACE_1 (TRACE_LAYER_HCI, TRACE_TYPE_ERROR, "Ctlr H/w error event - code:0x%x", *p);
 
     /* If anyone wants device status notifications, give him one. */
     btm_report_device_status (BTM_DEV_STATUS_DOWN);
