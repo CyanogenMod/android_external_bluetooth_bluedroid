@@ -93,14 +93,64 @@
 #include <time.h>
 
 #if (defined(ANDROID_USE_LOGCAT) && (ANDROID_USE_LOGCAT==TRUE))
-#define LOG_TAG "BtLogMsg"
+const char * const bt_layer_tags[] = {
+    "bt-btif",
+    "bt-usb",
+    "bt-serial",
+    "bt-socket",
+    "bt-rs232",
+    "bt-lc",
+    "bt-lm",
+    "bt-hci",
+    "bt-l2cap",
+    "bt-rfcomm",
+    "bt-sdp",
+    "bt-tcs",
+    "bt-obex",
+    "bt-btm",
+    "bt-gap",
+    "bt-dun",
+    "bt-goep",
+    "bt-icp",
+    "bt-hsp2",
+    "bt-spp",
+    "bt-ctp",
+    "bt-bpp",
+    "bt-hcrp",
+    "bt-ftp",
+    "bt-opp",
+    "bt-btu",
+    "bt-gki",
+    "bt-bnep",
+    "bt-pan",
+    "bt-hfp",
+    "bt-hid",
+    "bt-bip",
+    "bt-avp",
+    "bt-a2d",
+    "bt-sap",
+    "bt-amp",
+    "bt-mca",
+    "bt-att",
+    "bt-smp",
+    "bt-nfc",
+    "bt-nci",
+    "bt-idep",
+    "bt-ndep",
+    "bt-llcp",
+    "bt-rw",
+    "bt-ce",
+    "bt-snep",
+    "bt-ndef",
+    "bt-nfa",
+};
 
 #ifndef LINUX_NATIVE
 #include <cutils/log.h>
-#define LOGI0(s) __android_log_write(ANDROID_LOG_INFO, NULL, s)
-#define LOGD0(s) __android_log_write(ANDROID_LOG_DEBUG, NULL, s)
-#define LOGW0(s) __android_log_write(ANDROID_LOG_WARN, NULL, s)
-#define LOGE0(s) __android_log_write(ANDROID_LOG_ERROR, NULL, s)
+#define LOGI0(t,s) __android_log_write(ANDROID_LOG_INFO, t, s)
+#define LOGD0(t,s) __android_log_write(ANDROID_LOG_DEBUG, t, s)
+#define LOGW0(t,s) __android_log_write(ANDROID_LOG_WARN, t, s)
+#define LOGE0(t,s) __android_log_write(ANDROID_LOG_ERROR, t, s)
 
 #else
 #undef ANDROID_USE_LOGCAT
@@ -153,6 +203,9 @@ void
 LogMsg(UINT32 trace_set_mask, const char *fmt_str, ...)
 {
 	static char buffer[BTE_LOG_BUF_SIZE];
+    int trace_layer = TRACE_GET_LAYER(trace_set_mask);
+    if (trace_layer >= TRACE_LAYER_MAX_NUM)
+        trace_layer = 0;
 
 	va_list ap;
 #if (BTE_ANDROID_INTERNAL_TIMESTAMP==TRUE)
@@ -177,24 +230,24 @@ LogMsg(UINT32 trace_set_mask, const char *fmt_str, ...)
     switch ( TRACE_GET_TYPE(trace_set_mask) )
     {
         case TRACE_TYPE_ERROR:
-            LOGE0(buffer);
+            LOGE0(bt_layer_tags[trace_layer], buffer);
             break;
         case TRACE_TYPE_WARNING:
-            LOGW0(buffer);
+            LOGW0(bt_layer_tags[trace_layer], buffer);
             break;
         case TRACE_TYPE_API:
         case TRACE_TYPE_EVENT:
-            LOGI0(buffer);
+            LOGI0(bt_layer_tags[trace_layer], buffer);
             break;
         case TRACE_TYPE_DEBUG:
-            LOGD0(buffer);
+            LOGD0(bt_layer_tags[trace_layer], buffer);
             break;
         default:
-            LOGE0(buffer);      /* we should never get this */
+            LOGE0(bt_layer_tags[trace_layer], buffer);      /* we should never get this */
             break;
     }
 #else
-    LOGI0(buffer);
+    LOGI0(bt_layer_tags[trace_layer], buffer);
 #endif
 #else
 	write(2, buffer, strlen(buffer));
@@ -212,6 +265,9 @@ ScrLog(UINT32 trace_set_mask, const char *fmt_str, ...)
 	struct timezone tz;
 	struct tm *tm;
 	time_t t;
+    int trace_layer = TRACE_GET_LAYER(trace_set_mask);
+    if (trace_layer >= TRACE_LAYER_MAX_NUM)
+        trace_layer = 0;
 	
 	gettimeofday(&tv, &tz);
 	time(&t);
@@ -225,7 +281,7 @@ ScrLog(UINT32 trace_set_mask, const char *fmt_str, ...)
 	va_end(ap);
 
 #if (defined(ANDROID_USE_LOGCAT) && (ANDROID_USE_LOGCAT==TRUE))
-    LOGI0(buffer);
+    LOGI0(bt_layer_tags[trace_layer], buffer);
 #else
 	write(2, buffer, strlen(buffer));
 	write(2, "\n", 1);
