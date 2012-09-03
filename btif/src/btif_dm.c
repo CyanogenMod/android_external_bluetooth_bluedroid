@@ -765,7 +765,13 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
                 status =  BT_STATUS_RMT_DEV_DOWN;
                 break;
 
+            /* map the auth failure codes, so we can retry pairing if necessary */
             case HCI_ERR_AUTH_FAILURE:
+            case HCI_ERR_HOST_REJECT_SECURITY:
+            case HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE:
+            case HCI_ERR_UNIT_KEY_USED:
+            case HCI_ERR_PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED:
+            case HCI_ERR_INSUFFCIENT_SECURITY:
                 BTIF_TRACE_DEBUG1(" %s() Authentication fail ", __FUNCTION__);
                 if (pairing_cb.autopair_attempts  == 1)
                 {
