@@ -16,8 +16,6 @@
 #ifndef GKI_TARGET_H
 #define GKI_TARGET_H
 
-#include "bt_target.h"
-
 /* Operating System Selection */
 #ifndef BTE_SIM_APP
 #define _GKI_ARM
@@ -45,7 +43,7 @@
 
 
 #if defined (GKI_DEBUG) && (GKI_DEBUG == TRUE)
-#define GKI_TRACE(fmt, ...)     LOGI ("%s: " fmt, __FUNCTION__, ## __VA_ARGS__)
+#define GKI_TRACE(fmt, ...)     ALOGI ("%s: " fmt, __FUNCTION__, ## __VA_ARGS__)
 #else
 #define GKI_TRACE(fmt, ...) 
 #endif
@@ -57,67 +55,21 @@
 ******************************************************************************/
 
 /* Definitions of task IDs for inter-task messaging */
-#ifndef MMI_TASK
-#define MMI_TASK                0
-#endif
-
-#ifndef HCISU_TASK
-#define HCISU_TASK              1
-#endif
-
-#ifndef NCI_TASK
-#define NCI_TASK                2
-#endif
-
-#ifndef NFC_TASK
-#define NFC_TASK                3
-#endif
-
 #ifndef BTU_TASK
-#define BTU_TASK                4
+#define BTU_TASK                0
 #endif
 
-/* BTE Application, Sample Apps, or Serial port Demo based on JP3 and JP4 setting) */
-#ifndef BTE_APPL_TASK
-#define BTE_APPL_TASK           5
+#ifndef BTIF_TASK
+#define BTIF_TASK               1
 #endif
 
-#ifndef DEV_MGR_TASK
-#define DEV_MGR_TASK            6
+#ifndef A2DP_MEDIA_TASK
+#define A2DP_MEDIA_TASK         2
 #endif
-
-#ifndef ISE_SCR_TASK
-#define ISE_SCR_TASK            7
-#endif
-
-#ifndef UCODEC_TASK
-#define UCODEC_TASK             8
-#endif
-
-#ifndef RPCT_TASK
-#define RPCT_TASK               9
-#endif
-
-#ifndef UNV_TASK
-#define UNV_TASK                10
-#endif
-
-#ifndef BTE_IDLE_TASK
-#define BTE_IDLE_TASK           11
-#endif
-
-#ifndef UIPC_TASK
-#define UIPC_TASK               12
-#endif
-
-#ifndef HCISU_AMP_TASK
-#define HCISU_AMP_TASK          13
-#endif
-
 
 /* The number of GKI tasks in the software system. */
 #ifndef GKI_MAX_TASKS
-#define GKI_MAX_TASKS               14
+#define GKI_MAX_TASKS               3
 #endif
 
 /******************************************************************************
@@ -214,7 +166,7 @@
 
 /* The size of the buffers in pool 1. */
 #ifndef GKI_BUF1_SIZE
-#define GKI_BUF1_SIZE               128
+#define GKI_BUF1_SIZE               288
 #endif
 
 /* The number of buffers in buffer pool 1. */
@@ -244,12 +196,12 @@
 
 /* The size of the buffers in pool 3. */
 #ifndef GKI_BUF3_SIZE
-#define GKI_BUF3_SIZE               1800
+#define GKI_BUF3_SIZE               (4096+16)
 #endif
 
 /* The number of buffers in buffer pool 3. */
 #ifndef GKI_BUF3_MAX
-#define GKI_BUF3_MAX                30
+#define GKI_BUF3_MAX                200
 #endif
 
 /* The ID of buffer pool 3. */
@@ -276,7 +228,7 @@ Devices with small amount of RAM should limit the number of active obex objects.
 */
 /* The size of the buffers in pool 4. */
 #ifndef GKI_BUF4_SIZE
-#define GKI_BUF4_SIZE               0x2000
+#define GKI_BUF4_SIZE               (8080+26)
 #endif
 
 /* The number of buffers in buffer pool 4. */

@@ -286,28 +286,8 @@
 #define LINUX_GKI_INCLUDED  TRUE
 #endif
 
-#ifndef TICKS_PER_SEC
-#define TICKS_PER_SEC  100
-#endif
-
 #ifndef BTA_SYS_TIMER_PERIOD
 #define BTA_SYS_TIMER_PERIOD  100
-#endif
-
-#ifndef GKI_BUF1_SIZE
-#define GKI_BUF1_SIZE  288
-#endif
-
-#ifndef GKI_BUF3_MAX
-#define GKI_BUF3_MAX  200
-#endif
-
-#ifndef GKI_BUF3_SIZE
-#define GKI_BUF3_SIZE  (4096+16)
-#endif
-
-#ifndef GKI_BUF4_SIZE
-#define GKI_BUF4_SIZE  (8080+26)
 #endif
 
 #ifndef GKI_SHUTDOWN_EVT
@@ -324,22 +304,6 @@
 
 #ifndef LINUX_OS
 #define LINUX_OS  TRUE
-#endif
-
-#ifndef BTU_TASK
-#define BTU_TASK  0
-#endif
-
-#ifndef BTIF_TASK
-#define BTIF_TASK  1
-#endif
-
-#ifndef A2DP_MEDIA_TASK
-#define A2DP_MEDIA_TASK  2
-#endif
-
-#ifndef GKI_MAX_TASKS
-#define GKI_MAX_TASKS  3
 #endif
 
 #ifndef BTM_APP_DEV_INIT
