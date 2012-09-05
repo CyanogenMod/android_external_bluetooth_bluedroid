@@ -887,9 +887,15 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         else if (!(p_cb->features & BTA_AV_FEAT_VENDOR)  && 
             p_data->rc_msg.msg.hdr.ctype <= AVRC_CMD_GEN_INQ)
         {
-            /* reject it */
-            p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_NOT_IMPL;
-            AVRC_VendorRsp(p_data->rc_msg.handle, p_data->rc_msg.label, &p_data->rc_msg.msg.vendor); 
+           if(p_data->rc_msg.msg.vendor.p_vendor_data[0] == AVRC_PDU_INVALID)
+           {
+           /* reject it */
+              p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_REJ;
+              p_data->rc_msg.msg.vendor.p_vendor_data[4] = AVRC_STS_BAD_CMD;
+           }
+           else
+              p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_NOT_IMPL;
+           AVRC_VendorRsp(p_data->rc_msg.handle, p_data->rc_msg.label, &p_data->rc_msg.msg.vendor);
         }
     }
 

@@ -208,7 +208,7 @@
  * The len for vendor unique data is 5 */
 #define AVRC_PASS_THRU_GROUP_LEN                5
 
-
+#define AVRC_PDU_INVALID                        0xff
 /* 6.15.3 error status code for general reject */
 #define AVRC_STS_BAD_CMD        0x00    /* Invalid command, sent if TG received a PDU that it did not understand. */
 #define AVRC_STS_BAD_PARAM      0x01    /* Invalid parameter, sent if the TG received a PDU with a parameter ID that it did not understand. Sent if there is only one parameter ID in the PDU. */
