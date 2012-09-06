@@ -667,6 +667,7 @@ void l2c_link_adjust_allocation (void)
     /* If no links active, nothing to do. */
     if (l2cb.num_links_active == 0)
     {
+        l2cb.controller_xmit_window = l2cb.num_lm_acl_bufs;
         l2cb.round_robin_quota = l2cb.round_robin_unacked = 0;
         return;
     }
