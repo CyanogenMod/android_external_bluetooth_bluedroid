@@ -147,11 +147,7 @@ BOOLEAN bta_ag_add_record(UINT16 service_uuid, char *p_service_name, UINT8 scn,
     if (service_uuid == UUID_SERVCLASS_AG_HANDSFREE)
     {
         profile_uuid = UUID_SERVCLASS_HF_HANDSFREE;
-#if (BTM_WBS_INCLUDED == TRUE )
         version = HFP_VERSION_1_6;
-#else
-        version = HFP_VERSION_1_5;
-#endif
     }
     else
     {
