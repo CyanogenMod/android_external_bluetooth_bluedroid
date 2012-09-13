@@ -82,6 +82,7 @@ void bta_dm_disable_pm(void)
 {
     UINT8 i;
 
+    bta_sys_pm_register(NULL);
     BTM_PmRegister( BTM_PM_DEREG, &bta_dm_cb.pm_id, NULL);
 
     /* Need to stop all active timers. */
