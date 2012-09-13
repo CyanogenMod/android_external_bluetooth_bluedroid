@@ -399,7 +399,6 @@ static BOOLEAN btif_av_state_closing_handler(btif_sm_event_t event, void *p_data
 
             /* immediately stop transmission of frames */
             btif_a2dp_set_tx_flush(TRUE);
-
             /* wait for audioflinger to stop a2dp */
             break;
 
@@ -963,7 +962,8 @@ const btav_interface_t *btif_av_get_interface(void)
 ** Returns          boolean
 **
 *******************************************************************************/
-BOOLEAN btif_av_is_rc_open_without_a2dp(void)
+BOOLEAN btif_av_is_connected(void)
 {
-    return (tle_av_open_on_rc.in_use);
+    btif_sm_state_t state = btif_sm_get_state(btif_av_cb.sm_handle);
+    return ((state == BTIF_AV_STATE_OPENED) || (state ==  BTIF_AV_STATE_STARTED));
 }

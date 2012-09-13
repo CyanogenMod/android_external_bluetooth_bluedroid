@@ -100,7 +100,7 @@ static btif_rc_cb_t btif_rc_cb;
 ******************************************************************************/
 extern BOOLEAN btif_hf_call_terminated_recently();
 extern BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
-BOOLEAN btif_av_is_rc_open_without_a2dp(void);
+extern BOOLEAN btif_av_is_connected(void);
 
 /*****************************************************************************
 **  Functions
@@ -299,7 +299,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
     if (p_remote_cmd)
     {
         /* queue AVRC PLAY if GAVDTP Open notification to app is pending (2 second timer) */
-        if ((p_remote_cmd->rc_id == BTA_AV_RC_PLAY) && btif_av_is_rc_open_without_a2dp())
+        if ((p_remote_cmd->rc_id == BTA_AV_RC_PLAY) && (!btif_av_is_connected()))
         {
             if (p_remote_cmd->key_state == AVRC_STATE_PRESS)
             {
