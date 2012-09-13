@@ -107,7 +107,7 @@
 #define BTIF_MEDIA_TASK_CMD TASK_MBOX_0_EVT_MASK
 #define BTIF_MEDIA_TASK_DATA TASK_MBOX_1_EVT_MASK
 
-#define BTIF_MEDIA_TASK_KILL TASK_MBOX_3_EVT_MASK
+#define BTIF_MEDIA_TASK_KILL EVENT_MASK(GKI_SHUTDOWN_EVT)
 
 #define BTIF_MEDIA_AA_TASK_TIMER_ID TIMER_0
 #define BTIF_MEDIA_AV_TASK_TIMER_ID TIMER_1
@@ -573,7 +573,7 @@ static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
 
         case UIPC_CLOSE_EVT:
             /* restart ctrl server unless we are shutting down */
-            if (media_task_running != MEDIA_TASK_STATE_SHUTTING_DOWN)
+            if (media_task_running == MEDIA_TASK_STATE_ON)
                 UIPC_Open(UIPC_CH_ID_AV_CTRL , btif_a2dp_ctrl_cb);
             break;
 
@@ -765,7 +765,7 @@ int btif_a2dp_start_media_task(void)
 void btif_a2dp_stop_media_task(void)
 {
     APPL_TRACE_EVENT0("## A2DP STOP MEDIA TASK ##");
-    GKI_send_event(BT_MEDIA_TASK, BTIF_MEDIA_TASK_KILL);
+    GKI_destroy_task(BT_MEDIA_TASK);
 }
 
 /*****************************************************************************
