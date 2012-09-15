@@ -48,7 +48,7 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES:=     \
     bluedroidtest.c
 
-LOCAL_C_INCLUDES :=
+LOCAL_C_INCLUDES := vendor/broadcom/libbt-vendor/include
 
 LOCAL_MODULE_TAGS := eng
 
