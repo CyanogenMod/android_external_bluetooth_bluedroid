@@ -323,6 +323,7 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
                 strcat(value, " ");
             }
             btif_config_set_str("Remote", bdstr, BTIF_STORAGE_PATH_REMOTE_SERVICE, value);
+            btif_config_save();
             break;
         }
         default:
