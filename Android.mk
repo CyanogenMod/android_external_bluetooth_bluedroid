@@ -10,8 +10,6 @@ else
   bdroid_CFLAGS := -DHAS_NO_BDROID_BUILDCFG
 endif
 
-bdroid_C_INCLUDES += vendor/broadcom/libbt-vendor/include
-
 include $(call all-subdir-makefiles)
 
 # Cleanup our locals
