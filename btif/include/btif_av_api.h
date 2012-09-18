@@ -54,7 +54,6 @@
  **                  Bluetooth application layer for mobile phones.
  **
  *****************************************************************************/
-
 #ifndef BTIF_AV_API_H
 #define BTIF_AV_API_H
 
@@ -71,7 +70,7 @@
  **  Constants and data types
  *****************************************************************************/
 
-/* Codec type */
+/* codec type */
 #define BTIF_AV_CODEC_NONE       0xFF
 #define BTIF_AV_CODEC_SBC        A2D_MEDIA_CT_SBC        /* SBC media codec type */
 
@@ -94,7 +93,7 @@ typedef UINT8 tBTIF_AV_CHNL;
 
 typedef UINT8 tBTIF_AV_HNDL;
 
-/* Operation id list for BTIF_AvRemoteCmd */
+/* operation id list for BTIF_AvRemoteCmd */
 #define BTIF_AV_ID_SELECT      0x00    /* select */
 #define BTIF_AV_ID_UP          0x01    /* up */
 #define BTIF_AV_ID_DOWN        0x02    /* down */
@@ -156,7 +155,7 @@ typedef UINT8 tBTIF_AV_HNDL;
 
 typedef UINT8 tBTIF_AV_RC;
 
-/* State flag for pass through command */
+/* state flag for pass through command */
 #define BTIF_AV_STATE_PRESS      0    /* key pressed */
 #define BTIF_AV_STATE_RELEASE    1  /* key released */
 
@@ -164,7 +163,7 @@ typedef UINT8 tBTIF_AV_STATE;
 
 typedef UINT8 tBTIF_AV_RC_HNDL;
 
-/* Command codes for BTIF_AvVendorCmd */
+/* command codes for BTIF_AvVendorCmd */
 #define BTIF_AV_CMD_CTRL         0
 #define BTIF_AV_CMD_STATUS       1
 #define BTIF_AV_CMD_SPEC_INQ     2
@@ -200,17 +199,16 @@ typedef UINT8 tBTIF_AV_FEEDING_MODE;
 #define BTIF_AV_CHANNEL_MODE_DUAL    A2D_SBC_IE_CH_MD_DUAL
 
 typedef UINT8 tBTIF_AV_CHANNEL_MODE;
-
-/**
+/*
  * Structure used to configure the AV codec capabilities/config
  */
 typedef struct
 {
     tBTIF_AV_CODEC_ID id;            /* Codec ID (in terms of BTIF) */
-    UINT8 info[AVDT_CODEC_SIZE];     /* Codec info (can be config or capabilities) */
+    UINT8 info[AVDT_CODEC_SIZE];    /* Codec info (can be config or capabilities) */
 } tBTIF_AV_CODEC_INFO;
 
-/**
+/*
  * Structure used to configure the AV media feeding
  */
 typedef struct
@@ -220,9 +218,10 @@ typedef struct
     UINT8  bit_per_sample;  /* Number of bits per sample (8, 16) */
 } tBTIF_AV_MEDIA_FEED_CFG_PCM;
 
+
 typedef union
 {
-    tBTIF_AV_MEDIA_FEED_CFG_PCM pcm;     /* Raw PCM feeding format */
+    tBTIF_AV_MEDIA_FEED_CFG_PCM pcm;     /* raw PCM feeding format */
 }tBTIF_AV_MEDIA_FEED_CFG;
 
 typedef struct

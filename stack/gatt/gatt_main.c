@@ -37,7 +37,7 @@ static void gatt_l2cif_disconnect_cfm_cback (UINT16 l2cap_cid, UINT16 result);
 static void gatt_l2cif_data_ind_cback (UINT16 l2cap_cid, BT_HDR *p_msg);
 static void gatt_send_conn_cback (BOOLEAN is_bg_conn, tGATT_TCB *p_tcb);
 
-static const tL2CAP_APPL_INFO dyn_info =
+static const tL2CAP_APPL_INFO dyn_info = 
 {
     gatt_l2cif_connect_ind_cback,
     gatt_l2cif_connect_cfm_cback,
@@ -57,7 +57,7 @@ tGATT_CB  gatt_cb;
 
 /*******************************************************************************
 **
-** Function         gatt_init
+** Function         gatt_init 
 **
 ** Description      This function is enable the GATT profile on the device.
 **                  It clears out the control blocks, and registers with L2CAP.
@@ -103,9 +103,9 @@ void gatt_init (void)
     BTM_SetSecurityLevel(TRUE, "", BTM_SEC_SERVICE_ATT, BTM_SEC_NONE, BT_PSM_ATT, 0, 0);
     BTM_SetSecurityLevel(FALSE, "", BTM_SEC_SERVICE_ATT, BTM_SEC_NONE, BT_PSM_ATT, 0, 0);
 
-    gatt_cb.hdl_cfg.gatt_start_hdl = GATT_GATT_START_HANDLE;
-    gatt_cb.hdl_cfg.gap_start_hdl  = GATT_GAP_START_HANDLE;
-    gatt_cb.hdl_cfg.app_start_hdl  = GATT_APP_START_HANDLE;
+    gatt_cb.hdl_cfg.gatt_start_hdl = GATT_GATT_START_HANDLE;  
+    gatt_cb.hdl_cfg.gap_start_hdl  = GATT_GAP_START_HANDLE;   
+    gatt_cb.hdl_cfg.app_start_hdl  = GATT_APP_START_HANDLE;      
     gatt_profile_db_init();
 
 }
@@ -118,7 +118,7 @@ void gatt_init (void)
 **
 ** Description      This function is called to initiate a connection to a peer device.
 **
-** Parameter        rem_bda: remote device address to connect to.
+** Parameter        rem_bda: remote device address to connect to.        
 **
 ** Returns          TRUE if connection is started, otherwise return FALSE.
 **
@@ -153,9 +153,9 @@ BOOLEAN gatt_connect (BD_ADDR rem_bda, tGATT_TCB *p_tcb)
 **
 ** Description      This function is called to disconnect to an ATT device.
 **
-** Parameter        rem_bda: remote device address to disconnect from.
+** Parameter        rem_bda: remote device address to disconnect from.        
 **
-** Returns          TRUE: if connection found and to be disconnected; otherwise
+** Returns          TRUE: if connection found and to be disconnected; otherwise 
 **                  return FALSE.
 **
 *******************************************************************************/
@@ -208,7 +208,7 @@ BOOLEAN gatt_disconnect (BD_ADDR rem_bda)
 void gatt_update_app_hold_link_status (tGATT_IF gatt_if, tGATT_TCB *p_tcb, BOOLEAN is_add)
 {
     UINT8 i;
-    BOOLEAN found=FALSE;
+    BOOLEAN found=FALSE; 
 
     if (p_tcb == NULL)
     {
@@ -259,13 +259,13 @@ void gatt_update_app_hold_link_status (tGATT_IF gatt_if, tGATT_TCB *p_tcb, BOOLE
 *******************************************************************************/
 void gatt_update_app_use_link_flag (tGATT_IF gatt_if, tGATT_TCB *p_tcb, BOOLEAN is_add, BOOLEAN check_acl_link)
 {
-    GATT_TRACE_DEBUG2("gatt_update_app_use_link_flag  is_add=%d chk_link=%d",
+    GATT_TRACE_DEBUG2("gatt_update_app_use_link_flag  is_add=%d chk_link=%d", 
                       is_add, check_acl_link);
 
     gatt_update_app_hold_link_status(gatt_if, p_tcb, is_add);
 
     if (check_acl_link &&
-        p_tcb &&
+        p_tcb && 
         (BTM_GetHCIConnHandle(p_tcb->peer_bda) != GATT_INVALID_ACL_HANDLE))
     {
         if (is_add)
@@ -320,7 +320,7 @@ BOOLEAN gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr)
             if (!gatt_connect(bd_addr,  p_tcb))
             {
                 GATT_TRACE_ERROR0("gatt_connect failed");
-                memset(p_tcb, 0, sizeof(tGATT_TCB));
+                memset(p_tcb, 0, sizeof(tGATT_TCB));                        
             }
             else
                 ret = TRUE;
@@ -336,7 +336,7 @@ BOOLEAN gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr)
     {
         gatt_update_app_use_link_flag(p_reg->gatt_if, p_tcb, TRUE, FALSE);
     }
-
+             
     return ret;
 }
 
@@ -345,7 +345,7 @@ BOOLEAN gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr)
 ** Function         gatt_le_connect_cback
 **
 ** Description      This callback function is called by L2CAP to indicate that
-**                  the ATT fixed channel for LE is
+**                  the ATT fixed channel for LE is 
 **                      connected (conn = TRUE)/disconnected (conn = FALSE).
 **
 *******************************************************************************/
@@ -360,7 +360,7 @@ static void gatt_le_connect_cback (BD_ADDR bd_addr, BOOLEAN connected, UINT16 re
 
 
     GATT_TRACE_DEBUG3 ("GATT   ATT protocol channel with BDA: %08x%04x is %s",
-                       (bd_addr[0]<<24)+(bd_addr[1]<<16)+(bd_addr[2]<<8)+bd_addr[3],
+                       (bd_addr[0]<<24)+(bd_addr[1]<<16)+(bd_addr[2]<<8)+bd_addr[3], 
                        (bd_addr[4]<<8)+bd_addr[5], (connected) ? "connected" : "disconnected");
 
 
@@ -376,7 +376,7 @@ static void gatt_le_connect_cback (BD_ADDR bd_addr, BOOLEAN connected, UINT16 re
 
     if (connected)
     {
-        GATT_TRACE_DEBUG1("connected is TRUE reason=%d",reason );
+        GATT_TRACE_DEBUG1("connected is TRUE reason=%d",reason );  
         /* BR/EDR lik, ignore this callback */
         if (reason == 0)
             return;
@@ -477,7 +477,7 @@ static void gatt_le_data_ind (BD_ADDR bd_addr, BT_HDR *p_buf)
 **
 ** Description      This function handles an inbound connection indication
 **                  from L2CAP. This is the case where we are acting as a
-**                  server.
+**                  server. 
 **
 ** Returns          void
 **
@@ -509,7 +509,7 @@ static void gatt_l2cif_connect_ind_cback (BD_ADDR  bd_addr, UINT16 lcid, UINT16 
     }
 
     /* Send L2CAP connect rsp */
-    L2CA_ConnectRsp(bd_addr, id, lcid, result, 0);
+    L2CA_ConnectRsp(bd_addr, id, lcid, result, 0); 
 
     /* if result ok, proceed with connection */
     if (result == L2CAP_CONN_OK)
@@ -531,7 +531,7 @@ static void gatt_l2cif_connect_ind_cback (BD_ADDR  bd_addr, UINT16 lcid, UINT16 
 ** Function         gatt_l2c_connect_cfm_cback
 **
 ** Description      This is the L2CAP connect confirm callback function.
-**
+**                  
 **
 ** Returns          void
 **
@@ -583,7 +583,7 @@ void gatt_l2cif_connect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Function         gatt_l2cif_config_cfm_cback
 **
 ** Description      This is the L2CAP config confirm callback function.
-**
+**                  
 **
 ** Returns          void
 **
@@ -639,7 +639,7 @@ void gatt_l2cif_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Function         gatt_l2cif_config_ind_cback
 **
 ** Description      This is the L2CAP config indication callback function.
-**
+**                  
 **
 ** Returns          void
 **
@@ -694,7 +694,7 @@ void gatt_l2cif_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Function         gatt_l2cif_disconnect_ind_cback
 **
 ** Description      This is the L2CAP disconnect indication callback function.
-**
+**                  
 **
 ** Returns          void
 **
@@ -728,7 +728,7 @@ void gatt_l2cif_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
 ** Function         gatt_l2cif_disconnect_cfm_cback
 **
 ** Description      This is the L2CAP disconnect confirm callback function.
-**
+**                  
 **
 ** Returns          void
 **
@@ -757,7 +757,7 @@ void gatt_l2cif_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Function         gatt_l2cif_data_ind_cback
 **
 ** Description      This is the L2CAP data indication callback function.
-**
+**                  
 **
 ** Returns          void
 **
@@ -782,14 +782,14 @@ void gatt_l2cif_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
 ** Function         gatt_send_conn_cback
 **
 ** Description      Callback used to notify layer above about a connection.
-**
+**                  
 **
 ** Returns          void
 **
 *******************************************************************************/
 static void gatt_send_conn_cback(BOOLEAN is_bg_conn, tGATT_TCB *p_tcb)
 {
-    UINT8               i;
+    UINT8               i; 
     tGATT_REG           *p_reg;
     tGATT_BG_CONN_DEV   *p_bg_dev=NULL;
     UINT16              conn_id;
@@ -807,7 +807,7 @@ static void gatt_send_conn_cback(BOOLEAN is_bg_conn, tGATT_TCB *p_tcb)
 
             if (p_reg->app_cb.p_conn_cb)
             {
-                conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_reg->gatt_if);
+                conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_reg->gatt_if); 
                 (*p_reg->app_cb.p_conn_cb)(p_reg->gatt_if, p_tcb->peer_bda, conn_id, TRUE, 0);
             }
         }
@@ -854,7 +854,7 @@ void gatt_data_process (tGATT_TCB *p_tcb, BT_HDR *p_buf)
         if (pseudo_op_code < GATT_OP_CODE_MAX)
         {
             if (op_code == GATT_SIGN_CMD_WRITE)
-            {
+            {     
                 gatt_verify_signature(p_tcb, p_buf);
                 return;
             }
@@ -870,12 +870,12 @@ void gatt_data_process (tGATT_TCB *p_tcb, BT_HDR *p_buf)
         else
         {
             GATT_TRACE_ERROR1 ("ATT - Rcvd L2CAP data, unknown cmd: 0x%x", op_code);
-        }
+        }        
     }
     else
     {
         GATT_TRACE_ERROR0 ("invalid data length, ignore");
-    }
+    }        
 
     GKI_freebuf (p_buf);
 }
@@ -885,7 +885,7 @@ void gatt_data_process (tGATT_TCB *p_tcb, BT_HDR *p_buf)
 ** Function         gatt_add_a_bonded_dev_for_srv_chg
 **
 ** Description      Add a bonded dev to the service changed client list
-**
+** 
 ** Returns          void
 **
 *******************************************************************************/
@@ -938,8 +938,8 @@ void gatt_send_srv_chg_ind (BD_ADDR peer_bda)
         }
         else
         {
-            GATT_TRACE_ERROR2("Unable to find conn_id for  %08x%04x ",
-                              (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],
+            GATT_TRACE_ERROR2("Unable to find conn_id for  %08x%04x ", 
+                              (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3], 
                               (peer_bda[4]<<8)+peer_bda[5] );
         }
     }
@@ -957,7 +957,7 @@ void gatt_send_srv_chg_ind (BD_ADDR peer_bda)
 *******************************************************************************/
 void gatt_chk_srv_chg(tGATTS_SRV_CHG *p_srv_chg_clt)
 {
-    GATT_TRACE_DEBUG1("gatt_chk_srv_chg srv_changed=%d", p_srv_chg_clt->srv_changed );
+    GATT_TRACE_DEBUG1("gatt_chk_srv_chg srv_changed=%d", p_srv_chg_clt->srv_changed );  
 
     if (p_srv_chg_clt->srv_changed)
     {
@@ -997,10 +997,10 @@ void gatt_init_srv_chg (void)
         {
             GATT_TRACE_DEBUG1("gatt_init_srv_chg num_srv_chg_clt_clients=%d", rsp.num_clients);
             num_clients = rsp.num_clients;
-            i = 1; /* use one based index */
+            i = 1; /* use one based index */   
             while ((i <= num_clients) && status)
             {
-                req.client_read_index = i;
+                req.client_read_index = i; 
                 if ((status = (*gatt_cb.cb_info.p_srv_chg_callback)(GATTS_SRV_CHG_CMD_READ_CLENT, &req, &rsp)))
                 {
                     memcpy(&srv_chg_clt, &rsp.srv_chg ,sizeof(tGATTS_SRV_CHG));
@@ -1036,7 +1036,7 @@ void gatt_proc_srv_chg (void)
     BOOLEAN             srv_chg_ind_pending=FALSE;
     tGATT_TCB           *p_tcb;
 
-    GATT_TRACE_DEBUG0 ("gatt_proc_srv_chg");
+    GATT_TRACE_DEBUG0 ("gatt_proc_srv_chg"); 
 
     if (gatt_cb.cb_info.p_srv_chg_callback && gatt_cb.handle_of_h_r)
     {
@@ -1053,7 +1053,7 @@ void gatt_proc_srv_chg (void)
             }
             else
             {
-                GATT_TRACE_DEBUG0 ("discard srv chg - already has one in the queue");
+                GATT_TRACE_DEBUG0 ("discard srv chg - already has one in the queue"); 
             }
             start_idx = ++found_idx;
         }

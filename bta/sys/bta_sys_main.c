@@ -63,8 +63,8 @@ const tBTA_SYS_ACTION bta_sys_action[] =
 {
     /* device manager local device API events - cf bta_sys.h for events */
     bta_sys_hw_api_enable,             /* 0  BTA_SYS_HW_API_ENABLE_EVT    */
-    bta_sys_hw_evt_enabled,           /* 1  BTA_SYS_HW_EVT_ENABLED_EVT */
-    bta_sys_hw_evt_stack_enabled,       /* 2  BTA_SYS_HW_EVT_STACK_ENABLED_EVT */
+    bta_sys_hw_evt_enabled,           /* 1  BTA_SYS_HW_EVT_ENABLED_EVT */       
+    bta_sys_hw_evt_stack_enabled,       /* 2  BTA_SYS_HW_EVT_STACK_ENABLED_EVT */           
     bta_sys_hw_api_disable,             /* 3  BTA_SYS_HW_API_DISABLE_EVT     */
     bta_sys_hw_evt_disabled,           /* 4  BTA_SYS_HW_EVT_DISABLED_EVT  */
     bta_sys_hw_error                        /* 5   BTA_SYS_HW_ERROR_EVT  */
@@ -74,9 +74,9 @@ const tBTA_SYS_ACTION bta_sys_action[] =
 enum
 {
     /* device manager local device API events */
-    BTA_SYS_HW_API_ENABLE,
+    BTA_SYS_HW_API_ENABLE,  
     BTA_SYS_HW_EVT_ENABLED,
-    BTA_SYS_HW_EVT_STACK_ENABLED,
+    BTA_SYS_HW_EVT_STACK_ENABLED,    
     BTA_SYS_HW_API_DISABLE,
     BTA_SYS_HW_EVT_DISABLED,
     BTA_SYS_HW_ERROR
@@ -121,7 +121,7 @@ const UINT8 bta_sys_hw_on[][BTA_SYS_NUM_COLS] =
 /* EVT_ENABLED   */  {BTA_SYS_IGNORE,               BTA_SYS_IGNORE,         BTA_SYS_HW_ON},
 /* STACK_ENABLED */  {BTA_SYS_IGNORE,               BTA_SYS_IGNORE,         BTA_SYS_HW_ON},
 /* API_DISABLE   */  {BTA_SYS_HW_API_DISABLE,       BTA_SYS_IGNORE,         BTA_SYS_HW_ON}, /* don't change the state here, as some other modules might be active */
-/* EVT_DISABLED */   {BTA_SYS_HW_ERROR,             BTA_SYS_IGNORE,         BTA_SYS_HW_ON},
+/* EVT_DISABLED */   {BTA_SYS_HW_ERROR,             BTA_SYS_IGNORE,         BTA_SYS_HW_ON},        
 /* EVT_ERROR */      {BTA_SYS_HW_ERROR,             BTA_SYS_IGNORE,         BTA_SYS_HW_ON}
 };
 
@@ -151,7 +151,7 @@ const tBTA_SYS_ST_TBL bta_sys_st_tbl[] = {
 ** Function         bta_sys_init
 **
 ** Description      BTA initialization; called from task initialization.
-**
+**                  
 **
 ** Returns          void
 **
@@ -180,7 +180,7 @@ BTA_API void bta_sys_init(void)
 ** Function         bta_dm_sm_execute
 **
 ** Description      State machine event handling function for DM
-**
+**                  
 **
 ** Returns          void
 **
@@ -191,9 +191,9 @@ BOOLEAN bta_sys_sm_execute(BT_HDR *p_msg)
     tBTA_SYS_ST_TBL      state_table;
     UINT8               action;
     int                 i;
-
+    
     APPL_TRACE_EVENT2("bta_sys_sm_execute state:%d, event:0x%x",  bta_sys_cb.state, p_msg->event);
-
+  
     /* look up the state table for the current state */
     state_table = bta_sys_st_tbl[bta_sys_cb.state];
     /* update state */
@@ -232,16 +232,16 @@ void bta_sys_hw_unregister( tBTA_SYS_HW_MODULE module )
 ** Function         bta_sys_hw_btm_cback
 **
 ** Description     This function is registered by BTA SYS to BTM in order to get status notifications
+**                  
 **
-**
-** Returns
+** Returns          
 **
 *******************************************************************************/
 void bta_sys_hw_btm_cback( tBTM_DEV_STATUS status )
 {
 
     tBTA_SYS_HW_MSG *sys_event;
-
+    
     APPL_TRACE_DEBUG1(" bta_sys_hw_btm_cback was called with parameter: %i" , status );
 
     /* send a message to BTA SYS */
@@ -275,8 +275,8 @@ void bta_sys_hw_btm_cback( tBTM_DEV_STATUS status )
 **
 ** Function         bta_sys_hw_error
 **
-** Description     In case the HW device stops answering... Try to turn it off, then re-enable all
-**                      previously active SW modules.
+** Description     In case the HW device stops answering... Try to turn it off, then re-enable all 
+**                      previously active SW modules.                  
 **
 ** Returns          success or failure
 **
@@ -297,7 +297,7 @@ void bta_sys_hw_error(tBTA_SYS_HW_MSG *p_sys_hw_msg)
                     break;
                 default:
                     /* not yet supported */
-                    break;
+                    break;        
                 }
         }
 
@@ -314,12 +314,12 @@ void bta_sys_hw_error(tBTA_SYS_HW_MSG *p_sys_hw_msg)
                     break;
                 default:
                     /* not yet supported */
-                    break;
+                    break;        
                 }
         }
 
-
-
+    
+    
 
 
 }
@@ -331,7 +331,7 @@ void bta_sys_hw_error(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 ** Function         bta_sys_hw_enable
 **
 ** Description     this function is called after API enable and HW has been turned on
-**
+**                  
 **
 ** Returns          success or failure
 **
@@ -343,7 +343,7 @@ void bta_sys_hw_api_enable( tBTA_SYS_HW_MSG *p_sys_hw_msg )
     {
         /* register which HW module was turned on */
         bta_sys_cb.sys_hw_module_active |=  ((UINT32)1 << p_sys_hw_msg->hw_module );
-
+    
         /* use call-out to power-up HW */
         bta_sys_hw_co_enable(p_sys_hw_msg->hw_module);
     }
@@ -351,13 +351,13 @@ void bta_sys_hw_api_enable( tBTA_SYS_HW_MSG *p_sys_hw_msg )
     {
         /* register which HW module was turned on */
         bta_sys_cb.sys_hw_module_active |=  ((UINT32)1 << p_sys_hw_msg->hw_module );
-
+            
         /* HW already in use, so directly notify the caller */
         if (bta_sys_cb.sys_hw_cback[p_sys_hw_msg->hw_module ]!= NULL )
-            bta_sys_cb.sys_hw_cback[p_sys_hw_msg->hw_module ](  BTA_SYS_HW_ON_EVT   );
+            bta_sys_cb.sys_hw_cback[p_sys_hw_msg->hw_module ](  BTA_SYS_HW_ON_EVT   );        
     }
-
-    APPL_TRACE_EVENT2 ("bta_sys_hw_api_enable for %d, active modules 0x%04X",
+    
+    APPL_TRACE_EVENT2 ("bta_sys_hw_api_enable for %d, active modules 0x%04X", 
                     p_sys_hw_msg->hw_module, bta_sys_cb.sys_hw_module_active);
 
 }
@@ -367,28 +367,28 @@ void bta_sys_hw_api_enable( tBTA_SYS_HW_MSG *p_sys_hw_msg )
 ** Function         bta_sys_hw_disable
 **
 ** Description     if no other module is using the HW, this function will call ( if defined ) a user-macro to turn off the HW
-**
+**                  
 **
 ** Returns          success or failure
 **
 *******************************************************************************/
 void bta_sys_hw_api_disable(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
-    APPL_TRACE_DEBUG2("bta_sys_hw_api_disable for %d, active modules: 0x%04X",
+    APPL_TRACE_DEBUG2("bta_sys_hw_api_disable for %d, active modules: 0x%04X", 
         p_sys_hw_msg->hw_module, bta_sys_cb.sys_hw_module_active );
 
     /* make sure the related SW blocks were stopped */
-    bta_sys_disable( p_sys_hw_msg->hw_module );
+    bta_sys_disable( p_sys_hw_msg->hw_module );    
 
 
     /* register which module we turn off */
     bta_sys_cb.sys_hw_module_active &=  ~((UINT32)1 << p_sys_hw_msg->hw_module );
 
-
+    
     /* if there are still some SW modules using the HW, just provide an answer to the calling */
     if( bta_sys_cb.sys_hw_module_active != 0  )
-    {
-        /*  if there are still some SW modules using the HW,  directly notify the caller */
+    {    
+        /*  if there are still some SW modules using the HW,  directly notify the caller */   
         if( bta_sys_cb.sys_hw_cback[p_sys_hw_msg->hw_module ]!= NULL )
             bta_sys_cb.sys_hw_cback[p_sys_hw_msg->hw_module ](  BTA_SYS_HW_OFF_EVT   );
     }
@@ -397,7 +397,7 @@ void bta_sys_hw_api_disable(tBTA_SYS_HW_MSG *p_sys_hw_msg)
         /* manually update the state of our system */
         bta_sys_cb.state = BTA_SYS_HW_STOPPING;
         /* and use the call-out to disable HW */
-        bta_sys_hw_co_disable(p_sys_hw_msg->hw_module);
+        bta_sys_hw_co_disable(p_sys_hw_msg->hw_module);  
     }
 
 }
@@ -407,8 +407,8 @@ void bta_sys_hw_api_disable(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 **
 ** Function         bta_sys_hw_event_enabled
 **
-** Description
-**
+** Description     
+**                  
 **
 ** Returns          success or failure
 **
@@ -416,7 +416,7 @@ void bta_sys_hw_api_disable(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 void bta_sys_hw_evt_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
     APPL_TRACE_EVENT1("bta_sys_hw_evt_enabled for %i", p_sys_hw_msg->hw_module);
-
+    
 #if ( defined BTM_AUTOMATIC_HCI_RESET && BTM_AUTOMATIC_HCI_RESET == TRUE )
     /* If device is already up, send a fake "BTM DEVICE UP" using BTA SYS state machine */
     /* If we are in the middle device initialization, BTM_DEVICE_UP will be issued      */
@@ -426,9 +426,9 @@ void bta_sys_hw_evt_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
         bta_sys_hw_btm_cback (BTM_DEV_STATUS_UP);
     }
 #else
-
+    
     /* if HCI reset was not sent during stack start-up */
-    BTM_DeviceReset( NULL );
+    BTM_DeviceReset( NULL );    
 
 #endif
 }
@@ -438,8 +438,8 @@ void bta_sys_hw_evt_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 **
 ** Function         bta_sys_hw_event_disabled
 **
-** Description
-**
+** Description     
+**                  
 **
 ** Returns          success or failure
 **
@@ -449,7 +449,7 @@ void bta_sys_hw_evt_disabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
     UINT8 hw_module_index;
 
     APPL_TRACE_DEBUG1("bta_sys_hw_evt_disabled - module 0x%X", p_sys_hw_msg->hw_module);
-
+    
     for (hw_module_index = 0; hw_module_index < BTA_SYS_MAX_HW_MODULES; hw_module_index++)
     {
         if (bta_sys_cb.sys_hw_cback[hw_module_index] != NULL)
@@ -470,7 +470,7 @@ void bta_sys_hw_evt_disabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 void bta_sys_hw_evt_stack_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
     UINT8 hw_module_index;
-
+    
     APPL_TRACE_DEBUG0(" bta_sys_hw_evt_stack_enabled!notify the callers");
 
     for (hw_module_index = 0; hw_module_index < BTA_SYS_MAX_HW_MODULES; hw_module_index++ )
@@ -488,7 +488,7 @@ void bta_sys_hw_evt_stack_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 ** Function         bta_sys_event
 **
 ** Description      BTA event handler; called from task event handler.
-**
+**                  
 **
 ** Returns          void
 **
@@ -543,7 +543,7 @@ BTA_API void bta_sys_timer_update(void)
 **
 ** Description      Called by other BTA subsystems to register their event
 **                  handler.
-**
+**                  
 **
 ** Returns          void
 **
@@ -560,7 +560,7 @@ void bta_sys_register(UINT8 id, const tBTA_SYS_REG *p_reg)
 **
 ** Description      Called by other BTA subsystems to de-register
 **                  handler.
-**
+**                  
 **
 ** Returns          void
 **
@@ -576,7 +576,7 @@ void bta_sys_deregister(UINT8 id)
 **
 ** Description      Called by other BTA subsystems to get registeration
 **                  status.
-**
+**                  
 **
 ** Returns          void
 **
@@ -593,7 +593,7 @@ BOOLEAN bta_sys_is_register(UINT8 id)
 ** Description      Send a GKI message to BTA.  This function is designed to
 **                  optimize sending of messages to BTA.  It is called by BTA
 **                  API functions and call-in functions.
-**
+**                  
 **
 ** Returns          void
 **
@@ -645,7 +645,7 @@ void bta_sys_disable(tBTA_SYS_HW_MODULE module)
 {
     int bta_id = 0;
     int bta_id_max = 0;
-
+    
     APPL_TRACE_DEBUG1("bta_sys_disable: module %i", module);
 
     switch( module )
@@ -664,9 +664,9 @@ void bta_sys_disable(tBTA_SYS_HW_MODULE module)
             break;
         case BTA_SYS_HW_GPS:
             bta_id = BTA_ID_GPS;
-            bta_id_max = BTA_ID_GPS;
+            bta_id_max = BTA_ID_GPS;        
             break;
-        default:
+        default:      
             APPL_TRACE_WARNING0("bta_sys_disable: unkown module");
             return;
     }
@@ -677,7 +677,7 @@ void bta_sys_disable(tBTA_SYS_HW_MODULE module)
         {
             if (bta_sys_cb.is_reg[bta_id] == TRUE  &&  bta_sys_cb.reg[bta_id]->disable != NULL)
             {
-                (*bta_sys_cb.reg[bta_id]->disable)();
+                (*bta_sys_cb.reg[bta_id]->disable)();                
             }
         }
     }

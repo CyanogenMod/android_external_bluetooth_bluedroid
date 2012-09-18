@@ -75,18 +75,18 @@ typedef UINT8 tL2CAP_CHNL_DATA_RATE;
 
 /* length of the HCI header block */
 /* HCI header(4) + SNK count(1) + FCR bits(1) + AV data length(2) */
-#define L2CAP_MULTI_AV_HCI_HDR_LEN	8
+#define L2CAP_MULTI_AV_HCI_HDR_LEN	8 
 
 /* length of padding for 4 bytes align */
 #define L2CAP_MULTI_AV_PADDING_LEN  2
 
 /* length of the HCI header block with padding for FCR */
 /* HCI header(4) + SNK count(1) + FCR bits(1) + AV data length(2) + padding(2) */
-#define L2CAP_MULTI_AV_HCI_HDR_LEN_WITH_PADDING	10
+#define L2CAP_MULTI_AV_HCI_HDR_LEN_WITH_PADDING	10 
 
 /* length of the L2CAP header block */
 /* HCI header(4) + L2CAP header(4) + padding(4) or control word(2) + FCS(2) */
-#define L2CAP_MULTI_AV_L2C_HDR_LEN	12
+#define L2CAP_MULTI_AV_L2C_HDR_LEN	12 
 
 /* definition used for L2CA_SetDesireRole */
 #define L2CAP_ROLE_SLAVE            HCI_ROLE_SLAVE
@@ -107,7 +107,7 @@ typedef UINT8 tL2CAP_CHNL_DATA_RATE;
 /* Validity check for PSM.  PSM values must be odd.  Also, all PSM values must
 ** be assigned such that the least significant bit of the most sigificant
 ** octet equals zero.
-*/
+*/ 
 #define L2C_INVALID_PSM(psm)    (((psm) & 0x0101) != 0x0001)
 #define L2C_IS_VALID_PSM(psm)   (((psm) & 0x0101) == 0x0001)
 
@@ -261,7 +261,7 @@ typedef void (tL2CA_ECHO_DATA_CB) (BD_ADDR, UINT16, UINT8 *);
 typedef void (tL2CA_CONGESTION_STATUS_CB) (UINT16, BOOLEAN);
 
 /* Callback prototype for number of packets completed events.
-** This callback notifies the application when Number of Completed Packets
+** This callback notifies the application when Number of Completed Packets 
 ** event has been received.
 ** This callback is originally designed for 3DG devices.
 ** The parameter is:
@@ -366,7 +366,7 @@ L2C_API extern void L2CA_Deregister (UINT16 psm);
 ** Description      Other layers call this function to find an unused PSM for L2CAP
 **                  services.
 **
-** Returns          PSM to use.
+** Returns          PSM to use. 
 **
 *******************************************************************************/
 L2C_API extern UINT16 L2CA_AllocatePSM(void);
@@ -427,7 +427,7 @@ L2C_API extern UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr,
 ** Returns          TRUE for success, FALSE for failure
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN  L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid,
+L2C_API extern BOOLEAN  L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, 
                                              UINT16 result, UINT16 status,
                                              tL2CAP_ERTM_INFO *p_ertm_info);
 
@@ -469,7 +469,7 @@ L2C_API extern BOOLEAN L2CA_DisconnectReq (UINT16 cid);
 **
 ** Function         L2CA_DisconnectRsp
 **
-** Description      Higher layers call this function to acknowledge the
+** Description      Higher layers call this function to acknowledge the 
 **                  disconnection of a channel.
 **
 ** Returns          void
@@ -536,18 +536,18 @@ L2C_API extern BOOLEAN L2CA_SetIdleTimeout (UINT16 cid, UINT16 timeout,
 ** Function         L2CA_SetIdleTimeoutByBdAddr
 **
 ** Description      Higher layers call this function to set the idle timeout for
-**                  a connection. The "idle timeout" is the amount of time that
-**                  a connection can remain up with no L2CAP channels on it.
-**                  A timeout of zero means that the connection will be torn
-**                  down immediately when the last channel is removed.
-**                  A timeout of 0xFFFF means no timeout. Values are in seconds.
-**                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY,
-**                  then the idle timeouts for all active l2cap links will be
+**                  a connection. The "idle timeout" is the amount of time that 
+**                  a connection can remain up with no L2CAP channels on it. 
+**                  A timeout of zero means that the connection will be torn 
+**                  down immediately when the last channel is removed. 
+**                  A timeout of 0xFFFF means no timeout. Values are in seconds. 
+**                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY, 
+**                  then the idle timeouts for all active l2cap links will be 
 **                  changed.
 **
 ** Returns          TRUE if command succeeded, FALSE if failed
 **
-** NOTE             This timeout applies to all logical channels active on the
+** NOTE             This timeout applies to all logical channels active on the 
 **                  ACL link.
 *******************************************************************************/
 L2C_API extern BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout);
@@ -690,21 +690,21 @@ typedef void (tL2CA_RESERVE_CMPL_CBACK) (void);
 **
 ** Function         L2CA_SetFlushTimeout
 **
-** Description      This function set the automatic flush time out in Baseband
+** Description      This function set the automatic flush time out in Baseband 
 **                  for ACL-U packets.
 **                  BdAddr : the remote BD address of ACL link. If it is BT_DB_ANY
 **                           then the flush time out will be applied to all ACL link.
 **                  FlushTimeout: flush time out in ms
-**                           0x0000 : No automatic flush
-**                           L2CAP_NO_RETRANSMISSION : No retransmission
-**                           0x0002 - 0xFFFE : flush time out, if (flush_tout*8)+3/5)
+**                           0x0000 : No automatic flush  
+**                           L2CAP_NO_RETRANSMISSION : No retransmission  
+**                           0x0002 - 0xFFFE : flush time out, if (flush_tout*8)+3/5) 
 **                                    <= HCI_MAX_AUTO_FLUSH_TOUT (in 625us slot).
 **                                    Otherwise, return FALSE.
-**                           L2CAP_NO_AUTOMATIC_FLUSH : No automatic flush
+**                           L2CAP_NO_AUTOMATIC_FLUSH : No automatic flush  
 **
 ** Returns          TRUE if command succeeded, FALSE if failed
 **
-** NOTE             This flush timeout applies to all logical channels active on the
+** NOTE             This flush timeout applies to all logical channels active on the 
 **                  ACL link.
 *******************************************************************************/
 L2C_API extern BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout);
@@ -730,7 +730,7 @@ L2C_API extern UINT8 L2CA_DataWriteEx (UINT16 cid, BT_HDR *p_data, UINT16 flags)
 **
 ** Function         L2CA_SetChnlFlushability
 **
-** Description      Higher layers call this function to set a channels
+** Description      Higher layers call this function to set a channels 
 **                  flushability flags
 **
 ** Returns          TRUE if CID found, else FALSE
@@ -854,7 +854,7 @@ L2C_API extern BOOLEAN L2CA_UcdDeregister ( UINT16 psm );
 **  Parameters:     PSM
 **                  BD_ADDR of remote device
 **                  info_type : L2CAP_UCD_INFO_TYPE_RECEPTION
-**                              L2CAP_UCD_INFO_TYPE_MTU
+**                              L2CAP_UCD_INFO_TYPE_MTU      
 **
 **
 **  Return value:   TRUE if successs
@@ -870,7 +870,7 @@ L2C_API extern BOOLEAN L2CA_UcdDiscover ( UINT16 psm, BD_ADDR rem_bda, UINT8 inf
 **
 **  Parameters:     PSM
 **                  BD Address of remote
-**                  Pointer to buffer of type BT_HDR
+**                  Pointer to buffer of type BT_HDR 
 **                  flags : L2CAP_FLUSHABLE_CH_BASED
 **                          L2CAP_FLUSHABLE_PKT
 **                          L2CAP_NON_FLUSHABLE_PKT
@@ -975,7 +975,7 @@ L2C_API extern BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR bd_addr)
 **
 **  Parameters:     Fixed CID
 **                  BD Address of remote
-**                  Pointer to buffer of type BT_HDR
+**                  Pointer to buffer of type BT_HDR 
 **
 ** Return value     L2CAP_DW_SUCCESS, if data accepted
 **                  L2CAP_DW_FAILED,  if error
@@ -1005,11 +1005,11 @@ L2C_API extern BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda);
 ** Description      Higher layers call this function to set the idle timeout for
 **                  a fixed channel. The "idle timeout" is the amount of time that
 **                  a connection can remain up with no L2CAP channels on it.
-**                  A timeout of zero means that the connection will be torn
-**                  down immediately when the last channel is removed.
-**                  A timeout of 0xFFFF means no timeout. Values are in seconds.
-**                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY,
-**                  then the idle timeouts for all active l2cap links will be
+**                  A timeout of zero means that the connection will be torn 
+**                  down immediately when the last channel is removed. 
+**                  A timeout of 0xFFFF means no timeout. Values are in seconds. 
+**                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY, 
+**                  then the idle timeouts for all active l2cap links will be 
 **                  changed.
 **
 ** Returns          TRUE if command succeeded, FALSE if failed
@@ -1032,7 +1032,7 @@ L2C_API extern BOOLEAN L2CA_SetFixedChannelTout (BD_ADDR rem_bda, UINT16 fixed_c
 ** Returns      TRUE if successful
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_GetCurrentConfig (UINT16 lcid,
+L2C_API extern BOOLEAN L2CA_GetCurrentConfig (UINT16 lcid, 
                                               tL2CAP_CFG_INFO **pp_our_cfg,  tL2CAP_CH_CFG_BITS *p_our_cfg_bits,
                                               tL2CAP_CFG_INFO **pp_peer_cfg, tL2CAP_CH_CFG_BITS *p_peer_cfg_bits);
 

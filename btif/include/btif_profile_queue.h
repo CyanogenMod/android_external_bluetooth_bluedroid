@@ -45,22 +45,23 @@
  *
  ************************************************************************************/
 
-/*******************************************************************************
+/************************************************************************************
  *
  *  Filename:      btif_profile_queue.h
  *
  *  Description:   Bluetooth remote device connection queuing
  *
- *******************************************************************************/
-
-#ifndef BTIF_PROFILE_QUEUE_H
-#define BTIF_PROFILE_QUEUE_H
+ ***********************************************************************************/
+#ifndef BTIF_QUEUE_H
+#define BTIF_QUEUE_H
 
 typedef bt_status_t (btif_connect_cb_t) (bt_bdaddr_t *bda);
 
 bt_status_t btif_queue_connect(uint16_t uuid, const bt_bdaddr_t *bda,
                         btif_connect_cb_t *connect_cb);
+
 void btif_queue_advance();
+
 void btif_queue_release();
 
 #endif

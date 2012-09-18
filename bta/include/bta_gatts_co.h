@@ -40,14 +40,14 @@ BTA_API extern void bta_gatts_co_update_handle_range(BOOLEAN is_add, tBTA_GATTS_
 ** Parameter        cmd - request command
 **                  p_req - request paramters
 **                  p_rsp - response data for the request
-**
+** 
 ** Returns          TRUE - if the request is processed successfully and
 **                         the response is returned in p_rsp.
 **                  FASLE - if the request can not be processed
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
-                                            tBTA_GATTS_SRV_CHG_REQ *p_req,
+BTA_API extern BOOLEAN bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd, 
+                                            tBTA_GATTS_SRV_CHG_REQ *p_req, 
                                             tBTA_GATTS_SRV_CHG_RSP *p_rsp);
 
 /*******************************************************************************
@@ -55,14 +55,14 @@ BTA_API extern BOOLEAN bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
 ** Function         bta_gatts_co_load_handle_range
 **
 ** Description      This callout function is executed by GATTS when a GATT server
-**                  handle range is requested to be loaded from NV.
+**                  handle range is requested to be loaded from NV.                
 **
-** Parameter
+** Parameter        
 **
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern  BOOLEAN bta_gatts_co_load_handle_range(UINT8 index,
+BTA_API extern  BOOLEAN bta_gatts_co_load_handle_range(UINT8 index, 
                                                        tBTA_GATTS_HNDL_RANGE *p_handle);
 
 

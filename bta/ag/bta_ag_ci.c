@@ -21,11 +21,11 @@
 **
 ** Function         bta_ag_ci_rx_write
 **
-** Description      This function is called to send data to the AG when the AG
+** Description      This function is called to send data to the AG when the AG 
 **                  is configured for AT command pass-through.  The function
-**                  copies data to an event buffer and sends it.
+**                  copies data to an event buffer and sends it.                 
 **
-** Returns          void
+** Returns          void 
 **
 ******************************************************************************/
 void bta_ag_ci_rx_write(UINT16 handle, char *p_data, UINT16 len)
@@ -66,11 +66,11 @@ void bta_ag_ci_rx_write(UINT16 handle, char *p_data, UINT16 len)
 **
 ** Function         bta_ag_ci_slc_ready
 **
-** Description      This function is called to notify AG that SLC is up at
+** Description      This function is called to notify AG that SLC is up at 
 **                  the application. This funcion is only used when the app
 **                  is running in pass-through mode.
 **
-** Returns          void
+** Returns          void 
 **
 ******************************************************************************/
 void bta_ag_ci_slc_ready(UINT16 handle)

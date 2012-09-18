@@ -37,7 +37,7 @@ UINT8 constant_pan_uuid[UUID_CONSTANT_PART] = {0, 0, 0x10, 0, 0x80, 0x00, 0x00, 
 ** Description      This function registers PAN profile with BNEP
 **
 ** Parameters:      none
-**
+**                  
 ** Returns          none
 **
 *******************************************************************************/
@@ -73,7 +73,7 @@ void pan_register_with_bnep (void)
 **                  remote_uuid     - UUID of the source role (peer device role)
 **                  local_uuid      - UUID of the destination role (local device role)
 **                  is_role_change  - Flag to indicate that it is a role change
-**
+**                  
 ** Returns          none
 **
 *******************************************************************************/

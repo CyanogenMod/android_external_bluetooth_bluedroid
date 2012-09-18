@@ -79,9 +79,9 @@ typedef UINT16 tBTA_SYS_HW_MODULE;
 #define BTA_ID_MSE          28           /* Message Server Equipment */
 #define BTA_ID_MCE          29           /* Message Client Equipment */
 #define BTA_ID_HL           30           /* Health Device Profile*/
-#define BTA_ID_GATTC        31           /* GATT Client */
-#define BTA_ID_GATTS        32           /* GATT Client */
-#define BTA_ID_BLUETOOTH_MAX   33        /* last BT profile */
+#define BTA_ID_GATTC        31           /* GATT Client */  
+#define BTA_ID_GATTS        32           /* GATT Client */  
+#define BTA_ID_BLUETOOTH_MAX   33        /* last BT profile */  
 
 /* FM */
 #define BTA_ID_FM           34           /* FM  */
@@ -165,7 +165,7 @@ typedef struct
 /* data type to send events to BTA SYS HW manager */
 typedef struct
 {
-    BT_HDR                hdr;
+    BT_HDR                hdr;      
     tBTA_SYS_HW_MODULE   hw_module;
 } tBTA_SYS_HW_MSG;
 
@@ -216,7 +216,7 @@ enum
 
 };
 typedef UINT8 tBTA_SYS_HW_EVT;
-
+    
 /* HW enable callback type */
 typedef void (tBTA_SYS_HW_CBACK)(tBTA_SYS_HW_EVT status);
 

@@ -41,10 +41,10 @@ tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
 **
 ** Function         bta_dm_init_pm
 **
-** Description      Initialises the BT low power manager
+** Description      Initialises the BT low power manager 
+**                  
 **
-**
-** Returns          void
+** Returns          void                 
 **
 *******************************************************************************/
 void bta_dm_init_pm(void)
@@ -73,9 +73,9 @@ void bta_dm_init_pm(void)
 ** Function         bta_dm_disable_pm
 **
 ** Description      Disable PM
+**                  
 **
-**
-** Returns          void
+** Returns          void                 
 **
 *******************************************************************************/
 void bta_dm_disable_pm(void)
@@ -94,17 +94,17 @@ void bta_dm_disable_pm(void)
             bta_sys_stop_timer(&bta_dm_cb.pm_timer[i].timer);
             bta_dm_cb.pm_timer[i].in_use = FALSE;
         }
-    }
-}
+    }    
+} 
 
 /*******************************************************************************
 **
 ** Function         bta_dm_pm_stop_timer
 **
 ** Description      stop a PM timer
+**                  
 **
-**
-** Returns          void
+** Returns          void                 
 **
 *******************************************************************************/
 static void bta_dm_pm_stop_timer(BD_ADDR peer_addr)
@@ -117,7 +117,7 @@ static void bta_dm_pm_stop_timer(BD_ADDR peer_addr)
         if(bta_dm_cb.pm_timer[i].in_use && !bdcmp(bta_dm_cb.pm_timer[i].peer_bdaddr, peer_addr))
         {
             APPL_TRACE_WARNING1("stop dm_pm_timer:%d", i);
-            bta_sys_stop_timer(&bta_dm_cb.pm_timer[i].timer);
+            bta_sys_stop_timer(&bta_dm_cb.pm_timer[i].timer); 
             bta_dm_cb.pm_timer[i].in_use = FALSE;
             break;
         }
@@ -130,9 +130,9 @@ static void bta_dm_pm_stop_timer(BD_ADDR peer_addr)
 ** Function         bta_dm_pm_cback
 **
 ** Description      Conn change callback from sys for low power management
+**                  
 **
-**
-** Returns          void
+** Returns          void                  
 **
 *******************************************************************************/
 static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
@@ -165,7 +165,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
     for(i=1; i<=p_bta_dm_pm_cfg[0].app_id; i++)
     {
 
-        if((p_bta_dm_pm_cfg[i].id == id)
+        if((p_bta_dm_pm_cfg[i].id == id) 
             && ((p_bta_dm_pm_cfg[i].app_id == BTA_ALL_APP_ID ) || (p_bta_dm_pm_cfg[i].app_id == app_id )))
             break;
 
@@ -199,10 +199,10 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
     {
         /* check if an entry already present */
         if((bta_dm_conn_srvcs.conn_srvc[j].id == id)
-            && (bta_dm_conn_srvcs.conn_srvc[j].app_id == app_id )
-            && !bdcmp(bta_dm_conn_srvcs.conn_srvc[j].peer_bdaddr, peer_addr))
+            && (bta_dm_conn_srvcs.conn_srvc[j].app_id == app_id ) 
+            && !bdcmp(bta_dm_conn_srvcs.conn_srvc[j].peer_bdaddr, peer_addr))           
             break;
-
+         
     }
 
         /* if subsystem has no more preference on the power mode remove
@@ -219,7 +219,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
 
                 memcpy(&bta_dm_conn_srvcs.conn_srvc[j], &bta_dm_conn_srvcs.conn_srvc[j+1], sizeof(bta_dm_conn_srvcs.conn_srvc[j]));
 
-            }
+            } 
         }
         else
         {
@@ -267,12 +267,12 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
 
     bta_dm_pm_set_mode(peer_addr, FALSE);
 
-    /* perform the HID link workaround if needed
+    /* perform the HID link workaround if needed 
     ** 1. If SCO up/down event is received OR
-    ** 2. If HID connection open is received and SCO is already active.
+    ** 2. If HID connection open is received and SCO is already active. 
     **     This will handle the case where HID connects when SCO already active
     */
-    if ( (btm_status == BTM_SUCCESS) &&
+    if ( (btm_status == BTM_SUCCESS) && 
          ( ((status == BTA_SYS_SCO_OPEN) || (status == BTA_SYS_SCO_CLOSE)) ||
            ((status == BTA_SYS_CONN_OPEN) && (id == BTA_ID_HH) && bta_dm_pm_is_sco_active()) ) )
     {
@@ -293,9 +293,9 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
 ** Function         bta_dm_pm_set_mode
 **
 ** Description      Set the power mode for the device
+**                  
 **
-**
-** Returns          void
+** Returns          void                  
 **
 *******************************************************************************/
 static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
@@ -335,7 +335,7 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
             /* p_bta_dm_pm_cfg[0].app_id is the number of entries */
             for(j=1; j<=p_bta_dm_pm_cfg[0].app_id; j++)
             {
-                if((p_bta_dm_pm_cfg[j].id == p_srvcs->id)
+                if((p_bta_dm_pm_cfg[j].id == p_srvcs->id) 
                     && ((p_bta_dm_pm_cfg[j].app_id == BTA_ALL_APP_ID ) ||
                     (p_bta_dm_pm_cfg[j].app_id == p_srvcs->app_id)))
                     break;
@@ -413,7 +413,7 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
                 bta_sys_start_timer(&bta_dm_cb.pm_timer[i].timer, 0, timeout);
                 APPL_TRACE_WARNING2("start dm_pm_timer:%d, %d", i, timeout);
                 return;
-
+                
             }
 
         }
@@ -466,9 +466,9 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
 ** Function         bta_ag_pm_park
 **
 ** Description      Switch to park mode.
+**                  
 **
-**
-** Returns          TRUE if park attempted, FALSE otherwise.
+** Returns          TRUE if park attempted, FALSE otherwise.                 
 **
 *******************************************************************************/
 static BOOLEAN bta_dm_pm_park(BD_ADDR peer_addr)
@@ -493,9 +493,9 @@ static BOOLEAN bta_dm_pm_park(BD_ADDR peer_addr)
 ** Function         bta_ag_pm_sniff
 **
 ** Description      Switch to sniff mode.
+**                  
 **
-**
-** Returns          TRUE if sniff attempted, FALSE otherwise.
+** Returns          TRUE if sniff attempted, FALSE otherwise.                 
 **
 *******************************************************************************/
 static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index)
@@ -509,7 +509,7 @@ static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index)
 #if (BTM_SSR_INCLUDED == TRUE)
     APPL_TRACE_DEBUG3("bta_dm_pm_sniff cur:%d, idx:%d, info:x%x", mode, index, p_peer_dev->info);
     if (mode != BTM_PM_MD_SNIFF ||
-        (HCI_SNIFF_SUB_RATE_SUPPORTED(BTM_ReadLocalFeatures ()) &&
+        (HCI_SNIFF_SUB_RATE_SUPPORTED(BTM_ReadLocalFeatures ()) && 
          HCI_SNIFF_SUB_RATE_SUPPORTED(BTM_ReadRemoteFeatures (p_peer_dev->peer_bdaddr)) &&
          !(p_peer_dev->info & BTA_DM_DI_USE_SSR)))
 #else
@@ -553,7 +553,7 @@ static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index)
 **
 ** Description      checks and sends SSR parameters
 **
-** Returns          void
+** Returns          void                 
 **
 *******************************************************************************/
 #if (BTM_SSR_INCLUDED == TRUE)
@@ -572,7 +572,7 @@ static void bta_dm_pm_ssr(BD_ADDR peer_addr)
             for(j=1; j<=p_bta_dm_pm_cfg[0].app_id; j++)
             {
                 /* find the associated p_bta_dm_pm_cfg */
-                if((p_bta_dm_pm_cfg[j].id == bta_dm_conn_srvcs.conn_srvc[i].id)
+                if((p_bta_dm_pm_cfg[j].id == bta_dm_conn_srvcs.conn_srvc[i].id) 
                     && ((p_bta_dm_pm_cfg[j].app_id == BTA_ALL_APP_ID )
                     || (p_bta_dm_pm_cfg[j].app_id == bta_dm_conn_srvcs.conn_srvc[i].app_id)))
                 {
@@ -586,7 +586,7 @@ static void bta_dm_pm_ssr(BD_ADDR peer_addr)
             p_spec_cur = &p_bta_dm_ssr_spec[p_bta_dm_pm_spec[p_bta_dm_pm_cfg[j].spec_idx].ssr];
             p_spec = &p_bta_dm_ssr_spec[ssr];
 
-            if (p_spec_cur->max_lat < p_spec->max_lat ||
+            if (p_spec_cur->max_lat < p_spec->max_lat || 
                 (ssr == BTA_DM_PM_SSR0 && p_bta_dm_pm_spec[p_bta_dm_pm_cfg[j].spec_idx].ssr != BTA_DM_PM_SSR0))
             {
                 ssr = p_bta_dm_pm_spec[p_bta_dm_pm_cfg[j].spec_idx].ssr;
@@ -609,9 +609,9 @@ static void bta_dm_pm_ssr(BD_ADDR peer_addr)
 ** Function         bta_dm_ssr_cfg_cback
 **
 ** Description      Conn change callback from sys for low power management
+**                  
 **
-**
-** Returns          void
+** Returns          void                  
 **
 *******************************************************************************/
 static void bta_dm_ssr_cfg_cback(UINT8 id, UINT8 app_id,
@@ -623,7 +623,7 @@ static void bta_dm_ssr_cfg_cback(UINT8 id, UINT8 app_id,
     for(i=1; i<=p_bta_dm_pm_cfg[0].app_id; i++)
     {
 
-        if((p_bta_dm_pm_cfg[i].id == id)
+        if((p_bta_dm_pm_cfg[i].id == id) 
             && ((p_bta_dm_pm_cfg[i].app_id == BTA_ALL_APP_ID ) || (p_bta_dm_pm_cfg[i].app_id == app_id )))
             break;
 
@@ -633,9 +633,9 @@ static void bta_dm_ssr_cfg_cback(UINT8 id, UINT8 app_id,
         return;
 
     index = p_bta_dm_pm_spec[p_bta_dm_pm_cfg[i].spec_idx].ssr;
-
+    
     APPL_TRACE_DEBUG2("SSR parameter changed to: max_latency: %d min_tout: %d", max_lat, min_rmt_to);
-
+    
     p_spec = &p_bta_dm_ssr_spec[index];
     p_spec->max_lat = max_lat;
     p_spec->min_rmt_to = min_rmt_to;
@@ -648,9 +648,9 @@ static void bta_dm_ssr_cfg_cback(UINT8 id, UINT8 app_id,
 ** Function         bta_dm_pm_active
 **
 ** Description      Brings connection to active mode
+**                  
 **
-**
-** Returns          void
+** Returns          void                 
 **
 *******************************************************************************/
 void bta_dm_pm_active(BD_ADDR peer_addr)
@@ -672,9 +672,9 @@ void bta_dm_pm_active(BD_ADDR peer_addr)
 ** Function         bta_dm_pm_btm_cback
 **
 ** Description      BTM power manager callback.
+**                  
 **
-**
-** Returns          void
+** Returns          void                 
 **
 *******************************************************************************/
 static void bta_dm_pm_btm_cback(BD_ADDR bd_addr, tBTM_PM_STATUS status, UINT16 value, UINT8 hci_status)
@@ -697,9 +697,9 @@ static void bta_dm_pm_btm_cback(BD_ADDR bd_addr, tBTM_PM_STATUS status, UINT16 v
 ** Function         bta_dm_pm_timer_cback
 **
 ** Description      Power management timer callback.
+**                  
 **
-**
-** Returns          void
+** Returns          void                 
 **
 *******************************************************************************/
 static void bta_dm_pm_timer_cback(void *p_tle)
@@ -714,14 +714,14 @@ static void bta_dm_pm_timer_cback(void *p_tle)
 
         if(bta_dm_cb.pm_timer[i].in_use)
         {
-
+            
             if(&bta_dm_cb.pm_timer[i].timer == (TIMER_LIST_ENT*) p_tle)
             {
                 APPL_TRACE_WARNING1("dm_pm_timer expires %d", i);
                 bta_dm_cb.pm_timer[i].in_use = FALSE;
                 break;
             }
-
+            
         }
 
     }
@@ -746,9 +746,9 @@ static void bta_dm_pm_timer_cback(void *p_tle)
 ** Function         bta_dm_pm_btm_status
 **
 ** Description      Process pm status event from btm
+**                  
 **
-**
-** Returns          void
+** Returns          void                 
 **
 *******************************************************************************/
 void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data)
@@ -776,7 +776,7 @@ void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data)
 
                 if(p_dev->pm_mode_attempted &(BTA_DM_PM_PARK | BTA_DM_PM_SNIFF))
                 {
-                    p_dev->pm_mode_failed
+                    p_dev->pm_mode_failed 
                         |= ((BTA_DM_PM_PARK | BTA_DM_PM_SNIFF) & p_dev->pm_mode_attempted);
                     bta_dm_pm_stop_timer(p_data->pm_status.bd_addr);
                     bta_dm_pm_set_mode(p_data->pm_status.bd_addr, FALSE);
@@ -801,7 +801,7 @@ void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data)
         case BTM_PM_STS_PARK:
         case BTM_PM_STS_HOLD:
             /* save the previous low power mode - for SSR.
-             * SSR parameters are sent to controller on "conn open".
+             * SSR parameters are sent to controller on "conn open". 
              * the numbers stay good until park/hold/detach */
             if(p_dev->info & BTA_DM_DI_USE_SSR)
                 p_dev->prev_low = p_data->pm_status.status;
@@ -839,9 +839,9 @@ void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data)
 ** Function         bta_dm_pm_timer
 **
 ** Description      Process pm timer event from btm
+**                  
 **
-**
-** Returns          void
+** Returns          void                 
 **
 *******************************************************************************/
 void bta_dm_pm_timer(tBTA_DM_MSG *p_data)
@@ -872,7 +872,7 @@ tBTA_DM_PEER_DEVICE * bta_dm_find_peer_device(BD_ADDR peer_addr)
         if(!bdcmp( bta_dm_cb.device_list.peer_device[i].peer_bdaddr, peer_addr))
         {
             p_dev = &bta_dm_cb.device_list.peer_device[i];
-            break;
+            break;  
         }
 
     }
@@ -892,7 +892,7 @@ static BOOLEAN bta_dm_pm_is_sco_active ()
 {
     int j;
     BOOLEAN bScoActive = FALSE;
-
+    
     for(j=0; j<bta_dm_conn_srvcs.count ; j++)
     {
         /* check if an entry already present */
@@ -921,14 +921,14 @@ static BOOLEAN bta_dm_pm_is_sco_active ()
 static void bta_dm_pm_hid_check(BOOLEAN bScoActive)
 {
     int j;
-
+    
     /* if HID is active, disable the link policy */
     for(j=0; j<bta_dm_conn_srvcs.count ; j++)
     {
         /* check if an entry already present */
-        if(bta_dm_conn_srvcs.conn_srvc[j].id == BTA_ID_HH )
+        if(bta_dm_conn_srvcs.conn_srvc[j].id == BTA_ID_HH ) 
         {
-            APPL_TRACE_DEBUG2 ("SCO status change(Active: %d), modify HID link policy. state: %d",
+            APPL_TRACE_DEBUG2 ("SCO status change(Active: %d), modify HID link policy. state: %d", 
                 bScoActive, bta_dm_conn_srvcs.conn_srvc[j].state);
             bta_dm_pm_set_sniff_policy( bta_dm_find_peer_device(bta_dm_conn_srvcs.conn_srvc[j].peer_bdaddr), bScoActive);
 
@@ -955,12 +955,12 @@ static void bta_dm_pm_set_sniff_policy(tBTA_DM_PEER_DEVICE *p_dev, BOOLEAN bDisa
 
     if (!p_dev)
         return;
-
+    
     if (bDisable)
     {
         policy_setting = bta_dm_cb.cur_policy &
             (HCI_ENABLE_MASTER_SLAVE_SWITCH |
-             HCI_ENABLE_HOLD_MODE  |
+             HCI_ENABLE_HOLD_MODE  | 
              HCI_ENABLE_PARK_MODE);
 
     }

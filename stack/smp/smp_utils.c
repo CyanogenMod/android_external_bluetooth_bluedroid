@@ -475,7 +475,7 @@ void smp_mask_enc_key(UINT8 loc_enc_size, UINT8 * p_data)
 **
 ** Description      utility function to do an biteise exclusive-OR of two bit
 **                  strings of the length of BT_OCTET16_LEN.
-**
+**      
 ** Returns          void
 **
 *******************************************************************************/
@@ -628,7 +628,7 @@ void smp_set_test_rand_value(BOOLEAN enable, UINT8 *p_c_val)
 **
 ** Function         smp_set_test_pair_fail_status
 **
-** Description      This function is called to set the test fairing fair status
+** Description      This function is called to set the test fairing fair status 
 **
 ** Returns          void
 **

@@ -14,7 +14,7 @@
 #include "l2c_api.h"
 #include "port_int.h"
 
-/*
+/* 
 ** Define RFCOMM result codes
 */
 #define RFCOMM_SUCCESS          0
@@ -26,9 +26,9 @@
 #define RFCOMM_SECURITY_ERR     112
 
 /*
-** Define max and min RFCOMM MTU (N1)
+** Define max and min RFCOMM MTU (N1) 
 */
-#define RFCOMM_MIN_MTU          23
+#define RFCOMM_MIN_MTU          23 
 #define RFCOMM_MAX_MTU          32767
 
 extern void RFCOMM_StartReq (tRFC_MCB *p_mcb);
@@ -59,7 +59,7 @@ extern void RFCOMM_ControlRsp (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars);
 
 extern void RFCOMM_LineStatusReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 line_status);
 /*
-** Define logical struct used for sending and decoding MX frames
+** Define logical struct used for sending and decoding MX frames 
 */
 typedef struct
 {
@@ -88,14 +88,14 @@ typedef struct
             UINT8   *p_data;
             UINT16  data_len;
         } test;
-        struct
+        struct 
         {
             UINT8 dlci;
             UINT8 signals;
             UINT8 break_present;
             UINT8 break_duration;
         } msc;
-        struct
+        struct 
         {
             UINT8 ea;
             UINT8 cr;
@@ -141,7 +141,7 @@ typedef struct
 #define RFC_MX_STATE_DISC_WAIT_UA   6
 
 /*
-** Define port states
+** Define port states 
 */
 #define RFC_STATE_CLOSED                0
 #define RFC_STATE_SABME_WAIT_UA         1
@@ -150,8 +150,8 @@ typedef struct
 #define RFC_STATE_OPENED                4
 #define RFC_STATE_DISC_WAIT_UA          5
 
-/*
-** Events that can be received by multiplexer as well as port state machines
+/* 
+** Events that can be received by multiplexer as well as port state machines 
 */
 #define RFC_EVENT_SABME                 0
 #define RFC_EVENT_UA                    1
@@ -195,7 +195,7 @@ typedef struct
 #define RFC_T2_TIMEOUT                  20   /* timeout to wait for Mx UIH */
 // btla-specific --
 #define RFC_DISC_TIMEOUT                3    /* If something goes wrong and we send DISC we should not wait for min */
-#define RFC_CLOSE_TIMEOUT               10
+#define RFC_CLOSE_TIMEOUT               10   
 #define RFCOMM_CONN_TIMEOUT            120   /* first connection to be established on Mx */
 
 
@@ -269,7 +269,7 @@ extern "C" {
 
 extern void rfc_mx_sm_execute (tRFC_MCB *p_mcb, UINT16 event, void *p_data);
 
-/*
+/* 
 ** Functions provided by the rfc_port_fsm.c
 */
 extern void rfc_port_sm_execute (tPORT *p_port, UINT16 event, void *p_data);
@@ -285,7 +285,7 @@ extern void rfc_process_fcon (tRFC_MCB *p_rfc_mcb, BOOLEAN is_command);
 extern void rfc_process_fcoff (tRFC_MCB *p_rfc_mcb, BOOLEAN is_command);
 extern void rfc_process_l2cap_congestion (tRFC_MCB *p_mcb, BOOLEAN is_congested);
 
-/*
+/* 
 ** Functions provided by the rfc_utils.c
 */
 tRFC_MCB  *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, BOOLEAN is_initiator);
@@ -306,7 +306,7 @@ extern void      rfc_inc_credit (tPORT *p_port, UINT8 credit);
 extern void      rfc_dec_credit (tPORT *p_port);
 extern void      rfc_check_send_cmd(tRFC_MCB *p_mcb, BT_HDR *p_buf);
 
-/*
+/* 
 ** Functions provided by the rfc_ts_frames.c
 */
 extern void     rfc_send_sabme (tRFC_MCB *p_rfc_mcb, UINT8 dlci);
@@ -316,10 +316,10 @@ extern void     rfc_send_disc (tRFC_MCB *p_rfc_mcb, UINT8 dlci);
 extern void     rfc_send_pn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, UINT16 mtu,
                              UINT8 cl, UINT8 k);
 extern void     rfc_send_test (tRFC_MCB *p_rfc_mcb, BOOLEAN is_command, BT_HDR *p_buf);
-extern void     rfc_send_msc (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
+extern void     rfc_send_msc (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, 
                               tPORT_CTRL *p_pars);
 extern void     rfc_send_rls (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, UINT8 status);
-extern void     rfc_send_rpn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
+extern void     rfc_send_rpn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, 
                               tPORT_STATE *p_pars, UINT16 mask);
 extern void     rfc_send_fcon (tRFC_MCB *p_mcb, BOOLEAN is_command);
 extern void     rfc_send_fcoff (tRFC_MCB *p_mcb, BOOLEAN is_command);
@@ -328,7 +328,7 @@ extern void     rfc_send_credit(tRFC_MCB *p_mcb, UINT8 dlci, UINT8 credit);
 extern void     rfc_process_mx_message (tRFC_MCB *p_rfc_mcb, BT_HDR *p_buf);
 extern UINT8    rfc_parse_data (tRFC_MCB *p_rfc_mcb, MX_FRAME *p_frame, BT_HDR *p_buf);
 
-/*
+/* 
 ** Functions provided by the rfc_disp.c
 */
 

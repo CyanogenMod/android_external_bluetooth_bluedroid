@@ -44,6 +44,7 @@
  *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
  *
  ************************************************************************************/
+/* TBD: tmp code here */
 
 #ifndef __UINPUT_H
 #define __UINPUT_H
@@ -55,10 +56,6 @@ extern "C" {
 #include <stdint.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
-
-/*******************************************************************************
-**  Constants & Macros
-********************************************************************************/
 
 /* Events */
 
@@ -582,11 +579,6 @@ extern "C" {
 #endif
 
 #define UINPUT_MAX_NAME_SIZE    80
-
-
-/*******************************************************************************
-**  Type definitions and return values
-********************************************************************************/
 
 struct uinput_id {
     uint16_t bustype;

@@ -419,7 +419,7 @@ static void *bt_hc_worker_thread(void *arg)
         if (events & HC_EVENT_POSTLOAD)
         {
             /* Start from SCO related H/W configuration, if SCO configuration
-             * is required. Then, follow with reading requests of getting
+             * is required. Then, follow with reading requests of getting 
              * ACL data length for both BR/EDR and LE.
              */
             int result = -1;
@@ -434,7 +434,7 @@ static void *bt_hc_worker_thread(void *arg)
 
         if (events & HC_EVENT_TX)
         {
-            /*
+            /* 
              *  We will go through every packets in the tx queue.
              *  Fine to clear tx_cmd_pkts_pending.
              */
@@ -446,11 +446,11 @@ static void *bt_hc_worker_thread(void *arg)
                 if ((p_next_msg->event & MSG_EVT_MASK)==MSG_STACK_TO_HC_HCI_CMD)
                 {
                     /*
-                     *  if we have used up controller's outstanding HCI command
-                     *  credits (normally is 1), skip all HCI command packets in
-                     *  the queue.
-                     *  The pending command packets will be sent once controller
-                     *  gives back us credits through CommandCompleteEvent or
+                     *  if we have used up controller's outstanding HCI command 
+                     *  credits (normally is 1), skip all HCI command packets in 
+                     *  the queue. 
+                     *  The pending command packets will be sent once controller 
+                     *  gives back us credits through CommandCompleteEvent or 
                      *  CommandStatusEvent.
                      */
                     if ((tx_cmd_pkts_pending == TRUE) || (num_hci_cmd_pkts <= 0))

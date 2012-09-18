@@ -48,7 +48,7 @@
  * This event can result from a call to AVRC_Close() or when the peer closes
  * the connection.  It is also sent when a connection attempted through
  * AVRC_Open() fails. */
-#define AVRC_CLOSE_IND_EVT      1
+#define AVRC_CLOSE_IND_EVT      1   
 
 /* AVRC_CONG_IND_EVT event indicates that AVCTP is congested and cannot send
  * any more messages. */
@@ -56,8 +56,8 @@
 
 /* AVRC_UNCONG_IND_EVT event indicates that AVCTP is uncongested and ready to
  * send messages. */
-#define AVRC_UNCONG_IND_EVT     3
-
+#define AVRC_UNCONG_IND_EVT     3 
+ 
  /* AVRC_BROWSE_OPEN_IND_EVT event is sent when the browse channel is successfully opened.
  * This eventis sent in response to an AVRC_Open() or AVRC_OpenBrowse() . */
 #define AVRC_BROWSE_OPEN_IND_EVT       4
@@ -66,7 +66,7 @@
  * This event can result from a call to AVRC_Close(), AVRC_CloseBrowse() or when the peer closes
  * the connection.  It is also sent when a connection attempted through
  * AVRC_OpenBrowse() fails. */
-#define AVRC_BROWSE_CLOSE_IND_EVT      5
+#define AVRC_BROWSE_CLOSE_IND_EVT      5   
 
 /* AVRC_BROWSE_CONG_IND_EVT event indicates that AVCTP browse channel is congested and cannot send
  * any more messages. */
@@ -74,7 +74,7 @@
 
 /* AVRC_BROWSE_UNCONG_IND_EVT event indicates that AVCTP browse channel is uncongested and ready to
  * send messages. */
-#define AVRC_BROWSE_UNCONG_IND_EVT     7
+#define AVRC_BROWSE_UNCONG_IND_EVT     7 
 
 /* Supported categories */
 #define AVRC_SUPF_CT_CAT1               0x0001      /* Category 1 */
@@ -123,7 +123,7 @@ typedef struct
  * to remain after the callback function exits. */
 typedef void (tAVRC_FIND_CBACK) (UINT16 status);
 
-
+ 
 /* This is the control callback function.  This function passes events
  * listed in Table 20 to the application. */
 typedef void (tAVRC_CTRL_CBACK) (UINT8 handle, UINT8 event, UINT16 result,
@@ -161,7 +161,7 @@ extern "C"
 ** Function         AVRC_AddRecord
 **
 ** Description      This function is called to build an AVRCP SDP record.
-**                  Prior to calling this function the application must
+**                  Prior to calling this function the application must 
 **                  call SDP_CreateRecord() to create an SDP record.
 **
 **                  Input Parameters:
@@ -197,7 +197,7 @@ AVRC_API extern UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
 ** Description      This function is called by the application to perform service
 **                  discovery and retrieve AVRCP SDP record information from a
 **                  peer device.  Information is returned for the first service
-**                  record found on the server that matches the service UUID.
+**                  record found on the server that matches the service UUID.  
 **                  The callback function will be executed when service discovery
 **                  is complete.  There can only be one outstanding call to
 **                  AVRC_FindService() at a time; the application must wait for
@@ -215,7 +215,7 @@ AVRC_API extern UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
 **                      bd_addr:  BD address of the peer device.
 **
 **                      p_db:  SDP discovery database parameters.
-**
+**                      
 **                      p_cback:  Pointer to the callback function.
 **
 **                  Output Parameters:
@@ -234,13 +234,13 @@ AVRC_API extern UINT16 AVRC_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
 **
 ** Function         AVRC_Open
 **
-** Description      This function is called to open a connection to AVCTP.
+** Description      This function is called to open a connection to AVCTP. 
 **                  The connection can be either an initiator or acceptor, as
-**                  determined by the p_ccb->stream parameter.
+**                  determined by the p_ccb->stream parameter. 
 **                  The connection can be a target, a controller or for both role,
-**                  as determined by the p_ccb->control parameter.
+**                  as determined by the p_ccb->control parameter. 
 **                  By definition, a target connection is an acceptor connection
-**                  that waits for an incoming AVCTP connection from the peer.
+**                  that waits for an incoming AVCTP connection from the peer. 
 **                  The connection remains available to the application until
 **                  the application closes it by calling AVRC_Close().  The
 **                  application does not need to reopen the connection after an
@@ -252,7 +252,7 @@ AVRC_API extern UINT16 AVRC_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
 **                      p_ccb->p_ctrl_cback:  Pointer to control callback function.
 **
 **                      p_ccb->p_msg_cback:  Pointer to message callback function.
-**
+**                      
 **                      p_ccb->conn: AVCTP connection role.  This is set to
 **                      AVCTP_INT for initiator connections and AVCTP_ACP
 **                      for acceptor connections.
@@ -267,7 +267,7 @@ AVRC_API extern UINT16 AVRC_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
 **                      connections it can be set to NULL.
 **
 **                  Output Parameters:
-**                      p_handle: Pointer to handle.  This parameter is only
+**                      p_handle: Pointer to handle.  This parameter is only 
 **                                valid if AVRC_SUCCESS is returned.
 **
 ** Returns          AVRC_SUCCESS if successful.
@@ -302,9 +302,9 @@ AVRC_API extern UINT16 AVRC_Close(UINT8 handle);
 **
 ** Function         AVRC_OpenBrowse
 **
-** Description      This function is called to open a browsing connection to AVCTP.
+** Description      This function is called to open a browsing connection to AVCTP. 
 **                  The connection can be either an initiator or acceptor, as
-**                  determined by the conn_role.
+**                  determined by the conn_role. 
 **                  The handle is returned by a previous call to AVRC_Open.
 **
 ** Returns          AVRC_SUCCESS if successful.
@@ -334,10 +334,10 @@ AVRC_API extern UINT16 AVRC_CloseBrowse(UINT8 handle);
 **
 ** Description      This function is used to send the AVRCP byte stream in p_pkt
 **                  down to AVCTP.
-**
+**                  
 **                  It is expected that p_pkt->offset is at least AVCT_MSG_OFFSET
 **                  p_pkt->layer_specific is AVCT_DATA_CTRL or AVCT_DATA_BROWSE
-**                  p_pkt->event is AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSING
+**                  p_pkt->event is AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSING 
 **                  The above BT_HDR settings are set by the AVRC_Bld* functions.
 **
 ** Returns          AVRC_SUCCESS if successful.
@@ -411,7 +411,7 @@ AVRC_API extern UINT16 AVRC_SubCmd(UINT8 handle, UINT8 label, UINT8 page);
 **
 **                      label: Transaction label.
 **
-**                      p_msg: Pointer to PASS THROUGH message structure.
+**                      p_msg: Pointer to PASS THROUGH message structure. 
 **
 **                  Output Parameters:
 **                      None.
@@ -427,7 +427,7 @@ AVRC_API extern UINT16 AVRC_PassCmd(UINT8 handle, UINT8 label, tAVRC_MSG_PASS *p
 ** Function         AVRC_PassRsp
 **
 ** Description      Send a PASS THROUGH response to the peer device.  This
-**                  function can only be called for target role connections.
+**                  function can only be called for target role connections. 
 **                  This function must be called when a PASS THROUGH command
 **                  message is received from the peer through the
 **                  tAVRC_MSG_CBACK callback function.
@@ -568,7 +568,7 @@ AVRC_API extern tAVRC_STS AVRC_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p
 **
 ** Function         AVRC_BldCommand
 **
-** Description      This function builds the given AVRCP command to the given
+** Description      This function builds the given AVRCP command to the given 
 **                  GKI buffer
 **
 ** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
@@ -581,7 +581,7 @@ AVRC_API extern tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt
 **
 ** Function         AVRC_BldResponse
 **
-** Description      This function builds the given AVRCP response to the given
+** Description      This function builds the given AVRCP response to the given 
 **                  GKI buffer
 **
 ** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
@@ -607,10 +607,10 @@ AVRC_API extern BOOLEAN AVRC_IsValidAvcType(UINT8 pdu_id, UINT8 avc_type);
 ** Function         AVRC_IsValidPlayerAttr
 **
 ** Description      Check if the given attrib value is a valid one
-**
+**                  
 **
 ** Returns          returns TRUE if it is valid
-**
+**  
 *******************************************************************************/
 AVRC_API extern BOOLEAN AVRC_IsValidPlayerAttr(UINT8 attr);
 

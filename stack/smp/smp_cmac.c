@@ -26,7 +26,7 @@ typedef struct
     UINT16              len;
     UINT16              round;
 }tCMAC_CB;
-
+ 
 tCMAC_CB    cmac_cb;
 
 /* Rb for AES-128 as block cipher, LSB as [0] */
@@ -45,8 +45,8 @@ void print128(BT_OCTET16 x, const UINT8 *key_name)
 
     for (i = 0; i < 4; i ++)
     {
-        SMP_TRACE_WARNING4("%02x %02x %02x %02x",
-                           p[BT_OCTET16_LEN - i*4 -1], p[BT_OCTET16_LEN - i*4 -2],
+        SMP_TRACE_WARNING4("%02x %02x %02x %02x", 
+                           p[BT_OCTET16_LEN - i*4 -1], p[BT_OCTET16_LEN - i*4 -2], 
                            p[BT_OCTET16_LEN - i*4 -3], p[BT_OCTET16_LEN - i*4 -4]);
     }
 #endif
@@ -56,11 +56,11 @@ void print128(BT_OCTET16 x, const UINT8 *key_name)
 **
 ** Function         padding
 **
-** Description      utility function to padding the given text to be a 128 bits
+** Description      utility function to padding the given text to be a 128 bits 
 **                  data. The parameter dest is input and output parameter, it
 **                  must point to a BT_OCTET16_LEN memory space; where include
 **                  length bytes valid data.
-**
+**      
 ** Returns          void
 **
 *******************************************************************************/
@@ -76,7 +76,7 @@ static void padding ( BT_OCTET16 dest, UINT8 length )
 ** Function         leftshift_onebit
 **
 ** Description      utility function to left shift one bit for a 128 bits value.
-**
+**      
 ** Returns          void
 **
 *******************************************************************************/
@@ -98,12 +98,12 @@ static void leftshift_onebit(UINT8 *input, UINT8 *output)
 ** Function         cmac_aes_cleanup
 **
 ** Description      clean up function for AES_CMAC algorithm.
-**
+**      
 ** Returns          void
 **
 *******************************************************************************/
 static void cmac_aes_cleanup(void)
-{
+{    
     if (cmac_cb.text != NULL)
     {
         GKI_freebuf(cmac_cb.text);
@@ -116,7 +116,7 @@ static void cmac_aes_cleanup(void)
 ** Function         cmac_aes_k_calculate
 **
 ** Description      This function is the calculation of block cipher using AES-128.
-**
+**      
 ** Returns          void
 **
 *******************************************************************************/
@@ -138,7 +138,7 @@ static BOOLEAN cmac_aes_k_calculate(BT_OCTET16 key, UINT8 *p_signature, UINT16 t
             err = 1;
             break;
         }
-
+        
         memcpy(x, output.param_buf, BT_OCTET16_LEN);
         i ++;
     }
@@ -149,9 +149,9 @@ static BOOLEAN cmac_aes_k_calculate(BT_OCTET16 key, UINT8 *p_signature, UINT16 t
         memcpy(p_signature, p_mac, tlen);
 
         SMP_TRACE_DEBUG2("tlen = %d p_mac = %d", tlen, p_mac);
-        SMP_TRACE_DEBUG4("p_mac[0] = 0x%02x p_mac[1] = 0x%02x p_mac[2] = 0x%02x p_mac[3] = 0x%02x",
+        SMP_TRACE_DEBUG4("p_mac[0] = 0x%02x p_mac[1] = 0x%02x p_mac[2] = 0x%02x p_mac[3] = 0x%02x", 
                          *p_mac, *(p_mac + 1), *(p_mac + 2), *(p_mac + 3));
-        SMP_TRACE_DEBUG4("p_mac[4] = 0x%02x p_mac[5] = 0x%02x p_mac[6] = 0x%02x p_mac[7] = 0x%02x",
+        SMP_TRACE_DEBUG4("p_mac[4] = 0x%02x p_mac[5] = 0x%02x p_mac[6] = 0x%02x p_mac[7] = 0x%02x", 
                          *(p_mac + 4), *(p_mac + 5), *(p_mac + 6), *(p_mac + 7));
 
         return TRUE;
@@ -166,7 +166,7 @@ static BOOLEAN cmac_aes_k_calculate(BT_OCTET16 key, UINT8 *p_signature, UINT16 t
 **
 ** Description      This function proceeed to prepare the last block of message
 **                  Mn depending on the size of the message.
-**
+**      
 ** Returns          void
 **
 *******************************************************************************/
@@ -197,7 +197,7 @@ static void cmac_prepare_last_block (BT_OCTET16 k1, BT_OCTET16 k2)
 ** Function         cmac_subkey_cont
 **
 ** Description      This is the callback function when CIPHk(0[128]) is completed.
-**
+**      
 ** Returns          void
 **
 *******************************************************************************/
@@ -242,9 +242,9 @@ static void cmac_subkey_cont(tSMP_ENC *p)
 ** Function         cmac_generate_subkey
 **
 ** Description      This is the function to generate the two subkeys.
-**
+**            
 ** Parameters       key - CMAC key, expect SRK when used by SMP.
-**
+**      
 ** Returns          void
 **
 *******************************************************************************/
@@ -269,13 +269,13 @@ static BOOLEAN cmac_generate_subkey(BT_OCTET16 key)
 ** Function         AES_CMAC
 **
 ** Description      This is the AES-CMAC Generation Function with tlen implemented.
-**
+**            
 ** Parameters       key - CMAC key in little endian order, expect SRK when used by SMP.
 **                  input - text to be signed in little endian byte order.
 **                  length - length of the input in byte.
 **                  tlen - lenth of mac desired
 **                  p_signature - data pointer to where signed data to be stored, tlen long.
-**
+**      
 ** Returns          void
 **
 *******************************************************************************/
@@ -288,7 +288,7 @@ BOOLEAN AES_CMAC ( BT_OCTET16 key, UINT8 *input, UINT16 length,
 
     SMP_TRACE_EVENT0 ("AES_CMAC  ");
 
-    if (n == 0)  n = 1;
+    if (n == 0)  n = 1;    
     len = n * BT_OCTET16_LEN;
 
     SMP_TRACE_WARNING1("AES128_CMAC started, allocate buffer size = %d", len);
@@ -314,7 +314,7 @@ BOOLEAN AES_CMAC ( BT_OCTET16 key, UINT8 *input, UINT16 length,
             /* start calculation */
             ret = cmac_aes_k_calculate(key, p_signature, tlen);
         }
-        /* clean up */
+        /* clean up */        
         cmac_aes_cleanup();
     }
     else
@@ -322,7 +322,7 @@ BOOLEAN AES_CMAC ( BT_OCTET16 key, UINT8 *input, UINT16 length,
         ret = FALSE;
         SMP_TRACE_ERROR0("No resources");
     }
-
+    
     return ret;
 }
 

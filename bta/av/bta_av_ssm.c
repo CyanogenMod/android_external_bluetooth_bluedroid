@@ -135,7 +135,7 @@ static const UINT8 bta_av_sst_init[][BTA_AV_NUM_COLS] =
 /* AVDT_DELAY_RPT_EVT */    {BTA_AV_SIGNORE,        BTA_AV_SIGNORE,        BTA_AV_INIT_SST },
 /* ACP_CONNECT_EVT */       {BTA_AV_SIGNORE,        BTA_AV_SIGNORE,        BTA_AV_INCOMING_SST }
 };
-
+     
 /* state table for incoming state */
 static const UINT8 bta_av_sst_incoming[][BTA_AV_NUM_COLS] =
 {
@@ -361,7 +361,7 @@ static char *bta_av_sst_code(UINT8 state);
 ** Function         bta_av_is_rcfg_sst
 **
 ** Description      Check if stream state machine is in reconfig state.
-**
+**                  
 **
 ** Returns          TRUE if stream state machine is in reconfig state.
 **
@@ -384,7 +384,7 @@ BOOLEAN bta_av_is_rcfg_sst (tBTA_AV_SCB *p_scb)
 ** Function         bta_av_ssm_execute
 **
 ** Description      Stream state machine event handling function for AV
-**
+**                  
 **
 ** Returns          void
 **
@@ -456,7 +456,7 @@ void bta_av_ssm_execute(tBTA_AV_SCB *p_scb, UINT16 event, tBTA_AV_DATA *p_data)
 ** Function         bta_av_is_scb_opening
 **
 ** Description      Returns TRUE is scb is in opening state.
-**
+**                  
 **
 ** Returns          TRUE if scb is in opening state.
 **
@@ -464,7 +464,7 @@ void bta_av_ssm_execute(tBTA_AV_SCB *p_scb, UINT16 event, tBTA_AV_DATA *p_data)
 BOOLEAN bta_av_is_scb_opening (tBTA_AV_SCB *p_scb)
 {
     BOOLEAN is_opening = FALSE;
-
+    
     if (p_scb)
     {
         if (p_scb->state == BTA_AV_OPENING_SST)
@@ -479,7 +479,7 @@ BOOLEAN bta_av_is_scb_opening (tBTA_AV_SCB *p_scb)
 ** Function         bta_av_is_scb_incoming
 **
 ** Description      Returns TRUE is scb is in incoming state.
-**
+**                  
 **
 ** Returns          TRUE if scb is in incoming state.
 **
@@ -487,7 +487,7 @@ BOOLEAN bta_av_is_scb_opening (tBTA_AV_SCB *p_scb)
 BOOLEAN bta_av_is_scb_incoming (tBTA_AV_SCB *p_scb)
 {
     BOOLEAN is_incoming = FALSE;
-
+    
     if (p_scb)
     {
         if (p_scb->state == BTA_AV_INCOMING_SST)
@@ -520,7 +520,7 @@ void bta_av_set_scb_sst_init (tBTA_AV_SCB *p_scb)
 ** Function         bta_av_is_scb_init
 **
 ** Description      Returns TRUE is scb is in init state.
-**
+**                  
 **
 ** Returns          TRUE if scb is in incoming state.
 **
@@ -528,7 +528,7 @@ void bta_av_set_scb_sst_init (tBTA_AV_SCB *p_scb)
 BOOLEAN bta_av_is_scb_init (tBTA_AV_SCB *p_scb)
 {
     BOOLEAN is_init = FALSE;
-
+    
     if (p_scb)
     {
         if (p_scb->state == BTA_AV_INIT_SST)
@@ -564,7 +564,7 @@ void bta_av_set_scb_sst_incoming (tBTA_AV_SCB *p_scb)
 **
 ** Function         bta_av_sst_code
 **
-** Description
+** Description      
 **
 ** Returns          char *
 **

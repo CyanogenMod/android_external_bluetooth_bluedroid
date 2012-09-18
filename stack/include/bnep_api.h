@@ -19,7 +19,7 @@
 *****************************************************************************/
 
 /* Define the minimum offset needed in a GKI buffer for
-** sending BNEP packets. Note, we are currently not sending
+** sending BNEP packets. Note, we are currently not sending 
 ** extension headers, but may in the future, so allow
 ** space for them
 */
@@ -53,7 +53,7 @@ enum
     BNEP_IGNORE_CMD,                    /* To ignore the rcvd command */
     BNEP_TX_FLOW_ON,                    /* tx data flow enabled */
     BNEP_TX_FLOW_OFF                    /* tx data flow disabled */
-
+ 
 }; typedef UINT8 tBNEP_RESULT;
 
 
@@ -223,7 +223,7 @@ extern "C" {
 **                  its callbacks with BNEP
 **
 ** Parameters:      p_reg_info - contains all callback function pointers
-**
+**                  
 **
 ** Returns          BNEP_SUCCESS        if registered successfully
 **                  BNEP_FAILURE        if connection state callback is missing
@@ -239,7 +239,7 @@ BNEP_API extern tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info);
 **                  its callbacks.
 **
 ** Parameters:      void
-**
+**                  
 **
 ** Returns          void
 **
@@ -273,7 +273,7 @@ BNEP_API extern tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
 ** Function         BNEP_ConnectResp
 **
 ** Description      This function is called in responce to connection indication
-**
+**                  
 **
 ** Parameters:      handle  - handle given in the connection indication
 **                  resp    - responce for the connection indication

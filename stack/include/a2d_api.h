@@ -44,7 +44,7 @@
 #define A2D_INVALID_PARAMS    0x0C  /* bad parameters */
 #define A2D_WRONG_CODEC       0x0D  /* wrong codec info */
 #define A2D_BAD_CODEC_TYPE    0xC1  /* Media Codec Type is not valid  */
-#define A2D_NS_CODEC_TYPE     0xC2  /* Media Codec Type is not supported */
+#define A2D_NS_CODEC_TYPE     0xC2  /* Media Codec Type is not supported */    
 #define A2D_BAD_SAMP_FREQ     0xC3  /* Sampling Frequency is not valid or multiple values have been selected  */
 #define A2D_NS_SAMP_FREQ      0xC4  /* Sampling Frequency is not supported  */
 #define A2D_BAD_CH_MODE       0xC5  /* Channel Mode is not valid or multiple values have been selected  */
@@ -67,7 +67,7 @@
 #define A2D_BAD_OBJ_TYPE      0xD6  /* Either 1) Object type is not valid (b3-b0) or 2) None or multiple values have been selected for Object Type */
 #define A2D_NS_OBJ_TYPE       0xD7  /* Object type is not supported */
 #define A2D_BAD_CHANNEL       0xD8  /* None or multiple values have been selected for Channels */
-#define A2D_NS_CHANNEL        0xD9  /* Channels is not supported */
+#define A2D_NS_CHANNEL        0xD9  /* Channels is not supported */ 
 #define A2D_BAD_BLOCK_LEN     0xDD  /* None or multiple values have been selected for Block Length */
 #define A2D_BAD_CP_TYPE       0xE0  /* The requested CP Type is not supported. */
 #define A2D_BAD_CP_FORMAT     0xE1  /* The format of Content Protection Service Capability/Content Protection Scheme Dependent Data is not correct. */
@@ -175,7 +175,7 @@ A2D_API extern tA2D_STATUS A2D_AddRecord(UINT16 service_uuid, char *p_service_na
 **
 **                      p_db:  Pointer to the information to initialize
 **                             the discovery database.
-**
+**                      
 **                      p_cback:  Pointer to the A2D_FindService()
 **                      callback function.
 **

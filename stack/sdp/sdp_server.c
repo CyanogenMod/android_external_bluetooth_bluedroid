@@ -217,7 +217,7 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
 
     /* Calculate how many handles will fit in one PDU */
     cur_handles = (UINT16)((p_ccb->rem_mtu_size - SDP_MAX_SERVICE_RSPHDR_LEN) / 4);
-
+    
     if (rem_handles <= cur_handles)
         cur_handles = rem_handles;
     else /* Continuation is set */
@@ -405,7 +405,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
             /* if there is a partial attribute pending to be sent */
             if (p_ccb->cont_info.attr_offset)
             {
-                p_rsp = sdpu_build_partial_attrib_entry (p_rsp, p_attr, rem_len,
+                p_rsp = sdpu_build_partial_attrib_entry (p_rsp, p_attr, rem_len, 
                                                          &p_ccb->cont_info.attr_offset);
 
                 /* If the partial attrib could not been fully added yet */

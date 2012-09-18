@@ -3,7 +3,7 @@
 **  Name:           bta_av_ci.c
 **
 **  Description:    This is the implementation file for advanced audio/video
-**                  call-in functions.
+**                  call-in functions. 
 **
 **  Copyright (c) 2005, Widcomm Inc., All Rights Reserved.
 **  Widcomm Bluetooth Core. Proprietary and confidential.
@@ -26,7 +26,7 @@
 **                  should call bta_av_co_audio_src_data_path() or
 **                  bta_av_co_video_src_data_path().
 **
-** Returns          void
+** Returns          void 
 **
 *******************************************************************************/
 void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl)
@@ -51,7 +51,7 @@ void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl)
 **                  AVDT_SUCCESS if the codec configuration is ok,
 **                  otherwise error.
 **
-** Returns          void
+** Returns          void 
 **
 *******************************************************************************/
 void bta_av_ci_setconfig(tBTA_AV_HNDL hndl, UINT8 err_code, UINT8 category,

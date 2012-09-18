@@ -21,11 +21,11 @@
 #define BTA_HH_DEBUG    FALSE
 #endif
 
-#ifndef BTA_HH_SSR_MAX_LATENCY_DEF
+#ifndef BTA_HH_SSR_MAX_LATENCY_DEF 
 #define BTA_HH_SSR_MAX_LATENCY_DEF  1600
 #endif
 
-#ifndef BTA_HH_SSR_MIN_TOUT_DEF
+#ifndef BTA_HH_SSR_MIN_TOUT_DEF 
 #define BTA_HH_SSR_MIN_TOUT_DEF     2
 #endif
 
@@ -52,7 +52,7 @@ typedef UINT16 tBTA_HH_EVT;
 /* defined the minimum offset */
 #define BTA_HH_MIN_OFFSET       L2CAP_MIN_OFFSET+1
 
-#define BTA_HH_MAX_KNOWN        HID_HOST_MAX_DEVICES
+#define BTA_HH_MAX_KNOWN        HID_HOST_MAX_DEVICES 
 /* invalid device handle */
 #define BTA_HH_INVALID_HANDLE   0xff
 
@@ -71,13 +71,13 @@ typedef UINT8 tBTA_HH_BOOT_RPT_ID;
 
 /* type of devices, bit mask */
 #define BTA_HH_DEVT_UNKNOWN      0x00
-#define BTA_HH_DEVT_JOS          0x01           /* joy stick */
+#define BTA_HH_DEVT_JOS          0x01           /* joy stick */   
 #define BTA_HH_DEVT_GPD          0x02           /* game pad */
 #define BTA_HH_DEVT_RMC          0x03           /* remote control */
 #define BTA_HH_DEVT_SED          0x04           /* sensing device */
 #define BTA_HH_DEVT_DGT          0x05           /* Digitizer tablet */
 #define BTA_HH_DEVT_CDR          0x06           /* card reader */
-#define BTA_HH_DEVT_KBD          0x10           /* keyboard */
+#define BTA_HH_DEVT_KBD          0x10           /* keyboard */  
 #define BTA_HH_DEVT_MIC          0x20           /* pointing device */
 #define BTA_HH_DEVT_COM          0x30           /* Combo keyboard/pointing */
 #define BTA_HH_DEVT_OTHER        0x80
@@ -88,14 +88,14 @@ enum
     BTA_HH_OK,
     BTA_HH_HS_HID_NOT_READY,    /* handshake error : device not ready */
     BTA_HH_HS_INVALID_RPT_ID,   /* handshake error : invalid report ID */
-    BTA_HH_HS_TRANS_NOT_SPT,    /* handshake error : transaction not spt */
-    BTA_HH_HS_INVALID_PARAM,    /* handshake error : invalid paremter */
+    BTA_HH_HS_TRANS_NOT_SPT,    /* handshake error : transaction not spt */    
+    BTA_HH_HS_INVALID_PARAM,    /* handshake error : invalid paremter */    
     BTA_HH_HS_ERROR,            /* handshake error : unspecified HS error */
     BTA_HH_ERR,                 /* general BTA HH error */
     BTA_HH_ERR_SDP,             /* SDP error */
-    BTA_HH_ERR_PROTO,           /* SET_Protocol error,
+    BTA_HH_ERR_PROTO,           /* SET_Protocol error, 
                                     only used in BTA_HH_OPEN_EVT callback */
-    BTA_HH_ERR_DB_FULL,         /* device database full error, used in
+    BTA_HH_ERR_DB_FULL,         /* device database full error, used in 
                                    BTA_HH_OPEN_EVT/BTA_HH_ADD_DEV_EVT */
     BTA_HH_ERR_TOD_UNSPT,       /* type of device not supported */
     BTA_HH_ERR_NO_RES,          /* out of system resources */
@@ -105,14 +105,14 @@ enum
 typedef UINT8 tBTA_HH_STATUS;
 
 
-#define BTA_HH_VIRTUAL_CABLE           HID_VIRTUAL_CABLE
-#define BTA_HH_NORMALLY_CONNECTABLE    HID_NORMALLY_CONNECTABLE
-#define BTA_HH_RECONN_INIT             HID_RECONN_INIT
-#define BTA_HH_SDP_DISABLE             HID_SDP_DISABLE
-#define BTA_HH_BATTERY_POWER           HID_BATTERY_POWER
-#define BTA_HH_REMOTE_WAKE             HID_REMOTE_WAKE
-#define BTA_HH_SUP_TOUT_AVLBL          HID_SUP_TOUT_AVLBL
-#define BTA_HH_SEC_REQUIRED             HID_SEC_REQUIRED
+#define BTA_HH_VIRTUAL_CABLE           HID_VIRTUAL_CABLE        
+#define BTA_HH_NORMALLY_CONNECTABLE    HID_NORMALLY_CONNECTABLE 
+#define BTA_HH_RECONN_INIT             HID_RECONN_INIT          
+#define BTA_HH_SDP_DISABLE             HID_SDP_DISABLE          
+#define BTA_HH_BATTERY_POWER           HID_BATTERY_POWER        
+#define BTA_HH_REMOTE_WAKE             HID_REMOTE_WAKE          
+#define BTA_HH_SUP_TOUT_AVLBL          HID_SUP_TOUT_AVLBL       
+#define BTA_HH_SEC_REQUIRED             HID_SEC_REQUIRED        
 typedef UINT16 tBTA_HH_ATTR_MASK;
 
 
@@ -124,7 +124,7 @@ typedef struct
 }tBTA_HH_SPT_TOD;
 
 /* configuration struct */
-typedef struct
+typedef struct 
 {
     UINT8                max_devt_spt; /* max number of types of devices spt */
     tBTA_HH_SPT_TOD     *p_devt_list;  /* supported types of device list     */
@@ -164,7 +164,7 @@ typedef struct
     UINT16              ssr_max_latency;    /* SSR max latency */
     UINT16              ssr_min_tout;       /* SSR min timeout */
     UINT8               ctry_code;      /*Country Code.*/
-    tBTA_HH_DEV_DESCR   descriptor;
+    tBTA_HH_DEV_DESCR   descriptor; 
 }tBTA_HH_DEV_DSCP_INFO;
 
 /* callback event data for BTA_HH_OPEN_EVT */
@@ -185,7 +185,7 @@ typedef struct
 } tBTA_HH_CBDATA;
 
 enum
-{
+{ 
     BTA_HH_MOD_CTRL_KEY,
     BTA_HH_MOD_SHFT_KEY,
     BTA_HH_MOD_ALT_KEY,
@@ -197,7 +197,7 @@ enum
 typedef struct
 {
     UINT8               this_char[6];       /* virtual key code     */
-    BOOLEAN             mod_key[BTA_HH_MOD_MAX_KEY];
+    BOOLEAN             mod_key[BTA_HH_MOD_MAX_KEY];         
                                             /* ctrl, shift, Alt, GUI */
                                             /* modifier key: is Shift key pressed */
                                             /* modifier key: is Ctrl key pressed  */
@@ -223,7 +223,7 @@ typedef struct
     {
         tBTA_HH_KEYBD_RPT   keybd_rpt;      /* keyboard report      */
         tBTA_HH_MICE_RPT    mice_rpt;       /* mouse report         */
-    }                   data_rpt;
+    }                   data_rpt;           
 } tBTA_HH_BOOT_RPT;
 
 /* handshake data */
@@ -245,7 +245,7 @@ typedef union
 {
     tBTA_HH_DEV_INFO        dev_info;           /* BTA_HH_ADD_DEV_EVT, BTA_HH_RMV_DEV_EVT   */
     tBTA_HH_CONN            conn;               /* BTA_HH_OPEN_EVT      */
-    tBTA_HH_CBDATA          dev_status;         /* BTA_HH_CLOSE_EVT,
+    tBTA_HH_CBDATA          dev_status;         /* BTA_HH_CLOSE_EVT, 
                                                    BTA_HH_SET_PROTO_EVT
                                                    BTA_HH_SET_RPT_EVT
                                                    BTA_HH_SET_IDLE_EVT  */
@@ -253,13 +253,13 @@ typedef union
     tBTA_HH_STATUS          status;             /* BTA_HH_ENABLE_EVT */
     tBTA_HH_DEV_DSCP_INFO   dscp_info;          /* BTA_HH_GET_DSCP_EVT */
     tBTA_HH_HSDATA          hs_data;            /* GET_ transaction callback
-                                                   BTA_HH_GET_RPT_EVT
-                                                   BTA_HH_GET_PROTO_EVT
+                                                   BTA_HH_GET_RPT_EVT           
+                                                   BTA_HH_GET_PROTO_EVT 
                                                    BTA_HH_GET_IDLE_EVT */
 } tBTA_HH;
 
 /* BTA HH callback function */
-typedef void (tBTA_HH_CBACK) (tBTA_HH_EVT event, tBTA_HH *p_data);
+typedef void (tBTA_HH_CBACK) (tBTA_HH_EVT event, tBTA_HH *p_data); 
 
 
 /*****************************************************************************
@@ -274,7 +274,7 @@ extern "C"
 **
 ** Function         BTA_HhRegister
 **
-** Description      This function enable HID host and registers HID-Host with
+** Description      This function enable HID host and registers HID-Host with 
 **                  lower layers.
 **
 ** Returns          void
@@ -297,14 +297,14 @@ BTA_API extern void BTA_HhDisable(void);
 **
 ** Function         BTA_HhOpen
 **
-** Description      This function is called to start an inquiry and read SDP
-**                  record of responding devices; connect to a device if only
+** Description      This function is called to start an inquiry and read SDP 
+**                  record of responding devices; connect to a device if only 
 **                  one active HID device is found.
 **
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhOpen (BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode,
+BTA_API extern void BTA_HhOpen (BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode, 
                                 tBTA_SEC sec_mask);
 
 /*******************************************************************************
@@ -348,19 +348,19 @@ BTA_API extern void BTA_HhGetProtoMode(UINT8 dev_handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhSetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
+BTA_API extern void BTA_HhSetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type, 
                                         BT_HDR *p_data);
 
 /*******************************************************************************
 **
 ** Function         BTA_HhGetReport
 **
-** Description      Send a GET_REPORT to HID device.
+** Description      Send a GET_REPORT to HID device.              
 **
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
+BTA_API extern void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,  
                                     UINT8 rpt_id, UINT16 buf_size);
 /*******************************************************************************
 **
@@ -371,7 +371,7 @@ BTA_API extern void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhSendCtrl(UINT8 dev_handle,
+BTA_API extern void BTA_HhSendCtrl(UINT8 dev_handle, 
                                    tBTA_HH_TRANS_CTRL_TYPE c_type);
 
 /*******************************************************************************
@@ -423,22 +423,22 @@ BTA_API extern void BTA_HhGetDscpInfo(UINT8 dev_handle);
 **
 ** Function         BTA_HhAddDev
 **
-** Description      Add a virtually cabled device into HID-Host device list
-**                  to manage and assign a device handle for future API call,
-**                  host applciation call this API at start-up to initialize its
-**                  virtually cabled devices.
+** Description      Add a virtually cabled device into HID-Host device list 
+**                  to manage and assign a device handle for future API call, 
+**                  host applciation call this API at start-up to initialize its 
+**                  virtually cabled devices.                 
 **
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask,
-                                 UINT8 sub_class, UINT8 app_id,
+BTA_API extern void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, 
+                                 UINT8 sub_class, UINT8 app_id, 
                                  tBTA_HH_DEV_DSCP_INFO dscp_info);
 /*******************************************************************************
 **
 ** Function         BTA_HhRemoveDev
 **
-** Description      Remove a device from the HID host devices list.
+** Description      Remove a device from the HID host devices list.               
 **
 ** Returns          void
 **
@@ -446,7 +446,7 @@ BTA_API extern void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask,
 BTA_API extern void BTA_HhRemoveDev(UINT8 dev_handle );
 /*******************************************************************************
 **
-**              Parsing Utility Functions
+**              Parsing Utility Functions      
 **
 *******************************************************************************/
 /*******************************************************************************
@@ -458,7 +458,7 @@ BTA_API extern void BTA_HhRemoveDev(UINT8 dev_handle );
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
+BTA_API extern void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report, 
                                        UINT16 report_len);
 
 #ifdef __cplusplus

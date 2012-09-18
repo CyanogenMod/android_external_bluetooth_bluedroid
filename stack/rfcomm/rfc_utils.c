@@ -29,7 +29,7 @@
 ** Description      Reversed CRC Table , 8-bit, poly=0x07
 **                  (GSM 07.10 TS 101 369 V6.3.0)
 *******************************************************************************/
-static const UINT8 rfc_crctable[] =
+static const UINT8 rfc_crctable[] = 
 {
     0x00, 0x91, 0xE3, 0x72, 0x07, 0x96, 0xE4, 0x75,  0x0E, 0x9F, 0xED, 0x7C, 0x09, 0x98, 0xEA, 0x7B,
     0x1C, 0x8D, 0xFF, 0x6E, 0x1B, 0x8A, 0xF8, 0x69,  0x12, 0x83, 0xF1, 0x60, 0x15, 0x84, 0xF6, 0x67,
@@ -57,7 +57,7 @@ static const UINT8 rfc_crctable[] =
 **
 ** Function         rfc_calc_fcs
 **
-** Description      This function calculate FCS for the RFCOMM frame
+** Description      This function calculate FCS for the RFCOMM frame 
 **                  (GSM 07.10 TS 101 369 V6.3.0)
 **
 ** Input            len - number of bytes in the message
@@ -82,7 +82,7 @@ UINT8 rfc_calc_fcs (UINT16 len, UINT8 *p)
 **
 ** Function         rfc_check_fcs
 **
-** Description      This function checks FCS for the RFCOMM frame
+** Description      This function checks FCS for the RFCOMM frame 
 **                  (GSM 07.10 TS 101 369 V6.3.0)
 **
 ** Input            len          - number of bytes in the message
@@ -192,7 +192,7 @@ void rfc_release_multiplexer_channel (tRFC_MCB *p_mcb)
 void rfc_timer_start (tRFC_MCB *p_mcb, UINT16 timeout)
 {
     TIMER_LIST_ENT *p_tle = &p_mcb->tle;
-
+    
     RFCOMM_TRACE_EVENT1 ("rfc_timer_start - timeout:%d", timeout);
 
     p_tle->param = (UINT32)p_mcb;
@@ -205,7 +205,7 @@ void rfc_timer_start (tRFC_MCB *p_mcb, UINT16 timeout)
 **
 ** Function         rfc_timer_stop
 **
-** Description      Stop RFC Timer
+** Description      Stop RFC Timer 
 **
 *******************************************************************************/
 void rfc_timer_stop (tRFC_MCB *p_mcb)
@@ -239,7 +239,7 @@ void rfc_port_timer_start (tPORT *p_port, UINT16 timeout)
 **
 ** Function         rfc_port_timer_stop
 **
-** Description      Stop RFC Timer
+** Description      Stop RFC Timer 
 **
 *******************************************************************************/
 void rfc_port_timer_stop (tPORT *p_port)
@@ -315,8 +315,8 @@ void rfcomm_process_timeout (TIMER_LIST_ENT  *p_tle)
 **
 ** Function         rfc_sec_check_complete
 **
-** Description      The function called when Security Manager finishes
-**                  verification of the service side connection
+** Description      The function called when Security Manager finishes 
+**                  verification of the service side connection 
 **
 ** Returns          void
 **
@@ -326,7 +326,7 @@ void rfc_sec_check_complete (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
     tPORT *p_port = (tPORT *)p_ref_data;
 
     /* Verify that PORT is still waiting for Security to complete */
-    if (!p_port->in_use
+    if (!p_port->in_use 
      || ((p_port->rfc.state != RFC_STATE_ORIG_WAIT_SEC_CHECK)
       && (p_port->rfc.state != RFC_STATE_TERM_WAIT_SEC_CHECK)))
         return;
@@ -340,18 +340,18 @@ void rfc_sec_check_complete (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
 ** Function         rfc_port_closed
 **
 ** Description      The function is called when port is released based on the
-**                  event received from the lower layer, typically L2CAP
+**                  event received from the lower layer, typically L2CAP 
 **                  connection down, DISC, or DM frame.
 **
 ** Returns          void
 **
 *******************************************************************************/
 void rfc_port_closed (tPORT *p_port)
-{
+{ 
     tRFC_MCB *p_mcb = p_port->rfc.p_mcb;
 
     RFCOMM_TRACE_DEBUG0 ("rfc_port_closed");
-
+    
     rfc_port_timer_stop (p_port);
 
     p_port->rfc.state = RFC_STATE_CLOSED;
@@ -385,7 +385,7 @@ void rfc_inc_credit (tPORT *p_port, UINT8 credit)
     if (p_port->rfc.p_mcb->flow == PORT_FC_CREDIT)
     {
         p_port->credit_tx += credit;
-
+   
         RFCOMM_TRACE_EVENT1 ("rfc_inc_credit:%d", p_port->credit_tx);
 
         if (p_port->tx.peer_fc == TRUE)
@@ -410,7 +410,7 @@ void rfc_dec_credit (tPORT *p_port)
     {
         if (p_port->credit_tx > 0)
             p_port->credit_tx--;
-
+        
         if (p_port->credit_tx == 0)
             p_port->tx.peer_fc = TRUE;
     }

@@ -60,11 +60,6 @@
 **  Constants & Macros
 ******************************************************************************/
 
-/* Generic Enter/Exit state machine events */
-#define BTIF_SM_ENTER_EVT 0xFFFF
-#define BTIF_SM_EXIT_EVT  0xFFFE
-
-
 /*****************************************************************************
 **  Type definitions and return values
 ******************************************************************************/
@@ -73,13 +68,27 @@ typedef UINT32 btif_sm_event_t;
 typedef void* btif_sm_handle_t;
 typedef BOOLEAN(*btif_sm_handler_t)(btif_sm_event_t event, void *data);
 
+/* Generic Enter/Exit state machine events */
+#define BTIF_SM_ENTER_EVT 0xFFFF
+#define BTIF_SM_EXIT_EVT  0xFFFE
+
+/*****************************************************************************
+**  Extern variables and functions
+******************************************************************************/
 
 /*****************************************************************************
 **  Functions
-**
-**  NOTE: THESE APIs SHOULD BE INVOKED ONLY IN THE BTIF CONTEXT
-**
 ******************************************************************************/
+
+/*
+ *
+ * ########################################################################
+ *
+ * NOTE: THESE APIs SHOULD BE INVOKED ONLY IN THE BTIF CONTEXT
+ *
+ * #######################################################################
+ *
+ */
 
 /*****************************************************************************
 **
@@ -145,3 +154,5 @@ bt_status_t btif_sm_dispatch(btif_sm_handle_t handle, btif_sm_event_t event,
 bt_status_t btif_sm_change_state(btif_sm_handle_t handle, btif_sm_state_t state);
 
 #endif /* BTIF_SM_H */
+
+

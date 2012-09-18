@@ -2,7 +2,7 @@
 **
 **  Name:           bta_gatts_main.c
 **
-**  Description:    This file contains the GATT server main functions
+**  Description:    This file contains the GATT server main functions 
 **                  and state machine.
 **
 **  Copyright (c) 2003-2010, Broadcom Corp., All Rights Reserved.
@@ -43,7 +43,7 @@ tBTA_GATTS_CB  bta_gatts_cb;
 ** Function         bta_gatts_hdl_event
 **
 ** Description      BTA GATT server main event handling function.
-**
+**                  
 **
 ** Returns          void
 **
@@ -72,19 +72,19 @@ BOOLEAN bta_gatts_hdl_event(BT_HDR *p_msg)
             break;
 
         case BTA_GATTS_API_INDICATION_EVT:
-            bta_gatts_indicate_handle(p_cb,(tBTA_GATTS_DATA *) p_msg);
+            bta_gatts_indicate_handle(p_cb,(tBTA_GATTS_DATA *) p_msg); 
             break;
 
         case BTA_GATTS_API_OPEN_EVT:
-            bta_gatts_open(p_cb,(tBTA_GATTS_DATA *) p_msg);
+            bta_gatts_open(p_cb,(tBTA_GATTS_DATA *) p_msg); 
             break;
 
         case BTA_GATTS_API_CANCEL_OPEN_EVT:
-            bta_gatts_cancel_open(p_cb,(tBTA_GATTS_DATA *) p_msg);
+            bta_gatts_cancel_open(p_cb,(tBTA_GATTS_DATA *) p_msg); 
             break;
 
         case BTA_GATTS_API_CLOSE_EVT:
-            bta_gatts_close(p_cb,(tBTA_GATTS_DATA *) p_msg);
+            bta_gatts_close(p_cb,(tBTA_GATTS_DATA *) p_msg); 
             break;
 
         case BTA_GATTS_API_RSP_EVT:
@@ -98,7 +98,7 @@ BOOLEAN bta_gatts_hdl_event(BT_HDR *p_msg)
         case BTA_GATTS_API_START_SRVC_EVT:
         case BTA_GATTS_API_STOP_SRVC_EVT:
 
-            p_srvc_cb = bta_gatts_find_srvc_cb_by_srvc_id(p_cb,
+            p_srvc_cb = bta_gatts_find_srvc_cb_by_srvc_id(p_cb, 
                                 ((tBTA_GATTS_DATA *)p_msg)->api_add_incl_srvc.hdr.layer_specific);
 
             if (p_srvc_cb != NULL)

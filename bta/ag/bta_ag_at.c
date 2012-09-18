@@ -23,7 +23,7 @@
 ** Function         bta_ag_at_init
 **
 ** Description      Initialize the AT command parser control block.
-**
+**                  
 **
 ** Returns          void
 **
@@ -41,7 +41,7 @@ void bta_ag_at_init(tBTA_AG_AT_CB *p_cb)
 ** Description      Re-initialize the AT command parser control block.  This
 **                  function resets the AT command parser state and frees
 **                  any GKI buffer.
-**
+**                  
 **
 ** Returns          void
 **
@@ -62,7 +62,7 @@ void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb)
 ** Description      Parse AT commands.  This function will take the input
 **                  character string and parse it for AT commands according to
 **                  the AT command table passed in the control block.
-**
+**                  
 **
 ** Returns          void
 **
@@ -138,7 +138,7 @@ void bta_ag_process_at(tBTA_AG_AT_CB *p_cb)
                 }
                 else
                 {
-
+                    
                     (*p_cb->p_cmd_cback)(p_cb->p_user, idx, arg_type, p_arg, int_arg);
                 }
             }
@@ -167,7 +167,7 @@ void bta_ag_process_at(tBTA_AG_AT_CB *p_cb)
 ** Description      Parse AT commands.  This function will take the input
 **                  character string and parse it for AT commands according to
 **                  the AT command table passed in the control block.
-**
+**                  
 **
 ** Returns          void
 **
@@ -193,7 +193,7 @@ void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, UINT16 len)
                 i++;
                 continue;
             }
-
+            
             p_cb->p_cmd_buf[p_cb->cmd_pos] = p_buf[i++];
             if ( p_cb->p_cmd_buf[p_cb->cmd_pos] == '\r' || p_cb->p_cmd_buf[p_cb->cmd_pos] == '\n')
             {
@@ -209,8 +209,8 @@ void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, UINT16 len)
                 }
 
                 p_cb->cmd_pos = 0;
-
-            }
+                
+            }            
             else if( p_cb->p_cmd_buf[p_cb->cmd_pos] == 0x1A || p_cb->p_cmd_buf[p_cb->cmd_pos] == 0x1B )
             {
                 p_cb->p_cmd_buf[++p_cb->cmd_pos] = 0;

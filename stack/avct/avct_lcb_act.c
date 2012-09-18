@@ -24,14 +24,14 @@ const UINT8 avct_lcb_pkt_type_len[] = {
     AVCT_HDR_LEN_START,
     AVCT_HDR_LEN_CONT,
     AVCT_HDR_LEN_END
-};
+}; 
 
 /*******************************************************************************
 **
 ** Function         avct_lcb_msg_asmbl
 **
 ** Description      Reassemble incoming message.
-**
+**                  
 **
 ** Returns          Pointer to reassembled message;  NULL if no message
 **                  available.
@@ -150,7 +150,7 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
 ** Function         avct_lcb_chnl_open
 **
 ** Description      Open L2CAP channel to peer
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -174,7 +174,7 @@ void avct_lcb_chnl_open(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 ** Function         avct_lcb_unbind_disc
 **
 ** Description      Deallocate ccb and call callback with disconnect event.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -192,7 +192,7 @@ void avct_lcb_unbind_disc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 **                  bound to this lcb, send a connect event.  For each
 **                  unbound ccb with a new PID, bind that ccb to this lcb and
 **                  send a connect event.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -243,7 +243,7 @@ void avct_lcb_open_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 **
 ** Description      L2CAP channel open attempt failed.  Deallocate any ccbs
 **                  on this lcb and send connect confirm event with failure.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -269,7 +269,7 @@ void avct_lcb_open_fail(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 **
 ** Description      L2CAP channel closed by peer.  Deallocate any initiator
 **                  ccbs on this lcb and send disconnect ind event.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -304,7 +304,7 @@ void avct_lcb_close_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 **
 ** Description      L2CAP channel closed by us.  Deallocate any initiator
 **                  ccbs on this lcb and send disconnect ind or cfm event.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -349,7 +349,7 @@ void avct_lcb_close_cfm(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 ** Function         avct_lcb_bind_conn
 **
 ** Description      Bind ccb to lcb and send connect cfm event.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -365,10 +365,10 @@ void avct_lcb_bind_conn(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 **
 ** Function         avct_lcb_chk_disc
 **
-** Description      A ccb wants to close; if it is the last ccb on this lcb,
+** Description      A ccb wants to close; if it is the last ccb on this lcb, 
 **                  close channel.  Otherwise just deallocate and call
 **                  callback.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -397,7 +397,7 @@ void avct_lcb_chk_disc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 ** Function         avct_lcb_chnl_disc
 **
 ** Description      Disconnect L2CAP channel.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -411,9 +411,9 @@ void avct_lcb_chnl_disc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 **
 ** Function         avct_lcb_bind_fail
 **
-** Description      Deallocate ccb and call callback with connect event
+** Description      Deallocate ccb and call callback with connect event 
 **                  with failure result.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -428,7 +428,7 @@ void avct_lcb_bind_fail(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 ** Function         avct_lcb_cong_ind
 **
 ** Description      Handle congestion indication from L2CAP.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -469,7 +469,7 @@ void avct_lcb_cong_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 ** Function         avct_lcb_discard_msg
 **
 ** Description      Discard a message sent in from the API.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -486,7 +486,7 @@ void avct_lcb_discard_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 ** Function         avct_lcb_send_msg
 **
 ** Description      Build and send an AVCTP message.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -502,7 +502,7 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     UINT16          temp;
     UINT16          buf_size = p_lcb->peer_mtu + L2CAP_MIN_OFFSET + BT_HDR_SIZE;
 
-
+        
     /* store msg len */
     curr_msg_len = p_data->ul_msg.p_buf->len;
 
@@ -604,7 +604,7 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 ** Function         avct_lcb_free_msg_ind
 **
 ** Description      Discard an incoming AVCTP message.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -621,7 +621,7 @@ void avct_lcb_free_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 ** Function         avct_lcb_msg_ind
 **
 ** Description      Handle an incoming AVCTP message.
-**
+**                  
 **
 ** Returns          Nothing.
 **

@@ -181,7 +181,7 @@ static void bta_av_avrc_sdp_cback(UINT16 status)
 ** Function         bta_av_rc_ctrl_cback
 **
 ** Description      AVRCP control callback.
-**
+**                  
 ** Returns          void
 **
 *******************************************************************************/
@@ -197,7 +197,7 @@ static void bta_av_rc_ctrl_cback(UINT8 handle, UINT8 event, UINT16 result, BD_AD
 #endif
     if (event == AVRC_OPEN_IND_EVT)
     {
-        /* save handle of opened connection
+        /* save handle of opened connection 
         bta_av_cb.rc_handle = handle;*/
 
         msg_event = BTA_AV_AVRC_OPEN_EVT;
@@ -225,7 +225,7 @@ static void bta_av_rc_ctrl_cback(UINT8 handle, UINT8 event, UINT16 result, BD_AD
 ** Function         bta_av_rc_msg_cback
 **
 ** Description      AVRCP message callback.
-**
+**                  
 ** Returns          void
 **
 *******************************************************************************/
@@ -306,15 +306,15 @@ UINT8 bta_av_rc_create(tBTA_AV_CB *p_cb, UINT8 role, UINT8 shdl, UINT8 lidx)
 
     ccb.p_ctrl_cback = bta_av_rc_ctrl_cback;
     ccb.p_msg_cback = bta_av_rc_msg_cback;
-    ccb.company_id = p_bta_av_cfg->company_id;
-    ccb.conn = role;
+    ccb.company_id = p_bta_av_cfg->company_id;  
+    ccb.conn = role;        
     /* note: BTA_AV_FEAT_RCTG = AVRC_CT_TARGET, BTA_AV_FEAT_RCCT = AVRC_CT_CONTROL */
     ccb.control = p_cb->features & (BTA_AV_FEAT_RCTG | BTA_AV_FEAT_RCCT | AVRC_CT_PASSIVE);
 
 
     if (AVRC_Open(&rc_handle, &ccb, bda) != AVRC_SUCCESS)
         return BTA_AV_RC_HANDLE_NONE;
-
+    
     i = rc_handle;
     p_rcb = &p_cb->rcb[i];
 
@@ -322,7 +322,7 @@ UINT8 bta_av_rc_create(tBTA_AV_CB *p_cb, UINT8 role, UINT8 shdl, UINT8 lidx)
     {
         APPL_TRACE_ERROR1("bta_av_rc_create found duplicated handle:%d", rc_handle);
     }
-
+    
     p_rcb->handle = rc_handle;
     p_rcb->status = status;
     p_rcb->shdl = shdl;
@@ -346,7 +346,7 @@ UINT8 bta_av_rc_create(tBTA_AV_CB *p_cb, UINT8 role, UINT8 shdl, UINT8 lidx)
 ** Function         bta_av_valid_group_navi_msg
 **
 ** Description      Check if it is Group Navigation Msg for Metadata
-**
+**                  
 ** Returns          BTA_AV_RSP_ACCEPT or BTA_AV_RSP_NOT_IMPL.
 **
 *******************************************************************************/
@@ -356,7 +356,7 @@ static tBTA_AV_CODE bta_av_group_navi_supported(UINT8 len, UINT8 *p_data)
     UINT8 *p_ptr = p_data;
     UINT16 u16;
     UINT32 u32;
-
+    
     if (p_bta_av_cfg->avrc_group && len == BTA_GROUP_NAVI_MSG_OP_DATA_LEN)
     {
         BTA_AV_BE_STREAM_TO_CO_ID(u32, p_ptr);
@@ -379,7 +379,7 @@ static tBTA_AV_CODE bta_av_group_navi_supported(UINT8 len, UINT8 *p_data)
 ** Function         bta_av_op_supported
 **
 ** Description      Check if remote control operation is supported.
-**
+**                  
 ** Returns          BTA_AV_RSP_ACCEPT of supported, BTA_AV_RSP_NOT_IMPL if not.
 **
 *******************************************************************************/
@@ -409,7 +409,7 @@ static tBTA_AV_CODE bta_av_op_supported(tBTA_AV_RC rc_id)
 ** Function         bta_av_find_lcb
 **
 ** Description      Given BD_addr, find the associated LCB.
-**
+**                  
 ** Returns          NULL, if not found.
 **
 *******************************************************************************/
@@ -613,7 +613,7 @@ void bta_av_rc_vendor_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
+**                  
 ** Function         bta_av_rc_meta_rsp
 **
 ** Description      Send an AVRCP metadata/advanced control command/response.
@@ -643,7 +643,7 @@ void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
+**                  
 ** Function         bta_av_rc_free_rsp
 **
 ** Description      free an AVRCP metadata command buffer.
@@ -657,7 +657,7 @@ void bta_av_rc_free_rsp (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
+**                  
 ** Function         bta_av_rc_meta_req
 **
 ** Description      Send an AVRCP metadata command.
@@ -738,7 +738,7 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
         /* reject it */
         evt=0;
         p_vendor->hdr.ctype = BTA_AV_RSP_NOT_IMPL;
-        AVRC_VendorRsp(p_msg->handle, p_msg->label, &p_msg->msg.vendor);
+        AVRC_VendorRsp(p_msg->handle, p_msg->label, &p_msg->msg.vendor); 
     }
     else
     {
@@ -824,7 +824,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             }
             else
             {
-                p_data->rc_msg.msg.hdr.ctype = bta_av_op_supported(p_data->rc_msg.msg.pass.op_id);
+                p_data->rc_msg.msg.hdr.ctype = bta_av_op_supported(p_data->rc_msg.msg.pass.op_id);    
             }
 
             /* send response */
@@ -853,7 +853,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             av.remote_rsp.rsp_code = p_data->rc_msg.msg.hdr.ctype;
             av.remote_rsp.label = p_data->rc_msg.label;
         }
-        /* must be a bad ctype -> reject*/
+        /* must be a bad ctype -> reject*/ 
         else
         {
             p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_REJ;
@@ -871,20 +871,20 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         av.vendor_cmd.len = p_vendor->vendor_len;
 
         /* if configured to support vendor specific and it's a command */
-        if ((p_cb->features & BTA_AV_FEAT_VENDOR)  &&
+        if ((p_cb->features & BTA_AV_FEAT_VENDOR)  && 
             p_data->rc_msg.msg.hdr.ctype <= AVRC_CMD_GEN_INQ)
         {
                 evt = BTA_AV_VENDOR_CMD_EVT;
         }
         /* else if configured to support vendor specific and it's a response */
-        else if ((p_cb->features & BTA_AV_FEAT_VENDOR) &&
+        else if ((p_cb->features & BTA_AV_FEAT_VENDOR) && 
                  p_data->rc_msg.msg.hdr.ctype >= AVRC_RSP_ACCEPT)
         {
                 evt = BTA_AV_VENDOR_RSP_EVT;
 
         }
         /* else if not configured to support vendor specific and it's a command */
-        else if (!(p_cb->features & BTA_AV_FEAT_VENDOR)  &&
+        else if (!(p_cb->features & BTA_AV_FEAT_VENDOR)  && 
             p_data->rc_msg.msg.hdr.ctype <= AVRC_CMD_GEN_INQ)
         {
            if(p_data->rc_msg.msg.vendor.p_vendor_data[0] == AVRC_PDU_INVALID)
@@ -1170,7 +1170,7 @@ void bta_av_conn_chg(tBTA_AV_DATA *p_data)
         /* clear the conned mask for this channel */
         p_cb->conn_audio &= ~mask;
         p_cb->conn_video &= ~mask;
-        if(p_scb)
+        if(p_scb) 
         {
             /* the stream is closed.
              * clear the peer address, so it would not mess up the AVRCP for the next round of operation */
@@ -1332,7 +1332,7 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
                         AVDT_DisconnectReq (p_data->str_msg.bd_addr, NULL);
                         return;
                     }
-
+                    
                     p_lcb = &p_cb->lcb[xx];
                     p_lcb->lidx = xx + 1;
                     bdcpy(p_lcb->addr, p_data->str_msg.bd_addr);
@@ -1352,8 +1352,8 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
                         p_cb->p_scb[xx]->use_rc = TRUE;     /* allowing RC for incoming connection */
                         bta_av_ssm_execute(p_cb->p_scb[xx], BTA_AV_ACP_CONNECT_EVT, p_data);
 
-                        /* The Pending Event should be sent as soon as the L2CAP signalling channel
-                         * is set up, which is NOW. Earlier this was done only after
+                        /* The Pending Event should be sent as soon as the L2CAP signalling channel 
+                         * is set up, which is NOW. Earlier this was done only after 
                          * BTA_AV_SIG_TIME_VAL milliseconds.
                          * The following function shall send the event and start the recurring timer
                          */
@@ -1443,20 +1443,20 @@ void bta_av_sig_timer(tBTA_AV_DATA *p_data)
 ** Description      Process the timeout when SRC is accepting connection
 **                  and SNK did not start signalling.
 **
-** Returns          void
+** Returns          void                  
 **
 *******************************************************************************/
 static void bta_av_acp_sig_timer_cback (TIMER_LIST_ENT *p_tle)
 {
     UINT8   inx = (UINT8)p_tle->param;
-    tBTA_AV_CB  *p_cb = &bta_av_cb;
+    tBTA_AV_CB  *p_cb = &bta_av_cb;    
     tBTA_AV_SCB *p_scb = p_cb->p_scb[inx];
     tBTA_AV_API_OPEN  *p_buf;
 
     if (p_scb)
     {
         APPL_TRACE_DEBUG1("bta_av_acp_sig_timer_cback, coll_mask = 0x%02X", p_scb->coll_mask);
-
+        
         if (p_scb->coll_mask & BTA_AV_COLL_INC_TMR)
         {
             p_scb->coll_mask &= ~BTA_AV_COLL_INC_TMR;
@@ -1486,7 +1486,7 @@ static void bta_av_acp_sig_timer_cback (TIMER_LIST_ENT *p_tle)
                 if (p_scb->coll_mask & BTA_AV_COLL_API_CALLED)
                 {
                     p_scb->coll_mask &= ~BTA_AV_COLL_API_CALLED;
-
+                    
                     /* BTA_AV_API_OPEN_EVT */
                     if ((p_buf = (tBTA_AV_API_OPEN *) GKI_getbuf(sizeof(tBTA_AV_API_OPEN))) != NULL)
                     {
@@ -1494,7 +1494,7 @@ static void bta_av_acp_sig_timer_cback (TIMER_LIST_ENT *p_tle)
                         bta_sys_sendmsg(p_buf);
                     }
                 }
-            }
+            }            
         }
     }
 }
@@ -1538,7 +1538,7 @@ tBTA_AV_FEAT bta_av_check_peer_features (UINT16 service_uuid)
             {
                 peer_features |= BTA_AV_FEAT_RCTG;
             }
-        }
+        }   
 
         if (( SDP_FindAttributeInRec(p_rec, ATTR_ID_BT_PROFILE_DESC_LIST)) != NULL)
         {

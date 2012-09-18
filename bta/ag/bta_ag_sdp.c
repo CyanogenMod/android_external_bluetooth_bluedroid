@@ -2,7 +2,7 @@
 **
 **  Name:           bta_ag_sdp.c
 **
-**  Description:    This file contains the audio gateway functions
+**  Description:    This file contains the audio gateway functions 
 **                  performing SDP operations.
 **
 **  Copyright (c) 2003-2005, Broadcom Corp., All Rights Reserved.
@@ -49,7 +49,7 @@ const tBTA_AG_SDP_CBACK bta_ag_sdp_cback_tbl[] =
 ** Function         bta_ag_sdp_cback
 **
 ** Description      SDP callback function.
-**
+**                  
 **
 ** Returns          void
 **
@@ -89,9 +89,9 @@ static void bta_ag_sdp_cback(UINT16 status, UINT8 idx)
 ** Function         bta_ag_sdp_cback_1 to 3
 **
 ** Description      SDP callback functions.  Since there is no way to
-**                  distinguish scb from the callback we need separate
+**                  distinguish scb from the callback we need separate 
 **                  callbacks for each scb.
-**
+**                  
 **
 ** Returns          void
 **
@@ -127,14 +127,14 @@ BOOLEAN bta_ag_add_record(UINT16 service_uuid, char *p_service_name, UINT8 scn,
     UINT8               buf[2];
 
     APPL_TRACE_DEBUG1("bta_ag_add_record uuid: %x", service_uuid);
-
+    
     memset( proto_elem_list, 0 , BTA_AG_NUM_PROTO_ELEMS*sizeof(tSDP_PROTOCOL_ELEM));
 
     /* add the protocol element sequence */
     proto_elem_list[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
     proto_elem_list[0].num_params = 0;
     proto_elem_list[1].protocol_uuid = UUID_PROTOCOL_RFCOMM;
-    proto_elem_list[1].num_params = 1;
+    proto_elem_list[1].num_params = 1;        
     proto_elem_list[1].params[0] = scn;
     result &= SDP_AddProtocolList(sdp_handle, BTA_AG_NUM_PROTO_ELEMS, proto_elem_list);
 
@@ -172,13 +172,13 @@ BOOLEAN bta_ag_add_record(UINT16 service_uuid, char *p_service_name, UINT8 scn,
 
         if (features & BTA_AG_FEAT_CODEC)
             codec_supported = TRUE;
-
+        
         features &= BTA_AG_SDP_FEAT_SPEC;
 
         /* Codec bit position is different in SDP and in BRSF */
         if (codec_supported)
             features |= 0x0020;
-
+        
         UINT16_TO_BE_FIELD(buf, features);
         result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE, 2, buf);
     }
@@ -194,7 +194,7 @@ BOOLEAN bta_ag_add_record(UINT16 service_uuid, char *p_service_name, UINT8 scn,
 ** Function         bta_ag_create_records
 **
 ** Description      Create SDP records for registered services.
-**
+**                  
 **
 ** Returns          void
 **
@@ -224,7 +224,7 @@ void bta_ag_create_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     }
 
     p_scb->hsp_version = HSP_VERSION_1_2;
-
+    
 }
 
 /*******************************************************************************
@@ -232,7 +232,7 @@ void bta_ag_create_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_del_records
 **
 ** Description      Delete SDP records for any registered services.
-**
+**                  
 **
 ** Returns          void
 **
@@ -256,7 +256,7 @@ void bta_ag_del_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
         {
             others |= p->reg_services;
         }
-    }
+    } 
 
     others >>= BTA_HSP_SERVICE_ID;
     services = p_scb->reg_services >> BTA_HSP_SERVICE_ID;
@@ -284,7 +284,7 @@ void bta_ag_del_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 **
 ** Description      Process SDP discovery results to find requested attributes
 **                  for requested service.
-**
+**                  
 **
 ** Returns          TRUE if results found, FALSE otherwise.
 **
@@ -311,7 +311,7 @@ BOOLEAN bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
     {
         return result;
     }
-
+            
     /* loop through all records we found */
     while (TRUE)
     {
@@ -384,7 +384,7 @@ BOOLEAN bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 ** Function         bta_ag_do_disc
 **
 ** Description      Do service discovery.
-**
+**                  
 **
 ** Returns          void
 **
@@ -422,7 +422,7 @@ void bta_ag_do_disc(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
         attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;
         attr_list[1] = ATTR_ID_PROTOCOL_DESC_LIST;
         attr_list[2] = ATTR_ID_BT_PROFILE_DESC_LIST;
-        attr_list[3] = ATTR_ID_REMOTE_AUDIO_VOLUME_CONTROL;
+        attr_list[3] = ATTR_ID_REMOTE_AUDIO_VOLUME_CONTROL;   
         num_attr = 4;
 
         uuid_list[0].uu.uuid16 = UUID_SERVCLASS_HEADSET;        /* Legacy from HSP v1.0 */
@@ -472,7 +472,7 @@ void bta_ag_do_disc(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 ** Function         bta_ag_free_db
 **
 ** Description      Free discovery database.
-**
+**                  
 **
 ** Returns          void
 **

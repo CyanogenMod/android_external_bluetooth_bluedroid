@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 /* Message by message.... */
-
+ 
 #define HCIC_GET_UINT8(p, off)    (UINT8)(*((UINT8 *)((p) + 1) + p->offset + 3 + (off)))
 
 #define HCIC_GET_UINT16(p, off)  (UINT16)((*((UINT8 *)((p) + 1) + p->offset + 3 + (off)) + \
@@ -77,7 +77,7 @@ HCI_API extern BOOLEAN btsnd_hcic_inquiry(const LAP inq_lap, UINT8 duration,
 #define HCIC_INQ_DUR_OFF        3
 #define HCIC_INQ_RSP_CNT_OFF    4
                                                                     /* Inquiry */
-
+    
                                                                     /* Inquiry Cancel */
 HCI_API extern BOOLEAN btsnd_hcic_inq_cancel(void);
 
@@ -104,7 +104,7 @@ HCI_API extern BOOLEAN btsnd_hcic_exit_per_inq(void);
                                                                     /* Create Connection */
 HCI_API extern BOOLEAN btsnd_hcic_create_conn(BD_ADDR dest, UINT16 packet_types,
                                               UINT8 page_scan_rep_mode,
-                                              UINT8 page_scan_mode,
+                                              UINT8 page_scan_mode, 
                                               UINT16 clock_offset,
                                               UINT8 allow_switch);
 
@@ -184,7 +184,7 @@ HCI_API extern BOOLEAN btsnd_hcic_link_key_neg_reply (BD_ADDR bd_addr);
 
                                                                     /* PIN Code Request Reply */
 HCI_API extern BOOLEAN btsnd_hcic_pin_code_req_reply (BD_ADDR bd_addr,
-                                                      UINT8 pin_code_len,
+                                                      UINT8 pin_code_len, 
                                                       PIN_CODE pin_code);
 
 #define HCIC_PARAM_SIZE_PIN_CODE_REQ_REPLY   23
@@ -406,7 +406,7 @@ HCI_API extern BOOLEAN btsnd_hcic_write_policy_set(UINT16 handle, UINT16 setting
                                                                     /* Write Policy Settings */
 
                                                                     /* Read Default Policy Settings */
-HCI_API extern BOOLEAN btsnd_hcic_read_def_policy_set(void);
+HCI_API extern BOOLEAN btsnd_hcic_read_def_policy_set(void); 
 
 #define HCIC_PARAM_SIZE_READ_DEF_POLICY_SET           0
                                                                     /* Read Default Policy Settings */
@@ -464,7 +464,7 @@ HCI_API extern BOOLEAN btsnd_hcic_sniff_sub_rate(UINT16 handle, UINT16 max_lat,
 
                                                                     /* Extended Inquiry Response */
 #if (BTM_EIR_SERVER_INCLUDED == TRUE)
-HCI_API extern void btsnd_hcic_write_ext_inquiry_response(void *buffer, UINT8 fec_req);
+HCI_API extern void btsnd_hcic_write_ext_inquiry_response(void *buffer, UINT8 fec_req);  
 
 #define HCIC_PARAM_SIZE_EXT_INQ_RESP        241
 
@@ -478,7 +478,7 @@ HCI_API extern BOOLEAN btsnd_hcic_read_ext_inquiry_response(void);   /* Read Ext
 #endif
                                                                     /* Write Simple Pairing Mode */
 /**** Simple Pairing Commands ****/
-HCI_API extern BOOLEAN btsnd_hcic_write_simple_pairing_mode(UINT8 mode);
+HCI_API extern BOOLEAN btsnd_hcic_write_simple_pairing_mode(UINT8 mode);  
 
 #define HCIC_PARAM_SIZE_W_SIMP_PAIR     1
 
@@ -490,7 +490,7 @@ HCI_API extern BOOLEAN btsnd_hcic_read_simple_pairing_mode (void);
 #define HCIC_PARAM_SIZE_R_SIMP_PAIR     0
 
                                                                     /* Write Simple Pairing Debug Mode */
-HCI_API extern BOOLEAN btsnd_hcic_write_simp_pair_debug_mode(UINT8 debug_mode);
+HCI_API extern BOOLEAN btsnd_hcic_write_simp_pair_debug_mode(UINT8 debug_mode);  
 
 #define HCIC_PARAM_SIZE_SIMP_PAIR_DBUG  1
 
@@ -506,7 +506,7 @@ HCI_API extern BOOLEAN btsnd_hcic_io_cap_req_reply (BD_ADDR bd_addr, UINT8 capab
 #define HCI_IO_CAPABILITY_OFF           6
 #define HCI_IO_CAP_OOB_DATA_OFF         7
 #define HCI_IO_CAP_AUTH_REQ_OFF         8
-
+    
                                                                     /* IO Capabilities Req Neg Reply */
 HCI_API extern BOOLEAN btsnd_hcic_io_cap_req_neg_reply (BD_ADDR bd_addr, UINT8 err_code);
 
@@ -514,7 +514,7 @@ HCI_API extern BOOLEAN btsnd_hcic_io_cap_req_neg_reply (BD_ADDR bd_addr, UINT8 e
 
 #define HCI_IO_CAP_NR_BD_ADDR_OFF        0
 #define HCI_IO_CAP_NR_ERR_CODE           6
-
+   
                                                          /* Read Local OOB Data */
 HCI_API extern BOOLEAN btsnd_hcic_read_local_oob_data (void);
 
@@ -527,21 +527,21 @@ HCI_API extern BOOLEAN btsnd_hcic_user_conf_reply (BD_ADDR bd_addr, BOOLEAN is_y
 
 #define HCI_USER_CONF_BD_ADDR_OFF       0
 
-
+    
 HCI_API extern BOOLEAN btsnd_hcic_user_passkey_reply (BD_ADDR bd_addr, UINT32 value);
 
 #define HCIC_PARAM_SIZE_U_PKEY_REPLY    10
 
 #define HCI_USER_PASSKEY_BD_ADDR_OFF    0
 #define HCI_USER_PASSKEY_VALUE_OFF      6
-
+    
 
 HCI_API extern BOOLEAN btsnd_hcic_user_passkey_neg_reply (BD_ADDR bd_addr);
 
 #define HCIC_PARAM_SIZE_U_PKEY_NEG_REPLY 6
 
 #define HCI_USER_PASSKEY_NEG_BD_ADDR_OFF 0
-
+    
                                                             /* Remote OOB Data Request Reply */
 HCI_API extern BOOLEAN btsnd_hcic_rem_oob_reply (BD_ADDR bd_addr, UINT8 *p_c,
                                                  UINT8 *p_r);
@@ -551,32 +551,32 @@ HCI_API extern BOOLEAN btsnd_hcic_rem_oob_reply (BD_ADDR bd_addr, UINT8 *p_c,
 #define HCI_REM_OOB_DATA_BD_ADDR_OFF    0
 #define HCI_REM_OOB_DATA_C_OFF          6
 #define HCI_REM_OOB_DATA_R_OFF          22
-
+    
                                                             /* Remote OOB Data Request Negative Reply */
 HCI_API extern BOOLEAN btsnd_hcic_rem_oob_neg_reply (BD_ADDR bd_addr);
 
 #define HCIC_PARAM_SIZE_REM_OOB_NEG_REPLY   6
 
 #define HCI_REM_OOB_DATA_NEG_BD_ADDR_OFF    0
-
+                                                 
                                                             /* Read Tx Power Level */
 HCI_API extern BOOLEAN btsnd_hcic_read_inq_tx_power (void);
 
 #define HCIC_PARAM_SIZE_R_TX_POWER      0
 
                                                             /* Write Tx Power Level */
-HCI_API extern BOOLEAN btsnd_hcic_write_inq_tx_power (INT8 level);
+HCI_API extern BOOLEAN btsnd_hcic_write_inq_tx_power (INT8 level);   
 
 #define HCIC_PARAM_SIZE_W_TX_POWER      1
 
 #define HCIC_WRITE_TX_POWER_LEVEL_OFF   0
-                                                            /* Read Default Erroneous Data Reporting */
+                                                            /* Read Default Erroneous Data Reporting */         
 HCI_API extern BOOLEAN btsnd_hcic_read_default_erroneous_data_rpt (void);
 
 #define HCIC_PARAM_SIZE_R_ERR_DATA_RPT      0
 
                                                             /* Write Default Erroneous Data Reporting */
-HCI_API extern BOOLEAN btsnd_hcic_write_default_erroneous_data_rpt (UINT8 level);
+HCI_API extern BOOLEAN btsnd_hcic_write_default_erroneous_data_rpt (UINT8 level);   
 
 #define HCIC_PARAM_SIZE_W_ERR_DATA_RPT      1
 
@@ -729,7 +729,7 @@ HCI_API extern BOOLEAN btsnd_hcic_write_pagescan_cfg(UINT16 interval,
 HCI_API extern BOOLEAN btsnd_hcic_read_inqscan_cfg(void);       /* Read Inquiry Scan Activity */
 
                                                                 /* Write Inquiry Scan Activity */
-HCI_API extern BOOLEAN btsnd_hcic_write_inqscan_cfg(UINT16 interval, UINT16 window);
+HCI_API extern BOOLEAN btsnd_hcic_write_inqscan_cfg(UINT16 interval, UINT16 window); 
 
 #define HCIC_PARAM_SIZE_WRITE_INQSCAN_CFG    4
 
@@ -786,7 +786,7 @@ HCI_API extern BOOLEAN btsnd_hcic_write_sco_flow_enable(UINT8 flag);            
 
                                                                 /* Set Host Buffer Size */
 HCI_API extern BOOLEAN btsnd_hcic_set_host_buf_size (UINT16 acl_len,
-                                                     UINT8 sco_len,
+                                                     UINT8 sco_len, 
                                                      UINT16 acl_num,
                                                      UINT16 sco_num);
 
@@ -797,7 +797,7 @@ HCI_API extern BOOLEAN btsnd_hcic_set_host_buf_size (UINT16 acl_len,
 #define HCI_HOST_BUF_SIZE_ACL_NUM_OFF   3
 #define HCI_HOST_BUF_SIZE_SCO_NUM_OFF   5
 
-
+                                                                
 HCI_API extern BOOLEAN btsnd_hcic_host_num_xmitted_pkts (UINT8 num_handles,
                                                          UINT16 *handle,
                                                          UINT16 *num_pkts);         /* Set Host Buffer Size */
@@ -889,7 +889,7 @@ HCI_API extern BOOLEAN btsnd_hcic_write_afh_channel_assessment_mode (UINT8 mode)
 HCI_API extern BOOLEAN btsnd_hcic_set_afh_host_channel_class (UINT8 *p_afhchannelmap);
 HCI_API extern BOOLEAN btsnd_hcic_read_afh_channel_assessment_mode(void);
 HCI_API extern BOOLEAN btsnd_hcic_read_afh_channel_map (UINT16 handle);
-HCI_API extern BOOLEAN btsnd_hcic_nop(void);                               /* NOP */
+HCI_API extern BOOLEAN btsnd_hcic_nop(void);                               /* NOP */  
 
                                                               /* Send HCI Data */
 HCI_API extern void btsnd_hcic_data (BT_HDR *p_buf, UINT16 len, UINT16 handle, UINT8 boundary, UINT8 broadcast);
@@ -935,13 +935,13 @@ HCI_API extern void btsnd_hcie_inq_comp(void *buffer, UINT8 status);
 #define HCIE_PARAM_SIZE_INQ_COMP  1
 
 /* Inquiry Response Event */
-HCI_API extern void btsnd_hcie_inq_res(void *buffer, UINT8 num_resp, UINT8 **bd_addr,
-                                      UINT8 *page_scan_rep_mode, UINT8 *page_scan_per_mode,
-                                      UINT8 *page_scan_mode, UINT8 **dev_class,
+HCI_API extern void btsnd_hcie_inq_res(void *buffer, UINT8 num_resp, UINT8 **bd_addr, 
+                                      UINT8 *page_scan_rep_mode, UINT8 *page_scan_per_mode, 
+                                      UINT8 *page_scan_mode, UINT8 **dev_class, 
                                       UINT16 *clock_offset);
 
 /* Connection Complete Event */
-HCI_API extern void btsnd_hcie_connection_comp(void *buffer, UINT8 status, UINT16 handle,
+HCI_API extern void btsnd_hcie_connection_comp(void *buffer, UINT8 status, UINT16 handle, 
                                     BD_ADDR bd_addr, UINT8 link_type, UINT8 encr_mode);
 
 #define HCIE_PARAM_SIZE_CONNECTION_COMP    11
@@ -1029,16 +1029,16 @@ HCI_API extern void btsnd_hcie_read_rmt_version (void *buffer, UINT8 status, UIN
 
 
 /* QOS setup complete */
-HCI_API extern void btsnd_hcie_qos_setup_compl (void *buffer, UINT8 status, UINT16 handle, UINT8 flags,
-                                 UINT8 service_type, UINT32 token_rate, UINT32 peak,
+HCI_API extern void btsnd_hcie_qos_setup_compl (void *buffer, UINT8 status, UINT16 handle, UINT8 flags, 
+                                 UINT8 service_type, UINT32 token_rate, UINT32 peak, 
                                  UINT32 latency, UINT32 delay_var);
 
 #define HCIE_PARAM_SIZE_QOS_SETUP_COMP 21
 
 
 /* Flow Specification complete */
-HCI_API extern void btsnd_hcie_flow_spec_compl (void *buffer, UINT8 status, UINT16 handle, UINT8 flags,
-                                 UINT8 flow_direction, UINT8 service_type, UINT32 token_rate, UINT32 token_bucket_size,
+HCI_API extern void btsnd_hcie_flow_spec_compl (void *buffer, UINT8 status, UINT16 handle, UINT8 flags, 
+                                 UINT8 flow_direction, UINT8 service_type, UINT32 token_rate, UINT32 token_bucket_size, 
                                  UINT32 peak, UINT32 latency);
 
 #define HCIE_PARAM_SIZE_FLOW_SPEC_COMP 22
@@ -1057,20 +1057,20 @@ HCI_API extern void btsnd_hcie_cmd_comp_params (void *buffer, UINT8 max_host_cmd
 
 
 /*  Command Complete Event with 1-byte param */
-HCI_API extern void btsnd_hcie_cmd_comp_param1(void *buffer, UINT8 max_host_cmds, UINT16 opcode,
+HCI_API extern void btsnd_hcie_cmd_comp_param1(void *buffer, UINT8 max_host_cmds, UINT16 opcode, 
                                 UINT8 status, UINT8 param1);
 
 #define HCIE_PARAM_SIZE_CMD_COMP_PARAM1  5
 
 /*  Command Complete Event with 2-byte param */
-HCI_API extern void btsnd_hcie_cmd_comp_param2(void *buffer, UINT8 max_host_cmds, UINT16 opcode,
+HCI_API extern void btsnd_hcie_cmd_comp_param2(void *buffer, UINT8 max_host_cmds, UINT16 opcode, 
                                 UINT8 status, UINT16 param2);
 
 #define HCIE_PARAM_SIZE_CMD_COMP_PARAM2  6
 
 
 /*  Command Complete Event with BD-addr as param */
-HCI_API extern void btsnd_hcie_cmd_comp_bd_addr(void *buffer, UINT8 max_host_cmds, UINT16 opcode,
+HCI_API extern void btsnd_hcie_cmd_comp_bd_addr(void *buffer, UINT8 max_host_cmds, UINT16 opcode, 
                                  UINT8 status, BD_ADDR bd_addr);
 
 #define HCIE_PARAM_SIZE_CMD_COMP_BD_ADDR  10
@@ -1107,7 +1107,7 @@ HCI_API extern void btsnd_hcie_num_compl_pkts (void *buffer, UINT8 num_handles, 
 
 
 /* Mode Change Event */
-HCI_API extern void btsnd_hcie_mode_change (void *buffer, UINT8 status, UINT16 handle,
+HCI_API extern void btsnd_hcie_mode_change (void *buffer, UINT8 status, UINT16 handle, 
                              UINT8 mode, UINT16 interval);
 
 #define HCIE_PARAM_SIZE_MODE_CHANGE  6
@@ -1165,7 +1165,7 @@ HCI_API extern void btsnd_hcie_max_slots_change(void *buffer, UINT16 handle, UIN
 
 
 /* Read Clock Offset Complet Event */
-HCI_API extern void btsnd_hcie_read_clock_off_comp(void *buffer, UINT8 status, UINT16 handle,
+HCI_API extern void btsnd_hcie_read_clock_off_comp(void *buffer, UINT8 status, UINT16 handle, 
                                     UINT16 clock_offset);
 
 #define HCIE_PARAM_SIZE_READ_CLOCK_OFF_COMP  5
@@ -1199,7 +1199,7 @@ HCI_API extern void btsnd_hcie_pagescan_rep_mode_chng (void *buffer, BD_ADDR bd_
 
 
 /* Sniff Sub Rate Event */
-HCI_API extern void btsnd_hcie_sniff_sub_rate(void *buffer, UINT8 status, UINT16 handle, UINT16 max_tx_lat, UINT16 max_rx_lat,
+HCI_API extern void btsnd_hcie_sniff_sub_rate(void *buffer, UINT8 status, UINT16 handle, UINT16 max_tx_lat, UINT16 max_rx_lat, 
                                         UINT16 min_remote_timeout, UINT16 min_local_timeout);
 
 #define HCIE_PARAM_SIZE_SNIFF_SUB_RATE  11
@@ -1207,8 +1207,8 @@ HCI_API extern void btsnd_hcie_sniff_sub_rate(void *buffer, UINT8 status, UINT16
 
 
 /* Extended Inquiry Result Event */
-HCI_API extern void btsnd_hcie_ext_inquiry_result(void *buffer, UINT8 num_resp, UINT8 **bd_addr,
-                                      UINT8 *page_scan_rep_mode, UINT8 *reserved,
+HCI_API extern void btsnd_hcie_ext_inquiry_result(void *buffer, UINT8 num_resp, UINT8 **bd_addr, 
+                                      UINT8 *page_scan_rep_mode, UINT8 *reserved, 
                                       UINT8 **dev_class, UINT16 *clock_offset, UINT8 *rssi, UINT8 *p_data);
 
 
@@ -1257,7 +1257,7 @@ HCI_API extern BOOLEAN btsnd_hcic_ble_set_local_used_feat (UINT8 feat_set[8]);
 
 HCI_API extern BOOLEAN btsnd_hcic_ble_set_random_addr (BD_ADDR random_addr);
 
-HCI_API extern BOOLEAN btsnd_hcic_ble_write_adv_params (UINT16 adv_int_min, UINT16 adv_int_max,
+HCI_API extern BOOLEAN btsnd_hcic_ble_write_adv_params (UINT16 adv_int_min, UINT16 adv_int_max, 
                                        UINT8 adv_type, UINT8 addr_type_own,
                                        UINT8 addr_type_dir, BD_ADDR direct_bda,
                                        UINT8 channel_map, UINT8 adv_filter_policy);
@@ -1270,13 +1270,13 @@ HCI_API extern BOOLEAN btsnd_hcic_ble_set_scan_rsp_data (UINT8 data_len, UINT8 *
 
 HCI_API extern BOOLEAN btsnd_hcic_ble_set_adv_enable (UINT8 adv_enable);
 
-HCI_API extern BOOLEAN btsnd_hcic_ble_set_scan_params (UINT8 scan_type,
-                                          UINT16 scan_int, UINT16 scan_win,
+HCI_API extern BOOLEAN btsnd_hcic_ble_set_scan_params (UINT8 scan_type, 
+                                          UINT16 scan_int, UINT16 scan_win, 
                                           UINT8 addr_type, UINT8 scan_filter_policy);
 
 HCI_API extern BOOLEAN btsnd_hcic_ble_set_scan_enable (UINT8 scan_enable, UINT8 duplicate);
 
-HCI_API extern BOOLEAN btsnd_hcic_ble_create_ll_conn (UINT16 scan_int, UINT16 scan_win,
+HCI_API extern BOOLEAN btsnd_hcic_ble_create_ll_conn (UINT16 scan_int, UINT16 scan_win, 
                                        UINT8 init_filter_policy, UINT8 addr_type_peer, BD_ADDR bda_peer, UINT8 addr_type_own,
                                        UINT16 conn_int_min, UINT16 conn_int_max, UINT16 conn_latency, UINT16 conn_timeout,
                                        UINT16 min_ce_len, UINT16 max_ce_len);
@@ -1304,7 +1304,7 @@ HCI_API extern BOOLEAN btsnd_hcic_ble_encrypt (UINT8* key, UINT8 key_len, UINT8*
 
 HCI_API extern BOOLEAN btsnd_hcic_ble_rand (void *p_cmd_cplt_cback);
 
-HCI_API extern BOOLEAN btsnd_hcic_ble_start_enc ( UINT16 handle,
+HCI_API extern BOOLEAN btsnd_hcic_ble_start_enc ( UINT16 handle, 
                                                  UINT8 rand[HCIC_BLE_RAND_DI_SIZE],
                                                 UINT16 ediv, UINT8 ltk[HCIC_BLE_ENCRYT_KEY_SIZE]);
 
@@ -1314,7 +1314,7 @@ HCI_API extern BOOLEAN btsnd_hcic_ble_ltk_req_neg_reply (UINT16 handle);
 
 HCI_API extern BOOLEAN btsnd_hcic_ble_read_supported_states (void);
 
-
+ 
 #endif /* BLE_INCLUDED */
 
 #ifdef __cplusplus

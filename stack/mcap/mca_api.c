@@ -2,7 +2,7 @@
 **
 **  Name:           mca_api.c
 **
-**  Description:    This is the API implementation file for the
+**  Description:    This is the API implementation file for the 
 **                  Multi-Channel Adaptation Protocol (MCAP).
 **
 **  Copyright (c) 2009-2011, Broadcom Corp., All Rights Reserved.
@@ -27,7 +27,7 @@
 ** Function         mca_process_timeout
 **
 ** Description      This function is called by BTU when an MCA timer
-**                  expires.
+**                  expires.  
 **
 **                  This function is for use internal to the stack only.
 **
@@ -101,7 +101,7 @@ UINT8 MCA_SetTraceLevel (UINT8 level)
 **                  It is assumed that the control channel PSM and data channel
 **                  PSM are not used by any other instances of the stack.
 **                  If the given p_reg->ctrl_psm is 0, this handle is INT only.
-**
+**                  
 ** Returns          0, if failed. Otherwise, the MCA handle.
 **
 *******************************************************************************/
@@ -196,7 +196,7 @@ void MCA_Deregister(tMCA_HANDLE handle)
 ** Description      Create a data endpoint.  If the MDEP is created successfully,
 **                  the MDEP ID is returned in *p_dep. After a data endpoint is
 **                  created, an application can initiate a connection between this
-**                  endpoint and an endpoint on a peer device.
+**                  endpoint and an endpoint on a peer device. 
 **
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
@@ -307,7 +307,7 @@ tMCA_RESULT MCA_DeleteDep(tMCA_HANDLE handle, tMCA_DEP dep)
 **
 ** Function         MCA_ConnectReq
 **
-** Description      This function initiates an MCAP control channel connection
+** Description      This function initiates an MCAP control channel connection 
 **                  to the peer device.  When the connection is completed, an
 **                  MCA_CONNECT_IND_EVT is reported to the application via its
 **                  control callback function.
@@ -367,7 +367,7 @@ tMCA_RESULT MCA_ConnectReq(tMCA_HANDLE handle, BD_ADDR bd_addr,
 ** Function         MCA_DisconnectReq
 **
 ** Description      This function disconnect an MCAP control channel
-**                  to the peer device.
+**                  to the peer device.  
 **                  If associated data channel exists, they are disconnected.
 **                  When the MCL is disconnected an MCA_DISCONNECT_IND_EVT is
 **                  reported to the application via its control callback function.
@@ -397,7 +397,7 @@ tMCA_RESULT MCA_DisconnectReq(tMCA_CL mcl)
 ** Description      This function sends a CREATE_MDL request to the peer device.
 **                  When the response is received, a MCA_CREATE_CFM_EVT is reported
 **                  with the given MDL ID.
-**                  If the response is successful, a data channel is open
+**                  If the response is successful, a data channel is open 
 **                  with the given p_chnl_cfg
 **                  If p_chnl_cfg is NULL, the data channel is not initiated until
 **                  MCA_DataChnlCfg is called to provide the p_chnl_cfg.
@@ -853,7 +853,7 @@ tMCA_RESULT MCA_Delete(tMCA_CL mcl, UINT16 mdl_id)
 **
 ** Function         MCA_WriteReq
 **
-** Description      Send a data packet to the peer device.
+** Description      Send a data packet to the peer device.  
 **
 **                  The application passes the packet using the BT_HDR structure.
 **                  The offset field must be equal to or greater than L2CAP_MIN_OFFSET.

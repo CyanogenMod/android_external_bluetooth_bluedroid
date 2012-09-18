@@ -85,8 +85,8 @@ void l2cu_update_lcb_4_bonding (BD_ADDR p_bd_addr, BOOLEAN is_bonding)
 
     if (p_lcb)
     {
-        L2CAP_TRACE_DEBUG3 ("l2cu_update_lcb_4_bonding  BDA: %08x%04x is_bonding: %d",
-                          (p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3],
+        L2CAP_TRACE_DEBUG3 ("l2cu_update_lcb_4_bonding  BDA: %08x%04x is_bonding: %d", 
+                          (p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3], 
                           (p_bd_addr[4]<<8)+p_bd_addr[5], is_bonding);
         p_lcb->is_bonding = is_bonding;
     }
@@ -340,7 +340,7 @@ void l2cu_send_peer_cmd_reject (tL2C_LCB *p_lcb, UINT16 reason, UINT8 rem_id,
         return;
     }
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET + HCI_DATA_PREAMBLE_SIZE +
+    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET + HCI_DATA_PREAMBLE_SIZE + 
                                L2CAP_PKT_OVERHEAD + L2CAP_CMD_OVERHEAD;
 
     UINT16_TO_STREAM (p, reason);
@@ -376,14 +376,14 @@ void l2cu_send_peer_connect_req (tL2C_CCB *p_ccb)
 
     p_ccb->local_id = p_ccb->p_lcb->id;
 
-    if ((p_buf = l2cu_build_header (p_ccb->p_lcb, L2CAP_CONN_REQ_LEN, L2CAP_CMD_CONN_REQ,
+    if ((p_buf = l2cu_build_header (p_ccb->p_lcb, L2CAP_CONN_REQ_LEN, L2CAP_CMD_CONN_REQ, 
                                     p_ccb->local_id)) == NULL)
     {
         L2CAP_TRACE_WARNING0 ("L2CAP - no buffer for conn_req");
         return;
     }
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET+HCI_DATA_PREAMBLE_SIZE +
+    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET+HCI_DATA_PREAMBLE_SIZE + 
         L2CAP_PKT_OVERHEAD + L2CAP_CMD_OVERHEAD;
 
     UINT16_TO_STREAM (p, p_ccb->p_rcb->real_psm);
@@ -423,7 +423,7 @@ void l2cu_send_peer_connect_rsp (tL2C_CCB *p_ccb, UINT16 result, UINT16 status)
         return;
     }
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET+HCI_DATA_PREAMBLE_SIZE +
+    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET+HCI_DATA_PREAMBLE_SIZE + 
         L2CAP_PKT_OVERHEAD + L2CAP_CMD_OVERHEAD;
 
     UINT16_TO_STREAM (p, p_ccb->local_cid);
@@ -509,7 +509,7 @@ void l2cu_send_peer_config_req (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
         return;
     }
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET + HCI_DATA_PREAMBLE_SIZE +
+    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET + HCI_DATA_PREAMBLE_SIZE + 
                                L2CAP_PKT_OVERHEAD + L2CAP_CMD_OVERHEAD;
 
     UINT16_TO_STREAM (p, p_ccb->remote_cid);
@@ -739,7 +739,7 @@ void l2cu_send_peer_config_rej (tL2C_CCB *p_ccb, UINT8 *p_data, UINT16 data_len,
                 p_data += cfg_len + L2CAP_CFG_OPTION_OVERHEAD;
                 break;
 
-            /* unknown options; copy into rsp if not hints */
+            /* unknown options; copy into rsp if not hints */            
             default:
                 /* sanity check option length */
                 if ((cfg_len + L2CAP_CFG_OPTION_OVERHEAD) <= data_len)
@@ -800,7 +800,7 @@ void l2cu_send_peer_disc_req (tL2C_CCB *p_ccb)
     UINT16_TO_STREAM (p, p_ccb->remote_cid);
     UINT16_TO_STREAM (p, p_ccb->local_cid);
 
-    /* Move all queued data packets to the LCB. In FCR mode, assume the higher
+    /* Move all queued data packets to the LCB. In FCR mode, assume the higher 
        layer checks that all buffers are sent before disconnecting.
     */
     if (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_BASIC_MODE)
@@ -831,7 +831,7 @@ void l2cu_send_peer_disc_req (tL2C_CCB *p_ccb)
 ** Returns          void
 **
 *******************************************************************************/
-void l2cu_send_peer_disc_rsp (tL2C_LCB *p_lcb, UINT8 remote_id, UINT16 local_cid,
+void l2cu_send_peer_disc_rsp (tL2C_LCB *p_lcb, UINT8 remote_id, UINT16 local_cid, 
                               UINT16 remote_cid)
 {
     BT_HDR  *p_buf;
@@ -905,9 +905,9 @@ void l2cu_send_peer_echo_rsp (tL2C_LCB *p_lcb, UINT8 id, UINT8 *p_data, UINT16 d
     UINT16   maxlen;
 
     /* Don't return data if it does not fit in ACL and L2CAP MTU */
-    maxlen = (GKI_get_pool_bufsize(L2CAP_CMD_POOL_ID) > btu_cb.hcit_acl_pkt_size) ?
+    maxlen = (GKI_get_pool_bufsize(L2CAP_CMD_POOL_ID) > btu_cb.hcit_acl_pkt_size) ? 
                btu_cb.hcit_acl_data_size : (UINT16)GKI_get_pool_bufsize(L2CAP_CMD_POOL_ID);
-    maxlen -= (UINT16)(BT_HDR_SIZE + HCI_DATA_PREAMBLE_SIZE + L2CAP_PKT_OVERHEAD +
+    maxlen -= (UINT16)(BT_HDR_SIZE + HCI_DATA_PREAMBLE_SIZE + L2CAP_PKT_OVERHEAD + 
                 L2CAP_CMD_OVERHEAD + L2CAP_ECHO_RSP_LEN);
 
     if (data_len > maxlen)
@@ -919,7 +919,7 @@ void l2cu_send_peer_echo_rsp (tL2C_LCB *p_lcb, UINT8 id, UINT8 *p_data, UINT16 d
         return;
     }
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET + HCI_DATA_PREAMBLE_SIZE +
+    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET + HCI_DATA_PREAMBLE_SIZE + 
                                L2CAP_PKT_OVERHEAD + L2CAP_CMD_OVERHEAD;
 
     if (data_len)
@@ -935,7 +935,7 @@ void l2cu_send_peer_echo_rsp (tL2C_LCB *p_lcb, UINT8 id, UINT8 *p_data, UINT16 d
 ** Function         l2cu_send_peer_info_req
 **
 ** Description      Build and send an L2CAP "info request" message
-**                  to the peer.
+**                  to the peer. 
 ** Returns          void
 **
 *******************************************************************************/
@@ -956,7 +956,7 @@ void l2cu_send_peer_info_req (tL2C_LCB *p_lcb, UINT16 info_type)
 
     L2CAP_TRACE_EVENT1 ("l2cu_send_peer_info_req: type 0x%04x", info_type);
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET+HCI_DATA_PREAMBLE_SIZE +
+    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET+HCI_DATA_PREAMBLE_SIZE + 
         L2CAP_PKT_OVERHEAD + L2CAP_CMD_OVERHEAD;
 
     UINT16_TO_STREAM (p, info_type);
@@ -988,7 +988,7 @@ void l2cu_send_peer_info_rsp (tL2C_LCB *p_lcb, UINT8 remote_id, UINT16 info_type
     if ((info_type == L2CAP_EXTENDED_FEATURES_INFO_TYPE)
         && (l2cb.test_info_resp & (L2CAP_EXTFEA_ENH_RETRANS   | L2CAP_EXTFEA_STREAM_MODE |
                                    L2CAP_EXTFEA_NO_CRC | L2CAP_EXTFEA_EXT_FLOW_SPEC |
-                                   L2CAP_EXTFEA_FIXED_CHNLS | L2CAP_EXTFEA_EXT_WINDOW |
+                                   L2CAP_EXTFEA_FIXED_CHNLS | L2CAP_EXTFEA_EXT_WINDOW | 
                                    L2CAP_EXTFEA_UCD_RECEPTION )) )
 #else
     if ((info_type == L2CAP_EXTENDED_FEATURES_INFO_TYPE)
@@ -1034,7 +1034,7 @@ void l2cu_send_peer_info_rsp (tL2C_LCB *p_lcb, UINT8 remote_id, UINT16 info_type
         if (p_lcb->is_ble_link)
         {
             /* optional data are not added for now */
-            UINT32_TO_STREAM (p, L2CAP_BLE_EXTFEA_MASK);
+            UINT32_TO_STREAM (p, L2CAP_BLE_EXTFEA_MASK);    
         }
         else
 #endif
@@ -1110,7 +1110,7 @@ void l2cu_enqueue_ccb (tL2C_CCB *p_ccb)
         return;
     }
 
-    L2CAP_TRACE_DEBUG2 ("l2cu_enqueue_ccb CID: 0x%04x  priority: %d",
+    L2CAP_TRACE_DEBUG2 ("l2cu_enqueue_ccb CID: 0x%04x  priority: %d", 
                         p_ccb->local_cid, p_ccb->ccb_priority);
 
     /* If the queue is empty, we go at the front */
@@ -1264,7 +1264,7 @@ void l2cu_dequeue_ccb (tL2C_CCB *p_ccb)
 **
 ** Function         l2cu_change_pri_ccb
 **
-** Description
+** Description      
 **
 ** Returns          -
 **
@@ -1408,7 +1408,7 @@ tL2C_CCB *l2cu_allocate_ccb (tL2C_LCB *p_lcb, UINT16 cid)
 
 // btla-specific ++
    /*  CSP408639 Fix: When L2CAP send amp move channel request or receive
-     * L2CEVT_AMP_MOVE_REQ do following sequence. Send channel move
+     * L2CEVT_AMP_MOVE_REQ do following sequence. Send channel move 
      * request -> Stop retrans/monitor timer -> Change channel state to CST_AMP_MOVING. */
    if (p_ccb->fcrb.mon_retrans_timer.in_use)
          btu_stop_quick_timer (&p_ccb->fcrb.mon_retrans_timer);
@@ -1544,8 +1544,8 @@ void l2cu_release_ccb (tL2C_CCB *p_ccb)
     l2c_fcr_cleanup (p_ccb);
 
     /* Channel may not be assigned to any LCB if it was just pre-reserved */
-    if ( (p_lcb) &&
-         ( (p_ccb->local_cid >= L2CAP_BASE_APPL_CID)
+    if ( (p_lcb) && 
+         ( (p_ccb->local_cid >= L2CAP_BASE_APPL_CID) 
 #if (L2CAP_UCD_INCLUDED == TRUE)
          ||(p_ccb->local_cid == L2CAP_CONNECTIONLESS_CID)
 #endif
@@ -1597,7 +1597,7 @@ void l2cu_release_ccb (tL2C_CCB *p_ccb)
 ** Function         l2cu_find_ccb_by_remote_cid
 **
 ** Description      Look through all active CCBs on a link for a match based
-**                  on the remote CID.
+**                  on the remote CID. 
 **
 ** Returns          pointer to matched CCB, or NULL if no match
 **
@@ -1760,7 +1760,7 @@ UINT8 l2cu_process_peer_cfg_req (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
     if (!p_cfg->fcr_present)
         p_cfg->fcr.mode = L2CAP_FCR_BASIC_MODE;
 
-    /* Save the MTU that our peer can receive */
+    /* Save the MTU that our peer can receive */ 
     if (p_cfg->mtu_present)
     {
         /* Make sure MTU is at least the minimum */
@@ -1902,7 +1902,7 @@ void l2cu_process_peer_cfg_rsp (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
         else
             p_ccb->fcrb.max_held_acks = p_ccb->our_cfg.fcr.tx_win_sz / 3;
 
-        L2CAP_TRACE_DEBUG3 ("l2cu_process_peer_cfg_rsp(): peer tx_win_sz: %d, our tx_win_sz: %d, max_held_acks: %d",
+        L2CAP_TRACE_DEBUG3 ("l2cu_process_peer_cfg_rsp(): peer tx_win_sz: %d, our tx_win_sz: %d, max_held_acks: %d", 
                              p_cfg->fcr.tx_win_sz, p_ccb->our_cfg.fcr.tx_win_sz, p_ccb->fcrb.max_held_acks);
     }
 }
@@ -2027,7 +2027,7 @@ void l2cu_process_our_cfg_rsp (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 **
 ** Function         l2cu_device_reset
 **
-** Description      This function is called when reset of the device is
+** Description      This function is called when reset of the device is 
 **                  completed.  For all active connection simulate HCI_DISC
 **
 ** Returns          void
@@ -2055,7 +2055,7 @@ extern UINT16 tcs_wug_get_clk_offset( BD_ADDR addr ) ;
 **
 ** Function         l2cu_create_conn
 **
-** Description      This function initiates an acl connection via HCI
+** Description      This function initiates an acl connection via HCI 
 **
 ** Returns          TRUE if successful, FALSE if gki get buffer fails.
 **
@@ -2107,7 +2107,7 @@ BOOLEAN l2cu_create_conn (tL2C_LCB *p_lcb)
             if (is_sco_active == TRUE)
                 continue; /* No Master Slave switch not allowed when SCO Active */
 #endif
-
+                
             if (HCI_SWITCH_SUPPORTED(btm_cb.devcb.local_features))
             {
                 /* mark this lcb waiting for switch to be completed and
@@ -2135,7 +2135,7 @@ BOOLEAN l2cu_create_conn (tL2C_LCB *p_lcb)
 **
 ** Description      Gets the number of high priority channels.
 **
-** Returns
+** Returns          
 **
 *******************************************************************************/
 UINT8 l2cu_get_num_hi_priority (void)
@@ -2159,7 +2159,7 @@ UINT8 l2cu_get_num_hi_priority (void)
 **
 ** Function         l2cu_create_conn_after_switch
 **
-** Description      This function initiates an acl connection via HCI
+** Description      This function initiates an acl connection via HCI 
 **                  If switch required to create connection it is already done.
 **
 ** Returns          TRUE if successful, FALSE if gki get buffer fails.
@@ -2280,7 +2280,7 @@ tL2C_LCB *l2cu_find_lcb_by_state (tL2C_LINK_STATE state)
 ** Function         l2cu_lcb_disconnecting
 **
 ** Description      On each active lcb, check if the lcb is in disconnecting
-**                  state, or if there are no ccb's on the lcb (implying
+**                  state, or if there are no ccb's on the lcb (implying 
                     idle timeout is running), or if last ccb on the link
                     is in disconnecting state.
 **
@@ -2437,9 +2437,9 @@ BOOLEAN l2cu_check_feature_req (tL2C_LCB *p_lcb, UINT8 id, UINT8 *p_data, UINT16
     UINT8   pe_type, pe_len;
 
     if ((data_len <= 4)
-     || (p_data[0] != 'R')
+     || (p_data[0] != 'R') 
      || (p_data[1] != 'Q')
-     || (p_data[data_len - 2] != 'r')
+     || (p_data[data_len - 2] != 'r') 
      || (p_data[data_len - 1] != 'q')
      || (id != L2CAP_FEATURE_REQ_ID))
         return (FALSE);
@@ -2494,9 +2494,9 @@ void l2cu_check_feature_rsp (tL2C_LCB *p_lcb, UINT8 id, UINT8 *p_data, UINT16 da
     UINT8       *p_end = p_data + data_len - 2;
 
      if ((data_len <= 4)
-       || (p_data[0] != 'R')
+       || (p_data[0] != 'R') 
        || (p_data[1] != 'S')
-       || (p_data[data_len - 2] != 'r')
+       || (p_data[data_len - 2] != 'r') 
        || (p_data[data_len - 1] != 's')
        || (id != L2CAP_FEATURE_RSP_ID))
     {
@@ -2608,7 +2608,7 @@ void l2cu_resubmit_pending_sec_req (BD_ADDR p_bda)
 **
 ** Function         l2cu_set_info_rsp_mask
 **
-** Description      This function allows the script wrapper to change the
+** Description      This function allows the script wrapper to change the 
 **                  info resp mask for conformance testing.
 **
 ** Returns          pointer to CCB, or NULL if none
@@ -2649,8 +2649,8 @@ void l2cu_adjust_out_mps (tL2C_CCB *p_ccb)
         /* We try to negotiate MTU that each packet can be split into whole
         number of max packets.  For example if link is 1.2 max packet size is 339 bytes.
         At first calculate how many whole packets it is.  MAX L2CAP is 1691 + 4 overhead.
-        1695, that will be 5 Dh5 packets.  Now maximum L2CAP packet is
-        5 * 339 = 1695. Minus 4 bytes L2CAP header 1691.
+        1695, that will be 5 Dh5 packets.  Now maximum L2CAP packet is 
+        5 * 339 = 1695. Minus 4 bytes L2CAP header 1691.  
 
         For EDR 2.0 packet size is 1027.  So we better send RFCOMM packet as 1 3DH5 packet
         1 * 1027 = 1027.  Minus 4 bytes L2CAP header 1023.  */
@@ -2763,7 +2763,7 @@ void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
         {
             p_lcb->link_state = LST_DISCONNECTING;
             timeout = L2CAP_LINK_DISCONNECT_TOUT;
-        }
+        } 
         else if (rc == BTM_SUCCESS)
         {
             /* BTM SEC will make sure that link is release (probably after pairing is done) */
@@ -2775,7 +2775,7 @@ void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
         {
             p_lcb->link_state = LST_DISCONNECTING;
             timeout = L2CAP_LINK_DISCONNECT_TOUT;
-        }
+        }              
         else
         {
             /* probably no buffer to send disconnect */
@@ -2807,7 +2807,7 @@ void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
 void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
 {
     int     xx;
-#if BLE_INCLUDED == TRUE
+#if BLE_INCLUDED == TRUE    
     UINT16  reason = (p_lcb->is_ble_link ) ? 1 : 0;
 #else
     UINT16 reason =0;
@@ -2862,7 +2862,7 @@ void l2cu_send_peer_ble_par_req (tL2C_LCB *p_lcb, UINT16 min_int, UINT16 max_int
         return;
     }
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET + HCI_DATA_PREAMBLE_SIZE +
+    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET + HCI_DATA_PREAMBLE_SIZE + 
                                L2CAP_PKT_OVERHEAD + L2CAP_CMD_OVERHEAD;
 
     UINT16_TO_STREAM (p, min_int);
@@ -2894,7 +2894,7 @@ void l2cu_send_peer_ble_par_rsp (tL2C_LCB *p_lcb, UINT16 reason, UINT8 rem_id)
         return;
     }
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET + HCI_DATA_PREAMBLE_SIZE +
+    p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET + HCI_DATA_PREAMBLE_SIZE + 
                                L2CAP_PKT_OVERHEAD + L2CAP_CMD_OVERHEAD;
 
     UINT16_TO_STREAM (p, reason);
@@ -3031,7 +3031,7 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
                 return NULL;
             }
 
-            L2CAP_TRACE_DEBUG3("RR scan pri=%d, lcid=0x%04x, q_cout=%d",
+            L2CAP_TRACE_DEBUG3("RR scan pri=%d, lcid=0x%04x, q_cout=%d", 
                                 p_ccb->ccb_priority, p_ccb->local_cid, p_ccb->xmit_hold_q.count );
 
             /* store the next serving channel */
@@ -3095,9 +3095,9 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
 
     if (p_serve_ccb)
     {
-        L2CAP_TRACE_DEBUG3("RR service pri=%d, quota=%d, lcid=0x%04x",
-                            p_serve_ccb->ccb_priority,
-                            p_lcb->rr_serv[p_serve_ccb->ccb_priority].quota,
+        L2CAP_TRACE_DEBUG3("RR service pri=%d, quota=%d, lcid=0x%04x", 
+                            p_serve_ccb->ccb_priority, 
+                            p_lcb->rr_serv[p_serve_ccb->ccb_priority].quota, 
                             p_serve_ccb->local_cid );
     }
 
@@ -3110,7 +3110,7 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
 **
 ** Function         l2cu_get_next_channel
 **
-** Description      get the next channel to send on a link bassed on priority
+** Description      get the next channel to send on a link bassed on priority 
 **                  scheduling.
 **
 ** Returns          pointer to CCB or NULL
@@ -3120,7 +3120,7 @@ static tL2C_CCB *l2cu_get_next_channel(tL2C_LCB *p_lcb)
 {
     tL2C_CCB    *p_ccb;
 
-    /* Get the first CCB with data to send.
+    /* Get the first CCB with data to send. 
     */
     for (p_ccb = p_lcb->ccb_queue.p_first_ccb; p_ccb; p_ccb = p_ccb->p_next_ccb)
     {
@@ -3373,7 +3373,7 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
                 {
                     L2CAP_TRACE_DEBUG3 ("L2CAP - Calling CongestionStatus_Cb (TRUE),CID:0x%04x,XmitQ:%u,Quota:%u",
                         p_ccb->local_cid, q_count, p_ccb->buff_quota);
-
+                
                     (*p_ccb->p_rcb->api.pL2CA_CongestionStatus_Cb)(p_ccb->local_cid, TRUE);
                 }
 #if (L2CAP_UCD_INCLUDED == TRUE)

@@ -29,7 +29,7 @@
 *****************************************************************************/
 
 /* Control block used by A2D_FindService(). */
-typedef struct
+typedef struct 
 {
     tA2D_FIND_CBACK     *p_cback;       /* pointer to application callback */
     tSDP_DISCOVERY_DB   *p_db;          /* pointer to discovery database */

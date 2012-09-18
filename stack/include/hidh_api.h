@@ -42,15 +42,15 @@ enum {
 *****************************************************************************/
 
 typedef void (tHID_HOST_SDP_CALLBACK) (UINT16 result, UINT16 attr_mask,
-                                       tHID_DEV_SDP_INFO *sdp_rec );
+                                       tHID_DEV_SDP_INFO *sdp_rec ); 
 
 /* HID-HOST returns the events in the following table to the application via tHID_HOST_DEV_CALLBACK
-HID_HDEV_EVT_OPEN   Connected to device with Interrupt and Control Channels in OPEN state.
+HID_HDEV_EVT_OPEN   Connected to device with Interrupt and Control Channels in OPEN state.	
                                                         Data = NA
 HID_HDEV_EVT_CLOSE  Connection with device is closed.   Data=reason code.
-HID_HDEV_EVT_RETRYING   Lost connection is being re-connected.
+HID_HDEV_EVT_RETRYING   Lost connection is being re-connected.	
                                                         Data=Retrial number
-HID_HDEV_EVT_IN_REPORT  Device sent an input report     Data=Report Type pdata= pointer to BT_HDR
+HID_HDEV_EVT_IN_REPORT  Device sent an input report     Data=Report Type pdata= pointer to BT_HDR 
                                                         (GKI buffer having report data.)
 HID_HDEV_EVT_HANDSHAKE  Device sent SET_REPORT          Data=Result-code pdata=NA.
 HID_HDEV_EVT_VC_UNPLUG  Device sent Virtual Unplug      Data=NA. pdata=NA.
@@ -69,7 +69,7 @@ enum
     HID_HDEV_EVT_VC_UNPLUG
 };
 typedef void (tHID_HOST_DEV_CALLBACK) (UINT8 dev_handle,
-                                       UINT8 event, /* Event from HID-DEVICE. */
+                                       UINT8 event, /* Event from HID-DEVICE. */                                       
                                        UINT32 data, /* Integer data corresponding to the event.*/
                                        BT_HDR *p_buf ); /* Pointer data corresponding to the event. */
 

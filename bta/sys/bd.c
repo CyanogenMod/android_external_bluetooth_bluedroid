@@ -29,9 +29,9 @@ const BD_ADDR bd_addr_null= {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 ** Function         bdcpy
 **
 ** Description      Copy bd addr b to a.
+**                  
 **
-**
-** Returns          void
+** Returns          void 
 **
 *******************************************************************************/
 void bdcpy(BD_ADDR a, const BD_ADDR b)
@@ -49,7 +49,7 @@ void bdcpy(BD_ADDR a, const BD_ADDR b)
 ** Function         bdcmp
 **
 ** Description      Compare bd addr b to a.
-**
+**                  
 **
 ** Returns          Zero if b==a, nonzero otherwise (like memcmp).
 **
@@ -73,7 +73,7 @@ int bdcmp(const BD_ADDR a, const BD_ADDR b)
 ** Function         bdcmpany
 **
 ** Description      Compare bd addr to "any" bd addr.
-**
+**                  
 **
 ** Returns          Zero if a equals bd_addr_any.
 **
@@ -88,7 +88,7 @@ int bdcmpany(const BD_ADDR a)
 ** Function         bdsetany
 **
 ** Description      Set bd addr to "any" bd addr.
-**
+**                  
 **
 ** Returns          void
 **

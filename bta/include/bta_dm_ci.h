@@ -30,7 +30,7 @@ extern "C"
 **                  bta_dm_co_io_req(), if *p_oob_data is set to BTA_OOB_UNKNOWN
 **                  by bta_dm_co_io_req().
 **
-** Returns          void
+** Returns          void                  
 **
 *******************************************************************************/
 BTA_API extern void bta_dm_ci_io_req(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
@@ -44,7 +44,7 @@ BTA_API extern void bta_dm_ci_io_req(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
 **                  bta_dm_co_rmt_oob() to provide the OOB data associated
 **                  with the remote device.
 **
-** Returns          void
+** Returns          void                  
 **
 *******************************************************************************/
 BTA_API extern void bta_dm_ci_rmt_oob(BOOLEAN accept, BD_ADDR bd_addr,
@@ -53,10 +53,10 @@ BTA_API extern void bta_dm_ci_rmt_oob(BOOLEAN accept, BD_ADDR bd_addr,
 **
 ** Function         bta_dm_sco_ci_data_ready
 **
-** Description      This function sends an event to indicating that the phone
+** Description      This function sends an event to indicating that the phone 
 **                  has SCO data ready..
 **
-** Returns          void
+** Returns          void                  
 **
 *******************************************************************************/
 BTA_API extern void bta_dm_sco_ci_data_ready(UINT16 event, UINT16 sco_handle);

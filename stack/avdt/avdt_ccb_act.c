@@ -24,9 +24,9 @@
 **
 ** Function         avdt_ccb_clear_ccb
 **
-** Description      This function clears out certain buffers, queues, and
+** Description      This function clears out certain buffers, queues, and 
 **                  other data elements of a ccb.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -66,7 +66,7 @@ static void avdt_ccb_clear_ccb(tAVDT_CCB *p_ccb)
 **
 ** Description      This function calls avdt_ad_open_req() to
 **                  initiate a signaling channel connection.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -83,7 +83,7 @@ void avdt_ccb_chan_open(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **
 ** Description      This function calls avdt_ad_close_req() to close a
 **                  signaling channel connection.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -100,7 +100,7 @@ void avdt_ccb_chan_close(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **
 ** Description      This function checks for active streams on this CCB.
 **                  If there are none, it starts an idle timer.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -134,7 +134,7 @@ void avdt_ccb_chk_close(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  received from the peer.  It gathers up the stream
 **                  information for all allocated streams and initiates
 **                  sending of a discover response.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -144,7 +144,7 @@ void avdt_ccb_hdl_discover_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     tAVDT_SEP_INFO      sep_info[AVDT_NUM_SEPS];
     tAVDT_SCB           *p_scb = &avdt_cb.scb[0];
     int                 i;
-
+    
     p_data->msg.discover_rsp.p_sep_info = sep_info;
     p_data->msg.discover_rsp.num_seps = 0;
 
@@ -174,7 +174,7 @@ void avdt_ccb_hdl_discover_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Description      This function is called when a discover response or
 **                  reject is received from the peer.  It calls the application
 **                  callback function with the results.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -185,7 +185,7 @@ void avdt_ccb_hdl_discover_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     p_ccb->proc_busy = FALSE;
 
     /* call app callback with results */
-    (*p_ccb->proc_cback)(0, p_ccb->peer_addr, AVDT_DISCOVER_CFM_EVT,
+    (*p_ccb->proc_cback)(0, p_ccb->peer_addr, AVDT_DISCOVER_CFM_EVT, 
                          (tAVDT_CTRL *)(&p_data->msg.discover_rsp));
 }
 
@@ -197,7 +197,7 @@ void avdt_ccb_hdl_discover_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  is received from the peer.  It retrieves the stream
 **                  configuration for the requested stream and initiates
 **                  sending of a get capabilities response.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -221,7 +221,7 @@ void avdt_ccb_hdl_getcap_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Description      This function is called with a get capabilities response
 **                  or reject is received from the peer.  It calls the
 **                  application callback function with the results.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -232,7 +232,7 @@ void avdt_ccb_hdl_getcap_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     p_ccb->proc_busy = FALSE;
 
     /* call app callback with results */
-    (*p_ccb->proc_cback)(0, p_ccb->peer_addr, AVDT_GETCAP_CFM_EVT,
+    (*p_ccb->proc_cback)(0, p_ccb->peer_addr, AVDT_GETCAP_CFM_EVT, 
                          (tAVDT_CTRL *)(&p_data->msg.svccap));
 }
 
@@ -244,7 +244,7 @@ void avdt_ccb_hdl_getcap_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  from the peer.  It verifies that all requested streams
 **                  are in the proper state.  If so, it initiates sending of
 **                  a start response.  Otherwise it sends a start reject.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -278,7 +278,7 @@ void avdt_ccb_hdl_start_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  is received from the peer.  Using the SEIDs stored in the
 **                  current command message, it sends a start response or start
 **                  reject event to each SCB associated with the command.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -316,7 +316,7 @@ void avdt_ccb_hdl_start_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  in the proper state.  If so, it initiates sending of a
 **                  suspend response.  Otherwise it sends a suspend reject.
 
-**
+**                  
 **
 ** Returns          void.
 **
@@ -351,7 +351,7 @@ void avdt_ccb_hdl_suspend_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  current command message, it sends a suspend response or
 **                  suspend reject event to each SCB associated with the command.
 **
-**
+**                  
 **
 ** Returns          void.
 **
@@ -388,7 +388,7 @@ void avdt_ccb_hdl_suspend_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  peer.  It copies variables needed for the procedure from
 **                  the event to the CCB.  It marks the CCB as busy and then
 **                  sends a discover command.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -414,7 +414,7 @@ void avdt_ccb_snd_discover_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Description      This function is called to send a discover response to
 **                  the peer.  It takes the stream information passed in the
 **                  event and sends a discover response.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -433,7 +433,7 @@ void avdt_ccb_snd_discover_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  to the peer.  It copies variables needed for the procedure
 **                  from the event to the CCB.  It marks the CCB as busy and
 **                  then sends a get capabilities command.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -463,7 +463,7 @@ void avdt_ccb_snd_getcap_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Description      This function is called to send a get capabilities response
 **                  to the peer.  It takes the stream information passed in the
 **                  event and sends a get capabilities response.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -487,7 +487,7 @@ void avdt_ccb_snd_getcap_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  peer.  It verifies that all requested streams are in the
 **                  proper state.  If so, it sends a start command.  Otherwise
 **                  send ourselves back a start reject.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -533,7 +533,7 @@ void avdt_ccb_snd_start_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  peer.  It takes the stream information passed in the event
 **                  and sends a start response.  Then it sends a start event
 **                  to the SCB for each stream.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -565,7 +565,7 @@ void avdt_ccb_snd_start_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  proper state.  If so, it sends a suspend command.
 **                  Otherwise it calls the callback function for each requested
 **                  stream and sends a suspend confirmation with failure.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -611,14 +611,14 @@ void avdt_ccb_snd_suspend_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  peer.  It takes the stream information passed in the event
 **                  and sends a suspend response.  Then it sends a suspend event
 **                  to the SCB for each stream.
-**
+**                  
 **
 ** Returns          void.
 **
 *******************************************************************************/
 void avdt_ccb_snd_suspend_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
-    tAVDT_SCB *p_scb;
+    tAVDT_SCB *p_scb; 
     int i;
 
     /* send response message */
@@ -643,7 +643,7 @@ void avdt_ccb_snd_suspend_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  command in the command queue, it frees the command and
 **                  calls the application callback function indicating failure.
 **                  Certain CCB variables are also initialized.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -686,9 +686,9 @@ void avdt_ccb_clear_cmds(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Function         avdt_ccb_cmd_fail
 **
 ** Description      This function is called when there is a response timeout.
-**                  The currently pending command is freed and we fake a
+**                  The currently pending command is freed and we fake a 
 **                  reject message back to ourselves.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -705,7 +705,7 @@ void avdt_ccb_cmd_fail(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         msg.hdr.err_code = p_data->err_code;
         msg.hdr.err_param = 0;
         msg.hdr.ccb_idx = avdt_ccb_to_idx(p_ccb);
-
+    
         /* pretend that we received a rej message */
         evt = avdt_msg_rej_2_evt[p_ccb->p_curr_cmd->event - 1];
 
@@ -722,7 +722,7 @@ void avdt_ccb_cmd_fail(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
                 avdt_scb_event(p_scb, evt, (tAVDT_SCB_EVT *) &msg);
             }
         }
-
+        
         GKI_freebuf(p_ccb->p_curr_cmd);
         p_ccb->p_curr_cmd = NULL;
     }
@@ -734,7 +734,7 @@ void avdt_ccb_cmd_fail(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **
 ** Description      This function is called when a response is received for a
 **                  currently pending command.  The command is freed.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -754,7 +754,7 @@ void avdt_ccb_free_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **
 ** Description      This function is called to set the congestion state for
 **                  the CCB.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -772,7 +772,7 @@ void avdt_ccb_cong_state(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **                  pending command.  The retransmission count is incremented.
 **                  If the count reaches the maximum number of retransmissions,
 **                  the event is treated as a response timeout.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -805,7 +805,7 @@ void avdt_ccb_ret_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
                 avdt_msg_send(p_ccb, p_msg);
             }
         }
-
+        
         /* restart timer */
         btu_start_timer(&p_ccb->timer_entry, BTU_TTYPE_AVDT_CCB_RET, avdt_cb.rcb.ret_tout);
     }
@@ -817,7 +817,7 @@ void avdt_ccb_ret_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **
 ** Description      This function is called the send the next command,
 **                  if any, in the command queue.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -848,8 +848,8 @@ void avdt_ccb_snd_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **
 ** Function         avdt_ccb_snd_msg
 **
-** Description
-**
+** Description      
+**                  
 **
 ** Returns          void.
 **
@@ -878,7 +878,7 @@ void avdt_ccb_snd_msg(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
                 }
             }
         }
-
+        
         /* do we have commands to send?  send next command */
         avdt_ccb_snd_cmd(p_ccb, NULL);
     }
@@ -891,7 +891,7 @@ void avdt_ccb_snd_msg(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Description      This function is called to enable a reconnect attempt when
 **                  a channel transitions from closing to idle state.  It sets
 **                  the reconn variable to TRUE.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -906,7 +906,7 @@ void avdt_ccb_set_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Function         avdt_ccb_clr_reconn
 **
 ** Description      This function is called to clear the reconn variable.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -923,7 +923,7 @@ void avdt_ccb_clr_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Description      This function is called to check if a reconnect attempt
 **                  is enabled.  If enabled, it sends an AVDT_CCB_UL_OPEN_EVT
 **                  to the CCB.  If disabled, the CCB is deallocated.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -957,7 +957,7 @@ void avdt_ccb_chk_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **
 ** Description      This function stops the CCB timer if the idle timer is
 **                  running.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -975,7 +975,7 @@ void avdt_ccb_chk_timer(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Function         avdt_ccb_set_conn
 **
 ** Description      Set CCB variables associated with AVDT_ConnectReq().
-**
+**                  
 **
 ** Returns          void.
 **
@@ -995,7 +995,7 @@ void avdt_ccb_set_conn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Function         avdt_ccb_set_disconn
 **
 ** Description      Set CCB variables associated with AVDT_DisconnectReq().
-**
+**                  
 **
 ** Returns          void.
 **
@@ -1016,7 +1016,7 @@ void avdt_ccb_set_disconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Function         avdt_ccb_do_disconn
 **
 ** Description      Do action associated with AVDT_DisconnectReq().
-**
+**                  
 **
 ** Returns          void.
 **
@@ -1035,7 +1035,7 @@ void avdt_ccb_do_disconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Function         avdt_ccb_ll_closed
 **
 ** Description      Clear commands from and deallocate CCB.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -1063,7 +1063,7 @@ void avdt_ccb_ll_closed(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     {
         avdt_ctrl.hdr.err_code = 0;
         (*p_cback)(0, bd_addr, AVDT_DISCONNECT_IND_EVT, &avdt_ctrl);
-    }
+    }        
 }
 
 /*******************************************************************************
@@ -1071,7 +1071,7 @@ void avdt_ccb_ll_closed(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Function         avdt_ccb_ll_opened
 **
 ** Description      Call callback on open.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -1081,7 +1081,7 @@ void avdt_ccb_ll_opened(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     tAVDT_CTRL          avdt_ctrl;
 
     p_ccb->ll_opened = TRUE;
-
+    
     if (!p_ccb->p_conn_cback)
         p_ccb->p_conn_cback = avdt_cb.p_conn_cback;
 
@@ -1091,5 +1091,5 @@ void avdt_ccb_ll_opened(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         avdt_ctrl.hdr.err_code = 0;
         avdt_ctrl.hdr.err_param = p_data->msg.hdr.err_param;
         (*p_ccb->p_conn_cback)(0, p_ccb->peer_addr, AVDT_CONNECT_IND_EVT, &avdt_ctrl);
-    }
+    }        
 }

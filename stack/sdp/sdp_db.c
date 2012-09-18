@@ -212,7 +212,7 @@ static int sdp_compose_proto_list( UINT8 *p, UINT16 num_elem,
 
     /* First, build the protocol list. This consists of a set of data element
     ** sequences, one for each layer. Each layer sequence consists of layer's
-    ** UUID and optional parameters
+    ** UUID and optional parameters 
     */
     for (xx = 0; xx < num_elem; xx++, p_elem_list++)
     {

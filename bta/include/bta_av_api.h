@@ -3,7 +3,7 @@
 **  Name:           bta_av_api.h
 **
 **  Description:    This is the public interface file for the advanced
-**                  audio/video streaming (AV) subsystem of BTA, Widcomm's
+**                  audio/video streaming (AV) subsystem of BTA, Widcomm's 
 **                  Bluetooth application layer for mobile phones.
 **
 **  Copyright (c) 2004-2011, Broadcom Corp., All Rights Reserved.
@@ -183,22 +183,22 @@ typedef UINT8 tBTA_AV_RC;
 typedef UINT8 tBTA_AV_STATE;
 
 /* command codes for BTA_AvVendorCmd */
-#define BTA_AV_CMD_CTRL         AVRC_CMD_CTRL
-#define BTA_AV_CMD_STATUS       AVRC_CMD_STATUS
-#define BTA_AV_CMD_SPEC_INQ     AVRC_CMD_SPEC_INQ
-#define BTA_AV_CMD_NOTIF        AVRC_CMD_NOTIF
+#define BTA_AV_CMD_CTRL         AVRC_CMD_CTRL    
+#define BTA_AV_CMD_STATUS       AVRC_CMD_STATUS  
+#define BTA_AV_CMD_SPEC_INQ     AVRC_CMD_SPEC_INQ                 
+#define BTA_AV_CMD_NOTIF        AVRC_CMD_NOTIF   
 #define BTA_AV_CMD_GEN_INQ      AVRC_CMD_GEN_INQ
 
 typedef UINT8 tBTA_AV_CMD;
 
 /* response codes for BTA_AvVendorRsp */
-#define BTA_AV_RSP_NOT_IMPL     AVRC_RSP_NOT_IMPL
-#define BTA_AV_RSP_ACCEPT       AVRC_RSP_ACCEPT
-#define BTA_AV_RSP_REJ          AVRC_RSP_REJ
-#define BTA_AV_RSP_IN_TRANS     AVRC_RSP_IN_TRANS
+#define BTA_AV_RSP_NOT_IMPL     AVRC_RSP_NOT_IMPL 
+#define BTA_AV_RSP_ACCEPT       AVRC_RSP_ACCEPT   
+#define BTA_AV_RSP_REJ          AVRC_RSP_REJ      
+#define BTA_AV_RSP_IN_TRANS     AVRC_RSP_IN_TRANS 
 #define BTA_AV_RSP_IMPL_STBL    AVRC_RSP_IMPL_STBL
-#define BTA_AV_RSP_CHANGED      AVRC_RSP_CHANGED
-#define BTA_AV_RSP_INTERIM      AVRC_RSP_INTERIM
+#define BTA_AV_RSP_CHANGED      AVRC_RSP_CHANGED                            
+#define BTA_AV_RSP_INTERIM      AVRC_RSP_INTERIM  
 
 typedef UINT8 tBTA_AV_CODE;
 
@@ -208,7 +208,7 @@ typedef UINT8 tBTA_AV_CODE;
 #define BTA_AV_ERR_RESOURCE         AVDT_ERR_RESOURCE   /* Insufficient resources */
 #define BTA_AV_ERR_BAD_CP_TYPE      A2D_BAD_CP_TYPE     /* The requested Content Protection Type is not supported */
 #define BTA_AV_ERR_BAD_CP_FORMAT    A2D_BAD_CP_FORMAT   /* The format of Content Protection Data is not correct */
-
+                                                    
 typedef UINT8 tBTA_AV_ERR;
 
 
@@ -439,10 +439,10 @@ typedef union
 #define BTA_MAX_VENDOR_DEPENDENT_DATA_LEN   (BTA_AVC_PACKET_LEN-BTA_VENDOR_DATA_OFFSET-BTA_VENDOR_HEADER_LEN)
 #define BTA_GROUP_NAVI_MSG_OP_DATA_LEN      5
 
-#define BTA_ERROR_INVALID_CMD           AVRC_STS_BAD_CMD
-#define BTA_ERROR_INVALID_PARAM         AVRC_STS_BAD_PARAM
-#define BTA_ERROR_BAD_CONTENTS          AVRC_STS_NOT_FOUND
-#define BTA_ERROR_INTERNAL              AVRC_STS_INTERNAL_ERR
+#define BTA_ERROR_INVALID_CMD           AVRC_STS_BAD_CMD         
+#define BTA_ERROR_INVALID_PARAM         AVRC_STS_BAD_PARAM           
+#define BTA_ERROR_BAD_CONTENTS          AVRC_STS_NOT_FOUND            
+#define BTA_ERROR_INTERNAL              AVRC_STS_INTERNAL_ERR                
 
 #define BTA_AV_META_SINGLE_PACKET       AVRC_PKT_SINGLE
 
@@ -494,7 +494,7 @@ extern "C"
 **
 ** Function         BTA_AvEnable
 **
-** Description      Enable the advanced audio/video service. When the enable
+** Description      Enable the advanced audio/video service. When the enable 
 **                  operation is complete the callback function will be
 **                  called with a BTA_AV_ENABLE_EVT. This function must
 **                  be called before other function in the AV API are
@@ -511,7 +511,7 @@ BTA_API void BTA_AvEnable(tBTA_SEC sec_mask, tBTA_AV_FEAT features,
 ** Function         BTA_AvDisable
 **
 ** Description      Disable the advanced audio/video service.
-**
+**                  
 **
 ** Returns          void
 **
@@ -522,7 +522,7 @@ BTA_API void BTA_AvDisable(void);
 **
 ** Function         BTA_AvRegister
 **
-** Description      Register the audio or video service to stack. When the
+** Description      Register the audio or video service to stack. When the  
 **                  operation is complete the callback function will be
 **                  called with a BTA_AV_REGISTER_EVT. This function must
 **                  be called before AVDT stream is open.
@@ -638,7 +638,7 @@ BTA_API void BTA_AvProtectReq(tBTA_AV_HNDL hndl, UINT8 *p_data, UINT16 len);
 ** Function         BTA_AvProtectRsp
 **
 ** Description      Send a content protection response.  This function must
-**                  be called if a BTA_AV_PROTECT_REQ_EVT is received.
+**                  be called if a BTA_AV_PROTECT_REQ_EVT is received.  
 **                  This function can only be used if AV is enabled with
 **                  feature BTA_AV_FEAT_PROTECT.
 **
@@ -680,7 +680,7 @@ BTA_API void BTA_AvVendorCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE cmd_code
 ** Function         BTA_AvVendorRsp
 **
 ** Description      Send a vendor dependent remote control response.
-**                  This function must be called if a BTA_AV_VENDOR_CMD_EVT
+**                  This function must be called if a BTA_AV_VENDOR_CMD_EVT  
 **                  is received. This function can only be used if AV is
 **                  enabled with feature BTA_AV_FEAT_VENDOR.
 **

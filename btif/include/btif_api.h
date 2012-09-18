@@ -45,7 +45,7 @@
  *
  *****************************************************************************/
 
-/*******************************************************************************
+/*****************************************************************************
  *
  *  Filename:      btif_api.h
  *
@@ -54,7 +54,7 @@
  *                 require headerfiles as they would be accessed through
  *                 callout/callins.
  *
- *******************************************************************************/
+ *****************************************************************************/
 
 #ifndef BTIF_API_H
 #define BTIF_API_H
@@ -62,9 +62,31 @@
 #include "btif_common.h"
 #include "btif_dm.h"
 
-/*******************************************************************************
+/*****************************************************************************
+**  Constants & Macros
+******************************************************************************/
+
+/*****************************************************************************
+**  Type definitions for callback functions
+******************************************************************************/
+
+/*****************************************************************************
+**  Type definitions and return values
+******************************************************************************/
+
+/*****************************************************************************
+**  Extern variables and functions
+******************************************************************************/
+
+/*****************************************************************************
+**  Functions
+******************************************************************************/
+
+
+/*****************************************************************************
 **  BTIF CORE API
-********************************************************************************/
+******************************************************************************/
+
 
 /*******************************************************************************
 **
@@ -75,6 +97,7 @@
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_init_bluetooth(void);
 
 /*******************************************************************************
@@ -86,6 +109,7 @@ bt_status_t btif_init_bluetooth(void);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_enable_bluetooth(void);
 
 /*******************************************************************************
@@ -99,6 +123,7 @@ bt_status_t btif_enable_bluetooth(void);
 ** Returns          void
 **
 *******************************************************************************/
+
 bt_status_t btif_disable_bluetooth(void);
 
 /*******************************************************************************
@@ -112,7 +137,9 @@ bt_status_t btif_disable_bluetooth(void);
 ** Returns          void
 **
 *******************************************************************************/
+
 bt_status_t btif_shutdown_bluetooth(void);
+
 
 /*******************************************************************************
 **
@@ -123,6 +150,7 @@ bt_status_t btif_shutdown_bluetooth(void);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_get_adapter_properties(void);
 
 /*******************************************************************************
@@ -134,6 +162,7 @@ bt_status_t btif_get_adapter_properties(void);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_get_adapter_property( bt_property_type_t type);
 
 /*******************************************************************************
@@ -146,6 +175,7 @@ bt_status_t btif_get_adapter_property( bt_property_type_t type);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_set_adapter_property( const bt_property_t *property);
 
 /*******************************************************************************
@@ -157,8 +187,10 @@ bt_status_t btif_set_adapter_property( const bt_property_t *property);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_get_remote_device_property( bt_bdaddr_t *remote_addr,
                                              bt_property_type_t type);
+
 
 /*******************************************************************************
 **
@@ -169,7 +201,9 @@ bt_status_t btif_get_remote_device_property( bt_bdaddr_t *remote_addr,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_get_remote_device_properties( bt_bdaddr_t *remote_addr);
+
 
 /*******************************************************************************
 **
@@ -182,8 +216,10 @@ bt_status_t btif_get_remote_device_properties( bt_bdaddr_t *remote_addr);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_set_remote_device_property( bt_bdaddr_t *remote_addr,
                                              const bt_property_t *property);
+
 
 /*******************************************************************************
 **
@@ -195,13 +231,13 @@ bt_status_t btif_set_remote_device_property( bt_bdaddr_t *remote_addr,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_get_remote_service_record( bt_bdaddr_t *remote_addr,
                                             bt_uuid_t *uuid);
 
-
-/*******************************************************************************
+/*****************************************************************************
 **  BTIF DM API
-********************************************************************************/
+******************************************************************************/
 
 /*******************************************************************************
 **
@@ -213,6 +249,7 @@ bt_status_t btif_get_remote_service_record( bt_bdaddr_t *remote_addr,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_dm_start_discovery(void);
 
 /*******************************************************************************
@@ -224,6 +261,7 @@ bt_status_t btif_dm_start_discovery(void);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_dm_cancel_discovery(void);
 
 /*******************************************************************************
@@ -235,6 +273,7 @@ bt_status_t btif_dm_cancel_discovery(void);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr);
 
 /*******************************************************************************
@@ -246,6 +285,7 @@ bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_dm_cancel_bond(const bt_bdaddr_t *bd_addr);
 
 /*******************************************************************************
@@ -257,6 +297,7 @@ bt_status_t btif_dm_cancel_bond(const bt_bdaddr_t *bd_addr);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr);
 
 /*******************************************************************************
@@ -268,6 +309,7 @@ bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_dm_pin_reply( const bt_bdaddr_t *bd_addr, uint8_t accept,
                                uint8_t pin_len, bt_pin_code_t *pin_code);
 
@@ -280,6 +322,7 @@ bt_status_t btif_dm_pin_reply( const bt_bdaddr_t *bd_addr, uint8_t accept,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_dm_passkey_reply( const bt_bdaddr_t *bd_addr,
                                    uint8_t accept, uint32_t passkey);
 
@@ -292,6 +335,7 @@ bt_status_t btif_dm_passkey_reply( const bt_bdaddr_t *bd_addr,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_dm_ssp_reply( const bt_bdaddr_t *bd_addr,
                               bt_ssp_variant_t variant, uint8_t accept,
                               uint32_t passkey);
@@ -305,6 +349,7 @@ bt_status_t btif_dm_ssp_reply( const bt_bdaddr_t *bd_addr,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_dm_get_adapter_property(bt_property_t *prop);
 
 /*******************************************************************************
@@ -316,6 +361,7 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t *prop);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+
 bt_status_t btif_dm_get_remote_service_record(bt_bdaddr_t *remote_addr,
                                               bt_uuid_t *uuid);
 
@@ -355,3 +401,4 @@ bt_status_t btif_dut_mode_configure(uint8_t enable);
 bt_status_t btif_dut_mode_send(uint16_t opcode, uint8_t *buf, uint8_t len);
 
 #endif /* BTIF_API_H */
+

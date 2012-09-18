@@ -107,7 +107,7 @@ unsigned short l2c_fcr_updcrc(unsigned short icrc, unsigned char *icp, int icnt)
     register unsigned char  *cp = icp;
     register          int   cnt = icnt;
 
-    while (cnt--)
+    while (cnt--) 
     {
         crc = ((crc >> 8) & 0xff) ^ crctab[(crc & 0xff) ^ *cp++];
     }
@@ -254,14 +254,14 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
         if (p_str)
         {
             sprintf(p_str, "Sent Pkts:%08u Bytes:%10u(%06u/sec) RR:%08u REJ:%08u RNR:%08u SREJ:%08u",
-                p_ccb->fcrb.ertm_pkt_counts[0], p_ccb->fcrb.ertm_byte_counts[0],
+                p_ccb->fcrb.ertm_pkt_counts[0], p_ccb->fcrb.ertm_byte_counts[0], 
                 (dur >= 10 ? (p_ccb->fcrb.ertm_byte_counts[0] * 100) / (dur / 10) : 0),
                 p_ccb->fcrb.s_frames_sent[0], p_ccb->fcrb.s_frames_sent[1], p_ccb->fcrb.s_frames_sent[2], p_ccb->fcrb.s_frames_sent[3]);
 
             BT_TRACE_1(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
 
             sprintf(p_str, "Rcvd Pkts:%08u Bytes:%10u(%06u/sec) RR:%08u REJ:%08u RNR:%08u SREJ:%08u",
-                p_ccb->fcrb.ertm_pkt_counts[1], p_ccb->fcrb.ertm_byte_counts[1],
+                p_ccb->fcrb.ertm_pkt_counts[1], p_ccb->fcrb.ertm_byte_counts[1], 
                 (dur >= 10 ? (p_ccb->fcrb.ertm_byte_counts[1] * 100) / (dur / 10) : 0),
                 p_ccb->fcrb.s_frames_rcvd[0], p_ccb->fcrb.s_frames_rcvd[1], p_ccb->fcrb.s_frames_rcvd[2], p_ccb->fcrb.s_frames_rcvd[3]);
 
@@ -280,7 +280,7 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
                     continue;
                 }
 
-                sprintf(p_str, "[%02u] throughput: %5u, ack_delay avg:%3u, min:%3u, max:%3u, ack_q_count avg:%3u, min:%3u, max:%3u",
+                sprintf(p_str, "[%02u] throughput: %5u, ack_delay avg:%3u, min:%3u, max:%3u, ack_q_count avg:%3u, min:%3u, max:%3u", 
                         i, p_ccb->fcrb.throughput[i],
                         p_ccb->fcrb.ack_delay_avg[i], p_ccb->fcrb.ack_delay_min[i], p_ccb->fcrb.ack_delay_max[i],
                         p_ccb->fcrb.ack_q_count_avg[i], p_ccb->fcrb.ack_q_count_min[i], p_ccb->fcrb.ack_q_count_max[i] );
@@ -297,7 +297,7 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
             ack_q_count_avg /= (L2CAP_ERTM_STATS_NUM_AVG - 1);
 
             BT_TRACE_3(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
-                   "throughput_avg: %8u (kbytes/sec), ack_delay_avg: %8u ms, ack_q_count_avg: %8u",
+                   "throughput_avg: %8u (kbytes/sec), ack_delay_avg: %8u ms, ack_q_count_avg: %8u", 
                     throughput_avg, ack_delay_avg, ack_q_count_avg );
 
             GKI_freebuf(p_str);
@@ -853,7 +853,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 void l2c_fcr_proc_tout (tL2C_CCB *p_ccb)
 {
     L2CAP_TRACE_DEBUG5 ("l2c_fcr_proc_tout:  CID: 0x%04x  num_tries: %u (max: %u)  wait_ack: %u  ack_q_count: %u",
-                        p_ccb->local_cid, p_ccb->fcrb.num_tries, p_ccb->peer_cfg.fcr.max_transmit,
+                        p_ccb->local_cid, p_ccb->fcrb.num_tries, p_ccb->peer_cfg.fcr.max_transmit, 
                         p_ccb->fcrb.wait_ack, p_ccb->fcrb.waiting_for_ack_q.count);
 
 #if (L2CAP_ERTM_STATS == TRUE)
@@ -888,7 +888,7 @@ void l2c_fcr_proc_tout (tL2C_CCB *p_ccb)
 *******************************************************************************/
 void l2c_fcr_proc_ack_tout (tL2C_CCB *p_ccb)
 {
-    L2CAP_TRACE_DEBUG5 ("l2c_fcr_proc_ack_tout:  CID: 0x%04x State: %u  Wack:%u  Rq:%d  Acked:%d", p_ccb->local_cid,
+    L2CAP_TRACE_DEBUG5 ("l2c_fcr_proc_ack_tout:  CID: 0x%04x State: %u  Wack:%u  Rq:%d  Acked:%d", p_ccb->local_cid, 
                         p_ccb->chnl_state, p_ccb->fcrb.wait_ack, p_ccb->fcrb.next_seq_expected, p_ccb->fcrb.last_ack_sent);
 
     if ( (p_ccb->chnl_state == CST_OPEN) && (!p_ccb->fcrb.wait_ack)
@@ -1232,7 +1232,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
     /* Seq number is the next expected. Clear possible reject exception in case it occured */
     p_fcrb->rej_sent = p_fcrb->srej_sent = FALSE;
 
-    /* Adjust the next_seq, so that if the upper layer sends more data in the callback
+    /* Adjust the next_seq, so that if the upper layer sends more data in the callback 
        context, the received frame is acked by an I-frame. */
     p_fcrb->next_seq_expected = (tx_seq + 1) & L2CAP_FCR_SEQ_MODULO;
 
@@ -1259,7 +1259,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
             /* If it is the first I frame we did not ack, start ack timer */
             if (!p_ccb->fcrb.ack_timer.in_use)
             {
-                btu_start_quick_timer (&p_ccb->fcrb.ack_timer, BTU_TTYPE_L2CAP_FCR_ACK,
+                btu_start_quick_timer (&p_ccb->fcrb.ack_timer, BTU_TTYPE_L2CAP_FCR_ACK, 
                                         (L2CAP_FCR_ACK_TOUT*QUICK_TIMER_TICKS_PER_SEC)/1000);
             }
         }
@@ -1475,7 +1475,7 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
     {
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
         if (p_ccb->local_cid < L2CAP_BASE_APPL_CID)
-            (*l2cb.fixed_reg[p_ccb->local_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb)(p_ccb->p_lcb->remote_bd_addr, p_buf);
+            (*l2cb.fixed_reg[p_ccb->local_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb)(p_ccb->p_lcb->remote_bd_addr, p_buf); 
         else
 #endif
             l2c_csm_execute (p_ccb, L2CEVT_L2CAP_DATA, p_buf);
@@ -1506,7 +1506,7 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
      &&  (p_ccb->fcrb.num_tries >= p_ccb->peer_cfg.fcr.max_transmit) )
     {
         L2CAP_TRACE_EVENT5 ("Max Tries Exceeded:  (last_acq: %d  CID: 0x%04x  num_tries: %u (max: %u) ack_q_count: %u",
-                p_ccb->fcrb.last_rx_ack, p_ccb->local_cid, p_ccb->fcrb.num_tries, p_ccb->peer_cfg.fcr.max_transmit,
+                p_ccb->fcrb.last_rx_ack, p_ccb->local_cid, p_ccb->fcrb.num_tries, p_ccb->peer_cfg.fcr.max_transmit, 
                 p_ccb->fcrb.waiting_for_ack_q.count);
 
         l2cu_disconnect_chnl (p_ccb);
@@ -1667,7 +1667,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
             mid_seg = TRUE;
 
         /* Get a new buffer and copy the data that can be sent in a PDU */
-        p_xmit = l2c_fcr_clone_buf (p_buf, L2CAP_MIN_OFFSET + L2CAP_SDU_LEN_OFFSET,
+        p_xmit = l2c_fcr_clone_buf (p_buf, L2CAP_MIN_OFFSET + L2CAP_SDU_LEN_OFFSET, 
                                     max_pdu, p_ccb->ertm_info.fcr_tx_pool_id);
 
         if (p_xmit != NULL)
@@ -1834,7 +1834,7 @@ UINT8 l2c_fcr_chk_chan_modes (tL2C_CCB *p_ccb)
 **
 ** Function         l2c_fcr_adj_our_req_options
 **
-** Description      Validates and sets up the FCR options passed in from
+** Description      Validates and sets up the FCR options passed in from 
 **                  L2CA_ConfigReq based on remote device's features.
 **
 ** Returns          TRUE if no errors, Otherwise FALSE
@@ -1951,7 +1951,7 @@ BOOLEAN l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 **
 ** Function         l2c_fcr_adj_monitor_retran_timeout
 **
-** Description      Overrides monitor/retrans timer value based on controller
+** Description      Overrides monitor/retrans timer value based on controller 
 **
 ** Returns          None
 **
@@ -1962,7 +1962,7 @@ void l2c_fcr_adj_monitor_retran_timeout (tL2C_CCB *p_ccb)
     if (p_ccb->out_cfg_fcr_present)
     {
         /*
-        ** if we requestd ERTM or accepted ERTM
+        ** if we requestd ERTM or accepted ERTM 
         ** We may accept ERTM even if we didn't request ERTM, in case of requesting STREAM
         */
         if ((p_ccb->our_cfg.fcr.mode == L2CAP_FCR_ERTM_MODE)
@@ -1986,7 +1986,7 @@ void l2c_fcr_adj_monitor_retran_timeout (tL2C_CCB *p_ccb)
 **
 ** Function         l2c_fcr_adj_our_rsp_options
 **
-** Description      Overrides any neccesary FCR options passed in from
+** Description      Overrides any neccesary FCR options passed in from 
 **                  L2CA_ConfigRsp based on our FCR options.
 **                  Only makes adjustments if channel is in ERTM mode.
 **
@@ -2012,7 +2012,7 @@ void l2c_fcr_adj_our_rsp_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
             p_ccb->peer_cfg.fcr.tx_win_sz = p_ccb->our_cfg.fcr.tx_win_sz;
         }
 // btla-specific --
-
+        
         p_cfg->fcr.mode         = p_ccb->peer_cfg.fcr.mode;
         p_cfg->fcr.tx_win_sz    = p_ccb->peer_cfg.fcr.tx_win_sz;
         p_cfg->fcr.max_transmit = p_ccb->peer_cfg.fcr.max_transmit;
@@ -2027,7 +2027,7 @@ void l2c_fcr_adj_our_rsp_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 ** Function         l2c_fcr_renegotiate_chan
 **
 ** Description      Called upon unsuccessful peer response to config request.
-**                  If the error is because of the channel mode, it will try
+**                  If the error is because of the channel mode, it will try 
 **                  to resend using another supported optional channel.
 **
 ** Returns          TRUE if resent configuration, False if channel matches or
@@ -2106,7 +2106,7 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
                         p_cfg->mtu = L2CAP_MTU_SIZE;
                     }
                 }
-
+   
                 l2cu_process_our_cfg_req (p_ccb, &p_ccb->our_cfg);
                 l2cu_send_peer_config_req (p_ccb, &p_ccb->our_cfg);
                 btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CFG_TIMEOUT);
@@ -2146,7 +2146,7 @@ UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
     p_ccb->p_lcb->w4_info_rsp = FALSE;      /* Handles T61x SonyEricsson Bug in Info Request */
 
     L2CAP_TRACE_EVENT5 ("l2c_fcr_process_peer_cfg_req() CFG fcr_present:%d fcr.mode:%d CCB FCR mode:%d preferred: %u allowed:%u",
-                        p_cfg->fcr_present, p_cfg->fcr.mode, p_ccb->our_cfg.fcr.mode, p_ccb->ertm_info.preferred_mode,
+                        p_cfg->fcr_present, p_cfg->fcr.mode, p_ccb->our_cfg.fcr.mode, p_ccb->ertm_info.preferred_mode, 
                         p_ccb->ertm_info.allowed_modes);
 
     /* If Peer wants basic, we are done (accept it or disconnect) */
@@ -2181,10 +2181,10 @@ UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
             p_cfg->fcr.max_transmit = p_cfg->fcr.tx_win_sz = 0;
             p_cfg->fcr.rtrans_tout = p_cfg->fcr.mon_tout = p_cfg->fcr.mps = 0;
             p_ccb->our_cfg.fcr.rtrans_tout = p_ccb->our_cfg.fcr.mon_tout = p_ccb->our_cfg.fcr.mps = 0;
-            fcr_ok = L2CAP_PEER_CFG_UNACCEPTABLE;
+            fcr_ok = L2CAP_PEER_CFG_UNACCEPTABLE;   
         }
 
-        /* Only other valid case is if they want ERTM and we wanted STM which should be
+        /* Only other valid case is if they want ERTM and we wanted STM which should be 
            accepted if we support it; otherwise the channel should be disconnected */
         else if ( (p_cfg->fcr.mode != L2CAP_FCR_ERTM_MODE)
               || !(p_ccb->ertm_info.allowed_modes & L2CAP_FCR_CHAN_OPT_ERTM) )
@@ -2669,7 +2669,7 @@ static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, UINT8 num_bufs_acked)
 
         p_ccb->fcrb.throughput_start = timestamp;
 
-        sprintf(str, "[%02u] throughput: %5u, ack_delay avg:%3u, min:%3u, max:%3u, ack_q_count avg:%3u, min:%3u, max:%3u",
+        sprintf(str, "[%02u] throughput: %5u, ack_delay avg:%3u, min:%3u, max:%3u, ack_q_count avg:%3u, min:%3u, max:%3u", 
                 index, p_ccb->fcrb.throughput[index],
                 p_ccb->fcrb.ack_delay_avg[index], p_ccb->fcrb.ack_delay_min[index], p_ccb->fcrb.ack_delay_max[index],
                 p_ccb->fcrb.ack_q_count_avg[index], p_ccb->fcrb.ack_q_count_min[index], p_ccb->fcrb.ack_q_count_max[index] );
@@ -2678,12 +2678,12 @@ static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, UINT8 num_bufs_acked)
 
         index = (index + 1) % L2CAP_ERTM_STATS_NUM_AVG;
         p_ccb->fcrb.ack_delay_avg_index = index;
-
+        
         p_ccb->fcrb.ack_q_count_max[index] = 0;
         p_ccb->fcrb.ack_q_count_min[index] = 0xFFFFFFFF;
         p_ccb->fcrb.ack_q_count_avg[index] = 0;
 
-
+      
         p_ccb->fcrb.ack_delay_max[index] = 0;
         p_ccb->fcrb.ack_delay_min[index] = 0xFFFFFFFF;
         p_ccb->fcrb.ack_delay_avg[index] = 0;

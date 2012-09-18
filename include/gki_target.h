@@ -45,7 +45,7 @@
 #if defined (GKI_DEBUG) && (GKI_DEBUG == TRUE)
 #define GKI_TRACE(fmt, ...)     ALOGI ("%s: " fmt, __FUNCTION__, ## __VA_ARGS__)
 #else
-#define GKI_TRACE(fmt, ...)
+#define GKI_TRACE(fmt, ...) 
 #endif
 
 /******************************************************************************
@@ -242,8 +242,8 @@ Devices with small amount of RAM should limit the number of active obex objects.
 #endif
 
 /* The number of fixed GKI buffer pools.
-eL2CAP requires Pool ID 5
-If BTM_SCO_HCI_INCLUDED is FALSE, Pool ID 6 is unnecessary, otherwise set to 7
+eL2CAP requires Pool ID 5 
+If BTM_SCO_HCI_INCLUDED is FALSE, Pool ID 6 is unnecessary, otherwise set to 7 
 If BTA_HL_INCLUDED is FALSE then Pool ID 7 is uncessary and set the following to 7, otherwise set to 8
 If BLE_INCLUDED is FALSE then Pool ID 8 is uncessary and set the following to 8, otherwise set to 9
 POOL_ID 9 is a public pool meant for large buffer needs such as SDP_DB
@@ -327,7 +327,7 @@ over HCI data and intentionally kept out of order */
 #define GKI_POOL_ID_6               6
 #endif
 
-/* The size of the buffers in pool 6,
+/* The size of the buffers in pool 6, 
   BUF_SIZE = max SCO data 255 + sizeof(BT_HDR) = 8 + SCO packet header 3 + padding 2 = 268 */
 #ifndef GKI_BUF6_SIZE
 #define GKI_BUF6_SIZE               268
@@ -339,10 +339,10 @@ over HCI data and intentionally kept out of order */
 #endif
 
 
-/* The following pool is a dedicated pool for HDP
-   If a shared pool is more desirable then
+/* The following pool is a dedicated pool for HDP 
+   If a shared pool is more desirable then 
    1. set BTA_HL_LRG_DATA_POOL_ID to the desired Gki Pool ID
-   2. make sure that the shared pool size is larger than 9472
+   2. make sure that the shared pool size is larger than 9472  
    3. adjust GKI_NUM_FIXED_BUF_POOLS accordingly since
       POOL ID 7 is not needed
 */
@@ -362,10 +362,10 @@ over HCI data and intentionally kept out of order */
 #define GKI_BUF7_MAX                2
 #endif
 
-/* The following pool is a dedicated pool for GATT
-   If a shared pool is more desirable then
+/* The following pool is a dedicated pool for GATT 
+   If a shared pool is more desirable then 
    1. set GATT_DB_POOL_ID to the desired Gki Pool ID
-   2. make sure that the shared pool size fit a common GATT database needs
+   2. make sure that the shared pool size fit a common GATT database needs  
    3. adjust GKI_NUM_FIXED_BUF_POOLS accordingly since
       POOL ID 8 is not needed
 */
@@ -418,7 +418,7 @@ over HCI data and intentionally kept out of order */
 #define GKI_TRACE_ERROR_6(m,p1,p2,p3,p4,p5,p6)  LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI | TRACE_TYPE_ERROR,m,p1,p2,p3,p4,p5,p6)
 
 #ifdef __cplusplus
-extern "C"
+extern "C" 
 {
 #endif
 

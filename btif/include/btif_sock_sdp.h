@@ -45,18 +45,24 @@
  *
  ************************************************************************************/
 
-#ifndef BTIF_SOCK_SDP_H
-#define BTIF_SOCK_SDP_H
+/************************************************************************************
+ *
+ *  Filename:      btif_sock.h
+ *
+ *  Description:   Bluetooth socket Interface
+ *
+ *
+ ***********************************************************************************/
 
+#ifndef btif_sock_sdp_h_
+#define btif_sock_sdp_h_
 static inline BOOLEAN is_uuid_empty(const uint8_t* uuid)
 {
    static  uint8_t empty_uuid[16];
    return memcmp(uuid, empty_uuid, sizeof(empty_uuid)) == 0;
 }
-
 int add_rfc_sdp_rec(const char* name, const uint8_t* uuid, int scn);
 void del_rfc_sdp_rec(int handle);
 BOOLEAN is_reserved_rfc_channel(int channel);
 int get_reserved_rfc_channel(const uint8_t* uuid);
-
 #endif
