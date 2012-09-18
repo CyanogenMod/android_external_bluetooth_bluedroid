@@ -3,7 +3,7 @@
 **  Name:           bta_av_api.c
 **
 **  Description:    This is the implementation of the API for the advanced
-**                  audio/video (AV) subsystem of BTA, Widcomm's Bluetooth 
+**                  audio/video (AV) subsystem of BTA, Widcomm's Bluetooth
 **                  application layer for mobile phones.
 **
 **  Copyright (c) 2011, Broadcom Corp., All Rights Reserved.
@@ -36,7 +36,7 @@ static const tBTA_SYS_REG bta_av_reg =
 **
 ** Function         BTA_AvEnable
 **
-** Description      Enable the advanced audio/video service. When the enable 
+** Description      Enable the advanced audio/video service. When the enable
 **                  operation is complete the callback function will be
 **                  called with a BTA_AV_ENABLE_EVT. This function must
 **                  be called before other function in the AV API are
@@ -89,7 +89,7 @@ void BTA_AvDisable(void)
 **
 ** Function         BTA_AvRegister
 **
-** Description      Register the audio or video service to stack. When the  
+** Description      Register the audio or video service to stack. When the
 **                  operation is complete the callback function will be
 **                  called with a BTA_AV_REGISTER_EVT. This function must
 **                  be called before AVDT stream is open.
@@ -324,7 +324,7 @@ void BTA_AvProtectReq(tBTA_AV_HNDL hndl, UINT8 *p_data, UINT16 len)
 ** Function         BTA_AvProtectRsp
 **
 ** Description      Send a content protection response.  This function must
-**                  be called if a BTA_AV_PROTECT_REQ_EVT is received.  
+**                  be called if a BTA_AV_PROTECT_REQ_EVT is received.
 **                  This function can only be used if AV is enabled with
 **                  feature BTA_AV_FEAT_PROTECT.
 **
@@ -424,7 +424,7 @@ void BTA_AvVendorCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE cmd_code, UINT8 
 ** Function         BTA_AvVendorRsp
 **
 ** Description      Send a vendor dependent remote control response.
-**                  This function must be called if a BTA_AV_VENDOR_CMD_EVT  
+**                  This function must be called if a BTA_AV_VENDOR_CMD_EVT
 **                  is received. This function can only be used if AV is
 **                  enabled with feature BTA_AV_FEAT_VENDOR.
 **

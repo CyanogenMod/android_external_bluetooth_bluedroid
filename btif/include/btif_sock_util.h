@@ -45,20 +45,24 @@
  *
  ************************************************************************************/
 
-
-/************************************************************************************
+/*******************************************************************************
  *
  *  Filename:      btif_sock_util.h
  *
  *  Description:   Bluetooth socket Interface Helper functions
  *
- *
- ***********************************************************************************/
+ *******************************************************************************/
 
-#ifndef btif_sock_util_h_
-#define btif_sock_util_h_
+#ifndef BTIF_SOCK_UTIL_H
+#define BTIF_SOCK_UTIL_H
+
 #include <pthread.h>
 #include <cutils/log.h>
+
+/*******************************************************************************
+**  Functions
+********************************************************************************/
+
 static inline void init_slot_lock( pthread_mutex_t* mutex)
 {
     pthread_mutexattr_t attr;
@@ -66,21 +70,24 @@ static inline void init_slot_lock( pthread_mutex_t* mutex)
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(mutex, &attr);
 }
+
 static inline void lock_slot(pthread_mutex_t* mutex)
 {
     if(mutex->value)
         pthread_mutex_lock(mutex);
     else ALOGE("mutex: %p is not initialized", mutex);
 }
+
 static inline void unlock_slot(pthread_mutex_t* mutex)
 {
    if(mutex->value)
         pthread_mutex_unlock(mutex);
    else ALOGE("mutex: %p is not initialized", mutex);
 }
-void dump_bin(const char* title, const char* data, int size);
-int sock_send_fd(int sock_fd, const uint8_t* buffer, int len, int send_fd);
 
+void dump_bin(const char* title, const char* data, int size);
+
+int sock_send_fd(int sock_fd, const uint8_t* buffer, int len, int send_fd);
 int sock_send_all(int sock_fd, const uint8_t* buf, int len);
 int sock_recv_all(int sock_fd, uint8_t* buf, int len);
 

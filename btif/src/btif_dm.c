@@ -392,7 +392,7 @@ int remove_hid_bond(bt_bdaddr_t *bd_addr)
              */
         bdstr_t bdstr;
         BTIF_TRACE_DEBUG2("%s---Removing HID bond--%s", __FUNCTION__,bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
-        return btif_hh_virtual_unpug(bd_addr);
+        return btif_hh_virtual_unplug(bd_addr);
 }
 /*******************************************************************************
 **

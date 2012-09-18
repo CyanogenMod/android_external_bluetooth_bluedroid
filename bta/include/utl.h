@@ -52,7 +52,7 @@ extern "C"
 ** Description      This utility function converts a character string to an
 **                  integer.  Acceptable values in string are 0-9.  If invalid
 **                  string or string value too large, -1 is returned.
-**                  
+**
 **
 ** Returns          Integer value or -1 on error.
 **
@@ -67,7 +67,7 @@ extern INT16 utl_str2int(const char *p_s);
 **                  String p_s must be uppercase.  String p_t is converted to
 **                  uppercase if lowercase.  If p_s ends first, the substring
 **                  match is counted as a match.
-**                  
+**
 **
 ** Returns          0 if strings match, nonzero otherwise.
 **
@@ -81,7 +81,7 @@ extern int utl_strucmp(const char *p_s, const char *p_t);
 ** Description      This utility function converts a UINT16 to a string.  The
 **                  string is NULL-terminated.  The length of the string is
 **                  returned.
-**                  
+**
 **
 ** Returns          Length of string.
 **
@@ -95,7 +95,7 @@ extern UINT8 utl_itoa(UINT16 i, char *p_s);
 ** Description      This function calls GKI_freebuf to free the buffer passed
 **                  in, if buffer pointer is not NULL, and also initializes
 **                  buffer pointer to NULL.
-**                  
+**
 **
 ** Returns          Nothing.
 **
@@ -108,7 +108,7 @@ extern void utl_freebuf(void **p);
 **
 ** Description      This function updates the local Device Class.
 **
-** Parameters:      
+** Parameters:
 **                  p_cod   - Pointer to the device class to set to
 **
 **                  cmd     - the fields of the device class to update.
@@ -127,9 +127,9 @@ extern BOOLEAN utl_set_device_class(tBTA_UTL_COD *p_cod, UINT8 cmd);
 **
 ** Function         utl_isintstr
 **
-** Description      This utility function checks if the given string is an 
+** Description      This utility function checks if the given string is an
 **                  integer string or not
-**                  
+**
 **
 ** Returns          TRUE if successful, Otherwise FALSE
 **
@@ -140,9 +140,9 @@ extern BOOLEAN utl_isintstr(const char *p_s);
 **
 ** Function         utl_isdialstr
 **
-** Description      This utility function checks if the given string contains 
+** Description      This utility function checks if the given string contains
 **                  only dial digits or not
-**                  
+**
 **
 ** Returns          TRUE if successful, Otherwise FALSE
 **

@@ -27,7 +27,7 @@
 #define asrt(s) if(!(s)) ALOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
 
-static const tPORT_STATE default_port_pars = 
+static const tPORT_STATE default_port_pars =
 {
     PORT_BAUD_RATE_9600,
     PORT_8_BITS,
@@ -48,7 +48,7 @@ static const tPORT_STATE default_port_pars =
 **
 ** Description      Look through the Port Control Blocks for a free one.  Note
 **                  that one server can open several ports with the same SCN
-**                  if it can support simulteneous requests from different 
+**                  if it can support simulteneous requests from different
 **                  clients.
 **
 ** Returns          Pointer to the PORT or NULL if not found
@@ -126,7 +126,7 @@ void port_set_defaults (tPORT *p_port)
 ** Function         port_select_mtu
 **
 ** Description      Select MTU which will best serve connection from our
-**                  point of view.  
+**                  point of view.
 **                  If our device is 1.2 or lower we calculate how many DH5s
 **                  fit into 1 RFCOMM buffer.
 **
@@ -152,7 +152,7 @@ void port_select_mtu (tPORT *p_port)
             /* We try to negotiate MTU that each packet can be split into whole
             number of max packets.  For example if link is 1.2 max packet size is 339 bytes.
             At first calculate how many whole packets it is.  MAX L2CAP is 1691 + 4 overhead.
-            1695, that will be 5 Dh5 packets.  Now maximum RFCOMM packet is 
+            1695, that will be 5 Dh5 packets.  Now maximum RFCOMM packet is
             5 * 339 = 1695. Minus 4 bytes L2CAP header 1691.  Minus RFCOMM 6 bytes header overhead 1685
 
             For EDR 2.0 packet size is 1027.  So we better send RFCOMM packet as 1 3DH5 packet
@@ -182,7 +182,7 @@ void port_select_mtu (tPORT *p_port)
     p_port->rx_buf_critical = (PORT_RX_CRITICAL_WM / p_port->mtu);
     if( p_port->rx_buf_critical > PORT_RX_BUF_CRITICAL_WM )
         p_port->rx_buf_critical = PORT_RX_BUF_CRITICAL_WM;
-    RFCOMM_TRACE_DEBUG3 ("port_select_mtu credit_rx_max %d, credit_rx_low %d, rx_buf_critical %d", 
+    RFCOMM_TRACE_DEBUG3 ("port_select_mtu credit_rx_max %d, credit_rx_low %d, rx_buf_critical %d",
                           p_port->credit_rx_max, p_port->credit_rx_low, p_port->rx_buf_critical);
 }
 
@@ -191,7 +191,7 @@ void port_select_mtu (tPORT *p_port)
 **
 ** Function         port_release_port
 **
-** Description      Release port infor control block.  
+** Description      Release port infor control block.
 **
 ** Returns          Pointer to the PORT or NULL if not found
 **
@@ -238,7 +238,7 @@ void port_release_port (tPORT *p_port)
             mask = p_port->ev_mask;
             p_port_cb = p_port->p_callback;
             user_port_pars = p_port->user_port_pars;
-            
+
             port_set_defaults(p_port);
             /* restore */
             p_port->ev_mask         = mask;
@@ -292,7 +292,7 @@ tRFC_MCB *port_find_mcb (BD_ADDR bd_addr)
 **
 ** Function         port_find_mcb_dlci_port
 **
-** Description      Find port on the multiplexer channel based on DLCI.  If 
+** Description      Find port on the multiplexer channel based on DLCI.  If
 **                  this port with DLCI not found try to use even DLCI.  This
 **                  is for the case when client is establishing connection on
 **                  none-initiator MCB.
@@ -303,7 +303,7 @@ tRFC_MCB *port_find_mcb (BD_ADDR bd_addr)
 tPORT *port_find_mcb_dlci_port (tRFC_MCB *p_mcb, UINT8 dlci)
 {
     UINT8 inx;
-    
+
     if (!p_mcb)
         return (NULL);
 
@@ -369,7 +369,7 @@ tPORT *port_find_port (UINT8 dlci, BD_ADDR bd_addr)
     for (i = 0; i < MAX_RFC_PORTS; i++)
     {
         p_port = &rfc_cb.port.port[i];
-        if (p_port->in_use 
+        if (p_port->in_use
          && (p_port->dlci == dlci)
          && !memcmp (p_port->bd_addr, bd_addr, BD_ADDR_LEN))
         {
@@ -385,7 +385,7 @@ tPORT *port_find_port (UINT8 dlci, BD_ADDR bd_addr)
 ** Function         port_flow_control_user
 **
 ** Description      Check the current user flow control and if necessary return
-**                  events to be send to the user based on the user's specified 
+**                  events to be send to the user based on the user's specified
 **                  flow control type.
 **
 ** Returns          event mask to be returned to the application
@@ -398,7 +398,7 @@ UINT32 port_flow_control_user (tPORT *p_port)
     /* Flow control to the user can be caused by flow controlling by the peer */
     /* (FlowInd, or flow control by the peer RFCOMM (Fcon) or internally if */
     /* tx_queue is full */
-    BOOLEAN fc = p_port->tx.peer_fc 
+    BOOLEAN fc = p_port->tx.peer_fc
               || !p_port->rfc.p_mcb
               || !p_port->rfc.p_mcb->peer_ready
               || (p_port->tx.queue_size > PORT_TX_HIGH_WM)
@@ -497,7 +497,7 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
             /* If credit count is less than low credit watermark, and user */
             /* did not force flow control, send a credit update */
             /* There might be a special case when we just adjusted rx_max */
-            if ((p_port->credit_rx <= p_port->credit_rx_low) 
+            if ((p_port->credit_rx <= p_port->credit_rx_low)
              && !p_port->rx.user_fc
              && (p_port->credit_rx_max > p_port->credit_rx))
             {
@@ -505,7 +505,7 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
                                 (UINT8) (p_port->credit_rx_max - p_port->credit_rx));
 
                 p_port->credit_rx = p_port->credit_rx_max;
-                
+
                 p_port->rx.peer_fc = FALSE;
             }
         }
@@ -525,14 +525,14 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
         }
     }
     /* else using TS 07.10 flow control */
-    else    
+    else
     {
         /* if want to enable flow from peer */
         if (enable)
         {
             /* If rfcomm suspended traffic from the peer based on the rx_queue_size */
             /* check if it can be resumed now */
-            if (p_port->rx.peer_fc 
+            if (p_port->rx.peer_fc
              && (p_port->rx.queue_size < PORT_RX_LOW_WM)
              && (p_port->rx.queue.count < PORT_RX_BUF_LOW_WM))
             {
@@ -554,7 +554,7 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
             }
             /* Check the size of the rx queue.  If it exceeds certain */
             /* level and flow control has not been sent to the peer do it now */
-            else if ( ((p_port->rx.queue_size > PORT_RX_HIGH_WM) 
+            else if ( ((p_port->rx.queue_size > PORT_RX_HIGH_WM)
                      || (p_port->rx.queue.count > PORT_RX_BUF_HIGH_WM))
                      && !p_port->rx.peer_fc)
             {
@@ -562,7 +562,7 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
 
                 p_port->rx.peer_fc = TRUE;
                 RFCOMM_FlowReq (p_port->rfc.p_mcb, p_port->dlci, FALSE);
-            }            
+            }
         }
     }
 }

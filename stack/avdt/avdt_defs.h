@@ -5,7 +5,7 @@
 **  Description:    This contains constants definitions and other information
 **                  from the AVDTP specification.  This file is intended for
 **                  use internal to AVDT only.
-**                  
+**
 **
 **  Copyright (c) 2002-2010, Broadcom Corp., All Rights Reserved.
 **  Broadcom Bluetooth Core. Proprietary and confidential.
@@ -165,7 +165,7 @@
 #define AVDT_MSG_PRS_M_PT(p, m_pt, marker) \
     marker = *(p) >> 7; \
     m_pt = *(p)++ & 0x7F;
-         
+
 #define AVDT_MSG_BLD_HDR(p, lbl, pkt, msg) \
     *(p)++ = (UINT8) ((lbl) << 4) | ((pkt) << 2) | (msg);
 
@@ -187,6 +187,6 @@
 
 #define AVDT_MSG_BLD_NOSP(p, nosp) \
     *(p)++ = (UINT8) (nosp);
-         
+
 #endif /* AVDT_DEFS_H */
 

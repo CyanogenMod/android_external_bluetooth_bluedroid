@@ -133,8 +133,8 @@ typedef void (*tBTU_EVENT_CALLBACK)(BT_HDR *p_hdr);
 /* BTU internal timer for BLE activity */
 #define BTU_TTYPE_BLE_INQUIRY                       99
 #define BTU_TTYPE_BLE_GAP_LIM_DISC                  100
-#define BTU_TTYPE_ATT_WAIT_FOR_RSP                  101 
-#define BTU_TTYPE_SMP_PAIRING_CMD                   102 
+#define BTU_TTYPE_ATT_WAIT_FOR_RSP                  101
+#define BTU_TTYPE_SMP_PAIRING_CMD                   102
 #define BTU_TTYPE_BLE_RANDOM_ADDR                   103
 #define BTU_TTYPE_ATT_WAIT_FOR_APP_RSP              104
 #define BTU_TTYPE_ATT_WAIT_FOR_IND_ACK              105
@@ -246,7 +246,7 @@ BTU_API extern const BD_ADDR        BT_BD_ANY;
 /* Functions provided by btu_task.c
 ************************************
 */
-BTU_API extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout); 
+BTU_API extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
 BTU_API extern void btu_stop_timer (TIMER_LIST_ENT *p_tle);
 BTU_API extern void btu_register_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout, tBTU_TIMER_CALLBACK timer_cb);
 BTU_API extern void btu_deregister_timer(TIMER_LIST_ENT *p_tle);
@@ -257,13 +257,13 @@ BTU_API extern void btu_register_event_range (UINT16 range, tBTU_EVENT_CALLBACK 
 BTU_API extern void btu_deregister_event_range (UINT16 range);
 BTU_API extern void btu_uipc_rx_cback(BT_HDR *p_msg);
 
-BTU_API extern void btu_hcif_flush_cmd_queue(void);							
+BTU_API extern void btu_hcif_flush_cmd_queue(void);
 /*
 ** Quick Timer
 */
 #if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
-#define QUICK_TIMER_TICKS (GKI_SECS_TO_TICKS (1)/QUICK_TIMER_TICKS_PER_SEC) 
-BTU_API extern void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout); 
+#define QUICK_TIMER_TICKS (GKI_SECS_TO_TICKS (1)/QUICK_TIMER_TICKS_PER_SEC)
+BTU_API extern void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
 BTU_API extern void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle);
 BTU_API extern void btu_process_quick_timer_evt (void);
 BTU_API extern void process_quick_timer_evt (TIMER_LIST_Q *p_tlq);

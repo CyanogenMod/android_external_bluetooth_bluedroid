@@ -17,12 +17,12 @@
     #include "smp_int.h"
 
 
-const char * const smp_state_name [] = 
+const char * const smp_state_name [] =
 {
     "SMP_ST_IDLE",
     "SMP_ST_WAIT_APP_RSP",
     "SMP_ST_SEC_REQ_PENDING",
-    "SMP_ST_PAIR_REQ_RSP",  
+    "SMP_ST_PAIR_REQ_RSP",
     "SMP_ST_WAIT_CONFIRM",
     "SMP_ST_CONFIRM",
     "SMP_ST_RAND",
@@ -31,29 +31,29 @@ const char * const smp_state_name [] =
     "SMP_ST_RELEASE_DELAY",
     "SMP_ST_MAX"
 };
-const char * const smp_event_name [] = 
+const char * const smp_event_name [] =
 {
-    "PAIRING_REQ_EVT",   
-    "PAIRING_RSP_EVT",     
-    "CONFIRM_EVT",        
-    "RAND_EVT",            
-    "PAIRING_FAILED_EVT",  
-    "ENC_INFO_EVT",       
+    "PAIRING_REQ_EVT",
+    "PAIRING_RSP_EVT",
+    "CONFIRM_EVT",
+    "RAND_EVT",
+    "PAIRING_FAILED_EVT",
+    "ENC_INFO_EVT",
     "MASTER_ID_EVT",
     "ID_INFO_EVT",
     "ID_ADDR_EVT",
     "SIGN_INFO_EVT",
-    "SECURITY_REQ_EVT",    
-    "KEY_READY_EVT",       
-    "ENCRYPTED_EVT",       
-    "L2CAP_CONN_EVT",      
-    "L2CAP_DISCONN_EVT",   
-    "API_IO_RSP_EVT",      
-    "API_SEC_GRANT_EVT",   
-    "TK_REQ_EVT",          
-    "AUTH_CMPL_EVT",       
-    "ENC_REQ_EVT",         
-    "BOND_REQ_EVT",        
+    "SECURITY_REQ_EVT",
+    "KEY_READY_EVT",
+    "ENCRYPTED_EVT",
+    "L2CAP_CONN_EVT",
+    "L2CAP_DISCONN_EVT",
+    "API_IO_RSP_EVT",
+    "API_SEC_GRANT_EVT",
+    "TK_REQ_EVT",
+    "AUTH_CMPL_EVT",
+    "ENC_REQ_EVT",
+    "BOND_REQ_EVT",
     "DISCARD_SEC_REQ_EVT",
     "RELEASE_DELAY_EVT",
     "RELEASE_DELAY_TOUT_EVT",
@@ -109,9 +109,9 @@ enum
     SMP_SM_NO_ACTION
 };
 
-static const tSMP_ACT smp_sm_action[] = 
+static const tSMP_ACT smp_sm_action[] =
 {
-    smp_proc_sec_req,    
+    smp_proc_sec_req,
     smp_send_pair_req,
     smp_send_pair_rsp,
     smp_send_confirm,
@@ -194,11 +194,11 @@ static const UINT8 smp_ma_idle_table[][SMP_SM_NUM_COLS] = {
 
 static const UINT8 smp_ma_wait_app_rsp_table[][SMP_SM_NUM_COLS] = {
 /* Event       			                                 Action          Next State */
-/* SEC_GRANT            */ { SMP_PROC_SEC_GRANT,   SMP_SEND_APP_CBACK, SMP_ST_WAIT_APP_RSP}, 
+/* SEC_GRANT            */ { SMP_PROC_SEC_GRANT,   SMP_SEND_APP_CBACK, SMP_ST_WAIT_APP_RSP},
 /* IO_RSP               */ { SMP_SEND_PAIR_REQ,    SMP_SM_NO_ACTION,   SMP_ST_PAIR_REQ_RSP},
-/* KEY_READY            */ { SMP_GENERATE_CONFIRM, SMP_SM_NO_ACTION,   SMP_ST_WAIT_CONFIRM},/* TK ready */ 
-/* ENC_REQ              */ { SMP_START_ENC,        SMP_SM_NO_ACTION,   SMP_ST_ENC_PENDING},/* start enc mode setup */ 
-/* DISCARD_SEC_REQ      */ { SMP_PROC_DISCARD,     SMP_SM_NO_ACTION,   SMP_ST_IDLE} 
+/* KEY_READY            */ { SMP_GENERATE_CONFIRM, SMP_SM_NO_ACTION,   SMP_ST_WAIT_CONFIRM},/* TK ready */
+/* ENC_REQ              */ { SMP_START_ENC,        SMP_SM_NO_ACTION,   SMP_ST_ENC_PENDING},/* start enc mode setup */
+/* DISCARD_SEC_REQ      */ { SMP_PROC_DISCARD,     SMP_SM_NO_ACTION,   SMP_ST_IDLE}
 };
 
 static const UINT8 smp_ma_pair_req_rsp_table [][SMP_SM_NUM_COLS] = {
@@ -250,7 +250,7 @@ static const UINT8 smp_ma_rel_delay_table[][SMP_SM_NUM_COLS] = {
 /************ SMP Slave FSM State/Event Indirection Table **************/
 static const UINT8 smp_sl_entry_map[][SMP_ST_MAX] =
 {
-/* state name:            Idle Wait   SecReq Pair   Wait Confirm Init Enc   Bond  Rel  
+/* state name:            Idle Wait   SecReq Pair   Wait Confirm Init Enc   Bond  Rel
                                AppRsp Pend   ReqRsp Cfm              Pend  Pend   Delay   */
 /* PAIR_REQ */           { 2,    0,    1,      0,     0,   0,    0,   0,    0,     0       },
 /* PAIR_RSP */           { 0,    0,    0,      0,     0,   0,    0,   0,    0,     0       },
@@ -380,20 +380,20 @@ void smp_set_state(tSMP_STATE state)
 {
     if (state < SMP_ST_MAX)
     {
-        SMP_TRACE_DEBUG4( "State change: %s(%d) ==> %s(%d)", 
+        SMP_TRACE_DEBUG4( "State change: %s(%d) ==> %s(%d)",
                           smp_get_state_name(smp_cb.state), smp_cb.state,
-                          smp_get_state_name(state), state ); 
+                          smp_get_state_name(state), state );
         smp_cb.state = state;
     }
     else
     {
-        SMP_TRACE_DEBUG1("smp_set_state invalid state =%d", state );  
+        SMP_TRACE_DEBUG1("smp_set_state invalid state =%d", state );
     }
 }
 
 /*******************************************************************************
 ** Function     smp_get_state
-** Returns      The smp state 
+** Returns      The smp state
 *******************************************************************************/
 tSMP_STATE smp_get_state(void)
 {
@@ -406,11 +406,11 @@ tSMP_STATE smp_get_state(void)
 ** Function     smp_sm_event
 **
 ** Description  Handle events to the state machine. It looks up the entry
-**              in the smp_entry_table array. 
-**              If it is a valid entry, it gets the state table.Set the next state, 
-**              if not NULL state.Execute the action function according to the 
-**              state table. If the state returned by action function is not NULL 
-**              state, adjust the new state to the returned state.If (api_evt != MAX), 
+**              in the smp_entry_table array.
+**              If it is a valid entry, it gets the state table.Set the next state,
+**              if not NULL state.Execute the action function according to the
+**              state table. If the state returned by action function is not NULL
+**              state, adjust the new state to the returned state.If (api_evt != MAX),
 **              call callback function.
 **
 ** Returns      void.
@@ -431,7 +431,7 @@ void smp_sm_event(tSMP_CB *p_cb, tSMP_EVENT event, void *p_data)
     }
 
     SMP_TRACE_DEBUG5( "SMP Role: %s State: [%s (%d)], Event: [%s (%d)]",\
-                      (p_cb->role == 0x01) ?"Slave" : "Master", smp_get_state_name( p_cb->state), 
+                      (p_cb->role == 0x01) ?"Slave" : "Master", smp_get_state_name( p_cb->state),
                       p_cb->state, smp_get_event_name(event), event) ;
 
     /* look up the state table for the current state */
@@ -450,7 +450,7 @@ void smp_sm_event(tSMP_CB *p_cb, tSMP_EVENT event, void *p_data)
     }
     else
     {
-        SMP_TRACE_DEBUG4( "Ignore event [%s (%d)] in state [%s (%d)]", 
+        SMP_TRACE_DEBUG4( "Ignore event [%s (%d)] in state [%s (%d)]",
                           smp_get_event_name(event), event, smp_get_state_name(curr_state), curr_state);
         return;
     }
@@ -489,7 +489,7 @@ const char * smp_get_state_name(tSMP_STATE state)
 
     if (state < SMP_ST_MAX)
     {
-        p_str = smp_state_name[state];  
+        p_str = smp_state_name[state];
     }
     return p_str;
 }

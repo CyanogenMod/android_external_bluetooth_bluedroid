@@ -24,5 +24,5 @@ int SBC_init(int pcm_sample_freq, int channels, int bits_per_sample);
  return - number of bytes written to sbc_out
 */
 
-int SBC_write(unsigned char *pcm_in, int length, unsigned char *sbc_out); 
+int SBC_write(unsigned char *pcm_in, int length, unsigned char *sbc_out);
 #endif

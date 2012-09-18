@@ -31,7 +31,7 @@ const tBTA_FS_CFG bta_fs_cfg =
 {
     BTA_FS_FILE_LEN,
     BTA_FS_PATH_LEN,
-    BTA_FS_PATH_SEPARATOR   
+    BTA_FS_PATH_SEPARATOR
 };
 
 tBTA_FS_CFG *p_bta_fs_cfg = (tBTA_FS_CFG *)&bta_fs_cfg;

@@ -551,7 +551,7 @@ BOOLEAN btif_hh_copy_hid_info(tBTA_HH_DEV_DSCP_INFO* dest , tBTA_HH_DEV_DSCP_INF
 
 /*******************************************************************************
 **
-** Function         btif_btif_hh_virtual_unpug
+** Function         btif_hh_virtual_unplug
 **
 ** Description      Virtual unplug initiated from the BTIF thread context
 **                  Special handling for HID mouse-
@@ -560,7 +560,7 @@ BOOLEAN btif_hh_copy_hid_info(tBTA_HH_DEV_DSCP_INFO* dest , tBTA_HH_DEV_DSCP_INF
 **
 *******************************************************************************/
 
-bt_status_t btif_hh_virtual_unpug(bt_bdaddr_t *bd_addr)
+bt_status_t btif_hh_virtual_unplug(bt_bdaddr_t *bd_addr)
 {
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
     btif_hh_device_t *p_dev;
@@ -659,7 +659,7 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
 
 /*******************************************************************************
 **
-** Function         btif_btif_hh_disconnect
+** Function         btif_hh_disconnect
 **
 ** Description      disconnection initiated from the BTIF thread context
 **
@@ -1063,7 +1063,7 @@ static void btif_hh_handle_evt(UINT16 event, char *p_param)
         case BTIF_HH_VUP_REQ_EVT:
         {
             BTIF_TRACE_EVENT2("%s: event=%d", __FUNCTION__, event);
-            ret = btif_hh_virtual_unpug(bd_addr);
+            ret = btif_hh_virtual_unplug(bd_addr);
         }
         break;
 

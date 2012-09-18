@@ -2,7 +2,7 @@
 **
 **  File Name:   $RCSfile: sbc_packing.c,v $
 **
-**  Description: This file contains code for packing the Encoded data into bit 
+**  Description: This file contains code for packing the Encoded data into bit
 **  streams.
 **
 **  Revision :   $Id: sbc_packing.c,v 1.17 2006/04/11 17:07:03 mjougit Exp $
@@ -22,7 +22,7 @@
    {                                                                                    \
         MUL s32OutLow,s32In1,s32In2;                                                    \
     }                                                                                   \
-} 
+}
 #define Mult64(s32In1, s32In2, s32OutLow, s32OutHi)                                     \
 {                                                                                       \
     __asm													        					\
@@ -74,7 +74,7 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
     pu8PacketPtr    = pstrEncParams->pu8NextPacket;    /*Initialize the ptr*/
     *pu8PacketPtr++ = (UINT8)0x9C;  /*Sync word*/
     *pu8PacketPtr++=(UINT8)(pstrEncParams->FrameHeader);
-    
+
     *pu8PacketPtr = (UINT8)(pstrEncParams->s16BitPool & 0x00FF);
     pu8PacketPtr += 2;  /*skip for CRC*/
 
@@ -103,7 +103,7 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
         }
     }
 #endif
-    
+
     /* Pack Scale factor */
     ps16GenPtr = pstrEncParams->as16ScaleFactor;
     s32Sb=s32NumOfChannels*s32NumOfSubBands;
@@ -112,10 +112,10 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
     {
         Temp<<= 4;
         Temp |= *ps16GenPtr++;
-        
+
         if(s32PresentBit == 4)
         {
-            s32PresentBit = 8; 
+            s32PresentBit = 8;
             *(pu8PacketPtr++)=Temp;
             Temp = 0;
         }
@@ -124,7 +124,7 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
             s32PresentBit = 4;
         }
     }
-    
+
     /* Pack samples */
     ps32SbPtr   = pstrEncParams->s32SbBuffer;
     /*Temp=*pu8PacketPtr;*/
@@ -165,10 +165,10 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
                 s32Low>>= (*ps16ScfPtr+1);
                 u32QuantizedSbValue0 = (UINT16)s32Low;
 #endif
-                /*store the number of bits required and the quantized s32Sb 
+                /*store the number of bits required and the quantized s32Sb
                 sample to ease the coding*/
                 u32QuantizedSbValue = u32QuantizedSbValue0;
-                
+
                 if(s32PresentBit >= s32LoopCount)
                 {
                     Temp <<= s32LoopCount;
@@ -181,33 +181,33 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
                     {
                         s32LoopCount -= s32PresentBit;
                         u32QuantizedSbValue >>= s32LoopCount;
-                        
+
                         /*remove the unwanted msbs*/
                         /*u32QuantizedSbValue <<= 16 - s32PresentBit;
                         u32QuantizedSbValue >>= 16 - s32PresentBit;*/
-                        
+
                         Temp <<= s32PresentBit;
-                        
+
                         Temp |= u32QuantizedSbValue ;
                         /*restore the original*/
                         u32QuantizedSbValue=u32QuantizedSbValue0;
-                        
+
                         *(pu8PacketPtr++)=Temp;
                         Temp = 0;
                         s32PresentBit = 8;
                     }
                     Temp <<= s32LoopCount;
-                    
+
                     /* remove the unwanted msbs */
                     /*u32QuantizedSbValue <<= 16 - s32LoopCount;
                     u32QuantizedSbValue >>= 16 - s32LoopCount;*/
-                    
+
                     Temp |= u32QuantizedSbValue;
-                    
+
                     s32PresentBit -= s32LoopCount;
                 }
             }
-            ps16ScfPtr++; 
+            ps16ScfPtr++;
             ps32SbPtr++;
         }
     }
@@ -221,7 +221,7 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
     s32LoopCount = s32Sb >> 1;
 
     /*
-    The loops is run from the start of the packet till the scale factor 
+    The loops is run from the start of the packet till the scale factor
     parameters. In case of JS, 'join' parameter is included in the packet
     so that many more bytes are included in CRC calculation.
     */

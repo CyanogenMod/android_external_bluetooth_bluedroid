@@ -136,7 +136,7 @@ void bta_hh_update_di_info(tBTA_HH_DEV_CB *p_cb, UINT16 vendor_id, UINT16 produc
                            UINT16 version)
 {
 #if BTA_HH_DEBUG
-    APPL_TRACE_DEBUG3("vendor_id = 0x%2x product_id = 0x%2x version = 0x%2x", 
+    APPL_TRACE_DEBUG3("vendor_id = 0x%2x product_id = 0x%2x version = 0x%2x",
                         vendor_id, product_id, version);
 #endif
     p_cb->dscp_info.vendor_id     =   vendor_id;
@@ -155,7 +155,7 @@ void bta_hh_update_di_info(tBTA_HH_DEV_CB *p_cb, UINT16 vendor_id, UINT16 produc
 void bta_hh_add_device_to_list(tBTA_HH_DEV_CB *p_cb, UINT8 handle,
                                UINT16 attr_mask,
                                tHID_DEV_DSCP_INFO *p_dscp_info,
-                               UINT8 sub_class, 
+                               UINT8 sub_class,
                                UINT16 ssr_max_latency,
                                UINT16 ssr_min_tout,
                                UINT8 app_id)

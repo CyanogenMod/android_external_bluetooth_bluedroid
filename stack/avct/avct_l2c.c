@@ -82,7 +82,7 @@ static BOOLEAN avct_l2c_is_passive (tAVCT_LCB *p_lcb)
 ** Function         avct_l2c_connect_ind_cback
 **
 ** Description      This is the L2CAP connect indication callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -118,14 +118,14 @@ void avct_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
             AVCT_TRACE_DEBUG1("avct_l2c_connect_ind_cback conflict_lcid:0x%x", p_lcb->conflict_lcid);
         }
     }
-    
+
     if(p_lcb)
     {
         AVCT_TRACE_DEBUG3("avct_l2c_connect_ind_cback: 0x%x, res: %d, ch_state: %d",
             lcid, result, p_lcb->ch_state);
     }
     /* Send L2CAP connect rsp */
-    L2CA_ConnectRsp(bd_addr, id, lcid, result, 0); 
+    L2CA_ConnectRsp(bd_addr, id, lcid, result, 0);
 
     /* if result ok, proceed with connection */
     if (result == L2CAP_CONN_OK)
@@ -155,7 +155,7 @@ void avct_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
 ** Function         avct_l2c_connect_cfm_cback
 **
 ** Description      This is the L2CAP connect confirm callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -216,7 +216,7 @@ void avct_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Function         avct_l2c_config_cfm_cback
 **
 ** Description      This is the L2CAP config confirm callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -266,7 +266,7 @@ void avct_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Function         avct_l2c_config_ind_cback
 **
 ** Description      This is the L2CAP config indication callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -296,7 +296,7 @@ void avct_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 
         /* if first config ind */
         if ((p_lcb->ch_flags & AVCT_L2C_CFG_IND_DONE) == 0)
-        {        
+        {
             /* update flags */
             p_lcb->ch_flags |= AVCT_L2C_CFG_IND_DONE;
 
@@ -316,7 +316,7 @@ void avct_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Function         avct_l2c_disconnect_ind_cback
 **
 ** Description      This is the L2CAP disconnect indication callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -335,7 +335,7 @@ void avct_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
             /* send L2CAP disconnect response */
             L2CA_DisconnectRsp(lcid);
         }
-  
+
         avct_lcb_event(p_lcb, AVCT_LCB_LL_CLOSE_EVT, (tAVCT_LCB_EVT *) &result);
         AVCT_TRACE_DEBUG1("ch_state di: %d ", p_lcb->ch_state);
     }
@@ -346,7 +346,7 @@ void avct_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
 ** Function         avct_l2c_disconnect_cfm_cback
 **
 ** Description      This is the L2CAP disconnect confirm callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -375,7 +375,7 @@ void avct_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Function         avct_l2c_congestion_ind_cback
 **
 ** Description      This is the L2CAP congestion indication callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -397,7 +397,7 @@ void avct_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested)
 ** Function         avct_l2c_data_ind_cback
 **
 ** Description      This is the L2CAP data indication callback function.
-**                  
+**
 **
 ** Returns          void
 **

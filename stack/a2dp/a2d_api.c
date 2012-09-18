@@ -54,7 +54,7 @@ static void a2d_sdp_cback(UINT16 status)
         do
         {
             /* get next record; if none found, we're done */
-            if ((p_rec = SDP_FindServiceInDb(a2d_cb.find.p_db, 
+            if ((p_rec = SDP_FindServiceInDb(a2d_cb.find.p_db,
                             a2d_cb.find.service_uuid, p_rec)) == NULL)
             {
                 break;
@@ -112,7 +112,7 @@ static void a2d_sdp_cback(UINT16 status)
 **
 ** Function         a2d_set_avdt_sdp_ver
 **
-** Description      This function allows the script wrapper to change the 
+** Description      This function allows the script wrapper to change the
 **                  avdt version of a2dp.
 **
 ** Returns          None
@@ -172,7 +172,7 @@ tA2D_STATUS A2D_AddRecord(UINT16 service_uuid, char *p_service_name, char *p_pro
     result &= SDP_AddServiceClassIdList(sdp_handle, 1, &service_uuid);
 
     memset((void*) proto_list, 0 , A2D_NUM_PROTO_ELEMS*sizeof(tSDP_PROTOCOL_ELEM));
-        
+
     /* add protocol descriptor list   */
     proto_list[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
     proto_list[0].num_params = 1;
@@ -239,7 +239,7 @@ tA2D_STATUS A2D_AddRecord(UINT16 service_uuid, char *p_service_name, char *p_pro
 **
 **                      p_db:  Pointer to the information to initialize
 **                             the discovery database.
-**                      
+**
 **                      p_cback:  Pointer to the A2D_FindService()
 **                      callback function.
 **
@@ -269,7 +269,7 @@ tA2D_STATUS A2D_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
         p_db == NULL || p_db->p_db == NULL || p_cback == NULL)
         return A2D_INVALID_PARAMS;
 
-    if( a2d_cb.find.service_uuid == UUID_SERVCLASS_AUDIO_SOURCE || 
+    if( a2d_cb.find.service_uuid == UUID_SERVCLASS_AUDIO_SOURCE ||
         a2d_cb.find.service_uuid == UUID_SERVCLASS_AUDIO_SINK)
         return A2D_BUSY;
 
@@ -360,9 +360,9 @@ UINT8 A2D_BitsSet(UINT8 num)
 ** Function         A2D_Init
 **
 ** Description      This function is called to initialize the control block
-**                  for this layer.  It must be called before accessing any 
+**                  for this layer.  It must be called before accessing any
 **                  other API functions for this layer.  It is typically called
-**                  once during the start up of the stack.  
+**                  once during the start up of the stack.
 **
 ** Returns          void
 **
@@ -372,7 +372,7 @@ void A2D_Init(void)
     memset(&a2d_cb, 0, sizeof(tA2D_CB));
 
     a2d_cb.avdt_sdp_ver = AVDT_VERSION;
-    
+
 #if defined(A2D_INITIAL_TRACE_LEVEL)
     a2d_cb.trace_level  = A2D_INITIAL_TRACE_LEVEL;
 #else

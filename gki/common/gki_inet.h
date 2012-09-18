@@ -5,7 +5,7 @@
 **  Function    This file contains macros and interfaces for host-to-network
 **              conversions used in Internet operations.
 **
-**                                                                         
+**
 **  Copyright (c) 2002-2004, WIDCOMM Inc., All Rights Reserved.
 **  Proprietary and confidential.
 **

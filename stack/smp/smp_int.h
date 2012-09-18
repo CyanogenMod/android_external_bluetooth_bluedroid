@@ -55,7 +55,7 @@ typedef UINT8   tSMP_ASSO_MODEL;
 #define SMP_SIGN_INFO_EVT               SMP_OPCODE_SIGN_INFO
 #define SMP_SECURITY_REQ_EVT            SMP_OPCODE_SEC_REQ
 
-#define SMP_SELF_DEF_EVT                SMP_SECURITY_REQ_EVT 
+#define SMP_SELF_DEF_EVT                SMP_SECURITY_REQ_EVT
 #define SMP_KEY_READY_EVT               (SMP_SELF_DEF_EVT + 1)
 #define SMP_ENCRYPTED_EVT               (SMP_SELF_DEF_EVT + 2)
 #define SMP_L2CAP_CONN_EVT              (SMP_SELF_DEF_EVT + 3)
@@ -81,7 +81,7 @@ enum
     SMP_ST_IDLE,
     SMP_ST_WAIT_APP_RSP,
     SMP_ST_SEC_REQ_PENDING,
-    SMP_ST_PAIR_REQ_RSP,   
+    SMP_ST_PAIR_REQ_RSP,
     SMP_ST_WAIT_CONFIRM,
     SMP_ST_CONFIRM,
     SMP_ST_RAND,
@@ -128,8 +128,8 @@ typedef union
 }tSMP_INT_DATA;
 
 /* internal status mask */
-#define SMP_PAIR_FLAGS_WE_STARTED_DD           (1)  
-#define SMP_PAIR_FLAGS_PEER_STARTED_DD         (1 << 1)  
+#define SMP_PAIR_FLAGS_WE_STARTED_DD           (1)
+#define SMP_PAIR_FLAGS_PEER_STARTED_DD         (1 << 1)
 #define SMP_PAIR_FLAGS_CMD_CONFIRM             (1 << SMP_OPCODE_CONFIRM) /* 1 << 3 */
 #define SMP_PAIR_FLAG_ENC_AFTER_PAIR           (1 << 4)
 
@@ -215,7 +215,7 @@ extern "C"
 #define smp_cb (*smp_cb_ptr)
 #endif
 
-#ifdef __cplusplus  
+#ifdef __cplusplus
 }
 #endif
 
@@ -224,15 +224,15 @@ SMP_API extern void smp_init (void);
 
 #if SMP_CONFORMANCE_TESTING == TRUE
 /* Used only for conformance testing */
-SMP_API extern void  smp_set_test_confirm_value (BOOLEAN enable, UINT8 *p_c_value); 
-SMP_API extern void  smp_set_test_rand_value (BOOLEAN enable, UINT8 *p_c_value); 
-SMP_API extern void  smp_set_test_pair_fail_status (BOOLEAN enable, UINT8 status); 
-SMP_API extern void  smp_remove_fixed_channel_disable (BOOLEAN disable); 
+SMP_API extern void  smp_set_test_confirm_value (BOOLEAN enable, UINT8 *p_c_value);
+SMP_API extern void  smp_set_test_rand_value (BOOLEAN enable, UINT8 *p_c_value);
+SMP_API extern void  smp_set_test_pair_fail_status (BOOLEAN enable, UINT8 status);
+SMP_API extern void  smp_remove_fixed_channel_disable (BOOLEAN disable);
 #endif
 /* smp main */
 extern void smp_sm_event(tSMP_CB *p_cb, tSMP_EVENT event, void *p_data);
 
-extern void smp_proc_sec_request(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);   
+extern void smp_proc_sec_request(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 extern void smp_send_pair_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 extern void smp_send_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 extern void smp_send_pair_fail(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
@@ -282,8 +282,8 @@ extern void smp_convert_string_to_tk(BT_OCTET16 tk, UINT32 passkey);
 extern void smp_mask_enc_key(UINT8 loc_enc_size, UINT8 * p_data);
 extern void smp_rsp_timeout(TIMER_LIST_ENT *p_tle);
 extern void smp_xor_128(BT_OCTET16 a, BT_OCTET16 b);
-extern BOOLEAN smp_encrypt_data (UINT8 *key, UINT8 key_len, 
-                                 UINT8 *plain_text, UINT8 pt_len, 
+extern BOOLEAN smp_encrypt_data (UINT8 *key, UINT8 key_len,
+                                 UINT8 *plain_text, UINT8 pt_len,
                                  tSMP_ENC *p_out);
 /* smp key */
 extern void smp_generate_confirm (tSMP_CB *p_cb, tSMP_INT_DATA *p_data);

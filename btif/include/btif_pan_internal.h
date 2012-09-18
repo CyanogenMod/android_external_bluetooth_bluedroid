@@ -45,20 +45,23 @@
  *
  ************************************************************************************/
 
-
-/************************************************************************************
+/*******************************************************************************
  *
  *  Filename:      btif_pan_internal.h
  *
  *  Description:   Bluetooth pan internal
  *
- *
- ***********************************************************************************/
+ *******************************************************************************/
 
-#ifndef btif_pan_internal_h_
-#define btif_pan_internal_h_
+#ifndef BTIF_PAN_INTERNAL_H
+#define BTIF_PAN_INTERNAL_H
+
 #include "btif_pan.h"
 #include "bt_types.h"
+
+/*******************************************************************************
+**  Constants & Macros
+********************************************************************************/
 
 #define PAN_NAP_SERVICE_NAME "Android Network Access Point"
 #define PANU_SERVICE_NAME "Android Network User"
@@ -74,12 +77,19 @@
 #ifndef PAN_ROLE_INACTIVE
 #define PAN_ROLE_INACTIVE 0
 #endif
+
+
+/*******************************************************************************
+**  Type definitions and return values
+********************************************************************************/
+
 typedef struct eth_hdr
 {
     unsigned char h_dest[ETH_ADDR_LEN];
     unsigned char h_src[ETH_ADDR_LEN];
     short         h_proto;
 } tETH_HDR;
+
 typedef struct
 {
     int handle;
@@ -100,6 +110,12 @@ typedef struct
     int open_count;
     btpan_conn_t conns[MAX_PAN_CONNS];
 } btpan_cb_t;
+
+
+/*******************************************************************************
+**  Functions
+********************************************************************************/
+
 extern btpan_cb_t btpan_cb;
 btpan_conn_t *btpan_new_conn(int handle, const BD_ADDR addr, int local_role, int peer_role);
 btpan_conn_t *btpan_find_conn_addr(const BD_ADDR addr);
@@ -111,6 +127,7 @@ void destroy_tap_read_thread(void);
 int btpan_tap_close(int tap_fd);
 int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 protocol,
                    const char* buff, UINT16 size, BOOLEAN ext, BOOLEAN forward);
+
 static inline int is_empty_eth_addr(const BD_ADDR addr)
 {
     int i;
@@ -119,11 +136,12 @@ static inline int is_empty_eth_addr(const BD_ADDR addr)
             return 0;
     return 1;
 }
+
 static inline int is_valid_bt_eth_addr(const BD_ADDR addr)
 {
     if(is_empty_eth_addr(addr))
         return 0;
-    return addr[0] & 1 ? 0 : 1; //cannot be multicasting address
+    return addr[0] & 1 ? 0 : 1; /* Cannot be multicasting address */
 }
 
 #endif

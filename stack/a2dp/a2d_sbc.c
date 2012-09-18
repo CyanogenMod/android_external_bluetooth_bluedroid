@@ -2,7 +2,7 @@
 **
 **  Name:       a2d_sbc.c
 **
-**  Description:utility functions to help build and parse SBC 
+**  Description:utility functions to help build and parse SBC
 **              Codec Information Element and Media Payload.
 **  Copyright (c) 2002-2004, WIDCOMM Inc., All Rights Reserved.
 **  WIDCOMM Bluetooth Core. Proprietary and confidential.
@@ -46,7 +46,7 @@
  *
  *    if(index > 0)
  *    {
- *        p = &u8frame[base_index]; 
+ *        p = &u8frame[base_index];
  *        if((index&1)&&(u16PacketLength > (base_index+index*2)))
  *        {
  *            // odd index: swap 2 bytes

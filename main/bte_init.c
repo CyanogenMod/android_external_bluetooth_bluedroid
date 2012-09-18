@@ -84,7 +84,7 @@
 #endif
 
 #if ((defined(HSP2_INCLUDED) && HSP2_INCLUDED == TRUE)) || \
-    ((defined(HFP_INCLUDED) && HFP_INCLUDED == TRUE)) 
+    ((defined(HFP_INCLUDED) && HFP_INCLUDED == TRUE))
 #include "hsp2_api.h"
 #endif
 
@@ -455,13 +455,13 @@ BT_API void BTE_InitStack(void)
 #endif
 #if BTA_SS_INCLUDED==TRUE
     memset((void*)bta_ss_cb_ptr, 0, sizeof(tBTA_SS_CB));
-#endif  	
-#if BTA_CT_INCLUDED==TRUE	
+#endif
+#if BTA_CT_INCLUDED==TRUE
     memset((void*)bta_ct_cb_ptr, 0, sizeof(tBTA_CT_CB));
-#endif  	
-#if BTA_CG_INCLUDED==TRUE	
+#endif
+#if BTA_CG_INCLUDED==TRUE
     memset((void*)bta_cg_cb_ptr, 0, sizeof(tBTA_CG_CB));
-#endif  	
+#endif
 #if BTA_BI_INCLUDED==TRUE
     memset((void *)bta_bic_cb_ptr, 0, sizeof(tBTA_BIC_CB));
     memset((void *)bta_bis_cb_ptr, 0, sizeof(tBTA_BIS_CB));

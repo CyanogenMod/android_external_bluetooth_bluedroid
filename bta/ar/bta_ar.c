@@ -24,7 +24,7 @@ tBTA_AR_CB  bta_ar_cb;
 **
 ** Function         bta_ar_id
 **
-** Description      This function maps sys_id to ar id mask. 
+** Description      This function maps sys_id to ar id mask.
 **
 ** Returns          void
 **
@@ -36,7 +36,7 @@ static UINT8 bta_ar_id(tBTA_SYS_ID sys_id)
     {
         mask = BTA_AR_AV_MASK;
     }
-    else if (sys_id == BTA_ID_AVK) 
+    else if (sys_id == BTA_ID_AVK)
     {
         mask = BTA_AR_AVK_MASK;
     }
@@ -48,7 +48,7 @@ static UINT8 bta_ar_id(tBTA_SYS_ID sys_id)
 **
 ** Function         bta_ar_init
 **
-** Description      This function is called to register to AVDTP. 
+** Description      This function is called to register to AVDTP.
 **
 ** Returns          void
 **
@@ -63,7 +63,7 @@ void bta_ar_init(void)
 **
 ** Function         bta_ar_reg_avdt
 **
-** Description      This function is called to register to AVDTP. 
+** Description      This function is called to register to AVDTP.
 **
 ** Returns          void
 **
@@ -95,21 +95,21 @@ void bta_ar_reg_avdt(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback, tBTA_SYS_ID sy
         bta_ar_cb.p_av_conn_cback = p_cback;
         mask = BTA_AR_AV_MASK;
     }
-    else if (sys_id == BTA_ID_AVK) 
+    else if (sys_id == BTA_ID_AVK)
     {
         bta_ar_cb.p_avk_conn_cback = p_cback;
         mask = BTA_AR_AVK_MASK;
     }
 #if (BTA_AR_DEBUG == TRUE)
-    else 
-    { 
+    else
+    {
         APPL_TRACE_ERROR1("bta_ar_reg_avdt: the registration is from wrong sys_id:%d", sys_id);
     }
 #endif
 
     if (mask)
     {
-        if (bta_ar_cb.avdt_registered == 0) 
+        if (bta_ar_cb.avdt_registered == 0)
         {
             AVDT_Register(p_reg, bta_ar_avdt_cback);
         }
@@ -121,7 +121,7 @@ void bta_ar_reg_avdt(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback, tBTA_SYS_ID sy
 **
 ** Function         bta_ar_dereg_avdt
 **
-** Description      This function is called to de-register from AVDTP. 
+** Description      This function is called to de-register from AVDTP.
 **
 ** Returns          void
 **
@@ -135,7 +135,7 @@ void bta_ar_dereg_avdt(tBTA_SYS_ID sys_id)
         bta_ar_cb.p_av_conn_cback = NULL;
         mask = BTA_AR_AV_MASK;
     }
-    else if (sys_id == BTA_ID_AVK) 
+    else if (sys_id == BTA_ID_AVK)
     {
         bta_ar_cb.p_avk_conn_cback = NULL;
         mask = BTA_AR_AVK_MASK;
@@ -170,7 +170,7 @@ void bta_ar_avdt_conn(tBTA_SYS_ID sys_id, BD_ADDR bd_addr)
             (*bta_ar_cb.p_avk_conn_cback)(0, bd_addr, event, &data);
         }
     }
-    else if (sys_id == BTA_ID_AVK) 
+    else if (sys_id == BTA_ID_AVK)
     {
         if (bta_ar_cb.p_av_conn_cback)
         {
@@ -194,7 +194,7 @@ void bta_ar_reg_avct(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask, tBTA_SYS_ID sys_
 
     if (mask)
     {
-        if (bta_ar_cb.avct_registered == 0) 
+        if (bta_ar_cb.avct_registered == 0)
         {
             AVCT_Register(mtu, mtu_br, sec_mask);
         }
@@ -230,7 +230,7 @@ void bta_ar_dereg_avct(tBTA_SYS_ID sys_id)
 ** Returns          void
 **
 ******************************************************************************/
-void bta_ar_reg_avrc(UINT16 service_uuid, char *service_name, char *provider_name, 
+void bta_ar_reg_avrc(UINT16 service_uuid, char *service_name, char *provider_name,
 					 UINT16 categories, tBTA_SYS_ID sys_id)
 {
     UINT8   mask = bta_ar_id (sys_id);

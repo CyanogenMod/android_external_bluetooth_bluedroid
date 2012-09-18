@@ -159,7 +159,7 @@ typedef struct {
 
     /* notifies caller result of preload request */
     preload_result_cb  preload_cb;
-    
+
     /* notifies caller result of postload request */
     postload_result_cb  postload_cb;
 
@@ -221,7 +221,7 @@ typedef struct {
 } bt_hc_interface_t;
 
 
-/* 
+/*
  * External shared lib functions
  */
 

@@ -85,7 +85,7 @@ extern "C"
 **
 ** Function         bta_fs_ci_write
 **
-** Description      This function sends an event to BTA indicating the phone 
+** Description      This function sends an event to BTA indicating the phone
 **                  has written the number of bytes specified in the call-out
 **                  function, bta_fs_co_write(), and is ready for more data.
 **                  This function is used to control the TX data flow.
@@ -98,7 +98,7 @@ extern "C"
 **                  evt - Used Internally by BTA -> MUST be same value passed
 **                       in call-out function.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_fs_ci_write(int fd, tBTA_FS_CO_STATUS status, UINT16 evt);
@@ -112,7 +112,7 @@ BTA_API extern void bta_fs_ci_write(int fd, tBTA_FS_CO_STATUS status, UINT16 evt
 **                  bta_fs_co_read() call-out function.  It should only be called
 **                  when the requested number of bytes has been read in, or aioer
 **                  the end of the file has been detected.
-**                  
+**
 ** Parameters       fd - file descriptor passed to the stack in the
 **                       bta_fs_ci_open call-in function.
 **                  num_bytes_read - number of bytes read into the buffer
@@ -123,7 +123,7 @@ BTA_API extern void bta_fs_ci_write(int fd, tBTA_FS_CO_STATUS status, UINT16 evt
 **                  evt - Used Internally by BTA -> MUST be same value passed
 **                       in call-out function.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_fs_ci_read(int fd, UINT16 num_bytes_read,
@@ -135,7 +135,7 @@ BTA_API extern void bta_fs_ci_read(int fd, UINT16 num_bytes_read,
 **
 ** Description      This function sends an event to BTA indicating the phone has
 **                  finished opening a file for reading or writing.
-**                  
+**
 ** Parameters       fd - file descriptor passed to the stack in the
 **                       bta_fs_ci_open call-in function.
 **                  status - BTA_FS_CO_OK if file was opened in mode specified
@@ -147,7 +147,7 @@ BTA_API extern void bta_fs_ci_read(int fd, UINT16 num_bytes_read,
 **                  evt - Used Internally by BTA -> MUST be same value passed
 **                       in call-out function.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_fs_ci_open(int fd, tBTA_FS_CO_STATUS status,
@@ -166,7 +166,7 @@ BTA_API extern void bta_fs_ci_open(int fd, tBTA_FS_CO_STATUS status,
 **                  evt - Used Internally by BTA -> MUST be same value passed
 **                       in call-out function.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_fs_ci_direntry(tBTA_FS_CO_STATUS status, UINT16 evt);
@@ -186,7 +186,7 @@ BTA_API extern void bta_fs_ci_direntry(tBTA_FS_CO_STATUS status, UINT16 evt);
 **                  evt - Used Internally by BTA -> MUST be same value passed
 **                       in call-out function.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_fs_ci_resume (BD_ADDR_PTR p_addr, UINT8 *p_sess_info,
@@ -206,7 +206,7 @@ BTA_API extern void bta_fs_ci_resume (BD_ADDR_PTR p_addr, UINT8 *p_sess_info,
 **                  evt - Used Internally by BTA -> MUST be same value passed
 **                       in call-out function.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_fs_ci_action(tBTA_FS_CO_STATUS status, UINT16 evt);
@@ -217,7 +217,7 @@ BTA_API extern void bta_fs_ci_action(tBTA_FS_CO_STATUS status, UINT16 evt);
 **
 ** Description      This function sends an event to BTA indicating the phone has
 **                  finished opening a file for reading or writing on resume.
-**                  
+**
 ** Parameters       fd - file descriptor passed to the stack in the
 **                       bta_fs_ci_open call-in function.
 **                  status - BTA_FS_CO_OK if file was opened in mode specified
@@ -230,7 +230,7 @@ BTA_API extern void bta_fs_ci_action(tBTA_FS_CO_STATUS status, UINT16 evt);
 **                  evt - Used Internally by BTA -> MUST be same value passed
 **                       in call-out function.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_fs_ci_resume_op(int fd, tBTA_FS_CO_STATUS status, const char *p_file,

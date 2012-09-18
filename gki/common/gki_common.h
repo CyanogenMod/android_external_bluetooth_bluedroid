@@ -326,7 +326,7 @@ typedef struct
 
 #if (GKI_DEBUG == TRUE)
     UINT16      ExceptionCnt;                       /* number of GKI exceptions that have happened */
-    EXCEPTION_T Exception[GKI_MAX_EXCEPTION];       
+    EXCEPTION_T Exception[GKI_MAX_EXCEPTION];
 #endif
 
 } tGKI_COM_CB;

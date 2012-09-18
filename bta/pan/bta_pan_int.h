@@ -11,7 +11,7 @@
 *****************************************************************************/
 #ifndef BTA_PAN_INT_H
 #define BTA_PAN_INT_H
- 
+
 #include "bta_sys.h"
 #include "bta_pan_api.h"
 
@@ -65,7 +65,7 @@ typedef struct
     char                user_name[BTA_SERVICE_NAME_LEN+1];   /* Service name */
     char                gn_name[BTA_SERVICE_NAME_LEN+1];     /* Service name */
     char                nap_name[BTA_SERVICE_NAME_LEN+1];    /* Service name */
-    tBTA_PAN_ROLE       role;   
+    tBTA_PAN_ROLE       role;
     UINT8               user_app_id;
     UINT8               gn_app_id;
     UINT8               nap_app_id;

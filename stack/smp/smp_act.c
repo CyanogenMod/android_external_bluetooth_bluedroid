@@ -36,7 +36,7 @@ const UINT8 smp_association_table[2][SMP_IO_CAP_MAX][SMP_IO_CAP_MAX] =
     /* display only */    /*SMP_CAP_IO = 1 */  /* keyboard only */   /* No InputOutput */  /* keyboard display */
 };
 
-const tSMP_ACT smp_distribute_act [] = 
+const tSMP_ACT smp_distribute_act [] =
 {
     smp_generate_ltk,
     smp_send_id_info,
@@ -84,7 +84,7 @@ void smp_send_app_cback(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
             cb_data.io_req.auth_req = p_cb->peer_auth_req;
             cb_data.io_req.oob_data = SMP_OOB_NONE;
             cb_data.io_req.io_cap = SMP_DEFAULT_IO_CAPS;
-            cb_data.io_req.max_key_size = SMP_MAX_ENC_KEY_SIZE;           
+            cb_data.io_req.max_key_size = SMP_MAX_ENC_KEY_SIZE;
             cb_data.io_req.init_keys = p_cb->loc_i_key ;
             cb_data.io_req.resp_keys = p_cb->loc_r_key ;
 
@@ -118,7 +118,7 @@ void smp_send_app_cback(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 /*******************************************************************************
 ** Function     smp_send_pair_fail
-** Description  pairing failure to peer device if needed.        
+** Description  pairing failure to peer device if needed.
 *******************************************************************************/
 void smp_send_pair_fail(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
@@ -145,7 +145,7 @@ void smp_send_pair_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     /* erase all keys when master sends pairing req*/
     if (p_dev_rec)
         btm_sec_clear_ble_keys(p_dev_rec);
-    /* do not manipulate the key, let app decide,  
+    /* do not manipulate the key, let app decide,
        leave out to BTM to mandate key distribution for bonding case */
     smp_send_cmd(SMP_OPCODE_PAIRING_REQ, p_cb);
 }
@@ -191,7 +191,7 @@ void smp_send_init(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     }
 #endif
 
-    smp_send_cmd(SMP_OPCODE_INIT, p_cb);            
+    smp_send_cmd(SMP_OPCODE_INIT, p_cb);
 }
 /*******************************************************************************
 ** Function     smp_send_enc_info
@@ -204,8 +204,8 @@ void smp_send_enc_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     SMP_TRACE_DEBUG1 ("smp_send_enc_info  p_cb->loc_enc_size = %d", p_cb->loc_enc_size);
     smp_update_key_mask (p_cb, SMP_SEC_KEY_TYPE_ENC, FALSE);
 
-    smp_send_cmd(SMP_OPCODE_ENCRYPT_INFO, p_cb);            
-    smp_send_cmd(SMP_OPCODE_MASTER_ID, p_cb);   
+    smp_send_cmd(SMP_OPCODE_ENCRYPT_INFO, p_cb);
+    smp_send_cmd(SMP_OPCODE_MASTER_ID, p_cb);
 
     /* save the DIV and key size information when acting as slave device */
     le_key.div =  p_cb->div;
@@ -226,8 +226,8 @@ void smp_send_id_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     SMP_TRACE_DEBUG0 ("smp_send_id_info  ");
     smp_update_key_mask (p_cb, SMP_SEC_KEY_TYPE_ID, FALSE);
 
-    smp_send_cmd(SMP_OPCODE_IDENTITY_INFO, p_cb);   
-    smp_send_cmd(SMP_OPCODE_ID_ADDR, p_cb);   
+    smp_send_cmd(SMP_OPCODE_IDENTITY_INFO, p_cb);
+    smp_send_cmd(SMP_OPCODE_ID_ADDR, p_cb);
 
     SMP_TRACE_WARNING0( "smp_send_id_info");
 
@@ -377,7 +377,7 @@ void smp_proc_pair_cmd(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     if (p_cb->peer_enc_size < SMP_MIN_ENC_KEY_SIZE)
     {
         smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
-    }    
+    }
     else if (p_cb->role == HCI_ROLE_SLAVE)
     {
         if (!(p_cb->flags & SMP_PAIR_FLAGS_WE_STARTED_DD))
@@ -410,7 +410,7 @@ void smp_proc_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     }
 
     p_cb->flags |= SMP_PAIR_FLAGS_CMD_CONFIRM;
-}   
+}
 
 /*******************************************************************************
 ** Function     smp_proc_init
@@ -536,14 +536,14 @@ void smp_proc_compare(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
             p_cb->loc_i_key = p_cb->peer_i_key;
             p_cb->loc_r_key = p_cb->peer_r_key;
 
-            smp_sm_event(p_cb, SMP_ENC_REQ_EVT, NULL);   
+            smp_sm_event(p_cb, SMP_ENC_REQ_EVT, NULL);
         }
 
     }
     else
     {
         reason = p_cb->failure = SMP_CONFIRM_VALUE_ERR;
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);   
+        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
     }
 }
 /*******************************************************************************
@@ -581,7 +581,7 @@ void smp_start_enc(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     if (p_data != NULL)
         cmd = btm_ble_start_encrypt(p_cb->pairing_bda, TRUE, p_data->key.p_data);
     else
-        cmd = btm_ble_start_encrypt(p_cb->pairing_bda, FALSE, NULL);  
+        cmd = btm_ble_start_encrypt(p_cb->pairing_bda, FALSE, NULL);
 
     if (!cmd)
         smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
@@ -644,7 +644,7 @@ void smp_check_auth_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     UINT8 enc_enable = *(UINT8 *)p_data;
     UINT8 reason = enc_enable ? SMP_SUCCESS : SMP_ENC_FAIL;
 
-    SMP_TRACE_DEBUG3 ("smp_check_auth_req enc_enable=%d i_keys=0x%x r_keys=0x%x (i-initiator r-responder)", 
+    SMP_TRACE_DEBUG3 ("smp_check_auth_req enc_enable=%d i_keys=0x%x r_keys=0x%x (i-initiator r-responder)",
                       enc_enable, p_cb->loc_i_key, p_cb->loc_r_key);
     if (enc_enable == 1)
     {
@@ -701,7 +701,7 @@ void smp_key_pick_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 void smp_key_distribution(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     UINT8   reason = SMP_SUCCESS;
-    SMP_TRACE_DEBUG3 ("smp_key_distribution role=%d (0-master) r_keys=0x%x i_keys=0x%x", 
+    SMP_TRACE_DEBUG3 ("smp_key_distribution role=%d (0-master) r_keys=0x%x i_keys=0x%x",
                       p_cb->role, p_cb->loc_r_key, p_cb->loc_i_key);
 
     if (p_cb->role == HCI_ROLE_SLAVE||
@@ -720,7 +720,7 @@ void smp_key_distribution(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 /*******************************************************************************
 ** Function         smp_decide_asso_model
 ** Description      This function is called to compare both sides' io capability
-**                  oob data flag and authentication request, and decide the 
+**                  oob data flag and authentication request, and decide the
 **                  association model to use for the authentication.
 *******************************************************************************/
 void smp_decide_asso_model(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
@@ -728,11 +728,11 @@ void smp_decide_asso_model(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     UINT8   failure = SMP_UNKNOWN_IO_CAP;
     tSMP_ASSO_MODEL model = SMP_MODEL_MAX;
     UINT8 int_evt = 0;
-    tSMP_KEY key;  
-    tSMP_INT_DATA   *p; 
+    tSMP_KEY key;
+    tSMP_INT_DATA   *p;
 
     SMP_TRACE_DEBUG3 ("smp_decide_asso_model p_cb->peer_io_caps = %d p_cb->loc_io_caps = %d \
-                       p_cb->peer_auth_req = %02x", 
+                       p_cb->peer_auth_req = %02x",
                        p_cb->peer_io_caps, p_cb->loc_io_caps, p_cb->peer_auth_req);
 
     /* OOB data present on both devices, use OOB association model */
@@ -741,7 +741,7 @@ void smp_decide_asso_model(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
         model = SMP_MODEL_OOB;
     }
     /* no MITM required, ignore IO cap, use encryption only */
-    else if (SMP_NO_MITM_REQUIRED (p_cb->peer_auth_req) && 
+    else if (SMP_NO_MITM_REQUIRED (p_cb->peer_auth_req) &&
              SMP_NO_MITM_REQUIRED(p_cb->loc_auth_req))
     {
         model = SMP_MODEL_ENC_ONLY;
@@ -787,7 +787,7 @@ void smp_decide_asso_model(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     else if (model == SMP_MODEL_ENC_ONLY) /* TK = 0, go calculate Confirm */
     {
         if (p_cb->role == HCI_ROLE_MASTER &&
-            ((p_cb->peer_auth_req & SMP_AUTH_YN_BIT) != 0) && 
+            ((p_cb->peer_auth_req & SMP_AUTH_YN_BIT) != 0) &&
             ((p_cb->loc_auth_req & SMP_AUTH_YN_BIT) == 0))
         {
             SMP_TRACE_ERROR0("IO capability does not meet authentication requirement");
@@ -804,7 +804,7 @@ void smp_decide_asso_model(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
             key.p_data = p_cb->tk;
             p = (tSMP_INT_DATA *)&key;
 
-            memset(p_cb->tk, 0, BT_OCTET16_LEN); 
+            memset(p_cb->tk, 0, BT_OCTET16_LEN);
             /* TK, ready  */
             int_evt = SMP_KEY_READY_EVT;
         }
@@ -840,7 +840,7 @@ void smp_proc_io_rsp(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 /*******************************************************************************
 ** Function         smp_pairing_cmpl
-** Description      This function is called to send the pairing complete callback 
+** Description      This function is called to send the pairing complete callback
 **                  and remove the connection if needed.
 *******************************************************************************/
 void smp_pairing_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
@@ -848,7 +848,7 @@ void smp_pairing_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
     SMP_TRACE_DEBUG0 ("smp_pairing_cmpl ");
 
-    if ((p_cb->status == SMP_SUCCESS) || 
+    if ((p_cb->status == SMP_SUCCESS) ||
         (p_cb->status <= SMP_REPEATED_ATTEMPTS && p_cb->status != SMP_SUCCESS))
     {
         smp_sm_event(p_cb, SMP_RELEASE_DELAY_EVT, p_data);
@@ -862,7 +862,7 @@ void smp_pairing_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 /*******************************************************************************
 ** Function         smp_pair_terminate
-** Description      This function is called to send the pairing complete callback 
+** Description      This function is called to send the pairing complete callback
 **                  and remove the connection if needed.
 *******************************************************************************/
 void smp_pair_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
@@ -892,8 +892,8 @@ void smp_idle_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 ** Description      This function is called when link is encrypted and notified to
 **                  slave device. Proceed to to send LTK, DIV and ER to master if
 **                  bonding the devices.
-**                  
-**                  
+**
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -913,26 +913,26 @@ void smp_link_encrypted(BD_ADDR bda, UINT8 encr_enable)
             btm_ble_update_sec_key_size(bda, p_cb->loc_enc_size);
         }
 
-        smp_sm_event(&smp_cb, SMP_ENCRYPTED_EVT, &encr_enable);  
+        smp_sm_event(&smp_cb, SMP_ENCRYPTED_EVT, &encr_enable);
     }
 }
 /*******************************************************************************
 **
 ** Function         smp_proc_ltk_request
 **
-** Description      This function is called when LTK request is received from 
+** Description      This function is called when LTK request is received from
 **                  controller.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
 BOOLEAN smp_proc_ltk_request(BD_ADDR bda)
 {
     SMP_TRACE_DEBUG1 ("smp_proc_ltk_request state = %d", smp_cb.state);
-    if ( smp_cb.state == SMP_ST_ENC_PENDING && 
+    if ( smp_cb.state == SMP_ST_ENC_PENDING &&
          !memcmp(bda, smp_cb.pairing_bda, BD_ADDR_LEN))
     {
-        smp_sm_event(&smp_cb, SMP_ENC_REQ_EVT, NULL);  
+        smp_sm_event(&smp_cb, SMP_ENC_REQ_EVT, NULL);
 
         return TRUE;
     }

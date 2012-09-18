@@ -3,7 +3,7 @@
 **  Name:           bta_pan_api.h
 **
 **  Description:    This is the public interface file for the Personal
-**                  Area Networking (PAN) subsystem of BTA, Widcomm's 
+**                  Area Networking (PAN) subsystem of BTA, Widcomm's
 **                  Bluetooth application layer for mobile phones.
 **
 **  Copyright (c) 2004, Widcomm Inc., All Rights Reserved.
@@ -118,7 +118,7 @@ extern "C"
 ** Description      Enable PAN service.  This function must be
 **                  called before any other functions in the PAN API are called.
 **                  When the enable operation is complete the callback function
-**                  will be called with a BTA_PAN_ENABLE_EVT. 
+**                  will be called with a BTA_PAN_ENABLE_EVT.
 **
 ** Returns          void
 **
@@ -129,7 +129,7 @@ BTA_API extern void BTA_PanEnable(tBTA_PAN_CBACK p_cback);
 **
 ** Function         BTA_PanDisable
 **
-** Description      Disable PAN service.                   
+** Description      Disable PAN service.
 **
 ** Returns          void
 **
@@ -142,8 +142,8 @@ BTA_API extern void BTA_PanDisable(void);
 ** Function         BTA_PanSetRole
 **
 ** Description      Sets PAN roles. When the enable operation is complete
-**                  the callback function will be called with a BTA_PAN_SET_ROLE_EVT. 
-**                  
+**                  the callback function will be called with a BTA_PAN_SET_ROLE_EVT.
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -157,8 +157,8 @@ BTA_API void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info,
 **
 ** Description      Opens a connection to a peer device.
 **                  When connection is open callback function is called
-**                  with a BTA_PAN_OPEN_EVT. 
-**                  
+**                  with a BTA_PAN_OPEN_EVT.
+**
 **
 ** Returns          void
 **
@@ -171,8 +171,8 @@ BTA_API void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_
 **
 ** Function         BTA_PanClose
 **
-** Description      Close a PAN  connection to a peer device. 
-**                  
+** Description      Close a PAN  connection to a peer device.
+**
 **
 ** Returns          void
 **

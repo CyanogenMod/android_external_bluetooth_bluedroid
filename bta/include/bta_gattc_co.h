@@ -29,7 +29,7 @@
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_gattc_co_cache_open(BD_ADDR server_bda, UINT16 evt, 
+BTA_API extern void bta_gattc_co_cache_open(BD_ADDR server_bda, UINT16 evt,
                                             UINT16 conn_id, BOOLEAN to_save);
 
 /*******************************************************************************
@@ -37,7 +37,7 @@ BTA_API extern void bta_gattc_co_cache_open(BD_ADDR server_bda, UINT16 evt,
 ** Function         bta_gattc_co_cache_close
 **
 ** Description      This callout function is executed by GATTC when a GATT server
-**                  cache is written completely.                
+**                  cache is written completely.
 **
 ** Parameter        server_bda: server bd address of this cache belongs to
 **                  conn_id: connection ID of this cache operation attach to.
@@ -53,18 +53,18 @@ BTA_API extern void bta_gattc_co_cache_close(BD_ADDR server_bda, UINT16 conn_id)
 **
 ** Description      This callout function is executed by GATT when a server cache
 **                  is available to save.
-**                  
+**
 ** Parameter        server_bda: server bd address of this cache belongs to
 **                  evt: call in event to be passed in when cache save is done.
 **                  num_attr: number of attribute to be save.
 **                  p_attr: pointer to the list of attributes to save.
 **                  attr_index: starting attribute index of the save operation.
 **                  conn_id: connection ID of this cache operation attach to.
-** Returns          
+** Returns
 **
 *******************************************************************************/
-BTA_API extern void bta_gattc_co_cache_save(BD_ADDR server_bda, UINT16 evt, 
-                                          UINT16 num_attr, tBTA_GATTC_NV_ATTR *p_attr, 
+BTA_API extern void bta_gattc_co_cache_save(BD_ADDR server_bda, UINT16 evt,
+                                          UINT16 num_attr, tBTA_GATTC_NV_ATTR *p_attr,
                                           UINT16 attr_index, UINT16 conn_id);
 
 /*******************************************************************************
@@ -73,16 +73,16 @@ BTA_API extern void bta_gattc_co_cache_save(BD_ADDR server_bda, UINT16 evt,
 **
 ** Description      This callout function is executed by GATT when server cache
 **                  is required to load.
-**                  
+**
 ** Parameter        server_bda: server bd address of this cache belongs to
 **                  evt: call in event to be passed in when cache save is done.
 **                  num_attr: number of attribute to be save.
 **                  attr_index: starting attribute index of the save operation.
 **                  conn_id: connection ID of this cache operation attach to.
-** Returns          
+** Returns
 **
 *******************************************************************************/
-BTA_API extern void bta_gattc_co_cache_load(BD_ADDR server_bda, UINT16 evt, 
+BTA_API extern void bta_gattc_co_cache_load(BD_ADDR server_bda, UINT16 evt,
                                             UINT16 start_index, UINT16 conn_id);
 
 #endif /* BTA_GATT_CO_H */

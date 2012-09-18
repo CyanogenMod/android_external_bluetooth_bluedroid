@@ -43,7 +43,7 @@ tBTA_AV_SBC_UPS_CB bta_av_sbc_ups_cb;
 **                  dst_sps: samples per second (converted audio data)
 **                  bits: number of bits per pcm sample
 **                  n_channels: number of channels (i.e. mono(1), stereo(2)...)
-**                  
+**
 ** Returns          none
 **
 *******************************************************************************/
@@ -89,7 +89,7 @@ void bta_av_sbc_init_up_sample (UINT32 src_sps, UINT32 dst_sps, UINT16 bits, UIN
 **
 ** Function         bta_av_sbc_up_sample
 **
-** Description      Given the source (p_src) audio data and 
+** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
 **                  This function converts it to audio data in the desired format
 **
@@ -134,7 +134,7 @@ int bta_av_sbc_up_sample (void *p_src, void *p_dst,
 **
 ** Function         bta_av_sbc_up_sample_16s (16bits-stereo)
 **
-** Description      Given the source (p_src) audio data and 
+** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
 **                  This function converts it to audio data in the desired format
 **
@@ -142,7 +142,7 @@ int bta_av_sbc_up_sample (void *p_src, void *p_dst,
 **                  p_dst: the data buffer to hold the converted audio data
 **                  src_samples: The number of source samples (in uint of 4 bytes)
 **                  dst_samples: The size of p_dst (in uint of 4 bytes)
-**                  
+**
 ** Returns          The number of bytes used in p_dst
 **                  The number of bytes used in p_src (in *p_ret)
 **
@@ -197,7 +197,7 @@ int bta_av_sbc_up_sample_16s (void *p_src, void *p_dst,
 **
 ** Function         bta_av_sbc_up_sample_16m (16bits-mono)
 **
-** Description      Given the source (p_src) audio data and 
+** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
 **                  This function converts it to audio data in the desired format
 **
@@ -205,7 +205,7 @@ int bta_av_sbc_up_sample_16s (void *p_src, void *p_dst,
 **                  p_dst: the data buffer to hold the converted audio data
 **                  src_samples: The number of source samples (in uint of 2 bytes)
 **                  dst_samples: The size of p_dst (in uint of 2 bytes)
-**                  
+**
 ** Returns          The number of bytes used in p_dst
 **                  The number of bytes used in p_src (in *p_ret)
 **
@@ -262,7 +262,7 @@ int bta_av_sbc_up_sample_16m (void *p_src, void *p_dst,
 **
 ** Function         bta_av_sbc_up_sample_8s (8bits-stereo)
 **
-** Description      Given the source (p_src) audio data and 
+** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
 **                  This function converts it to audio data in the desired format
 **
@@ -270,7 +270,7 @@ int bta_av_sbc_up_sample_16m (void *p_src, void *p_dst,
 **                  p_dst: the data buffer to hold the converted audio data
 **                  src_samples: The number of source samples (in uint of 2 bytes)
 **                  dst_samples: The size of p_dst (in uint of 2 bytes)
-**                  
+**
 ** Returns          The number of bytes used in p_dst
 **                  The number of bytes used in p_src (in *p_ret)
 **
@@ -331,7 +331,7 @@ int bta_av_sbc_up_sample_8s (void *p_src, void *p_dst,
 **
 ** Function         bta_av_sbc_up_sample_8m (8bits-mono)
 **
-** Description      Given the source (p_src) audio data and 
+** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
 **                  This function converts it to audio data in the desired format
 **
@@ -339,7 +339,7 @@ int bta_av_sbc_up_sample_8s (void *p_src, void *p_dst,
 **                  p_dst: the data buffer to hold the converted audio data
 **                  src_samples: The number of source samples (number of bytes)
 **                  dst_samples: The size of p_dst (number of bytes)
-**                  
+**
 ** Returns          The number of bytes used in p_dst
 **                  The number of bytes used in p_src (in *p_ret)
 **
@@ -398,12 +398,12 @@ int bta_av_sbc_up_sample_8m (void *p_src, void *p_dst,
 **
 ** Description      Determine the preferred SBC codec configuration for the
 **                  given codec capabilities.  The function is passed the
-**                  preferred codec configuration and the peer codec 
+**                  preferred codec configuration and the peer codec
 **                  capabilities for the stream.  The function attempts to
 **                  match the preferred capabilities with the configuration
 **                  as best it can.  The resulting codec configuration is
 **                  returned in the same memory used for the capabilities.
-**                  
+**
 ** Returns          0 if ok, nonzero if error.
 **                  Codec configuration in p_cap.
 **
@@ -429,7 +429,7 @@ UINT8 bta_av_sbc_cfg_for_cap(UINT8 *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p
         APPL_TRACE_ERROR1("bta_av_sbc_cfg_for_cap: ch_mode(0x%02X) not supported", p_pref->ch_mode);
         return A2D_FAIL;
     }
-    
+
     /* Check if the peer supports our sampling freq */
     if (peer_cie.samp_freq & p_pref->samp_freq)
     {
@@ -500,7 +500,7 @@ UINT8 bta_av_sbc_cfg_for_cap(UINT8 *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p
 **
 ** Description      This function checks whether an SBC codec configuration
 **                  is allowable for the given codec capabilities.
-**                  
+**
 ** Returns          0 if ok, nonzero if error.
 **
 *******************************************************************************/
@@ -517,7 +517,7 @@ UINT8 bta_av_sbc_cfg_in_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap)
 
     /* verify that each parameter is in range */
 
-    /* sampling frequency */ 
+    /* sampling frequency */
     if ((cfg_cie.samp_freq & p_cap->samp_freq) == 0)
     {
         status = A2D_NS_SAMP_FREQ;
@@ -551,7 +551,7 @@ UINT8 bta_av_sbc_cfg_in_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap)
     else if (cfg_cie.min_bitpool < p_cap->min_bitpool)
     {
         status = A2D_NS_MIN_BITPOOL;
-    } 
+    }
 
     return status;
 }
@@ -561,7 +561,7 @@ UINT8 bta_av_sbc_cfg_in_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap)
 ** Function         bta_av_sbc_bld_hdr
 **
 ** Description      This function builds the packet header for MPF1.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/

@@ -213,7 +213,7 @@ LogMsg(UINT32 trace_set_mask, const char *fmt_str, ...)
 	struct timezone tz;
 	struct tm *tm;
 	time_t t;
-	
+
 	gettimeofday(&tv, &tz);
 	time(&t);
 	tm = localtime(&t);
@@ -268,14 +268,14 @@ ScrLog(UINT32 trace_set_mask, const char *fmt_str, ...)
     int trace_layer = TRACE_GET_LAYER(trace_set_mask);
     if (trace_layer >= TRACE_LAYER_MAX_NUM)
         trace_layer = 0;
-	
+
 	gettimeofday(&tv, &tz);
 	time(&t);
 	tm = localtime(&t);
 
         sprintf(buffer, "%02d:%02d:%02d.%03ld ", tm->tm_hour, tm->tm_min, tm->tm_sec,
         tv.tv_usec / 1000);
-	
+
 	va_start(ap, fmt_str);
 	vsnprintf(&buffer[strlen(buffer)], BTE_LOG_MAX_SIZE, fmt_str, ap);
 	va_end(ap);
@@ -347,7 +347,7 @@ BT_API tBTTRC_LEVEL * BTA_SysSetTraceLevel(tBTTRC_LEVEL * p_levels)
     while (0 != p_l->layer_id)
     {
         p_f_map = &bttrc_set_level_map[0];
-        
+
         while (0 != p_f_map->layer_id_start)
         {
             printf("BTA_SysSetTraceLevel - trace id in map start = %d end= %d,  paramter id = %d\r\n", p_f_map->layer_id_start, p_f_map->layer_id_end, p_l->layer_id );

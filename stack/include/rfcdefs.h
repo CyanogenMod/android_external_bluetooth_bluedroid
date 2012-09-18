@@ -16,7 +16,7 @@
 #define PORT_MAX_RFC_PORTS              31
 
 /*
-**  If nothing is negotiated MTU should be 127 
+**  If nothing is negotiated MTU should be 127
 */
 #define RFCOMM_DEFAULT_MTU              127
 
@@ -86,10 +86,10 @@
 }
 
 #define RFCOMM_FRAME_IS_CMD(initiator, cr)                  \
-    (( (initiator) && !(cr)) || (!(initiator) &&  (cr)))      
+    (( (initiator) && !(cr)) || (!(initiator) &&  (cr)))
 
 #define RFCOMM_FRAME_IS_RSP(initiator, cr)                  \
-    (( (initiator) &&  (cr)) || (!(initiator) && !(cr)))      
+    (( (initiator) &&  (cr)) || (!(initiator) && !(cr)))
 
 #define RFCOMM_CR(initiator, is_command)                    \
     (( ( (initiator) &&  (is_command))                      \
@@ -129,9 +129,9 @@
 #define RFCOMM_MSC_RTR              0x08          /* Ready to receive*/
 #define RFCOMM_MSC_IC               0x40          /* Incomming call indicator*/
 #define RFCOMM_MSC_DV               0x80          /* Data Valid*/
-                                    
-#define RFCOMM_MSC_SHIFT_BREAK          4          
-#define RFCOMM_MSC_BREAK_MASK           0xF0       
+
+#define RFCOMM_MSC_SHIFT_BREAK          4
+#define RFCOMM_MSC_BREAK_MASK           0xF0
 #define RFCOMM_MSC_BREAK_PRESENT_MASK   0x02
 
 #define RFCOMM_BAUD_RATE_2400           0x00
@@ -143,26 +143,26 @@
 #define RFCOMM_BAUD_RATE_57600          0x06
 #define RFCOMM_BAUD_RATE_115200         0x07
 #define RFCOMM_BAUD_RATE_230400         0x08
-                                        
+
 #define RFCOMM_5_BITS                   0x00
 #define RFCOMM_6_BITS                   0x01
 #define RFCOMM_7_BITS                   0x02
 #define RFCOMM_8_BITS                   0x03
-                                        
+
 #define RFCOMM_RPN_BITS_MASK            0x03
 #define RFCOMM_RPN_BITS_SHIFT           0
-                                        
+
 #define RFCOMM_ONESTOPBIT               0x00
 #define RFCOMM_ONE5STOPBITS             0x01
-                                        
+
 #define RFCOMM_RPN_STOP_BITS_MASK       0x01
 #define RFCOMM_RPN_STOP_BITS_SHIFT      2
-                                        
+
 #define RFCOMM_PARITY_NO                0x00
 #define RFCOMM_PARITY_YES               0x01
 #define RFCOMM_RPN_PARITY_MASK          0x01
 #define RFCOMM_RPN_PARITY_SHIFT         3
-                                        
+
 #define RFCOMM_ODD_PARITY               0x00
 #define RFCOMM_EVEN_PARITY              0x01
 #define RFCOMM_MARK_PARITY              0x02

@@ -26,7 +26,7 @@
     #include "aes.h"
     #ifndef SMP_MAX_ENC_REPEAT
         #define SMP_MAX_ENC_REPEAT      3
-    #endif 
+    #endif
 
 static void smp_rand_back(tBTM_RAND_ENC *p);
 static void smp_genenrate_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
@@ -46,7 +46,7 @@ static const tSMP_ACT smp_encrypt_action[] =
     smp_generate_stk,               /* SMP_GEN_STK*/
     smp_genenrate_ltk_cont,          /* SMP_GEN_LTK */
     smp_generate_ltk,               /* SMP_GEN_DIV_LTK */
-    smp_generate_rand_vector,        /* SMP_GEN_RAND_V */    
+    smp_generate_rand_vector,        /* SMP_GEN_RAND_V */
     smp_generate_y,                  /* SMP_GEN_EDIV */
     smp_generate_passkey,           /* SMP_GEN_TK */
     smp_generate_confirm,           /* SMP_GEN_SRAND_MRAND */
@@ -78,19 +78,19 @@ static void smp_debug_print_nbyte_little_endian (UINT8 *p, const UINT8 *key_name
 ** Function         smp_encrypt_data
 **
 ** Description      This function is called to generate passkey.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN smp_encrypt_data (UINT8 *key, UINT8 key_len, 
-                          UINT8 *plain_text, UINT8 pt_len, 
+BOOLEAN smp_encrypt_data (UINT8 *key, UINT8 key_len,
+                          UINT8 *plain_text, UINT8 pt_len,
                           tSMP_ENC *p_out)
 {
     aes_context     ctx;
     UINT8           *p_start = NULL;
     UINT8           *p = NULL;
     UINT8           *p_rev_data = NULL;    /* input data in big endilan format */
-    UINT8           *p_rev_key = NULL;     /* input key in big endilan format */ 
+    UINT8           *p_rev_key = NULL;     /* input key in big endilan format */
     UINT8           *p_rev_output = NULL;  /* encrypted output in big endilan format */
 
     SMP_TRACE_DEBUG0 ("smp_encrypt_data");
@@ -117,19 +117,19 @@ BOOLEAN smp_encrypt_data (UINT8 *key, UINT8 key_len,
     p_rev_key = p; /* start at byte 32 */
     REVERSE_ARRAY_TO_STREAM (p, key, SMP_ENCRYT_KEY_SIZE); /* byte 32 to byte 47 */
 
-    smp_debug_print_nbyte_little_endian(key, (const UINT8 *)"Key", SMP_ENCRYT_KEY_SIZE);   
-    smp_debug_print_nbyte_little_endian(p_start, (const UINT8 *)"Plain text", SMP_ENCRYT_DATA_SIZE); 
+    smp_debug_print_nbyte_little_endian(key, (const UINT8 *)"Key", SMP_ENCRYT_KEY_SIZE);
+    smp_debug_print_nbyte_little_endian(p_start, (const UINT8 *)"Plain text", SMP_ENCRYT_DATA_SIZE);
     p_rev_output = p;
     aes_set_key(p_rev_key, SMP_ENCRYT_KEY_SIZE, &ctx);
     aes_encrypt(p_rev_data, p, &ctx);  /* outputs in byte 48 to byte 63 */
 
     p = p_out->param_buf;
-    REVERSE_ARRAY_TO_STREAM (p, p_rev_output, SMP_ENCRYT_DATA_SIZE); 
-    smp_debug_print_nbyte_little_endian(p_out->param_buf, (const UINT8 *)"Encrypted text", SMP_ENCRYT_KEY_SIZE);   
+    REVERSE_ARRAY_TO_STREAM (p, p_rev_output, SMP_ENCRYT_DATA_SIZE);
+    smp_debug_print_nbyte_little_endian(p_out->param_buf, (const UINT8 *)"Encrypted text", SMP_ENCRYT_KEY_SIZE);
 
     p_out->param_len = SMP_ENCRYT_KEY_SIZE;
     p_out->status = HCI_SUCCESS;
-    p_out->opcode =  HCI_BLE_ENCRYPT;   
+    p_out->opcode =  HCI_BLE_ENCRYPT;
 
     GKI_freebuf(p_start);
 
@@ -142,7 +142,7 @@ BOOLEAN smp_encrypt_data (UINT8 *key, UINT8 key_len,
 ** Function         smp_generate_passkey
 **
 ** Description      This function is called to generate passkey.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -160,7 +160,7 @@ void smp_generate_passkey(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 ** Function         smp_proc_passkey
 **
 ** Description      This function is called to process a passkey.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -178,7 +178,7 @@ void smp_proc_passkey(tSMP_CB *p_cb , tBTM_RAND_ENC *p)
     /* truncate by maximum value */
     while (passkey > BTM_MAX_PASSKEY_VAL)
         passkey >>= 1;
-    SMP_TRACE_ERROR1("Passkey generated = %d", passkey);    
+    SMP_TRACE_ERROR1("Passkey generated = %d", passkey);
 
     /* save the TK */
     memset(p_cb->tk, 0, BT_OCTET16_LEN);
@@ -192,7 +192,7 @@ void smp_proc_passkey(tSMP_CB *p_cb , tBTM_RAND_ENC *p)
         (*p_cb->p_callback)(SMP_PASSKEY_NOTIF_EVT, p_cb->pairing_bda, (tSMP_EVT_DATA *)&passkey);
     }
 
-    smp_sm_event(p_cb, SMP_KEY_READY_EVT, (tSMP_INT_DATA *)&key);    
+    smp_sm_event(p_cb, SMP_KEY_READY_EVT, (tSMP_INT_DATA *)&key);
 }
 
 
@@ -200,8 +200,8 @@ void smp_proc_passkey(tSMP_CB *p_cb , tBTM_RAND_ENC *p)
 **
 ** Function         smp_generate_stk
 **
-** Description      This function is called to generate STK calculated by running 
-**                  AES with the TK value as key and a concatenation of the random 
+** Description      This function is called to generate STK calculated by running
+**                  AES with the TK value as key and a concatenation of the random
 **                  values.
 **
 ** Returns          void
@@ -231,8 +231,8 @@ void smp_generate_stk (tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     /* generate STK = Etk(rand|rrand)*/
     if (!SMP_Encrypt( p_cb->tk, BT_OCTET16_LEN, ptext, BT_OCTET16_LEN, &output))
     {
-        SMP_TRACE_ERROR0("smp_generate_stk failed"); 
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);  
+        SMP_TRACE_ERROR0("smp_generate_stk failed");
+        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
     }
     else
     {
@@ -246,7 +246,7 @@ void smp_generate_stk (tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 **
 ** Description      This function is called to start the second pairing phase by
 **                  start generating initializer random number.
-**                  
+**
 **
 ** Returns          void
 **
@@ -265,12 +265,12 @@ void smp_generate_confirm (tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 **
 ** Description      This function is called to generate another 64 bits random for
 **                  MRand or Srand.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
 void smp_genenrate_rand_cont(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
-{    
+{
     SMP_TRACE_DEBUG0 ("smp_genenrate_rand_cont ");
     p_cb->rand_enc_proc = SMP_GEN_SRAND_MRAND_CONT;
     /* generate 64 MSB of MRand or SRand */
@@ -284,7 +284,7 @@ void smp_genenrate_rand_cont(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 **
 ** Description      This function is called to calculate LTK, starting with DIV
 **                  generation.
-**                  
+**
 **
 ** Returns          void
 **
@@ -317,7 +317,7 @@ void smp_generate_ltk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 ** Function         smp_compute_csrk
 **
 ** Description      This function is called to calculate CSRK
-**                  
+**
 **
 ** Returns          void
 **
@@ -339,12 +339,12 @@ void smp_compute_csrk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
     if (!SMP_Encrypt(er, BT_OCTET16_LEN, buffer, 4, &output))
     {
-        SMP_TRACE_ERROR0("smp_generate_csrk failed"); 
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status); 
+        SMP_TRACE_ERROR0("smp_generate_csrk failed");
+        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
     }
     else
     {
-        memcpy((void *)p_cb->csrk, output.param_buf, BT_OCTET16_LEN);  
+        memcpy((void *)p_cb->csrk, output.param_buf, BT_OCTET16_LEN);
         smp_send_csrk_info(p_cb, NULL);
     }
 }
@@ -355,7 +355,7 @@ void smp_compute_csrk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 **
 ** Description      This function is called to calculate LTK, starting with DIV
 **                  generation.
-**                  
+**
 **
 ** Returns          void
 **
@@ -406,7 +406,7 @@ void smp_concatenate_local( tSMP_CB *p_cb, UINT8 **p_data, UINT8 op_code)
 *******************************************************************************/
 void smp_concatenate_peer( tSMP_CB *p_cb, UINT8 **p_data, UINT8 op_code)
 {
-    UINT8   *p = *p_data; 
+    UINT8   *p = *p_data;
 
     SMP_TRACE_DEBUG0 ("smp_concatenate_peer ");
     UINT8_TO_STREAM(p, op_code);
@@ -423,9 +423,9 @@ void smp_concatenate_peer( tSMP_CB *p_cb, UINT8 **p_data, UINT8 op_code)
 **
 ** Function         smp_gen_p1_4_confirm
 **
-** Description      Generate Confirm/Compare Step1: 
+** Description      Generate Confirm/Compare Step1:
 **                  p1 = pres || preq || rat' || iat'
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -474,9 +474,9 @@ void smp_gen_p1_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p1)
 **
 ** Function         smp_gen_p2_4_confirm
 **
-** Description      Generate Confirm/Compare Step2: 
+** Description      Generate Confirm/Compare Step2:
 **                  p2 = padding || ia || ra
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -511,7 +511,7 @@ void smp_gen_p2_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p2)
 ** Function         smp_calculate_comfirm
 **
 ** Description      This function is called to calculate Confirm value.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -533,8 +533,8 @@ void smp_calculate_comfirm (tSMP_CB *p_cb, BT_OCTET16 rand, BD_ADDR bda)
     /* calculate e(k, r XOR p1), where k = TK */
     if (!SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, p1, BT_OCTET16_LEN, &output))
     {
-        SMP_TRACE_ERROR0("smp_generate_csrk failed"); 
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status); 
+        SMP_TRACE_ERROR0("smp_generate_csrk failed");
+        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
     }
     else
     {
@@ -547,7 +547,7 @@ void smp_calculate_comfirm (tSMP_CB *p_cb, BT_OCTET16 rand, BD_ADDR bda)
 **
 ** Description      This function is called when SConfirm/MConfirm is generated
 **                  proceed to send the Confirm request/response to peer device.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -572,8 +572,8 @@ static void smp_calculate_comfirm_cont(tSMP_CB *p_cb, tSMP_ENC *p)
     /* calculate: Confirm = E(k, p1' XOR p2) */
     if (!SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, p2, BT_OCTET16_LEN, &output))
     {
-        SMP_TRACE_ERROR0("smp_calculate_comfirm_cont failed"); 
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status); 
+        SMP_TRACE_ERROR0("smp_calculate_comfirm_cont failed");
+        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
     }
     else
     {
@@ -595,12 +595,12 @@ static void smp_calculate_comfirm_cont(tSMP_CB *p_cb, tSMP_ENC *p)
 **
 ** Description      This function is called when a 48 bits random number is generated
 **                  as SRand or MRand, continue to calculate Sconfirm or MConfirm.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
 static void smp_genenrate_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
-{    
+{
     SMP_TRACE_DEBUG0 ("smp_genenrate_confirm ");
     p_cb->rand_enc_proc = SMP_GEN_CONFIRM;
 
@@ -615,12 +615,12 @@ static void smp_genenrate_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 ** Description      This function is called to generate SConfirm for Slave device,
 **                  or MSlave for Master device. This function can be also used for
 **                  generating Compare number for confirm value check.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
 void smp_generate_compare (tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
-{        
+{
     SMP_TRACE_DEBUG0 ("smp_generate_compare ");
     p_cb->rand_enc_proc = SMP_GEN_COMPARE;
 
@@ -634,7 +634,7 @@ void smp_generate_compare (tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 **
 ** Description      This function is called when SConfirm/MConfirm is generated
 **                  proceed to send the Confirm request/response to peer device.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -659,7 +659,7 @@ static void smp_process_confirm(tSMP_CB *p_cb, tSMP_ENC *p)
 #if (SMP_DEBUG == TRUE)
     SMP_TRACE_DEBUG0("Confirm  Generated");
     smp_debug_print_nbyte_little_endian ((UINT8 *)p_cb->confirm,  (const UINT8 *)"Confirm", 16);
-#endif    
+#endif
 
     key.key_type = SMP_KEY_TYPE_CFM;
     key.p_data = p->param_buf;
@@ -670,9 +670,9 @@ static void smp_process_confirm(tSMP_CB *p_cb, tSMP_ENC *p)
 **
 ** Function         smp_process_compare
 **
-** Description      This function is called when Compare is generated using the 
+** Description      This function is called when Compare is generated using the
 **                  RRand and local BDA, TK information.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -697,7 +697,7 @@ static void smp_process_compare(tSMP_CB *p_cb, tSMP_ENC *p)
 **
 ** Description      This function is called when STK is generated
 **                  proceed to send the encrypt the link using STK.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -722,7 +722,7 @@ static void smp_process_stk(tSMP_CB *p_cb, tSMP_ENC *p)
 ** Function         smp_genenrate_ltk_cont
 **
 ** Description      This function is to calculate LTK = d1(ER, DIV, 0)= e(ER, DIV)
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -736,17 +736,17 @@ static void smp_genenrate_ltk_cont(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     BTM_GetDeviceEncRoot(er);
 
     /* LTK = d1(ER, DIV, 0)= e(ER, DIV)*/
-    if (!SMP_Encrypt(er, BT_OCTET16_LEN, (UINT8 *)&p_cb->div, 
+    if (!SMP_Encrypt(er, BT_OCTET16_LEN, (UINT8 *)&p_cb->div,
                      sizeof(UINT16), &output))
     {
-        SMP_TRACE_ERROR0("smp_genenrate_ltk_cont failed"); 
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status); 
+        SMP_TRACE_ERROR0("smp_genenrate_ltk_cont failed");
+        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
     }
     else
     {
         /* mask the LTK */
         smp_mask_enc_key(p_cb->loc_enc_size, output.param_buf);
-        memcpy((void *)p_cb->ltk, output.param_buf, BT_OCTET16_LEN);    
+        memcpy((void *)p_cb->ltk, output.param_buf, BT_OCTET16_LEN);
         smp_generate_rand_vector(p_cb, NULL);
     }
 
@@ -757,12 +757,12 @@ static void smp_genenrate_ltk_cont(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 ** Function         smp_generate_y
 **
 ** Description      This function is to proceed generate Y = E(DHK, Rand)
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
 static void smp_generate_y(tSMP_CB *p_cb, tSMP_INT_DATA *p)
-{    
+{
     BT_OCTET16  dhk;
     tSMP_ENC   output;
     tSMP_STATUS     status = SMP_PAIR_FAIL_UNKNOWN;
@@ -771,11 +771,11 @@ static void smp_generate_y(tSMP_CB *p_cb, tSMP_INT_DATA *p)
     SMP_TRACE_DEBUG0 ("smp_generate_y ");
     BTM_GetDeviceDHK(dhk);
 
-    if (!SMP_Encrypt(dhk, BT_OCTET16_LEN, p_cb->enc_rand, 
+    if (!SMP_Encrypt(dhk, BT_OCTET16_LEN, p_cb->enc_rand,
                      BT_OCTET8_LEN, &output))
     {
-        SMP_TRACE_ERROR0("smp_generate_y failed"); 
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status); 
+        SMP_TRACE_ERROR0("smp_generate_y failed");
+        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
     }
     else
     {
@@ -788,7 +788,7 @@ static void smp_generate_y(tSMP_CB *p_cb, tSMP_INT_DATA *p)
 **
 ** Description      This function is called when LTK is generated, send state machine
 **                  event to SMP.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -807,7 +807,7 @@ static void smp_generate_rand_vector (tSMP_CB *p_cb, tSMP_INT_DATA *p)
 ** Function         smp_genenrate_smp_process_edivltk_cont
 **
 ** Description      This function is to calculate EDIV = Y xor DIV
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -836,12 +836,12 @@ static void smp_process_ediv(tSMP_CB *p_cb, tSMP_ENC *p)
 **
 ** Description      This function is to process the rand command finished,
 **                  process the random/encrypted number for further action.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
 static void smp_rand_back(tBTM_RAND_ENC *p)
-{    
+{
     tSMP_CB *p_cb = &smp_cb;
     UINT8   *pp = p->param_buf;
     UINT8   failure = SMP_PAIR_FAIL_UNKNOWN;
@@ -852,7 +852,7 @@ static void smp_rand_back(tBTM_RAND_ENC *p)
     {
         switch (state)
         {
-            
+
             case SMP_GEN_SRAND_MRAND:
                 memcpy((void *)p_cb->rand, p->param_buf, p->param_len);
                 smp_genenrate_rand_cont(p_cb, NULL);
@@ -889,7 +889,7 @@ static void smp_rand_back(tBTM_RAND_ENC *p)
 
     SMP_TRACE_ERROR1("smp_rand_back Key generation failed: (%d)", p_cb->rand_enc_proc);
 
-    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);    
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
 
 }
 #endif

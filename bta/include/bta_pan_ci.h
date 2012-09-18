@@ -30,9 +30,9 @@ extern "C"
 **                  ready for more data and PAN should call bta_pan_co_tx_path().
 **                  This function is used when the TX data path is configured
 **                  to use a pull interface.
-**                  
 **
-** Returns          void 
+**
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_pan_ci_tx_ready(UINT16 handle);
@@ -45,9 +45,9 @@ BTA_API extern void bta_pan_ci_tx_ready(UINT16 handle);
 **                  has data available to send to PAN and PAN should call
 **                  bta_pan_co_rx_path().  This function is used when the RX
 **                  data path is configured to use a pull interface.
-**                  
 **
-** Returns          void 
+**
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_pan_ci_rx_ready(UINT16 handle);
@@ -62,9 +62,9 @@ BTA_API extern void bta_pan_ci_rx_ready(UINT16 handle);
 **                  any more data sent by bta_pan_co_tx_write() or
 **                  bta_pan_co_tx_writebuf().  This function is used when the
 **                  TX data path is configured to use a push interface.
-**                  
 **
-** Returns          void 
+**
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable);
@@ -79,9 +79,9 @@ BTA_API extern void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable);
 **                  the data buffer.  The buffer must be allocated using
 **                  functions GKI_getbuf() or GKI_getpoolbuf().  The buffer
 **                  will be freed by BTA; the phone must not free the buffer.
-**                  
 **
-** Returns          TRUE if flow enabled    
+**
+** Returns          TRUE if flow enabled
 **
 *******************************************************************************/
 BTA_API extern void bta_pan_ci_rx_writebuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 protocol, BT_HDR *p_buf, BOOLEAN ext);
@@ -92,24 +92,24 @@ BTA_API extern void bta_pan_ci_rx_writebuf(UINT16 handle, BD_ADDR src, BD_ADDR d
 **
 ** Description      This function is called by the phone to read data from PAN
 **                  when the TX path is configured to use a pull interface.
-**                  The phone must free the buffer using function GKI_freebuf() when 
+**                  The phone must free the buffer using function GKI_freebuf() when
 **                  it is through processing the buffer.
-**                  
 **
-** Returns          void 
+**
+** Returns          void
 **
 *******************************************************************************/
-BTA_API extern BT_HDR * bta_pan_ci_readbuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 *p_protocol, 
+BTA_API extern BT_HDR * bta_pan_ci_readbuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 *p_protocol,
                                  BOOLEAN* p_ext, BOOLEAN* p_forward);
 
 /*******************************************************************************
 **
 ** Function         bta_pan_ci_set_pfilters
 **
-** Description      This function is called to set protocol filters 
-**                  
+** Description      This function is called to set protocol filters
 **
-** Returns          void 
+**
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_pan_ci_set_pfilters(UINT16 handle, UINT16 num_filters, UINT16 *p_start_array, UINT16 *p_end_array);
@@ -119,15 +119,15 @@ BTA_API extern void bta_pan_ci_set_pfilters(UINT16 handle, UINT16 num_filters, U
 **
 ** Function         bta_pan_ci_set_mfilters
 **
-** Description      This function is called to set multicast filters 
-**                  
+** Description      This function is called to set multicast filters
 **
-** Returns          void 
+**
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_pan_ci_set_mfilters(UINT16 handle, UINT16 num_mcast_filters, UINT8 *p_start_array,
                                                     UINT8 *p_end_array);
- 
+
 
 
 

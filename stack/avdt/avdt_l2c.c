@@ -50,8 +50,8 @@ const tL2CAP_APPL_INFO avdt_l2c_appl = {
 **
 ** Function         avdt_sec_check_complete_term
 **
-** Description      The function called when Security Manager finishes 
-**                  verification of the service side connection 
+** Description      The function called when Security Manager finishes
+**                  verification of the service side connection
 **
 ** Returns          void
 **
@@ -70,7 +70,7 @@ static void avdt_sec_check_complete_term (BD_ADDR bd_addr, void *p_ref_data, UIN
 
     }
     p_ccb = avdt_ccb_by_bd(bd_addr);
-    
+
     p_tbl = avdt_ad_tc_tbl_by_st(AVDT_CHAN_SIG, p_ccb, AVDT_AD_ST_SEC_ACP);
     if (p_tbl == NULL)
         return;
@@ -78,7 +78,7 @@ static void avdt_sec_check_complete_term (BD_ADDR bd_addr, void *p_ref_data, UIN
     if (res == BTM_SUCCESS)
     {
 	    /* Send response to the L2CAP layer. */
-        L2CA_ConnectRsp (bd_addr, p_tbl->id, p_tbl->lcid, L2CAP_CONN_OK, L2CAP_CONN_OK); 
+        L2CA_ConnectRsp (bd_addr, p_tbl->id, p_tbl->lcid, L2CAP_CONN_OK, L2CAP_CONN_OK);
 
         /* store idx in LCID table, store LCID in routing table */
         avdt_cb.ad.lcid_tbl[p_tbl->lcid - L2CAP_BASE_APPL_CID] = avdt_ad_tc_tbl_to_idx(p_tbl);
@@ -97,7 +97,7 @@ static void avdt_sec_check_complete_term (BD_ADDR bd_addr, void *p_ref_data, UIN
     }
     else
     {
-        L2CA_ConnectRsp (bd_addr, p_tbl->id, p_tbl->lcid, L2CAP_CONN_SECURITY_BLOCK, L2CAP_CONN_OK); 
+        L2CA_ConnectRsp (bd_addr, p_tbl->id, p_tbl->lcid, L2CAP_CONN_SECURITY_BLOCK, L2CAP_CONN_OK);
         avdt_ad_tc_close_ind(p_tbl, L2CAP_CONN_SECURITY_BLOCK);
     }
 }
@@ -106,8 +106,8 @@ static void avdt_sec_check_complete_term (BD_ADDR bd_addr, void *p_ref_data, UIN
 **
 ** Function         avdt_sec_check_complete_orig
 **
-** Description      The function called when Security Manager finishes 
-**                  verification of the service side connection 
+** Description      The function called when Security Manager finishes
+**                  verification of the service side connection
 **
 ** Returns          void
 **
@@ -149,7 +149,7 @@ static void avdt_sec_check_complete_orig (BD_ADDR bd_addr, void *p_ref_data, UIN
 ** Function         avdt_l2c_connect_ind_cback
 **
 ** Description      This is the L2CAP connect indication callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -184,13 +184,13 @@ void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
             p_tbl->cfg_flags = AVDT_L2C_CFG_CONN_ACP;
 
             /* Check the security */
-            rc = btm_sec_mx_access_request (bd_addr, AVDT_PSM, 
-                FALSE, BTM_SEC_PROTO_AVDT, 
+            rc = btm_sec_mx_access_request (bd_addr, AVDT_PSM,
+                FALSE, BTM_SEC_PROTO_AVDT,
                 AVDT_CHAN_SIG,
                 &avdt_sec_check_complete_term, NULL);
             if(rc == BTM_CMD_STARTED)
             {
-                L2CA_ConnectRsp (p_ccb->peer_addr, p_tbl->id, lcid, L2CAP_CONN_PENDING, L2CAP_CONN_OK); 
+                L2CA_ConnectRsp (p_ccb->peer_addr, p_tbl->id, lcid, L2CAP_CONN_PENDING, L2CAP_CONN_OK);
             }
             return;
         }
@@ -226,7 +226,7 @@ void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
     }
 
     /* Send L2CAP connect rsp */
-    L2CA_ConnectRsp(bd_addr, id, lcid, result, 0); 
+    L2CA_ConnectRsp(bd_addr, id, lcid, result, 0);
 
     /* if result ok, proceed with connection */
     if (result == L2CAP_CONN_OK)
@@ -253,7 +253,7 @@ void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
 ** Function         avdt_l2c_connect_cfm_cback
 **
 ** Description      This is the L2CAP connect confirm callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -303,8 +303,8 @@ void avdt_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
                         p_tbl->cfg_flags = AVDT_L2C_CFG_CONN_INT;
 
                         /* Check the security */
-                        btm_sec_mx_access_request (p_ccb->peer_addr, AVDT_PSM, 
-                            TRUE, BTM_SEC_PROTO_AVDT, 
+                        btm_sec_mx_access_request (p_ccb->peer_addr, AVDT_PSM,
+                            TRUE, BTM_SEC_PROTO_AVDT,
                             AVDT_CHAN_SIG,
                             &avdt_sec_check_complete_orig, NULL);
                     }
@@ -325,7 +325,7 @@ void avdt_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Function         avdt_l2c_config_cfm_cback
 **
 ** Description      This is the L2CAP config confirm callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -367,7 +367,7 @@ void avdt_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Function         avdt_l2c_config_ind_cback
 **
 ** Description      This is the L2CAP config indication callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -415,7 +415,7 @@ void avdt_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Function         avdt_l2c_disconnect_ind_cback
 **
 ** Description      This is the L2CAP disconnect indication callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -434,7 +434,7 @@ void avdt_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
             /* send L2CAP disconnect response */
             L2CA_DisconnectRsp(lcid);
         }
-  
+
         avdt_ad_tc_close_ind(p_tbl, 0);
     }
 }
@@ -444,7 +444,7 @@ void avdt_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
 ** Function         avdt_l2c_disconnect_cfm_cback
 **
 ** Description      This is the L2CAP disconnect confirm callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -457,7 +457,7 @@ void avdt_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
         lcid, result);
     /* look up info for this channel */
     if ((p_tbl = avdt_ad_tc_tbl_by_lcid(lcid)) != NULL)
-    {  
+    {
         avdt_ad_tc_close_ind(p_tbl, result);
     }
 }
@@ -467,7 +467,7 @@ void avdt_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Function         avdt_l2c_congestion_ind_cback
 **
 ** Description      This is the L2CAP congestion indication callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -488,7 +488,7 @@ void avdt_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested)
 ** Function         avdt_l2c_data_ind_cback
 **
 ** Description      This is the L2CAP data indication callback function.
-**                  
+**
 **
 ** Returns          void
 **

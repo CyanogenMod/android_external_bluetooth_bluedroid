@@ -74,11 +74,11 @@ typedef UINT16 tBTA_FS_CO_STATUS;
 */
 #define BTA_FS_O_RDONLY         GOEP_O_RDONLY
 #define BTA_FS_O_WRONLY         GOEP_O_WRONLY
-#define BTA_FS_O_RDWR           GOEP_O_RDWR  
+#define BTA_FS_O_RDWR           GOEP_O_RDWR
 
-#define BTA_FS_O_CREAT          GOEP_O_CREAT 
-#define BTA_FS_O_EXCL           GOEP_O_EXCL  
-#define BTA_FS_O_TRUNC          GOEP_O_TRUNC 
+#define BTA_FS_O_CREAT          GOEP_O_CREAT
+#define BTA_FS_O_EXCL           GOEP_O_EXCL
+#define BTA_FS_O_TRUNC          GOEP_O_TRUNC
 
 #define BTA_FS_O_MODE_MASK(x)      (((UINT16)(x)) & 0x0003)
 
@@ -158,7 +158,7 @@ typedef struct
 ** Parameters       void.
 **
 ** Returns          void
-**                  
+**
 **
 *******************************************************************************/
 BTA_API extern void bta_fs_co_init(void);
@@ -168,7 +168,7 @@ BTA_API extern void bta_fs_co_init(void);
 ** Function         bta_fs_co_open
 **
 ** Description      This function is executed by BTA when a file is opened.
-**                  The phone uses this function to open 
+**                  The phone uses this function to open
 **                  a file for reading or writing.
 **
 ** Parameters       p_path  - Fully qualified path and file name.
@@ -180,7 +180,7 @@ BTA_API extern void bta_fs_co_init(void);
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 **                  Note: Upon completion of the request, a file descriptor (int),
 **                        if successful, and an error code (tBTA_FS_CO_STATUS)
 **                        are returned in the call-in function, bta_fs_ci_open().
@@ -203,7 +203,7 @@ BTA_API extern void bta_fs_co_open(const char *p_path, int oflags, UINT32 size,
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 BTA_API extern void bta_fs_co_session_info(BD_ADDR bd_addr, UINT8 *p_sess_info, UINT8 ssn,
                                            tBTA_FS_CO_SESS_ST new_st, char *p_path, UINT8 *p_info, UINT8 app_id);
@@ -222,7 +222,7 @@ BTA_API extern void bta_fs_co_session_info(BD_ADDR bd_addr, UINT8 *p_sess_info, 
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 BTA_API extern void bta_fs_co_resume_op(UINT32 offset, UINT16 evt, UINT8 app_id);
 
@@ -242,7 +242,7 @@ BTA_API extern void bta_fs_co_resume_op(UINT32 offset, UINT16 evt, UINT8 app_id)
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 BTA_API extern void bta_fs_co_suspend(BD_ADDR bd_addr, UINT8 *p_sess_info, UINT8 ssn,
                                       UINT32 *p_timeout, UINT32 *p_offset, UINT8 info, UINT8 app_id);
@@ -260,7 +260,7 @@ BTA_API extern void bta_fs_co_suspend(BD_ADDR bd_addr, UINT8 *p_sess_info, UINT8
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 **                  Note: Upon completion of the request, the related session information,
 **                        if successful, and an error code (tBTA_FS_CO_STATUS)
 **                        are returned in the call-in function, bta_fs_ci_resume().
@@ -283,7 +283,7 @@ BTA_API extern void bta_fs_co_resume(UINT16 evt, UINT8 app_id);
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 BTA_API extern void bta_fs_co_sess_ssn(int fd, UINT8 ssn, UINT8 app_id);
 
@@ -291,7 +291,7 @@ BTA_API extern void bta_fs_co_sess_ssn(int fd, UINT8 ssn, UINT8 app_id);
 **
 ** Function         bta_fs_co_setdir
 **
-** Description      This function is executed by BTA when the server changes the 
+** Description      This function is executed by BTA when the server changes the
 **                  local path
 **
 ** Parameters       p_path  - the new path.
@@ -300,7 +300,7 @@ BTA_API extern void bta_fs_co_sess_ssn(int fd, UINT8 ssn, UINT8 app_id);
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 BTA_API extern void bta_fs_co_setdir(const char *p_path, UINT8 app_id);
 
@@ -341,7 +341,7 @@ BTA_API extern tBTA_FS_CO_STATUS bta_fs_co_close(int fd, UINT8 app_id);
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 **                  Note: Upon completion of the request, bta_fs_ci_read() is
 **                        called with the buffer of data, along with the number
 **                        of bytes read into the buffer, and a status.  The
@@ -371,7 +371,7 @@ BTA_API extern void bta_fs_co_read(int fd, UINT8 *p_buf, UINT16 nbytes, UINT16 e
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 **                  Note: Upon completion of the request, bta_fs_ci_write() is
 **                        called with the file descriptor and the status.  The
 **                        call-in function should only be called when ALL requested
@@ -386,7 +386,7 @@ BTA_API extern void bta_fs_co_write(int fd, const UINT8 *p_buf, UINT16 nbytes, U
 ** Function         bta_fs_co_seek
 **
 ** Description      This function is called by io to move the file pointer
-**                  of a previously opened file to the specified location for 
+**                  of a previously opened file to the specified location for
 **                  the next read or write operation.
 **
 ** Parameters       fd      - file descriptor of file.
@@ -395,7 +395,7 @@ BTA_API extern void bta_fs_co_write(int fd, const UINT8 *p_buf, UINT16 nbytes, U
 **                            or BTA_FS_SEEK_END.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 BTA_API extern void bta_fs_co_seek (int fd, INT32 offset, INT16 origin, UINT8 app_id);
 
@@ -502,7 +502,7 @@ BTA_API extern tBTA_FS_CO_STATUS bta_fs_co_unlink(const char *p_path, UINT8 app_
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 **                  Note: Upon completion of the request, the status is passed
 **                        in the bta_fs_ci_direntry() call-in function.
 **                        BTA_FS_CO_OK is returned when p_entry is valid,
@@ -532,7 +532,7 @@ BTA_API extern void bta_fs_co_getdirentry(const char *p_path, BOOLEAN first_item
 ** Returns          (tBTA_FS_CO_STATUS) status of the call.
 **                      [BTA_FS_CO_OK if successful]
 **                      [BTA_FS_CO_EIS_DIR if p_src_path is a folder]
-**                      [BTA_FS_CO_EACCES if p_dest_path already exists or could not be created (invalid path); 
+**                      [BTA_FS_CO_EACCES if p_dest_path already exists or could not be created (invalid path);
 **                                        or p_src_path is a directory and p_dest_path specifies a different path. ]
 **                      [BTA_FS_CO_FAIL otherwise]
 **
@@ -555,7 +555,7 @@ BTA_API extern void bta_fs_co_copy(const char *p_src_path, const char *p_dest_pa
 **
 ** Returns          (tBTA_FS_CO_STATUS) status of the call.
 **                      [BTA_FS_CO_OK if successful]
-**                      [BTA_FS_CO_EACCES if p_dest_path already exists or could not be created (invalid path); 
+**                      [BTA_FS_CO_EACCES if p_dest_path already exists or could not be created (invalid path);
 **                                        or p_src_path is a directory and p_dest_path specifies a different path. ]
 **                      [BTA_FS_CO_FAIL otherwise]
 **
@@ -577,7 +577,7 @@ BTA_API extern void bta_fs_co_rename(const char *p_src_path, const char *p_dest_
 **
 ** Returns          (tBTA_FS_CO_STATUS) status of the call.
 **                      [BTA_FS_CO_OK if successful]
-**                      [BTA_FS_CO_EACCES if p_dest_path already exists or could not be created (invalid path); 
+**                      [BTA_FS_CO_EACCES if p_dest_path already exists or could not be created (invalid path);
 **                                        or p_src_path is a directory and p_dest_path specifies a different path. ]
 **                      [BTA_FS_CO_FAIL otherwise]
 **
@@ -588,7 +588,7 @@ BTA_API extern void bta_fs_co_set_perms(const char *p_src_path,  UINT8 *p_perms,
 **
 ** Function         bta_fs_co_sess_fopen
 **
-** Description      This function is called by bta_fs_co_open to keep track of 
+** Description      This function is called by bta_fs_co_open to keep track of
 **                  the opened file (for reliable session suspend/resume.)
 **
 ** Parameters       p_path  - Fully qualified path and file name.
@@ -598,7 +598,7 @@ BTA_API extern void bta_fs_co_set_perms(const char *p_src_path,  UINT8 *p_perms,
 **                            of the call-out function.
 **
 ** Returns          void
-**                  
+**
 *******************************************************************************/
 BTA_API extern void bta_fs_co_sess_fopen(const char *p_path, int oflags, UINT8 app_id);
 
@@ -606,7 +606,7 @@ BTA_API extern void bta_fs_co_sess_fopen(const char *p_path, int oflags, UINT8 a
 **
 ** Function         bta_fs_co_sess_fclose
 **
-** Description      This function is called by bta_fs_co_close 
+** Description      This function is called by bta_fs_co_close
 **
 ** Parameters       app_id  - application ID specified in the enable functions.
 **                            It can be used to identify which profile is the caller
@@ -621,7 +621,7 @@ BTA_API extern void bta_fs_co_sess_fclose(UINT8 app_id);
 **
 ** Function         bta_fs_co_sess_offset
 **
-** Description      This function is called by bta_fs_co_write to keep track of 
+** Description      This function is called by bta_fs_co_write to keep track of
 **                  the last file offset (Only the receiving side needs to keep
 **                  track of the file offset)
 **

@@ -206,9 +206,9 @@ extern void        bnepu_release_bcb (tBNEP_CONN *p_bcb);
 extern void        bnepu_send_peer_our_filters (tBNEP_CONN *p_bcb);
 extern void        bnepu_send_peer_our_multi_filters (tBNEP_CONN *p_bcb);
 extern BOOLEAN     bnepu_does_dest_support_prot (tBNEP_CONN *p_bcb, UINT16 protocol);
-extern void        bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol, 
+extern void        bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol,
                                          UINT8 *p_src_addr, UINT8 *p_dest_addr, BOOLEAN ext_bit);
-extern void        test_bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol, 
+extern void        test_bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol,
                                          UINT8 *p_src_addr, UINT8 *p_dest_addr, UINT8 type);
 
 extern tBNEP_CONN *bnepu_get_route_to_dest (UINT8 *p_bda);

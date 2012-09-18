@@ -45,27 +45,37 @@
  *
  ************************************************************************************/
 
-
-/************************************************************************************
+/*******************************************************************************
  *
  *  Filename:      btif_config.h
  *
  *  Description:   Bluetooth configuration Interface
  *
- *
- ***********************************************************************************/
+ *******************************************************************************/
 
-#ifndef btif_config_h_
-#define btif_config_h_
+#ifndef BTIF_CONFIG_H
+#define BTIF_CONFIG_H
+
 #ifdef __cplusplus
 #include <stdint.h>
 extern "C" {
 #endif
+
+/*******************************************************************************
+** Constants & Macros
+********************************************************************************/
+
 #define BTIF_CFG_TYPE_INVALID   0
 #define BTIF_CFG_TYPE_STR       1
 #define BTIF_CFG_TYPE_INT      (1 << 1)
 #define BTIF_CFG_TYPE_BIN      (1 << 2)
 #define BTIF_CFG_TYPE_VOLATILE (1 << 15)
+
+
+/*******************************************************************************
+**  Functions
+********************************************************************************/
+
 int btif_config_init();
 
 int btif_config_exist(const char* section, const char* key, const char* name);
@@ -88,6 +98,7 @@ int btif_config_enum(btif_config_enum_callback cb, void* user_data);
 
 int btif_config_save();
 void btif_config_flush();
+
 #ifdef __cplusplus
 }
 #endif

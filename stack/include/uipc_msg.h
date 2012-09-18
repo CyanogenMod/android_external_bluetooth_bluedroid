@@ -26,7 +26,7 @@
 ********************************/
 
 /* tUIPC_STATUS codes*/
-enum 
+enum
 {
     UIPC_STATUS_SUCCESS,
     UIPC_STATUS_FAIL
@@ -107,7 +107,7 @@ typedef struct t_uipc_log_msg
 #define SLIP_SYNC_SUCCESS            0
 #define SLIP_SYNC_FAILURE            1
 
-typedef struct 
+typedef struct
 {
     UINT8       op_code;
     UINT8       status;
@@ -152,7 +152,7 @@ typedef struct t_l2c_stream_info
 
 typedef struct t_l2c_sync_to_lite_req
 {
-    UINT8   op_code;                       /* L2C_SYNC_TO_LITE_REQ */ 
+    UINT8   op_code;                       /* L2C_SYNC_TO_LITE_REQ */
     UINT16  light_xmit_quota;              /* Total quota for light stack    */
     UINT16  acl_data_size;                 /* Max ACL data size across HCI transport    */
     UINT16  non_flushable_pbf;             /* L2CAP_PKT_START_NON_FLUSHABLE if controller supports */
@@ -387,8 +387,8 @@ typedef UINT16 tAUDIO_CODEC_TYPE;
 #define CODEC_INFO_SBC_SUBBAND_8    0x01
 
 /* MPEG audio version ID */
-#define CODEC_INFO_MP25_ID              0x00  
-#define CODEC_INFO_RESERVE              0x01  
+#define CODEC_INFO_MP25_ID              0x00
+#define CODEC_INFO_RESERVE              0x01
 #define CODEC_INFO_MP2_ID               0x02
 #define CODEC_INFO_MP3_ID               0x03
 
@@ -564,10 +564,10 @@ typedef struct
 
 typedef struct
 {
-    UINT16  sampling_freq;  
+    UINT16  sampling_freq;
     UINT8   channel_mode;   /* 0x02:mono, 0x01:dual */
     UINT32  bitrate;        /* 0 - 320K */
-    UINT32  sbr_profile;        /* 1: ON, 0: OFF */    
+    UINT32  sbr_profile;        /* 1: ON, 0: OFF */
 } tCODEC_INFO_AAC;
 
 typedef union
@@ -686,7 +686,7 @@ typedef struct
     tAUDIO_ROUTE_SF     src_sf;
     tAUDIO_ROUTE_OUT    out;
     tAUDIO_ROUTE_SF     out_codec_sf;
-    tAUDIO_ROUTE_SF     out_i2s_sf;    
+    tAUDIO_ROUTE_SF     out_i2s_sf;
     tAUDIO_ROUTE_EQ     eq_mode;
 } tAUDIO_ROUTE_CONFIG_REQ;
 
@@ -720,13 +720,13 @@ typedef struct
     UINT32  audio_l_g2;         /* IIR biquad filter left ch gain 2 */
     UINT32  audio_l_g3;         /* IIR biquad filter left ch gain 3 */
     UINT32  audio_l_g4;         /* IIR biquad filter left ch gain 4 */
-    UINT32  audio_l_gl;         /* IIR biquad filter left ch global gain  */   
+    UINT32  audio_l_gl;         /* IIR biquad filter left ch global gain  */
     UINT32  audio_r_g0;         /* IIR biquad filter left ch gain 0 */
     UINT32  audio_r_g1;         /* IIR biquad filter left ch gain 1 */
     UINT32  audio_r_g2;         /* IIR biquad filter left ch gain 2 */
     UINT32  audio_r_g3;         /* IIR biquad filter left ch gain 3 */
     UINT32  audio_r_g4;         /* IIR biquad filter left ch gain 4 */
-    UINT32  audio_r_gl;         /* IIR biquad filter left ch global gain */   
+    UINT32  audio_r_gl;         /* IIR biquad filter left ch global gain */
 } tEQ_GAIN_CONFIG;
 
 typedef struct
@@ -734,7 +734,7 @@ typedef struct
     UINT8               opcode;     /* AUDIO_MIX_CONFIG_REQ */
     tAUDIO_ROUTE_MIX    mix_src;
     tAUDIO_ROUTE_SF     mix_src_sf;
-    tMIX_SCALE_CONFIG   mix_scale; 
+    tMIX_SCALE_CONFIG   mix_scale;
     tCHIRP_CONFIG       chirp_config;
 } tAUDIO_MIX_CONFIG_REQ;
 
@@ -771,7 +771,7 @@ typedef struct
 typedef struct
 {
     UINT8               opcode;     /* AUDIO_SCALE_CONFIG_REQ */
-    tMIX_SCALE_CONFIG   mix_scale; 
+    tMIX_SCALE_CONFIG   mix_scale;
 } tAUDIO_SCALE_CONFIG_REQ;
 
 typedef UINT8 tBTA_AV_DUAL_STACK_EVT;

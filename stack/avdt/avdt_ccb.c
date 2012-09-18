@@ -35,33 +35,33 @@ const char * const avdt_ccb_st_str[] = {
 
 /* verbose event strings for trace */
 const char * const avdt_ccb_evt_str[] = {
-    "API_DISCOVER_REQ_EVT",  
-    "API_GETCAP_REQ_EVT",    
-    "API_START_REQ_EVT",     
-    "API_SUSPEND_REQ_EVT",   
-    "API_DISCOVER_RSP_EVT",  
-    "API_GETCAP_RSP_EVT",    
-    "API_START_RSP_EVT",     
-    "API_SUSPEND_RSP_EVT",   
-    "API_CONNECT_REQ_EVT",   
+    "API_DISCOVER_REQ_EVT",
+    "API_GETCAP_REQ_EVT",
+    "API_START_REQ_EVT",
+    "API_SUSPEND_REQ_EVT",
+    "API_DISCOVER_RSP_EVT",
+    "API_GETCAP_RSP_EVT",
+    "API_START_RSP_EVT",
+    "API_SUSPEND_RSP_EVT",
+    "API_CONNECT_REQ_EVT",
     "API_DISCONNECT_REQ_EVT",
-    "MSG_DISCOVER_CMD_EVT",  
-    "MSG_GETCAP_CMD_EVT",    
-    "MSG_START_CMD_EVT",     
-    "MSG_SUSPEND_CMD_EVT",   
-    "MSG_DISCOVER_RSP_EVT",  
-    "MSG_GETCAP_RSP_EVT",    
-    "MSG_START_RSP_EVT",     
-    "MSG_SUSPEND_RSP_EVT",   
-    "RCVRSP_EVT",            
-    "SENDMSG_EVT",           
-    "RET_TOUT_EVT",          
-    "RSP_TOUT_EVT",          
-    "IDLE_TOUT_EVT",         
-    "UL_OPEN_EVT",           
-    "UL_CLOSE_EVT",          
-    "LL_OPEN_EVT",           
-    "LL_CLOSE_EVT",          
+    "MSG_DISCOVER_CMD_EVT",
+    "MSG_GETCAP_CMD_EVT",
+    "MSG_START_CMD_EVT",
+    "MSG_SUSPEND_CMD_EVT",
+    "MSG_DISCOVER_RSP_EVT",
+    "MSG_GETCAP_RSP_EVT",
+    "MSG_START_RSP_EVT",
+    "MSG_SUSPEND_RSP_EVT",
+    "RCVRSP_EVT",
+    "SENDMSG_EVT",
+    "RET_TOUT_EVT",
+    "RSP_TOUT_EVT",
+    "IDLE_TOUT_EVT",
+    "UL_OPEN_EVT",
+    "UL_CLOSE_EVT",
+    "LL_OPEN_EVT",
+    "LL_CLOSE_EVT",
     "LL_CONG_EVT"
 };
 
@@ -261,7 +261,7 @@ const tAVDT_CCB_ST_TBL avdt_ccb_st_tbl[] = {
 ** Function         avdt_ccb_init
 **
 ** Description      Initialize channel control block module.
-**                  
+**
 **
 ** Returns          Nothing.
 **
@@ -277,7 +277,7 @@ void avdt_ccb_init(void)
 ** Function         avdt_ccb_event
 **
 ** Description      State machine event handling function for ccb
-**                  
+**
 **
 ** Returns          Nothing.
 **
@@ -306,7 +306,7 @@ void avdt_ccb_event(tAVDT_CCB *p_ccb, UINT8 event, tAVDT_CCB_EVT *p_data)
     {
         if ((action = state_table[event][i]) != AVDT_CCB_IGNORE)
         {
-            BTTRC_AVDT_CCB_ACTION(action); 
+            BTTRC_AVDT_CCB_ACTION(action);
             (*avdt_cb.p_ccb_act[action])(p_ccb, p_data);
         }
         else
@@ -322,7 +322,7 @@ void avdt_ccb_event(tAVDT_CCB *p_ccb, UINT8 event, tAVDT_CCB_EVT *p_data)
 ** Function         avdt_ccb_by_bd
 **
 ** Description      This lookup function finds the ccb for a BD address.
-**                  
+**
 **
 ** Returns          pointer to the ccb, or NULL if none found.
 **
@@ -340,7 +340,7 @@ tAVDT_CCB *avdt_ccb_by_bd(BD_ADDR bd_addr)
             break;
         }
     }
-    
+
     if (i == AVDT_NUM_LINKS)
     {
         /* if no ccb found */
@@ -357,7 +357,7 @@ tAVDT_CCB *avdt_ccb_by_bd(BD_ADDR bd_addr)
 ** Function         avdt_ccb_alloc
 **
 ** Description      Allocate a channel control block.
-**                  
+**
 **
 ** Returns          pointer to the ccb, or NULL if none could be allocated.
 **
@@ -380,7 +380,7 @@ tAVDT_CCB *avdt_ccb_alloc(BD_ADDR bd_addr)
             break;
         }
     }
-    
+
     if (i == AVDT_NUM_LINKS)
     {
         /* out of ccbs */
@@ -395,7 +395,7 @@ tAVDT_CCB *avdt_ccb_alloc(BD_ADDR bd_addr)
 ** Function         avdt_ccb_dealloc
 **
 ** Description      Deallocate a stream control block.
-**                  
+**
 **
 ** Returns          void.
 **
@@ -412,7 +412,7 @@ void avdt_ccb_dealloc(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Function         avdt_ccb_to_idx
 **
 ** Description      Given a pointer to an ccb, return its index.
-**                  
+**
 **
 ** Returns          Index of ccb.
 **
@@ -428,7 +428,7 @@ UINT8 avdt_ccb_to_idx(tAVDT_CCB *p_ccb)
 ** Function         avdt_ccb_by_idx
 **
 ** Description      Return ccb pointer based on ccb index.
-**                  
+**
 **
 ** Returns          pointer to the ccb, or NULL if none found.
 **
@@ -440,7 +440,7 @@ tAVDT_CCB *avdt_ccb_by_idx(UINT8 idx)
     /* verify index */
     if (idx < AVDT_NUM_LINKS)
     {
-        p_ccb = &avdt_cb.ccb[idx];   
+        p_ccb = &avdt_cb.ccb[idx];
     }
     else
     {

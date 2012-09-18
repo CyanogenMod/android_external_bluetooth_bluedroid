@@ -131,7 +131,7 @@ UINT8 btm_handle_to_acl_index (UINT16 hci_handle)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn, 
+void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                       UINT16 hci_handle, UINT8 link_role, UINT8 is_le_link)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -194,10 +194,10 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
             {
                 BTM_TRACE_DEBUG1 ("device_type=0x%x", p_dev_rec->device_type);
             }
-#endif             
+#endif
 
 
-            if (p_dev_rec 
+            if (p_dev_rec
 #if (BLE_INCLUDED == TRUE)
                 && p_dev_rec->device_type != BT_DEVICE_TYPE_BLE
 #endif
@@ -213,7 +213,7 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                     if (p_dev_rec->features[yy])
                     {
                         memcpy (p->features, p_dev_rec->features, BD_FEATURES_LEN);
-                        if (BTM_SEC_MODE_SP == btm_cb.security_mode && 
+                        if (BTM_SEC_MODE_SP == btm_cb.security_mode &&
                             HCI_SIMPLE_PAIRING_SUPPORTED(p->features))
                         {
                             /* if SM4 supported, check peer support for SM4
@@ -237,7 +237,7 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                 btm_establish_continue(p);
 
                 if (link_role == HCI_ROLE_MASTER)
-                {                    
+                {
                     btm_ble_update_bg_state();
                     btm_ble_resume_bg_conn (NULL, FALSE);
 
@@ -337,7 +337,7 @@ void btm_acl_removed (BD_ADDR bda)
 
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
 
-        BTM_TRACE_DEBUG4 ("acl hci_handle=%d is_le_link=%d connectable_mode=0x%0x link_role=%d", 
+        BTM_TRACE_DEBUG4 ("acl hci_handle=%d is_le_link=%d connectable_mode=0x%0x link_role=%d",
                           p->hci_handle,
                           p->is_le_link,
                           btm_cb.ble_ctr_cb.inq_var.connectable_mode,
@@ -380,7 +380,7 @@ void btm_acl_removed (BD_ADDR bda)
             }
             else
             {
-                BTM_TRACE_DEBUG0("Bletooth link down"); 
+                BTM_TRACE_DEBUG0("Bletooth link down");
                 p_dev_rec->sec_flags &= ~(BTM_SEC_AUTHORIZED | BTM_SEC_AUTHENTICATED | BTM_SEC_ENCRYPTED | BTM_SEC_ROLE_SWITCHED);
             }
             BTM_TRACE_DEBUG1("after update p_dev_rec->sec_flags=0x%x", p_dev_rec->sec_flags);
@@ -530,7 +530,7 @@ tBTM_STATUS BTM_GetRole (BD_ADDR remote_bd_addr, UINT8 *p_role)
 ** Function         BTM_SwitchRole
 **
 ** Description      This function is called to switch role between master and
-**                  slave.  If role is already set it will do nothing.  If the 
+**                  slave.  If role is already set it will do nothing.  If the
 **                  command was initiated, the callback function is called upon
 **                  completion.
 **
@@ -626,7 +626,7 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, UINT8 new_role, tBTM_CMPL_CB
 /* Coverity FALSE-POSITIVE error from Coverity tool. Please do NOT remove following comment.     */
 /* coverity[uninit_use_in_call] False-positive: setting the mode to BTM_PM_MD_ACTIVE only uses settings.mode
                                 the other data members of tBTM_PM_PWR_MD are ignored
-*/               
+*/
         settings.mode = BTM_PM_MD_ACTIVE;
         status = BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p->remote_addr, &settings);
         if (status != BTM_CMD_STARTED)
@@ -671,7 +671,7 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, UINT8 new_role, tBTM_CMPL_CB
     if (p_cb)
     {
         memcpy (btm_cb.devcb.switch_role_ref_data.remote_bd_addr, remote_bd_addr,
-                BD_ADDR_LEN); 
+                BD_ADDR_LEN);
         btm_cb.devcb.switch_role_ref_data.role = new_role;
         /* initialized to an error code */
         btm_cb.devcb.switch_role_ref_data.hci_status = HCI_ERR_UNSUPPORTED_VALUE;
@@ -736,7 +736,7 @@ tBTM_STATUS BTM_ChangeLinkKey (BD_ADDR remote_bd_addr, tBTM_CMPL_CB *p_cb)
 /* Coverity: FALSE-POSITIVE error from Coverity tool. Please do NOT remove following comment. */
 /* coverity[uninit_use_in_call] False-positive: setting the mode to BTM_PM_MD_ACTIVE only uses settings.mode
                                 the other data members of tBTM_PM_PWR_MD are ignored
-*/               
+*/
         settings.mode = BTM_PM_MD_ACTIVE;
         status = BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p->remote_addr, &settings);
         if (status != BTM_CMD_STARTED)
@@ -770,7 +770,7 @@ tBTM_STATUS BTM_ChangeLinkKey (BD_ADDR remote_bd_addr, tBTM_CMPL_CB *p_cb)
 
     /* Initialize return structure in case request fails */
     memcpy (btm_cb.devcb.chg_link_key_ref_data.remote_bd_addr, remote_bd_addr,
-            BD_ADDR_LEN); 
+            BD_ADDR_LEN);
     btm_cb.devcb.p_chg_link_key_cb = p_cb;
     return(BTM_CMD_STARTED);
 }
@@ -843,7 +843,7 @@ void btm_acl_link_key_change (UINT16 handle, UINT8 status)
 **
 ** Function         btm_acl_encrypt_change
 **
-** Description      This function is when encryption of the connection is 
+** Description      This function is when encryption of the connection is
 **                  completed by the LM.  Checks to see if a role switch or
 **                  change of link key was active and initiates or continues
 **                  process if needed.
@@ -930,7 +930,7 @@ void btm_acl_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
                 BTM_TRACE_WARNING0("btm_acl_encrypt_change -> Issuing delayed HCI_Disconnect!!!");
                 btsnd_hcic_disconnect(p_dev_rec->hci_handle, HCI_ERR_PEER_USER);
             }
-            BTM_TRACE_ERROR2("btm_acl_encrypt_change: tBTM_SEC_DEV:0x%x rs_disc_pending=%d", 
+            BTM_TRACE_ERROR2("btm_acl_encrypt_change: tBTM_SEC_DEV:0x%x rs_disc_pending=%d",
                 (UINT32)p_dev_rec, p_dev_rec->rs_disc_pending);
             p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING;     /* reset flag */
         }
@@ -1216,7 +1216,7 @@ void btm_read_remote_features_complete (UINT8 *p)
 
                 memcpy (p_dev_rec->features, p_acl_cb->features, BD_FEATURES_LEN);
 
-                if (BTM_SEC_MODE_SP == btm_cb.security_mode && 
+                if (BTM_SEC_MODE_SP == btm_cb.security_mode &&
                     HCI_SIMPLE_PAIRING_SUPPORTED(p_acl_cb->features))
                 {
                     /* if SM4 supported, check peer support for SM4
@@ -1375,10 +1375,10 @@ static void btm_establish_continue (tACL_CONN *p_acl_cb)
     btm_acl_update_busy_level (BTM_BLI_ACL_UP_EVT);
 #else
     if (btm_cb.p_acl_changed_cb)
-        (*btm_cb.p_acl_changed_cb) (p_acl_cb->remote_addr, 
-                                    p_acl_cb->remote_dc, 
-                                    p_acl_cb->remote_name, 
-                                    p_acl_cb->features, 
+        (*btm_cb.p_acl_changed_cb) (p_acl_cb->remote_addr,
+                                    p_acl_cb->remote_dc,
+                                    p_acl_cb->remote_name,
+                                    p_acl_cb->features,
                                     TRUE);
 #endif
 }
@@ -1421,7 +1421,7 @@ tBTM_STATUS BTM_SetLinkSuperTout (BD_ADDR remote_bda, UINT16 timeout)
         /* Only send if current role is Master; 2.0 spec requires this */
         if (p->link_role == BTM_ROLE_MASTER)
         {
-            if (!btsnd_hcic_write_link_super_tout (LOCAL_BR_EDR_CONTROLLER_ID, 
+            if (!btsnd_hcic_write_link_super_tout (LOCAL_BR_EDR_CONTROLLER_ID,
                                                    p->hci_handle, timeout))
                 return(BTM_NO_RESOURCES);
 
@@ -1812,7 +1812,7 @@ BOOLEAN BTM_IsAclConnectionUp (BD_ADDR remote_bda)
 **
 ** Function         BTM_GetNumAclLinks
 **
-** Description      This function is called to count the number of 
+** Description      This function is called to count the number of
 **                  ACL links that are active.
 **
 ** Returns          UINT16  Number of active ACL links
@@ -2098,7 +2098,7 @@ UINT8 BTM_AllocateSCN(void)
 ** Function         BTM_TryAllocateSCN
 **
 ** Description      Try to allocate a fixed server channel
-**               
+**
 ** Returns          Returns TRUE if server channel was available
 **
 *******************************************************************************/
@@ -2119,7 +2119,7 @@ BOOLEAN BTM_TryAllocateSCN(UINT8 scn)
         btm_cb.btm_scn[scn-1] = TRUE;
         return TRUE;
     }
-    
+
     return (FALSE);     /* Port was busy */
 }
 
@@ -2291,7 +2291,7 @@ UINT16 btm_get_max_packet_size (BD_ADDR addr)
 
 #ifdef BRCM_VS
     /* Using HCI size 1017 instead of 1021 */
-    if ((pkt_size == HCI_EDR3_DH5_PACKET_SIZE) 
+    if ((pkt_size == HCI_EDR3_DH5_PACKET_SIZE)
         && (btu_cb.hcit_acl_data_size == 1017))
         pkt_size = 1017;
 #endif
@@ -2423,7 +2423,7 @@ tBTM_STATUS BTM_SetQoS (BD_ADDR bd, FLOW_SPEC *p_flow, tBTM_CMPL_CB *p_cb)
         btu_start_timer (&btm_cb.devcb.qossu_timer, BTU_TTYPE_BTM_ACL, BTM_DEV_REPLY_TIMEOUT);
         btm_cb.devcb.p_qossu_cmpl_cb = p_cb;
 
-        if (!btsnd_hcic_qos_setup (p->hci_handle, p_flow->qos_flags, p_flow->service_type, 
+        if (!btsnd_hcic_qos_setup (p->hci_handle, p_flow->qos_flags, p_flow->service_type,
                                    p_flow->token_rate, p_flow->peak_bandwidth, p_flow->latency,p_flow->delay_variation))
         {
             btm_cb.devcb.p_qossu_cmpl_cb = NULL;
@@ -2469,7 +2469,7 @@ void btm_qos_setup_complete (UINT8 status, UINT16 handle, FLOW_SPEC *p_flow)
             qossu.flow.token_rate = p_flow->token_rate;
             qossu.flow.peak_bandwidth = p_flow->peak_bandwidth;
             qossu.flow.latency = p_flow->latency;
-            qossu.flow.delay_variation = p_flow->delay_variation;     
+            qossu.flow.delay_variation = p_flow->delay_variation;
         }
         BTM_TRACE_DEBUG1 ("BTM: p_flow->delay_variation: 0x%02x",
                           qossu.flow.delay_variation);
@@ -2571,8 +2571,8 @@ tBTM_STATUS BTM_ReadLinkQuality (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
 **
 ** Function         BTM_ReadTxPower
 **
-** Description      This function is called to read the current  
-**                  TX power of the connection. The tx power level results 
+** Description      This function is called to read the current
+**                  TX power of the connection. The tx power level results
 **                  are returned in the callback.
 **                  (tBTM_RSSI_RESULTS)
 **
@@ -2608,7 +2608,7 @@ tBTM_STATUS BTM_ReadTxPower (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
             memcpy(btm_cb.devcb.read_tx_pwr_addr, remote_bda, BD_ADDR_LEN);
             ret = btsnd_hcic_ble_read_adv_chnl_tx_power();
         }
-        else 
+        else
 #endif
         {
             ret = btsnd_hcic_read_tx_power (p->hci_handle, BTM_READ_RSSI_TYPE_CUR);
@@ -2656,7 +2656,7 @@ void btm_read_tx_power_complete (UINT8 *p, BOOLEAN is_ble)
         if (results.hci_status == HCI_SUCCESS)
         {
             results.status = BTM_SUCCESS;
-            
+
             if (!is_ble)
             {
                 STREAM_TO_UINT16 (handle, p);
@@ -2871,7 +2871,7 @@ void btm_cont_rswitch_or_chglinkkey (tACL_CONN *p, tBTM_SEC_DEV_REC *p_dev_rec,
     BOOLEAN sw_ok = TRUE;
     BOOLEAN chlk_ok = TRUE;
     BTM_TRACE_DEBUG0 ("btm_cont_rswitch_or_chglinkkey ");
-    /* Check to see if encryption needs to be turned off if pending 
+    /* Check to see if encryption needs to be turned off if pending
        change of link key or role switch */
     if (p->switch_role_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE ||
         p->change_key_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE)
@@ -3102,13 +3102,13 @@ void btm_acl_chk_peer_pkt_type_support (tACL_CONN *p, UINT16 *p_pkt_type)
     /* 3 and 5 slot packets? */
     if (!HCI_3_SLOT_PACKETS_SUPPORTED(p->features))
         *p_pkt_type &= ~(BTM_ACL_PKT_TYPES_MASK_DH3 +BTM_ACL_PKT_TYPES_MASK_DM3);
-        
+
     if (!HCI_5_SLOT_PACKETS_SUPPORTED(p->features))
         *p_pkt_type &= ~(BTM_ACL_PKT_TYPES_MASK_DH5 + BTM_ACL_PKT_TYPES_MASK_DM5);
 
-    /* If HCI version > 2.0, then also check EDR packet types */        
+    /* If HCI version > 2.0, then also check EDR packet types */
     if (btm_cb.devcb.local_version.hci_version >= HCI_PROTO_VERSION_2_0)
-    {    
+    {
         /* 2 and 3 MPS support? */
         if (!HCI_EDR_ACL_2MPS_SUPPORTED(p->features))
             /* Not supported. Add 'not_supported' mask for all 2MPS packet types */
@@ -3118,7 +3118,7 @@ void btm_acl_chk_peer_pkt_type_support (tACL_CONN *p, UINT16 *p_pkt_type)
             /* Not supported. Add 'not_supported' mask for all 3MPS packet types */
             *p_pkt_type |= (BTM_ACL_PKT_TYPES_MASK_NO_3_DH1 + BTM_ACL_PKT_TYPES_MASK_NO_3_DH3 + BTM_ACL_PKT_TYPES_MASK_NO_3_DH5);
 
-        /* EDR 3 and 5 slot support? */    
+        /* EDR 3 and 5 slot support? */
         if (HCI_EDR_ACL_2MPS_SUPPORTED(p->features) || HCI_EDR_ACL_3MPS_SUPPORTED(p->features))
         {
             if (!HCI_3_SLOT_EDR_ACL_SUPPORTED(p->features))

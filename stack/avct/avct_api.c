@@ -34,7 +34,7 @@ tAVCT_CB avct_cb;
 **                  prepares the protocol stack for its use.  This function
 **                  must be called once by the system or platform using AVCTP
 **                  before the other functions of the API an be used.
-**                  
+**
 **
 ** Returns          void
 **
@@ -45,7 +45,7 @@ void AVCT_Register(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask)
 
     /* register PSM with L2CAP */
     L2CA_Register(AVCT_PSM, (tL2CAP_APPL_INFO *) &avct_l2c_appl);
-    
+
     /* set security level */
     BTM_SetSecurityLevel(TRUE, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_PSM, 0, 0);
     BTM_SetSecurityLevel(FALSE, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_PSM, 0, 0);
@@ -86,7 +86,7 @@ void AVCT_Register(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask)
 **                  application in the system.  Before this function can be
 **                  called, all connections must be removed with
 **                  AVCT_RemoveConn().
-**                  
+**
 **
 ** Returns          void
 **
@@ -108,9 +108,9 @@ void AVCT_Deregister(void)
 **                  the p_cc->role parameter.  When this function is called to
 **                  create an initiator connection, an AVCTP connection to
 **                  the peer device is initiated if one does not already exist.
-**                  If an acceptor connection is created, the connection waits 
+**                  If an acceptor connection is created, the connection waits
 **                  passively for an incoming AVCTP connection from a peer device.
-**                  
+**
 **
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
@@ -173,7 +173,7 @@ UINT16 AVCT_CreateConn(UINT8 *p_handle, tAVCT_CC *p_cc, BD_ADDR peer_addr)
 **                  the application is no longer using a connection.  If this
 **                  is the last connection to a peer the L2CAP channel for AVCTP
 **                  will be closed.
-**                  
+**
 **
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
@@ -212,9 +212,9 @@ UINT16 AVCT_RemoveConn(UINT8 handle)
 **                  the role parameter.  When this function is called to
 **                  create an initiator connection, the Browse channel to
 **                  the peer device is initiated if one does not already exist.
-**                  If an acceptor connection is created, the connection waits 
+**                  If an acceptor connection is created, the connection waits
 **                  passively for an incoming AVCTP connection from a peer device.
-**                  
+**
 **
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
@@ -289,7 +289,7 @@ UINT16 AVCT_CreateBrowse (UINT8 handle, UINT8 role)
 **                  the application is no longer using a connection.  If this
 **                  is the last connection to a peer the L2CAP channel for AVCTP
 **                  will be closed.
-**                  
+**
 **
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
@@ -322,7 +322,7 @@ UINT16 AVCT_RemoveBrowse (UINT8 handle)
 **
 ** Function         AVCT_GetBrowseMtu
 **
-** Description      Get the peer_mtu for the AVCTP Browse channel of the given 
+** Description      Get the peer_mtu for the AVCTP Browse channel of the given
 **                  connection.
 **
 ** Returns          the peer browsing channel MTU.
@@ -346,7 +346,7 @@ UINT16 AVCT_GetBrowseMtu (UINT8 handle)
 **
 ** Function         AVCT_GetPeerMtu
 **
-** Description      Get the peer_mtu for the AVCTP channel of the given 
+** Description      Get the peer_mtu for the AVCTP channel of the given
 **                  connection.
 **
 ** Returns          the peer MTU size.
@@ -423,7 +423,7 @@ UINT16 AVCT_MsgReq(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR *p_msg)
         ul_msg.p_buf = p_msg;
         ul_msg.p_ccb = p_ccb;
         ul_msg.label = label;
-        ul_msg.cr = cr;    
+        ul_msg.cr = cr;
 
 #if (AVCT_BROWSE_INCLUDED == TRUE)
         /* send msg event to bcb */

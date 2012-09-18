@@ -64,10 +64,10 @@
 #define GATT_UUID_RINGER_SETTING        0x2A41     /* ringer setting */
 
 /* Glucose Service */
-#define GATT_UUID_GM_MEASUREMENT        0x2A18  
-#define GATT_UUID_GM_CONTEXT            0x2A34  
-#define GATT_UUID_GM_CONTROL_POINT      0x2A52 
-#define GATT_UUID_GM_FEATURE            0x2A51  
+#define GATT_UUID_GM_MEASUREMENT        0x2A18
+#define GATT_UUID_GM_CONTEXT            0x2A34
+#define GATT_UUID_GM_CONTROL_POINT      0x2A52
+#define GATT_UUID_GM_FEATURE            0x2A51
 
 /* device infor characteristic */
 #define GATT_UUID_SYSTEM_ID             0x2A23

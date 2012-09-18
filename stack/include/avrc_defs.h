@@ -164,7 +164,7 @@
 **  Metadata transfer definitions
 *****************************************************************************/
 
-/* Define the Metadata Packet types 
+/* Define the Metadata Packet types
 */
 #define AVRC_PKT_SINGLE           0
 #define AVRC_PKT_START            1
@@ -190,15 +190,15 @@
 #define AVRC_PDU_ABORT_CONTINUATION_RSP         0x41
 /* added in 1.4 */
 #define AVRC_PDU_SET_ABSOLUTE_VOLUME            0x50
-#define AVRC_PDU_SET_ADDRESSED_PLAYER           0x60    
-#define AVRC_PDU_SET_BROWSED_PLAYER             0x70    
-#define AVRC_PDU_GET_FOLDER_ITEMS               0x71    
-#define AVRC_PDU_CHANGE_PATH                    0x72    
-#define AVRC_PDU_GET_ITEM_ATTRIBUTES            0x73    
-#define AVRC_PDU_PLAY_ITEM                      0x74    
-#define AVRC_PDU_SEARCH                         0x80    
-#define AVRC_PDU_ADD_TO_NOW_PLAYING             0x90    
-#define AVRC_PDU_GENERAL_REJECT                 0xA0    
+#define AVRC_PDU_SET_ADDRESSED_PLAYER           0x60
+#define AVRC_PDU_SET_BROWSED_PLAYER             0x70
+#define AVRC_PDU_GET_FOLDER_ITEMS               0x71
+#define AVRC_PDU_CHANGE_PATH                    0x72
+#define AVRC_PDU_GET_ITEM_ATTRIBUTES            0x73
+#define AVRC_PDU_PLAY_ITEM                      0x74
+#define AVRC_PDU_SEARCH                         0x80
+#define AVRC_PDU_ADD_TO_NOW_PLAYING             0x90
+#define AVRC_PDU_GENERAL_REJECT                 0xA0
 
 /* Define the vendor unique id carried in the pass through data
 */
@@ -346,7 +346,7 @@ typedef UINT8 tAVRC_SYSTEMSTATE;
 #define AVRC_ITEM_MEDIA             0x03
 
 #define AVRC_SCOPE_PLAYER_LIST      0x00  /* Media Player Item - Contains all available media players */
-#define AVRC_SCOPE_FILE_SYSTEM      0x01  /* Folder Item, Media Element Item    
+#define AVRC_SCOPE_FILE_SYSTEM      0x01  /* Folder Item, Media Element Item
                                              - The virtual filesystem containing the media content of the browsed player */
 #define AVRC_SCOPE_SEARCH           0x02  /* Media Element Item  The results of a search operation on the browsed player */
 #define AVRC_SCOPE_NOW_PLAYING      0x03  /* Media Element Item  The Now Playing list (or queue) of the addressed player */
@@ -381,7 +381,7 @@ typedef UINT8 tAVRC_SYSTEMSTATE;
 
 #define AVRC_DIR_UP                 0x00  /* Folder Up */
 #define AVRC_DIR_DOWN               0x01  /* Folder Down */
-    
+
 #define AVRC_UID_SIZE               8
 typedef UINT8 tAVRC_UID[AVRC_UID_SIZE];
 
@@ -741,7 +741,7 @@ typedef UINT8 tAVRC_UID[AVRC_UID_SIZE];
 /*
 This structure contains the header parameters of an AV/C message.
 */
-typedef struct 
+typedef struct
 {
     UINT8   ctype;          /* Command type.  */
     UINT8   subunit_type;   /* Subunit type. */
@@ -766,7 +766,7 @@ typedef struct
     tAVRC_HDR   hdr;        /* Message header. */
     UINT8       subunit_type[AVRC_SUB_TYPE_LEN];
                             /* Array containing subunit type values.  */
-    BOOLEAN     panel;      /* TRUE if the panel subunit type is in the 
+    BOOLEAN     panel;      /* TRUE if the panel subunit type is in the
                              * subunit_type array, FALSE otherwise. */
     UINT8       page;       /* Specifies which part of the subunit type table is
                              * returned.  For AVRCP it is typically zero.
@@ -826,7 +826,7 @@ typedef union
 #define AVRC_IS_VALID_CAP_ID(a)           (((a == AVRC_CAP_COMPANY_ID) || (a == AVRC_CAP_EVENTS_SUPPORTED)) ? TRUE : FALSE)
 
 #define AVRC_IS_VALID_EVENT_ID(a)           (((a >= AVRC_EVT_PLAY_STATUS_CHANGE) && \
-                                              (a <= AVRC_EVT_APP_SETTING_CHANGE)) ? TRUE : FALSE)  
+                                              (a <= AVRC_EVT_APP_SETTING_CHANGE)) ? TRUE : FALSE)
 
 #define AVRC_IS_VALID_ATTRIBUTE(a)          (((((a > 0) && a <= AVRC_PLAYER_SETTING_SCAN)) || \
                                                ((a >= AVRC_PLAYER_SETTING_LOW_MENU_EXT) && \
@@ -834,7 +834,7 @@ typedef union
 
 
 #define AVRC_IS_VALID_MEDIA_ATTRIBUTE(a)    ((a >= AVRC_MEDIA_ATTR_ID_TITLE) && \
-                                             (a <= AVRC_MEDIA_ATTR_ID_PLAYING_TIME) ? TRUE : FALSE)   
+                                             (a <= AVRC_MEDIA_ATTR_ID_PLAYING_TIME) ? TRUE : FALSE)
 
 #define AVRC_IS_VALID_BATTERY_STATUS(a)    ((a <= AVRC_BATTERY_STATUS_FULL_CHARGE) ? TRUE : FALSE)
 
@@ -902,13 +902,13 @@ typedef UINT8 tAVRC_FEATURE_MASK[AVRC_FEATURE_MASK_SIZE];
 
 typedef struct
 {
-    UINT16              player_id;      /* A unique identifier for this media player.*/ 
-    UINT8               major_type;     /* Use AVRC_MJ_TYPE_AUDIO, AVRC_MJ_TYPE_VIDEO, AVRC_MJ_TYPE_BC_AUDIO, or AVRC_MJ_TYPE_BC_VIDEO.*/ 
-    UINT32              sub_type;       /* Use AVRC_SUB_TYPE_NONE, AVRC_SUB_TYPE_AUDIO_BOOK, or AVRC_SUB_TYPE_PODCAST*/ 
+    UINT16              player_id;      /* A unique identifier for this media player.*/
+    UINT8               major_type;     /* Use AVRC_MJ_TYPE_AUDIO, AVRC_MJ_TYPE_VIDEO, AVRC_MJ_TYPE_BC_AUDIO, or AVRC_MJ_TYPE_BC_VIDEO.*/
+    UINT32              sub_type;       /* Use AVRC_SUB_TYPE_NONE, AVRC_SUB_TYPE_AUDIO_BOOK, or AVRC_SUB_TYPE_PODCAST*/
     UINT8               play_status;    /* Use AVRC_PLAYSTATE_STOPPED, AVRC_PLAYSTATE_PLAYING, AVRC_PLAYSTATE_PAUSED, AVRC_PLAYSTATE_FWD_SEEK,
-                                            AVRC_PLAYSTATE_REV_SEEK, or AVRC_PLAYSTATE_ERROR*/ 
-    tAVRC_FEATURE_MASK  features;       /* Supported feature bit mask*/ 
-    tAVRC_FULL_NAME     name;           /* The player name, name length and character set id.*/ 
+                                            AVRC_PLAYSTATE_REV_SEEK, or AVRC_PLAYSTATE_ERROR*/
+    tAVRC_FEATURE_MASK  features;       /* Supported feature bit mask*/
+    tAVRC_FULL_NAME     name;           /* The player name, name length and character set id.*/
 } tAVRC_ITEM_PLAYER;
 
 typedef struct
@@ -916,7 +916,7 @@ typedef struct
     tAVRC_UID           uid;            /* The uid of this folder */
     UINT8               type;           /* Use AVRC_FOLDER_TYPE_MIXED, AVRC_FOLDER_TYPE_TITLES,
                                            AVRC_FOLDER_TYPE_ALNUMS, AVRC_FOLDER_TYPE_ARTISTS, AVRC_FOLDER_TYPE_GENRES,
-                                           AVRC_FOLDER_TYPE_PLAYLISTS, or AVRC_FOLDER_TYPE_YEARS.*/ 
+                                           AVRC_FOLDER_TYPE_PLAYLISTS, or AVRC_FOLDER_TYPE_YEARS.*/
     BOOLEAN             playable;       /* TRUE, if the folder can be played. */
     tAVRC_FULL_NAME     name;           /* The folder name, name length and character set id. */
 } tAVRC_ITEM_FOLDER;
@@ -985,7 +985,7 @@ typedef struct
     UINT8       opcode;         /* Op Code (assigned by AVRC_BldCommand according to pdu) */
     UINT8       num_val;
     tAVRC_APP_SETTING   *p_vals;
-} tAVRC_SET_APP_VALUE_CMD;    
+} tAVRC_SET_APP_VALUE_CMD;
 
 /* GetAppAttrTxt */
 typedef struct
@@ -1045,7 +1045,7 @@ typedef struct
     UINT8       opcode;         /* Op Code (assigned by AVRC_BldCommand according to pdu) */
     UINT8       event_id;
     UINT32      param;
-} tAVRC_REG_NOTIF_CMD;         
+} tAVRC_REG_NOTIF_CMD;
 
 /* SetAddrPlayer */
 typedef struct
@@ -1227,7 +1227,7 @@ typedef struct
     UINT8       opcode;         /* Op Code (copied from avrc_cmd.opcode by AVRC_BldResponse user. invalid one to generate according to pdu) */
     UINT8       num_val;
     tAVRC_APP_SETTING   *p_vals;
-} tAVRC_GET_CUR_APP_VALUE_RSP;    
+} tAVRC_GET_CUR_APP_VALUE_RSP;
 
 /* GetAppAttrTxt */
 typedef struct
@@ -1292,7 +1292,7 @@ typedef union
     UINT8                   volume;
 } tAVRC_NOTIF_RSP_PARAM;
 
-/* RegNotify */    
+/* RegNotify */
 typedef struct
 {
     UINT8                   pdu;

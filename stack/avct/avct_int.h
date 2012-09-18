@@ -3,7 +3,7 @@
 **  Name:           avct_int.h
 **
 **  Description:    This file contains interfaces which are internal to AVCTP.
-**                  
+**
 **
 **  Copyright (c) 2003-2008, Broadcom Corp., All Rights Reserved.
 **  WIDCOMM Bluetooth Core. Proprietary and confidential.
@@ -104,7 +104,7 @@ typedef struct {
     UINT8                   label;
     UINT8                   cr;
 } tAVCT_UL_MSG;
-    
+
 /* union associated with lcb state machine events */
 typedef union {
     tAVCT_UL_MSG            ul_msg;

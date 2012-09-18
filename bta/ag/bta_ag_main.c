@@ -41,10 +41,10 @@ enum
 /* state machine action enumeration list */
 enum
 {
-    BTA_AG_REGISTER,  
+    BTA_AG_REGISTER,
     BTA_AG_DEREGISTER,
     BTA_AG_START_OPEN,
-    BTA_AG_RFC_DO_OPEN, 
+    BTA_AG_RFC_DO_OPEN,
     BTA_AG_RFC_DO_CLOSE,
     BTA_AG_START_DEREG,
     BTA_AG_START_CLOSE,
@@ -55,7 +55,7 @@ enum
     BTA_AG_RFC_FAIL,
     BTA_AG_RFC_DATA,
     BTA_AG_DISC_INT_RES,
-    BTA_AG_DISC_FAIL,   
+    BTA_AG_DISC_FAIL,
     BTA_AG_DISC_ACP_RES,
     BTA_AG_FREE_DB,
     BTA_AG_SCO_CONN_OPEN,
@@ -66,7 +66,7 @@ enum
     BTA_AG_SCO_SHUTDOWN,
     BTA_AG_POST_SCO_OPEN,
     BTA_AG_POST_SCO_CLOSE,
-    BTA_AG_SVC_CONN_OPEN,    
+    BTA_AG_SVC_CONN_OPEN,
     BTA_AG_RESULT,
     BTA_AG_SETCODEC,
     BTA_AG_SEND_RING,
@@ -84,10 +84,10 @@ typedef void (*tBTA_AG_ACTION)(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
 /* action functions */
 const tBTA_AG_ACTION bta_ag_action[] =
 {
-    bta_ag_register,  
+    bta_ag_register,
     bta_ag_deregister,
     bta_ag_start_open,
-    bta_ag_rfc_do_open, 
+    bta_ag_rfc_do_open,
     bta_ag_rfc_do_close,
     bta_ag_start_dereg,
     bta_ag_start_close,
@@ -98,7 +98,7 @@ const tBTA_AG_ACTION bta_ag_action[] =
     bta_ag_rfc_fail,
     bta_ag_rfc_data,
     bta_ag_disc_int_res,
-    bta_ag_disc_fail,   
+    bta_ag_disc_fail,
     bta_ag_disc_acp_res,
     bta_ag_free_db,
     bta_ag_sco_conn_open,
@@ -265,9 +265,9 @@ tBTA_AG_CB  bta_ag_cb;
 ** Function         bta_ag_timer_cback
 **
 ** Description      AG timer callback.
-**                  
 **
-** Returns          void                 
+**
+** Returns          void
 **
 *******************************************************************************/
 static void bta_ag_timer_cback(void *p)
@@ -288,7 +288,7 @@ static void bta_ag_timer_cback(void *p)
 ** Function         bta_ag_scb_alloc
 **
 ** Description      Allocate an AG service control block.
-**                  
+**
 **
 ** Returns          pointer to the scb, or NULL if none could be allocated.
 **
@@ -314,7 +314,7 @@ static tBTA_AG_SCB *bta_ag_scb_alloc(void)
             break;
         }
     }
-    
+
     if (i == BTA_AG_NUM_SCB)
     {
         /* out of scbs */
@@ -329,7 +329,7 @@ static tBTA_AG_SCB *bta_ag_scb_alloc(void)
 ** Function         bta_ag_scb_dealloc
 **
 ** Description      Deallocate a service control block.
-**                  
+**
 **
 ** Returns          void
 **
@@ -338,15 +338,15 @@ void bta_ag_scb_dealloc(tBTA_AG_SCB *p_scb)
 {
     UINT8   idx;
     BOOLEAN allocated = FALSE;
-    
+
     APPL_TRACE_DEBUG1("bta_ag_scb_dealloc %d", bta_ag_scb_to_idx(p_scb));
-    
+
     /* stop timers */
     bta_sys_stop_timer(&p_scb->act_timer);
 #if (BTM_WBS_INCLUDED == TRUE)
     bta_sys_stop_timer(&p_scb->cn_timer);
 #endif
-    
+
     /* initialize control block */
     memset(p_scb, 0, sizeof(tBTA_AG_SCB));
     p_scb->sco_idx = BTM_INVALID_SCO_INDEX;
@@ -368,7 +368,7 @@ void bta_ag_scb_dealloc(tBTA_AG_SCB *p_scb)
             (*bta_ag_cb.p_cback)(BTA_AG_DISABLE_EVT, NULL);
         }
     }
-    
+
 }
 
 /*******************************************************************************
@@ -376,7 +376,7 @@ void bta_ag_scb_dealloc(tBTA_AG_SCB *p_scb)
 ** Function         bta_ag_scb_to_idx
 **
 ** Description      Given a pointer to an scb, return its index.
-**                  
+**
 **
 ** Returns          Index of scb.
 **
@@ -392,7 +392,7 @@ UINT16 bta_ag_scb_to_idx(tBTA_AG_SCB *p_scb)
 ** Function         bta_ag_scb_by_idx
 **
 ** Description      Given an scb index return pointer to scb.
-**                  
+**
 **
 ** Returns          Pointer to scb or NULL if not allocated.
 **
@@ -424,7 +424,7 @@ tBTA_AG_SCB *bta_ag_scb_by_idx(UINT16 idx)
 ** Function         bta_ag_service_to_idx
 **
 ** Description      Given a BTA service mask convert to profile index.
-**                  
+**
 **
 ** Returns          Profile ndex of scb.
 **
@@ -446,7 +446,7 @@ UINT8 bta_ag_service_to_idx(tBTA_SERVICE_MASK services)
 ** Function         bta_ag_idx_by_bdaddr
 **
 ** Description      Find SCB associated with peer BD address.
-**                  
+**
 **
 ** Returns          Index of SCB or zero if none found.
 **
@@ -468,7 +468,7 @@ UINT16 bta_ag_idx_by_bdaddr(BD_ADDR peer_addr)
     }
 
     /* no scb found */
-    APPL_TRACE_WARNING0("No ag scb for peer addr");    
+    APPL_TRACE_WARNING0("No ag scb for peer addr");
     return 0;
 }
 
@@ -477,7 +477,7 @@ UINT16 bta_ag_idx_by_bdaddr(BD_ADDR peer_addr)
 ** Function         bta_ag_other_scb_open
 **
 ** Description      Check whether any other scb is in open state.
-**                  
+**
 **
 ** Returns          TRUE if another scb is in open state, FALSE otherwise.
 **
@@ -496,7 +496,7 @@ BOOLEAN bta_ag_other_scb_open(tBTA_AG_SCB *p_curr_scb)
     }
 
     /* no other scb found */
-    APPL_TRACE_DEBUG0("No other ag scb open");    
+    APPL_TRACE_DEBUG0("No other ag scb open");
     return FALSE;
 }
 
@@ -505,7 +505,7 @@ BOOLEAN bta_ag_other_scb_open(tBTA_AG_SCB *p_curr_scb)
 ** Function         bta_ag_get_other_idle_scb
 **
 ** Description      Return other scb if it is in INIT st.
-**                  
+**
 **
 ** Returns          Pointer to other scb if INIT st, NULL otherwise.
 **
@@ -524,7 +524,7 @@ tBTA_AG_SCB *bta_ag_get_other_idle_scb (tBTA_AG_SCB *p_curr_scb)
     }
 
     /* no other scb found */
-    APPL_TRACE_DEBUG0("bta_ag_get_other_idle_scb: No idle AG scb");    
+    APPL_TRACE_DEBUG0("bta_ag_get_other_idle_scb: No idle AG scb");
     return NULL;
 }
 
@@ -533,9 +533,9 @@ tBTA_AG_SCB *bta_ag_get_other_idle_scb (tBTA_AG_SCB *p_curr_scb)
 ** Function         bta_ag_colli_timer_cback
 **
 ** Description      AG connection collision timer callback
-**                  
 **
-** Returns          void                  
+**
+** Returns          void
 **
 *******************************************************************************/
 static void bta_ag_colli_timer_cback (TIMER_LIST_ENT *p_tle)
@@ -564,12 +564,12 @@ static void bta_ag_colli_timer_cback (TIMER_LIST_ENT *p_tle)
 ** Function         bta_ag_collision_cback
 **
 ** Description      Get notified about collision.
-**                  
+**
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id, 
+void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
                                     UINT8 app_id, BD_ADDR peer_addr)
 {
     UINT16  handle;
@@ -578,7 +578,7 @@ void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
     /* Check if we have opening scb for the peer device. */
     handle = bta_ag_idx_by_bdaddr (peer_addr);
     p_scb = bta_ag_scb_by_idx (handle);
-    
+
     if (p_scb && (p_scb->state == BTA_AG_OPENING_ST))
     {
         if (id == BTA_ID_SYS)   /* ACL collision */
@@ -593,9 +593,9 @@ void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
         {
             APPL_TRACE_WARNING0 ("AG found collision (\?\?\?) ...");
         }
-        
+
         p_scb->state = BTA_AG_INIT_ST;
-        
+
         /* Cancel SDP if it had been started. */
         if(p_scb->p_disc_db)
         {
@@ -614,7 +614,7 @@ void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
         bta_sys_start_timer(&p_scb->colli_timer, 0, BTA_AG_COLLISION_TIMER);
         p_scb->colli_tmr_on = TRUE;
     }
-   
+
 }
 
 /*******************************************************************************
@@ -622,7 +622,7 @@ void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
 ** Function         bta_ag_resume_open
 **
 ** Description      Resume opening process.
-**                  
+**
 **
 ** Returns          void
 **
@@ -651,7 +651,7 @@ void bta_ag_resume_open (tBTA_AG_SCB *p_scb)
 ** Function         bta_ag_api_enable
 **
 ** Description      Handle an API enable event.
-**                  
+**
 **
 ** Returns          void
 **
@@ -669,7 +669,7 @@ static void bta_ag_api_enable(tBTA_AG_DATA *p_data)
     bta_ag_co_init();
 
     bta_sys_collision_register (BTA_ID_AG, bta_ag_collision_cback);
-    
+
     /* call callback with enable event */
     (*bta_ag_cb.p_cback)(BTA_AG_ENABLE_EVT, NULL);
 }
@@ -679,7 +679,7 @@ static void bta_ag_api_enable(tBTA_AG_DATA *p_data)
 ** Function         bta_ag_api_disable
 **
 ** Description      Handle an API disable event.
-**                  
+**
 **
 ** Returns          void
 **
@@ -696,12 +696,12 @@ static void bta_ag_api_disable(tBTA_AG_DATA *p_data)
         APPL_TRACE_ERROR0("BTA AG is already disabled, ignoring ...");
         return;
     }
-    
+
     /* De-register with BTA system manager */
     GKI_sched_lock();
     bta_sys_deregister(BTA_ID_AG);
     GKI_sched_unlock();
-    
+
     for (i = 0; i < BTA_AG_NUM_SCB; i++, p_scb++)
     {
         if (p_scb->in_use)
@@ -725,7 +725,7 @@ static void bta_ag_api_disable(tBTA_AG_DATA *p_data)
 ** Function         bta_ag_api_register
 **
 ** Description      Handle an API event registers a new service.
-**                  
+**
 **
 ** Returns          void
 **
@@ -752,7 +752,7 @@ static void bta_ag_api_register(tBTA_AG_DATA *p_data)
 ** Function         bta_ag_api_result
 **
 ** Description      Handle an API result event.
-**                  
+**
 **
 ** Returns          void
 **
@@ -786,7 +786,7 @@ static void bta_ag_api_result(tBTA_AG_DATA *p_data)
 ** Function         bta_ag_sm_execute
 **
 ** Description      State machine event handling function for AG
-**                  
+**
 **
 ** Returns          void
 **
@@ -806,7 +806,7 @@ void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, UINT16 event, tBTA_AG_DATA *p_data)
     {
         APPL_TRACE_EVENT5("AG evt (hdl 0x%04x): State %d (%s), Event 0x%04x (%s)",
                            bta_ag_scb_to_idx(p_scb),
-                           p_scb->state, bta_ag_state_str(p_scb->state), 
+                           p_scb->state, bta_ag_state_str(p_scb->state),
                            event, bta_ag_evt_str(event, p_data->api_result.result));
     }
 #else
@@ -819,7 +819,7 @@ void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, UINT16 event, tBTA_AG_DATA *p_data)
     {
         APPL_TRACE_ERROR0("AG evt out of range, ignoring...");
         return;
-    }    
+    }
 
     /* look up the state table for the current state */
     state_table = bta_ag_st_tbl[p_scb->state];
@@ -855,7 +855,7 @@ void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, UINT16 event, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_hdl_event
 **
 ** Description      Data gateway main event handling function.
-**                  
+**
 **
 ** Returns          BOOLEAN
 **
@@ -894,7 +894,7 @@ BOOLEAN bta_ag_hdl_event(BT_HDR *p_msg)
             }
             break;
     }
-    return TRUE;   
+    return TRUE;
 }
 
 #if BTA_AG_DEBUG == TRUE

@@ -25,7 +25,7 @@
 **
 ** Function         bta_sys_hw_co_enable
 **
-** Description      This function is called by the stack to power up the HW                
+** Description      This function is called by the stack to power up the HW
 **
 ** Returns          void
 **
@@ -36,7 +36,7 @@ BTA_API void bta_sys_hw_co_enable( tBTA_SYS_HW_MODULE module );
 **
 ** Function         bta_sys_hw_co_disable
 **
-** Description     This function is called by the stack to power down the HW                
+** Description     This function is called by the stack to power down the HW
 **
 ** Returns          void
 **

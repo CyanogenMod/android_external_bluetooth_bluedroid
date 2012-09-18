@@ -22,10 +22,10 @@
 ** Function         SBC_FastIDCT8
 **
 ** Description      implementation of fast DCT algorithm by Feig and Winograd
-**                  
+**
 **
 ** Returns          y = dct(pInVect)
-**                        
+**
 **
 *******************************************************************************/
 
@@ -86,66 +86,66 @@ void SBC_FastIDCT8(SINT32 *pInVect, SINT32 *pOutVect)
     x5 = (pInVect[9] - pInVect[15]) >>1;
     x6 = (pInVect[10] - pInVect[14])>>1;
     x7 = (pInVect[11] - pInVect[13])>>1;
-    
-    /* 2-point IDCT of x0 and x4 as in (11) */ 
-    temp = x0 ; 
+
+    /* 2-point IDCT of x0 and x4 as in (11) */
+    temp = x0 ;
     SBC_IDCT_MULT(SBC_COS_PI_SUR_4, ( x0 + x4 ), x0);          /*x0 = ( x0 + x4 ) * cos(1*pi/4) ; */
     SBC_IDCT_MULT(SBC_COS_PI_SUR_4, ( temp - x4 ), x4);        /*x4 = ( temp - x4 ) * cos(1*pi/4) ; */
-    
-    /* rearrangement of x2 and x6 as in (15) */ 
+
+    /* rearrangement of x2 and x6 as in (15) */
     x2 -=x6;
-    x6 <<= 1 ; 
-    
-    /* 2-point IDCT of x2 and x6 and post-multiplication as in (15) */ 
+    x6 <<= 1 ;
+
+    /* 2-point IDCT of x2 and x6 and post-multiplication as in (15) */
     SBC_IDCT_MULT(SBC_COS_PI_SUR_4,x6, x6); /*x6 = x6 * cos(1*pi/4) ; */
-    temp = x2 ; 
+    temp = x2 ;
     SBC_IDCT_MULT(SBC_COS_PI_SUR_8,( x2 + x6 ), x2); /*x2 = ( x2 + x6 ) * cos(1*pi/8) ; */
-    SBC_IDCT_MULT(SBC_COS_3PI_SUR_8,( temp - x6 ), x6); /*x6 = ( temp - x6 ) * cos(3*pi/8) ;*/ 
-    
-    /* 4-point IDCT of x0,x2,x4 and x6 as in (11) */ 
-    res_even[ 0 ] = x0 + x2 ; 
-    res_even[ 1 ] = x4 + x6 ; 
-    res_even[ 2 ] = x4 - x6 ; 
-    res_even[ 3 ] = x0 - x2 ; 
-    
-    
-    /* rearrangement of x1,x3,x5,x7 as in (15) */ 
-    x7 <<= 1 ; 
-    x5 = ( x5 <<1 ) - x7 ; 
-    x3 = ( x3 <<1 ) - x5 ; 
+    SBC_IDCT_MULT(SBC_COS_3PI_SUR_8,( temp - x6 ), x6); /*x6 = ( temp - x6 ) * cos(3*pi/8) ;*/
+
+    /* 4-point IDCT of x0,x2,x4 and x6 as in (11) */
+    res_even[ 0 ] = x0 + x2 ;
+    res_even[ 1 ] = x4 + x6 ;
+    res_even[ 2 ] = x4 - x6 ;
+    res_even[ 3 ] = x0 - x2 ;
+
+
+    /* rearrangement of x1,x3,x5,x7 as in (15) */
+    x7 <<= 1 ;
+    x5 = ( x5 <<1 ) - x7 ;
+    x3 = ( x3 <<1 ) - x5 ;
     x1 -= x3 >>1 ;
-    
-    /* two-dimensional IDCT of x1 and x5 */ 
+
+    /* two-dimensional IDCT of x1 and x5 */
     SBC_IDCT_MULT(SBC_COS_PI_SUR_4, x5, x5);          /*x5 = x5 * cos(1*pi/4) ; */
-    temp = x1 ; 
-    x1 = x1 + x5 ; 
-    x5 = temp - x5 ; 
-    
-    /* rearrangement of x3 and x7 as in (15) */ 
+    temp = x1 ;
+    x1 = x1 + x5 ;
+    x5 = temp - x5 ;
+
+    /* rearrangement of x3 and x7 as in (15) */
     x3 -= x7;
-    x7 <<= 1 ;  
+    x7 <<= 1 ;
     SBC_IDCT_MULT(SBC_COS_PI_SUR_4, x7, x7);          /*x7 = x7 * cos(1*pi/4) ; */
-    
-    /* 2-point IDCT of x3 and x7 and post-multiplication as in (15) */ 
-    temp = x3 ; 
+
+    /* 2-point IDCT of x3 and x7 and post-multiplication as in (15) */
+    temp = x3 ;
     SBC_IDCT_MULT( SBC_COS_PI_SUR_8,( x3 + x7 ), x3);          /*x3 = ( x3 + x7 ) * cos(1*pi/8)  ; */
-    SBC_IDCT_MULT( SBC_COS_3PI_SUR_8,( temp - x7 ), x7);          /*x7 = ( temp - x7 ) * cos(3*pi/8) ;*/ 
-    
-    /* 4-point IDCT of x1,x3,x5 and x7 and post multiplication by diagonal matrix as in (14) */ 
+    SBC_IDCT_MULT( SBC_COS_3PI_SUR_8,( temp - x7 ), x7);          /*x7 = ( temp - x7 ) * cos(3*pi/8) ;*/
+
+    /* 4-point IDCT of x1,x3,x5 and x7 and post multiplication by diagonal matrix as in (14) */
     SBC_IDCT_MULT((SBC_COS_PI_SUR_16),   ( x1 + x3 ) ,   res_odd[0]); /*res_odd[ 0 ] = ( x1 + x3 ) * cos(1*pi/16) ; */
     SBC_IDCT_MULT((SBC_COS_3PI_SUR_16),  ( x5 + x7 ) ,   res_odd[1]); /*res_odd[ 1 ] = ( x5 + x7 ) * cos(3*pi/16) ; */
     SBC_IDCT_MULT((SBC_COS_5PI_SUR_16),  ( x5 - x7 ) ,   res_odd[2]); /*res_odd[ 2 ] = ( x5 - x7 ) * cos(5*pi/16) ; */
     SBC_IDCT_MULT((SBC_COS_7PI_SUR_16),  ( x1 - x3 ) ,  res_odd[3]); /*res_odd[ 3 ] = ( x1 - x3 ) * cos(7*pi/16) ; */
-    
-    /* additions and subtractions as in (9) */ 
-    pOutVect[0] = (res_even[ 0 ] + res_odd[ 0 ])  ; 
-    pOutVect[1] = (res_even[ 1 ] + res_odd[ 1 ])  ; 
-    pOutVect[2] = (res_even[ 2 ] + res_odd[ 2 ])  ; 
-    pOutVect[3] = (res_even[ 3 ] + res_odd[ 3 ])  ; 
-    pOutVect[7] = (res_even[ 0 ] - res_odd[ 0 ])  ; 
-    pOutVect[6] = (res_even[ 1 ] - res_odd[ 1 ])  ; 
-    pOutVect[5] = (res_even[ 2 ] - res_odd[ 2 ])  ; 
-    pOutVect[4] = (res_even[ 3 ] - res_odd[ 3 ])  ; 
+
+    /* additions and subtractions as in (9) */
+    pOutVect[0] = (res_even[ 0 ] + res_odd[ 0 ])  ;
+    pOutVect[1] = (res_even[ 1 ] + res_odd[ 1 ])  ;
+    pOutVect[2] = (res_even[ 2 ] + res_odd[ 2 ])  ;
+    pOutVect[3] = (res_even[ 3 ] + res_odd[ 3 ])  ;
+    pOutVect[7] = (res_even[ 0 ] - res_odd[ 0 ])  ;
+    pOutVect[6] = (res_even[ 1 ] - res_odd[ 1 ])  ;
+    pOutVect[5] = (res_even[ 2 ] - res_odd[ 2 ])  ;
+    pOutVect[4] = (res_even[ 3 ] - res_odd[ 3 ])  ;
 #else
     UINT8 Index, k;
     SINT32 temp;
@@ -171,16 +171,16 @@ void SBC_FastIDCT8(SINT32 *pInVect, SINT32 *pOutVect)
 ** Function         SBC_FastIDCT4
 **
 ** Description      implementation of fast DCT algorithm by Feig and Winograd
-**                  
+**
 **
 ** Returns          y = dct(x0)
-**                        
+**
 **
 *******************************************************************************/
 void SBC_FastIDCT4(SINT32 *pInVect, SINT32 *pOutVect)
 {
 #if (SBC_FAST_DCT == TRUE)
-#if (SBC_ARM_ASM_OPT==TRUE) 
+#if (SBC_ARM_ASM_OPT==TRUE)
 #else
 #if (SBC_IPAQ_OPT==TRUE)
 #if (SBC_IS_64_MULT_IN_IDCT == TRUE)
@@ -211,10 +211,10 @@ void SBC_FastIDCT4(SINT32 *pInVect, SINT32 *pOutVect)
     SBC_IDCT_MULT((SBC_COS_PI_SUR_8>>1), temp , tmp[4]);
     tmp[6]=tmp[2]+tmp[5];
     tmp[7]=tmp[3]-tmp[4];
-    pOutVect[0] = (tmp[0]+tmp[6]); 
-    pOutVect[1] = (tmp[1]+tmp[7]); 
-    pOutVect[2] = (tmp[1]-tmp[7]); 
-    pOutVect[3] = (tmp[0]-tmp[6]); 
+    pOutVect[0] = (tmp[0]+tmp[6]);
+    pOutVect[1] = (tmp[1]+tmp[7]);
+    pOutVect[2] = (tmp[1]-tmp[7]);
+    pOutVect[3] = (tmp[0]-tmp[6]);
 #else
     UINT8 Index, k;
     SINT32 temp;
@@ -229,6 +229,6 @@ void SBC_FastIDCT4(SINT32 *pInVect, SINT32 *pOutVect)
             temp += ((gas16AnalDCTcoeff4[(Index*4*2)+k] * (pInVect[k] & 0xFFFF)) >> 16);
         }
         pOutVect[Index] = temp;
-    }    
+    }
 #endif
 }

@@ -89,8 +89,8 @@ typedef struct
 #define BTM_ACL_SWKEY_STATE_SWITCHING           3
 #define BTM_ACL_SWKEY_STATE_ENCRYPTION_ON       4
 #define BTM_ACL_SWKEY_STATE_IN_PROGRESS         5
-    UINT8           switch_role_state;          
-    UINT8           change_key_state; 
+    UINT8           switch_role_state;
+    UINT8           change_key_state;
 
 #define BTM_ACL_ENCRYPT_STATE_IDLE              0
 #define BTM_ACL_ENCRYPT_STATE_ENCRYPT_OFF       1   /* encryption turning off */
@@ -141,7 +141,7 @@ typedef struct
     TIMER_LIST_ENT       txpwer_timer;
     tBTM_CMPL_CB        *p_txpwer_cmpl_cb;    /* Callback function to be called when  */
                                             /* read inq tx power function completes  */
-    
+
     TIMER_LIST_ENT       qossu_timer;
     tBTM_CMPL_CB        *p_qossu_cmpl_cb;   /* Callback function to be called when  */
                                             /* qos setup function completes         */
@@ -168,7 +168,7 @@ typedef struct
     BT_OCTET16              er;                 /* BLE encryption key */
 
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE
-    BOOLEAN                 no_disc_if_pair_fail;   
+    BOOLEAN                 no_disc_if_pair_fail;
     BOOLEAN			        enable_test_mac_val;
     BT_OCTET8               test_mac;
     BOOLEAN			        enable_test_local_sign_cntr;
@@ -302,7 +302,7 @@ typedef struct
 
 typedef UINT8 *BTM_BD_NAME_PTR;                        /* Pointer to Device name */
 
-/* Security callback is called by this unit when security 
+/* Security callback is called by this unit when security
 **   procedures are completed.  Parameters are
 **              BD Address of remote
 **              Result of the operation
@@ -406,7 +406,7 @@ extern void btm_sco_chk_pend_rolechange (UINT16 hci_handle);
 
 /*
 ** Define structure for Security Service Record.
-** A record exists for each service registered with the Security Manager 
+** A record exists for each service registered with the Security Manager
 */
 typedef struct
 {
@@ -431,15 +431,15 @@ typedef struct
 {
     BT_OCTET16          irk;            /* peer diverified identity root */
     BT_OCTET16          ltk;            /* peer long term key */
-    BT_OCTET16          csrk;           /* peer SRK peer device used to secured sign local data  */  
+    BT_OCTET16          csrk;           /* peer SRK peer device used to secured sign local data  */
 
     BT_OCTET8           rand;           /* random vector for LTK generation */
-    UINT16              ediv;           /* LTK diversifier of this slave device */    
+    UINT16              ediv;           /* LTK diversifier of this slave device */
     UINT16              div;            /* local DIV  to generate local LTK=d1(ER,DIV,0) and CSRK=d1(ER,DIV,1)  */
     UINT8               sec_level;      /* local pairing security level */
     UINT8               key_size;       /* key size of the LTK delivered to peer device */
-    UINT8               srk_sec_level;  /* security property of peer SRK for this device */  
-    UINT8               local_csrk_sec_level;  /* security property of local CSRK for this device */  
+    UINT8               srk_sec_level;  /* security property of peer SRK for this device */
+    UINT8               local_csrk_sec_level;  /* security property of local CSRK for this device */
 
     UINT32              counter;        /* peer sign counter for verifying rcv signed cmd */
     UINT32              local_counter;  /* local sign counter for sending signed write cmd*/
@@ -477,9 +477,9 @@ typedef struct
     DEV_CLASS            dev_class;         /* DEV_CLASS of the device            */
     LINK_KEY             link_key;          /* Device link key                    */
 
-#define BTM_SEC_AUTHORIZED      BTM_SEC_FLAG_AUTHORIZED   
+#define BTM_SEC_AUTHORIZED      BTM_SEC_FLAG_AUTHORIZED
 #define BTM_SEC_AUTHENTICATED   BTM_SEC_FLAG_AUTHENTICATED
-#define BTM_SEC_ENCRYPTED       BTM_SEC_FLAG_ENCRYPTED    
+#define BTM_SEC_ENCRYPTED       BTM_SEC_FLAG_ENCRYPTED
 #define BTM_SEC_NAME_KNOWN      0x08
 #define BTM_SEC_LINK_KEY_KNOWN  BTM_SEC_FLAG_LKEY_KNOWN
 #define BTM_SEC_LINK_KEY_AUTHED 0x20
@@ -624,7 +624,7 @@ typedef struct
 {
     tBTM_PM_STATUS_CBACK *cback;/* to notify the registered party of mode change event */
     UINT8                 mask; /* registered request mask. 0, if this entry is not used */
-} tBTM_PM_RCB; 
+} tBTM_PM_RCB;
 #endif  /* BTM_PWR_MGR_INCLUDED */
 
 enum
@@ -755,7 +755,7 @@ typedef struct
     tBTM_BLE_CB             ble_ctr_cb;
 
     UINT16                  enc_handle;
-    BT_OCTET8               enc_rand;   /* received rand value from LTK request*/   
+    BT_OCTET8               enc_rand;   /* received rand value from LTK request*/
     UINT16                  ediv;       /* received ediv value from LTK request */
     UINT8                   key_size;
 #endif
@@ -777,7 +777,7 @@ typedef struct
     *****************************************************/
 #if BTM_SCO_INCLUDED == TRUE
     tSCO_CB             sco_cb;
-#endif    
+#endif
 
     /*****************************************************
     **      Security Management
@@ -802,7 +802,7 @@ typedef struct
     BOOLEAN                  pin_type_changed;       /* pin type changed during bonding */
     BOOLEAN                  sec_req_pending;       /*   TRUE if a request is pending */
 // btla-specific ++
-#ifdef PORCHE_PAIRING_CONFLICT 
+#ifdef PORCHE_PAIRING_CONFLICT
     UINT8                    pin_code_len_saved;     /* for legacy devices */
 #endif
 // btla-specific --

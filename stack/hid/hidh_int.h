@@ -28,7 +28,7 @@ typedef struct per_device_ctb
     UINT16         attr_mask; /* 0x01- virtual_cable; 0x02- normally_connectable; 0x03- reconn_initiate;
     			                 0x04- sdp_disable; */
     UINT8          state;  /* Device state if in HOST-KNOWN mode */
-    UINT8          conn_substate; 
+    UINT8          conn_substate;
     UINT8          conn_tries; /* Remembers to the number of connection attempts while CONNECTING */
 
     tHID_CONN      conn; /* L2CAP channel info */
@@ -43,7 +43,7 @@ typedef struct host_ctb
 #define MAX_SERVICE_DB_SIZE    4000
 
     BOOLEAN                 sdp_busy;
-    tHID_HOST_SDP_CALLBACK  *sdp_cback;             
+    tHID_HOST_SDP_CALLBACK  *sdp_cback;
     tSDP_DISCOVERY_DB       *p_sdp_db;
     tHID_DEV_SDP_INFO       sdp_rec;
     BOOLEAN                 reg_flag;

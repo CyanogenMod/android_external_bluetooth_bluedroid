@@ -452,7 +452,7 @@ enum
 /*    BTM_EIR_UUID_SERVCLASS_HDP_PROFILE                */
     BTM_EIR_UUID_SERVCLASS_MESSAGE_ACCESS,
     BTM_EIR_UUID_SERVCLASS_MESSAGE_NOTIFICATION,
-    BTM_EIR_UUID_SERVCLASS_HDP_SOURCE,                 
+    BTM_EIR_UUID_SERVCLASS_HDP_SOURCE,
     BTM_EIR_UUID_SERVCLASS_HDP_SINK,
     BTM_EIR_MAX_SERVICES
 };
@@ -494,7 +494,7 @@ typedef UINT8 tBTM_EIR_SEARCH_RESULT;
 #if BLE_INCLUDED == TRUE
 #define BTM_BLE_SEC_NONE                0
 #define BTM_BLE_SEC_ENCRYPT             1 /* encrypt the link using current key */
-#define BTM_BLE_SEC_ENCRYPT_NO_MITM     2 
+#define BTM_BLE_SEC_ENCRYPT_NO_MITM     2
 #define BTM_BLE_SEC_ENCRYPT_MITM        3
 typedef UINT8   tBTM_BLE_SEC_ACT;
 #endif
@@ -630,7 +630,7 @@ typedef struct
 
 typedef struct
 {
-    UINT8   pcm_intf_rate;  /* PCM interface rate: 0: 128kbps, 1: 256 kbps; 
+    UINT8   pcm_intf_rate;  /* PCM interface rate: 0: 128kbps, 1: 256 kbps;
                                 2:512 bps; 3: 1024kbps; 4: 2048kbps */
     UINT8   frame_type;     /* frame type: 0: short; 1: long */
     UINT8   sync_mode;      /* sync mode: 0: slave; 1: master */
@@ -908,7 +908,7 @@ typedef UINT8 tBTM_SCO_TYPE;
 
 
 /*******************
-** SCO Routing Path 
+** SCO Routing Path
 ********************/
 #define BTM_SCO_ROUTE_PCM           HCI_BRCM_SCO_ROUTE_PCM
 #define BTM_SCO_ROUTE_HCI           HCI_BRCM_SCO_ROUTE_HCI
@@ -916,7 +916,7 @@ typedef UINT8 tBTM_SCO_ROUTE_TYPE;
 
 
 /*******************
-** SCO Codec Types 
+** SCO Codec Types
 ********************/
 #define BTM_SCO_CODEC_NONE          0x0000
 #define BTM_SCO_CODEC_CVSD          0x0001
@@ -924,7 +924,7 @@ typedef UINT8 tBTM_SCO_ROUTE_TYPE;
 typedef UINT16 tBTM_SCO_CODEC_TYPE;
 
 /*******************
-** SCO Voice Settings 
+** SCO Voice Settings
 ********************/
 #define BTM_VOICE_SETTING_CVSD  ((UINT16)  (HCI_INP_CODING_LINEAR          |   \
                                             HCI_INP_DATA_FMT_2S_COMPLEMENT |   \
@@ -937,7 +937,7 @@ typedef UINT16 tBTM_SCO_CODEC_TYPE;
                                             HCI_AIR_CODING_FORMAT_TRANSPNT))
 
 /*******************
-** SCO Data Status 
+** SCO Data Status
 ********************/
 enum
 {
@@ -945,7 +945,7 @@ enum
     BTM_SCO_DATA_PAR_ERR,
     BTM_SCO_DATA_NONE,
     BTM_SCO_DATA_PAR_LOST
-}; 
+};
 typedef UINT8 tBTM_SCO_DATA_FLAG;
 
 /***************************
@@ -1494,7 +1494,7 @@ typedef union
     tBTM_SP_LOC_OOB     loc_oob;    /* BTM_SP_LOC_OOB_EVT     */
     tBTM_SP_RMT_OOB     rmt_oob;    /* BTM_SP_RMT_OOB_EVT     */
     tBTM_SP_COMPLT      complt;     /* BTM_SP_COMPLT_EVT      */
-    tBTM_SP_UPGRADE     upgrade;    /* BTM_SP_UPGRADE_EVT      */ 
+    tBTM_SP_UPGRADE     upgrade;    /* BTM_SP_UPGRADE_EVT      */
 } tBTM_SP_EVT_DATA;
 
 /* Simple Pairing Events.  Called by the stack when Simple Pairing related
@@ -1519,7 +1519,7 @@ typedef void (tBTM_SEC_CBACK) (BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS re
 */
 typedef void (tBTM_BOND_CANCEL_CMPL_CALLBACK) (tBTM_STATUS result);
 
-/* LE related event and data structure 
+/* LE related event and data structure
 */
 enum
 {
@@ -1541,7 +1541,7 @@ typedef UINT8 tBTM_LE_EVT;
 #define BTM_LE_KEY_LCSRK     (SMP_SEC_KEY_TYPE_CSRK << 3)       /* local CSRK has been deliver to peer */
 typedef UINT8 tBTM_LE_KEY_TYPE;
 
-#define BTM_LE_AUTH_REQ_NO_BOND SMP_AUTH_NO_BOND   /* 0 */     
+#define BTM_LE_AUTH_REQ_NO_BOND SMP_AUTH_NO_BOND   /* 0 */
 #define BTM_LE_AUTH_REQ_BOND    SMP_AUTH_GEN_BOND  /* 1 << 0 */
 #define BTM_LE_AUTH_REQ_MITM    SMP_AUTH_YN_BIT    /* 1 << 2 */
 typedef UINT8 tBTM_LE_AUTH_REQ;
@@ -1549,9 +1549,9 @@ typedef UINT8 tBTM_LE_AUTH_REQ;
 #define BTM_LE_AUTH_REQ_MASK SMP_AUTH_MASK  /* 0x03*/
 
 /* LE security level */
-#define BTM_LE_SEC_NONE             SMP_SEC_NONE                
-#define BTM_LE_SEC_UNAUTHENTICATE   SMP_SEC_UNAUTHENTICATE      
-#define BTM_LE_SEC_AUTHENTICATED    SMP_SEC_AUTHENTICATED       
+#define BTM_LE_SEC_NONE             SMP_SEC_NONE
+#define BTM_LE_SEC_UNAUTHENTICATE   SMP_SEC_UNAUTHENTICATE
+#define BTM_LE_SEC_AUTHENTICATED    SMP_SEC_AUTHENTICATED
 typedef UINT8 tBTM_LE_SEC;
 
 
@@ -1643,7 +1643,7 @@ typedef UINT8 (tBTM_LE_CALLBACK) (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_DA
 
 #define BTM_BLE_KEY_TYPE_ID         1
 #define BTM_BLE_KEY_TYPE_ER         2
-#define BTM_BLE_KEY_TYPE_COUNTER    3  //tobe obsolete 
+#define BTM_BLE_KEY_TYPE_COUNTER    3  //tobe obsolete
 
 typedef struct
 {
@@ -1679,7 +1679,7 @@ typedef struct
     tBTM_ABORT_CALLBACK         *p_abort_callback;
     tBTM_BOND_CANCEL_CMPL_CALLBACK *p_bond_cancel_cmpl_callback;
     tBTM_SP_CALLBACK            *p_sp_callback;
-#if BLE_INCLUDED == TRUE 
+#if BLE_INCLUDED == TRUE
 #if SMP_INCLUDED == TRUE
     tBTM_LE_CALLBACK            *p_le_callback;
 #endif
@@ -2066,7 +2066,7 @@ extern "C" {
 **
 ** Function         BTM_ReadLocalDeviceNameFromController
 **
-** Description      Get local device name from controller. Do not use cached 
+** Description      Get local device name from controller. Do not use cached
 **                  name (used to get chip-id prior to btm reset complete).
 **
 ** Returns          BTM_CMD_STARTED if successful, otherwise an error
@@ -2747,7 +2747,7 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 ** Function         BTM_ReadInquiryRspTxPower
 **
 ** Description      This command will read the inquiry Transmit Power level used
-**                  to transmit the FHS and EIR data packets. 
+**                  to transmit the FHS and EIR data packets.
 **                  This can be used directly in the Tx Power Level EIR data type.
 **
 ** Returns          BTM_SUCCESS if successful
@@ -2759,8 +2759,8 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 **
 ** Function         BTM_WriteInquiryTxPower
 **
-** Description      This command is used to write the inquiry transmit power level 
-**                  used to transmit the inquiry (ID) data packets. The Controller 
+** Description      This command is used to write the inquiry transmit power level
+**                  used to transmit the inquiry (ID) data packets. The Controller
 **                  should use the supported TX power level closest to the Tx_Power
 **                  parameter.
 **
@@ -3127,8 +3127,8 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 **
 ** Function         BTM_ReadTxPower
 **
-** Description      This function is called to read the current connection 
-**                  TX power of the connection. The TX power level results 
+** Description      This function is called to read the current connection
+**                  TX power of the connection. The TX power level results
 **                  are returned in the callback.
 **                  (tBTM_RSSI_RESULTS)
 **
@@ -3379,7 +3379,7 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 **                  WBS codec for the upcoming eSCO connection.
 **
 ** Returns          BTM_SUCCESS.
-**                  
+**
 **
 *******************************************************************************/
 BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
@@ -3649,8 +3649,8 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 ** Returns          TRUE if registered OK, else FALSE
 **
 *******************************************************************************/
-    BTM_API extern BOOLEAN BTM_SetUCDSecurityLevel (BOOLEAN is_originator, char *p_name, UINT8 service_id, 
-                                                    UINT16 sec_level, UINT16 psm, UINT32 mx_proto_id, 
+    BTM_API extern BOOLEAN BTM_SetUCDSecurityLevel (BOOLEAN is_originator, char *p_name, UINT8 service_id,
+                                                    UINT16 sec_level, UINT16 psm, UINT32 mx_proto_id,
                                                     UINT32 mx_chan_id);
 
 /*******************************************************************************
@@ -3684,7 +3684,7 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 **
 ** Function         BTM_SecClrUCDService
 **
-** Description      
+** Description
 **
 ** Parameters       Service ID - Id of the service to remove. ('0' removes all service
 **                          records.
@@ -3966,7 +3966,7 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 **
 ** Function         BTM_ReadOobData
 **
-** Description      This function is called to parse the OOB data payload 
+** Description      This function is called to parse the OOB data payload
 **                  received over OOB (non-Bluetooth) link
 **
 ** Parameters:      p_data  - the location for OOB data
@@ -4343,7 +4343,7 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 **                  main stack (running on phone baseband) to embedded light stack
 **                  (running on Multimedia or Bluetooth Controller chip)
 **
-** Parameters       
+** Parameters
 **                  p_sync_callback: callback function for event notification
 ** Returns
 **
@@ -4373,10 +4373,10 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 ** Function         BTM_IpcSendBuf
 **
 ** Description      For Dual-Stack support. Called to send ipc messages from
-**                  full stack to lite stack and vice-versa. This API is 
+**                  full stack to lite stack and vice-versa. This API is
 **                  typically called by bta layers e.g. bta_av_sync.
 **
-**                  
+**
 ** Parameters       p_buf: Pointer to the buffer to be passed in the IPC message
 **
 ** Returns          void
@@ -4455,7 +4455,7 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 **
 ** Parameter        codec_type: codec_type to be used for sco connection.
 **                  role: master or slave role
-**                  sample_rate: sampling rate 
+**                  sample_rate: sampling rate
 **                  clock_rate:clock rate 128K to 2048K
 **
 **
@@ -4472,14 +4472,14 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 **
 ** Function         BTM_ConfigScoPath
 **
-** Description      This function enable/disable SCO over HCI and registers SCO 
-**                  data callback if SCO over HCI is enabled.               
+** Description      This function enable/disable SCO over HCI and registers SCO
+**                  data callback if SCO over HCI is enabled.
 **
 ** Parameter        path: SCO or HCI
-**                  p_sco_data_cb: callback function or SCO data if path is set 
+**                  p_sco_data_cb: callback function or SCO data if path is set
 **                                 to transport.
 **                  p_pcm_param: pointer to the PCM interface parameter. If a NULL
-**                               pointer is used, PCM parameter maintained in 
+**                               pointer is used, PCM parameter maintained in
 **                               the control block will be used; otherwise update
 **                               control block value.
 **                  err_data_rpt: Lisbon feature to enable the erronous data report
@@ -4489,10 +4489,10 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 **                  BTM_NO_RESOURCES: no rsource to start the command.
 **                  BTM_ILLEGAL_VALUE: invalid callback function pointer.
 **                  BTM_CMD_STARTED :Command sent. Waiting for command cmpl event.
-**                  
+**
 **
 *******************************************************************************/
-    BTM_API extern tBTM_STATUS BTM_ConfigScoPath (tBTM_SCO_ROUTE_TYPE path, 
+    BTM_API extern tBTM_STATUS BTM_ConfigScoPath (tBTM_SCO_ROUTE_TYPE path,
                                                   tBTM_SCO_DATA_CB *p_sco_data_cb,
                                                   tBTM_SCO_PCM_PARAM *p_pcm_param,
                                                   BOOLEAN err_data_rpt);
@@ -4502,20 +4502,20 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 ** Function         BTM_WriteScoData
 **
 ** Description      This function write SCO data to a specified instance. The data
-**                  to be written p_buf needs to carry an offset of 
-**                  HCI_SCO_PREAMBLE_SIZE bytes, and the data length can not 
+**                  to be written p_buf needs to carry an offset of
+**                  HCI_SCO_PREAMBLE_SIZE bytes, and the data length can not
 **                  exceed BTM_SCO_DATA_SIZE_MAX bytes, whose default value is set
-**                  to 60 and is configurable. Data longer than the maximum bytes 
-**                  will be truncated.   
+**                  to 60 and is configurable. Data longer than the maximum bytes
+**                  will be truncated.
 **
 ** Returns          BTM_SUCCESS: data write is successful
 **                  BTM_ILLEGAL_VALUE: SCO data contains illegal offset value.
-**                  BTM_SCO_BAD_LENGTH: SCO data length exceeds the max SCO packet 
-**                                      size. 
+**                  BTM_SCO_BAD_LENGTH: SCO data length exceeds the max SCO packet
+**                                      size.
 **                  BTM_NO_RESOURCES: no resources.
 **                  BTM_UNKNOWN_ADDR: unknown SCO connection handle, or SCO is not
 **                                    routed via HCI.
-**                  
+**
 **
 *******************************************************************************/
     BTM_API extern tBTM_STATUS BTM_WriteScoData (UINT16 sco_inx, BT_HDR *p_buf);

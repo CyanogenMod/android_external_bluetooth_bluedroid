@@ -8,17 +8,17 @@
 **                 development / debugging to do precondition and postcondition
 **                 checks for routines.
 **
-**                 The macros are enabled when _DEBUG is defined.                                          
-**    Note:                                                                     
-**        None.                                                                 
+**                 The macros are enabled when _DEBUG is defined.
+**    Note:
+**        None.
 **
-**    Revision History:                                                         
-**        10/23/99    Stephen Lee       Create                                  
+**    Revision History:
+**        10/23/99    Stephen Lee       Create
 **
-**    Copyright (c) 1999-2004 WIDCOMM Inc., All Rights Reserved.                    
+**    Copyright (c) 1999-2004 WIDCOMM Inc., All Rights Reserved.
 **
 *******************************************************************************/
- 
+
 
 #ifdef _DEBUG
 

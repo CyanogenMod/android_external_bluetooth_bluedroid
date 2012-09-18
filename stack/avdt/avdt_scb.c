@@ -86,7 +86,7 @@ const char * const avdt_scb_evt_str[] = {
     "CC_CLOSE_EVT"
 };
 
-#endif 
+#endif
 
 
 /* action function list */
@@ -503,7 +503,7 @@ const tAVDT_SCB_ST_TBL avdt_scb_st_tbl[] = {
 ** Function         avdt_scb_event
 **
 ** Description      State machine event handling function for scb
-**                  
+**
 **
 ** Returns          Nothing.
 **
@@ -552,7 +552,7 @@ void avdt_scb_event(tAVDT_SCB *p_scb, UINT8 event, tAVDT_SCB_EVT *p_data)
 ** Function         avdt_scb_init
 **
 ** Description      Initialize stream control block module.
-**                  
+**
 **
 ** Returns          Nothing.
 **
@@ -569,7 +569,7 @@ void avdt_scb_init(void)
 ** Function         avdt_scb_alloc
 **
 ** Description      Allocate a stream control block.
-**                  
+**
 **
 ** Returns          pointer to the scb, or NULL if none could be allocated.
 **
@@ -608,7 +608,7 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
             break;
         }
     }
-    
+
     if (i == AVDT_NUM_SEPS)
     {
         /* out of ccbs */
@@ -624,7 +624,7 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
 ** Function         avdt_scb_dealloc
 **
 ** Description      Deallocate a stream control block.
-**                  
+**
 **
 ** Returns          void.
 **
@@ -652,7 +652,7 @@ void avdt_scb_dealloc(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 ** Function         avdt_scb_to_hdl
 **
 ** Description      Given a pointer to an scb, return its handle (or seid).
-**                  
+**
 **
 ** Returns          Index of scb.
 **
@@ -667,7 +667,7 @@ UINT8 avdt_scb_to_hdl(tAVDT_SCB *p_scb)
 ** Function         avdt_scb_by_hdl
 **
 ** Description      Given an scb handle (or seid), return a pointer to the scb.
-**                  
+**
 **
 ** Returns          Pointer to scb or NULL if index is out of range or scb
 **                  is not allocated.
@@ -681,7 +681,7 @@ tAVDT_SCB *avdt_scb_by_hdl(UINT8 hdl)
     if ((hdl > 0) && (hdl <= AVDT_NUM_SEPS))
     {
         p_scb = &avdt_cb.scb[hdl - 1];
-        
+
         /* verify scb is allocated */
         if (!p_scb->allocated)
         {
@@ -702,7 +702,7 @@ tAVDT_SCB *avdt_scb_by_hdl(UINT8 hdl)
 ** Function         avdt_scb_verify
 **
 ** Description      Verify the condition of a list of scbs.
-**                  
+**
 **
 ** Returns          SEID that failed, or 0 if success.
 **
@@ -766,7 +766,7 @@ UINT8 avdt_scb_verify(tAVDT_CCB *p_ccb, UINT8 state, UINT8 *p_seid, UINT16 num_s
 **
 ** Description      Given a list of SCB handles, return a list of peer SEIDs
 **                  for the handles, copied in place into the struct passed in.
-**                  
+**
 **
 ** Returns          Nothing.
 **

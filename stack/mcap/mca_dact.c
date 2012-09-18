@@ -37,8 +37,8 @@ void mca_dcb_report_cong (tMCA_DCB *p_dcb)
 **
 ** Function         mca_dcb_tc_open
 **
-** Description      This function is called to report MCA_OPEN_IND_EVT or 
-**                  MCA_OPEN_CFM_EVT event. 
+** Description      This function is called to report MCA_OPEN_IND_EVT or
+**                  MCA_OPEN_CFM_EVT event.
 **                  It also clears the congestion flag (dcb.cong).
 **
 ** Returns          void.
@@ -136,7 +136,7 @@ void mca_dcb_snd_data (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 **
 ** Function         mca_dcb_hdl_data
 **
-** Description      This function reports the received data through the data 
+** Description      This function reports the received data through the data
 **                  callback function.
 **
 ** Returns          void.

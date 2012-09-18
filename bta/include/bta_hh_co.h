@@ -20,14 +20,14 @@
 ** Function         bta_hh_co_data
 **
 ** Description      This callout function is executed by HH when data is received
-**                  in interupt channel. 
-**                  
+**                  in interupt channel.
+**
 **
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len, 
-                                   tBTA_HH_PROTO_MODE  mode, UINT8 sub_class, 
+BTA_API extern void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len,
+                                   tBTA_HH_PROTO_MODE  mode, UINT8 sub_class,
                                    UINT8 ctry_code, BD_ADDR peer_addr, UINT8 app_id);
 
 /*******************************************************************************
@@ -35,21 +35,21 @@ BTA_API extern void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len,
 ** Function         bta_hh_co_open
 **
 ** Description      This callout function is executed by HH when connection is
-**                  opened, and application may do some device specific                 
+**                  opened, and application may do some device specific
 **                  initialization.
 **
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class, 
+BTA_API extern void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class,
                                    UINT16 attr_mask, UINT8 app_id);
 
 /*******************************************************************************
 **
 ** Function         bta_hh_co_close
 **
-** Description      This callout function is executed by HH when connection is 
-**                  closed, and device specific finalizatio nmay be needed.                  
+** Description      This callout function is executed by HH when connection is
+**                  closed, and device specific finalizatio nmay be needed.
 **
 ** Returns          void.
 **

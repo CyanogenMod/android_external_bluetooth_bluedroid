@@ -28,7 +28,7 @@
 static void gatt_profile_request_cback (UINT16 conn_id, UINT32 trans_id, UINT8 op_code, tGATTS_DATA *p_data);
 static void gatt_profile_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected, tGATT_DISCONN_REASON reason);
 
-static tGATT_CBACK gatt_profile_cback = 
+static tGATT_CBACK gatt_profile_cback =
 {
     gatt_profile_connect_cback,
     NULL,
@@ -144,14 +144,14 @@ BOOLEAN gatt_profile_clcb_dealloc (UINT16 conn_id)
 **
 ** Function         gatt_profile_request_cback
 **
-** Description      GATT profile attribute access request callback. 
+** Description      GATT profile attribute access request callback.
 **
 ** Returns          void.
 **
 *******************************************************************************/
-static void gatt_profile_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_REQ_TYPE type, 
+static void gatt_profile_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_REQ_TYPE type,
                                         tGATTS_DATA *p_data)
-{  
+{
     UINT8       status = GATT_INVALID_PDU;
     tGATTS_RSP   rsp_msg ;
     BOOLEAN     ignore = FALSE;
@@ -165,7 +165,7 @@ static void gatt_profile_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_
             break;
 
         case GATTS_REQ_TYPE_WRITE:
-            status = GATT_WRITE_NOT_PERMIT;    
+            status = GATT_WRITE_NOT_PERMIT;
             break;
 
         case GATTS_REQ_TYPE_WRITE_EXEC:
@@ -198,11 +198,11 @@ static void gatt_profile_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_
 ** Returns          void
 **
 *******************************************************************************/
-static void gatt_profile_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, 
+static void gatt_profile_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
                                         BOOLEAN connected, tGATT_DISCONN_REASON reason)
 {
-    GATT_TRACE_EVENT5 ("gatt_profile_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x", 
-                       (bda[0]<<24)+(bda[1]<<16)+(bda[2]<<8)+bda[3], 
+    GATT_TRACE_EVENT5 ("gatt_profile_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",
+                       (bda[0]<<24)+(bda[1]<<16)+(bda[2]<<8)+bda[3],
                        (bda[4]<<8)+bda[5], connected, conn_id, reason);
 
     if (connected)
@@ -243,21 +243,21 @@ void gatt_profile_db_init (void)
     GATT_StartIf(gatt_cb.gatt_if);
 
     service_handle = GATTS_CreateService (gatt_cb.gatt_if , &uuid, 0, GATTP_MAX_ATTR_NUM, TRUE);
-    /* add Service Changed characteristic 
+    /* add Service Changed characteristic
     */
-    uuid.uu.uuid16 = gatt_cb.gattp_attr.uuid = GATT_UUID_GATT_SRV_CHGD;   
+    uuid.uu.uuid16 = gatt_cb.gattp_attr.uuid = GATT_UUID_GATT_SRV_CHGD;
     gatt_cb.gattp_attr.service_change = 0;
-    gatt_cb.gattp_attr.handle   = 
+    gatt_cb.gattp_attr.handle   =
     gatt_cb.handle_of_h_r       = GATTS_AddCharacteristic(service_handle, &uuid, 0, GATT_CHAR_PROP_BIT_INDICATE);
 
-    GATT_TRACE_DEBUG1 ("gatt_profile_db_init:  handle of service changed%d", 
+    GATT_TRACE_DEBUG1 ("gatt_profile_db_init:  handle of service changed%d",
                        gatt_cb.handle_of_h_r  );
 
-    /* start service 
+    /* start service
     */
     status = GATTS_StartService (gatt_cb.gatt_if, service_handle, GATT_TRANSPORT_LE_BR_EDR);
 
-    GATT_TRACE_DEBUG2 ("gatt_profile_db_init:  gatt_if=%d   start status%d", 
+    GATT_TRACE_DEBUG2 ("gatt_profile_db_init:  gatt_if=%d   start status%d",
                        gatt_cb.gatt_if,  status);
 }
 

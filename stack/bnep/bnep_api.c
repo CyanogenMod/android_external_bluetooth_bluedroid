@@ -46,7 +46,7 @@ void BNEP_Init (void)
 **                  its callbacks with BNEP
 **
 ** Parameters:      p_reg_info - contains all callback function pointers
-**                  
+**
 **
 ** Returns          BNEP_SUCCESS        if registered successfully
 **                  BNEP_FAILURE        if connection state callback is missing
@@ -65,7 +65,7 @@ tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info)
     bnep_cb.p_filter_ind_cb     = p_reg_info->p_filter_ind_cb;
     bnep_cb.p_mfilter_ind_cb    = p_reg_info->p_mfilter_ind_cb;
     bnep_cb.p_tx_data_flow_cb   = p_reg_info->p_tx_data_flow_cb;
-    
+
     if (bnep_register_with_l2cap ())
         return BNEP_SECURITY_FAIL;
 
@@ -83,7 +83,7 @@ tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info)
 **                  its callbacks.
 **
 ** Parameters:      void
-**                  
+**
 **
 ** Returns          void
 **
@@ -214,7 +214,7 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
 ** Function         BNEP_ConnectResp
 **
 ** Description      This function is called in responce to connection indication
-**                  
+**
 **
 ** Parameters:      handle  - handle given in the connection indication
 **                  resp    - responce for the connection indication

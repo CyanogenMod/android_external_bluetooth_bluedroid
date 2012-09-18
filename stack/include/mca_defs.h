@@ -4,7 +4,7 @@
 **
 **  Description:    This contains constants definitions and other information
 **                  from the MCAP specification.
-**                  
+**
 **
 **  Copyright (c) 2009-2009, Broadcom Corp., All Rights Reserved.
 **  WIDCOMM Bluetooth Core. Proprietary and confidential.

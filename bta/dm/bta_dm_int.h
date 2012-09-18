@@ -120,21 +120,21 @@ enum
 /* data type for BTA_DM_API_ENABLE_EVT */
 typedef struct
 {
-    BT_HDR              hdr;      
+    BT_HDR              hdr;
     tBTA_DM_SEC_CBACK *p_sec_cback;
 } tBTA_DM_API_ENABLE;
 
 /* data type for BTA_DM_API_SET_NAME_EVT */
 typedef struct
 {
-    BT_HDR              hdr;      
+    BT_HDR              hdr;
     char    name[BD_NAME_LEN];
 } tBTA_DM_API_SET_NAME;
 
 /* data type for BTA_DM_API_SET_VISIBILITY_EVT */
 typedef struct
 {
-    BT_HDR              hdr;      
+    BT_HDR              hdr;
     tBTA_DM_DISC    disc_mode;
     tBTA_DM_CONN    conn_mode;
     UINT8           pair_mode;
@@ -147,12 +147,12 @@ typedef struct
     BT_HDR              hdr;
     UINT8           first;
     UINT8           last;
-} tBTA_DM_API_SET_AFH_CHANNELS_EVT;  
+} tBTA_DM_API_SET_AFH_CHANNELS_EVT;
 
 /* data type for BTA_DM_API_VENDOR_SPECIFIC_COMMAND_EVT */
 typedef struct
 {
-    BT_HDR              hdr;      
+    BT_HDR              hdr;
     UINT16              opcode;
     UINT8               param_len;
     UINT8               *p_param_buf;
@@ -171,7 +171,7 @@ typedef UINT8 tBTA_DM_RS_RES;
 /* data type for BTA_DM_API_SEARCH_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     tBTA_DM_INQ inq_params;
     tBTA_SERVICE_MASK services;
     tBTA_DM_SEARCH_CBACK * p_cback;
@@ -185,7 +185,7 @@ typedef struct
 /* data type for BTA_DM_API_DISCOVER_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     BD_ADDR bd_addr;
     tBTA_SERVICE_MASK services;
     tBTA_DM_SEARCH_CBACK * p_cback;
@@ -200,7 +200,7 @@ typedef struct
 /* data type for BTA_DM_API_DI_DISC_EVT */
 typedef struct
 {
-    BT_HDR              hdr;  
+    BT_HDR              hdr;
     BD_ADDR             bd_addr;
     tBTA_DISCOVERY_DB   *p_sdp_db;
     UINT32              len;
@@ -210,7 +210,7 @@ typedef struct
 /* data type for BTA_DM_API_BOND_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     BD_ADDR bd_addr;
 } tBTA_DM_API_BOND;
 
@@ -224,7 +224,7 @@ typedef struct
 /* data type for BTA_DM_API_PIN_REPLY_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     BD_ADDR bd_addr;
     BOOLEAN accept;
     UINT8 pin_len;
@@ -234,7 +234,7 @@ typedef struct
 /* data type for BTA_DM_API_LINK_POLICY_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     BD_ADDR     bd_addr;
     UINT16      policy_mask;
     BOOLEAN     set;
@@ -243,7 +243,7 @@ typedef struct
 /* data type for BTA_DM_API_AUTH_REPLY_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     BD_ADDR bd_addr;
     tBTA_SERVICE_ID service;
     tBTA_AUTH_RESP response;
@@ -252,13 +252,13 @@ typedef struct
 /* data type for BTA_DM_API_LOC_OOB_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
 } tBTA_DM_API_LOC_OOB;
 
 /* data type for BTA_DM_API_CONFIRM_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     BD_ADDR     bd_addr;
     BOOLEAN     accept;
 } tBTA_DM_API_CONFIRM;
@@ -266,14 +266,14 @@ typedef struct
 /* data type for BTA_DM_API_PASKY_CANCEL_EVT*/
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     BD_ADDR     bd_addr;
 } tBTA_DM_API_PASKY_CANCEL;
 
 /* data type for BTA_DM_CI_IO_REQ_EVT */
 typedef struct
 {
-    BT_HDR          hdr;  
+    BT_HDR          hdr;
     BD_ADDR         bd_addr;
     tBTA_IO_CAP     io_cap;
     tBTA_OOB_DATA   oob_data;
@@ -283,7 +283,7 @@ typedef struct
 /* data type for BTA_DM_CI_RMT_OOB_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     BD_ADDR     bd_addr;
     BT_OCTET16  c;
     BT_OCTET16  r;
@@ -293,14 +293,14 @@ typedef struct
 /* data type for BTA_DM_REMT_NAME_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     tBTA_DM_SEARCH  result;
 } tBTA_DM_REM_NAME;
 
 /* data type for tBTA_DM_DISC_RESULT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     tBTA_DM_SEARCH  result;
 } tBTA_DM_DISC_RESULT;
 
@@ -308,22 +308,22 @@ typedef struct
 /* data type for BTA_DM_INQUIRY_CMPL_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     UINT8       num;
 } tBTA_DM_INQUIRY_CMPL;
 
 /* data type for BTA_DM_SDP_RESULT_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     UINT16 sdp_result;
 } tBTA_DM_SDP_RESULT;
 
 /* data type for BTA_API_DM_SIG_STRENGTH_EVT */
 typedef struct
 {
-    BT_HDR      hdr;  
-    tBTA_SIG_STRENGTH_MASK mask; 
+    BT_HDR      hdr;
+    tBTA_SIG_STRENGTH_MASK mask;
     UINT16 period;
     BOOLEAN start;
 } tBTA_API_DM_SIG_STRENGTH;
@@ -331,14 +331,14 @@ typedef struct
 /* data type for tBTA_API_DM_TX_INQPWR */
 typedef struct
 {
-    BT_HDR      hdr;  
+    BT_HDR      hdr;
     INT8        tx_power;
 }tBTA_API_DM_TX_INQPWR;
 
 /* data type for BTA_DM_ACL_CHANGE_EVT */
 typedef struct
 {
-    BT_HDR          hdr;  
+    BT_HDR          hdr;
     tBTM_BL_EVENT   event;
     UINT8           busy_level;
     BOOLEAN         is_new;
@@ -395,15 +395,15 @@ typedef struct
 /* data type for BTA_DM_API_EXECUTE_CBACK_EVT */
 typedef struct
 {
-    BT_HDR               hdr;      
-    void *               p_param; 
+    BT_HDR               hdr;
+    void *               p_param;
     tBTA_DM_EXEC_CBACK  *p_exec_cback;
 } tBTA_DM_API_EXECUTE_CBACK;
 
 /* data type for tBTA_DM_API_SET_ENCRYPTION */
 typedef struct
 {
-    BT_HDR                    hdr;  
+    BT_HDR                    hdr;
     tBTA_DM_ENCRYPT_CBACK     *p_callback;
     tBTA_DM_BLE_SEC_ACT       sec_act;
     BD_ADDR                   bd_addr;
@@ -415,7 +415,7 @@ typedef struct
     BT_HDR                  hdr;
     BD_ADDR                 bd_addr;
     tBTA_LE_KEY_VALUE       blekey;
-    tBTA_LE_KEY_TYPE        key_type;  
+    tBTA_LE_KEY_TYPE        key_type;
 
 }tBTA_DM_API_ADD_BLEKEY;
 
@@ -423,8 +423,8 @@ typedef struct
 {
     BT_HDR                  hdr;
     BD_ADDR                 bd_addr;
-    tBT_DEVICE_TYPE         dev_type ;   
-    tBLE_ADDR_TYPE          addr_type;  
+    tBT_DEVICE_TYPE         dev_type ;
+    tBLE_ADDR_TYPE          addr_type;
 
 }tBTA_DM_API_ADD_BLE_DEVICE;
 
@@ -502,9 +502,9 @@ typedef struct
 typedef union
 {
     /* GKI event buffer header */
-    BT_HDR              hdr;      
+    BT_HDR              hdr;
     tBTA_DM_API_ENABLE  enable;
-    
+
     tBTA_DM_API_SET_NAME set_name;
 
     tBTA_DM_API_SET_VISIBILITY set_visibility;
@@ -646,9 +646,9 @@ typedef struct
 
 }  tBTA_DM_CONNECTED_SRVCS;
 
-typedef struct 
+typedef struct
 {
-    TIMER_LIST_ENT          timer; 
+    TIMER_LIST_ENT          timer;
     BD_ADDR                 peer_bdaddr;
     BOOLEAN                 in_use;
 
@@ -890,19 +890,19 @@ extern void bta_dm_search_sm_disable( void );
 
 
 extern void bta_dm_enable (tBTA_DM_MSG *p_data);
-extern void bta_dm_disable (tBTA_DM_MSG *p_data);       
+extern void bta_dm_disable (tBTA_DM_MSG *p_data);
 extern void bta_dm_set_dev_name (tBTA_DM_MSG *p_data);
 extern void bta_dm_set_visibility (tBTA_DM_MSG *p_data);
 extern void bta_dm_set_afhchannels (tBTA_DM_MSG *p_data);
 extern void bta_dm_vendor_spec_command(tBTA_DM_MSG *p_data);
-extern void bta_dm_bond (tBTA_DM_MSG *p_data);         
+extern void bta_dm_bond (tBTA_DM_MSG *p_data);
 extern void bta_dm_bond_cancel (tBTA_DM_MSG *p_data);
-extern void bta_dm_pin_reply (tBTA_DM_MSG *p_data);     
+extern void bta_dm_pin_reply (tBTA_DM_MSG *p_data);
 extern void bta_dm_link_policy (tBTA_DM_MSG *p_data);
-extern void bta_dm_auth_reply (tBTA_DM_MSG *p_data);    
+extern void bta_dm_auth_reply (tBTA_DM_MSG *p_data);
 extern void bta_dm_signal_strength(tBTA_DM_MSG *p_data);
 extern void bta_dm_tx_inqpower(tBTA_DM_MSG *p_data);
-extern void bta_dm_acl_change(tBTA_DM_MSG *p_data); 
+extern void bta_dm_acl_change(tBTA_DM_MSG *p_data);
 extern void bta_dm_add_device (tBTA_DM_MSG *p_data);
 extern void bta_dm_remove_device (tBTA_DM_MSG *p_data);
 
@@ -932,10 +932,10 @@ extern void bta_dm_ci_rmt_oob_act(tBTA_DM_MSG *p_data);
 extern void bta_dm_init_pm(void);
 extern void bta_dm_disable_pm(void);
 
-extern void bta_dm_search_start (tBTA_DM_MSG *p_data); 
+extern void bta_dm_search_start (tBTA_DM_MSG *p_data);
 extern void bta_dm_search_cancel (tBTA_DM_MSG *p_data);
-extern void bta_dm_discover (tBTA_DM_MSG *p_data); 
-extern void bta_dm_di_disc (tBTA_DM_MSG *p_data);  
+extern void bta_dm_discover (tBTA_DM_MSG *p_data);
+extern void bta_dm_di_disc (tBTA_DM_MSG *p_data);
 extern void bta_dm_inq_cmpl (tBTA_DM_MSG *p_data);
 extern void bta_dm_rmt_name (tBTA_DM_MSG *p_data);
 extern void bta_dm_sdp_result (tBTA_DM_MSG *p_data);

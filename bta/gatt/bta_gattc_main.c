@@ -2,7 +2,7 @@
 **
 **  Name:           bta_gattc_main.c
 **
-**  Description:    This file contains the GATT client main functions 
+**  Description:    This file contains the GATT client main functions
 **                  and state machine.
 **
 **  Copyright (c) 2003-2009, Broadcom Corp., All Rights Reserved.
@@ -33,7 +33,7 @@ enum
     //BTA_GATTC_OPEN_FAIL_IN_CONN,        //<--- need to remove this?
     BTA_GATTC_OPEN_ERROR,
     BTA_GATTC_CANCEL_OPEN,
-    BTA_GATTC_CANCEL_OPEN_OK,    
+    BTA_GATTC_CANCEL_OPEN_OK,
     BTA_GATTC_CANCEL_OPEN_ERROR,
     BTA_GATTC_CONN,
     BTA_GATTC_START_DISCOVER,
@@ -72,7 +72,7 @@ const tBTA_GATTC_ACTION bta_gattc_action[] =
     bta_gattc_cancel_open,
     bta_gattc_cancel_open_ok,
     bta_gattc_cancel_open_error,
-    bta_gattc_conn,  
+    bta_gattc_conn,
     bta_gattc_start_discover,
     bta_gattc_disc_cmpl,
 
@@ -85,7 +85,7 @@ const tBTA_GATTC_ACTION bta_gattc_action[] =
     bta_gattc_op_cmpl,
     bta_gattc_search,
     bta_gattc_fail,
-    bta_gattc_confirm, 
+    bta_gattc_confirm,
     bta_gattc_execute,
     bta_gattc_read_multi,
     bta_gattc_ci_open,
@@ -126,7 +126,7 @@ static const UINT8 bta_gattc_st_idle[][BTA_GATTC_NUM_COLS] =
 /* BTA_GATTC_INT_DISCONN_EVT       */    {BTA_GATTC_IGNORE,            BTA_GATTC_IDLE_ST},
 
 
-/* ===> for cache loading, saving   */                                                      
+/* ===> for cache loading, saving   */
 /* BTA_GATTC_START_CACHE_EVT        */   {BTA_GATTC_IGNORE,            BTA_GATTC_IDLE_ST},
 /* BTA_GATTC_CI_CACHE_OPEN_EVT      */   {BTA_GATTC_IGNORE,            BTA_GATTC_IDLE_ST},
 /* BTA_GATTC_CI_CACHE_LOAD_EVT      */   {BTA_GATTC_IGNORE,            BTA_GATTC_IDLE_ST},
@@ -172,7 +172,7 @@ static const UINT8 bta_gattc_st_connected[][BTA_GATTC_NUM_COLS] =
 /* BTA_GATTC_API_OPEN_EVT           */   {BTA_GATTC_OPEN_ERROR,         BTA_GATTC_CONN_ST},
 /* BTA_GATTC_INT_OPEN_FAIL_EVT      */   {BTA_GATTC_IGNORE,             BTA_GATTC_CONN_ST},
 /* BTA_GATTC_API_CANCEL_OPEN_EVT    */   {BTA_GATTC_CANCEL_OPEN_ERROR, BTA_GATTC_CONN_ST},
-/* BTA_GATTC_INT_CANCEL_OPEN_OK_EVT */   {BTA_GATTC_IGNORE,            BTA_GATTC_CONN_ST},                                                                        
+/* BTA_GATTC_INT_CANCEL_OPEN_OK_EVT */   {BTA_GATTC_IGNORE,            BTA_GATTC_CONN_ST},
 
 /* BTA_GATTC_API_READ_EVT           */   {BTA_GATTC_READ,               BTA_GATTC_CONN_ST},
 /* BTA_GATTC_API_WRITE_EVT          */   {BTA_GATTC_WRITE,              BTA_GATTC_CONN_ST},
@@ -190,7 +190,7 @@ static const UINT8 bta_gattc_st_connected[][BTA_GATTC_NUM_COLS] =
 
 /* BTA_GATTC_INT_DISCONN_EVT        */   {BTA_GATTC_CLOSE,              BTA_GATTC_IDLE_ST},
 
-/* ===> for cache loading, saving   */                                  
+/* ===> for cache loading, saving   */
 /* BTA_GATTC_START_CACHE_EVT        */   {BTA_GATTC_CACHE_OPEN,         BTA_GATTC_DISCOVER_ST},
 /* BTA_GATTC_CI_CACHE_OPEN_EVT      */   {BTA_GATTC_IGNORE,             BTA_GATTC_CONN_ST},
 /* BTA_GATTC_CI_CACHE_LOAD_EVT      */   {BTA_GATTC_IGNORE,             BTA_GATTC_CONN_ST},
@@ -204,7 +204,7 @@ static const UINT8 bta_gattc_st_discover[][BTA_GATTC_NUM_COLS] =
 /* BTA_GATTC_API_OPEN_EVT           */   {BTA_GATTC_OPEN_ERROR,         BTA_GATTC_DISCOVER_ST},
 /* BTA_GATTC_INT_OPEN_FAIL_EVT      */   {BTA_GATTC_IGNORE,             BTA_GATTC_DISCOVER_ST},
 /* BTA_GATTC_API_CANCEL_OPEN_EVT    */   {BTA_GATTC_CANCEL_OPEN_ERROR,  BTA_GATTC_DISCOVER_ST},
-/* BTA_GATTC_INT_CANCEL_OPEN_OK_EVT */   {BTA_GATTC_FAIL,               BTA_GATTC_DISCOVER_ST},  
+/* BTA_GATTC_INT_CANCEL_OPEN_OK_EVT */   {BTA_GATTC_FAIL,               BTA_GATTC_DISCOVER_ST},
 
 /* BTA_GATTC_API_READ_EVT           */   {BTA_GATTC_Q_CMD,              BTA_GATTC_DISCOVER_ST},
 /* BTA_GATTC_API_WRITE_EVT          */   {BTA_GATTC_Q_CMD,              BTA_GATTC_DISCOVER_ST},
@@ -217,11 +217,11 @@ static const UINT8 bta_gattc_st_discover[][BTA_GATTC_NUM_COLS] =
 /* BTA_GATTC_API_READ_MULTI_EVT     */   {BTA_GATTC_Q_CMD,              BTA_GATTC_DISCOVER_ST},
 /* BTA_GATTC_INT_CONN_EVT           */   {BTA_GATTC_IGNORE,             BTA_GATTC_DISCOVER_ST},
 /* BTA_GATTC_INT_DISCOVER_EVT       */   {BTA_GATTC_START_DISCOVER,     BTA_GATTC_DISCOVER_ST},
-/* BTA_GATTC_DISCOVER_CMPL_EVT      */   {BTA_GATTC_DISC_CMPL,          BTA_GATTC_CONN_ST}, 
+/* BTA_GATTC_DISCOVER_CMPL_EVT      */   {BTA_GATTC_DISC_CMPL,          BTA_GATTC_CONN_ST},
 /* BTA_GATTC_OP_CMPL_EVT            */   {BTA_GATTC_IGNORE_OP_CMPL,     BTA_GATTC_DISCOVER_ST},
 /* BTA_GATTC_INT_DISCONN_EVT        */   {BTA_GATTC_CLOSE,              BTA_GATTC_IDLE_ST},
 
-/* ===> for cache loading, saving       */                              
+/* ===> for cache loading, saving       */
 /* BTA_GATTC_START_CACHE_EVT        */   {BTA_GATTC_IGNORE,             BTA_GATTC_DISCOVER_ST},
 /* BTA_GATTC_CI_CACHE_OPEN_EVT      */   {BTA_GATTC_CI_OPEN,            BTA_GATTC_DISCOVER_ST},
 /* BTA_GATTC_CI_CACHE_LOAD_EVT      */   {BTA_GATTC_CI_LOAD,            BTA_GATTC_DISCOVER_ST},
@@ -259,7 +259,7 @@ static char *gattc_state_code(tBTA_GATTC_STATE state_code);
 ** Function         bta_gattc_sm_execute
 **
 ** Description      State machine event handling function for GATTC
-**                  
+**
 **
 ** Returns          void
 **
@@ -316,7 +316,7 @@ void bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_DATA
 ** Function         bta_gattc_hdl_event
 **
 ** Description      GATT client main event handling function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -383,7 +383,7 @@ BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
 **
 ** Function         gattc_evt_code
 **
-** Description      
+** Description
 **
 ** Returns          void
 **
@@ -448,7 +448,7 @@ static char *gattc_evt_code(tBTA_GATTC_INT_EVT evt_code)
 **
 ** Function         gattc_state_code
 **
-** Description      
+** Description
 **
 ** Returns          void
 **

@@ -2,7 +2,7 @@
 **
 **  File Name:   $RCSfile: sbc_analysis.c,v $
 **
-**  Description: This file contains the code that performs Analysis of the input 
+**  Description: This file contains the code that performs Analysis of the input
 **  audio stream.
 **
 **  Revision :   $Id: sbc_analysis.c,v 1.29 2006/04/13 17:00:37 mjougit Exp $
@@ -64,7 +64,7 @@
 #define WIND_8_SUBBANDS_5_1 (SINT32)0x0209291F  /* 21 et 59 = 0x0209291F */
 #define WIND_8_SUBBANDS_5_2 (SINT32)0x110ECEF0  /* 37 et 43 = 0x110ECEF0 */
 #define WIND_8_SUBBANDS_5_3 (SINT32)0xFF5EEB73  /* 27 et  53 = 0xFF5EEB73 */
-#define WIND_8_SUBBANDS_5_4 (SINT32)0x0034F8B6  /* 11 et 69 = 0x0034F8B6 */ 
+#define WIND_8_SUBBANDS_5_4 (SINT32)0x0034F8B6  /* 11 et 69 = 0x0034F8B6 */
 #define WIND_8_SUBBANDS_6_0 (SINT32)0x003060F4  /* 6 et 74 = 0x003060F4 */
 #define WIND_8_SUBBANDS_6_1 (SINT32)0x02138653  /* 22 et 58 = 0x02138653 */
 #define WIND_8_SUBBANDS_6_2 (SINT32)0x120435FA  /* 38 et 42 = 0x120435FA */
@@ -72,7 +72,7 @@
 #define WIND_8_SUBBANDS_6_4 (SINT32)0x00415B75  /* 10 et 70 = 0x00415B75 */
 #define WIND_8_SUBBANDS_7_0 (SINT32)0x003A72E7  /* 7 et 73 = 0x003A72E7 */
 #define WIND_8_SUBBANDS_7_1 (SINT32)0x01F5F424  /* 23 et 57 = 0x01F5F424 */
-#define WIND_8_SUBBANDS_7_2 (SINT32)0x129C226F  /* 39 et 41 = 0x129C226F */ 
+#define WIND_8_SUBBANDS_7_2 (SINT32)0x129C226F  /* 39 et 41 = 0x129C226F */
 #define WIND_8_SUBBANDS_7_3 (SINT32)0x01223EBA  /* 25 et 55 = 0x01223EBA */
 #define WIND_8_SUBBANDS_7_4 (SINT32)0x0044EF48  /* 9 et 71 = 0x0044EF48 */
 #define WIND_8_SUBBANDS_8_0 (SINT32)0x0041EC6A  /* 8 et 72 = 0x0041EC6A */
@@ -126,7 +126,7 @@
 #define WIND_8_SUBBANDS_5_1 (SINT16)0x0209  /* 21 et 59 = 0x0209291F */
 #define WIND_8_SUBBANDS_5_2 (SINT16)0x110F  /* 37 et 43 = 0x110ECEF0 */
 #define WIND_8_SUBBANDS_5_3 (SINT16)0xFF5F  /* 27 et  53 = 0xFF5EEB73 */
-#define WIND_8_SUBBANDS_5_4 (SINT16)0x0035  /* 11 et 69 = 0x0034F8B6 */ 
+#define WIND_8_SUBBANDS_5_4 (SINT16)0x0035  /* 11 et 69 = 0x0034F8B6 */
 #define WIND_8_SUBBANDS_6_0 (SINT16)0x0030  /* 6 et 74 = 0x003060F4 */
 #define WIND_8_SUBBANDS_6_1 (SINT16)0x0214  /* 22 et 58 = 0x02138653 */
 #define WIND_8_SUBBANDS_6_2 (SINT16)0x1204  /* 38 et 42 = 0x120435FA */
@@ -134,7 +134,7 @@
 #define WIND_8_SUBBANDS_6_4 (SINT16)0x0041  /* 10 et 70 = 0x00415B75 */
 #define WIND_8_SUBBANDS_7_0 (SINT16)0x003A  /* 7 et 73 = 0x003A72E7 */
 #define WIND_8_SUBBANDS_7_1 (SINT16)0x01F6  /* 23 et 57 = 0x01F5F424 */
-#define WIND_8_SUBBANDS_7_2 (SINT16)0x129C  /* 39 et 41 = 0x129C226F */ 
+#define WIND_8_SUBBANDS_7_2 (SINT16)0x129C  /* 39 et 41 = 0x129C226F */
 #define WIND_8_SUBBANDS_7_3 (SINT16)0x0122  /* 25 et 55 = 0x01223EBA */
 #define WIND_8_SUBBANDS_7_4 (SINT16)0x0045  /* 9 et 71 = 0x0044EF48 */
 #define WIND_8_SUBBANDS_8_0 (SINT16)0x0042  /* 8 et 72 = 0x0041EC6A */
@@ -147,7 +147,7 @@
 #endif
 static SINT32   s32DCTY[16]  = {0};
 static SINT32   s32X[ENC_VX_BUFFER_SIZE/2];
-static SINT16   *s16X=(SINT16*) s32X;      /* s16X must be 32 bits aligned cf  SHIFTUP_X8_2*/ 
+static SINT16   *s16X=(SINT16*) s32X;      /* s16X must be 32 bits aligned cf  SHIFTUP_X8_2*/
 #if (SBC_USE_ARM_PRAGMA==TRUE)
 #pragma arm section zidata
 #endif
@@ -951,17 +951,17 @@ void SbcAnalysisFilter4(SBC_ENC_PARAMS *pstrEncParams)
         for (s32Ch=0;s32Ch<s32NumOfChannels;s32Ch++)
         {
             ChOffset=s32Ch*Offset2+Offset;
-            
-            WINDOW_PARTIAL_4 
-                
+
+            WINDOW_PARTIAL_4
+
             SBC_FastIDCT4(s32DCTY, ps32SbBuf);
-            
+
             ps32SbBuf +=SUB_BANDS_4;
         }
         if (s32NumOfChannels==1)
         {
             if (ShiftCounter>=EncMaxShiftCounter)
-            {                   
+            {
                 SHIFTUP_X4;
                 ShiftCounter=0;
             }
@@ -973,7 +973,7 @@ void SbcAnalysisFilter4(SBC_ENC_PARAMS *pstrEncParams)
         else
         {
             if (ShiftCounter>=EncMaxShiftCounter)
-            {                   
+            {
                 SHIFTUP_X4_2;
                 ShiftCounter=0;
             }
@@ -1055,17 +1055,17 @@ void SbcAnalysisFilter8 (SBC_ENC_PARAMS *pstrEncParams)
         for (s32Ch=0;s32Ch<s32NumOfChannels;s32Ch++)
         {
             ChOffset=s32Ch*Offset2+Offset;
-            
-            WINDOW_PARTIAL_8 
-                
+
+            WINDOW_PARTIAL_8
+
             SBC_FastIDCT8 (s32DCTY, ps32SbBuf);
-            
+
             ps32SbBuf +=SUB_BANDS_8;
         }
         if (s32NumOfChannels==1)
         {
             if (ShiftCounter>=EncMaxShiftCounter)
-            {                   
+            {
                 SHIFTUP_X8;
                 ShiftCounter=0;
             }
@@ -1077,7 +1077,7 @@ void SbcAnalysisFilter8 (SBC_ENC_PARAMS *pstrEncParams)
         else
         {
             if (ShiftCounter>=EncMaxShiftCounter)
-            {                   
+            {
                 SHIFTUP_X8_2;
                 ShiftCounter=0;
             }
@@ -1086,7 +1086,7 @@ void SbcAnalysisFilter8 (SBC_ENC_PARAMS *pstrEncParams)
                 ShiftCounter+=SUB_BANDS_8;
             }
         }
-    }           
+    }
 }
 
 void SbcAnalysisInit (void)

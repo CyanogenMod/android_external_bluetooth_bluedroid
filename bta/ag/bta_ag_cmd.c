@@ -32,13 +32,13 @@
 
 
 /* clip type constants */
-#define BTA_AG_CLIP_TYPE_MIN        128 
-#define BTA_AG_CLIP_TYPE_MAX        175 
+#define BTA_AG_CLIP_TYPE_MIN        128
+#define BTA_AG_CLIP_TYPE_MAX        175
 #define BTA_AG_CLIP_TYPE_DEFAULT    129
 #define BTA_AG_CLIP_TYPE_VOIP       255
 
 #if defined(BTA_AG_MULTI_RESULT_INCLUDED) && (BTA_AG_MULTI_RESULT_INCLUDED == TRUE)
-#define BTA_AG_AT_MULTI_LEN            2            
+#define BTA_AG_AT_MULTI_LEN            2
 #define AT_SET_RES_CB(res_cb, c, p, i) {res_cb.code = c; res_cb.p_arg = p; res_cb.int_arg = i;}
 
 /* type for AT result code block */
@@ -61,24 +61,24 @@ typedef struct
 enum
 {
     BTA_AG_HS_CMD_CKPD,
-    BTA_AG_HS_CMD_VGS, 
+    BTA_AG_HS_CMD_VGS,
     BTA_AG_HS_CMD_VGM
 };
 
 /* enumeration of HFP AT commands matches HFP command interpreter table */
 enum
 {
-    BTA_AG_HF_CMD_A,    
-    BTA_AG_HF_CMD_D,    
-    BTA_AG_HF_CMD_VGS, 
-    BTA_AG_HF_CMD_VGM, 
+    BTA_AG_HF_CMD_A,
+    BTA_AG_HF_CMD_D,
+    BTA_AG_HF_CMD_VGS,
+    BTA_AG_HF_CMD_VGM,
     BTA_AG_HF_CMD_CCWA,
     BTA_AG_HF_CMD_CHLD,
     BTA_AG_HF_CMD_CHUP,
     BTA_AG_HF_CMD_CIND,
     BTA_AG_HF_CMD_CLIP,
     BTA_AG_HF_CMD_CMER,
-    BTA_AG_HF_CMD_VTS, 
+    BTA_AG_HF_CMD_VTS,
     BTA_AG_HF_CMD_BINP,
     BTA_AG_HF_CMD_BLDN,
     BTA_AG_HF_CMD_BVRA,
@@ -180,7 +180,7 @@ enum
 };
 
 #if defined(BTA_HSP_RESULT_REPLACE_COLON) && (BTA_HSP_RESULT_REPLACE_COLON == TRUE)
-#define COLON_IDX_4_VGSVGM    4  
+#define COLON_IDX_4_VGSVGM    4
 #endif
 /* AT result code constant table  (Indexed by result code) */
 const tBTA_AG_RESULT bta_ag_result_tbl[] =
@@ -216,7 +216,7 @@ const tBTA_AG_AT_CMD *bta_ag_at_tbl[BTA_AG_NUM_IDX] =
 
 /* callback event lookup table for HSP */
 const tBTA_AG_EVT bta_ag_hsp_cb_evt[] =
-{ 
+{
     BTA_AG_AT_CKPD_EVT,     /* BTA_AG_HS_CMD_CKPD */
     BTA_AG_SPK_EVT,         /* BTA_AG_HS_CMD_VGS */
     BTA_AG_MIC_EVT          /* BTA_AG_HS_CMD_VGM */
@@ -226,16 +226,16 @@ const tBTA_AG_EVT bta_ag_hsp_cb_evt[] =
 const tBTA_AG_EVT bta_ag_hfp_cb_evt[] =
 {
     BTA_AG_AT_A_EVT,        /* BTA_AG_HF_CMD_A */
-    BTA_AG_AT_D_EVT,        /* BTA_AG_HF_CMD_D */ 
-    BTA_AG_SPK_EVT,         /* BTA_AG_HF_CMD_VGS */ 
-    BTA_AG_MIC_EVT,         /* BTA_AG_HF_CMD_VGM */ 
+    BTA_AG_AT_D_EVT,        /* BTA_AG_HF_CMD_D */
+    BTA_AG_SPK_EVT,         /* BTA_AG_HF_CMD_VGS */
+    BTA_AG_MIC_EVT,         /* BTA_AG_HF_CMD_VGM */
     0,                      /* BTA_AG_HF_CMD_CCWA */
     BTA_AG_AT_CHLD_EVT,     /* BTA_AG_HF_CMD_CHLD */
     BTA_AG_AT_CHUP_EVT,     /* BTA_AG_HF_CMD_CHUP */
     BTA_AG_AT_CIND_EVT,     /* BTA_AG_HF_CMD_CIND */
     0,                      /* BTA_AG_HF_CMD_CLIP */
     0,                      /* BTA_AG_HF_CMD_CMER */
-    BTA_AG_AT_VTS_EVT,      /* BTA_AG_HF_CMD_VTS */ 
+    BTA_AG_AT_VTS_EVT,      /* BTA_AG_HF_CMD_VTS */
     BTA_AG_AT_BINP_EVT,     /* BTA_AG_HF_CMD_BINP */
     BTA_AG_AT_BLDN_EVT,     /* BTA_AG_HF_CMD_BLDN */
     BTA_AG_AT_BVRA_EVT,     /* BTA_AG_HF_CMD_BVRA */
@@ -256,60 +256,60 @@ const tBTA_AG_EVT bta_ag_hfp_cb_evt[] =
 /* translation of API result code values to internal values */
 const UINT8 bta_ag_trans_result[] =
 {
-    BTA_AG_RES_VGS,     /* BTA_AG_SPK_RES */           
-    BTA_AG_RES_VGM,     /* BTA_AG_MIC_RES */           
-    BTA_AG_RES_BSIR,    /* BTA_AG_INBAND_RING_RES */   
-    BTA_AG_RES_CIND,    /* BTA_AG_CIND_RES */          
-    BTA_AG_RES_BINP,    /* BTA_AG_BINP_RES */          
-    BTA_AG_RES_CIEV,    /* BTA_AG_IND_RES */           
-    BTA_AG_RES_BVRA,    /* BTA_AG_BVRA_RES */          
-    BTA_AG_RES_CNUM,    /* BTA_AG_CNUM_RES */          
-    BTA_AG_RES_BTRH,    /* BTA_AG_BTRH_RES */          
-    BTA_AG_RES_CLCC,    /* BTA_AG_CLCC_RES */     
-    BTA_AG_RES_COPS,    /* BTA_AG_COPS_RES */     
-    0,                  /* BTA_AG_IN_CALL_RES */       
-    0,                  /* BTA_AG_IN_CALL_CONN_RES */  
-    BTA_AG_RES_CCWA,    /* BTA_AG_CALL_WAIT_RES */     
-    0,                  /* BTA_AG_OUT_CALL_ORIG_RES */ 
+    BTA_AG_RES_VGS,     /* BTA_AG_SPK_RES */
+    BTA_AG_RES_VGM,     /* BTA_AG_MIC_RES */
+    BTA_AG_RES_BSIR,    /* BTA_AG_INBAND_RING_RES */
+    BTA_AG_RES_CIND,    /* BTA_AG_CIND_RES */
+    BTA_AG_RES_BINP,    /* BTA_AG_BINP_RES */
+    BTA_AG_RES_CIEV,    /* BTA_AG_IND_RES */
+    BTA_AG_RES_BVRA,    /* BTA_AG_BVRA_RES */
+    BTA_AG_RES_CNUM,    /* BTA_AG_CNUM_RES */
+    BTA_AG_RES_BTRH,    /* BTA_AG_BTRH_RES */
+    BTA_AG_RES_CLCC,    /* BTA_AG_CLCC_RES */
+    BTA_AG_RES_COPS,    /* BTA_AG_COPS_RES */
+    0,                  /* BTA_AG_IN_CALL_RES */
+    0,                  /* BTA_AG_IN_CALL_CONN_RES */
+    BTA_AG_RES_CCWA,    /* BTA_AG_CALL_WAIT_RES */
+    0,                  /* BTA_AG_OUT_CALL_ORIG_RES */
     0,                  /* BTA_AG_OUT_CALL_ALERT_RES */
-    0,                  /* BTA_AG_OUT_CALL_CONN_RES */ 
-    0,                  /* BTA_AG_CALL_CANCEL_RES */   
-    0,                  /* BTA_AG_END_CALL_RES */     
-    0,                  /* BTA_AG_IN_CALL_HELD_RES */     
+    0,                  /* BTA_AG_OUT_CALL_CONN_RES */
+    0,                  /* BTA_AG_CALL_CANCEL_RES */
+    0,                  /* BTA_AG_END_CALL_RES */
+    0,                  /* BTA_AG_IN_CALL_HELD_RES */
     BTA_AG_RES_UNAT     /* BTA_AG_UNAT_RES */
 };
 
 /* callsetup indicator value lookup table */
 const UINT8 bta_ag_callsetup_ind_tbl[] =
 {
-    0,                          /* BTA_AG_SPK_RES */           
-    0,                          /* BTA_AG_MIC_RES */           
-    0,                          /* BTA_AG_INBAND_RING_RES */   
-    0,                          /* BTA_AG_CIND_RES */          
-    0,                          /* BTA_AG_BINP_RES */          
-    0,                          /* BTA_AG_IND_RES */           
-    0,                          /* BTA_AG_BVRA_RES */          
-    0,                          /* BTA_AG_CNUM_RES */          
-    0,                          /* BTA_AG_BTRH_RES */          
-    0,                          /* BTA_AG_CLCC_RES */          
-    0,                          /* BTA_AG_COPS_RES */          
-    BTA_AG_CALLSETUP_INCOMING,  /* BTA_AG_IN_CALL_RES */       
-    BTA_AG_CALLSETUP_NONE,      /* BTA_AG_IN_CALL_CONN_RES */  
-    BTA_AG_CALLSETUP_INCOMING,  /* BTA_AG_CALL_WAIT_RES */     
-    BTA_AG_CALLSETUP_OUTGOING,  /* BTA_AG_OUT_CALL_ORIG_RES */ 
+    0,                          /* BTA_AG_SPK_RES */
+    0,                          /* BTA_AG_MIC_RES */
+    0,                          /* BTA_AG_INBAND_RING_RES */
+    0,                          /* BTA_AG_CIND_RES */
+    0,                          /* BTA_AG_BINP_RES */
+    0,                          /* BTA_AG_IND_RES */
+    0,                          /* BTA_AG_BVRA_RES */
+    0,                          /* BTA_AG_CNUM_RES */
+    0,                          /* BTA_AG_BTRH_RES */
+    0,                          /* BTA_AG_CLCC_RES */
+    0,                          /* BTA_AG_COPS_RES */
+    BTA_AG_CALLSETUP_INCOMING,  /* BTA_AG_IN_CALL_RES */
+    BTA_AG_CALLSETUP_NONE,      /* BTA_AG_IN_CALL_CONN_RES */
+    BTA_AG_CALLSETUP_INCOMING,  /* BTA_AG_CALL_WAIT_RES */
+    BTA_AG_CALLSETUP_OUTGOING,  /* BTA_AG_OUT_CALL_ORIG_RES */
     BTA_AG_CALLSETUP_ALERTING,  /* BTA_AG_OUT_CALL_ALERT_RES */
-    BTA_AG_CALLSETUP_NONE,      /* BTA_AG_OUT_CALL_CONN_RES */ 
-    BTA_AG_CALLSETUP_NONE,      /* BTA_AG_CALL_CANCEL_RES */   
-    BTA_AG_CALLSETUP_NONE,      /* BTA_AG_END_CALL_RES */   
-    BTA_AG_CALLSETUP_NONE       /* BTA_AG_IN_CALL_HELD_RES */  
-};   
+    BTA_AG_CALLSETUP_NONE,      /* BTA_AG_OUT_CALL_CONN_RES */
+    BTA_AG_CALLSETUP_NONE,      /* BTA_AG_CALL_CANCEL_RES */
+    BTA_AG_CALLSETUP_NONE,      /* BTA_AG_END_CALL_RES */
+    BTA_AG_CALLSETUP_NONE       /* BTA_AG_IN_CALL_HELD_RES */
+};
 
 /*******************************************************************************
 **
 ** Function         bta_ag_send_result
 **
 ** Description      Send an AT result code.
-**                  
+**
 **
 ** Returns          void
 **
@@ -342,13 +342,13 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
             {
                 #if defined(BTA_AG_RESULT_DEBUG) && (BTA_AG_RESULT_DEBUG == TRUE)
                 APPL_TRACE_DEBUG0("[HSP] ':'symbol is changed as '=' for HSP compatibility");
-                #endif                      
+                #endif
                 *(p+COLON_IDX_4_VGSVGM) = '=';
             }
             break;
         }
     }
-#endif    
+#endif
     p += strlen(bta_ag_result_tbl[code].p_res);
 
     /* copy argument if any */
@@ -368,7 +368,7 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
 
 #if defined(BTA_AG_RESULT_DEBUG) && (BTA_AG_RESULT_DEBUG == TRUE)
     APPL_TRACE_DEBUG1("bta_ag_send_result: %s", buf);
-#endif                      
+#endif
 
     /* send to RFCOMM */
     PORT_WriteData(p_scb->conn_handle, buf, (UINT16) (p - buf), &len);
@@ -380,7 +380,7 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
 ** Function         bta_ag_send_multi_result
 **
 ** Description      Send multiple AT result codes.
-**                  
+**
 **
 ** Returns          void
 **
@@ -397,7 +397,7 @@ static void bta_ag_send_multi_result(tBTA_AG_SCB *p_scb, tBTA_AG_MULTI_RESULT_CB
         APPL_TRACE_DEBUG0("m_res_cb is NULL or num_result is out of range.");
         return;
     }
-    
+
 #if defined(BTA_AG_RESULT_DEBUG) && (BTA_AG_RESULT_DEBUG == TRUE)
     memset(buf, NULL, sizeof(buf));
 #endif
@@ -407,11 +407,11 @@ static void bta_ag_send_multi_result(tBTA_AG_SCB *p_scb, tBTA_AG_MULTI_RESULT_CB
         /* init with \r\n */
         *p++ = '\r';
         *p++ = '\n';
-    
+
         /* copy result code string */
         BCM_STRCPY_S(p, sizeof(buf), bta_ag_result_tbl[m_res_cb->res_cb[res_idx].code].p_res);
         p += strlen(bta_ag_result_tbl[m_res_cb->res_cb[res_idx].code].p_res);
-    
+
         /* copy argument if any */
         if (bta_ag_result_tbl[m_res_cb->res_cb[res_idx].code].fmt == BTA_AG_RES_FMT_INT)
         {
@@ -422,17 +422,17 @@ static void bta_ag_send_multi_result(tBTA_AG_SCB *p_scb, tBTA_AG_MULTI_RESULT_CB
             BCM_STRCPY_S(p, sizeof(buf), m_res_cb->res_cb[res_idx].p_arg);
             p += strlen(m_res_cb->res_cb[res_idx].p_arg);
         }
-    
+
         /* finish with \r\n */
         *p++ = '\r';
         *p++ = '\n';
-    
+
         res_idx++;
     }
 
 #if defined(BTA_AG_RESULT_DEBUG) && (BTA_AG_RESULT_DEBUG == TRUE)
     APPL_TRACE_DEBUG1("send_result: %s", buf);
-#endif                      
+#endif
 
     /* send to RFCOMM */
     PORT_WriteData(p_scb->conn_handle, buf, (UINT16) (p - buf), &len);
@@ -444,7 +444,7 @@ static void bta_ag_send_multi_result(tBTA_AG_SCB *p_scb, tBTA_AG_MULTI_RESULT_CB
 ** Function         bta_ag_send_ok
 **
 ** Description      Send an OK result code.
-**                  
+**
 **
 ** Returns          void
 **
@@ -460,7 +460,7 @@ static void bta_ag_send_ok(tBTA_AG_SCB *p_scb)
 **
 ** Description      Send an ERROR result code.
 **                      errcode - used to send verbose errocode
-**                  
+**
 **
 ** Returns          void
 **
@@ -479,7 +479,7 @@ static void bta_ag_send_error(tBTA_AG_SCB *p_scb, INT16 errcode)
 ** Function         bta_ag_send_ind
 **
 ** Description      Send an indicator CIEV result code.
-**                  
+**
 **
 ** Returns          void
 **
@@ -565,7 +565,7 @@ static void bta_ag_send_ind(tBTA_AG_SCB *p_scb, UINT16 id, UINT16 value, BOOLEAN
 ** Function         bta_ag_parse_cmer
 **
 ** Description      Parse AT+CMER parameter string.
-**                  
+**
 **
 ** Returns          TRUE if parsed ok, FALSE otherwise.
 **
@@ -610,7 +610,7 @@ static BOOLEAN bta_ag_parse_cmer(char *p_s, BOOLEAN *p_enabled)
 ** Function         bta_ag_parse_chld
 **
 ** Description      Parse AT+CHLD parameter string.
-**                  
+**
 **
 ** Returns          Returns idx (1-7), or 0 if ECC not enabled or idx doesn't exist
 **
@@ -627,7 +627,7 @@ static UINT8 bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
         if (idx != -1 && idx < 255)
             retval = (UINT8)idx;
     }
-    
+
     return (retval);
 }
 
@@ -637,7 +637,7 @@ static UINT8 bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
 ** Function         bta_ag_parse_bac
 **
 ** Description      Parse AT+BAC parameter string.
-**                  
+**
 ** Returns          Returns bitmap of supported codecs.
 **
 *******************************************************************************/
@@ -649,7 +649,7 @@ static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB *p_scb, char *p_s)
     char *p;
 
     while(p_s)
-    {        
+    {
         /* skip to comma delimiter */
         for(p = p_s; *p != ',' && *p != 0; p++);
 
@@ -688,7 +688,7 @@ static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB *p_scb, char *p_s)
 **
 ** Description      Process the unat response data and remove extra carriage return
 **                  and line feed
-**                  
+**
 **
 ** Returns          void
 **
@@ -703,33 +703,33 @@ static void bta_ag_process_unat_res(char *unat_result)
     char    trim_data[BTA_AG_AT_MAX_LEN];
 
 
-    
+
     str_leng = strlen(unat_result);
 
     /* If no extra CR and LF, just return */
     if(str_leng < 4)
         return;
-                    
-    /* Remove the carriage return and left feed */       
-    while(unat_result[0] =='\r' && unat_result[1] =='\n' 
+
+    /* Remove the carriage return and left feed */
+    while(unat_result[0] =='\r' && unat_result[1] =='\n'
         && unat_result[str_leng-2] =='\r' && unat_result[str_leng-1] =='\n')
     {
         pairs_of_nl_cr = 1;
         for (i=0;i<(str_leng-4*pairs_of_nl_cr);i++)
         {
             trim_data[j++] = unat_result[i+pairs_of_nl_cr*2];
-        } 
+        }
         /* Add EOF */
         trim_data[j] = '\0';
         str_leng = str_leng - 4;
         BCM_STRNCPY_S(unat_result, BTA_AG_AT_MAX_LEN+1, trim_data,str_leng+1);
         i=0;
         j=0;
-        
+
         if(str_leng <4)
             return;
-        
-                        
+
+
     }
     return;
 }
@@ -740,7 +740,7 @@ static void bta_ag_process_unat_res(char *unat_result)
 ** Function         bta_ag_inband_enabled
 **
 ** Description      Determine whether in-band ring can be used.
-**                  
+**
 **
 ** Returns          void
 **
@@ -763,7 +763,7 @@ BOOLEAN bta_ag_inband_enabled(tBTA_AG_SCB *p_scb)
 ** Function         bta_ag_send_call_inds
 **
 ** Description      Send call and callsetup indicators.
-**                  
+**
 **
 ** Returns          void
 **
@@ -780,7 +780,7 @@ void bta_ag_send_call_inds(tBTA_AG_SCB *p_scb, tBTA_AG_RES result)
     {
         call = BTA_AG_CALL_INACTIVE;
     }
-    else if (result == BTA_AG_IN_CALL_CONN_RES || result == BTA_AG_OUT_CALL_CONN_RES 
+    else if (result == BTA_AG_IN_CALL_CONN_RES || result == BTA_AG_OUT_CALL_CONN_RES
              || result == BTA_AG_IN_CALL_HELD_RES)
     {
         call = BTA_AG_CALL_ACTIVE;
@@ -800,7 +800,7 @@ void bta_ag_send_call_inds(tBTA_AG_SCB *p_scb, tBTA_AG_RES result)
 ** Function         bta_ag_at_hsp_cback
 **
 ** Description      AT command processing callback for HSP.
-**                  
+**
 **
 ** Returns          void
 **
@@ -808,7 +808,7 @@ void bta_ag_send_call_inds(tBTA_AG_SCB *p_scb, tBTA_AG_RES result)
 void bta_ag_at_hsp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                                 char *p_arg, INT16 int_arg)
 {
-    tBTA_AG_VAL val; 
+    tBTA_AG_VAL val;
 
     APPL_TRACE_DEBUG4("AT cmd:%d arg_type:%d arg:%d arg:%s", cmd, arg_type,
                       int_arg, p_arg);
@@ -831,7 +831,7 @@ void bta_ag_at_hsp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 ** Function         bta_ag_at_hfp_cback
 **
 ** Description      AT command processing callback for HFP.
-**                  
+**
 **
 ** Returns          void
 **
@@ -839,7 +839,7 @@ void bta_ag_at_hsp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                                 char *p_arg, INT16 int_arg)
 {
-    tBTA_AG_VAL     val; 
+    tBTA_AG_VAL     val;
     tBTA_AG_EVT   event;
     tBTA_AG_SCB     *ag_scb;
     UINT32          i, ind_id;
@@ -862,8 +862,8 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
     switch (cmd)
     {
         case BTA_AG_HF_CMD_A:
-        case BTA_AG_HF_CMD_VGS: 
-        case BTA_AG_HF_CMD_VGM: 
+        case BTA_AG_HF_CMD_VGS:
+        case BTA_AG_HF_CMD_VGM:
         case BTA_AG_HF_CMD_CHUP:
         case BTA_AG_HF_CMD_CBC:
             /* send OK */
@@ -871,7 +871,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
             break;
 
         case BTA_AG_HF_CMD_BLDN:
-            /* Do not send OK, App will send error or OK depending on 
+            /* Do not send OK, App will send error or OK depending on
             ** last dial number enabled or not */
             break;
 
@@ -937,7 +937,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 
                 /* if service level conn. not already open, now it's open */
                 bta_ag_svc_conn_open(p_scb, NULL);
-                
+
             }
             else
             {
@@ -947,7 +947,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                 {
                     /* we do not support ECC, but HF is sending us a CHLD with call index*/
                     event = 0;
-                    bta_ag_send_error(p_scb, BTA_AG_ERR_OP_NOT_SUPPORTED); 
+                    bta_ag_send_error(p_scb, BTA_AG_ERR_OP_NOT_SUPPORTED);
 
                 }
                 else
@@ -957,19 +957,19 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                 ** Application will set it back to 1
                 ** callheld indicator will be sent across to the peer. */
                 if(val.str[0] == '2')
-                { 
+                {
                     for (i = 0, ag_scb = &bta_ag_cb.scb[0]; i < BTA_AG_NUM_SCB; i++, ag_scb++)
                     {
                         if (ag_scb->in_use)
                         {
-                            if((ag_scb->call_ind == BTA_AG_CALL_ACTIVE) 
+                            if((ag_scb->call_ind == BTA_AG_CALL_ACTIVE)
                                 && (ag_scb->callsetup_ind == BTA_AG_CALLSETUP_NONE))
                                 ag_scb->callheld_ind = BTA_AG_CALLHELD_NOACTIVE + 1;
                         }
                     }
                 }
                 }
-                
+
                 /* Do not send OK. Let app decide after parsing the val str */
                 /* bta_ag_send_ok(p_scb); */
             }
@@ -1165,7 +1165,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                 bta_ag_send_error(p_scb, BTA_AG_ERR_OP_NOT_SUPPORTED);
             }
             break;
-            
+
 #if (BTM_WBS_INCLUDED == TRUE )
         case BTA_AG_HF_CMD_BAC:
             bta_ag_send_ok(p_scb);
@@ -1184,7 +1184,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                 else
                 {
                     p_scb->sco_codec = UUID_CODEC_CVSD;
-                    APPL_TRACE_DEBUG0("Received AT+BAC, updating sco codec to CVSD");               
+                    APPL_TRACE_DEBUG0("Received AT+BAC, updating sco codec to CVSD");
                 }
 
                 /* Received BAC while in codec negotiation. */
@@ -1223,7 +1223,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                 bta_ag_sco_codec_nego(p_scb, TRUE);
             else
                 bta_ag_sco_codec_nego(p_scb, FALSE);
-    
+
             bta_ag_send_ok(p_scb);
             break;
 
@@ -1249,14 +1249,14 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 ** Function         bta_ag_at_err_cback
 **
 ** Description      AT command parser error callback.
-**                  
+**
 **
 ** Returns          void
 **
 *******************************************************************************/
 void bta_ag_at_err_cback(tBTA_AG_SCB *p_scb, BOOLEAN unknown, char *p_arg)
 {
-    tBTA_AG_VAL     val; 
+    tBTA_AG_VAL     val;
 
     if(unknown && (!strlen(p_arg)))
     {
@@ -1286,7 +1286,7 @@ void bta_ag_at_err_cback(tBTA_AG_SCB *p_scb, BOOLEAN unknown, char *p_arg)
 ** Function         bta_ag_hsp_result
 **
 ** Description      Handle API result for HSP connections.
-**                  
+**
 **
 ** Returns          void
 **
@@ -1322,7 +1322,7 @@ void bta_ag_hsp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
                     p_scb->post_sco = BTA_AG_POST_SCO_NONE;
                 else
                     p_scb->post_sco = BTA_AG_POST_SCO_RING;
-                
+
                 bta_ag_sco_open(p_scb, (tBTA_AG_DATA *) p_result);
             }
             break;
@@ -1350,11 +1350,11 @@ void bta_ag_hsp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             }
             break;
 
-        case BTA_AG_END_CALL_RES: 
+        case BTA_AG_END_CALL_RES:
             /* stop ring timer */
             bta_sys_stop_timer(&p_scb->act_timer);
-            
-            /* close sco */   
+
+            /* close sco */
             if ((bta_ag_sco_is_open(p_scb) || bta_ag_sco_is_opening(p_scb)) && !(p_scb->features & BTA_AG_FEAT_NOSCO))
             {
                 bta_ag_sco_close(p_scb, (tBTA_AG_DATA *) p_result);
@@ -1399,7 +1399,7 @@ void bta_ag_hsp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 ** Function         bta_ag_hfp_result
 **
 ** Description      Handle API result for HFP connections.
-**                  
+**
 **
 ** Returns          void
 **
@@ -1420,7 +1420,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
         case BTA_AG_IN_CALL_RES:
             /* tell sys to stop av if any */
             bta_sys_sco_use(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
-            
+
             /* store caller id string.
              * append type info at the end.
              * make sure a valid type info is passed.
@@ -1495,9 +1495,9 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             bta_sys_stop_timer(&p_scb->act_timer);
 
             bta_ag_send_call_inds(p_scb, p_result->result);
-            
+
             break;
-            
+
         case BTA_AG_OUT_CALL_ORIG_RES:
             /* if sco open and we need to close it, close sco first
             ** then send indicators; else send indicators now
@@ -1552,7 +1552,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             bta_ag_send_call_inds(p_scb, p_result->result);
             break;
 
-        case BTA_AG_END_CALL_RES: 
+        case BTA_AG_END_CALL_RES:
             /* stop ring timer */
             bta_sys_stop_timer(&p_scb->act_timer);
 
@@ -1571,7 +1571,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             else
             {
                 bta_ag_send_call_inds(p_scb, p_result->result);
-               
+
                 /* if av got suspended by this call, let it resume. */
                 bta_sys_sco_unuse(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
             }
@@ -1580,7 +1580,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
         case BTA_AG_INBAND_RING_RES:
             p_scb->inband_enabled = p_result->data.state;
             APPL_TRACE_DEBUG1("inband_enabled set to %d", p_scb->inband_enabled);
-            bta_ag_send_result(p_scb, code, NULL, p_result->data.state);     
+            bta_ag_send_result(p_scb, code, NULL, p_result->data.state);
             break;
 
         case BTA_AG_CIND_RES:
@@ -1593,12 +1593,12 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             p_scb->battchg_ind = p_result->data.str[10] - '0';
             APPL_TRACE_DEBUG2("cind call:%d callsetup:%d", p_scb->call_ind, p_scb->callsetup_ind);
 
-            bta_ag_send_result(p_scb, code, p_result->data.str, 0);     
-            bta_ag_send_ok(p_scb);     
+            bta_ag_send_result(p_scb, code, p_result->data.str, 0);
+            bta_ag_send_ok(p_scb);
             break;
 
         case BTA_AG_BINP_RES:
-        case BTA_AG_CNUM_RES:     
+        case BTA_AG_CNUM_RES:
         case BTA_AG_CLCC_RES:
         case BTA_AG_COPS_RES:
             if (p_result->data.ok_flag != BTA_AG_OK_ERROR)
@@ -1617,7 +1617,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             }
             break;
 
-        
+
         case BTA_AG_UNAT_RES:
             if (p_result->data.ok_flag != BTA_AG_OK_ERROR)
             {
@@ -1650,7 +1650,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             break;
 
         case BTA_AG_BVRA_RES:
-            bta_ag_send_result(p_scb, code, NULL, p_result->data.state);     
+            bta_ag_send_result(p_scb, code, NULL, p_result->data.state);
             break;
 
         case BTA_AG_BTRH_RES:
@@ -1659,7 +1659,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
                 /* Don't respond to read if not in response & hold state */
                 if (p_result->data.num != BTA_AG_BTRH_NO_RESP)
                 {
-                    bta_ag_send_result(p_scb, code, NULL, p_result->data.num);   
+                    bta_ag_send_result(p_scb, code, NULL, p_result->data.num);
                 }
 
                 /* In case of a response to a read request we need to send OK */
@@ -1683,7 +1683,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 ** Function         bta_ag_result
 **
 ** Description      Handle API result.
-**                  
+**
 **
 ** Returns          void
 **
@@ -1705,7 +1705,7 @@ void bta_ag_result(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_setcodec
 **
 ** Description      Handle API SetCodec
-**                  
+**
 **
 ** Returns          void
 **
@@ -1714,10 +1714,10 @@ void bta_ag_setcodec(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
 #if (BTM_WBS_INCLUDED == TRUE )
     tBTA_AG_PEER_CODEC codec_type = p_data->api_setcodec.codec;
-    
+
     /* Check if the requested codec type is valid */
     if((codec_type != BTA_AG_CODEC_NONE) &&
-       (codec_type != BTA_AG_CODEC_CVSD) && 
+       (codec_type != BTA_AG_CODEC_CVSD) &&
        (codec_type != BTA_AG_CODEC_MSBC))
     {
         APPL_TRACE_ERROR1("bta_ag_setcodec error: unsupported codec type %d", codec_type);
@@ -1744,7 +1744,7 @@ void bta_ag_setcodec(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_send_bcs
 **
 ** Description      Send +BCS AT command to peer.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -1781,7 +1781,7 @@ void bta_ag_send_bcs(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_send_ring
 **
 ** Description      Send RING result code to peer.
-**                  
+**
 **
 ** Returns          void
 **
@@ -1794,11 +1794,11 @@ void bta_ag_send_ring(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     if (p_scb->conn_service == BTA_AG_HFP && p_scb->clip_enabled && p_scb->clip[0] != 0)
     {
         memset(&m_res_cb, NULL, sizeof(tBTA_AG_MULTI_RESULT_CB));
-            
+
         m_res_cb.num_result = 2;
         AT_SET_RES_CB(m_res_cb.res_cb[0], BTA_AG_RES_RING, NULL, 0)
         AT_SET_RES_CB(m_res_cb.res_cb[1], BTA_AG_RES_CLIP, p_scb->clip, 0)
-            
+
         bta_ag_send_multi_result(p_scb, &m_res_cb);
     }
     else

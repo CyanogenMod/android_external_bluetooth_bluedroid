@@ -224,7 +224,7 @@ static void bta_av_timer_cback(void *p_tle)
 ** Function         bta_av_api_enable
 **
 ** Description      Handle an API enable event.
-**                  
+**
 **
 ** Returns          void
 **
@@ -399,9 +399,9 @@ void bta_av_conn_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p
 #endif
 
         if (/*((p_scb && (p_scb->role & BTA_AV_ROLE_AD_ACP)) ||
-            
+
             //(AVDT_CONNECT_IND_EVT == event && AVDT_ACP == p_data->hdr.err_param))
-            
+
             (AVDT_CONNECT_IND_EVT == event))&& */
             (p_msg = (tBTA_AV_STR_MSG *) GKI_getbuf((UINT16) (sizeof(tBTA_AV_STR_MSG)))) != NULL)
         {
@@ -505,10 +505,10 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                 /* register with no authorization; let AVDTP use authorization instead */
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
 #if (BTA_AV_WITH_AVCTP_AUTHORIZATION == TRUE)
-                bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu, 
+                bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu,
                                 bta_av_cb.sec_mask, BTA_ID_AV);
 #else
-                bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu, 
+                bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu,
                                 (UINT8)(bta_av_cb.sec_mask & (~BTA_SEC_AUTHORIZE)), BTA_ID_AV);
 #endif
 
@@ -526,13 +526,13 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
         /* memset(&cs.cfg,0,sizeof(tAVDT_CFG)); */
         cs.cfg.num_codec = 1;
         cs.tsep = AVDT_TSEP_SRC;
-        
+
         /*
          * memset of cs takes care setting call back pointers to null.
         cs.p_data_cback = NULL;
         cs.p_report_cback = NULL;
         */
-        cs.nsc_mask = AVDT_NSC_RECONFIG | 
+        cs.nsc_mask = AVDT_NSC_RECONFIG |
               ((bta_av_cb.features & BTA_AV_FEAT_PROTECT) ? 0 : AVDT_NSC_SECURITY);
         APPL_TRACE_DEBUG1("nsc_mask: 0x%x", cs.nsc_mask);
 
@@ -609,10 +609,10 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                     {
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
 #if (BTA_AV_WITH_AVCTP_AUTHORIZATION == TRUE)
-                        bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu, 
+                        bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu,
                                         bta_av_cb.sec_mask, BTA_ID_AV);
 #else
-                        bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu, 
+                        bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu,
                                         (UINT8)(bta_av_cb.sec_mask & (~BTA_SEC_AUTHORIZE)), BTA_ID_AV);
 #endif
 #endif
@@ -646,7 +646,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
 ** Function         bta_av_api_deregister
 **
 ** Description      de-register a channel
-**                  
+**
 **
 ** Returns          void
 **
@@ -671,7 +671,7 @@ void bta_av_api_deregister(tBTA_AV_DATA *p_data)
 ** Function         bta_av_ci_data
 **
 ** Description      forward the BTA_AV_CI_SRC_DATA_READY_EVT to stream state machine
-**                  
+**
 **
 ** Returns          void
 **
@@ -682,7 +682,7 @@ static void bta_av_ci_data(tBTA_AV_DATA *p_data)
     int     i;
     UINT8   chnl = (UINT8)p_data->hdr.layer_specific;
 
-    for( i=0; i < BTA_AV_NUM_STRS; i++ ) 
+    for( i=0; i < BTA_AV_NUM_STRS; i++ )
     {
         p_scb = bta_av_cb.p_scb[i];
 
@@ -714,7 +714,7 @@ static void bta_av_rpc_conn(tBTA_AV_DATA *p_data)
 ** Function         bta_av_api_to_ssm
 **
 ** Description      forward the API request to stream state machine
-**                  
+**
 **
 ** Returns          void
 **
@@ -734,7 +734,7 @@ static void bta_av_api_to_ssm(tBTA_AV_DATA *p_data)
 **
 ** Function         bta_av_chk_start
 **
-** Description      if this is audio channel, check if more than one audio 
+** Description      if this is audio channel, check if more than one audio
 **                  channel is connected & already started.
 **
 ** Returns          TRUE, if need api_start
@@ -801,7 +801,7 @@ void bta_av_restore_switch (void)
             }
             break;
         }
-    }       
+    }
 }
 
 /*******************************************************************************
@@ -853,7 +853,7 @@ static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,UINT8 id, UINT8 app
         (cur_role == BTM_ROLE_SLAVE) )
     {
         bta_sys_set_policy(BTA_ID_AV, HCI_ENABLE_MASTER_SLAVE_SWITCH, peer_addr);
-    }           
+    }
 
     /* if BTA_AvOpen() was called for other device, which caused the role switch of the peer_addr,  */
     /* we need to continue opening process for the BTA_AvOpen().                                    */
@@ -883,7 +883,7 @@ static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,UINT8 id, UINT8 app
 ** Function         bta_av_sco_chg_cback
 **
 ** Description      receive & process the SCO connection up/down event from sys.
-**                  call setup also triggers this callback, to suspend av before sco 
+**                  call setup also triggers this callback, to suspend av before sco
 **                  activity happens, or to resume av once call ends.
 **
 ** Returns          void
@@ -929,7 +929,7 @@ static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8
             {
                 APPL_TRACE_DEBUG1("starting scb:%d", i);
                 bta_av_ssm_execute(p_scb, BTA_AV_AP_START_EVT, NULL);
-            }            
+            }
         }
     }
 }
@@ -1025,7 +1025,7 @@ BOOLEAN bta_av_link_role_ok(tBTA_AV_SCB *p_scb, UINT8 bits)
 **
 ** Function         bta_av_chk_mtu
 **
-** Description      if this is audio channel, check if more than one audio 
+** Description      if this is audio channel, check if more than one audio
 **                  channel is connected.
 **
 ** Returns          The smallest mtu of the connected audio channels
@@ -1122,7 +1122,7 @@ void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
 ** Function         bta_av_sm_execute
 **
 ** Description      State machine event handling function for AV
-**                  
+**
 **
 ** Returns          void
 **
@@ -1161,7 +1161,7 @@ void bta_av_sm_execute(tBTA_AV_CB *p_cb, UINT16 event, tBTA_AV_DATA *p_data)
 ** Function         bta_av_hdl_event
 **
 ** Description      Advanced audio/video main event handling function.
-**                  
+**
 **
 ** Returns          BOOLEAN
 **
@@ -1203,7 +1203,7 @@ BOOLEAN bta_av_hdl_event(BT_HDR *p_msg)
         bta_av_ssm_execute( bta_av_hndl_to_scb(p_msg->layer_specific),
                                 p_msg->event, (tBTA_AV_DATA *) p_msg);
     }
-    return TRUE;   
+    return TRUE;
 }
 
 
@@ -1215,7 +1215,7 @@ BOOLEAN bta_av_hdl_event(BT_HDR *p_msg)
 **
 ** Function         bta_av_st_code
 **
-** Description      
+** Description
 **
 ** Returns          char *
 **
@@ -1233,7 +1233,7 @@ static char *bta_av_st_code(UINT8 state)
 **
 ** Function         bta_av_evt_code
 **
-** Description      
+** Description
 **
 ** Returns          char *
 **

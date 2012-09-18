@@ -27,7 +27,7 @@ enum
     BTA_GATTS_API_REG_EVT  = BTA_SYS_EVT_START(BTA_ID_GATTS),
     BTA_GATTS_INT_START_IF_EVT,
     BTA_GATTS_API_DEREG_EVT,
-    BTA_GATTS_API_CREATE_SRVC_EVT,   
+    BTA_GATTS_API_CREATE_SRVC_EVT,
     BTA_GATTS_API_INDICATION_EVT,
 
     BTA_GATTS_API_ADD_INCL_SRVC_EVT,
@@ -68,7 +68,7 @@ typedef tBTA_GATTS_INT_START_IF tBTA_GATTS_API_DEREG;
 
 typedef struct
 {
-    BT_HDR                  hdr;  
+    BT_HDR                  hdr;
     tBTA_GATTS_IF           server_if;
     tBT_UUID                service_uuid;
     UINT16                  num_handle;
@@ -79,7 +79,7 @@ typedef struct
 
 typedef struct
 {
-    BT_HDR                  hdr;  
+    BT_HDR                  hdr;
     tBT_UUID                char_uuid;
     tBTA_GATT_PERM          perm;
     tBTA_GATT_CHAR_PROP     property;
@@ -88,16 +88,16 @@ typedef struct
 
 typedef struct
 {
-    BT_HDR                  hdr;  
+    BT_HDR                  hdr;
     UINT16                  included_service_id;
 
 }tBTA_GATTS_API_ADD_INCL_SRVC;
 
 typedef struct
 {
-    BT_HDR                      hdr;  
+    BT_HDR                      hdr;
     tBT_UUID                    descr_uuid;
-    tBTA_GATT_PERM              perm;   
+    tBTA_GATT_PERM              perm;
 }tBTA_GATTS_API_ADD_DESCR;
 
 typedef struct
@@ -166,15 +166,15 @@ typedef struct
 typedef struct
 {
     tBT_UUID    service_uuid;   /* service UUID */
-    UINT16      service_id;     /* service handle */  
+    UINT16      service_id;     /* service handle */
     UINT8       inst_num;       /* instance ID */
-    UINT8       rcb_idx; 
+    UINT8       rcb_idx;
     UINT8       idx;            /* self index of serviec CB */
     BOOLEAN     in_use;
 
 }tBTA_GATTS_SRVC_CB;
 
- 
+
 /* GATT server control block */
 typedef struct
 {

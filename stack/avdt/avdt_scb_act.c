@@ -25,15 +25,15 @@
 ** allowing for this table.
 */
 const UINT8 avdt_scb_cback_evt[] = {
-    0,                          /* API_REMOVE_EVT (no event) */        
-    AVDT_WRITE_CFM_EVT,         /* API_WRITE_REQ_EVT */     
-    0,                          /* API_GETCONFIG_REQ_EVT (no event) */ 
+    0,                          /* API_REMOVE_EVT (no event) */
+    AVDT_WRITE_CFM_EVT,         /* API_WRITE_REQ_EVT */
+    0,                          /* API_GETCONFIG_REQ_EVT (no event) */
     0,                          /* API_DELAY_RPT_REQ_EVT (no event) */
-    AVDT_OPEN_CFM_EVT,          /* API_SETCONFIG_REQ_EVT */ 
-    AVDT_OPEN_CFM_EVT,          /* API_OPEN_REQ_EVT */      
-    AVDT_CLOSE_CFM_EVT,         /* API_CLOSE_REQ_EVT */     
-    AVDT_RECONFIG_CFM_EVT,      /* API_RECONFIG_REQ_EVT */  
-    AVDT_SECURITY_CFM_EVT,      /* API_SECURITY_REQ_EVT */  
+    AVDT_OPEN_CFM_EVT,          /* API_SETCONFIG_REQ_EVT */
+    AVDT_OPEN_CFM_EVT,          /* API_OPEN_REQ_EVT */
+    AVDT_CLOSE_CFM_EVT,         /* API_CLOSE_REQ_EVT */
+    AVDT_RECONFIG_CFM_EVT,      /* API_RECONFIG_REQ_EVT */
+    AVDT_SECURITY_CFM_EVT,      /* API_SECURITY_REQ_EVT */
     0                           /* API_ABORT_REQ_EVT (no event) */
 };
 
@@ -214,7 +214,7 @@ void avdt_scb_hdl_open_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 **
 ** Function         avdt_scb_hdl_pkt_no_frag
 **
-** Description      
+** Description
 **
 ** Returns          Nothing.
 **
@@ -261,7 +261,7 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         /* padding length in last byte of packet */
         pad_len =  *(p_start + p_data->p_pkt->len);
     }
-     
+
     /* do sanity check */
     if ((offset > p_data->p_pkt->len) || ((pad_len + offset) > p_data->p_pkt->len))
     {
@@ -285,7 +285,7 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         {
 #if AVDT_MULTIPLEXING == TRUE
             if ((p_scb->cs.p_media_cback != NULL)
-             && (p_scb->p_media_buf != NULL) 
+             && (p_scb->p_media_buf != NULL)
              && (p_scb->media_buf_len > p_data->p_pkt->len))
             {
                 /* media buffer enough length is assigned by application. Lets use it*/
@@ -305,7 +305,7 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 **
 ** Function         avdt_scb_hdl_report
 **
-** Description      
+** Description
 **
 ** Returns          Nothing.
 **
@@ -382,7 +382,7 @@ UINT8 * avdt_scb_hdl_report(tAVDT_SCB *p_scb, UINT8 *p, UINT16 len)
 **
 ** Function         avdt_scb_hdl_pkt_frag
 **
-** Description      
+** Description
 **
 ** Returns          Nothing.
 **
@@ -423,7 +423,7 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         al_tsid = (*p)>>3;
         al_frag = ( (*p) >> 2 ) & 0x01;
         al_lcode = (*p++) & AVDT_ALH_LCODE_MASK;
-        
+
         /* in case of TSID=00000, a second AL header byte, before the length field,
         ** is expected and contains the actual TSID, aligned with MSB */
         if(al_tsid == 0)
@@ -451,8 +451,8 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         if(frag_len >= al_len)
             frag_len = al_len;
 
-        /* check TSID corresponds to config */    
-        if (al_tsid != p_scb->curr_cfg.mux_tsid_media) 
+        /* check TSID corresponds to config */
+        if (al_tsid != p_scb->curr_cfg.mux_tsid_media)
         {
 #if AVDT_REPORTING == TRUE
             if((p_scb->curr_cfg.psc_mask & AVDT_PSC_REPORT) &&
@@ -470,7 +470,7 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             }
         }
         /* check are buffer for assembling and related callback set */
-        else if ((p_scb->p_media_buf == NULL) || (p_scb->cs.p_media_cback == NULL)) 
+        else if ((p_scb->p_media_buf == NULL) || (p_scb->cs.p_media_cback == NULL))
         {
             AVDT_TRACE_WARNING0("NULL p_media_buf or p_media_cback");
             break;
@@ -486,19 +486,19 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             p_scb->frag_off = 0;
             p_scb->frag_org_len = al_len; /* total length of original media packet */
             /* length check: minimum length of media header is 12 */
-            if (p_scb->frag_org_len < 12) 
+            if (p_scb->frag_org_len < 12)
             {
                 AVDT_TRACE_WARNING1("bad al_len: %d(<12)", al_len);
                 break;
             }
             /* check that data fit into buffer */
-            if (al_len > p_scb->media_buf_len) 
+            if (al_len > p_scb->media_buf_len)
             {
                 AVDT_TRACE_WARNING2("bad al_len: %d(>%d)", al_len, p_scb->media_buf_len);
                 break;
             }
             /* make sure it is the last fragment in l2cap packet */
-            if (p + al_len < p_end) 
+            if (p + al_len < p_end)
             {
                 AVDT_TRACE_WARNING2("bad al_len: %d(>%d)", al_len, p_scb->media_buf_len);
                 break;
@@ -513,13 +513,13 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             if(al_len != p_scb->frag_org_len - p_scb->frag_off)
             {
                 AVDT_TRACE_WARNING4("al_len:%d != (frag_org_len:%d - frag_off:%d) %d",
-                    al_len, p_scb->frag_org_len, p_scb->frag_off, 
+                    al_len, p_scb->frag_org_len, p_scb->frag_off,
                     (p_scb->frag_org_len- p_scb->frag_off));
                 break;
             }
 
             /* do sanity check */
-            if (p_scb->frag_off == 0) 
+            if (p_scb->frag_off == 0)
             {
                 AVDT_TRACE_WARNING0("frag_off=0");
                 break;
@@ -532,7 +532,7 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
                 p_scb->frag_off, p_scb->frag_org_len, p_scb->media_buf_len);
             break;
         }
-        
+
         AVDT_TRACE_DEBUG4("Received fragment org_len=%d off=%d al_len=%d frag_len=%d",
             p_scb->frag_org_len, p_scb->frag_off, al_len, frag_len);
 
@@ -612,7 +612,7 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 **
 ** Function         avdt_scb_hdl_pkt
 **
-** Description      
+** Description
 **
 ** Returns          Nothing.
 **
@@ -629,7 +629,7 @@ void avdt_scb_hdl_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     {
         avdt_scb_hdl_pkt_frag(p_scb, p_data);
     }
-    else 
+    else
 #endif
 #if AVDT_REPORTING == TRUE
     if(p_data->p_pkt->layer_specific == AVDT_CHAN_REPORT)
@@ -718,7 +718,7 @@ void avdt_scb_hdl_reconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             memcpy(p_scb->curr_cfg.protect_info, p_scb->req_cfg.protect_info, AVDT_PROTECT_SIZE);
         }
     }
-    
+
     p_data->msg.svccap.p_cfg = &p_scb->curr_cfg;
 
     /* call application callback */
@@ -861,7 +861,7 @@ void avdt_scb_hdl_setconfig_rej(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 void avdt_scb_hdl_setconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_EVT_HDR   single;
-    
+
     if (p_scb->p_ccb != NULL)
     {
         /* save configuration */
@@ -950,9 +950,9 @@ void avdt_scb_hdl_suspend_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 ** Function         avdt_scb_hdl_tc_close
 **
 ** Description      This function is called when the transport channel is
-**                  closed.  It marks the SCB as not in use and 
-**                  initializes certain SCB parameters.  It then sends 
-**                  an AVDT_CCB_UL_CLOSE_EVT to the CCB if the SCB 
+**                  closed.  It marks the SCB as not in use and
+**                  initializes certain SCB parameters.  It then sends
+**                  an AVDT_CCB_UL_CLOSE_EVT to the CCB if the SCB
 **                  initiated the close.  It then checks to see if the SCB
 **                  is to be removed.  If it is it deallocates the SCB.  Finally,
 **                  it calls the application callback with a close indication.
@@ -1000,7 +1000,7 @@ void avdt_scb_hdl_tc_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
     if (p_scb->remove)
     {
-        avdt_scb_dealloc(p_scb, NULL);    
+        avdt_scb_dealloc(p_scb, NULL);
     }
 
     /* call app callback */
@@ -1122,7 +1122,7 @@ void avdt_scb_hdl_tc_open(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
     /* stop transport channel connect timer */
     btu_stop_timer(&p_scb->timer_entry);
-        
+
     event = (p_scb->role == AVDT_OPEN_INT) ? AVDT_OPEN_CFM_EVT : AVDT_OPEN_IND_EVT;
     p_data->open.hdr.err_code = 0;
 
@@ -1330,7 +1330,7 @@ void avdt_scb_snd_abort_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     tAVDT_EVT_HDR   hdr;
 
     if (p_scb->p_ccb != NULL)
-    {    
+    {
         p_scb->role = AVDT_CLOSE_INT;
 
         hdr.seid = p_scb->peer_seid;
@@ -1493,7 +1493,7 @@ void avdt_scb_snd_open_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
     /* send response */
     avdt_msg_send_rsp(p_scb->p_ccb, AVDT_SIG_OPEN, &p_data->msg);
-     
+
     /* start tc connect timer */
     btu_start_timer(&p_scb->timer_entry, BTU_TTYPE_AVDT_SCB_TC, AVDT_SCB_TC_CONN_TOUT);
 }
@@ -1548,7 +1548,7 @@ void avdt_scb_snd_reconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     {
         /* send reject */
         avdt_msg_send_rej(p_scb->p_ccb, AVDT_SIG_RECONFIG, &p_data->msg);
-    }   
+    }
 }
 
 /*******************************************************************************

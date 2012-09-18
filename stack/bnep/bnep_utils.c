@@ -469,7 +469,7 @@ void bnepu_check_send_packet (tBNEP_CONN *p_bcb, BT_HDR *p_buf)
 ** Returns          void
 **
 *******************************************************************************/
-void bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol, 
+void bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol,
                            UINT8 *p_src_addr, UINT8 *p_dest_addr, BOOLEAN fw_ext_present)
 {
     UINT8    ext_bit, *p = (UINT8 *)NULL;
@@ -650,7 +650,7 @@ void bnep_process_setup_conn_req (tBNEP_CONN *p_bcb, UINT8 *p_setup, UINT8 len)
         bnep_sec_check_complete (p_bcb->rem_bda, p_bcb, BTM_SUCCESS);
     else
 #endif
-    btm_sec_mx_access_request (p_bcb->rem_bda, BT_PSM_BNEP, FALSE, 
+    btm_sec_mx_access_request (p_bcb->rem_bda, BT_PSM_BNEP, FALSE,
                                BTM_SEC_PROTO_BNEP, bnep_get_uuid32(&(p_bcb->src_uuid)),
                                &bnep_sec_check_complete, p_bcb);
 
@@ -960,7 +960,7 @@ void bnepu_process_peer_filter_set (tBNEP_CONN *p_bcb, UINT8 *p_filters, UINT16 
 ** Function         bnepu_process_peer_filter_rsp
 **
 ** Description      This function processes a peer's filter control
-**                  'response' message. 
+**                  'response' message.
 **
 ** Returns          void
 **
@@ -1012,7 +1012,7 @@ void bnepu_process_peer_filter_rsp (tBNEP_CONN *p_bcb, UINT8 *p_data)
 ** Function         bnepu_process_multicast_filter_rsp
 **
 ** Description      This function processes multicast filter control
-**                  'response' message. 
+**                  'response' message.
 **
 ** Returns          void
 **

@@ -680,7 +680,7 @@
 
 /* AVRCP pool size for protocol messages */
 #ifndef AVRC_CMD_POOL_SIZE
-#define AVRC_CMD_POOL_SIZE          GKI_BUF1_SIZE   
+#define AVRC_CMD_POOL_SIZE          GKI_BUF1_SIZE
 #endif
 
 /* AVRCP Metadata pool for protocol messages */
@@ -690,13 +690,13 @@
 
 /* AVRCP Metadata pool size for protocol messages */
 #ifndef AVRC_META_CMD_POOL_SIZE
-#define AVRC_META_CMD_POOL_SIZE     GKI_BUF2_SIZE   
+#define AVRC_META_CMD_POOL_SIZE     GKI_BUF2_SIZE
 #endif
 
 
 /* AVRCP buffer size for browsing channel messages */
 #ifndef AVRC_BROWSE_POOL_SIZE
-#define AVRC_BROWSE_POOL_SIZE     GKI_MAX_BUF_SIZE   
+#define AVRC_BROWSE_POOL_SIZE     GKI_MAX_BUF_SIZE
 #endif
 
 /*  HDP buffer size for the Pulse Oximeter  */
@@ -828,8 +828,8 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 ** BTM
 **
 ******************************************************************************/
-/* if set to TRUE, stack will automatically send an HCI reset at start-up. To be 
-set to FALSE for advanced start-up / shut-down procedures using USER_HW_ENABLE_API 
+/* if set to TRUE, stack will automatically send an HCI reset at start-up. To be
+set to FALSE for advanced start-up / shut-down procedures using USER_HW_ENABLE_API
 and USER_HW_DISABLE_API macros */
 #ifndef BTM_AUTOMATIC_HCI_RESET
 #define BTM_AUTOMATIC_HCI_RESET      FALSE
@@ -888,7 +888,7 @@ and USER_HW_DISABLE_API macros */
 #endif
 
 /**************************
-** Initial SCO TX credit 
+** Initial SCO TX credit
 *************************/
 /* max TX SCO data packet size */
 #ifndef BTM_SCO_DATA_SIZE_MAX
@@ -1441,7 +1441,7 @@ and USER_HW_DISABLE_API macros */
 #define GATT_MAX_SR_PROFILES        32 /* max is 32 */
 #endif
 
-#ifndef GATT_MAX_APPS           
+#ifndef GATT_MAX_APPS
 #define GATT_MAX_APPS            10 /* note: 2 apps used internally GATT and GAP */
 #endif
 
@@ -1477,7 +1477,7 @@ and USER_HW_DISABLE_API macros */
 #define SMP_DEBUG            FALSE
 #endif
 
-#ifndef SMP_DEFAULT_AUTH_REQ    
+#ifndef SMP_DEFAULT_AUTH_REQ
 #define SMP_DEFAULT_AUTH_REQ    SMP_AUTH_NB_ENC_ONLY
 #endif
 
@@ -1835,7 +1835,7 @@ and USER_HW_DISABLE_API macros */
 #define OBX_MAX_SR_SESSION          4
 #endif
 
-/* The maximum number of sessions for all registered servers. 
+/* The maximum number of sessions for all registered servers.
  * (must be equal or bigger than OBX_NUM_SERVERS) */
 #ifndef OBX_NUM_SR_SESSIONS
 #define OBX_NUM_SR_SESSIONS         26
@@ -1896,11 +1896,11 @@ GKI Buffer Pool ID used to hold MPS segments during SDU reassembly
 #endif
 
 /* This option is application when OBX_14_INCLUDED=TRUE
-GKI Buffer Pool ID used to hold MPS segments used in (re)transmissions. 
-L2CAP_DEFAULT_ERM_POOL_ID is specified to use the HCI ACL data pool.  
+GKI Buffer Pool ID used to hold MPS segments used in (re)transmissions.
+L2CAP_DEFAULT_ERM_POOL_ID is specified to use the HCI ACL data pool.
 Note:  This pool needs to have enough buffers to hold two times the window size negotiated
- in the L2CA_SetFCROptions (2 * tx_win_size)  to allow for retransmissions.  
- The size of each buffer must be able to hold the maximum MPS segment size passed in 
+ in the L2CA_SetFCROptions (2 * tx_win_size)  to allow for retransmissions.
+ The size of each buffer must be able to hold the maximum MPS segment size passed in
  L2CA_SetFCROptions plus BT_HDR (8) + HCI preamble (4) + L2CAP_MIN_OFFSET (11 - as of BT 2.1 + EDR Spec).
 */
 #ifndef OBX_FCR_TX_POOL_ID
@@ -2051,7 +2051,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #ifndef AVDT_NUM_SEPS
 #define AVDT_NUM_SEPS               3
 #endif
- 
+
 /* Number of transport channels setup per media stream(audio or video) */
 #ifndef AVDT_NUM_CHANNELS
 
@@ -2064,8 +2064,8 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #endif
 
 #endif
- 
-/* Number of transport channels setup by AVDT for all media streams 
+
+/* Number of transport channels setup by AVDT for all media streams
  * AVDT_NUM_CHANNELS * Number of simultaneous streams.
  */
 #ifndef AVDT_NUM_TC_TBL
@@ -2604,7 +2604,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 
 /* SCO packet type(s) to use (bitmask: see spec), 0 - device default (recommended) */
 #ifndef HSP2_SCO_PKT_TYPES
-#define HSP2_SCO_PKT_TYPES          ((UINT16)0x0000) 
+#define HSP2_SCO_PKT_TYPES          ((UINT16)0x0000)
 #endif
 
 /* The default settings of the SCO voice link. */
@@ -2617,7 +2617,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #endif
 
 #ifndef HSP2_MAX_AT_VAL_LENGTH
-#if (defined(HFP_INCLUDED) && HFP_INCLUDED == TRUE) 
+#if (defined(HFP_INCLUDED) && HFP_INCLUDED == TRUE)
 #define HSP2_MAX_AT_VAL_LENGTH       310
 #else
 #define HSP2_MAX_AT_VAL_LENGTH       5
@@ -2808,15 +2808,15 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #endif
 
 #ifndef HID_CONTROL_POOL_ID
-#define HID_CONTROL_POOL_ID             2   
+#define HID_CONTROL_POOL_ID             2
 #endif
 
 #ifndef HID_INTERRUPT_POOL_ID
-#define HID_INTERRUPT_POOL_ID           2   
+#define HID_INTERRUPT_POOL_ID           2
 #endif
 
 /*************************************************************************
-** Definitions for Both HID-Host & Device 
+** Definitions for Both HID-Host & Device
 */
 #ifndef HID_MAX_SVC_NAME_LEN
 #define HID_MAX_SVC_NAME_LEN  32
@@ -3163,30 +3163,30 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 
 /* TRUE to show the received XML object in trace for conformance tests */
 #ifndef BIP_TRACE_XML
-#define BIP_TRACE_XML               TRUE    
+#define BIP_TRACE_XML               TRUE
 #endif
 
 /* in case that the received XML object is not complete, the XML parser state machine needs
  * to keep a copy of the data from the last '<'
- * This macro specifies the maximun amount of data for this purpose */ 
+ * This macro specifies the maximun amount of data for this purpose */
 #ifndef BIP_XML_CARRY_OVER_LEN
-#define BIP_XML_CARRY_OVER_LEN      100     
+#define BIP_XML_CARRY_OVER_LEN      100
 #endif
 
 /* minimum 4, maximum is 255. The value should be set to the maximum size of encoding string + 1. JPEG2000.
  * If vendor specific format is supported, it might be bigger than 9 */
 #ifndef BIP_IMG_ENCODE_SIZE
-#define BIP_IMG_ENCODE_SIZE         9  
+#define BIP_IMG_ENCODE_SIZE         9
 #endif
 
 /* MIME type: text/plain */
 #ifndef BIP_TYPE_SIZE
-#define BIP_TYPE_SIZE               20 
+#define BIP_TYPE_SIZE               20
 #endif
 
 /* example: iso-8895-1 */
 #ifndef BIP_CHARSET_SIZE
-#define BIP_CHARSET_SIZE            10 
+#define BIP_CHARSET_SIZE            10
 #endif
 
 /* friendly name */
@@ -3433,11 +3433,11 @@ GKI Buffer Pool ID used to hold MPS segments during SDU reassembly
 #endif
 
 /*
-GKI Buffer Pool ID used to hold MPS segments used in (re)transmissions. 
-L2CAP_DEFAULT_ERM_POOL_ID is specified to use the HCI ACL data pool.  
+GKI Buffer Pool ID used to hold MPS segments used in (re)transmissions.
+L2CAP_DEFAULT_ERM_POOL_ID is specified to use the HCI ACL data pool.
 Note:  This pool needs to have enough buffers to hold two times the window size negotiated
- in the tL2CAP_FCR_OPTIONS (2 * tx_win_size)  to allow for retransmissions.  
- The size of each buffer must be able to hold the maximum MPS segment size passed in 
+ in the tL2CAP_FCR_OPTIONS (2 * tx_win_size)  to allow for retransmissions.
+ The size of each buffer must be able to hold the maximum MPS segment size passed in
  tL2CAP_FCR_OPTIONS plus BT_HDR (8) + HCI preamble (4) + L2CAP_MIN_OFFSET (11 - as of BT 2.1 + EDR Spec).
 */
 #ifndef AVCT_BR_FCR_TX_POOL_ID
@@ -3549,11 +3549,11 @@ GKI Buffer Pool ID used to hold MPS segments during SDU reassembly
 #endif
 
 /*
-GKI Buffer Pool ID used to hold MPS segments used in (re)transmissions. 
-L2CAP_DEFAULT_ERM_POOL_ID is specified to use the HCI ACL data pool.  
+GKI Buffer Pool ID used to hold MPS segments used in (re)transmissions.
+L2CAP_DEFAULT_ERM_POOL_ID is specified to use the HCI ACL data pool.
 Note:  This pool needs to have enough buffers to hold two times the window size negotiated
- in the tL2CAP_FCR_OPTIONS (2 * tx_win_size)  to allow for retransmissions.  
- The size of each buffer must be able to hold the maximum MPS segment size passed in 
+ in the tL2CAP_FCR_OPTIONS (2 * tx_win_size)  to allow for retransmissions.
+ The size of each buffer must be able to hold the maximum MPS segment size passed in
  tL2CAP_FCR_OPTIONS plus BT_HDR (8) + HCI preamble (4) + L2CAP_MIN_OFFSET (11 - as of BT 2.1 + EDR Spec).
 */
 #ifndef MCA_FCR_TX_POOL_ID
@@ -3561,7 +3561,7 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 #endif
 
 /* MCAP control channel FCR Option:
-Size of the transmission window when using enhanced retransmission mode. 
+Size of the transmission window when using enhanced retransmission mode.
 1 is defined by HDP specification for control channel.
 */
 #ifndef MCA_FCR_OPT_TX_WINDOW_SIZE
@@ -3782,7 +3782,7 @@ The maximum number of payload octets that the local device can receive in a sing
 #define BTE_PLATFORM_IDLE
 #endif
 
-#ifndef BTE_IDLE_TASK_INCLUDED 
+#ifndef BTE_IDLE_TASK_INCLUDED
 #define BTE_IDLE_TASK_INCLUDED FALSE
 #endif
 

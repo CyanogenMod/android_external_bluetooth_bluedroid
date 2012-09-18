@@ -5,7 +5,7 @@
 **  Description:    This contains constants definitions and other information
 **                  from the AVCTP specification.  This file is intended for
 **                  use internal to AVCT only.
-**                  
+**
 **
 **  Copyright (c) 2003-2004, WIDCOMM Inc., All Rights Reserved.
 **  WIDCOMM Bluetooth Core. Proprietary and confidential.
@@ -47,5 +47,5 @@
 
 #define AVCT_PRS_PKT_TYPE(p, type) \
     type = (*(p) >> 2) & 3;
-         
+
 #endif /* AVCT_DEFS_H */

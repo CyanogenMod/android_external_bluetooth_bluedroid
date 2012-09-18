@@ -40,9 +40,9 @@ static const UINT8 pan_proto_elem_data[]   = {
 **
 ** Function         pan_register_with_sdp
 **
-** Description      
+** Description
 **
-** Returns          
+** Returns
 **
 *******************************************************************************/
 UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p_desc)
@@ -73,7 +73,7 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
 #if 0
     availability = 0xFF;
     SDP_AddAttribute (sdp_handle, ATTR_ID_SERVICE_AVAILABILITY, UINT_DESC_TYPE, 1, &availability);
-#endif	
+#endif
 // btla-specific --
 
     /* Language base */
@@ -91,7 +91,7 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
                         (UINT8) (strlen(p_desc) + 1), (UINT8 *)p_desc);
 
     /* Security description */
-    if (sec_mask) 
+    if (sec_mask)
     {
         UINT16_TO_BE_FIELD(&security, 0x0001);
     }
@@ -115,9 +115,9 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
         SDP_AddAttribute (sdp_handle, ATTR_ID_MAX_NET_ACCESS_RATE, UINT_DESC_TYPE, 4, array);
 
         /* Register with Security Manager for the specific security level */
-        if ((!BTM_SetSecurityLevel (TRUE, p_name, BTM_SEC_SERVICE_BNEP_NAP, 
+        if ((!BTM_SetSecurityLevel (TRUE, p_name, BTM_SEC_SERVICE_BNEP_NAP,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_NAP))
-         || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_NAP, 
+         || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_NAP,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_NAP)))
         {
             PAN_TRACE_ERROR0 ("PAN Security Registration failed for PANU");
@@ -127,9 +127,9 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
 #if (defined (PAN_SUPPORTS_ROLE_GN) && PAN_SUPPORTS_ROLE_GN == TRUE)
     if (uuid == UUID_SERVCLASS_GN)
     {
-        if ((!BTM_SetSecurityLevel (TRUE, p_name, BTM_SEC_SERVICE_BNEP_GN, 
+        if ((!BTM_SetSecurityLevel (TRUE, p_name, BTM_SEC_SERVICE_BNEP_GN,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_GN))
-         || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_GN, 
+         || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_GN,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_GN)))
         {
             PAN_TRACE_ERROR0 ("PAN Security Registration failed for GN");
@@ -139,9 +139,9 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
 #if (defined (PAN_SUPPORTS_ROLE_PANU) && PAN_SUPPORTS_ROLE_PANU == TRUE)
     if (uuid == UUID_SERVCLASS_PANU)
     {
-        if ((!BTM_SetSecurityLevel (TRUE, p_name, BTM_SEC_SERVICE_BNEP_PANU, 
+        if ((!BTM_SetSecurityLevel (TRUE, p_name, BTM_SEC_SERVICE_BNEP_PANU,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_PANU))
-         || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_PANU, 
+         || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_PANU,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_PANU)))
         {
             PAN_TRACE_ERROR0 ("PAN Security Registration failed for PANU");
@@ -162,9 +162,9 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
 **
 ** Function         pan_allocate_pcb
 **
-** Description      
+** Description
 **
-** Returns          
+** Returns
 **
 *******************************************************************************/
 tPAN_CONN *pan_allocate_pcb (BD_ADDR p_bda, UINT16 handle)
@@ -203,9 +203,9 @@ tPAN_CONN *pan_allocate_pcb (BD_ADDR p_bda, UINT16 handle)
 **
 ** Function         pan_get_pcb_by_handle
 **
-** Description      
+** Description
 **
-** Returns          
+** Returns
 **
 *******************************************************************************/
 tPAN_CONN *pan_get_pcb_by_handle (UINT16 handle)
@@ -227,9 +227,9 @@ tPAN_CONN *pan_get_pcb_by_handle (UINT16 handle)
 **
 ** Function         pan_get_pcb_by_addr
 **
-** Description      
+** Description
 **
-** Returns          
+** Returns
 **
 *******************************************************************************/
 tPAN_CONN *pan_get_pcb_by_addr (BD_ADDR p_bda)
@@ -261,7 +261,7 @@ tPAN_CONN *pan_get_pcb_by_addr (BD_ADDR p_bda)
 **
 ** Function         pan_close_all_connections
 **
-** Description      
+** Description
 **
 ** Returns          void
 **

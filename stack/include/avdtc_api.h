@@ -3,9 +3,9 @@
 **  Name:           avdt_capi.h
 **
 **  Description:    This interface file contains the interface AVDTP
-**                  conformance API.  These additional API functions and 
-**                  callback events are provided for conformance testing 
-**                  purposes only.  They are not intended to be used by 
+**                  conformance API.  These additional API functions and
+**                  callback events are provided for conformance testing
+**                  purposes only.  They are not intended to be used by
 **                  an application.
 **
 **  Copyright (c) 2002-2009, Broadcom Corp., All Rights Reserved.
@@ -60,7 +60,7 @@ extern "C"
 ** Description      This function is called to begin using the conformance API.
 **                  It must be called after AVDT_Register() and before any
 **                  other API or conformance API functions are called.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -71,7 +71,7 @@ AVDT_API extern void AVDTC_Init(tAVDTC_CTRL_CBACK *p_cback);
 ** Function         AVDTC_DiscoverRsp
 **
 ** Description      Send a discover response.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -82,7 +82,7 @@ AVDT_API extern void AVDTC_DiscoverRsp(BD_ADDR bd_addr, UINT8 label,
 **
 ** Function         AVDTC_GetCapRsp
 **
-** Description     Send a get capabilities response. 
+** Description     Send a get capabilities response.
 **
 ** Returns          void
 **
@@ -93,7 +93,7 @@ AVDT_API extern void AVDTC_GetCapRsp(BD_ADDR bd_addr, UINT8 label, tAVDT_CFG *p_
 **
 ** Function         AVDTC_GetAllCapRsp
 **
-** Description     Send a get all capabilities response. 
+** Description     Send a get all capabilities response.
 **
 ** Returns          void
 **
@@ -116,7 +116,7 @@ AVDT_API extern void AVDTC_GetConfigReq(UINT8 handle);
 ** Function         AVDTC_GetConfigRsp
 **
 ** Description      Send a get configuration response.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -127,7 +127,7 @@ AVDT_API extern void AVDTC_GetConfigRsp(UINT8 handle, UINT8 label, tAVDT_CFG *p_
 ** Function         AVDTC_OpenReq
 **
 ** Description      Send an open request.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -149,7 +149,7 @@ AVDT_API extern void AVDTC_OpenRsp(UINT8 handle, UINT8 label);
 ** Function         AVDTC_StartRsp
 **
 ** Description      Send a start response.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -160,7 +160,7 @@ AVDT_API extern void AVDTC_StartRsp(UINT8 *p_handles, UINT8 num_handles, UINT8 l
 ** Function         AVDTC_CloseRsp
 **
 ** Description      Send a close response.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -182,7 +182,7 @@ AVDT_API extern void AVDTC_SuspendRsp(UINT8 *p_handles, UINT8 num_handles, UINT8
 ** Function         AVDTC_AbortReq
 **
 ** Description      Send an abort request.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -193,7 +193,7 @@ AVDT_API extern void AVDTC_AbortReq(UINT8 handle);
 ** Function         AVDTC_AbortRsp
 **
 ** Description      Send an abort response.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -208,7 +208,7 @@ AVDT_API extern void AVDTC_AbortRsp(UINT8 handle, UINT8 label);
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_Rej(UINT8 handle, BD_ADDR bd_addr, UINT8 cmd, UINT8 label, 
+AVDT_API extern void AVDTC_Rej(UINT8 handle, BD_ADDR bd_addr, UINT8 cmd, UINT8 label,
                              UINT8 err_code, UINT8 err_param);
 
 #ifdef __cplusplus

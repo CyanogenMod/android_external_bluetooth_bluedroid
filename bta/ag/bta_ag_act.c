@@ -39,11 +39,11 @@ const UINT16 bta_ag_uuid[BTA_AG_NUM_IDX] =
 
 const UINT8 bta_ag_sec_id[BTA_AG_NUM_IDX] =
 {
-    BTM_SEC_SERVICE_HEADSET_AG, 
+    BTM_SEC_SERVICE_HEADSET_AG,
     BTM_SEC_SERVICE_AG_HANDSFREE
 };
 
-const tBTA_SERVICE_ID bta_ag_svc_id[BTA_AG_NUM_IDX] = 
+const tBTA_SERVICE_ID bta_ag_svc_id[BTA_AG_NUM_IDX] =
 {
     BTA_HSP_SERVICE_ID,
     BTA_HFP_SERVICE_ID
@@ -53,7 +53,7 @@ const tBTA_SERVICE_MASK bta_ag_svc_mask[BTA_AG_NUM_IDX] =
 {
     BTA_HSP_SERVICE_MASK,
     BTA_HFP_SERVICE_MASK
-};    
+};
 
 typedef void (*tBTA_AG_ATCMD_CBACK)(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                                     char *p_arg, INT16 int_arg);
@@ -69,7 +69,7 @@ const tBTA_AG_ATCMD_CBACK bta_ag_at_cback_tbl[BTA_AG_NUM_IDX] =
 ** Function         bta_ag_cback_open
 **
 ** Description      Send open callback event to application.
-**                  
+**
 **
 ** Returns          void
 **
@@ -93,7 +93,7 @@ static void bta_ag_cback_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data, tBTA_AG_
         bdcpy(open.bd_addr, p_scb->peer_addr);
     }
 
-    (*bta_ag_cb.p_cback)(BTA_AG_OPEN_EVT, (tBTA_AG *) &open);    
+    (*bta_ag_cb.p_cback)(BTA_AG_OPEN_EVT, (tBTA_AG *) &open);
 }
 
 /*******************************************************************************
@@ -102,7 +102,7 @@ static void bta_ag_cback_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data, tBTA_AG_
 **
 ** Description      This function initializes values of the AG cb and sets up
 **                  the SDP record for the services.
-**                  
+**
 **
 ** Returns          void
 **
@@ -136,7 +136,7 @@ void bta_ag_register(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 **
 ** Description      This function removes the sdp records, closes the RFCOMM
 **                  servers, and deallocates the service control block.
-**                  
+**
 **
 ** Returns          void
 **
@@ -161,7 +161,7 @@ void bta_ag_deregister(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_start_dereg
 **
 ** Description      Start a deregister event.
-**                  
+**
 **
 ** Returns          void
 **
@@ -180,7 +180,7 @@ void bta_ag_start_dereg(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_start_open
 **
 ** Description      This starts an AG open.
-**                  
+**
 **
 ** Returns          void
 **
@@ -222,7 +222,7 @@ void bta_ag_start_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_disc_int_res
 **
 ** Description      This function handles a discovery result when initiator.
-**                  
+**
 **
 ** Returns          void
 **
@@ -290,7 +290,7 @@ void bta_ag_disc_int_res(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_disc_acp_res
 **
 ** Description      This function handles a discovery result when acceptor.
-**                  
+**
 **
 ** Returns          void
 **
@@ -314,7 +314,7 @@ void bta_ag_disc_acp_res(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_disc_fail
 **
 ** Description      This function handles a discovery failure.
-**                  
+**
 **
 ** Returns          void
 **
@@ -323,7 +323,7 @@ void bta_ag_disc_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     /* reopen registered servers */
     bta_ag_start_servers(p_scb, p_scb->reg_services);
-    
+
     /* reinitialize stuff */
 
     /* call open cback w. failure */
@@ -351,7 +351,7 @@ void bta_ag_open_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_rfc_fail
 **
 ** Description      RFCOMM connection failed.
-**                  
+**
 **
 ** Returns          void
 **
@@ -372,7 +372,7 @@ void bta_ag_rfc_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 
     /* reopen registered servers */
     bta_ag_start_servers(p_scb, p_scb->reg_services);
-    
+
     /* call open cback w. failure */
     bta_ag_cback_open(p_scb, NULL, BTA_AG_FAIL_RFCOMM);
 }
@@ -382,7 +382,7 @@ void bta_ag_rfc_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_rfc_close
 **
 ** Description      RFCOMM connection closed.
-**                  
+**
 **
 ** Returns          void
 **
@@ -448,7 +448,7 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 
         /* Make sure SCO state is BTA_AG_SCO_SHUTDOWN_ST */
         bta_ag_sco_shutdown(p_scb, NULL);
-        
+
         /* Check if all the SLCs are down */
         for (i = 0; i < BTA_AG_NUM_SCB; i++)
         {
@@ -460,7 +460,7 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
         {
             bta_sys_sco_unuse(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
         }
-        
+
     }
     /* else close port and deallocate scb */
     else
@@ -475,7 +475,7 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_rfc_open
 **
 ** Description      Handle RFCOMM channel open.
-**                  
+**
 **
 ** Returns          void
 **
@@ -521,7 +521,7 @@ void bta_ag_rfc_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_rfc_acp_open
 **
 ** Description      Handle RFCOMM channel open when accepting connection.
-**                  
+**
 **
 ** Returns          void
 **
@@ -545,7 +545,7 @@ void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     {
         APPL_TRACE_DEBUG1 ("bta_ag_rfc_acp_open error PORT_CheckConnection returned status %d", status);
     }
-    
+
     /* Collision Handling */
     for (i = 0, ag_scb = &bta_ag_cb.scb[0]; i < BTA_AG_NUM_SCB; i++, ag_scb++)
     {
@@ -554,7 +554,7 @@ void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
             /* stop collision timer */
             ag_scb->colli_tmr_on = FALSE;
             bta_sys_stop_timer (&ag_scb->colli_timer);
-            
+
             if (bdcmp (dev_addr, ag_scb->peer_addr) == 0)
             {
                 /* If incoming and outgoing device are same, nothing more to do.            */
@@ -579,7 +579,7 @@ void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     }
 
     bdcpy (p_scb->peer_addr, dev_addr);
-    
+
     /* determine connected service from port handle */
     for (i = 0; i < BTA_AG_NUM_IDX; i++)
     {
@@ -615,7 +615,7 @@ void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_rfc_data
 **
 ** Description      Read and process data from RFCOMM.
-**                  
+**
 **
 ** Returns          void
 **
@@ -626,7 +626,7 @@ void bta_ag_rfc_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     char    buf[BTA_AG_RFC_READ_MAX];
 
     memset(buf, 0, BTA_AG_RFC_READ_MAX);
-    
+
     /* do the following */
     for(;;)
     {
@@ -658,7 +658,7 @@ void bta_ag_rfc_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_start_close
 **
 ** Description      Start the process of closing SCO and RFCOMM connection.
-**                  
+**
 **
 ** Returns          void
 **
@@ -689,7 +689,7 @@ void bta_ag_start_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_post_sco_open
 **
 ** Description      Perform post-SCO open action, if any
-**                  
+**
 **
 ** Returns          void
 **
@@ -718,7 +718,7 @@ void bta_ag_post_sco_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_post_sco_close
 **
 ** Description      Perform post-SCO close action, if any
-**                  
+**
 **
 ** Returns          void
 **
@@ -742,7 +742,7 @@ void bta_ag_post_sco_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
             p_scb->post_sco = BTA_AG_POST_SCO_NONE;
             break;
 
-        case BTA_AG_POST_SCO_CALL_END: 
+        case BTA_AG_POST_SCO_CALL_END:
             bta_ag_send_call_inds(p_scb, BTA_AG_END_CALL_RES);
             p_scb->post_sco = BTA_AG_POST_SCO_NONE;
             break;
@@ -775,7 +775,7 @@ void bta_ag_post_sco_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_svc_conn_open
 **
 ** Description      Service level connection opened
-**                  
+**
 **
 ** Returns          void
 **
@@ -809,7 +809,7 @@ void bta_ag_svc_conn_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
             bta_sys_sco_use(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
         }
 
-        (*bta_ag_cb.p_cback)(BTA_AG_CONN_EVT, (tBTA_AG *) &evt);    
+        (*bta_ag_cb.p_cback)(BTA_AG_CONN_EVT, (tBTA_AG *) &evt);
     }
 }
 
@@ -827,7 +827,7 @@ void bta_ag_ci_rx_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     UINT16 len;
     tBTA_AG_CI_RX_WRITE *p_rx_write_msg = (tBTA_AG_CI_RX_WRITE *)p_data;
     char *p_data_area = (char *)(p_rx_write_msg+1);     /* Point to data area after header */
-    
+
     /* send to RFCOMM */
     PORT_WriteData(p_scb->conn_handle, p_data_area, strlen(p_data_area), &len);
 }

@@ -1,13 +1,13 @@
 
 /****************************************************************************
-** 
-**  Name        GKI_time.c                                                  
 **
-**  Function    this file contains GKI time related functions      
-**                                                                          
+**  Name        GKI_time.c
+**
+**  Function    this file contains GKI time related functions
+**
 **  Copyright (c) 1999-2011, Broadcom Corp., All Rights Reserved.
-**  Proprietary and confidential.                                           
-**                                                                          
+**  Proprietary and confidential.
+**
 *****************************************************************************/
 
 #include "gki_int.h"
@@ -50,22 +50,22 @@ void gki_timers_init(void)
     {
         gki_cb.com.OSWaitTmr   [tt] = 0;
 
-#if (GKI_NUM_TIMERS > 0) 
+#if (GKI_NUM_TIMERS > 0)
         gki_cb.com.OSTaskTmr0  [tt] = 0;
         gki_cb.com.OSTaskTmr0R [tt] = 0;
 #endif
 
-#if (GKI_NUM_TIMERS > 1) 
+#if (GKI_NUM_TIMERS > 1)
         gki_cb.com.OSTaskTmr1  [tt] = 0;
         gki_cb.com.OSTaskTmr1R [tt] = 0;
 #endif
 
-#if (GKI_NUM_TIMERS > 2) 
+#if (GKI_NUM_TIMERS > 2)
         gki_cb.com.OSTaskTmr2  [tt] = 0;
         gki_cb.com.OSTaskTmr2R [tt] = 0;
 #endif
 
-#if (GKI_NUM_TIMERS > 3) 
+#if (GKI_NUM_TIMERS > 3)
         gki_cb.com.OSTaskTmr3  [tt] = 0;
         gki_cb.com.OSTaskTmr3R [tt] = 0;
 #endif
@@ -87,7 +87,7 @@ void gki_timers_init(void)
 ** Function         gki_timers_is_timer_running
 **
 ** Description      This internal function is called to test if any gki timer are running
-**                  
+**
 **
 ** Returns          TRUE if at least one time is running in the system, FALSE else.
 **
@@ -98,28 +98,28 @@ BOOLEAN gki_timers_is_timer_running(void)
     for (tt = 0; tt < GKI_MAX_TASKS; tt++)
     {
 
-#if (GKI_NUM_TIMERS > 0) 
+#if (GKI_NUM_TIMERS > 0)
         if(gki_cb.com.OSTaskTmr0  [tt])
         {
             return TRUE;
         }
 #endif
 
-#if (GKI_NUM_TIMERS > 1) 
+#if (GKI_NUM_TIMERS > 1)
         if(gki_cb.com.OSTaskTmr1  [tt] )
         {
             return TRUE;
         }
 #endif
 
-#if (GKI_NUM_TIMERS > 2) 
+#if (GKI_NUM_TIMERS > 2)
         if(gki_cb.com.OSTaskTmr2  [tt] )
         {
             return TRUE;
         }
 #endif
 
-#if (GKI_NUM_TIMERS > 3) 
+#if (GKI_NUM_TIMERS > 3)
         if(gki_cb.com.OSTaskTmr3  [tt] )
         {
             return TRUE;
@@ -150,7 +150,7 @@ UINT32  GKI_get_tick_count(void)
 **
 ** Function         GKI_ready_to_sleep
 **
-** Description      This function returns the number of system ticks until the 
+** Description      This function returns the number of system ticks until the
 **                  next timer will expire.  It is typically called by a power
 **                  savings manager to find out how long it can have the system
 **                  sleep before it needs to service the next entry.
@@ -335,9 +335,9 @@ void GKI_stop_timer (UINT8 tnum)
     }
 
     GKI_disable();
-    
+
     if (gki_timers_is_timer_running() == FALSE)
-    {           
+    {
         if (gki_cb.com.p_tick_cb)
         {
 #if (defined(GKI_DELAY_STOP_SYS_TICK) && (GKI_DELAY_STOP_SYS_TICK > 0))
@@ -417,7 +417,7 @@ void GKI_timer_update (INT32 ticks_since_last_update)
             gki_cb.com.OSTicksTilStop -= ticks_since_last_update;
     }
 #endif
-    
+
     /* No need to update the ticks if no timeout has occurred */
     if (gki_cb.com.OSTicksTilExp > 0)
     {
@@ -580,10 +580,10 @@ void GKI_timer_update (INT32 ticks_since_last_update)
 **
 ** Function         GKI_timer_queue_empty
 **
-** Description      This function is called by applications to see whether the timer 
+** Description      This function is called by applications to see whether the timer
 **                  queue is empty
 **
-** Parameters       
+** Parameters
 **
 ** Returns          BOOLEAN
 **
@@ -591,7 +591,7 @@ void GKI_timer_update (INT32 ticks_since_last_update)
 BOOLEAN GKI_timer_queue_empty (void)
 {
     UINT8 tt;
-    
+
     for (tt = 0; tt < GKI_MAX_TIMER_QUEUES; tt++)
     {
         if (gki_cb.com.timer_queues[tt])
@@ -606,8 +606,8 @@ BOOLEAN GKI_timer_queue_empty (void)
 ** Function         GKI_timer_queue_register_callback
 **
 ** Description      This function is called by applications to register system tick
-**                  start/stop callback for time queues 
-**                  
+**                  start/stop callback for time queues
+**
 **
 ** Parameters       p_callback - (input) pointer to the system tick callback
 **
@@ -617,7 +617,7 @@ BOOLEAN GKI_timer_queue_empty (void)
 void GKI_timer_queue_register_callback (SYSTEM_TICK_CBACK *p_callback)
 {
     gki_cb.com.p_tick_cb = p_callback;
-           
+
     return;
 }
 
@@ -727,7 +727,7 @@ UINT16 GKI_update_timer_list (TIMER_LIST_Q *p_timer_listq, INT32 num_units_since
         p_timer_listq->last_ticks -= num_units_since_last_update;
 
         /* If the last timer has expired set last_ticks to 0 so that other list update
-        * functions will calculate correctly 
+        * functions will calculate correctly
         */
         if (p_timer_listq->last_ticks < 0)
             p_timer_listq->last_ticks = 0;
@@ -740,7 +740,7 @@ UINT16 GKI_update_timer_list (TIMER_LIST_Q *p_timer_listq, INT32 num_units_since
 **
 ** Function         GKI_get_remaining_ticks
 **
-** Description      This function is called by an application to get remaining 
+** Description      This function is called by an application to get remaining
 **                  ticks to expire
 **
 ** Parameters       p_timer_listq   - (input) pointer to the timer list queue object
@@ -806,7 +806,7 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
     UINT32           nr_ticks_total;
     UINT8 tt;
     TIMER_LIST_ENT  *p_temp;
-    
+
     /* Only process valid tick values */
     if (p_tle->ticks >= 0)
     {
@@ -821,15 +821,15 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
                 /* Insert the entry onto the end of the list */
                 if (p_timer_listq->p_last != NULL)
                     p_timer_listq->p_last->p_next = p_tle;
-                
+
                 p_tle->p_prev = p_timer_listq->p_last;
             }
-            
+
             p_tle->p_next = NULL;
             p_timer_listq->p_last = p_tle;
             nr_ticks_total = p_tle->ticks;
             p_tle->ticks -= p_timer_listq->last_ticks;
-            
+
             p_timer_listq->last_ticks = nr_ticks_total;
         }
         else    /* This entry needs to be inserted before the last entry */
@@ -844,7 +844,7 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
 
                 p_temp = p_temp->p_next;
             }
-            
+
             /* The new entry is the first in the list */
             if (p_temp == p_timer_listq->p_first)
             {
@@ -876,7 +876,7 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
              if (gki_cb.com.timer_queues[tt] == NULL)
                  break;
         }
-        if (tt < GKI_MAX_TIMER_QUEUES) 
+        if (tt < GKI_MAX_TIMER_QUEUES)
         {
             gki_cb.com.timer_queues[tt] = p_timer_listq;
         }
@@ -1006,7 +1006,7 @@ void gki_adjust_timer_count (INT32 ticks)
     {
         /* See if the new timer expires before the current first expiration */
         if (gki_cb.com.OSNumOrigTicks == 0 || (ticks < gki_cb.com.OSTicksTilExp && gki_cb.com.OSTicksTilExp > 0))
-        {  
+        {
             gki_cb.com.OSNumOrigTicks = (gki_cb.com.OSNumOrigTicks - gki_cb.com.OSTicksTilExp) + ticks;
             gki_cb.com.OSTicksTilExp = ticks;
         }

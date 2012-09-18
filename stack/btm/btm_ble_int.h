@@ -61,7 +61,7 @@
 
 #define BTM_BLE_SEC_REQ_ACT_NONE           0
 #define BTM_BLE_SEC_REQ_ACT_ENCRYPT        1 /* encrypt the link using current key or key refresh */
-#define BTM_BLE_SEC_REQ_ACT_PAIR           2 
+#define BTM_BLE_SEC_REQ_ACT_PAIR           2
 #define BTM_BLE_SEC_REQ_ACT_DISCARD        3 /* discard the sec request while encryption is started but not completed */
 typedef UINT8   tBTM_BLE_SEC_REQ_ACT;
 
@@ -121,7 +121,7 @@ typedef struct
     UINT8               max_bd_entries;
 
     tBLE_BD_ADDR        local_bda;
-    
+
     tBTM_BLE_LOCAL_ADV_DATA   adv_data;
     tBTM_BLE_ADV_CHNL_MAP     adv_chnl_map;
 
@@ -180,19 +180,19 @@ typedef struct
 #define BLE_BG_CONN_IDLE    0
 #define BLE_BG_CONN_ACTIVE  1
 #define BLE_BG_CONN_SUSPEND 2
- 
+
     UINT8               bg_conn_state;
 
     /* random address management control block */
     tBTM_LE_RANDOM_CB   addr_mgnt_cb;
-    
+
     /* white list information */
     UINT8            num_empty_filter;      /* Number of entries in white list */
     UINT8            max_filter_entries;    /* Maximum number of entries that can be stored */
     BOOLEAN          enabled;
     BOOLEAN          privacy;               /* privacy enabled or disabled */
 
-#ifdef BTM_BLE_PC_ADV_TEST_MODE 
+#ifdef BTM_BLE_PC_ADV_TEST_MODE
     tBTM_BLE_SCAN_REQ_CBACK *p_scan_req_cback;
 #endif
 
