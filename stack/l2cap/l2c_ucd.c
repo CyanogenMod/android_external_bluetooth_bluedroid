@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:          l2c_ucd.c
-**
-**  Description:   This file contains the L2CAP UCD code
-**
-**
-**
-**  Copyright (c) 1999-2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the L2CAP UCD code
+ *
+ ******************************************************************************/
 
 #include <stdlib.h>
 #include <string.h>
@@ -125,7 +137,7 @@ static void l2c_ucd_congestion_status_cback (BD_ADDR rem_bda, BOOLEAN is_congest
             {
                 L2CAP_TRACE_DEBUG4 ("L2CAP - Calling UCDCongestionStatus_Cb (%d), PSM=0x%04x, BDA: %08x%04x,",
                                     is_congested, p_rcb->psm,
-                                    (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], 
+                                    (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
                                     (rem_bda[4]<<8)+rem_bda[5]);
 
                 p_rcb->ucd.cb_info.pL2CA_UCD_Congestion_Status_Cb ( rem_bda, is_congested );
@@ -305,7 +317,7 @@ BOOLEAN L2CA_UcdDeregister ( UINT16 psm )
 **  Parameters:     PSM
 **                  BD_ADDR of remote device
 **                  info_type : L2CAP_UCD_INFO_TYPE_RECEPTION
-**                              L2CAP_UCD_INFO_TYPE_MTU      
+**                              L2CAP_UCD_INFO_TYPE_MTU
 **
 **
 **  Return value:   TRUE if successs
@@ -318,7 +330,7 @@ BOOLEAN L2CA_UcdDiscover ( UINT16 psm, BD_ADDR rem_bda, UINT8 info_type )
     tL2C_RCB        *p_rcb;
 
     L2CAP_TRACE_API4 ("L2CA_UcdDiscover()  PSM: 0x%04x  BDA: %08x%04x, InfoType=0x%02x", psm,
-                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], 
+                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
                       (rem_bda[4]<<8)+rem_bda[5], info_type);
 
     /* Fail if the PSM is not registered */
@@ -368,7 +380,7 @@ BOOLEAN L2CA_UcdDiscover ( UINT16 psm, BD_ADDR rem_bda, UINT8 info_type )
 **
 **  Parameters:     PSM
 **                  BD Address of remote
-**                  Pointer to buffer of type BT_HDR 
+**                  Pointer to buffer of type BT_HDR
 **                  flags : L2CAP_FLUSHABLE_CH_BASED
 **                          L2CAP_FLUSHABLE_PKT
 **                          L2CAP_NON_FLUSHABLE_PKT
@@ -385,7 +397,7 @@ UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 fla
     UINT8           *p;
 
     L2CAP_TRACE_API3 ("L2CA_UcdDataWrite()  PSM: 0x%04x  BDA: %08x%04x", psm,
-                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], 
+                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
                       (rem_bda[4]<<8)+rem_bda[5]);
 
     /* Fail if the PSM is not registered */
@@ -436,7 +448,7 @@ UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 fla
     if (p_ccb->cong_sent)
     {
         L2CAP_TRACE_ERROR3 ("L2CAP - Handle: 0x%04x UCD cannot be sent, already congested count: %u  buff_quota: %u",
-                            p_lcb->handle, 
+                            p_lcb->handle,
                             (p_ccb->xmit_hold_q.count + p_lcb->ucd_out_sec_pending_q.count),
                             p_ccb->buff_quota);
 
@@ -473,7 +485,7 @@ BOOLEAN L2CA_UcdSetIdleTimeout ( BD_ADDR rem_bda, UINT16 timeout )
     tL2C_CCB        *p_ccb;
 
     L2CAP_TRACE_API3 ("L2CA_UcdSetIdleTimeout()  Timeout: 0x%04x  BDA: %08x%04x", timeout,
-                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], 
+                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
                       (rem_bda[4]<<8)+rem_bda[5]);
 
     /* First, see if we already have a link to the remote */
@@ -506,7 +518,7 @@ BOOLEAN L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY priority )
     tL2C_CCB        *p_ccb;
 
     L2CAP_TRACE_API3 ("L2CA_UCDSetTxPriority()  priority: 0x%02x  BDA: %08x%04x", priority,
-                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], 
+                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
                       (rem_bda[4]<<8)+rem_bda[5]);
 
     if ((p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda)) == NULL)
@@ -545,8 +557,8 @@ static BOOLEAN l2c_ucd_connect ( BD_ADDR rem_bda )
     tL2C_CCB        *p_ccb;
     tL2C_RCB        *p_rcb;
 
-    L2CAP_TRACE_DEBUG2 ("l2c_ucd_connect()  BDA: %08x%04x", 
-                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], 
+    L2CAP_TRACE_DEBUG2 ("l2c_ucd_connect()  BDA: %08x%04x",
+                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
                       (rem_bda[4]<<8)+rem_bda[5]);
 
     /* Fail if we have not established communications with the controller */
@@ -674,8 +686,8 @@ BOOLEAN l2c_ucd_check_pending_info_req(tL2C_CCB  *p_ccb)
                         l2cu_release_ccb (p_ccb);
                     }
 
-                    p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Discover_Cb (p_ccb->p_lcb->remote_bd_addr, 
-                                                                     L2CAP_UCD_INFO_TYPE_RECEPTION, 
+                    p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Discover_Cb (p_ccb->p_lcb->remote_bd_addr,
+                                                                     L2CAP_UCD_INFO_TYPE_RECEPTION,
                                                                      p_ccb->p_lcb->peer_ext_fea & L2CAP_EXTFEA_UCD_RECEPTION);
                 }
                 else
@@ -694,8 +706,8 @@ BOOLEAN l2c_ucd_check_pending_info_req(tL2C_CCB  *p_ccb)
                 /* if this information is available */
                 if ( p_ccb->p_lcb->info_rx_bits & (1 << L2CAP_CONNLESS_MTU_INFO_TYPE))
                 {
-                    p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Discover_Cb (p_ccb->p_lcb->remote_bd_addr, 
-                                                                     L2CAP_UCD_INFO_TYPE_MTU, 
+                    p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Discover_Cb (p_ccb->p_lcb->remote_bd_addr,
+                                                                     L2CAP_UCD_INFO_TYPE_MTU,
                                                                      p_ccb->p_lcb->ucd_mtu);
                 }
                 else
@@ -750,7 +762,7 @@ BOOLEAN l2c_ucd_check_pending_out_sec_q(tL2C_CCB  *p_ccb)
         STREAM_TO_UINT16(psm, p)
 
         p_ccb->chnl_state = CST_ORIG_W4_SEC_COMP;
-        btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, psm, 
+        btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, psm,
                                   p_ccb->p_lcb->handle, CONNLESS_ORIG, &l2c_link_sec_comp, p_ccb);
 
         return (TRUE);
@@ -827,7 +839,7 @@ BOOLEAN l2c_ucd_check_pending_in_sec_q(tL2C_CCB  *p_ccb)
         STREAM_TO_UINT16(psm, p)
 
         p_ccb->chnl_state = CST_TERM_W4_SEC_COMP;
-        btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, psm, 
+        btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, psm,
                                   p_ccb->p_lcb->handle, CONNLESS_TERM, &l2c_link_sec_comp, p_ccb);
 
         return (TRUE);
@@ -989,7 +1001,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             break;
         }
         break;
-        
+
     case CST_ORIG_W4_SEC_COMP:
         switch (event)
         {
@@ -1045,7 +1057,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         }
         break;
 
-     
+
     case CST_TERM_W4_SEC_COMP:
         switch (event)
         {

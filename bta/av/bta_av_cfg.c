@@ -1,14 +1,27 @@
-/*****************************************************************************
-**
-**  Name:           bta_av_cfg.c
-**
-**  Description:    This file contains compile-time configurable constants
-**                  for advanced audio/video
-**
-**  Copyright (c) 2005-2009, Broadcom Corp., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2005-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains compile-time configurable constants for advanced
+ *  audio/video
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 #include "gki.h"
@@ -63,7 +76,7 @@ const UINT8  bta_av_meta_caps_evt_ids[] = {
 };
 #ifndef BTA_AV_NUM_RC_EVT_IDS
 #define BTA_AV_NUM_RC_EVT_IDS   (sizeof(bta_av_meta_caps_evt_ids) / sizeof(bta_av_meta_caps_evt_ids[0]))
-#endif /* BTA_AV_NUM_RC_EVT_IDS */ 
+#endif /* BTA_AV_NUM_RC_EVT_IDS */
 
 
 #else /* !ANDROID_APP_INCLUDED */
@@ -147,7 +160,7 @@ const UINT16 bta_av_rc_id[] =
                          8=PAGE_DOWN */
 
 #if (BTA_AV_RC_PASS_RSP_CODE == BTA_AV_RSP_INTERIM)
-    /* btui_app provides an example of how to leave the decision of rejecting a command or not 
+    /* btui_app provides an example of how to leave the decision of rejecting a command or not
      * based on which media player is currently addressed (this is only applicable for AVRCP 1.4 or later)
      * If the decision is per player for a particular rc_id, the related bit is clear (not set) */
     0x0070, /* bit mask: 0=POWER, 1=VOL_UP, 2=VOL_DOWN, 3=MUTE,
@@ -167,7 +180,7 @@ const UINT16 bta_av_rc_id[] =
                          12=BACKWARD */
 #endif
 #endif
-    
+
     0x0000, /* bit mask: 0=ANGLE, 1=SUBPICT */
 
     0,      /* not used */
@@ -195,14 +208,14 @@ const UINT16 bta_av_rc_id_ac[] =
                          4=INPUT_SEL, 5=DISP_INFO, 6=HELP, 7=PAGE_UP,
                          8=PAGE_DOWN */
 
-    /* btui_app provides an example of how to leave the decision of rejecting a command or not 
+    /* btui_app provides an example of how to leave the decision of rejecting a command or not
      * based on which media player is currently addressed (this is only applicable for AVRCP 1.4 or later)
      * If the decision is per player for a particular rc_id, the related bit is set */
     0x1800, /* bit mask: 0=POWER, 1=VOL_UP, 2=VOL_DOWN, 3=MUTE,
                          4=PLAY, 5=STOP, 6=PAUSE, 7=RECORD,
                          8=REWIND, 9=FAST_FOR, 10=EJECT, 11=FORWARD,
                          12=BACKWARD */
-    
+
     0x0000, /* bit mask: 0=ANGLE, 1=SUBPICT */
 
     0,      /* not used */

@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_gatts_main.c
-**
-**  Description:    This file contains the GATT server main functions 
-**                  and state machine.
-**
-**  Copyright (c) 2003-2010, Broadcom Corp., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the GATT server main functions and state machine.
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 
@@ -43,7 +55,7 @@ tBTA_GATTS_CB  bta_gatts_cb;
 ** Function         bta_gatts_hdl_event
 **
 ** Description      BTA GATT server main event handling function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -72,19 +84,19 @@ BOOLEAN bta_gatts_hdl_event(BT_HDR *p_msg)
             break;
 
         case BTA_GATTS_API_INDICATION_EVT:
-            bta_gatts_indicate_handle(p_cb,(tBTA_GATTS_DATA *) p_msg); 
+            bta_gatts_indicate_handle(p_cb,(tBTA_GATTS_DATA *) p_msg);
             break;
 
         case BTA_GATTS_API_OPEN_EVT:
-            bta_gatts_open(p_cb,(tBTA_GATTS_DATA *) p_msg); 
+            bta_gatts_open(p_cb,(tBTA_GATTS_DATA *) p_msg);
             break;
 
         case BTA_GATTS_API_CANCEL_OPEN_EVT:
-            bta_gatts_cancel_open(p_cb,(tBTA_GATTS_DATA *) p_msg); 
+            bta_gatts_cancel_open(p_cb,(tBTA_GATTS_DATA *) p_msg);
             break;
 
         case BTA_GATTS_API_CLOSE_EVT:
-            bta_gatts_close(p_cb,(tBTA_GATTS_DATA *) p_msg); 
+            bta_gatts_close(p_cb,(tBTA_GATTS_DATA *) p_msg);
             break;
 
         case BTA_GATTS_API_RSP_EVT:
@@ -98,7 +110,7 @@ BOOLEAN bta_gatts_hdl_event(BT_HDR *p_msg)
         case BTA_GATTS_API_START_SRVC_EVT:
         case BTA_GATTS_API_STOP_SRVC_EVT:
 
-            p_srvc_cb = bta_gatts_find_srvc_cb_by_srvc_id(p_cb, 
+            p_srvc_cb = bta_gatts_find_srvc_cb_by_srvc_id(p_cb,
                                 ((tBTA_GATTS_DATA *)p_msg)->api_add_incl_srvc.hdr.layer_specific);
 
             if (p_srvc_cb != NULL)

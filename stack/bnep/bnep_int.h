@@ -1,14 +1,27 @@
-/****************************************************************************/
-/*                                                                          */
-/*  Name:       bnep_int.h                                                  */
-/*                                                                          */
-/*  Function    this file contains internally used BNEP definitions         */
-/*                                                                          */
-/*                                                                          */
-/*  Copyright (c) 2001-2004, WIDCOMM Inc., All Rights Reserved.             */
-/*  WIDCOMM Bluetooth Core. Proprietary and confidential.                   */
-/*                                                                          */
-/****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2001-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains internally used BNEP definitions
+ *
+ ******************************************************************************/
+
 #ifndef  BNEP_INT_H
 #define  BNEP_INT_H
 
@@ -206,9 +219,9 @@ extern void        bnepu_release_bcb (tBNEP_CONN *p_bcb);
 extern void        bnepu_send_peer_our_filters (tBNEP_CONN *p_bcb);
 extern void        bnepu_send_peer_our_multi_filters (tBNEP_CONN *p_bcb);
 extern BOOLEAN     bnepu_does_dest_support_prot (tBNEP_CONN *p_bcb, UINT16 protocol);
-extern void        bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol, 
+extern void        bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol,
                                          UINT8 *p_src_addr, UINT8 *p_dest_addr, BOOLEAN ext_bit);
-extern void        test_bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol, 
+extern void        test_bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol,
                                          UINT8 *p_src_addr, UINT8 *p_dest_addr, UINT8 type);
 
 extern tBNEP_CONN *bnepu_get_route_to_dest (UINT8 *p_bda);

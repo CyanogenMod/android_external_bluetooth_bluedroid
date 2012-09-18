@@ -1,13 +1,26 @@
-/*****************************************************************************
-**
-**  Name:       a2d_int.h
-**
-**  Description:A2DP internal header file
-**
-**  Copyright (c) 2002-2009, Broadcom Corp., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2002-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  2DP internal header file
+ *
+ ******************************************************************************/
 #ifndef A2D_INT_H
 #define A2D_INT_H
 
@@ -29,7 +42,7 @@
 *****************************************************************************/
 
 /* Control block used by A2D_FindService(). */
-typedef struct 
+typedef struct
 {
     tA2D_FIND_CBACK     *p_cback;       /* pointer to application callback */
     tSDP_DISCOVERY_DB   *p_db;          /* pointer to discovery database */

@@ -1,13 +1,26 @@
-/*****************************************************************************
-**
-**  Name:       avrc_api.c
-**
-**  Description:Interface to AVRCP mandatory commands
-**
-**  Copyright (c) 2003-2010, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  nterface to AVRCP mandatory commands
+ *
+ ******************************************************************************/
 #include <string.h>
 
 #include "gki.h"
@@ -22,7 +35,7 @@
 
 #define AVRC_MAX_RCV_CTRL_EVT   AVCT_BROWSE_UNCONG_IND_EVT
 
-static const UINT8 avrc_ctrl_event_map[] = 
+static const UINT8 avrc_ctrl_event_map[] =
 {
     AVRC_OPEN_IND_EVT,  /* AVCT_CONNECT_CFM_EVT */
     AVRC_OPEN_IND_EVT,  /* AVCT_CONNECT_IND_EVT */
@@ -30,8 +43,8 @@ static const UINT8 avrc_ctrl_event_map[] =
     AVRC_CLOSE_IND_EVT, /* AVCT_DISCONNECT_IND_EVT */
     AVRC_CONG_IND_EVT,  /* AVCT_CONG_IND_EVT */
     AVRC_UNCONG_IND_EVT,/* AVCT_UNCONG_IND_EVT */
-    AVRC_BROWSE_OPEN_IND_EVT,  /* AVCT_BROWSE_CONN_CFM_EVT   */ 
-    AVRC_BROWSE_OPEN_IND_EVT,  /* AVCT_BROWSE_CONN_IND_EVT   */ 
+    AVRC_BROWSE_OPEN_IND_EVT,  /* AVCT_BROWSE_CONN_CFM_EVT   */
+    AVRC_BROWSE_OPEN_IND_EVT,  /* AVCT_BROWSE_CONN_IND_EVT   */
     AVRC_BROWSE_CLOSE_IND_EVT, /* AVCT_BROWSE_DISCONN_CFM_EVT */
     AVRC_BROWSE_CLOSE_IND_EVT, /* AVCT_BROWSE_DISCONN_IND_EVT */
     AVRC_BROWSE_CONG_IND_EVT,  /* AVCT_BROWSE_CONG_IND_EVT    */
@@ -262,7 +275,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
                 msg.pass.state  = FALSE;
             p_data++;
             msg.pass.pass_len    = *p_data++;
-            if (msg.pass.pass_len != p_pkt->len - 5) 
+            if (msg.pass.pass_len != p_pkt->len - 5)
                 msg.pass.pass_len = p_pkt->len - 5;
             if (msg.pass.pass_len)
                 msg.pass.p_pass_data = p_data;
@@ -389,13 +402,13 @@ static BT_HDR  * avrc_pass_msg(tAVRC_MSG_PASS *p_msg)
 **
 ** Function         AVRC_Open
 **
-** Description      This function is called to open a connection to AVCTP. 
+** Description      This function is called to open a connection to AVCTP.
 **                  The connection can be either an initiator or acceptor, as
-**                  determined by the p_ccb->stream parameter. 
+**                  determined by the p_ccb->stream parameter.
 **                  The connection can be a target, a controller or for both role,
-**                  as determined by the p_ccb->control parameter. 
+**                  as determined by the p_ccb->control parameter.
 **                  By definition, a target connection is an acceptor connection
-**                  that waits for an incoming AVCTP connection from the peer. 
+**                  that waits for an incoming AVCTP connection from the peer.
 **                  The connection remains available to the application until
 **                  the application closes it by calling AVRC_Close().  The
 **                  application does not need to reopen the connection after an
@@ -407,7 +420,7 @@ static BT_HDR  * avrc_pass_msg(tAVRC_MSG_PASS *p_msg)
 **                      p_ccb->p_ctrl_cback:  Pointer to control callback function.
 **
 **                      p_ccb->p_msg_cback:  Pointer to message callback function.
-**                      
+**
 **                      p_ccb->conn: AVCTP connection role.  This is set to
 **                      AVCTP_INT for initiator connections and AVCTP_ACP
 **                      for acceptor connections.
@@ -422,7 +435,7 @@ static BT_HDR  * avrc_pass_msg(tAVRC_MSG_PASS *p_msg)
 **                      connections it can be set to NULL.
 **
 **                  Output Parameters:
-**                      p_handle: Pointer to handle.  This parameter is only 
+**                      p_handle: Pointer to handle.  This parameter is only
 **                                valid if AVRC_SUCCESS is returned.
 **
 ** Returns          AVRC_SUCCESS if successful.
@@ -482,10 +495,10 @@ UINT16 AVRC_Close(UINT8 handle)
 **
 ** Description      This function is used to send the AVRCP byte stream in p_pkt
 **                  down to AVCTP.
-**                  
+**
 **                  It is expected that p_pkt->offset is at least AVCT_MSG_OFFSET
 **                  p_pkt->layer_specific is AVCT_DATA_CTRL or AVCT_DATA_BROWSE
-**                  p_pkt->event is AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSE 
+**                  p_pkt->event is AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSE
 **                  The above BT_HDR settings are set by the AVRC_Bld* functions.
 **
 ** Returns          AVRC_SUCCESS if successful.
@@ -512,7 +525,7 @@ UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt)
 **
 **                      label: Transaction label.
 **
-**                      p_msg: Pointer to PASS THROUGH message structure. 
+**                      p_msg: Pointer to PASS THROUGH message structure.
 **
 **                  Output Parameters:
 **                      None.
@@ -540,7 +553,7 @@ UINT16 AVRC_PassCmd(UINT8 handle, UINT8 label, tAVRC_MSG_PASS *p_msg)
 ** Function         AVRC_PassRsp
 **
 ** Description      Send a PASS THROUGH response to the peer device.  This
-**                  function can only be called for target role connections. 
+**                  function can only be called for target role connections.
 **                  This function must be called when a PASS THROUGH command
 **                  message is received from the peer through the
 **                  tAVRC_MSG_CBACK callback function.

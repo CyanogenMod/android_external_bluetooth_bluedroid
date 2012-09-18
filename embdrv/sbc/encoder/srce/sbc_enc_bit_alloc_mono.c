@@ -1,32 +1,43 @@
 /******************************************************************************
-**
-**  File Name:   $RCSfile: sbc_enc_bit_alloc_mono.c,v $
-**
-**  Description: This file contains the code for bit allocation algorithm. 
-**  It calculates the number of bits required for the encoded stream of data.
-**
-**  Revision :   $Id: sbc_enc_bit_alloc_mono.c,v 1.9 2006/03/31 17:16:35 mjougit Exp $
-**
-**  Copyright (c) 1999-2002, Widcomm Inc., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-******************************************************************************/
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the code for bit allocation algorithm. It calculates
+ *  the number of bits required for the encoded stream of data.
+ *
+ ******************************************************************************/
 
 /*Includes*/
 #include "sbc_encoder.h"
 #include "sbc_enc_func_declare.h"
 
 /*global arrays*/
-const SINT16 sbc_enc_as16Offset4[4][4] = {  {-1, 0, 0, 0}, {-2, 0, 0, 1}, 
+const SINT16 sbc_enc_as16Offset4[4][4] = {  {-1, 0, 0, 0}, {-2, 0, 0, 1},
                                     {-2, 0, 0, 1}, {-2, 0, 0, 1} };
-const SINT16 sbc_enc_as16Offset8[4][8] = {  {-2, 0, 0, 0, 0, 0, 0, 1}, 
+const SINT16 sbc_enc_as16Offset8[4][8] = {  {-2, 0, 0, 0, 0, 0, 0, 1},
                                     {-3, 0, 0, 0, 0, 0, 1, 2},
-                                    {-4, 0, 0, 0, 0, 0, 1, 2}, 
+                                    {-4, 0, 0, 0, 0, 0, 1, 2},
                                     {-4, 0, 0, 0, 0, 0, 1, 2} };
 
 /****************************************************************************
 * BitAlloc - Calculates the required number of bits for the given scale factor
-* and the number of subbands. 
+* and the number of subbands.
 *
 * RETURNS : N/A
 */
@@ -78,8 +89,8 @@ void sbc_enc_bit_alloc_mono(SBC_ENC_PARAMS *pstrCodecParams)
                     *(ps16GenBufPtr) = -5;
                 else
                 {
-                    s32Loudness = 
-                        (SINT32)(pstrCodecParams->as16ScaleFactor[s32Ch*s32NumOfSubBands+s32Sb] 
+                    s32Loudness =
+                        (SINT32)(pstrCodecParams->as16ScaleFactor[s32Ch*s32NumOfSubBands+s32Sb]
                                                             - *ps16GenTabPtr);
                     if(s32Loudness > 0)
                         *(ps16GenBufPtr) = (SINT16)(s32Loudness >>1);
@@ -89,7 +100,7 @@ void sbc_enc_bit_alloc_mono(SBC_ENC_PARAMS *pstrCodecParams)
                 ps16GenBufPtr++;
                 ps16GenTabPtr++;
             }
-            
+
         }
 
         /* max bitneed index is searched*/
@@ -112,7 +123,7 @@ void sbc_enc_bit_alloc_mono(SBC_ENC_PARAMS *pstrCodecParams)
             s32BitSlice --;
             s32BitCount -= s32SliceCount;
             s32SliceCount = 0;
-            
+
             for(s32Sb=0; s32Sb<s32NumOfSubBands; s32Sb++)
             {
                 if( (((*ps16GenBufPtr-s32BitSlice)< 16) && (*ps16GenBufPtr-s32BitSlice) >= 1))
@@ -123,17 +134,17 @@ void sbc_enc_bit_alloc_mono(SBC_ENC_PARAMS *pstrCodecParams)
                         s32SliceCount++;
                 }
                 ps16GenBufPtr++;
-                
+
             }/*end of for*/
             ps16GenBufPtr = ps16BitNeed + s32Ch*s32NumOfSubBands;
         }while(s32BitCount-s32SliceCount>0);
-        
+
         if(s32BitCount == 0)
         {
             s32BitCount -= s32SliceCount;
             s32BitSlice --;
         }
-        
+
         /*Bits are distributed until the last bitslice is reached*/
         ps16GenArrPtr = pstrCodecParams->as16Bits+s32Ch*s32NumOfSubBands;
         ps16GenBufPtr = ps16BitNeed + s32Ch*s32NumOfSubBands;
@@ -142,7 +153,7 @@ void sbc_enc_bit_alloc_mono(SBC_ENC_PARAMS *pstrCodecParams)
             if(*(ps16GenBufPtr) < s32BitSlice+2)
                 *(ps16GenArrPtr) = 0;
             else
-                *(ps16GenArrPtr) = ((*(ps16GenBufPtr)-s32BitSlice)<16) ? 
+                *(ps16GenArrPtr) = ((*(ps16GenBufPtr)-s32BitSlice)<16) ?
                     (SINT16)(*(ps16GenBufPtr)-s32BitSlice) : 16;
 
             ps16GenBufPtr++;
@@ -159,7 +170,7 @@ void sbc_enc_bit_alloc_mono(SBC_ENC_PARAMS *pstrCodecParams)
                 (*(ps16GenArrPtr))++;
                 s32BitCount--;
             }
-            else if( (*(ps16GenBufPtr) == s32BitSlice+1) && 
+            else if( (*(ps16GenBufPtr) == s32BitSlice+1) &&
                 (s32BitCount > 1) )
             {
                 *(ps16GenArrPtr) = 2;
@@ -170,8 +181,8 @@ void sbc_enc_bit_alloc_mono(SBC_ENC_PARAMS *pstrCodecParams)
             ps16GenBufPtr++;
         }
         ps16GenArrPtr = pstrCodecParams->as16Bits+s32Ch*s32NumOfSubBands;
-        
-        
+
+
         s32Sb=0;
         while( (s32BitCount > 0) && (s32Sb < s32NumOfSubBands) )
         {

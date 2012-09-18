@@ -1,14 +1,20 @@
-/****************************************************************************
-**
-**  Name        gki_debug.c
-**
-**  Function    this file contains some sample GKI debug aid functions
-**
-**
-**  Copyright (c) 1999-2004, WIDCOMM Inc., All Rights Reserved.
-**  Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 
 #include "gki_int.h"
 
@@ -94,7 +100,7 @@ void GKI_PrintBuffer(void)
 ** Function         gki_calc_stack
 **
 ** Description      This function tries to calculate the amount of
-**                  stack used by looking non magic num. Magic num is consider 
+**                  stack used by looking non magic num. Magic num is consider
 **                  the first byte in the stack.
 **
 ** Returns          the number of unused byte on the stack. 4 in case of stack overrun
@@ -146,7 +152,7 @@ void GKI_print_task(void)
 
         }
     }
-#endif 
+#endif
 }
 
 
@@ -288,7 +294,7 @@ void gki_print_exception(FP_PRINT print)
     {
         pExp =     &gki_cb.com.Exception[i];
         print("%d: Type=%d, Task=%d: %s\n", i,
-            (INT32)pExp->type, (INT32)pExp->taskid, (INT8 *)pExp->msg); 
+            (INT32)pExp->type, (INT32)pExp->taskid, (INT8 *)pExp->msg);
     }
 }
 

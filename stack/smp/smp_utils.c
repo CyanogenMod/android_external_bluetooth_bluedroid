@@ -1,13 +1,26 @@
-/*****************************************************************************
-**                                                                           *
-**  Name:          smp_utils.c                                               *
-**                                                                           *
-**  Description:   This file contains functions for the SMP L2Cap utility    *
-**                 functions                                                 *
-**                                                                           *
-**  Copyright (c) 1999-2009, Broadcom Corp., All Rights Reserved.            *
-**  Broadcom Bluetooth Core. Proprietary and confidential.                   *
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains functions for the SMP L2Cap utility functions
+ *
+ ******************************************************************************/
 #include "bt_target.h"
 
 #if SMP_INCLUDED == TRUE
@@ -475,7 +488,7 @@ void smp_mask_enc_key(UINT8 loc_enc_size, UINT8 * p_data)
 **
 ** Description      utility function to do an biteise exclusive-OR of two bit
 **                  strings of the length of BT_OCTET16_LEN.
-**      
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -628,7 +641,7 @@ void smp_set_test_rand_value(BOOLEAN enable, UINT8 *p_c_val)
 **
 ** Function         smp_set_test_pair_fail_status
 **
-** Description      This function is called to set the test fairing fair status 
+** Description      This function is called to set the test fairing fair status
 **
 ** Returns          void
 **

@@ -1,14 +1,27 @@
-/*****************************************************************************
-**
-**  Name:           mca_cact.c
-**
-**  Description:    This is the implementation file for the MCAP
-**                  Control Channel Action Functions.
-**
-**  Copyright (c) 2009-2009, Broadcom Corp., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2009-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the implementation file for the MCAP Control Channel Action
+ *  Functions.
+ *
+ ******************************************************************************/
 #include <string.h>
 #include "bt_target.h"
 #include "gki.h"
@@ -88,7 +101,7 @@ void mca_ccb_snd_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     if ((p_ccb->status == MCA_CCB_STAT_PENDING) && (p_msg->op_code == MCA_OP_MDL_ABORT_REQ))
     {
         p_dcb = mca_dcb_by_hdl(p_ccb->p_tx_req->dcb_idx);
-        /* the Abort API does not have the associated mdl_id. 
+        /* the Abort API does not have the associated mdl_id.
          * Get the mdl_id in dcb to compose the request */
         p_msg->mdl_id = p_dcb->mdl_id;
         mca_dcb_event(p_dcb, MCA_DCB_API_CLOSE_EVT, NULL);
@@ -231,7 +244,7 @@ void mca_ccb_cong(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 ** Function         mca_ccb_hdl_req
 **
 ** Description      This function is called when a MCAP request is received from
-**                  the peer. It calls the application callback function to 
+**                  the peer. It calls the application callback function to
 **                  report the event.
 **
 ** Returns          void.
@@ -294,7 +307,7 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
             check_req = TRUE;
             reject_code = MCA_RSP_SUCCESS;
             /* drop the previous request */
-            if ((p_ccb->p_tx_req->op_code == MCA_OP_MDL_CREATE_REQ) && 
+            if ((p_ccb->p_tx_req->op_code == MCA_OP_MDL_CREATE_REQ) &&
                 ((p_dcb = mca_dcb_by_hdl(p_ccb->p_tx_req->dcb_idx)) != NULL))
             {
                 mca_dcb_dealloc(p_dcb, NULL);
@@ -311,9 +324,9 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     }
     else if (p_pkt->layer_specific != MCA_RSP_SUCCESS)
     {
-        
+
         reject_code = (UINT8)p_pkt->layer_specific;
-        if (((evt_data.hdr.op_code >= MCA_NUM_STANDARD_OPCODE) && 
+        if (((evt_data.hdr.op_code >= MCA_NUM_STANDARD_OPCODE) &&
             (evt_data.hdr.op_code < MCA_FIRST_SYNC_OP)) ||
             (evt_data.hdr.op_code > MCA_LAST_SYNC_OP))
         {
@@ -387,7 +400,7 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
         }
     }
 
-    if (((reject_code != MCA_RSP_SUCCESS) && (evt_data.hdr.op_code != MCA_OP_SYNC_INFO_IND)) 
+    if (((reject_code != MCA_RSP_SUCCESS) && (evt_data.hdr.op_code != MCA_OP_SYNC_INFO_IND))
         || send_rsp)
     {
         p_buf = (BT_HDR *)GKI_getbuf (MCA_CTRL_MTU);
@@ -432,7 +445,7 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 ** Function         mca_ccb_hdl_rsp
 **
 ** Description      This function is called when a MCAP response is received from
-**                  the peer.  It calls the application callback function with 
+**                  the peer.  It calls the application callback function with
 **                  the results.
 **
 ** Returns          void.
@@ -533,7 +546,7 @@ void mca_ccb_hdl_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 **
 ** Function         mca_ccb_ll_open
 **
-** Description      This function is called to report MCA_CONNECT_IND_EVT event. 
+** Description      This function is called to report MCA_CONNECT_IND_EVT event.
 **                  It also clears the congestion flag (ccb.cong).
 **
 ** Returns          void.

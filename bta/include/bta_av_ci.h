@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_av_ci.h
-**
-**  Description:    This is the interface file for advanced audio/video call-in
-**                  functions.
-**
-**  Copyright (c) 2005, Widcomm Inc., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2005-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the interface file for advanced audio/video call-in functions.
+ *
+ ******************************************************************************/
 #ifndef BTA_AV_CI_H
 #define BTA_AV_CI_H
 
@@ -31,7 +43,7 @@ extern "C"
 **                  should call bta_av_co_audio_src_data_path() or
 **                  bta_av_co_video_src_data_path().
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl);
@@ -46,7 +58,7 @@ BTA_API extern void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl);
 **                  AVDT_SUCCESS if the codec configuration is ok,
 **                  otherwise error.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_av_ci_setconfig(tBTA_AV_HNDL hndl, UINT8 err_code,

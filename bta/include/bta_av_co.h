@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_av_co.h
-**
-**  Description:    This is the interface file for advanced audio/video call-out
-**                  functions.
-**
-**  Copyright (c) 2003, Widcomm Inc., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the interface file for advanced audio/video call-out functions.
+ *
+ ******************************************************************************/
 #ifndef BTA_AV_CO_H
 #define BTA_AV_CO_H
 
@@ -66,8 +78,8 @@ typedef struct
 ** Description      This callout function is executed by AV when it is
 **                  started by calling BTA_AvEnable().  This function can be
 **                  used by the phone to initialize audio paths or for other
-**                  initialization purposes.  
-**                  
+**                  initialization purposes.
+**
 **
 ** Returns          Stream codec and content protection capabilities info.
 **
@@ -82,7 +94,7 @@ BTA_API extern BOOLEAN bta_av_co_audio_init(UINT8 *p_codec_type, UINT8 *p_codec_
 ** Description      This callout function is executed by AV to report the
 **                  number of stream end points (SEP) were found during the
 **                  AVDT stream discovery process.
-**                  
+**
 **
 ** Returns          void.
 **
@@ -97,7 +109,7 @@ BTA_API extern void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, UINT8 num_seps,
 ** Description      This callout function is executed by AV to report the
 **                  number of stream end points (SEP) were found during the
 **                  AVDT stream discovery process.
-**                  
+**
 **
 ** Returns          void.
 **
@@ -112,7 +124,7 @@ BTA_API extern void bta_av_co_video_disc_res(tBTA_AV_HNDL hndl, UINT8 num_seps,
 ** Description      This callout function is executed by AV to retrieve the
 **                  desired codec and content protection configuration for the
 **                  audio stream.
-**                  
+**
 **
 ** Returns          Stream codec and content protection configuration info.
 **
@@ -128,7 +140,7 @@ BTA_API extern UINT8 bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC 
 ** Description      This callout function is executed by AV to retrieve the
 **                  desired codec and content protection configuration for the
 **                  video stream.
-**                  
+**
 **
 ** Returns          Stream codec and content protection configuration info.
 **
@@ -142,10 +154,10 @@ BTA_API extern UINT8 bta_av_co_video_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC 
 ** Function         bta_av_co_audio_setconfig
 **
 ** Description      This callout function is executed by AV to set the
-**                  codec and content protection configuration of the audio stream.  
-**                  
+**                  codec and content protection configuration of the audio stream.
 **
-** Returns          void  
+**
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
@@ -157,10 +169,10 @@ BTA_API extern void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC c
 ** Function         bta_av_co_video_setconfig
 **
 ** Description      This callout function is executed by AV to set the
-**                  codec and content protection configuration of the video stream.  
-**                  
+**                  codec and content protection configuration of the video stream.
 **
-** Returns          void  
+**
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_av_co_video_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
@@ -180,8 +192,8 @@ BTA_API extern void bta_av_co_video_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC c
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_av_co_audio_open(tBTA_AV_HNDL hndl, 
-                                         tBTA_AV_CODEC codec_type, UINT8 *p_codec_info, 
+BTA_API extern void bta_av_co_audio_open(tBTA_AV_HNDL hndl,
+                                         tBTA_AV_CODEC codec_type, UINT8 *p_codec_info,
                                          UINT16 mtu);
 
 /*******************************************************************************
@@ -190,13 +202,13 @@ BTA_API extern void bta_av_co_audio_open(tBTA_AV_HNDL hndl,
 **
 ** Description      This function is called by AV when the video stream connection
 **                  is opened.
-**                  
+**
 **
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_av_co_video_open(tBTA_AV_HNDL hndl, 
-                                         tBTA_AV_CODEC codec_type, UINT8 *p_codec_info, 
+BTA_API extern void bta_av_co_video_open(tBTA_AV_HNDL hndl,
+                                         tBTA_AV_CODEC codec_type, UINT8 *p_codec_info,
                                          UINT16 mtu);
 
 /*******************************************************************************
@@ -222,7 +234,7 @@ BTA_API extern void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec
 **
 ** Description      This function is called by AV when the video stream connection
 **                  is closed.
-**                  
+**
 **
 ** Returns          void
 **
@@ -236,7 +248,7 @@ BTA_API extern void bta_av_co_video_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec
 **
 ** Description      This function is called by AV when the audio streaming data
 **                  transfer is started.
-**                  
+**
 **
 ** Returns          void
 **
@@ -250,7 +262,7 @@ BTA_API extern void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec
 **
 ** Description      This function is called by AV when the video streaming data
 **                  transfer is started.
-**                  
+**
 **
 ** Returns          void
 **
@@ -264,7 +276,7 @@ BTA_API extern void bta_av_co_video_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec
 **
 ** Description      This function is called by AV when the audio streaming data
 **                  transfer is stopped.
-**                  
+**
 **
 ** Returns          void
 **
@@ -277,7 +289,7 @@ BTA_API extern void bta_av_co_audio_stop(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_
 **
 ** Description      This function is called by AV when the video streaming data
 **                  transfer is stopped.
-**                  
+**
 **
 ** Returns          void
 **
@@ -303,7 +315,7 @@ BTA_API extern void * bta_av_co_audio_src_data_path(tBTA_AV_CODEC codec_type,
 ** Function         bta_av_co_video_src_data_path
 **
 ** Description      This function is called to get the next data buffer from
-**                  the video codec.                 
+**                  the video codec.
 **
 ** Returns          NULL if data is not ready.
 **                  Otherwise, a video data buffer (UINT8*).
@@ -316,7 +328,7 @@ BTA_API extern void * bta_av_co_video_src_data_path(tBTA_AV_CODEC codec_type,
 **
 ** Function         bta_av_co_audio_drop
 **
-** Description      An Audio packet is dropped. .                 
+** Description      An Audio packet is dropped. .
 **                  It's very likely that the connected headset with this handle
 **                  is moved far away. The implementation may want to reduce
 **                  the encoder bit rate setting to reduce the packet size.
@@ -356,7 +368,7 @@ BTA_API extern void bta_av_co_video_report_rr (UINT32 packet_lost);
 **
 ** Description      This function is called by AV when the audio stream connection
 **                  needs to send the initial delay report to the connected SRC.
-**                  
+**
 **
 ** Returns          void
 **
@@ -369,7 +381,7 @@ BTA_API extern void bta_av_co_audio_delay(tBTA_AV_HNDL hndl, UINT16 delay);
 **
 ** Description      This function is called by AV when the video stream connection
 **                  needs to send the initial delay report to the connected SRC.
-**                  
+**
 **
 ** Returns          void
 **

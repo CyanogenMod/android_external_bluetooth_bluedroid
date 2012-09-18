@@ -1,13 +1,26 @@
-/*****************************************************************************
-**                                                                           *
-**  Name:          btm_sec.c                                                 *
-**                                                                           *
-**  Description:   This file contains functions for the Bluetooth Security   *
-**                 Manager                                                   *
-**                                                                           *
-**  Copyright (c) 1999-2011, Broadcom Corp., All Rights Reserved.            *
-**  Broadcom Bluetooth Core. Proprietary and confidential.                   *
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains functions for the Bluetooth Security Manager
+ *
+ ******************************************************************************/
 
 #include <string.h>
 #include "bt_types.h"
@@ -68,8 +81,8 @@ BOOLEAN         btm_sec_are_all_trusted(UINT32 p_mask[]);
 static tBTM_STATUS btm_sec_send_hci_disconnect (tBTM_SEC_DEV_REC *p_dev_rec, UINT8 reason);
 tBTM_SEC_DEV_REC *btm_sec_find_dev_by_sec_state (UINT8 state);
 
-static BOOLEAN  btm_sec_set_security_level ( CONNECTION_TYPE conn_type, char *p_name, UINT8 service_id, 
-                                            UINT16 sec_level, UINT16 psm, UINT32 mx_proto_id, 
+static BOOLEAN  btm_sec_set_security_level ( CONNECTION_TYPE conn_type, char *p_name, UINT8 service_id,
+                                            UINT16 sec_level, UINT16 psm, UINT32 mx_proto_id,
                                             UINT32 mx_chan_id);
 
 /* TRUE - authenticated link key is possible */
@@ -126,8 +139,8 @@ BOOLEAN  BTM_SecRegister (tBTM_APPL_INFO *p_cb_info)
     }
 #endif
 
-	
-   
+
+
     btm_cb.api = *p_cb_info;
 #if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
      BTM_TRACE_ERROR1 ("BTM_SecRegister: btm_cb.api.p_le_callback = 0x%x ", btm_cb.api.p_le_callback);
@@ -391,11 +404,11 @@ void BTM_SetPairableMode (BOOLEAN allow_pairing, BOOLEAN connect_only_paired)
 ** Description      Register UCD service security level with Security Manager
 **
 ** Parameters:      is_originator - TRUE if originating the connection, FALSE if not
-**                  p_name      - Name of the service relevant only if 
+**                  p_name      - Name of the service relevant only if
 **                                authorization will show this name to user. ignored
 **                                if BTM_SEC_SERVICE_NAME_LEN is 0.
 **                  service_id  - service ID for the service passed to authorization callback
-**                  sec_level   - bit mask of the security features 
+**                  sec_level   - bit mask of the security features
 **                  psm         - L2CAP PSM
 **                  mx_proto_id - protocol ID of multiplexing proto below
 **                  mx_chan_id  - channel ID of multiplexing proto below
@@ -403,8 +416,8 @@ void BTM_SetPairableMode (BOOLEAN allow_pairing, BOOLEAN connect_only_paired)
 ** Returns          TRUE if registered OK, else FALSE
 **
 *******************************************************************************/
-BOOLEAN BTM_SetUCDSecurityLevel (BOOLEAN is_originator, char *p_name, UINT8 service_id, 
-                                 UINT16 sec_level, UINT16 psm, UINT32 mx_proto_id, 
+BOOLEAN BTM_SetUCDSecurityLevel (BOOLEAN is_originator, char *p_name, UINT8 service_id,
+                                 UINT16 sec_level, UINT16 psm, UINT32 mx_proto_id,
                                  UINT32 mx_chan_id)
 {
 #if (L2CAP_UCD_INCLUDED == TRUE)
@@ -415,7 +428,7 @@ BOOLEAN BTM_SetUCDSecurityLevel (BOOLEAN is_originator, char *p_name, UINT8 serv
     else
         conn_type = CONNLESS_TERM;
 
-    return(btm_sec_set_security_level (conn_type, p_name, service_id, 
+    return(btm_sec_set_security_level (conn_type, p_name, service_id,
                                        sec_level, psm, mx_proto_id, mx_chan_id));
 #else
     return FALSE;
@@ -429,11 +442,11 @@ BOOLEAN BTM_SetUCDSecurityLevel (BOOLEAN is_originator, char *p_name, UINT8 serv
 ** Description      Register service security level with Security Manager
 **
 ** Parameters:      is_originator - TRUE if originating the connection, FALSE if not
-**                  p_name      - Name of the service relevant only if 
+**                  p_name      - Name of the service relevant only if
 **                                authorization will show this name to user. ignored
 **                                if BTM_SEC_SERVICE_NAME_LEN is 0.
 **                  service_id  - service ID for the service passed to authorization callback
-**                  sec_level   - bit mask of the security features 
+**                  sec_level   - bit mask of the security features
 **                  psm         - L2CAP PSM
 **                  mx_proto_id - protocol ID of multiplexing proto below
 **                  mx_chan_id  - channel ID of multiplexing proto below
@@ -453,10 +466,10 @@ BOOLEAN BTM_SetSecurityLevel (BOOLEAN is_originator, char *p_name, UINT8 service
     else
         conn_type = CONN_ORIENT_TERM;
 
-    return(btm_sec_set_security_level (conn_type, p_name, service_id, 
+    return(btm_sec_set_security_level (conn_type, p_name, service_id,
                                        sec_level, psm, mx_proto_id, mx_chan_id));
 #else
-    return(btm_sec_set_security_level (is_originator, p_name, service_id, 
+    return(btm_sec_set_security_level (is_originator, p_name, service_id,
                                        sec_level, psm, mx_proto_id, mx_chan_id));
 #endif
 }
@@ -468,11 +481,11 @@ BOOLEAN BTM_SetSecurityLevel (BOOLEAN is_originator, char *p_name, UINT8 service
 ** Description      Register service security level with Security Manager
 **
 ** Parameters:      conn_type   - TRUE if originating the connection, FALSE if not
-**                  p_name      - Name of the service relevant only if 
+**                  p_name      - Name of the service relevant only if
 **                                authorization will show this name to user. ignored
 **                                if BTM_SEC_SERVICE_NAME_LEN is 0.
 **                  service_id  - service ID for the service passed to authorization callback
-**                  sec_level   - bit mask of the security features 
+**                  sec_level   - bit mask of the security features
 **                  psm         - L2CAP PSM
 **                  mx_proto_id - protocol ID of multiplexing proto below
 **                  mx_chan_id  - channel ID of multiplexing proto below
@@ -480,8 +493,8 @@ BOOLEAN BTM_SetSecurityLevel (BOOLEAN is_originator, char *p_name, UINT8 service
 ** Returns          TRUE if registered OK, else FALSE
 **
 *******************************************************************************/
-static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_name, UINT8 service_id, 
-                                           UINT16 sec_level, UINT16 psm, UINT32 mx_proto_id, 
+static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_name, UINT8 service_id,
+                                           UINT16 sec_level, UINT16 psm, UINT32 mx_proto_id,
                                            UINT32 mx_chan_id)
 {
     tBTM_SEC_SERV_REC   *p_srec;
@@ -766,9 +779,9 @@ UINT8 btm_sec_clr_service_by_psm (UINT16 psm)
 **
 ** Function         BTM_SecClrUCDService
 **
-** Description      
+** Description
 **
-** Parameters       Service ID - Id of the service to remove. 
+** Parameters       Service ID - Id of the service to remove.
 **                               ('0' removes all service records )
 **
 ** Returns          Number of records that were cleared.
@@ -784,7 +797,7 @@ UINT8 BTM_SecClrUCDService (UINT8 service_id)
     for (i = 0; i < BTM_SEC_MAX_SERVICE_RECORDS; i++, p_srec++)
     {
         /* Delete services with specified name (if in use and not SDP) */
-        if ((p_srec->security_flags & BTM_SEC_IN_USE) && 
+        if ((p_srec->security_flags & BTM_SEC_IN_USE) &&
             (!service_id || (service_id == (UINT32)p_srec->service_id)))
         {
             BTM_TRACE_API2("BTM_UCD_SEC_CLR[%d]: id %d", i, service_id);
@@ -902,7 +915,7 @@ void BTM_PINCodeReply (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len, UINT8 *p_pin, 
             btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
             p_dev_rec->sec_flags &= ~BTM_SEC_LINK_KEY_AUTHED;
 
-            (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr,  p_dev_rec->dev_class, 
+            (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr,  p_dev_rec->dev_class,
                                                     p_dev_rec->sec_bd_name, HCI_ERR_AUTH_FAILURE);
         }
         return;
@@ -911,7 +924,7 @@ void BTM_PINCodeReply (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len, UINT8 *p_pin, 
     btm_sec_change_pairing_state (BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
     btm_cb.acl_disc_reason = HCI_SUCCESS;
 
-#ifdef PORCHE_PAIRING_CONFLICT 
+#ifdef PORCHE_PAIRING_CONFLICT
     BTM_TRACE_EVENT2("BTM_PINCodeReply(): Saving pin_len: %d btm_cb.pin_code_len: %d", pin_len, btm_cb.pin_code_len);
     /* if this was not pre-fetched, save the PIN */
     if (btm_cb.pin_code_len == 0)
@@ -1209,7 +1222,7 @@ tBTM_STATUS BTM_SecBondCancel (BD_ADDR bd_addr)
 
 #if SMP_INCLUDED == TRUE
     p = btm_bda_to_acl(bd_addr);
-    if (p && p->is_le_link && 
+    if (p && p->is_le_link &&
         (p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING))
     {
         BTM_TRACE_DEBUG0 ("Cancel LE pairing");
@@ -1219,7 +1232,7 @@ tBTM_STATUS BTM_SecBondCancel (BD_ADDR bd_addr)
         }
         else
         {
-            return BTM_WRONG_MODE;   
+            return BTM_WRONG_MODE;
         }
     }
 
@@ -1450,12 +1463,12 @@ static tBTM_STATUS btm_sec_send_hci_disconnect (tBTM_SEC_DEV_REC *p_dev_rec, UIN
 #if BTM_DISC_DURING_RS == TRUE
         /* If a Role Switch is in progress, delay the HCI Disconnect to avoid controller problem (4329B1) */
         if (p_dev_rec->rs_disc_pending == BTM_SEC_RS_PENDING)
-        {                         
+        {
                  BTM_TRACE_ERROR0("RS in progress - Set DISC Pending flag in btm_sec_send_hci_disconnect to delay disconnect");
                  p_dev_rec->rs_disc_pending = BTM_SEC_DISC_PENDING;
                  return BTM_SUCCESS;
         }
-#endif        
+#endif
         /* Tear down the HCI link */
         if (!btsnd_hcic_disconnect (p_dev_rec->hci_handle, reason))
         {
@@ -2224,7 +2237,7 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
                           (p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED), (p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED));
         /* SM4, but we do not know for sure which level of security we need.
          * as long as we have a link key, it's OK */
-        if ((0 == (p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED)) 
+        if ((0 == (p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED))
             ||(0 == (p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED)))
         {
             rc = BTM_DELAY_CHECK;
@@ -2885,7 +2898,7 @@ void btm_sec_rmt_name_request_complete (UINT8 *p_bd_addr, UINT8 *p_bd_name, UINT
             {
                 btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
 
-                (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr,  p_dev_rec->dev_class, 
+                (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr,  p_dev_rec->dev_class,
                                                         p_dev_rec->sec_bd_name, status);
                 return;
             }
@@ -2902,7 +2915,7 @@ void btm_sec_rmt_name_request_complete (UINT8 *p_bd_addr, UINT8 *p_bd_name, UINT
                 }
             }
 
-            /* BT 2.1 or carkit, bring up the connection to force the peer to request PIN. 
+            /* BT 2.1 or carkit, bring up the connection to force the peer to request PIN.
             ** Else prefetch (btm_sec_check_prefetch_pin will do the prefetching if needed)
             */
             if ((p_dev_rec->sm4 != BTM_SM4_KNOWN) || !btm_sec_check_prefetch_pin(p_dev_rec))
@@ -2920,7 +2933,7 @@ void btm_sec_rmt_name_request_complete (UINT8 *p_bd_addr, UINT8 *p_bd_name, UINT
 
                     btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
 
-                    (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr,  p_dev_rec->dev_class, 
+                    (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr,  p_dev_rec->dev_class,
                                                             p_dev_rec->sec_bd_name, HCI_ERR_MEMORY_FULL);
                 }
             }
@@ -3222,8 +3235,8 @@ void btm_io_capabilities_rsp (UINT8 *p)
      * Use the connecting device's CoD for the connection */
 /* coverity[uninit_use_in_call]
 Event uninit_use_in_call: Using uninitialized element of array "evt_data.bd_addr" in call to function "memcmp"
-FALSE-POSITIVE error from Coverity test-tool. evt_data.bd_addr is set at the beginning with:     STREAM_TO_BDADDR (evt_data.bd_addr, p);                    
-*/     
+FALSE-POSITIVE error from Coverity test-tool. evt_data.bd_addr is set at the beginning with:     STREAM_TO_BDADDR (evt_data.bd_addr, p);
+*/
     if (!memcmp (evt_data.bd_addr, btm_cb.connecting_bda, BD_ADDR_LEN))
         memcpy (p_dev_rec->dev_class, btm_cb.connecting_dc, DEV_CLASS_LEN);
 
@@ -3683,7 +3696,7 @@ void btm_sec_auth_complete (UINT16 handle, UINT8 status)
              &&  (old_state != BTM_PAIR_STATE_IDLE) )
         {
             (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr,
-                                                    p_dev_rec->dev_class, 
+                                                    p_dev_rec->dev_class,
                                                     p_dev_rec->sec_bd_name, status);
         }
         return;
@@ -3943,7 +3956,7 @@ static void btm_sec_connect_after_reject_timeout (TIMER_LIST_ENT *p_tle)
 
         btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
 
-        (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr,  p_dev_rec->dev_class, 
+        (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr,  p_dev_rec->dev_class,
                                                 p_dev_rec->sec_bd_name, HCI_ERR_MEMORY_FULL);
     }
 }
@@ -4107,8 +4120,8 @@ void btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode)
             /* We need to notify host that the key is not known any more */
             if (btm_cb.api.p_auth_complete_callback)
             {
-                (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr, 
-                                                        p_dev_rec->dev_class, 
+                (*btm_cb.api.p_auth_complete_callback) (p_dev_rec->bd_addr,
+                                                        p_dev_rec->dev_class,
                                                         p_dev_rec->sec_bd_name, status);
             }
         }
@@ -4326,7 +4339,7 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
         return;
 
 #if BTM_DISC_DURING_RS == TRUE
-    BTM_TRACE_ERROR0("btm_sec_disconnected - Clearing Pending flag");      
+    BTM_TRACE_ERROR0("btm_sec_disconnected - Clearing Pending flag");
     p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING;     /* reset flag */
 #endif
 
@@ -4485,7 +4498,7 @@ void btm_sec_link_key_request (UINT8 *p_bda)
         btsnd_hcic_link_key_req_reply (p_bda, p_dev_rec->link_key);
         return;
     }
-    
+
     /* Notify L2CAP to increase timeout */
     l2c_pin_code_request (p_bda);
 
@@ -4654,7 +4667,7 @@ void btm_sec_pin_code_request (UINT8 *p_bda)
 
     if (btm_cb.pairing_state != BTM_PAIR_STATE_IDLE)
     {
-        if ( (memcmp (p_bda, btm_cb.pairing_bda, BD_ADDR_LEN) == 0)  && 
+        if ( (memcmp (p_bda, btm_cb.pairing_bda, BD_ADDR_LEN) == 0)  &&
              (btm_cb.pairing_state == BTM_PAIR_STATE_WAIT_AUTH_COMPLETE) )
         {
              /* fake this out - porshe carkit issue - */
@@ -4727,7 +4740,7 @@ void btm_sec_pin_code_request (UINT8 *p_bda)
         BTM_TRACE_EVENT0 ("btm_sec_pin_code_request bonding sending reply");
         btsnd_hcic_pin_code_req_reply (p_bda, btm_cb.pin_code_len, p_cb->pin_code);
 
-#ifdef PORCHE_PAIRING_CONFLICT 
+#ifdef PORCHE_PAIRING_CONFLICT
         btm_cb.pin_code_len_saved = btm_cb.pin_code_len;
 #endif
 
@@ -5189,7 +5202,7 @@ static tBTM_SEC_SERV_REC *btm_sec_find_mx_serv (UINT8 is_originator, UINT16 psm,
     for (i = 0; i < BTM_SEC_MAX_SERVICE_RECORDS; i++, p_serv_rec++)
     {
         if ((p_serv_rec->security_flags & BTM_SEC_IN_USE)
-            && (p_serv_rec->psm == psm) 
+            && (p_serv_rec->psm == psm)
             && (p_serv_rec->mx_proto_id == mx_proto_id)
             && (( is_originator && (p_serv_rec->orig_mx_chan_id  == mx_chan_id))
                 || (!is_originator && (p_serv_rec->term_mx_chan_id  == mx_chan_id))))
@@ -5583,7 +5596,7 @@ void btm_sec_clear_ble_keys (tBTM_SEC_DEV_REC  *p_dev_rec)
 BOOLEAN btm_sec_is_a_bonded_dev (BD_ADDR bda)
 {
 
-    tBTM_SEC_DEV_REC *p_dev_rec= btm_find_dev (bda); 
+    tBTM_SEC_DEV_REC *p_dev_rec= btm_find_dev (bda);
     BOOLEAN is_bonded= FALSE;
 
 #if (SMP_INCLUDED== TRUE)
@@ -5600,7 +5613,7 @@ BOOLEAN btm_sec_is_a_bonded_dev (BD_ADDR bda)
 **
 ** Function         btm_sec_find_bonded_dev
 **
-** Description      Find a bonded device starting from the specified index  
+** Description      Find a bonded device starting from the specified index
 **
 ** Returns          TRUE - found a bonded device
 **
@@ -5610,7 +5623,7 @@ BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_D
     BOOLEAN found= FALSE;
 
 #if (SMP_INCLUDED== TRUE)
-    tBTM_SEC_DEV_REC *p_dev_rec; 
+    tBTM_SEC_DEV_REC *p_dev_rec;
     int i;
     if (start_idx >= BTM_SEC_MAX_DEVICE_RECORDS)
     {
@@ -5623,9 +5636,9 @@ BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_D
     {
         if (p_dev_rec->ble.key_type || (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN))
         {
-            *p_found_idx = i;    
+            *p_found_idx = i;
             p_rec = p_dev_rec;
-            break; 
+            break;
         }
     }
     BTM_TRACE_DEBUG1 ("btm_sec_find_bonded_dev=%d", found);

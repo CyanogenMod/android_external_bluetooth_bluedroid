@@ -1,13 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           ptim.c
-**
-**  Description:    Protocol timer services.
-**
-**  Copyright (c) 2003-2006, Broadcom Corp., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  Protocol timer services.
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 #include "gki.h"
@@ -50,7 +63,7 @@ void ptim_timer_update(tPTIM_CB *p_cb)
     UINT32 new_ticks_count;
     INT32  period_in_ticks;
 
-    /* To handle the case when the function is called less frequently than the period 
+    /* To handle the case when the function is called less frequently than the period
        we must convert determine the number of ticks since the last update, then
        convert back to milliseconds before updating timer list */
     new_ticks_count = GKI_get_tick_count();

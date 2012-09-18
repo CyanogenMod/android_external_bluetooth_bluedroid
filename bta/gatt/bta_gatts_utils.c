@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_gattc_utils.c
-**
-**  Description:    This file contains the GATT client utility 
-**                  function.
-**
-**  Copyright (c) 2003-2010, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the GATT client utility function.
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 
@@ -124,7 +136,7 @@ tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_srvc_id(tBTA_GATTS_CB *p_cb, UINT
     APPL_TRACE_DEBUG1("bta_gatts_find_srvc_cb_by_srvc_id  service_id=%d", service_id);
     for (i = 0; i < BTA_GATTS_MAX_SRVC_NUM; i ++)
     {
-        if (p_cb->srvc_cb[i].in_use && 
+        if (p_cb->srvc_cb[i].in_use &&
             p_cb->srvc_cb[i].service_id == service_id)
         {
             APPL_TRACE_DEBUG1("bta_gatts_find_srvc_cb_by_srvc_id  found service cb index =%d", i);
@@ -150,14 +162,14 @@ tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_attr_id(tBTA_GATTS_CB *p_cb, UINT
     {
         if (/* middle service */
             (i < (BTA_GATTS_MAX_SRVC_NUM - 1) &&
-             p_cb->srvc_cb[i].in_use && 
-             p_cb->srvc_cb[i + 1].in_use && 
+             p_cb->srvc_cb[i].in_use &&
+             p_cb->srvc_cb[i + 1].in_use &&
              attr_id >= p_cb->srvc_cb[i].service_id &&
              attr_id < p_cb->srvc_cb[i + 1].service_id) ||
             /* last active service */
             (i < (BTA_GATTS_MAX_SRVC_NUM - 1) &&
-             p_cb->srvc_cb[i].in_use && 
-             !p_cb->srvc_cb[i + 1].in_use && 
+             p_cb->srvc_cb[i].in_use &&
+             !p_cb->srvc_cb[i + 1].in_use &&
              attr_id >= p_cb->srvc_cb[i].service_id)    ||
             /* last service incb */
             (i == (BTA_GATTS_MAX_SRVC_NUM - 1) &&
@@ -220,4 +232,4 @@ BOOLEAN bta_gatts_uuid_compare(tBT_UUID tar, tBT_UUID src)
 
 
 
-#endif 
+#endif

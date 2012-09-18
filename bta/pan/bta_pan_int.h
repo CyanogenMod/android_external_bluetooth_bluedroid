@@ -1,17 +1,29 @@
-/*****************************************************************************
-**
-**  Name:           bta_pan_int.h
-**
-**  Description:    This is the private interface file for the BTA data
-**                  gateway.
-**
-**  Copyright (c) 2004, Widcomm Inc., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2004-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the private interface file for the BTA data gateway.
+ *
+ ******************************************************************************/
 #ifndef BTA_PAN_INT_H
 #define BTA_PAN_INT_H
- 
+
 #include "bta_sys.h"
 #include "bta_pan_api.h"
 
@@ -65,7 +77,7 @@ typedef struct
     char                user_name[BTA_SERVICE_NAME_LEN+1];   /* Service name */
     char                gn_name[BTA_SERVICE_NAME_LEN+1];     /* Service name */
     char                nap_name[BTA_SERVICE_NAME_LEN+1];    /* Service name */
-    tBTA_PAN_ROLE       role;   
+    tBTA_PAN_ROLE       role;
     UINT8               user_app_id;
     UINT8               gn_app_id;
     UINT8               nap_app_id;

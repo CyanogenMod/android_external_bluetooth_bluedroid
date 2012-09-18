@@ -1,14 +1,20 @@
-/****************************************************************************
-**
-**  Name        gki.h
-**
-**  Function    This file contains GKI public definitions
-**
-**
-**  Copyright (c) 1999-2011, Broadcom Corp., All Rights Reserved.
-**  Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 #ifndef GKI_H
 #define GKI_H
 
@@ -94,7 +100,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 1)
 
 #ifndef GKI_POOL_ID_0
-#define GKI_POOL_ID_0                0  
+#define GKI_POOL_ID_0                0
 #endif /* ifndef GKI_POOL_ID_0 */
 
 #ifndef GKI_BUF0_SIZE
@@ -107,7 +113,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 2)
 
 #ifndef GKI_POOL_ID_1
-#define GKI_POOL_ID_1                0  
+#define GKI_POOL_ID_1                0
 #endif /* ifndef GKI_POOL_ID_1 */
 
 #ifndef GKI_BUF1_SIZE
@@ -120,7 +126,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 3)
 
 #ifndef GKI_POOL_ID_2
-#define GKI_POOL_ID_2                0  
+#define GKI_POOL_ID_2                0
 #endif /* ifndef GKI_POOL_ID_2 */
 
 #ifndef GKI_BUF2_SIZE
@@ -133,7 +139,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 4)
 
 #ifndef GKI_POOL_ID_3
-#define GKI_POOL_ID_3                0  
+#define GKI_POOL_ID_3                0
 #endif /* ifndef GKI_POOL_ID_4 */
 
 #ifndef GKI_BUF3_SIZE
@@ -146,7 +152,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 5)
 
 #ifndef GKI_POOL_ID_4
-#define GKI_POOL_ID_4                0  
+#define GKI_POOL_ID_4                0
 #endif /* ifndef GKI_POOL_ID_4 */
 
 #ifndef GKI_BUF4_SIZE
@@ -159,7 +165,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 6)
 
 #ifndef GKI_POOL_ID_5
-#define GKI_POOL_ID_5                0  
+#define GKI_POOL_ID_5                0
 #endif /* ifndef GKI_POOL_ID_5 */
 
 #ifndef GKI_BUF5_SIZE
@@ -172,7 +178,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 7)
 
 #ifndef GKI_POOL_ID_6
-#define GKI_POOL_ID_6                0  
+#define GKI_POOL_ID_6                0
 #endif /* ifndef GKI_POOL_ID_6 */
 
 #ifndef GKI_BUF6_SIZE
@@ -185,7 +191,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 8)
 
 #ifndef GKI_POOL_ID_7
-#define GKI_POOL_ID_7                0  
+#define GKI_POOL_ID_7                0
 #endif /* ifndef GKI_POOL_ID_7 */
 
 #ifndef GKI_BUF7_SIZE
@@ -198,7 +204,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 9)
 
 #ifndef GKI_POOL_ID_8
-#define GKI_POOL_ID_8                0  
+#define GKI_POOL_ID_8                0
 #endif /* ifndef GKI_POOL_ID_8 */
 
 #ifndef GKI_BUF8_SIZE
@@ -211,7 +217,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 10)
 
 #ifndef GKI_POOL_ID_9
-#define GKI_POOL_ID_9                0  
+#define GKI_POOL_ID_9                0
 #endif /* ifndef GKI_POOL_ID_9 */
 
 #ifndef GKI_BUF9_SIZE
@@ -224,7 +230,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 11)
 
 #ifndef GKI_POOL_ID_10
-#define GKI_POOL_ID_10                0  
+#define GKI_POOL_ID_10                0
 #endif /* ifndef GKI_POOL_ID_10 */
 
 #ifndef GKI_BUF10_SIZE
@@ -237,7 +243,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 12)
 
 #ifndef GKI_POOL_ID_11
-#define GKI_POOL_ID_11                0  
+#define GKI_POOL_ID_11                0
 #endif /* ifndef GKI_POOL_ID_11 */
 
 #ifndef GKI_BUF11_SIZE
@@ -250,7 +256,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 13)
 
 #ifndef GKI_POOL_ID_12
-#define GKI_POOL_ID_12                0  
+#define GKI_POOL_ID_12                0
 #endif /* ifndef GKI_POOL_ID_12 */
 
 #ifndef GKI_BUF12_SIZE
@@ -263,7 +269,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 14)
 
 #ifndef GKI_POOL_ID_13
-#define GKI_POOL_ID_13                0  
+#define GKI_POOL_ID_13                0
 #endif /* ifndef GKI_POOL_ID_13 */
 
 #ifndef GKI_BUF13_SIZE
@@ -276,7 +282,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 15)
 
 #ifndef GKI_POOL_ID_14
-#define GKI_POOL_ID_14                0  
+#define GKI_POOL_ID_14                0
 #endif /* ifndef GKI_POOL_ID_14 */
 
 #ifndef GKI_BUF14_SIZE
@@ -289,7 +295,7 @@
 #if (GKI_NUM_FIXED_BUF_POOLS < 16)
 
 #ifndef GKI_POOL_ID_15
-#define GKI_POOL_ID_15                0  
+#define GKI_POOL_ID_15                0
 #endif /* ifndef GKI_POOL_ID_15 */
 
 #ifndef GKI_BUF15_SIZE
@@ -324,7 +330,7 @@ typedef struct _tle
 
 /* Define a timer list queue
 */
-typedef struct 
+typedef struct
 {
     TIMER_LIST_ENT   *p_first;
     TIMER_LIST_ENT   *p_last;
@@ -335,7 +341,7 @@ typedef struct
 /***********************************************************************
 ** This queue is a general purpose buffer queue, for application use.
 */
-typedef struct 
+typedef struct
 {
     void    *p_first;
     void    *p_last;

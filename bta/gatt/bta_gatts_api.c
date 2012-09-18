@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_gatts_api.c
-**
-**  Description:    This is the implementation of the API for GATT server  
-**                  of BTA.
-**
-**  Copyright (c) 2010-2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2010-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the implementation of the API for GATT server of BTA.
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 
@@ -34,13 +46,13 @@ static const tBTA_SYS_REG bta_gatts_reg =
 **
 ** Function         BTA_GATTS_AppRegister
 **
-** Description      This function is called to register application callbacks 
+** Description      This function is called to register application callbacks
 **                    with BTA GATTS module.
 **
 ** Parameters       p_app_uuid - applicaiton UUID
 **                  p_cback - pointer to the application callback function.
 **
-** Returns          None 
+** Returns          None
 **
 *******************************************************************************/
 void BTA_GATTS_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTS_CBACK *p_cback)
@@ -75,7 +87,7 @@ void BTA_GATTS_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTS_CBACK *p_cback)
 ** Function         BTA_GATTS_AppDeregister
 **
 ** Description      De-register with GATT Server.
-**                  
+**
 ** Parameters       app_id: applicatino ID.
 **
 ** Returns          void
@@ -100,11 +112,11 @@ void BTA_GATTS_AppDeregister(tBTA_GATTS_IF server_if)
 ** Function         BTA_GATTS_CreateService
 **
 ** Description      Create a service. When service creation is done, a callback
-**                  event BTA_GATTS_CREATE_SRVC_EVT is called to report status 
+**                  event BTA_GATTS_CREATE_SRVC_EVT is called to report status
 **                  and service ID to the profile. The service ID obtained in
 **                  the callback function needs to be used when adding included
 **                  service and characteristics/descriptors into the service.
-**                  
+**
 ** Parameters       app_id: Profile ID this service is belonged to.
 **                  p_service_uuid: service UUID.
 **                  inst: instance ID number of this service.
@@ -114,7 +126,7 @@ void BTA_GATTS_AppDeregister(tBTA_GATTS_IF server_if)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTS_CreateService(tBTA_GATTS_IF server_if, tBT_UUID *p_service_uuid, UINT8 inst, 
+void BTA_GATTS_CreateService(tBTA_GATTS_IF server_if, tBT_UUID *p_service_uuid, UINT8 inst,
                              UINT16 num_handle, BOOLEAN is_primary)
 {
     tBTA_GATTS_API_CREATE_SRVC  *p_buf;
@@ -140,8 +152,8 @@ void BTA_GATTS_CreateService(tBTA_GATTS_IF server_if, tBT_UUID *p_service_uuid, 
 ** Description      This function is called to add an included service. After included
 **                  service is included, a callback event BTA_GATTS_ADD_INCL_SRVC_EVT
 **                  is reported the included service ID.
-**                  
-** Parameters       service_id: service ID to which this included service is to 
+**
+** Parameters       service_id: service ID to which this included service is to
 **                              be added.
 **                  included_service_id: the service ID to be included.
 **
@@ -152,8 +164,8 @@ void BTA_GATTS_AddIncludeService(UINT16 service_id, UINT16 included_service_id)
 {
     tBTA_GATTS_API_ADD_INCL_SRVC  *p_buf;
 
-    if ((p_buf = 
-         (tBTA_GATTS_API_ADD_INCL_SRVC *) GKI_getbuf(sizeof(tBTA_GATTS_API_ADD_INCL_SRVC))) 
+    if ((p_buf =
+         (tBTA_GATTS_API_ADD_INCL_SRVC *) GKI_getbuf(sizeof(tBTA_GATTS_API_ADD_INCL_SRVC)))
         != NULL)
     {
         p_buf->hdr.event = BTA_GATTS_API_ADD_INCL_SRVC_EVT;
@@ -171,14 +183,14 @@ void BTA_GATTS_AddIncludeService(UINT16 service_id, UINT16 included_service_id)
 ** Function         BTA_GATTS_AddCharacteristic
 **
 ** Description      This function is called to add a characteristic into a service.
-**      
-** Parameters       service_id: service ID to which this included service is to 
+**
+** Parameters       service_id: service ID to which this included service is to
 **                              be added.
 **                  p_char_uuid : Characteristic UUID.
 **                  perm      : Characteristic value declaration attribute permission.
 **                  property  : Characteristic Properties
 **
-** Returns          None 
+** Returns          None
 **
 *******************************************************************************/
 void BTA_GATTS_AddCharacteristic (UINT16 service_id,  tBT_UUID  *p_char_uuid,
@@ -208,19 +220,19 @@ void BTA_GATTS_AddCharacteristic (UINT16 service_id,  tBT_UUID  *p_char_uuid,
 **
 ** Function         BTA_GATTS_AddCharDescriptor
 **
-** Description      This function is called to add characteristic descriptor. When 
+** Description      This function is called to add characteristic descriptor. When
 **                  it's done, a callback event BTA_GATTS_ADD_DESCR_EVT is called
 **                  to report the status and an ID number for this descriptor.
 **
-** Parameters       service_id: service ID to which this charatceristic descriptor is to 
+** Parameters       service_id: service ID to which this charatceristic descriptor is to
 **                              be added.
 **                  perm: descriptor access permission.
-**                  p_descr_uuid: descriptor UUID. 
+**                  p_descr_uuid: descriptor UUID.
 **
-** Returns          returns status. 
+** Returns          returns status.
 **
 *******************************************************************************/
-void BTA_GATTS_AddCharDescriptor (UINT16 service_id, 
+void BTA_GATTS_AddCharDescriptor (UINT16 service_id,
                                   tBTA_GATT_PERM perm,
                                   tBT_UUID  * p_descr_uuid)
 {
@@ -250,12 +262,12 @@ void BTA_GATTS_AddCharDescriptor (UINT16 service_id,
 **
 ** Function         BTA_GATTS_DeleteService
 **
-** Description      This function is called to delete a service. When this is done, 
+** Description      This function is called to delete a service. When this is done,
 **                  a callback event BTA_GATTS_DELETE_EVT is report with the status.
 **
-** Parameters       service_id: service_id to be deleted. 
+** Parameters       service_id: service_id to be deleted.
 **
-** Returns          returns none. 
+** Returns          returns none.
 **
 *******************************************************************************/
 void  BTA_GATTS_DeleteService(UINT16 service_id)
@@ -283,7 +295,7 @@ void  BTA_GATTS_DeleteService(UINT16 service_id)
 ** Parameters       service_id: the service ID to be started.
 **                  sup_transport: supported trasnport.
 **
-** Returns          None. 
+** Returns          None.
 **
 *******************************************************************************/
 void  BTA_GATTS_StartService(UINT16 service_id, tBTA_GATT_TRANSPORT sup_transport)
@@ -310,7 +322,7 @@ void  BTA_GATTS_StartService(UINT16 service_id, tBTA_GATT_TRANSPORT sup_transpor
 **
 ** Parameters       service_id - service to be topped.
 **
-** Returns          None 
+** Returns          None
 **
 *******************************************************************************/
 void BTA_GATTS_StopService(UINT16 service_id)
@@ -340,10 +352,10 @@ void BTA_GATTS_StopService(UINT16 service_id)
 **                  p_data: data to indicate.
 **                  need_confirm - if this indication expects a confirmation or not.
 **
-** Returns          None 
+** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id, UINT16 data_len, 
+void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id, UINT16 data_len,
                                       UINT8 *p_data, BOOLEAN need_confirm)
 {
     tBTA_GATTS_API_INDICATION  *p_buf;
@@ -380,10 +392,10 @@ void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id, UINT16 dat
 **                  status - response status
 **                  p_msg - response data.
 **
-** Returns          None 
+** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTS_SendRsp (UINT16 conn_id, UINT32 trans_id, 
+void BTA_GATTS_SendRsp (UINT16 conn_id, UINT32 trans_id,
                         tBTA_GATT_STATUS status, tBTA_GATTS_RSP *p_msg)
 {
     tBTA_GATTS_API_RSP  *p_buf;
@@ -418,7 +430,7 @@ void BTA_GATTS_SendRsp (UINT16 conn_id, UINT32 trans_id,
 **
 ** Description      Open a direct open connection or add a background auto connection
 **                  bd address
-**                  
+**
 ** Parameters       server_if: server interface.
 **                  remote_bda: remote device BD address.
 **                  is_direct: direct connection or background auto connection
@@ -449,7 +461,7 @@ void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN is_dire
 **
 ** Description      Cancel a direct open connection or remove a background auto connection
 **                  bd address
-**                  
+**
 ** Parameters       server_if: server interface.
 **                  remote_bda: remote device BD address.
 **                  is_direct: direct connection or background auto connection
@@ -477,7 +489,7 @@ void BTA_GATTS_CancelOpen(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN i
 ** Function         BTA_GATTS_Close
 **
 ** Description      Close a connection  a remote device.
-**                  
+**
 ** Parameters       conn_id: connectino ID to be closed.
 **
 ** Returns          void

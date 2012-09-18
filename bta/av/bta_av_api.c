@@ -1,15 +1,28 @@
-/*****************************************************************************
-**
-**  Name:           bta_av_api.c
-**
-**  Description:    This is the implementation of the API for the advanced
-**                  audio/video (AV) subsystem of BTA, Widcomm's Bluetooth 
-**                  application layer for mobile phones.
-**
-**  Copyright (c) 2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2011-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the implementation of the API for the advanced audio/video (AV)
+ *  subsystem of BTA, Broadcom's Bluetooth application layer for mobile
+ *  phones.
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 #if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
@@ -36,7 +49,7 @@ static const tBTA_SYS_REG bta_av_reg =
 **
 ** Function         BTA_AvEnable
 **
-** Description      Enable the advanced audio/video service. When the enable 
+** Description      Enable the advanced audio/video service. When the enable
 **                  operation is complete the callback function will be
 **                  called with a BTA_AV_ENABLE_EVT. This function must
 **                  be called before other function in the AV API are
@@ -89,7 +102,7 @@ void BTA_AvDisable(void)
 **
 ** Function         BTA_AvRegister
 **
-** Description      Register the audio or video service to stack. When the  
+** Description      Register the audio or video service to stack. When the
 **                  operation is complete the callback function will be
 **                  called with a BTA_AV_REGISTER_EVT. This function must
 **                  be called before AVDT stream is open.
@@ -324,7 +337,7 @@ void BTA_AvProtectReq(tBTA_AV_HNDL hndl, UINT8 *p_data, UINT16 len)
 ** Function         BTA_AvProtectRsp
 **
 ** Description      Send a content protection response.  This function must
-**                  be called if a BTA_AV_PROTECT_REQ_EVT is received.  
+**                  be called if a BTA_AV_PROTECT_REQ_EVT is received.
 **                  This function can only be used if AV is enabled with
 **                  feature BTA_AV_FEAT_PROTECT.
 **
@@ -424,7 +437,7 @@ void BTA_AvVendorCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE cmd_code, UINT8 
 ** Function         BTA_AvVendorRsp
 **
 ** Description      Send a vendor dependent remote control response.
-**                  This function must be called if a BTA_AV_VENDOR_CMD_EVT  
+**                  This function must be called if a BTA_AV_VENDOR_CMD_EVT
 **                  is received. This function can only be used if AV is
 **                  enabled with feature BTA_AV_FEAT_VENDOR.
 **

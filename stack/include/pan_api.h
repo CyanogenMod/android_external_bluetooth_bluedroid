@@ -1,13 +1,26 @@
-/*****************************************************************************
-**
-**  Name:          pan_api.h
-**
-**  Description:   this file contains the PAN API definitions
-**
-**
-**  Copyright (c) 2001-2004, WIDCOMM Inc., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2001-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  this file contains the PAN API definitions
+ *
+ ******************************************************************************/
 #ifndef PAN_API_H
 #define PAN_API_H
 
@@ -18,7 +31,7 @@
 *****************************************************************************/
 
 /* Define the minimum offset needed in a GKI buffer for
-** sending PAN packets. Note, we are currently not sending 
+** sending PAN packets. Note, we are currently not sending
 ** extension headers, but may in the future, so allow
 ** space for them
 */
@@ -81,7 +94,7 @@ typedef UINT8 tPAN_RESULT;
 **      to the application. The second parameter TRUE means
 **      to create the bridge and FALSE means to remove it.
 */
-typedef void (tPAN_CONN_STATE_CB) (UINT16 handle, BD_ADDR bd_addr, tPAN_RESULT state, BOOLEAN is_role_change, 
+typedef void (tPAN_CONN_STATE_CB) (UINT16 handle, BD_ADDR bd_addr, tPAN_RESULT state, BOOLEAN is_role_change,
                                         UINT8 src_role, UINT8 dst_role);
 
 
@@ -218,7 +231,7 @@ extern "C"
 **                  should set the PAN role explicitly.
 **
 ** Parameters:      p_register - contains all callback function pointers
-**                  
+**
 **
 ** Returns          none
 **
@@ -259,7 +272,7 @@ PAN_API extern void PAN_Deregister (void);
 **                  p_gn_name   - Service name for GN role
 **                  p_nap_name  - Service name for NAP role
 **                                      Can be NULL if user wants it to be default
-**                  
+**
 ** Returns          PAN_SUCCESS     - if the role is set successfully
 **                  PAN_FAILURE     - if the role is not valid
 **
@@ -274,7 +287,7 @@ PAN_API extern tPAN_RESULT PAN_SetRole (UINT8 role,
 **
 ** Function         PAN_Connect
 **
-** Description      This function is called by the application to initiate a 
+** Description      This function is called by the application to initiate a
 **                  connection to the remote device
 **
 ** Parameters:      rem_bda     - BD Addr of the remote device
@@ -284,7 +297,7 @@ PAN_API extern tPAN_RESULT PAN_SetRole (UINT8 role,
 **                                      PAN_ROLE_GN_SERVER is for GN role
 **                                      PAN_ROLE_NAP_SERVER is for NAP role
 **                  *handle     - Pointer for returning Handle to the connection
-**                  
+**
 ** Returns          PAN_SUCCESS      - if the connection is initiated successfully
 **                  PAN_NO_RESOURCES - resources are not sufficent
 **                  PAN_FAILURE      - if the connection cannot be initiated
@@ -299,10 +312,10 @@ PAN_API extern tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 d
 **
 ** Function         PAN_Disconnect
 **
-** Description      This is used to disconnect the connection 
+** Description      This is used to disconnect the connection
 **
 ** Parameters:      handle           - handle for the connection
-**                  
+**
 ** Returns          PAN_SUCCESS      - if the connection is closed successfully
 **                  PAN_FAILURE      - if the connection is not found or
 **                                           there is an error in disconnecting
@@ -327,7 +340,7 @@ PAN_API extern tPAN_RESULT PAN_Disconnect (UINT16 handle);
 **                  p_data   - pointer to the data
 **                  len      - length of the data
 **                  ext      - to indicate that extension headers present
-**                  
+**
 ** Returns          PAN_SUCCESS       - if the data is sent successfully
 **                  PAN_FAILURE       - if the connection is not found or
 **                                           there is an error in sending data
@@ -357,7 +370,7 @@ PAN_API extern tPAN_RESULT PAN_Write (UINT16 handle,
 **                  protocol - protocol of the ethernet packet like IP or ARP
 **                  p_buf    - pointer to the data buffer
 **                  ext      - to indicate that extension headers present
-**                  
+**
 ** Returns          PAN_SUCCESS       - if the data is sent successfully
 **                  PAN_FAILURE       - if the connection is not found or
 **                                           there is an error in sending data
@@ -380,7 +393,7 @@ PAN_API extern tPAN_RESULT PAN_WriteBuf (UINT16 handle,
 **                  num_filters - number of protocol filter ranges
 **                  start       - array of starting protocol numbers
 **                  end         - array of ending protocol numbers
-**                  
+**
 **
 ** Returns          PAN_SUCCESS        if protocol filters are set successfully
 **                  PAN_FAILURE        if connection not found or error in setting
@@ -403,7 +416,7 @@ PAN_API extern tPAN_RESULT PAN_SetProtocolFilters (UINT16 handle,
 **                                         multicast address ranges
 **                  p_end_array   - Pointer to sequence of ends of all
 **                                         multicast address ranges
-**                  
+**
 **
 ** Returns          PAN_SUCCESS        if multicast filters are set successfully
 **                  PAN_FAILURE        if connection not found or error in setting

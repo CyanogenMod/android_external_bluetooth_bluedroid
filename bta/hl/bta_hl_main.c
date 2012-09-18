@@ -1,14 +1,27 @@
-/*****************************************************************************
-**
-**  Name:           bta_hl_main.c
-**
-**  Description:    This file contains the HeaLth device profile main functions 
-**                  and state machine.
-**
-**  Copyright (c) 1998-2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1998-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the HeaLth device profile main functions and state
+ *  machine.
+ *
+ ******************************************************************************/
 #include <string.h>
 
 #include "bt_target.h"
@@ -76,7 +89,7 @@ enum
 
 typedef void (*tBTA_HL_DCH_ACTION)(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx, tBTA_HL_DATA *p_data);
 
-static const tBTA_HL_DCH_ACTION bta_hl_dch_action[] = 
+static const tBTA_HL_DCH_ACTION bta_hl_dch_action[] =
 {
     bta_hl_dch_mca_create,
     bta_hl_dch_mca_create_cfm,
@@ -361,7 +374,7 @@ static const UINT8 bta_hl_cch_st_closing[][BTA_HL_CCH_NUM_COLS] =
 /* BTA_HL_CCH_OPEN_EVT           */ {BTA_HL_CCH_IGNORE,         BTA_HL_CCH_CLOSING_ST},
 /* BTA_HL_CCH_SDP_OK_EVT         */ {BTA_HL_CCH_CLOSE_CMPL,     BTA_HL_CCH_IDLE_ST},
 /* BTA_HL_CCH_SDP_FAIL_EVT       */ {BTA_HL_CCH_CLOSE_CMPL,     BTA_HL_CCH_IDLE_ST},
-/* BTA_HL_MCA_CONNECT_IND_EVT    */ {BTA_HL_CCH_MCA_CONNECT,    BTA_HL_CCH_OPEN_ST}, 
+/* BTA_HL_MCA_CONNECT_IND_EVT    */ {BTA_HL_CCH_MCA_CONNECT,    BTA_HL_CCH_OPEN_ST},
 /* BTA_HL_MCA_DISCONNECT_IND_EVT */ {BTA_HL_CCH_MCA_DISCONNECT, BTA_HL_CCH_CLOSING_ST},
 /* BTA_HL_CCH_CLOSE_EVT          */ {BTA_HL_CCH_MCA_CLOSE,      BTA_HL_CCH_CLOSING_ST},
 /* BTA_HL_CCH_CLOSE_CMPL_EVT     */ {BTA_HL_CCH_CLOSE_CMPL,     BTA_HL_CCH_IDLE_ST},
@@ -396,11 +409,11 @@ tBTA_HL_CB  bta_hl_cb;
 ** Function         bta_hl_cch_sm_execute
 **
 ** Description      State machine event handling function for CCH
-** 
+**
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hl_cch_sm_execute(UINT8 app_idx, UINT8 mcl_idx, 
+void bta_hl_cch_sm_execute(UINT8 app_idx, UINT8 mcl_idx,
                            UINT16 event, tBTA_HL_DATA *p_data)
 {
     tBTA_HL_CCH_ST_TBL  state_table;
@@ -458,7 +471,7 @@ void bta_hl_cch_sm_execute(UINT8 app_idx, UINT8 mcl_idx,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hl_dch_sm_execute(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx, 
+void bta_hl_dch_sm_execute(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
                            UINT16 event, tBTA_HL_DATA *p_data)
 {
     tBTA_HL_DCH_ST_TBL  state_table;
@@ -496,7 +509,7 @@ void bta_hl_dch_sm_execute(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
     }
 
 
-#if (BTA_HL_DEBUG == TRUE) && (BT_USE_TRACES == TRUE) 
+#if (BTA_HL_DEBUG == TRUE) && (BT_USE_TRACES == TRUE)
     if (in_state != p_cb->dch_state)
     {
         APPL_TRACE_DEBUG3("HL DCH State Change: [%s] -> [%s] after [%s]",
@@ -511,7 +524,7 @@ void bta_hl_dch_sm_execute(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
 ** Function         bta_hl_api_enable
 **
 ** Description      Process the API enable request to enable the HL subsystem
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -523,7 +536,7 @@ static void bta_hl_api_enable(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     if (p_cb->enable)
     {
         APPL_TRACE_ERROR0("HL is already enabled");
-        evt_data.enable_cfm.status = BTA_HL_STATUS_FAIL; 
+        evt_data.enable_cfm.status = BTA_HL_STATUS_FAIL;
         if (p_data->api_enable.p_cback)
             p_data->api_enable.p_cback(BTA_HL_CTRL_ENABLE_CFM_EVT, (tBTA_HL_CTRL *) &evt_data);
         return;
@@ -534,7 +547,7 @@ static void bta_hl_api_enable(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     memset(p_cb, 0, sizeof(tBTA_HL_CB));
     p_cb->enable = TRUE;
     p_cb->p_ctrl_cback = p_data->api_enable.p_cback;
-    evt_data.enable_cfm.status = BTA_HL_STATUS_OK; 
+    evt_data.enable_cfm.status = BTA_HL_STATUS_OK;
     if (p_data->api_enable.p_cback)
         p_data->api_enable.p_cback(BTA_HL_CTRL_ENABLE_CFM_EVT, (tBTA_HL_CTRL *) &evt_data);
 
@@ -551,7 +564,7 @@ static void bta_hl_api_enable(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 static void bta_hl_api_disable(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL_CTRL    evt_data;
-    tBTA_HL_STATUS  status = BTA_HL_STATUS_OK; 
+    tBTA_HL_STATUS  status = BTA_HL_STATUS_OK;
 
     if (p_cb->enable)
     {
@@ -561,7 +574,7 @@ static void bta_hl_api_disable(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     else
     {
         status = BTA_HL_STATUS_FAIL;
-        evt_data.disable_cfm.status = status; 
+        evt_data.disable_cfm.status = status;
         if (p_cb->p_ctrl_cback) p_cb->p_ctrl_cback(BTA_HL_CTRL_DISABLE_CFM_EVT, (tBTA_HL_CTRL *) &evt_data);
     }
 
@@ -580,7 +593,7 @@ static void bta_hl_api_disable(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 ** Function         bta_hl_api_register
 **
 ** Description      Process the API registration request to register an HDP applciation
-**              
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -589,7 +602,7 @@ static void bta_hl_api_register(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     tBTA_HL         evt_data;
     UINT8           app_idx;
     tBTA_HL_APP_CB  *p_acb;
-    tBTA_HL_STATUS  status = BTA_HL_STATUS_FAIL; 
+    tBTA_HL_STATUS  status = BTA_HL_STATUS_FAIL;
 
     if (p_cb->enable)
     {
@@ -606,7 +619,7 @@ static void bta_hl_api_register(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
                 BCM_STRNCPY_S(p_acb->srv_name, sizeof(p_acb->srv_name), p_data->api_reg.srv_name, BTA_SERVICE_NAME_LEN);
                 BCM_STRNCPY_S(p_acb->srv_desp, sizeof(p_acb->srv_desp), p_data->api_reg.srv_desp, BTA_SERVICE_DESP_LEN);
                 BCM_STRNCPY_S(p_acb->provider_name, sizeof(p_acb->provider_name), p_data->api_reg.provider_name, BTA_PROVIDER_NAME_LEN);
-                bta_hl_cb.p_alloc_psm = L2CA_AllocatePSM;   
+                bta_hl_cb.p_alloc_psm = L2CA_AllocatePSM;
                 p_acb->ctrl_psm = bta_hl_cb.p_alloc_psm();
                 p_acb->data_psm = bta_hl_cb.p_alloc_psm();
                 p_acb->p_mcap_cback = bta_hl_mcap_ctrl_cback;
@@ -614,12 +627,12 @@ static void bta_hl_api_register(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
             }
             else
             {
-                status = BTA_HL_STATUS_NO_RESOURCE; 
+                status = BTA_HL_STATUS_NO_RESOURCE;
             }
         }
         else
         {
-            status = BTA_HL_STATUS_DUPLICATE_APP_ID; 
+            status = BTA_HL_STATUS_DUPLICATE_APP_ID;
         }
     }
 
@@ -665,7 +678,7 @@ static void bta_hl_api_register(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_api_deregister
 **
-** Description      Process the API de-registration request  
+** Description      Process the API de-registration request
 **
 ** Returns          void
 **
@@ -692,7 +705,7 @@ static void bta_hl_api_deregister(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_api_cch_open
 **
-** Description      Process the API CCH open request  
+** Description      Process the API CCH open request
 **
 ** Returns          void
 **
@@ -714,7 +727,7 @@ static void bta_hl_api_cch_open(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
             {
                 p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
                 p_mcb->in_use = TRUE;
-                p_mcb->req_ctrl_psm = p_data->api_cch_open.ctrl_psm; 
+                p_mcb->req_ctrl_psm = p_data->api_cch_open.ctrl_psm;
                 p_mcb->sec_mask = p_data->api_cch_open.sec_mask;
                 bdcpy(p_mcb->bd_addr, p_data->api_cch_open.bd_addr);
                 p_mcb->cch_oper = BTA_HL_CCH_OP_LOCAL_OPEN;
@@ -750,7 +763,7 @@ static void bta_hl_api_cch_open(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
             bta_hl_build_cch_open_cfm(&evt_data, p_data->api_cch_open.app_handle,
                                       0,
                                       p_data->api_cch_open.bd_addr,
-                                      status); 
+                                      status);
             p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
             p_acb->p_cback(BTA_HL_CCH_OPEN_CFM_EVT,(tBTA_HL *) &evt_data );
             break;
@@ -764,8 +777,8 @@ static void bta_hl_api_cch_open(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_api_cch_close
 **
-** Description      Process the API CCH close request  
-**               
+** Description      Process the API CCH close request
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -800,7 +813,7 @@ static void bta_hl_api_cch_close(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 
         case BTA_HL_STATUS_FAIL:
             p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
-            bta_hl_build_cch_close_cfm(&evt_data, 
+            bta_hl_build_cch_close_cfm(&evt_data,
                                        p_acb->app_handle,
                                        p_data->api_cch_close.mcl_handle,
                                        status);
@@ -819,7 +832,7 @@ static void bta_hl_api_cch_close(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_api_dch_open
 **
-** Description      Process the API DCH open request  
+** Description      Process the API DCH open request
 **
 ** Returns          void
 **
@@ -863,28 +876,28 @@ static void bta_hl_api_dch_open(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
                             if (bta_hl_set_ctrl_psm_for_dch(app_idx, mcl_idx, mdl_idx, p_data->api_dch_open.ctrl_psm))
                             {
                                 p_mdep_cfg = BTA_HL_GET_MDEP_CFG_PTR(app_idx, mdep_cfg_idx);
-                                p_dcb->in_use                   = TRUE;                                                
+                                p_dcb->in_use                   = TRUE;
                                 p_dcb->dch_oper                 = BTA_HL_DCH_OP_LOCAL_OPEN;
-                                p_dcb->sec_mask                 = p_data->api_dch_open.sec_mask;                       
-                                p_dcb->local_mdep_id            = p_data->api_dch_open.local_mdep_id;  
+                                p_dcb->sec_mask                 = p_data->api_dch_open.sec_mask;
+                                p_dcb->local_mdep_id            = p_data->api_dch_open.local_mdep_id;
                                 p_dcb->peer_mdep_id             = p_data->api_dch_open.peer_mdep_id;
 
                                 if (p_mdep_cfg->mdep_role == BTA_HL_MDEP_ROLE_SINK)
                                 {
-                                    p_dcb->peer_mdep_role = BTA_HL_MDEP_ROLE_SOURCE;              
+                                    p_dcb->peer_mdep_role = BTA_HL_MDEP_ROLE_SOURCE;
                                 }
                                 else
                                 {
                                     p_dcb->peer_mdep_role = BTA_HL_MDEP_ROLE_SINK;
                                 }
 
-                                p_dcb->local_mdep_cfg_idx   = mdep_cfg_idx;                                        
-                                p_dcb->local_cfg            = p_data->api_dch_open.local_cfg;       
+                                p_dcb->local_mdep_cfg_idx   = mdep_cfg_idx;
+                                p_dcb->local_cfg            = p_data->api_dch_open.local_cfg;
 
                                 bta_hl_find_rxtx_apdu_size(app_idx, mdep_cfg_idx,
-                                                           &p_dcb->max_rx_apdu_size, 
+                                                           &p_dcb->max_rx_apdu_size,
                                                            &p_dcb->max_tx_apdu_size);
-                                p_dcb->mdl_id               = bta_hl_allocate_mdl_id(app_idx,mcl_idx,mdl_idx);        
+                                p_dcb->mdl_id               = bta_hl_allocate_mdl_id(app_idx,mcl_idx,mdl_idx);
                                 p_dcb->mdl_cfg_idx_included = FALSE;
                             }
                             else
@@ -896,7 +909,7 @@ static void bta_hl_api_dch_open(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
                         else
                         {
                             status =  BTA_HL_STATUS_INVALID_LOCAL_MDEP_ID;
-                        }                                                                                      
+                        }
                     }
                 }
                 else
@@ -945,7 +958,7 @@ static void bta_hl_api_dch_open(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
         case BTA_HL_STATUS_INVALID_LOCAL_MDEP_ID:
         case BTA_HL_STATUS_INVALID_CTRL_PSM:
             p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
-            bta_hl_build_dch_open_cfm(&evt_data, 
+            bta_hl_build_dch_open_cfm(&evt_data,
                                       p_acb->app_handle,
                                       p_data->api_dch_open.mcl_handle,
                                       BTA_HL_INVALID_MDL_HANDLE,
@@ -963,8 +976,8 @@ static void bta_hl_api_dch_open(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_api_dch_close
 **
-** Description      Process the API DCH close request  
-**               
+** Description      Process the API DCH close request
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -1006,7 +1019,7 @@ static void bta_hl_api_dch_close(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
         case BTA_HL_STATUS_FAIL:
             p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
             p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-            bta_hl_build_dch_close_cfm(&evt_data, 
+            bta_hl_build_dch_close_cfm(&evt_data,
                                        p_acb->app_handle,
                                        p_mcb->mcl_handle,
                                        p_data->api_dch_close.mdl_handle,
@@ -1025,8 +1038,8 @@ static void bta_hl_api_dch_close(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_api_dch_reconnect
 **
-** Description      Process the API DCH reconnect request  
-**                
+** Description      Process the API DCH reconnect request
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -1050,7 +1063,7 @@ static void bta_hl_api_dch_reconnect(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
             if (bta_hl_find_avail_mdl_idx(app_idx, mcl_idx, &mdl_idx))
             {
                 p_dcb = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
-                if (bta_hl_validate_reconnect_params(app_idx, mcl_idx,  &(p_data->api_dch_reconnect), 
+                if (bta_hl_validate_reconnect_params(app_idx, mcl_idx,  &(p_data->api_dch_reconnect),
                                                      &mdep_cfg_idx, &mdl_cfg_idx ))
                 {
                     if (!bta_hl_is_the_first_reliable_existed(app_idx, mcl_idx) &&
@@ -1065,15 +1078,15 @@ static void bta_hl_api_dch_reconnect(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
                             p_dcb->in_use                   = TRUE;
                             p_dcb->dch_oper                 = BTA_HL_DCH_OP_LOCAL_RECONNECT;
                             p_dcb->sec_mask                 = (BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT);
-                            p_dcb->local_mdep_id            = p_acb->mdl_cfg[mdl_cfg_idx].local_mdep_id; 
+                            p_dcb->local_mdep_id            = p_acb->mdl_cfg[mdl_cfg_idx].local_mdep_id;
                             p_dcb->local_mdep_cfg_idx       = mdep_cfg_idx;
-                            p_dcb->local_cfg                = BTA_HL_DCH_CFG_UNKNOWN;  
+                            p_dcb->local_cfg                = BTA_HL_DCH_CFG_UNKNOWN;
                             p_dcb->mdl_id                   = p_data->api_dch_reconnect.mdl_id;
                             p_dcb->mdl_cfg_idx_included     = TRUE;
                             p_dcb->mdl_cfg_idx              = mdl_cfg_idx;
                             p_dcb->dch_mode                 = p_acb->mdl_cfg[mdl_cfg_idx].dch_mode;
                             bta_hl_find_rxtx_apdu_size(app_idx, mdep_cfg_idx,
-                                                       &p_dcb->max_rx_apdu_size, 
+                                                       &p_dcb->max_rx_apdu_size,
                                                        &p_dcb->max_tx_apdu_size);
                         }
                         else
@@ -1118,7 +1131,7 @@ static void bta_hl_api_dch_reconnect(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
             }
             else
             {
-                bta_hl_dch_sm_execute(app_idx, mcl_idx, mdl_idx, BTA_HL_DCH_SDP_INIT_EVT, p_data);    
+                bta_hl_dch_sm_execute(app_idx, mcl_idx, mdl_idx, BTA_HL_DCH_SDP_INIT_EVT, p_data);
             }
             break;
         case BTA_HL_STATUS_INVALID_RECONNECT_CFG:
@@ -1129,7 +1142,7 @@ static void bta_hl_api_dch_reconnect(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
             bta_hl_build_dch_open_cfm(&evt_data,
                                       p_acb->app_handle,
                                       p_data->api_dch_reconnect.mcl_handle,
-                                      BTA_HL_INVALID_MDL_HANDLE, 
+                                      BTA_HL_INVALID_MDL_HANDLE,
                                       0,p_data->api_dch_reconnect.mdl_id,0,0,0, status);
             p_acb->p_cback(BTA_HL_DCH_RECONNECT_CFM_EVT,(tBTA_HL *) &evt_data );
             break;
@@ -1143,8 +1156,8 @@ static void bta_hl_api_dch_reconnect(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_api_dch_echo_test
 **
-** Description      Process the API Echo test request  
-**             
+** Description      Process the API Echo test request
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -1189,8 +1202,8 @@ static void bta_hl_api_dch_echo_test(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
                                 p_dcb->mdl_cfg_idx_included     = FALSE;
                                 p_echo_cfg                      = BTA_HL_GET_ECHO_CFG_PTR(app_idx);
                                 p_dcb->max_rx_apdu_size         = p_echo_cfg->max_rx_apdu_size;
-                                p_dcb->max_tx_apdu_size         = p_echo_cfg->max_tx_apdu_size; 
-                                p_mcb->echo_test                = TRUE; 
+                                p_dcb->max_tx_apdu_size         = p_echo_cfg->max_tx_apdu_size;
+                                p_mcb->echo_test                = TRUE;
                                 p_mcb->echo_mdl_idx             = mdl_idx;
                             }
                             else
@@ -1251,9 +1264,9 @@ static void bta_hl_api_dch_echo_test(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
         case BTA_HL_STATUS_ECHO_TEST_BUSY:
         case BTA_HL_STATUS_NO_RESOURCE:
         case BTA_HL_STATUS_INVALID_DCH_CFG:
-            bta_hl_build_echo_test_cfm(&evt_data, 
+            bta_hl_build_echo_test_cfm(&evt_data,
                                        p_acb->app_handle,
-                                       p_mcb->mcl_handle, 
+                                       p_mcb->mcl_handle,
                                        status);
             p_acb->p_cback(BTA_HL_DCH_ECHO_TEST_CFM_EVT,(tBTA_HL *) &evt_data );
             break;
@@ -1269,7 +1282,7 @@ static void bta_hl_api_dch_echo_test(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_api_sdp_query
 **
-** Description      Process the API SDP query request  
+** Description      Process the API SDP query request
 **
 ** Returns          void
 **
@@ -1320,7 +1333,7 @@ static void bta_hl_api_sdp_query(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     if (status == BTA_HL_STATUS_OK)
     {
         status = bta_hl_init_sdp( p_mcb->sdp_oper, app_idx, mcl_idx, 0xFF);
-        if ( (status != BTA_HL_STATUS_OK) && 
+        if ( (status != BTA_HL_STATUS_OK) &&
              (p_mcb->sdp_oper == BTA_HL_SDP_OP_SDP_QUERY_NEW) )
         {
             memset(p_mcb, 0 ,sizeof(tBTA_HL_MCL_CB));
@@ -1338,8 +1351,8 @@ static void bta_hl_api_sdp_query(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
         case BTA_HL_STATUS_FAIL:
         case BTA_HL_STATUS_SDP_NO_RESOURCE:
             bta_hl_build_sdp_query_cfm(&evt_data,
-                                       p_data->api_sdp_query.app_handle, 
-                                       p_data->api_sdp_query.bd_addr, 
+                                       p_data->api_sdp_query.app_handle,
+                                       p_data->api_sdp_query.bd_addr,
                                        NULL,
                                        status);
             p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
@@ -1360,7 +1373,7 @@ static void bta_hl_api_sdp_query(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_sdp_query_results
 **
-** Description      Process the SDP query results  
+** Description      Process the SDP query results
 **
 ** Returns          void
 **
@@ -1438,8 +1451,8 @@ static void bta_hl_sdp_query_results(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_api_delete_mdl
 **
-** Description      Process the API DELETE MDL request  
-**               
+** Description      Process the API DELETE MDL request
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -1470,7 +1483,7 @@ static void bta_hl_api_delete_mdl(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
                                p_data->api_delete_mdl.mdl_id)!= MCA_SUCCESS)
                 {
                     status = BTA_HL_STATUS_FAIL;
-                    memset(&p_mcb->delete_mdl, 0, sizeof(tBTA_HL_DELETE_MDL));                        
+                    memset(&p_mcb->delete_mdl, 0, sizeof(tBTA_HL_DELETE_MDL));
                 }
             }
             else
@@ -1505,7 +1518,7 @@ static void bta_hl_api_delete_mdl(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
             bta_hl_build_delete_mdl_cfm(&evt_data,
                                         p_acb->app_handle,
                                         p_data->api_delete_mdl.mcl_handle,
-                                        p_data->api_delete_mdl.mdl_id, 
+                                        p_data->api_delete_mdl.mdl_id,
                                         status);
 
             p_acb->p_cback(BTA_HL_DELETE_MDL_CFM_EVT,(tBTA_HL *) &evt_data );
@@ -1521,8 +1534,8 @@ static void bta_hl_api_delete_mdl(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_mca_delete_mdl_cfm
 **
-** Description      Process the DELETE MDL confirmation event  
-**               
+** Description      Process the DELETE MDL confirmation event
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -1556,7 +1569,7 @@ static void bta_hl_mca_delete_mdl_cfm(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
                 status = BTA_HL_STATUS_FAIL;
             }
 
-            memset(&p_mcb->delete_mdl, 0, sizeof(tBTA_HL_DELETE_MDL)); 
+            memset(&p_mcb->delete_mdl, 0, sizeof(tBTA_HL_DELETE_MDL));
         }
         else
         {
@@ -1581,7 +1594,7 @@ static void bta_hl_mca_delete_mdl_cfm(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
         bta_hl_build_delete_mdl_cfm(&evt_data,
                                     p_acb->app_handle,
                                     p_mcb->mcl_handle,
-                                    p_delete_cfm->mdl_id, 
+                                    p_delete_cfm->mdl_id,
                                     status);
 
         p_acb->p_cback(BTA_HL_DELETE_MDL_CFM_EVT,(tBTA_HL *) &evt_data );
@@ -1592,8 +1605,8 @@ static void bta_hl_mca_delete_mdl_cfm(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_mca_delete_mdl_ind
 **
-** Description      Process the DELETE MDL indication event 
-**                
+** Description      Process the DELETE MDL indication event
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -1647,8 +1660,8 @@ static void bta_hl_mca_delete_mdl_ind(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 **
 ** Function         bta_hl_api_dch_abort
 **
-** Description      Process the API DCH abort request  
-**            
+** Description      Process the API DCH abort request
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -1707,9 +1720,9 @@ static void bta_hl_api_dch_abort(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 
             p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
             p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
-            bta_hl_build_abort_cfm(&evt_data, 
+            bta_hl_build_abort_cfm(&evt_data,
                                    p_acb->app_handle,
-                                   p_mcb->mcl_handle, 
+                                   p_mcb->mcl_handle,
                                    BTA_HL_STATUS_FAIL);
             p_acb->p_cback(BTA_HL_DCH_ABORT_CFM_EVT,(tBTA_HL *) &evt_data );
             break;
@@ -1726,7 +1739,7 @@ static void bta_hl_api_dch_abort(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 ** Function         bta_hl_hdl_event
 **
 ** Description      HL main event handling function.
-** 
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -1736,7 +1749,7 @@ BOOLEAN bta_hl_hdl_event(BT_HDR *p_msg)
     BOOLEAN success = TRUE;
 
 #if BTA_HL_DEBUG == TRUE
-    APPL_TRACE_DEBUG1("BTA HL Event Handler: Event [%s]", 
+    APPL_TRACE_DEBUG1("BTA HL Event Handler: Event [%s]",
                       bta_hl_evt_code(p_msg->event));
 #endif
 
@@ -1803,14 +1816,14 @@ BOOLEAN bta_hl_hdl_event(BT_HDR *p_msg)
             {
                 if (bta_hl_find_cch_cb_indexes((tBTA_HL_DATA *) p_msg, &app_idx, &mcl_idx))
                 {
-                    bta_hl_cch_sm_execute( app_idx, 
-                                           mcl_idx, 
+                    bta_hl_cch_sm_execute( app_idx,
+                                           mcl_idx,
                                            p_msg->event, (tBTA_HL_DATA *) p_msg);
                 }
                 else
                 {
 #if BTA_HL_DEBUG == TRUE
-                    APPL_TRACE_ERROR1("unable to find control block indexes for CCH: [event=%s]",  
+                    APPL_TRACE_ERROR1("unable to find control block indexes for CCH: [event=%s]",
                                       bta_hl_evt_code(p_msg->event));
 #else
                     APPL_TRACE_ERROR1("unable to find control block indexes for CCH: [event=%d]", p_msg->event);
@@ -1822,16 +1835,16 @@ BOOLEAN bta_hl_hdl_event(BT_HDR *p_msg)
             {
                 if (bta_hl_find_dch_cb_indexes((tBTA_HL_DATA *) p_msg, &app_idx, &mcl_idx, &mdl_idx))
                 {
-                    bta_hl_dch_sm_execute( app_idx, 
-                                           mcl_idx, 
+                    bta_hl_dch_sm_execute( app_idx,
+                                           mcl_idx,
                                            mdl_idx,
                                            p_msg->event, (tBTA_HL_DATA *) p_msg);
                 }
                 else
                 {
-                    
+
 #if BTA_HL_DEBUG == TRUE
-                    APPL_TRACE_ERROR1("unable to find control block indexes for DCH : [event=%s]",  
+                    APPL_TRACE_ERROR1("unable to find control block indexes for DCH : [event=%s]",
                                       bta_hl_evt_code(p_msg->event));
 #else
                     APPL_TRACE_ERROR1("unable to find control block indexes for DCH: [event=%d]", p_msg->event);
@@ -1849,14 +1862,14 @@ BOOLEAN bta_hl_hdl_event(BT_HDR *p_msg)
 
 /*****************************************************************************
 **  Debug Functions
-*****************************************************************************/ 
+*****************************************************************************/
 #if (BTA_HL_DEBUG == TRUE) && (BT_USE_TRACES == TRUE)
 
 /*******************************************************************************
 **
 ** Function         bta_hl_cch_state_code
 **
-** Description      Map CCH state code to the corresponding state string     
+** Description      Map CCH state code to the corresponding state string
 **
 ** Returns          string pointer for the associated state name
 **
@@ -1882,7 +1895,7 @@ static char *bta_hl_cch_state_code(tBTA_HL_CCH_STATE state_code)
 **
 ** Function         bta_hl_dch_state_code
 **
-** Description      Map DCH state code to the corresponding state string     
+** Description      Map DCH state code to the corresponding state string
 **
 ** Returns          string pointer for the associated state name
 **

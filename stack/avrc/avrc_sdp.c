@@ -1,13 +1,26 @@
-/*****************************************************************************
-**
-**  Name:       avrc_sdp.c
-**
-**  Description: AVRCP SDP related functions
-**
-**  Copyright (c) 2003-2006, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  AVRCP SDP related functions
+ *
+ ******************************************************************************/
 #include <string.h>
 
 #include "gki.h"
@@ -22,7 +35,7 @@ tAVRC_CB avrc_cb;
 #endif
 
 /* update AVRC_NUM_PROTO_ELEMS if this constant is changed */
-const tSDP_PROTOCOL_ELEM  avrc_proto_list [] = 
+const tSDP_PROTOCOL_ELEM  avrc_proto_list [] =
 {
     {UUID_PROTOCOL_L2CAP, 1, {AVCT_PSM, 0} },
     {UUID_PROTOCOL_AVCTP, 1, {AVCT_REV_1_0, 0}  }
@@ -65,7 +78,7 @@ static void avrc_sdp_cback(UINT16 status)
 ** Description      This function is called by the application to perform service
 **                  discovery and retrieve AVRCP SDP record information from a
 **                  peer device.  Information is returned for the first service
-**                  record found on the server that matches the service UUID.  
+**                  record found on the server that matches the service UUID.
 **                  The callback function will be executed when service discovery
 **                  is complete.  There can only be one outstanding call to
 **                  AVRC_FindService() at a time; the application must wait for
@@ -83,7 +96,7 @@ static void avrc_sdp_cback(UINT16 status)
 **                      bd_addr:  BD address of the peer device.
 **
 **                      p_db:  SDP discovery database parameters.
-**                      
+**
 **                      p_cback:  Pointer to the callback function.
 **
 **                  Output Parameters:
@@ -113,7 +126,7 @@ UINT16 AVRC_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
         return AVRC_BAD_PARAM;
 
     /* check if it is busy */
-    if( avrc_cb.service_uuid == UUID_SERVCLASS_AV_REM_CTRL_TARGET || 
+    if( avrc_cb.service_uuid == UUID_SERVCLASS_AV_REM_CTRL_TARGET ||
         avrc_cb.service_uuid == UUID_SERVCLASS_AV_REMOTE_CONTROL)
         return AVRC_NO_RESOURCES;
 
@@ -149,7 +162,7 @@ UINT16 AVRC_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
 ** Function         AVRC_AddRecord
 **
 ** Description      This function is called to build an AVRCP SDP record.
-**                  Prior to calling this function the application must 
+**                  Prior to calling this function the application must
 **                  call SDP_CreateRecord() to create an SDP record.
 **
 **                  Input Parameters:

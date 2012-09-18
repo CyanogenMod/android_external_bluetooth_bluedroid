@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_ag_ci.h
-**
-**  Description:    This is the interface file for audio gateway call-in
-**                  functions.
-**
-**  Copyright (c) 2003, Widcomm Inc., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the interface file for audio gateway call-in functions.
+ *
+ ******************************************************************************/
 #ifndef BTA_AG_CI_H
 #define BTA_AG_CI_H
 
@@ -26,11 +38,11 @@ extern "C"
 **
 ** Function         bta_ag_ci_rx_write
 **
-** Description      This function is called to send data to the AG when the AG 
+** Description      This function is called to send data to the AG when the AG
 **                  is configured for AT command pass-through.  The function
-**                  copies data to an event buffer and sends it.                 
+**                  copies data to an event buffer and sends it.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 BTA_API extern void bta_ag_ci_rx_write(UINT16 handle, char *p_data, UINT16 len);
@@ -39,11 +51,11 @@ BTA_API extern void bta_ag_ci_rx_write(UINT16 handle, char *p_data, UINT16 len);
 **
 ** Function         bta_ag_ci_slc_ready
 **
-** Description      This function is called to notify AG that SLC is up at 
+** Description      This function is called to notify AG that SLC is up at
 **                  the application. This funcion is only used when the app
 **                  is running in pass-through mode.
 **
-** Returns          void 
+** Returns          void
 **
 ******************************************************************************/
 BTA_API extern void bta_ag_ci_slc_ready(UINT16 handle);
@@ -56,7 +68,7 @@ BTA_API extern void bta_ag_ci_slc_ready(UINT16 handle);
 ** Description      This function is called to notify AG that a WBS command is
 **                  received
 **
-** Returns          void 
+** Returns          void
 **
 ******************************************************************************/
 BTA_API extern void bta_ag_ci_wbs_command (UINT16 handle, char *p_data, UINT16 len);

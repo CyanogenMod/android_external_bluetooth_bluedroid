@@ -1,13 +1,27 @@
-/*****************************************************************************/
-/*                                                                           */
-/*  Name:          sdp_server.c                                              */
-/*                                                                           */
-/*  Description:   this file contains functions that handle the SDP server   */
-/*                 functions. This is mainly dealing with client requests    */
-/*                                                                           */
-/*  Copyright (c) 1999-2004, WIDCOMM Inc., All Rights Reserved.              */
-/*  WIDCOMM Bluetooth Core. Proprietary and confidential.                    */
-/*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains functions that handle the SDP server functions.
+ *  This is mainly dealing with client requests
+ *
+ ******************************************************************************/
 
 #include <stdlib.h>
 #include <string.h>
@@ -217,7 +231,7 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
 
     /* Calculate how many handles will fit in one PDU */
     cur_handles = (UINT16)((p_ccb->rem_mtu_size - SDP_MAX_SERVICE_RSPHDR_LEN) / 4);
-    
+
     if (rem_handles <= cur_handles)
         cur_handles = rem_handles;
     else /* Continuation is set */
@@ -405,7 +419,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
             /* if there is a partial attribute pending to be sent */
             if (p_ccb->cont_info.attr_offset)
             {
-                p_rsp = sdpu_build_partial_attrib_entry (p_rsp, p_attr, rem_len, 
+                p_rsp = sdpu_build_partial_attrib_entry (p_rsp, p_attr, rem_len,
                                                          &p_ccb->cont_info.attr_offset);
 
                 /* If the partial attrib could not been fully added yet */

@@ -1,15 +1,27 @@
-/*****************************************************************************
-**
-**  Name:          hcicmds.c
-**
-**  Description:   This file contains function of the HCIC unit to
-**                 format and send HCI commands.
-**
-**
-**  Copyright (c) 1999-2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains function of the HCIC unit to format and send HCI
+ *  commands.
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 #include "gki.h"
@@ -71,7 +83,7 @@ BOOLEAN btsnd_hcic_inq_cancel(void)
     return (TRUE);
 }
 
-BOOLEAN btsnd_hcic_per_inq_mode (UINT16 max_period, UINT16 min_period, 
+BOOLEAN btsnd_hcic_per_inq_mode (UINT16 max_period, UINT16 min_period,
                                  const LAP inq_lap, UINT8 duration, UINT8 response_cnt)
 {
     BT_HDR *p;
@@ -325,7 +337,7 @@ BOOLEAN btsnd_hcic_link_key_neg_reply (BD_ADDR bd_addr)
     return (TRUE);
 }
 
-BOOLEAN btsnd_hcic_pin_code_req_reply (BD_ADDR bd_addr, UINT8 pin_code_len, 
+BOOLEAN btsnd_hcic_pin_code_req_reply (BD_ADDR bd_addr, UINT8 pin_code_len,
                                     PIN_CODE pin_code)
 {
     BT_HDR *p;
@@ -348,7 +360,7 @@ BOOLEAN btsnd_hcic_pin_code_req_reply (BD_ADDR bd_addr, UINT8 pin_code_len,
 
     for (i = 0; i < pin_code_len; i++)
         *pp++ = *pin_code++;
-    
+
     for (; i < PIN_CODE_LEN; i++)
         *pp++ = 0;
 
@@ -793,7 +805,7 @@ BOOLEAN btsnd_hcic_sniff_mode (UINT16 handle, UINT16 max_sniff_period,
 }
 
 BOOLEAN btsnd_hcic_exit_sniff_mode (UINT16 handle)
-{ 
+{
     BT_HDR *p;
     UINT8 *pp;
 
@@ -840,7 +852,7 @@ BOOLEAN btsnd_hcic_park_mode (UINT16 handle, UINT16 beacon_max_interval,
 }
 
 BOOLEAN btsnd_hcic_exit_park_mode (UINT16 handle)
-{ 
+{
     BT_HDR *p;
     UINT8 *pp;
 
@@ -864,7 +876,7 @@ BOOLEAN btsnd_hcic_exit_park_mode (UINT16 handle)
 BOOLEAN btsnd_hcic_qos_setup (UINT16 handle, UINT8 flags, UINT8 service_type,
                               UINT32 token_rate, UINT32 peak, UINT32 latency,
                               UINT32 delay_var)
-{ 
+{
     BT_HDR *p;
     UINT8 *pp;
 
@@ -1025,7 +1037,7 @@ BOOLEAN btsnd_hcic_flow_specification(UINT16 handle, UINT8 flags, UINT8 flow_dir
                                       UINT8  service_type, UINT32 token_rate,
                                       UINT32 token_bucket_size, UINT32 peak,
                                       UINT32 latency)
-{ 
+{
     BT_HDR *p;
     UINT8 *pp;
 
@@ -1287,7 +1299,7 @@ BOOLEAN btsnd_hcic_read_stored_key (BD_ADDR bd_addr, BOOLEAN read_all_flag)
 
 BOOLEAN btsnd_hcic_write_stored_key (UINT8 num_keys, BD_ADDR *bd_addr,
                                      LINK_KEY *link_key)
-{    
+{
     BT_HDR *p;
     UINT8 *pp;
     int j;
@@ -1981,7 +1993,7 @@ BOOLEAN btsnd_hcic_set_host_flow_ctrl (UINT8 value)
     return (TRUE);
 }
 
-BOOLEAN btsnd_hcic_set_host_buf_size (UINT16 acl_len, UINT8 sco_len, 
+BOOLEAN btsnd_hcic_set_host_buf_size (UINT16 acl_len, UINT8 sco_len,
                                       UINT16 acl_num, UINT16 sco_num)
 {
     BT_HDR *p;
@@ -2237,9 +2249,9 @@ BOOLEAN btsnd_hcic_write_page_scan_mode (UINT8 mode)
 *******************************************/
 #if BTM_SSR_INCLUDED == TRUE
 
-BOOLEAN btsnd_hcic_sniff_sub_rate(UINT16 handle, UINT16 max_lat, 
+BOOLEAN btsnd_hcic_sniff_sub_rate(UINT16 handle, UINT16 max_lat,
                                   UINT16 min_remote_lat, UINT16 min_local_lat)
-{ 
+{
     BT_HDR *p;
     UINT8 *pp;
 

@@ -1,14 +1,27 @@
-/*****************************************************************************
-**
-**  Name:           mca_csm.c
-**
-**  Description:    This is the implementation file for the MCAP
-**                  Control channel state machine.
-**
-**  Copyright (c) 2009-2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2009-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the implementation file for the MCAP Control channel state
+ *  machine.
+ *
+ ******************************************************************************/
 #include <string.h>
 
 #include "bt_target.h"
@@ -144,7 +157,7 @@ static const char * const mca_ccb_st_str[] = {
 **
 ** Function         mca_stop_timer
 **
-** Description      This function is stop a MCAP timer  
+** Description      This function is stop a MCAP timer
 **
 **                  This function is for use internal to MCAP only.
 **
@@ -164,8 +177,8 @@ void mca_stop_timer(tMCA_CCB *p_ccb)
 **
 ** Function         mca_ccb_event
 **
-** Description      This function is the CCB state machine main function.  
-**                  It uses the state and action function tables to execute 
+** Description      This function is the CCB state machine main function.
+**                  It uses the state and action function tables to execute
 **                  action functions.
 **
 ** Returns          void.
@@ -181,7 +194,7 @@ void mca_ccb_event(tMCA_CCB *p_ccb, UINT8 event, tMCA_CCB_EVT *p_data)
 #else
     MCA_TRACE_EVENT3("CCB ccb=%d event=%d state=%d", mca_ccb_to_hdl(p_ccb), event, p_ccb->state);
 #endif
-        
+
     /* look up the state table for the current state */
     state_table = mca_ccb_st_tbl[p_ccb->state - 1];
 
@@ -199,8 +212,8 @@ void mca_ccb_event(tMCA_CCB *p_ccb, UINT8 event, tMCA_CCB_EVT *p_data)
 **
 ** Function         mca_ccb_by_bd
 **
-** Description      This function looks up the CCB based on the BD address.  
-**                  It returns a pointer to the CCB.  
+** Description      This function looks up the CCB based on the BD address.
+**                  It returns a pointer to the CCB.
 **                  If no CCB is found it returns NULL.
 **
 ** Returns          void.
@@ -234,7 +247,7 @@ tMCA_CCB *mca_ccb_by_bd(tMCA_HANDLE handle, BD_ADDR bd_addr)
 ** Function         mca_ccb_alloc
 **
 ** Description      This function allocates a CCB and copies the BD address to
-**                  the CCB.  It returns a pointer to the CCB.  If no CCB can 
+**                  the CCB.  It returns a pointer to the CCB.  If no CCB can
 **                  be allocated it returns NULL.
 **
 ** Returns          void.
@@ -273,7 +286,7 @@ tMCA_CCB *mca_ccb_alloc(tMCA_HANDLE handle, BD_ADDR bd_addr)
 **
 ** Function         mca_ccb_dealloc
 **
-** Description      This function deallocates a CCB. 
+** Description      This function deallocates a CCB.
 **
 ** Returns          void.
 **
@@ -311,7 +324,7 @@ void mca_ccb_dealloc(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 **
 ** Function         mca_ccb_to_hdl
 **
-** Description      This function converts a pointer to a CCB to a tMCA_CL 
+** Description      This function converts a pointer to a CCB to a tMCA_CL
 **                  and returns the value.
 **
 ** Returns          void.
@@ -326,7 +339,7 @@ tMCA_CL mca_ccb_to_hdl(tMCA_CCB *p_ccb)
 **
 ** Function         mca_ccb_by_hdl
 **
-** Description      This function converts an index value to a CCB.  It returns 
+** Description      This function converts an index value to a CCB.  It returns
 **                  a pointer to the CCB.  If no valid CCB matches the index it
 **                  returns NULL.
 **

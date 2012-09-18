@@ -1,15 +1,29 @@
-/*****************************************************************************/
-/*                                                                           */
-/*  Name:          btu.h                                                     */
-/*                                                                           */
-/*  Description:   this file contains the main Bluetooth Upper Layer         */
-/*                 definitions. The Widcomm implementations of L2CAP         */
-/*                 RFCOMM, SDP and the BTIf run as one GKI task. The         */
-/*                 btu_task switches between them.                           */
-/*                                                                           */
-/*  Copyright (c) 1999-2011, Broadcom Corp., All Rights Reserved.            */
-/*  Broadcom Bluetooth Core. Proprietary and confidential.                   */
-/*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  this file contains the main Bluetooth Upper Layer definitions. The Broadcom
+ *  implementations of L2CAP RFCOMM, SDP and the BTIf run as one GKI task. The
+ *  btu_task switches between them.
+ *
+ ******************************************************************************/
+
 #ifndef BTU_H
 #define BTU_H
 
@@ -133,8 +147,8 @@ typedef void (*tBTU_EVENT_CALLBACK)(BT_HDR *p_hdr);
 /* BTU internal timer for BLE activity */
 #define BTU_TTYPE_BLE_INQUIRY                       99
 #define BTU_TTYPE_BLE_GAP_LIM_DISC                  100
-#define BTU_TTYPE_ATT_WAIT_FOR_RSP                  101 
-#define BTU_TTYPE_SMP_PAIRING_CMD                   102 
+#define BTU_TTYPE_ATT_WAIT_FOR_RSP                  101
+#define BTU_TTYPE_SMP_PAIRING_CMD                   102
 #define BTU_TTYPE_BLE_RANDOM_ADDR                   103
 #define BTU_TTYPE_ATT_WAIT_FOR_APP_RSP              104
 #define BTU_TTYPE_ATT_WAIT_FOR_IND_ACK              105
@@ -246,7 +260,7 @@ BTU_API extern const BD_ADDR        BT_BD_ANY;
 /* Functions provided by btu_task.c
 ************************************
 */
-BTU_API extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout); 
+BTU_API extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
 BTU_API extern void btu_stop_timer (TIMER_LIST_ENT *p_tle);
 BTU_API extern void btu_register_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout, tBTU_TIMER_CALLBACK timer_cb);
 BTU_API extern void btu_deregister_timer(TIMER_LIST_ENT *p_tle);
@@ -257,13 +271,13 @@ BTU_API extern void btu_register_event_range (UINT16 range, tBTU_EVENT_CALLBACK 
 BTU_API extern void btu_deregister_event_range (UINT16 range);
 BTU_API extern void btu_uipc_rx_cback(BT_HDR *p_msg);
 
-BTU_API extern void btu_hcif_flush_cmd_queue(void);							
+BTU_API extern void btu_hcif_flush_cmd_queue(void);
 /*
 ** Quick Timer
 */
 #if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
-#define QUICK_TIMER_TICKS (GKI_SECS_TO_TICKS (1)/QUICK_TIMER_TICKS_PER_SEC) 
-BTU_API extern void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout); 
+#define QUICK_TIMER_TICKS (GKI_SECS_TO_TICKS (1)/QUICK_TIMER_TICKS_PER_SEC)
+BTU_API extern void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
 BTU_API extern void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle);
 BTU_API extern void btu_process_quick_timer_evt (void);
 BTU_API extern void process_quick_timer_evt (TIMER_LIST_Q *p_tlq);

@@ -1,13 +1,26 @@
-/*****************************************************************************/
-/*                                                                           */
-/*  Name:          bta_hh_api.c                                              */
-/*                                                                           */
-/*  Description:   this file contains the HID HOST API in the subsystem of   */
-/*                  BTA.                                                     */
-/*                                                                           */
-/*  Copyright (c) 2005, Broadcom Corp, All Rights Reserved.                  */
-/*  WIDCOMM Bluetooth Core. Proprietary and confidential.                    */
-/*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2005-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the HID HOST API in the subsystem of BTA.
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 
@@ -20,6 +33,7 @@
 #include "bta_hh_api.h"
 #include "bta_hh_int.h"
 #include "l2c_api.h"
+
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
@@ -34,11 +48,11 @@ static const tBTA_SYS_REG bta_hh_reg =
 **
 ** Function         BTA_HhEnable
 **
-** Description      Enable the HID host.  This function must be called before  
-**                  any other functions in the HID host API are called. When the  
-**                  enable operation is complete the callback function will be  
+** Description      Enable the HID host.  This function must be called before
+**                  any other functions in the HID host API are called. When the
+**                  enable operation is complete the callback function will be
 **                  called with BTA_HH_ENABLE_EVT.
-**                  
+**
 **
 ** Returns          void
 **
@@ -93,7 +107,7 @@ void BTA_HhDisable(void)
 **
 ** Function         BTA_HhClose
 **
-** Description      Disconnect a connection. 
+** Description      Disconnect a connection.
 **
 ** Returns          void
 **
@@ -127,7 +141,7 @@ void BTA_HhOpen(BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode, tBTA_SEC sec_mask)
     tBTA_HH_API_CONN *p_buf;
 
     p_buf = (tBTA_HH_API_CONN *)GKI_getbuf((UINT16)sizeof(tBTA_HH_API_CONN));
-    
+
     if (p_buf!= NULL)
     {
         memset((void *)p_buf, 0, sizeof(tBTA_HH_API_CONN));
@@ -151,12 +165,12 @@ void BTA_HhOpen(BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode, tBTA_SEC sec_mask)
 ** Function  bta_hh_snd_write_dev
 **
 *******************************************************************************/
-static void bta_hh_snd_write_dev(UINT8 dev_handle, UINT8 t_type, UINT8 param, 
+static void bta_hh_snd_write_dev(UINT8 dev_handle, UINT8 t_type, UINT8 param,
                                  UINT16 data, UINT8 rpt_id, BT_HDR  *p_data)
 {
     tBTA_HH_CMD_DATA *p_buf;
     UINT16          len = (UINT16) (sizeof(tBTA_HH_CMD_DATA) );
-            
+
     if ((p_buf = (tBTA_HH_CMD_DATA *)GKI_getbuf(len))!= NULL)
     {
         memset(p_buf, 0, sizeof(tBTA_HH_CMD_DATA));
@@ -179,7 +193,7 @@ static void bta_hh_snd_write_dev(UINT8 dev_handle, UINT8 t_type, UINT8 param,
 ** Description      send SET_REPORT to device.
 **
 ** Parameter        dev_handle: device handle
-**                  r_type:     report type, could be BTA_HH_RPTT_OUTPUT or 
+**                  r_type:     report type, could be BTA_HH_RPTT_OUTPUT or
 **                              BTA_HH_RPTT_FEATURE.
 ** Returns          void
 **
@@ -192,7 +206,7 @@ void BTA_HhSetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type, BT_HDR *p_data)
 **
 ** Function         BTA_HhGetReport
 **
-** Description      Send a GET_REPORT to HID device.              
+** Description      Send a GET_REPORT to HID device.
 **
 ** Returns          void
 **
@@ -201,8 +215,8 @@ void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type, UINT8 rpt_id, UI
 {
     UINT8 param = (buf_size) ? (r_type | 0x08) : r_type;
 
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_GET_REPORT, param, 
-                        buf_size, rpt_id, NULL); 
+    bta_hh_snd_write_dev(dev_handle, HID_TRANS_GET_REPORT, param,
+                        buf_size, rpt_id, NULL);
 }
 /*******************************************************************************
 **
@@ -215,7 +229,7 @@ void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type, UINT8 rpt_id, UI
 *******************************************************************************/
 void BTA_HhSetProtoMode(UINT8 dev_handle, tBTA_HH_PROTO_MODE p_type)
 {
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_PROTOCOL, (UINT8)p_type, 
+    bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_PROTOCOL, (UINT8)p_type,
                         0, 0, NULL);
 }
 /*******************************************************************************
@@ -312,15 +326,15 @@ void BTA_HhGetDscpInfo(UINT8 dev_handle)
 **
 ** Function         BTA_HhAddDev
 **
-** Description      Add a virtually cabled device into HID-Host device list 
-**                  to manage and assign a device handle for future API call, 
-**                  host applciation call this API at start-up to initialize its 
-**                  virtually cabled devices.                 
+** Description      Add a virtually cabled device into HID-Host device list
+**                  to manage and assign a device handle for future API call,
+**                  host applciation call this API at start-up to initialize its
+**                  virtually cabled devices.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, UINT8 sub_class,  
+void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, UINT8 sub_class,
                   UINT8 app_id, tBTA_HH_DEV_DSCP_INFO dscp_info)
 {
     tBTA_HH_MAINT_DEV    *p_buf;
@@ -333,7 +347,7 @@ void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, UINT8 sub_class,
         memset(p_buf, 0, sizeof(tBTA_HH_MAINT_DEV));
 
         p_buf->hdr.event            = BTA_HH_API_MAINT_DEV_EVT;
-        p_buf->sub_event            = BTA_HH_ADD_DEV_EVT;    
+        p_buf->sub_event            = BTA_HH_ADD_DEV_EVT;
         p_buf->hdr.layer_specific   = BTA_HH_INVALID_HANDLE;
 
         p_buf->attr_mask            = (UINT16) attr_mask;
@@ -361,7 +375,7 @@ void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, UINT8 sub_class,
 **
 ** Function         BTA_HhRemoveDev
 **
-** Description      Remove a device from the HID host devices list.               
+** Description      Remove a device from the HID host devices list.
 **
 ** Returns          void
 **
@@ -377,11 +391,11 @@ void BTA_HhRemoveDev(UINT8 dev_handle )
         memset(p_buf, 0, sizeof(tBTA_HH_MAINT_DEV));
 
         p_buf->hdr.event            = BTA_HH_API_MAINT_DEV_EVT;
-        p_buf->sub_event            = BTA_HH_RMV_DEV_EVT;   
+        p_buf->sub_event            = BTA_HH_RMV_DEV_EVT;
         p_buf->hdr.layer_specific   = (UINT16) dev_handle;
 
         bta_sys_sendmsg(p_buf);
-    }  
+    }
 }
 
 /*******************************************************************************/
@@ -393,21 +407,21 @@ void BTA_HhRemoveDev(UINT8 dev_handle )
 ** Function         BTA_HhParseBootRpt
 **
 ** Description      This utility function parse a boot mode report.
-**                  For keyboard report, report data will carry the keycode max 
-**                  up to 6 key press in one report. Application need to convert 
-**                  the keycode into keypress character according to keyboard 
+**                  For keyboard report, report data will carry the keycode max
+**                  up to 6 key press in one report. Application need to convert
+**                  the keycode into keypress character according to keyboard
 **                  language.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report, 
+void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
                         UINT16 report_len)
 {
     p_data->dev_type = BTA_HH_DEVT_UNKNOWN;
 
     if (p_report)
-    {   
+    {
         /* first byte is report ID */
         switch (p_report[0])
         {
@@ -426,7 +440,7 @@ void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
             break;
         }
     }
-      
+
     return;
 }
 

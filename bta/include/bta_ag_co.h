@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_ag_co.h
-**
-**  Description:    This is the interface file for audio gateway call-out
-**                  functions.
-**
-**  Copyright (c) 2003-2006, Broadcom Corp., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the interface file for audio gateway call-out functions.
+ *
+ ******************************************************************************/
 #ifndef BTA_AG_CO_H
 #define BTA_AG_CO_H
 
@@ -27,8 +39,8 @@
 ** Description      This callout function is executed by AG when it is
 **                  started by calling BTA_AgEnable().  This function can be
 **                  used by the phone to initialize audio paths or for other
-**                  initialization purposes.  
-**                  
+**                  initialization purposes.
+**
 **
 ** Returns          Void.
 **
@@ -41,7 +53,7 @@ BTA_API extern void bta_ag_co_init(void);
 **
 ** Description      This function is called by the AG before the audio connection
 **                  is brought up, after it comes up, and after it goes down.
-**                   
+**
 ** Parameters       handle - handle of the AG instance
 **                  state - Audio state
 **                      BTA_AG_CO_AUD_STATE_OFF      - Audio has been turned off
@@ -62,7 +74,7 @@ BTA_API extern void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 sta
 **                  is opened.  The phone can use this function to set
 **                  up data paths or perform any required initialization or
 **                  set up particular to the connected service.
-**                  
+**
 **
 ** Returns          void
 **
@@ -75,7 +87,7 @@ BTA_API extern void bta_ag_co_data_open(UINT16 handle, tBTA_SERVICE_ID service);
 **
 ** Description      This function is called by AG when a service level
 **                  connection is closed
-**                  
+**
 **
 ** Returns          void
 **
@@ -86,10 +98,10 @@ BTA_API extern void bta_ag_co_data_close(UINT16 handle);
 **
 ** Function         bta_ag_co_tx_write
 **
-** Description      This function is called by the AG to send data to the 
+** Description      This function is called by the AG to send data to the
 **                  phone when the AG is configured for AT command pass-through.
-**                  The implementation of this function must copy the data to 
-**                  the phone’s memory.                 
+**                  The implementation of this function must copy the data to
+**                  the phone’s memory.
 **
 ** Returns          void
 **

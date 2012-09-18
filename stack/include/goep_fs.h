@@ -1,13 +1,20 @@
-/*****************************************************************************
-**
-**  Name:       goep_fs.h
-**
-**  File:       Object Storage API
-**
-**  Copyright (c) 2000-2009, Broadcom Corp., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2000-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 #ifndef GOEP_FS_H
 #define GOEP_FS_H
 
@@ -125,7 +132,7 @@ typedef struct
 **
 ** Callback Function: tGOEP_OPEN_CBACK
 **
-** Description  This function is executed by OBX profiles to open 
+** Description  This function is executed by OBX profiles to open
 **              a file for reading or writing.
 **
 ** Parameters   p_path      - Fully qualified path and file name.
@@ -134,7 +141,7 @@ typedef struct
 **              event_id    - code that must be passed to the call-in function.
 **
 ** Returns      void
-**              
+**
 ** Note:        Upon completion of the request, a file descriptor (tGOEP_FD),
 **              file size (UINT32), and an status code (tGOEP_STATUS)
 **              are returned in GOEP_OpenRsp().
@@ -151,7 +158,7 @@ typedef void (tGOEP_OPEN_CBACK) (const UINT8 *p_name, UINT16 flags, UINT32 size,
 **              is no longer in use.
 **
 ** Returns      void
-**              
+**
 *******************************************************************************/
 typedef void (tGOEP_CLOSE_CBACK) (tGOEP_FD fd, UINT8 app_id);
 
@@ -159,11 +166,11 @@ typedef void (tGOEP_CLOSE_CBACK) (tGOEP_FD fd, UINT8 app_id);
 **
 ** Callback Function: tGOEP_READ_CBACK
 **
-** Description  This function is executed by OBX profiles to read in data from the 
+** Description  This function is executed by OBX profiles to read in data from the
 **              previously opened file.
 **
 ** Returns      void
-**              
+**
 ** Note:        Upon completion of the request, GOEP_ReadRsp() is
 **              called with the buffer of data, along with the number
 **              of bytes read into the buffer, and a status.  The
@@ -179,11 +186,11 @@ typedef void (tGOEP_READ_CBACK) (tGOEP_FD fd, void *p_data, INT16 size,
 **
 ** Callback Function: tGOEP_WRITE_CBACK
 **
-** Description  This function is executed by OBX profiles to write the data to the 
+** Description  This function is executed by OBX profiles to write the data to the
 **              previously opened file.
 **
 ** Returns      void
-**              
+**
 ** Note:        Upon completion of the request, GOEP_WriteRsp() is
 **              called with the file descriptor and the status.  The
 **              call-in function should only be called when ALL requested
@@ -198,11 +205,11 @@ typedef void (tGOEP_WRITE_CBACK) (tGOEP_FD fd, const void *p_data, INT16 size,
 ** Callback Function: tGOEP_SEEK_CBACK
 **
 ** Description  This function is executed by OBX profiles to Move a file pointer
-**              of a previously opened file to the specified location for the 
+**              of a previously opened file to the specified location for the
 **              next read or write operation.
 **
 ** Returns      void
-**              
+**
 *******************************************************************************/
 typedef void (tGOEP_SEEK_CBACK) (tGOEP_FD fd, INT32 offset, INT16 origin, UINT8 app_id);
 
@@ -223,7 +230,7 @@ typedef void (tGOEP_SEEK_CBACK) (tGOEP_FD fd, INT32 offset, INT16 origin, UINT8 
 **              event_id - event that must be passed into the call-in function.
 **
 ** Returns      void
-**              
+**
 ** Note:        Upon completion of the request, GOEP_DirentryRsp() is
 **              filled in entry and the status.
 **              GOEP_OK is returned when p_entry is valid,
@@ -246,7 +253,7 @@ typedef void (tGOEP_DIRENTRY_CBACK) (const char *p_path, BOOLEAN first_item,
 **               [GOEP_OK if it exists]
 **               [GOEP_EACCES if permissions are wrong]
 **               [GOEP_FAIL if it does not exist]
-**              
+**
 *******************************************************************************/
 typedef tGOEP_STATUS (tGOEP_ACCESS_CBACK) (const char *p_path, UINT16 mode,
                                            BOOLEAN *p_is_dir, UINT8 app_id);
@@ -264,7 +271,7 @@ typedef tGOEP_STATUS (tGOEP_ACCESS_CBACK) (const char *p_path, UINT16 mode,
 ** Returns      (tGOEP_STATUS) status of the call.
 **               [GOEP_OK if successful]
 **               [GOEP_FAIL if unsuccessful]
-**              
+**
 *******************************************************************************/
 typedef tGOEP_STATUS (tGOEP_MKDIR_CBACK) (const char *p_path, UINT8 app_id);
 
@@ -282,7 +289,7 @@ typedef tGOEP_STATUS (tGOEP_MKDIR_CBACK) (const char *p_path, UINT8 app_id);
 **               [GOEP_EACCES if read-only]
 **               [GOEP_ENOTEMPTY if directory is not empty]
 **               [GOEP_FAIL otherwise]
-**              
+**
 *******************************************************************************/
 typedef tGOEP_STATUS (tGOEP_RMDIR_CBACK) (const char *p_path, UINT8 app_id);
 
@@ -299,7 +306,7 @@ typedef tGOEP_STATUS (tGOEP_RMDIR_CBACK) (const char *p_path, UINT8 app_id);
 **               [GOEP_OK if successful]
 **               [GOEP_EACCES if read-only]
 **               [GOEP_FAIL otherwise]
-**              
+**
 *******************************************************************************/
 typedef tGOEP_STATUS (tGOEP_UNLINK_CBACK) (const char *p_path, UINT8 app_id);
 
@@ -374,7 +381,7 @@ GOEP_API extern void GOEP_WriteRsp (tGOEP_FD fd, tGOEP_STATUS status, UINT16 eve
 **                       GOEP_FAIL if any errors have occurred.
 **              event_id - event id as given in the tGOEP_DIRENTRY_CBACK function.
 **
-** Returns      void 
+** Returns      void
 **
 *******************************************************************************/
 GOEP_API extern void GOEP_DirentryRsp(tGOEP_STATUS status, UINT16 event_id);

@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:          l2c_main.c
-**
-**  Description:   This file contains the main L2CAP entry points
-**
-**
-**
-**  Copyright (c) 1999-2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the main L2CAP entry points
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 #include <stdlib.h>
@@ -43,7 +55,7 @@ extern void tcs_proc_bcst_msg( BD_ADDR addr, BT_HDR *p_msg ) ;
 **
 ** Function         l2c_bcst_msg
 **
-** Description      
+** Description
 **
 ** Returns          void
 **
@@ -251,7 +263,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     }
 #endif
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
-    else if ((rcv_cid >= L2CAP_FIRST_FIXED_CHNL) && (rcv_cid <= L2CAP_LAST_FIXED_CHNL) &&  
+    else if ((rcv_cid >= L2CAP_FIRST_FIXED_CHNL) && (rcv_cid <= L2CAP_LAST_FIXED_CHNL) &&
              (l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb != NULL) )
     {
         /* If no CCB for this channel, allocate one */
@@ -262,7 +274,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
             if (p_ccb->peer_cfg.fcr.mode != L2CAP_FCR_BASIC_MODE)
                 l2c_fcr_proc_pdu (p_ccb, p_msg);
             else
-                (*l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb)(p_lcb->remote_bd_addr, p_msg); 
+                (*l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb)(p_lcb->remote_bd_addr, p_msg);
         }
         else
             GKI_freebuf (p_msg);
@@ -457,7 +469,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 
             p_cfg_start = p;
 
-            cfg_info.flush_to_present = cfg_info.mtu_present = cfg_info.qos_present = 
+            cfg_info.flush_to_present = cfg_info.mtu_present = cfg_info.qos_present =
                 cfg_info.fcr_present = cfg_info.fcs_present = FALSE;
 
             while (p < p_cfg_end)
@@ -559,7 +571,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             STREAM_TO_UINT16 (cfg_info.flags, p);
             STREAM_TO_UINT16 (cfg_info.result, p);
 
-            cfg_info.flush_to_present = cfg_info.mtu_present = cfg_info.qos_present = 
+            cfg_info.flush_to_present = cfg_info.mtu_present = cfg_info.qos_present =
                 cfg_info.fcr_present = cfg_info.fcs_present = FALSE;
 
             while (p < p_cfg_end)
@@ -688,7 +700,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             l2cu_send_peer_echo_rsp (p_lcb, id, NULL, 0);
 #endif
             break;
-         
+
         case L2CAP_CMD_ECHO_RSP:
 #if (L2CAP_ENHANCED_FEATURES != 0)
             l2cu_check_feature_rsp (p_lcb, id, p, cmd_len);
@@ -722,7 +734,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 
             p_lcb->info_rx_bits |= (1 << info_type);
 
-            if ( (info_type == L2CAP_EXTENDED_FEATURES_INFO_TYPE) 
+            if ( (info_type == L2CAP_EXTENDED_FEATURES_INFO_TYPE)
               && (result == L2CAP_INFO_RESP_RESULT_SUCCESS) )
             {
                 STREAM_TO_UINT32( p_lcb->peer_ext_fea, p );
@@ -783,7 +795,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 ** Function         l2c_process_held_packets
 **
 ** Description      This function processes any L2CAP packets that arrived before
-**                  the HCI connection complete arrived. It is a work around for 
+**                  the HCI connection complete arrived. It is a work around for
 **                  badly behaved controllers.
 **
 ** Returns          void
@@ -946,9 +958,9 @@ UINT8 l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flags)
         return (L2CAP_DW_FAILED);
     }
 
-#ifndef TESTER /* Tester may send any amount of data. otherwise sending message 
+#ifndef TESTER /* Tester may send any amount of data. otherwise sending message
                   bigger than mtu size of peer is a violation of protocol */
-    if (p_data->len > p_ccb->peer_cfg.mtu) 
+    if (p_data->len > p_ccb->peer_cfg.mtu)
     {
         L2CAP_TRACE_WARNING1 ("L2CAP - CID: 0x%04x  cannot send message bigger than peer's mtu size", cid);
         GKI_freebuf (p_data);

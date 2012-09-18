@@ -1,13 +1,27 @@
-/*****************************************************************************/
-/*                                                                           */
-/*  Name:          bnep_utils.c                                              */
-/*                                                                           */
-/*  Description:   this file contains BNEP utility functions                 */
-/*                                                                           */
-/*                                                                           */
-/*  Copyright (c) 2001-2004, WIDCOMM Inc., All Rights Reserved.              */
-/*  WIDCOMM Bluetooth Core. Proprietary and confidential.                    */
-/*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2001-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains BNEP utility functions
+ *
+ ******************************************************************************/
+
 #include <stdio.h>
 #include <string.h>
 #include "gki.h"
@@ -469,7 +483,7 @@ void bnepu_check_send_packet (tBNEP_CONN *p_bcb, BT_HDR *p_buf)
 ** Returns          void
 **
 *******************************************************************************/
-void bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol, 
+void bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol,
                            UINT8 *p_src_addr, UINT8 *p_dest_addr, BOOLEAN fw_ext_present)
 {
     UINT8    ext_bit, *p = (UINT8 *)NULL;
@@ -650,7 +664,7 @@ void bnep_process_setup_conn_req (tBNEP_CONN *p_bcb, UINT8 *p_setup, UINT8 len)
         bnep_sec_check_complete (p_bcb->rem_bda, p_bcb, BTM_SUCCESS);
     else
 #endif
-    btm_sec_mx_access_request (p_bcb->rem_bda, BT_PSM_BNEP, FALSE, 
+    btm_sec_mx_access_request (p_bcb->rem_bda, BT_PSM_BNEP, FALSE,
                                BTM_SEC_PROTO_BNEP, bnep_get_uuid32(&(p_bcb->src_uuid)),
                                &bnep_sec_check_complete, p_bcb);
 
@@ -960,7 +974,7 @@ void bnepu_process_peer_filter_set (tBNEP_CONN *p_bcb, UINT8 *p_filters, UINT16 
 ** Function         bnepu_process_peer_filter_rsp
 **
 ** Description      This function processes a peer's filter control
-**                  'response' message. 
+**                  'response' message.
 **
 ** Returns          void
 **
@@ -1012,7 +1026,7 @@ void bnepu_process_peer_filter_rsp (tBNEP_CONN *p_bcb, UINT8 *p_data)
 ** Function         bnepu_process_multicast_filter_rsp
 **
 ** Description      This function processes multicast filter control
-**                  'response' message. 
+**                  'response' message.
 **
 ** Returns          void
 **

@@ -1,13 +1,26 @@
-/*****************************************************************************
-**                                                                           *
-**  Name:          btm_dev.c                                                 *
-**                                                                           *
-**  Description:   This file contains functions for the Bluetooth Device     *
-**                 Manager                                                   *
-**                                                                           *
-**  Copyright (c) 1999-2011, Broadcom Corp., All Rights Reserved.            *
-**  Broadcom Bluetooth Core. Proprietary and confidential.                    *
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains functions for the Bluetooth Device Manager
+ *
+ ******************************************************************************/
 
 #include <stdlib.h>
 #include <string.h>
@@ -36,14 +49,14 @@ static tBTM_SEC_DEV_REC *btm_find_oldest_dev (void);
 **                  dev_class        - Device Class
 **                  bd_name          - Name of the peer device.  NULL if unknown.
 **                  features         - Remote device's supported features. NULL if not known
-**                  trusted_mask     - Bitwise OR of services that do not 
+**                  trusted_mask     - Bitwise OR of services that do not
 **                                     require authorization. (array of UINT32)
 **                  link_key         - Connection link key. NULL if unknown.
 **
 ** Returns          TRUE if added OK, else FALSE
 **
 *******************************************************************************/
-BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name, 
+BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
                           BD_FEATURES features, UINT32 trusted_mask[],
                           LINK_KEY link_key, UINT8 key_type, tBTM_IO_CAP io_cap)
 {
@@ -178,7 +191,7 @@ char *BTM_SecReadDevName (BD_ADDR bd_addr)
 **
 ** Function         btm_sec_alloc_dev
 **
-** Description      Look for the record in the device database for the record 
+** Description      Look for the record in the device database for the record
 **                  with specified handle
 **
 ** Returns          Pointer to the record or NULL
@@ -310,7 +323,7 @@ BOOLEAN btm_dev_support_switch (BD_ADDR bd_addr)
                 break;
             }
         }
-            
+
         /* If we don't know peer's capabilities, assume it supports Role-switch */
         if (feature_empty)
         {
@@ -327,7 +340,7 @@ BOOLEAN btm_dev_support_switch (BD_ADDR bd_addr)
 **
 ** Function         btm_find_dev_by_handle
 **
-** Description      Look for the record in the device database for the record 
+** Description      Look for the record in the device database for the record
 **                  with specified handle
 **
 ** Returns          Pointer to the record or NULL
@@ -340,7 +353,7 @@ tBTM_SEC_DEV_REC *btm_find_dev_by_handle (UINT16 handle)
 
     for (i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i++, p_dev_rec++)
     {
-        if ((p_dev_rec->sec_flags & BTM_SEC_IN_USE) 
+        if ((p_dev_rec->sec_flags & BTM_SEC_IN_USE)
             && (p_dev_rec->hci_handle == handle))
             return(p_dev_rec);
     }
@@ -351,7 +364,7 @@ tBTM_SEC_DEV_REC *btm_find_dev_by_handle (UINT16 handle)
 **
 ** Function         btm_find_dev
 **
-** Description      Look for the record in the device database for the record 
+** Description      Look for the record in the device database for the record
 **                  with specified BD address
 **
 ** Returns          Pointer to the record or NULL
@@ -366,7 +379,7 @@ tBTM_SEC_DEV_REC *btm_find_dev (BD_ADDR bd_addr)
     {
         for (i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i++, p_dev_rec++)
         {
-            if ((p_dev_rec->sec_flags & BTM_SEC_IN_USE) 
+            if ((p_dev_rec->sec_flags & BTM_SEC_IN_USE)
                 && (!memcmp (p_dev_rec->bd_addr, bd_addr, BD_ADDR_LEN)))
                 return(p_dev_rec);
         }
@@ -378,7 +391,7 @@ tBTM_SEC_DEV_REC *btm_find_dev (BD_ADDR bd_addr)
 **
 ** Function         btm_find_or_alloc_dev
 **
-** Description      Look for the record in the device database for the record 
+** Description      Look for the record in the device database for the record
 **                  with specified BD address
 **
 ** Returns          Pointer to the record or NULL
@@ -418,7 +431,7 @@ tBTM_SEC_DEV_REC *btm_find_oldest_dev (void)
     /* First look for the non-paired devices for the oldest entry */
     for (i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i++, p_dev_rec++)
     {
-        if (((p_dev_rec->sec_flags & BTM_SEC_IN_USE) == 0) 
+        if (((p_dev_rec->sec_flags & BTM_SEC_IN_USE) == 0)
             || ((p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN) != 0))
             continue; /* Device is paired so skip it */
 

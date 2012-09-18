@@ -1,16 +1,27 @@
 /******************************************************************************
-**
-**  File Name:   $RCSfile: sbc_enc_bit_alloc_ste.c,v $
-**
-**  Description: This file contains the code for bit allocation algorithm. 
-**  It calculates the number of bits required for the encoded stream of data.
-**
-**  Revision :   $Id: sbc_enc_bit_alloc_ste.c,v 1.9 2006/03/31 17:17:07 mjougit Exp $
-**
-**  Copyright (c) 1999-2002, Widcomm Inc., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-******************************************************************************/
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the code for bit allocation algorithm. It calculates
+ *  the number of bits required for the encoded stream of data.
+ *
+ ******************************************************************************/
 
 /*Includes*/
 #include "sbc_encoder.h"
@@ -22,7 +33,7 @@ extern const SINT16 sbc_enc_as16Offset8[4][8];
 
 /****************************************************************************
 * BitAlloc - Calculates the required number of bits for the given scale factor
-* and the number of subbands. 
+* and the number of subbands.
 *
 * RETURNS : N/A
 */
@@ -101,7 +112,7 @@ void sbc_enc_bit_alloc_ste(SBC_ENC_PARAMS *pstrCodecParams)
         s32BitCount -= s32SliceCount;
         s32SliceCount = 0;
         ps16GenBufPtr = ps16BitNeed;
-        
+
         for (s32Sb = 0; s32Sb < 2*s32NumOfSubBands; s32Sb++)
         {
             if ( (*ps16GenBufPtr >= s32BitSlice + 1) && (*ps16GenBufPtr < s32BitSlice + 16) )
@@ -131,7 +142,7 @@ void sbc_enc_bit_alloc_ste(SBC_ENC_PARAMS *pstrCodecParams)
             if (*ps16GenBufPtr < s32BitSlice+2)
                 *ps16GenArrPtr = 0;
             else
-                *ps16GenArrPtr = ((*(ps16GenBufPtr)-s32BitSlice) < 16) ? 
+                *ps16GenArrPtr = ((*(ps16GenBufPtr)-s32BitSlice) < 16) ?
                                         (SINT16)(*(ps16GenBufPtr)-s32BitSlice):16;
             ps16GenBufPtr++;
             ps16GenArrPtr++;
@@ -162,7 +173,7 @@ void sbc_enc_bit_alloc_ste(SBC_ENC_PARAMS *pstrCodecParams)
             s32Sb++;
             ps16GenBufPtr = ps16BitNeed+s32Sb;
             ps16GenArrPtr = pstrCodecParams->as16Bits+s32Sb;
-            
+
         }
         else
         {

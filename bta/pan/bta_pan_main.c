@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_pan_main.c
-**
-**  Description:    This file contains the PAN main functions and
-**                  state machine.
-**
-**  Copyright (c) 2004, Widcomm Inc., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2004-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the PAN main functions and state machine.
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 
@@ -152,7 +164,7 @@ tBTA_PAN_CB  bta_pan_cb;
 ** Function         bta_pan_scb_alloc
 **
 ** Description      Allocate a PAN server control block.
-**                  
+**
 **
 ** Returns          pointer to the scb, or NULL if none could be allocated.
 **
@@ -171,7 +183,7 @@ tBTA_PAN_SCB *bta_pan_scb_alloc(void)
             break;
         }
     }
-    
+
     if (i == BTA_PAN_NUM_CONN)
     {
         /* out of scbs */
@@ -186,7 +198,7 @@ tBTA_PAN_SCB *bta_pan_scb_alloc(void)
 ** Function         bta_pan_sm_execute
 **
 ** Description      State machine event handling function for PAN
-**                  
+**
 **
 ** Returns          void
 **
@@ -226,7 +238,7 @@ static void bta_pan_sm_execute(tBTA_PAN_SCB *p_scb, UINT16 event, tBTA_PAN_DATA 
 ** Function         bta_pan_api_enable
 **
 ** Description      Handle an API enable event.
-**                  
+**
 **
 ** Returns          void
 **
@@ -246,7 +258,7 @@ static void bta_pan_api_enable(tBTA_PAN_DATA *p_data)
 ** Function         bta_pan_api_disable
 **
 ** Description      Handle an API disable event.
-**                  
+**
 **
 ** Returns          void
 **
@@ -262,7 +274,7 @@ static void bta_pan_api_disable(tBTA_PAN_DATA *p_data)
 ** Function         bta_pan_api_open
 **
 ** Description      Handle an API listen event.
-**                  
+**
 **
 ** Returns          void
 **
@@ -276,7 +288,7 @@ static void bta_pan_api_open(tBTA_PAN_DATA *p_data)
     if ((p_scb = bta_pan_scb_alloc()) != NULL)
     {
         bta_pan_open(p_scb, p_data);
-    }   
+    }
     else
     {
         bdcpy(data.bd_addr, p_data->api_open.bd_addr);
@@ -290,7 +302,7 @@ static void bta_pan_api_open(tBTA_PAN_DATA *p_data)
 ** Function         bta_pan_scb_dealloc
 **
 ** Description      Deallocate a link control block.
-**                  
+**
 **
 ** Returns          void
 **
@@ -306,7 +318,7 @@ void bta_pan_scb_dealloc(tBTA_PAN_SCB *p_scb)
 ** Function         bta_pan_scb_to_idx
 **
 ** Description      Given a pointer to an scb, return its index.
-**                  
+**
 **
 ** Returns          Index of scb.
 **
@@ -324,7 +336,7 @@ UINT8 bta_pan_scb_to_idx(tBTA_PAN_SCB *p_scb)
 ** Function         bta_pan_scb_by_handle
 **
 ** Description      Find scb associated with handle.
-**                  
+**
 **
 ** Returns          Pointer to scb or NULL if not found.
 **
@@ -343,8 +355,8 @@ tBTA_PAN_SCB *bta_pan_scb_by_handle(UINT16 handle)
     }
 
 
-    APPL_TRACE_WARNING1("No scb for handle %d", handle);      
-    
+    APPL_TRACE_WARNING1("No scb for handle %d", handle);
+
     return NULL;
 }
 
@@ -353,7 +365,7 @@ tBTA_PAN_SCB *bta_pan_scb_by_handle(UINT16 handle)
 ** Function         bta_pan_hdl_event
 **
 ** Description      Data gateway main event handling function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -385,7 +397,7 @@ BOOLEAN bta_pan_hdl_event(BT_HDR *p_msg)
             bta_pan_api_open((tBTA_PAN_DATA *) p_msg);
             break;
 
-                
+
         /* events that require buffer not be released */
         case BTA_PAN_CI_RX_WRITEBUF_EVT:
             freebuf = FALSE;
@@ -404,6 +416,6 @@ BOOLEAN bta_pan_hdl_event(BT_HDR *p_msg)
             break;
 
     }
-    return freebuf;   
+    return freebuf;
 }
 #endif /* BTA_PAN_INCLUDED */

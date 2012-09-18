@@ -1,17 +1,29 @@
-/*****************************************************************************
-**
-**  Name:           avdt_capi.h
-**
-**  Description:    This interface file contains the interface AVDTP
-**                  conformance API.  These additional API functions and 
-**                  callback events are provided for conformance testing 
-**                  purposes only.  They are not intended to be used by 
-**                  an application.
-**
-**  Copyright (c) 2002-2009, Broadcom Corp., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2002-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This interface file contains the interface AVDTP conformance API.  These
+ *  additional API functions and callback events are provided for
+ *  conformance testing purposes only.  They are not intended to be used by
+ *  an application.
+ *
+ ******************************************************************************/
 #ifndef AVDT_CAPI_H
 #define AVDT_CAPI_H
 
@@ -60,7 +72,7 @@ extern "C"
 ** Description      This function is called to begin using the conformance API.
 **                  It must be called after AVDT_Register() and before any
 **                  other API or conformance API functions are called.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -71,7 +83,7 @@ AVDT_API extern void AVDTC_Init(tAVDTC_CTRL_CBACK *p_cback);
 ** Function         AVDTC_DiscoverRsp
 **
 ** Description      Send a discover response.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -82,7 +94,7 @@ AVDT_API extern void AVDTC_DiscoverRsp(BD_ADDR bd_addr, UINT8 label,
 **
 ** Function         AVDTC_GetCapRsp
 **
-** Description     Send a get capabilities response. 
+** Description     Send a get capabilities response.
 **
 ** Returns          void
 **
@@ -93,7 +105,7 @@ AVDT_API extern void AVDTC_GetCapRsp(BD_ADDR bd_addr, UINT8 label, tAVDT_CFG *p_
 **
 ** Function         AVDTC_GetAllCapRsp
 **
-** Description     Send a get all capabilities response. 
+** Description     Send a get all capabilities response.
 **
 ** Returns          void
 **
@@ -116,7 +128,7 @@ AVDT_API extern void AVDTC_GetConfigReq(UINT8 handle);
 ** Function         AVDTC_GetConfigRsp
 **
 ** Description      Send a get configuration response.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -127,7 +139,7 @@ AVDT_API extern void AVDTC_GetConfigRsp(UINT8 handle, UINT8 label, tAVDT_CFG *p_
 ** Function         AVDTC_OpenReq
 **
 ** Description      Send an open request.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -149,7 +161,7 @@ AVDT_API extern void AVDTC_OpenRsp(UINT8 handle, UINT8 label);
 ** Function         AVDTC_StartRsp
 **
 ** Description      Send a start response.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -160,7 +172,7 @@ AVDT_API extern void AVDTC_StartRsp(UINT8 *p_handles, UINT8 num_handles, UINT8 l
 ** Function         AVDTC_CloseRsp
 **
 ** Description      Send a close response.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -182,7 +194,7 @@ AVDT_API extern void AVDTC_SuspendRsp(UINT8 *p_handles, UINT8 num_handles, UINT8
 ** Function         AVDTC_AbortReq
 **
 ** Description      Send an abort request.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -193,7 +205,7 @@ AVDT_API extern void AVDTC_AbortReq(UINT8 handle);
 ** Function         AVDTC_AbortRsp
 **
 ** Description      Send an abort response.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -208,7 +220,7 @@ AVDT_API extern void AVDTC_AbortRsp(UINT8 handle, UINT8 label);
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_Rej(UINT8 handle, BD_ADDR bd_addr, UINT8 cmd, UINT8 label, 
+AVDT_API extern void AVDTC_Rej(UINT8 handle, BD_ADDR bd_addr, UINT8 cmd, UINT8 label,
                              UINT8 err_code, UINT8 err_param);
 
 #ifdef __cplusplus

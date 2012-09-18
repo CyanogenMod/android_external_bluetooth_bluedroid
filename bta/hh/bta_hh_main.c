@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_hh_main.c
-**
-**  Description:    This file contains the HID host main functions and state
-**                  machine.
-**
-**  Copyright (c) 2005, Broadcom Corp, All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2005-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the HID host main functions and state machine.
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 
@@ -79,13 +91,13 @@ const UINT8 bta_hh_st_idle[][BTA_HH_NUM_COLS] =
 /* BTA_HH_INT_CLOSE_EVT     */    {BTA_HH_CLOSE_ACT,     BTA_HH_IDLE_ST    },
 /* BTA_HH_INT_DATA_EVT      */    {BTA_HH_IGNORE,        BTA_HH_IDLE_ST    },
 /* BTA_HH_INT_CTRL_DATA     */    {BTA_HH_IGNORE,        BTA_HH_IDLE_ST    },
-/* BTA_HH_INT_HANDSK_EVT    */    {BTA_HH_IGNORE,        BTA_HH_IDLE_ST    },  
+/* BTA_HH_INT_HANDSK_EVT    */    {BTA_HH_IGNORE,        BTA_HH_IDLE_ST    },
 /* BTA_HH_SDP_CMPL_EVT      */    {BTA_HH_IGNORE,        BTA_HH_IDLE_ST    },
 /* BTA_HH_API_WRITE_DEV_EVT */    {BTA_HH_IGNORE,        BTA_HH_IDLE_ST    },
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_IGNORE,        BTA_HH_IDLE_ST    },
 /* BTA_HH_API_MAINT_DEV_EVT */    {BTA_HH_MAINT_DEV_ACT, BTA_HH_IDLE_ST    },
 /* BTA_HH_OPEN_CMPL_EVT        */    {BTA_HH_IGNORE,         BTA_HH_IDLE_ST    }
-    
+
 };
 
 
@@ -98,7 +110,7 @@ const UINT8 bta_hh_st_w4_conn[][BTA_HH_NUM_COLS] =
 /* BTA_HH_INT_CLOSE_EVT     */    {BTA_HH_CLOSE_ACT,     BTA_HH_IDLE_ST    },
 /* BTA_HH_INT_DATA_EVT      */    {BTA_HH_IGNORE,        BTA_HH_W4_CONN_ST },
 /* BTA_HH_INT_CTRL_DATA     */    {BTA_HH_IGNORE,        BTA_HH_W4_CONN_ST },
-/* BTA_HH_INT_HANDSK_EVT    */    {BTA_HH_IGNORE,        BTA_HH_W4_CONN_ST },  
+/* BTA_HH_INT_HANDSK_EVT    */    {BTA_HH_IGNORE,        BTA_HH_W4_CONN_ST },
 /* BTA_HH_SDP_CMPL_EVT      */    {BTA_HH_SDP_CMPL,      BTA_HH_W4_CONN_ST },
 /* BTA_HH_API_WRITE_DEV_EVT */    {BTA_HH_IGNORE  ,      BTA_HH_W4_CONN_ST },
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_IGNORE,        BTA_HH_W4_CONN_ST },
@@ -116,7 +128,7 @@ const UINT8 bta_hh_st_connected[][BTA_HH_NUM_COLS] =
 /* BTA_HH_INT_CLOSE_EVT     */    {BTA_HH_CLOSE_ACT,     BTA_HH_IDLE_ST    },
 /* BTA_HH_INT_DATA_EVT      */    {BTA_HH_DATA_ACT,      BTA_HH_CONN_ST    },
 /* BTA_HH_INT_CTRL_DATA     */    {BTA_HH_CTRL_DAT_ACT,  BTA_HH_CONN_ST    },
-/* BTA_HH_INT_HANDSK_EVT    */    {BTA_HH_HANDSK_ACT,    BTA_HH_CONN_ST    },  
+/* BTA_HH_INT_HANDSK_EVT    */    {BTA_HH_HANDSK_ACT,    BTA_HH_CONN_ST    },
 /* BTA_HH_SDP_CMPL_EVT      */    {BTA_HH_IGNORE,         BTA_HH_CONN_ST       },
 /* BTA_HH_API_WRITE_DEV_EVT */    {BTA_HH_WRITE_DEV_ACT, BTA_HH_CONN_ST    },
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_GET_DSCP_ACT,  BTA_HH_CONN_ST    },
@@ -154,7 +166,7 @@ static char *bta_hh_state_code(tBTA_HH_STATE state_code);
 ** Function         bta_hh_sm_execute
 **
 ** Description      State machine event handling function for HID Host
-**                  
+**
 **
 ** Returns          void
 **
@@ -173,7 +185,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
     memset(&cback_data, 0, sizeof(tBTA_HH));
 
     /* handle exception, no valid control block was found */
-    if (!p_cb)  
+    if (!p_cb)
     {
         /* BTA HH enabled already? otherwise ignore the event although it's bad*/
         if (bta_hh_cb.p_cback != NULL)
@@ -181,7 +193,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
             switch (event)
             {
             /* no control block available for new connection */
-            case BTA_HH_API_OPEN_EVT:   
+            case BTA_HH_API_OPEN_EVT:
                 cback_event = BTA_HH_OPEN_EVT;
                 /* build cback data */
                 bdcpy(cback_data.conn.bda, ((tBTA_HH_API_CONN *)p_data)->bd_addr);
@@ -192,7 +204,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
             case BTA_HH_API_MAINT_DEV_EVT:
                 cback_event = p_data->api_maintdev.sub_event;
 
-                if (p_data->api_maintdev.sub_event == BTA_HH_ADD_DEV_EVT) 
+                if (p_data->api_maintdev.sub_event == BTA_HH_ADD_DEV_EVT)
                 {
                     bdcpy(cback_data.dev_info.bda, p_data->api_maintdev.bda);
                     cback_data.dev_info.status    = BTA_HH_ERR_DB_FULL;
@@ -223,7 +235,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
                 }
                 break;
 
-            case BTA_HH_API_CLOSE_EVT: 
+            case BTA_HH_API_CLOSE_EVT:
                 cback_event = BTA_HH_CLOSE_EVT;
 
                 cback_data.dev_status.status = BTA_HH_ERR_HDL;
@@ -240,7 +252,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
         }
     }
     /* corresponding CB is found, go to state machine */
-    else    
+    else
     {
 #if BTA_HH_DEBUG == TRUE
         in_state = p_cb->state;
@@ -254,7 +266,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
         event &= 0xff;
 
         p_cb->state = state_table[event][BTA_HH_NEXT_STATE] ;
-        
+
         if ((action = state_table[event][BTA_HH_ACTION]) != BTA_HH_IGNORE)
         {
             (*bta_hh_action[action])(p_cb, p_data);
@@ -271,14 +283,14 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
 #endif
     }
 
-    return; 
+    return;
 }
 /*******************************************************************************
 **
 ** Function         bta_hh_hdl_event
 **
 ** Description      HID host main event handling function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -287,7 +299,7 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
 {
     UINT8           index = BTA_HH_MAX_KNOWN;
     tBTA_HH_DEV_CB *p_cb = NULL;
-    
+
     switch (p_msg->event)
     {
         case BTA_HH_API_ENABLE_EVT:
@@ -302,8 +314,8 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
             bta_hh_disc_cmpl();
             break;
 
-        default: 
-            /* all events processed in state machine need to find corresponding 
+        default:
+            /* all events processed in state machine need to find corresponding
                 CB before proceed */
             if (p_msg->event == BTA_HH_API_OPEN_EVT)
             {
@@ -322,8 +334,8 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
 // btla-specific ++
                     /* If BT disable is done while the HID device is connected and Link_Key uses unauthenticated combination
                       * then we can get into a situation where remove_bonding is called with the index set to 0 (without getting
-                      * cleaned up). Only when VIRTUAL_UNPLUG is called do we cleanup the index and make it MAX_KNOWN. 
-                      * So if REMOVE_DEVICE is called and in_use is FALSE then we should treat this as a NULL p_cb. Hence we 
+                      * cleaned up). Only when VIRTUAL_UNPLUG is called do we cleanup the index and make it MAX_KNOWN.
+                      * So if REMOVE_DEVICE is called and in_use is FALSE then we should treat this as a NULL p_cb. Hence we
                       * force the index to be MAX_KNOWN
                       */
                     if (bta_hh_cb.kdev[index].in_use == FALSE) {
@@ -354,7 +366,7 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
 **
 ** Function         bta_hh_evt_code
 **
-** Description      
+** Description
 **
 ** Returns          void
 **

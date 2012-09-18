@@ -1,13 +1,20 @@
-/*****************************************************************************
-**
-**  Name:         obx_api.h
-**
-**  File:         Object Exchange Protocol Application Programming Interface
-**
-**  Copyright (c) 2003-2009, Broadcom Corp., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 #ifndef OBX_API_H
 #define OBX_API_H
 #include "bt_target.h"
@@ -99,7 +106,7 @@ typedef UINT8   tOBX_SETPATH_FLAG;
 
 /* Authentication Challenge Options */
 #define OBX_AO_NONE         0x00    /* If this is used in OBX_StartServer and the authenticate
-                                     * flag is TRUE, the optional Challenge Information (tag 0x01) 
+                                     * flag is TRUE, the optional Challenge Information (tag 0x01)
                                      * will not be sent. */
 #define OBX_AO_USR_ID       0x01    /* Set this bit to make the client respond with the user ID. */
 typedef UINT8 tOBX_AUTH_OPT;
@@ -243,26 +250,26 @@ enum
 {
     OBX_NULL_DISP,
     /* server events */
-    OBX_CONNECT_REQ_DISP,   
-    OBX_SESSION_REQ_DISP,   
+    OBX_CONNECT_REQ_DISP,
+    OBX_SESSION_REQ_DISP,
     OBX_DISCONNECT_REQ_DISP,
-    OBX_PUT_REQ_DISP,       
+    OBX_PUT_REQ_DISP,
     OBX_GET_REQ_DISP,
-    OBX_SETPATH_REQ_DISP,   
+    OBX_SETPATH_REQ_DISP,
     OBX_ABORT_REQ_DISP,
-    OBX_ACTION_REQ_DISP,    
+    OBX_ACTION_REQ_DISP,
     /* client events */
-    OBX_CONNECT_RSP_DISP,   
-    OBX_SESSION_RSP_DISP,   
+    OBX_CONNECT_RSP_DISP,
+    OBX_SESSION_RSP_DISP,
     OBX_DISCONNECT_RSP_DISP,
     OBX_PUT_RSP_DISP,
     OBX_GET_RSP_DISP,
     OBX_SETPATH_RSP_DISP,
     OBX_ABORT_RSP_DISP,
-    OBX_ACTION_RSP_DISP,    
+    OBX_ACTION_RSP_DISP,
     /* common events */
-    OBX_CLOSE_IND_DISP,     
-    OBX_TIMEOUT_DISP,       
+    OBX_CLOSE_IND_DISP,
+    OBX_TIMEOUT_DISP,
     OBX_PASSWORD_DISP
 };
 #define OBX_DISP_IS_RECV    0x80
@@ -410,8 +417,8 @@ typedef UINT8   tOBX_RSP_CODE;
 #define OBX_USERID_RSP_TAG          1
 #define OBX_NONCE_RSP_TAG           2
 
-typedef struct 
-{ 
+typedef struct
+{
     UINT8   tag;
     UINT8   len;
     UINT8   *p_array;
@@ -466,7 +473,7 @@ extern "C"
 ** Function     OBX_Init
 **
 ** Description  This function is called to initialize the control block for this
-**              layer. It must be called before accessing any other of its API 
+**              layer. It must be called before accessing any other of its API
 **              functions.  It is typically called once during the start up of
 **              the stack.
 **
@@ -552,7 +559,7 @@ OBX_API extern tOBX_STATUS OBX_AddSuspendedSession(tOBX_HANDLE shandle, BD_ADDR 
 **
 ** Function     OBX_ConnectRsp
 **
-** Description  This function is called to send the response to a Connect 
+** Description  This function is called to send the response to a Connect
 **              Request from an OBEX client.
 **
 ** Returns      OBX_SUCCESS, if successful.
@@ -566,20 +573,20 @@ OBX_API extern tOBX_STATUS OBX_ConnectRsp(tOBX_HANDLE shandle, UINT8 rsp_code, B
 ** Function     OBX_SessionRsp
 **
 ** Description  This function is called to respond to a request to create a reliable session.
-**              
+**
 **
 ** Returns      OBX_SUCCESS, if successful.
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_SessionRsp(tOBX_HANDLE shandle, UINT8 rsp_code, 
+OBX_API extern tOBX_STATUS OBX_SessionRsp(tOBX_HANDLE shandle, UINT8 rsp_code,
                                           UINT8 ssn, UINT32 offset, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
 ** Function     OBX_SetPathRsp
 **
-** Description  This function is called to send the response to a Set Path 
+** Description  This function is called to send the response to a Set Path
 **              Request from an OBEX client.
 **
 ** Returns      OBX_SUCCESS, if successful.
@@ -685,7 +692,7 @@ OBX_API extern UINT16 OBX_GetPeerAddr(tOBX_HANDLE shandle, BD_ADDR bd_addr);
 ** Function     OBX_GetPortHandle
 **
 ** Description  This function is called to get the RFCOMM port handle for the obex connection.
-**             
+**
 **
 ** Returns      OBX_SUCCESS, if successful.
 **              OBX_NO_RESOURCES, if no existing connection.
@@ -835,7 +842,7 @@ OBX_API extern tOBX_STATUS OBX_DisconnectReq(tOBX_HANDLE handle, BT_HDR *p_pkt);
 ** Function     OBX_ActionReq
 **
 ** Description  This function sends a Action request to the connected server.
-**              The Name Header and DestName Header must be in p_pkt for 
+**              The Name Header and DestName Header must be in p_pkt for
 **                  the Copy and Move Object action.
 **              The Name header and Permission Header must be in p_pkt for
 **                  the Set Object Permission action.
@@ -989,7 +996,7 @@ OBX_API extern BOOLEAN OBX_AddAsciiDescrHdr(BT_HDR *p_pkt, char *p_descr);
 ** Function     OBX_AddTargetHdr
 **
 ** Description  This function is called to add an OBEX Target header to an OBEX
-**              packet. This header is most commonly used in Connect packets. 
+**              packet. This header is most commonly used in Connect packets.
 **
 **              NOTE: The target header must be the first header in an OBEX message.
 **
@@ -1047,7 +1054,7 @@ OBX_API extern UINT8 *OBX_AddBodyStart(BT_HDR *p_pkt, UINT16 *p_len);
 ** Description  This function is called to add the HI and the length of HV of an
 **              OBEX body header to an OBEX packet. If end is TRUE, HI is
 **              OBX_HI_BODY_END. If FALSE, HI is OBX_HI_BODY. It is assumed that
-**              the actual value of the body has been copied into the OBEX packet. 
+**              the actual value of the body has been copied into the OBEX packet.
 **
 ** Returns      void
 **
@@ -1231,7 +1238,7 @@ OBX_API extern UINT8 * OBX_CheckHdr(BT_HDR *p_pkt, UINT8 id);
 **
 ** Function     OBX_ReadNumHdrs
 **
-** Description  This function is called to check the number of headers in the 
+** Description  This function is called to check the number of headers in the
 **              given OBEX packet
 **
 ** Returns      number of headers.
@@ -1256,7 +1263,7 @@ OBX_API extern UINT16 OBX_ReadHdrLen(BT_HDR *p_pkt, UINT8 id);
 **
 ** Function     OBX_ReadNameHdr
 **
-** Description  This function is called to get the Name Header in the given 
+** Description  This function is called to get the Name Header in the given
 **              OBEX packet.
 **
 ** Returns      TRUE, if the header is in the OBEX packet.
@@ -1280,7 +1287,7 @@ OBX_API extern void OBX_WcharToChar (char *a_str, UINT16* w_str, UINT16 a_size) 
 **
 ** Function     OBX_ReadAsciiNameHdr
 **
-** Description  This function is called to get the Name Header in the given 
+** Description  This function is called to get the Name Header in the given
 **              OBEX packet. If Name header exists in the given OBEX packet,
 **              it is converted to ASCII format and copied into p_name.
 **
@@ -1294,7 +1301,7 @@ OBX_API extern BOOLEAN OBX_ReadAsciiNameHdr(BT_HDR *p_pkt, char *p_name, UINT16 
 **
 ** Function     OBX_ReadTypeHdr
 **
-** Description  This function is called to get the Type Header in the given 
+** Description  This function is called to get the Type Header in the given
 **              OBEX packet.
 **
 ** Returns      TRUE, if the header is in the OBEX packet.
@@ -1307,7 +1314,7 @@ OBX_API extern BOOLEAN OBX_ReadTypeHdr(BT_HDR *p_pkt, UINT8 **p_type, UINT16 *p_
 **
 ** Function     OBX_ReadLengthHdr
 **
-** Description  This function is called to get the Length Header in the given 
+** Description  This function is called to get the Length Header in the given
 **              OBEX packet.
 **
 ** Returns      TRUE, if the header is in the OBEX packet.
@@ -1320,7 +1327,7 @@ OBX_API extern BOOLEAN OBX_ReadLengthHdr(BT_HDR *p_pkt, UINT32 *p_len);
 **
 ** Function     OBX_ReadTimeHdr
 **
-** Description  This function is called to get the Time Header in the given 
+** Description  This function is called to get the Time Header in the given
 **              OBEX packet.
 **
 ** Returns      TRUE, if the header is in the OBEX packet.
@@ -1468,7 +1475,7 @@ OBX_API extern BOOLEAN OBX_ReadPermissionHdr(BT_HDR *p_pkt, UINT8 *p_user, UINT8
 **
 ** Function     OBX_Read1ByteHdr
 **
-** Description  This function is called to get the UINT8 HV of the given HI 
+** Description  This function is called to get the UINT8 HV of the given HI
 **              in the given OBEX packet.
 **
 ** Returns      TRUE, if the header is in the OBEX packet.
@@ -1481,7 +1488,7 @@ OBX_API extern BOOLEAN OBX_Read1ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT8 *p_data);
 **
 ** Function     OBX_Read4ByteHdr
 **
-** Description  This function is called to get the UINT32 HV of the given HI 
+** Description  This function is called to get the UINT32 HV of the given HI
 **              in the given OBEX packet.
 **
 ** Returns      TRUE, if the header is in the OBEX packet.
@@ -1533,7 +1540,7 @@ OBX_API extern BOOLEAN OBX_ReadTriplet(BT_HDR *p_pkt, UINT8 id, tOBX_TRIPLET *p_
 **
 ** Function     OBX_ReadActionIdHdr
 **
-** Description  This function is called to get the HV of the Action ID header 
+** Description  This function is called to get the HV of the Action ID header
 **              in the given OBEX packet.
 **
 ** Returns      TRUE, if the header is in the OBEX packet.
@@ -1546,7 +1553,7 @@ OBX_API extern BOOLEAN OBX_ReadActionIdHdr(BT_HDR *p_pkt, UINT8 *p_data);
 **
 ** Function     OBX_ReadChallenge
 **
-** Description  This function is called to read the Realm and options of the 
+** Description  This function is called to read the Realm and options of the
 **              Authentication Challenge Header in the given OBEX packet.
 **
 ** Returns      TRUE, if the header is in the OBEX packet.
@@ -1561,7 +1568,7 @@ OBX_API extern BOOLEAN OBX_ReadChallenge(BT_HDR *p_pkt, tOBX_CHARSET *p_charset,
 **
 ** Function     OBX_ReadAuthParams
 **
-** Description  This function is called to read the User ID of the 
+** Description  This function is called to read the User ID of the
 **              Authentication Response Header in the given OBEX packet.
 **
 ** Returns      TRUE, if the header is in the OBEX packet.
@@ -1639,7 +1646,7 @@ OBX_API extern BOOLEAN OBX_AddUtf8DestNameHdr(BT_HDR *p_pkt, UINT8 *p_dest);
 **
 ** Function     OBX_ReadUtf8NameHdr
 **
-** Description  This function is called to get the Name Header in the given 
+** Description  This function is called to get the Name Header in the given
 **              OBEX packet. If Name header exists in the given OBEX packet,
 **              it is converted to UTF8 format and copied into p_name.
 **
@@ -1669,7 +1676,7 @@ OBX_API extern BOOLEAN OBX_ReadUtf8DescrHdr(BT_HDR *p_pkt, UINT8 *p_descr, UINT1
 ** Function     OBX_ReadUtf8DestNameHdr
 **
 ** Description  This function is called to get the DestName Header in the
-**              given OBEX packet. 
+**              given OBEX packet.
 **
 ** Returns      TRUE, if the header is in the OBEX packet.
 **              FALSE, otherwise.

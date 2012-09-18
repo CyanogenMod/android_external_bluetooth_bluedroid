@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_hh_act.c
-**
-**  Description:    This file contains the HID host action 
-**                  functions.
-**
-**  Copyright (c) 2005-2011, Broadcom Corp, All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2005-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the HID host action functions.
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 
@@ -30,7 +42,7 @@
 /*****************************************************************************
 **  Local Function prototypes
 *****************************************************************************/
-static void bta_hh_cback (UINT8 dev_handle, UINT8 event, UINT32 data, 
+static void bta_hh_cback (UINT8 dev_handle, UINT8 event, UINT32 data,
                           BT_HDR *pdata);
 static tBTA_HH_STATUS bta_hh_get_trans_status(UINT32 result);
 
@@ -47,7 +59,7 @@ static char * bta_hh_hid_event_name(UINT16 event);
 ** Function         bta_hh_api_enable
 **
 ** Description      Perform necessary operations to enable HID host.
-**                  
+**
 **
 ** Returns          void
 **
@@ -56,7 +68,7 @@ void bta_hh_api_enable(tBTA_HH_DATA *p_data)
 {
     tBTA_HH_STATUS      status = BTA_HH_ERR;
     UINT8               xx;
-    
+
     /* initialize BTE HID */
     HID_HostInit();
 
@@ -79,9 +91,9 @@ void bta_hh_api_enable(tBTA_HH_DATA *p_data)
             bta_hh_cb.kdev[xx].index        = xx;
             /* initialize control block map */
             bta_hh_cb.cb_index[xx]          = BTA_HH_MAX_KNOWN;
-        }   
+        }
     }
-    
+
     /* signal BTA call back event */
     (* bta_hh_cb.p_cback)(BTA_HH_ENABLE_EVT, (tBTA_HH *)&status);
 }
@@ -90,7 +102,7 @@ void bta_hh_api_enable(tBTA_HH_DATA *p_data)
 ** Function         bta_hh_api_disable
 **
 ** Description      Perform necessary operations to disable HID host.
-**                  
+**
 **
 ** Returns          void
 **
@@ -98,7 +110,7 @@ void bta_hh_api_enable(tBTA_HH_DATA *p_data)
 void bta_hh_api_disable(void)
 {
     UINT8 xx;
-    
+
     /* service is not enabled */
     if (bta_hh_cb.p_cback == NULL)
         return;
@@ -118,13 +130,13 @@ void bta_hh_api_disable(void)
             if ( bta_hh_cb.kdev[xx].state == BTA_HH_CONN_ST )
             {
                 /* disconnect all connected devices */
-                bta_hh_sm_execute(&bta_hh_cb.kdev[xx], 
+                bta_hh_sm_execute(&bta_hh_cb.kdev[xx],
                                 BTA_HH_API_CLOSE_EVT,
                                 NULL);
             }
         }
     }
-    
+
     return;
 }
 
@@ -133,7 +145,7 @@ void bta_hh_api_disable(void)
 ** Function         bta_hh_disc_cmpl
 **
 ** Description      All connections have been closed, disable service.
-**                  
+**
 **
 ** Returns          void
 **
@@ -167,7 +179,7 @@ void bta_hh_disc_cmpl(void)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask, 
+static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
                                   tHID_DEV_SDP_INFO *sdp_rec )
 {
     tBTA_HH_DEV_CB     *p_cb = bta_hh_cb.p_cur;
@@ -178,7 +190,7 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
     if (result == SDP_SUCCESS)
     {
         /* security is required for the connection, add attr_mask bit*/
-        if (p_cb->sec_mask) 
+        if (p_cb->sec_mask)
             attr_mask |= HID_SEC_REQUIRED;
 
 #if BTA_HH_DEBUG
@@ -186,9 +198,9 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
                             attr_mask 0x%02x", \
                             p_cb, result, attr_mask);
 #endif
-        
+
         /* check to see type of device is supported , and should not been added before */
-        if (bta_hh_tod_spt(p_cb, sdp_rec->sub_class))  
+        if (bta_hh_tod_spt(p_cb, sdp_rec->sub_class))
         {
             /* if not added before */
             if (p_cb->hid_handle == BTA_HH_INVALID_HANDLE)
@@ -197,23 +209,23 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
                 if((status = HID_HostAddDev (p_cb->addr, attr_mask, &hdl)) == HID_SUCCESS)
                 {
                     /* update cb_index[] map */
-                    bta_hh_cb.cb_index[hdl] = p_cb->index;            
+                    bta_hh_cb.cb_index[hdl] = p_cb->index;
                 }
                 else
-                    p_cb->app_id = 0;            
+                    p_cb->app_id = 0;
             }
             /* else : incoming connection after SDP should update the SDP information as well */
 
             if (p_cb->app_id != 0)
             {
                 /* update cb information with attr_mask, dscp_info etc. */
-                bta_hh_add_device_to_list(p_cb,  hdl, attr_mask, 
-                                            &sdp_rec->dscp_info, 
-                                            sdp_rec->sub_class, 
+                bta_hh_add_device_to_list(p_cb,  hdl, attr_mask,
+                                            &sdp_rec->dscp_info,
+                                            sdp_rec->sub_class,
                                             sdp_rec->ssr_max_latency,
                                             sdp_rec->ssr_min_tout,
-                                            p_cb->app_id);   
-                    
+                                            p_cb->app_id);
+
                 p_cb->dscp_info.ctry_code = sdp_rec->ctry_code;
 
                 status = HID_SUCCESS;
@@ -226,11 +238,11 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
 
     /* free disc_db when SDP is completed */
     utl_freebuf((void **)&bta_hh_cb.p_disc_db);
-    
+
 
     /* send SDP_CMPL_EVT into state machine */
     bta_hh_sm_execute(p_cb, BTA_HH_SDP_CMPL_EVT, (tBTA_HH_DATA *)&status);
-    
+
     return;
 }
 /*******************************************************************************
@@ -262,12 +274,12 @@ static void bta_hh_di_sdp_cback(UINT16 result)
                 bta_hh_update_di_info(p_cb, di_rec.rec.vendor, di_rec.rec.product, di_rec.rec.version);
             }
         }
-        if ((status = HID_HostGetSDPRecord(p_cb->addr, 
-                                           bta_hh_cb.p_disc_db, 
-                                           p_bta_hh_cfg->sdp_db_size, 
+        if ((status = HID_HostGetSDPRecord(p_cb->addr,
+                                           bta_hh_cb.p_disc_db,
+                                           p_bta_hh_cfg->sdp_db_size,
                                            bta_hh_sdp_cback)) != HID_SUCCESS)
         {
-#if BTA_HH_DEBUG        
+#if BTA_HH_DEBUG
             APPL_TRACE_DEBUG1 ("bta_hh_di_sdp_cback:  HID_HostGetSDPRecord failed: \
                         Status 0x%2X",status);
 #endif
@@ -292,8 +304,8 @@ static void bta_hh_di_sdp_cback(UINT16 result)
 ** Function         bta_hh_start_sdp
 **
 ** Description      Start SDP service search, and obtain necessary SDP records.
-**                  Only one SDP service search request is allowed at the same 
-**                  time. For every BTA_HhOpen API call, do SDP first unless SDP 
+**                  Only one SDP service search request is allowed at the same
+**                  time. For every BTA_HhOpen API call, do SDP first unless SDP
 **                  has been done previously.
 **
 ** Returns          void
@@ -311,7 +323,7 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     if (p_cb->app_id)
     {
         status = HID_SUCCESS;
-#if BTA_HH_DEBUG        
+#if BTA_HH_DEBUG
         APPL_TRACE_DEBUG0("bta_hh_start_sdp:: skip SDP for known devices");
 #endif
         if (p_cb->hid_handle == BTA_HH_INVALID_HANDLE)
@@ -320,11 +332,11 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                 == HID_SUCCESS)
             {
                 /* update device CB with newly register device handle */
-                bta_hh_add_device_to_list(p_cb,  hdl, p_cb->attr_mask, NULL, 
-                                          p_cb->sub_class, 
+                bta_hh_add_device_to_list(p_cb,  hdl, p_cb->attr_mask, NULL,
+                                          p_cb->sub_class,
                                           p_cb->dscp_info.ssr_max_latency,
-                                          p_cb->dscp_info.ssr_min_tout,  
-                                          p_cb->app_id);   
+                                          p_cb->dscp_info.ssr_min_tout,
+                                          p_cb->app_id);
                 /* update cb_index[] map */
                 bta_hh_cb.cb_index[hdl] = p_cb->index;
             }
@@ -346,12 +358,12 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         {
             bta_hh_cb.p_cur = p_cb;
             /* do DI discovery first */
-            if (SDP_DiDiscover(p_data->api_conn.bd_addr, 
-                                         bta_hh_cb.p_disc_db, 
-                                         p_bta_hh_cfg->sdp_db_size, 
+            if (SDP_DiDiscover(p_data->api_conn.bd_addr,
+                                         bta_hh_cb.p_disc_db,
+                                         p_bta_hh_cfg->sdp_db_size,
                                          bta_hh_di_sdp_cback) != SDP_SUCCESS)
             {
-#if BTA_HH_DEBUG        
+#if BTA_HH_DEBUG
                 APPL_TRACE_DEBUG1 ("bta_hh_start_sdp:  SDP_DiDiscover failed: \
                     Status 0x%2X",status);
 #endif
@@ -375,7 +387,7 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 **
 ** Description      When SDP completed, initiate a connection or report error depend
 **                  on SDP result.
-**                  
+**
 **
 ** Returns          void
 **
@@ -388,7 +400,7 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 #if BTA_HH_DEBUG
     APPL_TRACE_DEBUG1 ("bta_hh_sdp_cmpl:  status 0x%2X",p_data->status);
 #endif
-    
+
     /* initialize call back data */
     memset((void *)&conn_dat, 0, sizeof(tBTA_HH_CONN));
     conn_dat.handle = p_cb->hid_handle;
@@ -397,12 +409,12 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     /* if SDP compl success */
     if ( (status = p_data->status) == HID_SUCCESS)
     {
-        /* not incoming connection doing SDP, initiate a HID connection */ 
+        /* not incoming connection doing SDP, initiate a HID connection */
         if (!p_cb->incoming_conn)
         {
             /* set security level */
             HID_HostSetSecurityLevel("", p_cb->sec_mask);
-        
+
             /* open HID connection */
             if ((status = HID_HostOpenDev (p_cb->hid_handle)) != HID_SUCCESS)
             {
@@ -417,11 +429,11 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         }
         else /* incoming connection SDP finish */
         {
-            bta_hh_sm_execute(p_cb, BTA_HH_OPEN_CMPL_EVT, NULL); 
+            bta_hh_sm_execute(p_cb, BTA_HH_OPEN_CMPL_EVT, NULL);
         }
     }
 
-    if (status != HID_SUCCESS) 
+    if (status != HID_SUCCESS)
     {
         /* receive SDP error */
         if (p_data->status == HID_ERR_INVALID)
@@ -445,7 +457,7 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         bta_hh_trace_dev_db();
 #endif
     }
-    
+
     return;
 }
 
@@ -454,7 +466,7 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 ** Function         bta_hh_api_disc_act
 **
 ** Description      HID Host initiate a disconnection.
-**                  
+**
 **
 ** Returns          void
 **
@@ -462,7 +474,7 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 void bta_hh_api_disc_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CBDATA    disc_dat;
-    tHID_STATUS     status; 
+    tHID_STATUS     status;
 
     /* found an active connection */
     disc_dat.handle = p_data ?(UINT8)p_data->hdr.layer_specific :p_cb->hid_handle;
@@ -472,7 +484,7 @@ void bta_hh_api_disc_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 
     if (status)
         (* bta_hh_cb.p_cback)(BTA_HH_CLOSE_EVT, (tBTA_HH *)&disc_dat);
-    
+
     return;
 }
 /*******************************************************************************
@@ -480,7 +492,7 @@ void bta_hh_api_disc_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 ** Function         bta_hh_open_cmpl_act
 **
 ** Description      HID host connection completed
-**                  
+**
 **
 ** Returns          void
 **
@@ -499,9 +511,9 @@ void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     bta_hh_cb.cnt_num ++;
 
     /* initialize device driver */
-    bta_hh_co_open(p_cb->hid_handle, p_cb->sub_class, 
+    bta_hh_co_open(p_cb->hid_handle, p_cb->sub_class,
                    p_cb->attr_mask,  p_cb->app_id);
-    
+
     /* update SSR settings */
     bta_sys_chg_ssr_config(BTA_ID_HH ,p_cb->app_id, p_cb->dscp_info.ssr_max_latency, p_cb->dscp_info.ssr_min_tout);
     /* inform role manager */
@@ -510,8 +522,8 @@ void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     /* set protocol mode when not default report mode */
     if (p_cb->mode != BTA_HH_PROTO_RPT_MODE)
     {
-        if ((conn.status = HID_HostWriteDev(dev_handle,  
-                                HID_TRANS_SET_PROTOCOL, HID_PAR_PROTOCOL_BOOT_MODE, 
+        if ((conn.status = HID_HostWriteDev(dev_handle,
+                                HID_TRANS_SET_PROTOCOL, HID_PAR_PROTOCOL_BOOT_MODE,
                                 0,
                                 0, NULL)) != HID_SUCCESS)
         {
@@ -533,7 +545,7 @@ void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 ** Function         bta_hh_open_act
 **
 ** Description      HID host receive HID_OPEN_EVT .
-**                  
+**
 **
 ** Returns          void
 **
@@ -547,7 +559,7 @@ void bta_hh_open_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                         p_cb->hid_handle;
 
     APPL_TRACE_EVENT1 ("bta_hh_open_act:  Device[%d] connected", dev_handle);
-#endif 
+#endif
 
     /* SDP has been done */
     if (p_cb->app_id != 0)
@@ -555,7 +567,7 @@ void bta_hh_open_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         bta_hh_sm_execute(p_cb, BTA_HH_OPEN_CMPL_EVT, p_data);
     }
     else
-    /*  app_id == 0 indicates an incoming conenction request arrives without SDP  
+    /*  app_id == 0 indicates an incoming conenction request arrives without SDP
         performed, do it first */
     {
         p_cb->incoming_conn = TRUE;
@@ -564,7 +576,7 @@ void bta_hh_open_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         bdcpy(conn_data.bd_addr, p_cb->addr);
         bta_hh_start_sdp(p_cb, (tBTA_HH_DATA *)&conn_data);
     }
-   
+
     return;
 }
 
@@ -574,7 +586,7 @@ void bta_hh_open_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 ** Function         bta_hh_data_act
 **
 ** Description      HID Host process a data report
-**                  
+**
 **
 ** Returns          void
 **
@@ -596,7 +608,7 @@ void bta_hh_data_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 ** Function         bta_hh_handsk_act
 **
 ** Description      HID Host process a handshake acknoledgement.
-**                  
+**
 **
 ** Returns          void
 **
@@ -608,10 +620,10 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
     tBTA_HH_CONN    conn ;
 
 #if BTA_HH_DEBUG
-    APPL_TRACE_DEBUG2("HANDSHAKE received for: event = %s data= %d", 
+    APPL_TRACE_DEBUG2("HANDSHAKE received for: event = %s data= %d",
         bta_hh_get_w4_event(p_cb->w4_evt), p_data->hid_cback.data);
 #endif
-    
+
     memset(&hs_data, 0, sizeof(tBTA_HH_HSDATA));
 
     switch (p_cb->w4_evt)
@@ -622,7 +634,7 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
             /* fall through */
         case BTA_HH_GET_RPT_EVT:
         case BTA_HH_GET_IDLE_EVT :
-            hs_data.handle = p_cb->hid_handle;            
+            hs_data.handle = p_cb->hid_handle;
             /* if handshake gives an OK code for these transaction, fill in UNSUPT */
             if ((hs_data.status = bta_hh_get_trans_status(p_data->hid_cback.data)) == BTA_HH_OK)
                  hs_data.status = BTA_HH_HS_TRANS_NOT_SPT;
@@ -640,7 +652,7 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
             (* bta_hh_cb.p_cback)(p_cb->w4_evt, (tBTA_HH *)&cback_data);
             p_cb->w4_evt = 0;
             break;
-        
+
         /* SET_PROTOCOL when open connection */
         case BTA_HH_OPEN_EVT:
             conn.status =p_data->hid_cback.data ? BTA_HH_ERR_PROTO: BTA_HH_OK;
@@ -668,7 +680,7 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 ** Function         bta_hh_ctrl_dat_act
 **
 ** Description      HID Host process a data report from control channel.
-**                  
+**
 **
 ** Returns          void
 **
@@ -680,7 +692,7 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
     tBTA_HH_HSDATA    hs_data;
 
 #if BTA_HH_DEBUG
-    APPL_TRACE_DEBUG1("Ctrl DATA received w4: event[%s]", 
+    APPL_TRACE_DEBUG1("Ctrl DATA received w4: event[%s]",
                         bta_hh_get_w4_event(p_cb->w4_evt));
 #endif
     hs_data.status  = BTA_HH_OK;
@@ -699,7 +711,7 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
         hs_data.rsp_data.proto_mode = ((*data) == HID_PAR_PROTOCOL_REPORT)? \
                     BTA_HH_PROTO_RPT_MODE : BTA_HH_PROTO_BOOT_MODE;
 #if BTA_HH_DEBUG
-        APPL_TRACE_DEBUG1("GET_PROTOCOL Mode = [%s]", 
+        APPL_TRACE_DEBUG1("GET_PROTOCOL Mode = [%s]",
             (hs_data.rsp_data.proto_mode == BTA_HH_PROTO_RPT_MODE)? "Report" : "Boot");
 #endif
         break;
@@ -712,7 +724,7 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
         /* fall through */
     default:
 #if BTA_HH_DEBUG
-        APPL_TRACE_DEBUG1("invalid  transaction type for DATA payload: 4_evt[%s]", 
+        APPL_TRACE_DEBUG1("invalid  transaction type for DATA payload: 4_evt[%s]",
                         bta_hh_get_w4_event(p_cb->w4_evt));
 #endif
         break;
@@ -734,7 +746,7 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 ** Function         bta_hh_close_act
 **
 ** Description      HID Host process a close event
-**                  
+**
 **
 ** Returns          void
 **
@@ -761,30 +773,30 @@ void bta_hh_close_act (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         conn_dat.status = (reason == HID_ERR_AUTH_FAILED) ? BTA_HH_ERR_AUTH_FAILED : BTA_HH_ERR;
         bdcpy(conn_dat.bda, p_cb->addr);
         HID_HostCloseDev(p_cb->hid_handle);
-        
+
         /* Report OPEN fail event */
         (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn_dat);
-        
+
 #if BTA_HH_DEBUG
         bta_hh_trace_dev_db();
 #endif
         return;
-    } 
+    }
     /* otherwise report CLOSE/VC_UNPLUG event */
-    else 
+    else
     {
         /* finaliza device driver */
         bta_hh_co_close(p_cb->hid_handle, p_cb->app_id);
         /* inform role manager */
-        bta_sys_conn_close( BTA_ID_HH ,p_cb->app_id, p_cb->addr); 
+        bta_sys_conn_close( BTA_ID_HH ,p_cb->app_id, p_cb->addr);
         /* update total conn number */
         bta_hh_cb.cnt_num --;
 
         if (disc_dat.status)
-            disc_dat.status = BTA_HH_ERR;      
-       
+            disc_dat.status = BTA_HH_ERR;
+
         (*bta_hh_cb.p_cback)(event, (tBTA_HH *)&disc_dat);
-        
+
         /* if virtually unplug, remove device */
         if (p_cb->vp )
         {
@@ -800,7 +812,7 @@ void bta_hh_close_act (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     /* clean up control block, but retain SDP info and device handle */
     p_cb->vp            = FALSE;
     p_cb->w4_evt        = 0;
-    
+
     /* if no connection is active and HH disable is signaled, disable service */
     if (bta_hh_cb.cnt_num == 0 && bta_hh_cb.w4_disable)
     {
@@ -815,7 +827,7 @@ void bta_hh_close_act (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 ** Function         bta_hh_get_dscp_act
 **
 ** Description      Get device report descriptor
-**                  
+**
 **
 ** Returns          void
 **
@@ -830,7 +842,7 @@ void bta_hh_get_dscp_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 ** Function         bta_hh_maint_dev_act
 **
 ** Description      HID Host maintain device list.
-**                  
+**
 **
 ** Returns          void
 **
@@ -846,7 +858,7 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 
     switch (p_dev_info->sub_event)
     {
-    case BTA_HH_ADD_DEV_EVT:    /* add a device */ 
+    case BTA_HH_ADD_DEV_EVT:    /* add a device */
         bdcpy(dev_info.bda, p_dev_info->bda);
         /* initialize callback data */
         if (p_cb->hid_handle == BTA_HH_INVALID_HANDLE)
@@ -858,16 +870,16 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                 dev_info.status   = BTA_HH_OK;
 
                 /* update DI information */
-                bta_hh_update_di_info(p_cb, 
+                bta_hh_update_di_info(p_cb,
                                       p_dev_info->dscp_info.vendor_id,
-                                      p_dev_info->dscp_info.product_id,                                      
+                                      p_dev_info->dscp_info.product_id,
                                       p_dev_info->dscp_info.version);
 
                 /* add to BTA device list */
-                bta_hh_add_device_to_list(p_cb, dev_handle, 
-                                          p_dev_info->attr_mask, 
-                                          &p_dev_info->dscp_info.descriptor, 
-                                          p_dev_info->sub_class, 
+                bta_hh_add_device_to_list(p_cb, dev_handle,
+                                          p_dev_info->attr_mask,
+                                          &p_dev_info->dscp_info.descriptor,
+                                          p_dev_info->sub_class,
                                           p_dev_info->dscp_info.ssr_max_latency,
                                           p_dev_info->dscp_info.ssr_min_tout,
                                           p_dev_info->app_id);
@@ -897,7 +909,7 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 
                 /* remove from known device list in BTA */
                 bta_hh_clean_up_kdev(p_cb);
-            } 
+            }
         }
         break;
 
@@ -913,7 +925,7 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 ** Function         bta_hh_write_dev_act
 **
 ** Description      Write device action. can be SET/GET/DATA transaction.
-**         
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -923,8 +935,8 @@ void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     UINT16  event = (p_data->api_sndcmd.t_type - BTA_HH_FST_BTE_TRANS_EVT) +
                         BTA_HH_FST_TRANS_CB_EVT;
 
-    cbdata.handle = p_cb->hid_handle; 
-    
+    cbdata.handle = p_cb->hid_handle;
+
     /* match up BTE/BTA report/boot mode def */
     if (p_data->api_sndcmd.t_type == HID_TRANS_SET_PROTOCOL)
     {
@@ -932,14 +944,14 @@ void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                         HID_PAR_PROTOCOL_REPORT :HID_PAR_PROTOCOL_BOOT_MODE;
     }
 
-    if (HID_HostWriteDev (p_cb->hid_handle, 
+    if (HID_HostWriteDev (p_cb->hid_handle,
                        p_data->api_sndcmd.t_type,
                        p_data->api_sndcmd.param,
                        p_data->api_sndcmd.data,
                        p_data->api_sndcmd.rpt_id,
                        p_data->api_sndcmd.p_data) != HID_SUCCESS)
     {
-        APPL_TRACE_ERROR0("HID_HostWriteDev Error ");        
+        APPL_TRACE_ERROR0("HID_HostWriteDev Error ");
         cbdata.status = BTA_HH_ERR;
 
         if (p_data->api_sndcmd.t_type != HID_TRANS_CONTROL &&
@@ -976,9 +988,9 @@ void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 
             break;
         /* currently not expected */
-        case HID_TRANS_DATAC:     
+        case HID_TRANS_DATAC:
         default:
-            APPL_TRACE_DEBUG1("bta_hh_write_dev_act:: cmd type = %d", 
+            APPL_TRACE_DEBUG1("bta_hh_write_dev_act:: cmd type = %d",
                             p_data->api_sndcmd.t_type);
             break;
         }
@@ -999,25 +1011,25 @@ void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
             bta_sys_busy(BTA_ID_HH, p_cb->app_id, p_cb->addr);
         }
     }
-    
+
 
     return;
 }
 
 /*****************************************************************************
-**  Static Function 
+**  Static Function
 *****************************************************************************/
 /*******************************************************************************
 **
 ** Function         bta_hh_cback
 **
 ** Description      BTA HH callback function.
-**                  
+**
 **
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_hh_cback (UINT8 dev_handle, UINT8 event, UINT32 data, 
+static void bta_hh_cback (UINT8 dev_handle, UINT8 event, UINT32 data,
                           BT_HDR *pdata)
 {
     tBTA_HH_CBACK_DATA    *p_buf = NULL;
@@ -1065,7 +1077,7 @@ static void bta_hh_cback (UINT8 dev_handle, UINT8 event, UINT32 data,
     }
 
     if (sm_event != BTA_HH_INVALID_EVT &&
-        (p_buf = (tBTA_HH_CBACK_DATA *)GKI_getbuf(sizeof(tBTA_HH_CBACK_DATA) + 
+        (p_buf = (tBTA_HH_CBACK_DATA *)GKI_getbuf(sizeof(tBTA_HH_CBACK_DATA) +
                     sizeof(BT_HDR))) != NULL)
     {
         p_buf->hdr.event  = sm_event;
@@ -1081,8 +1093,8 @@ static void bta_hh_cback (UINT8 dev_handle, UINT8 event, UINT32 data,
 **
 ** Function         bta_hh_get_trans_status
 **
-** Description      translate a handshake result code into BTA HH 
-**                  status code  
+** Description      translate a handshake result code into BTA HH
+**                  status code
 **
 *******************************************************************************/
 static tBTA_HH_STATUS bta_hh_get_trans_status(UINT32 result)

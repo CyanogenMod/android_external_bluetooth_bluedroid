@@ -1,14 +1,27 @@
-/*****************************************************************************
-**
-**  Name:           smp_api.c
-**
-**  Description:    This file contains the implementation of the SMP
-**                  interface used by applications that can run over an SMP.
-**
-**
-**  Copyright (c) 2008-2009, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2008-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the implementation of the SMP interface used by
+ *  applications that can run over an SMP.
+ *
+ ******************************************************************************/
 #include <string.h>
 
 #include "bt_target.h"
@@ -44,7 +57,7 @@ void SMP_Init(void)
     smp_cb.trace_level = BT_TRACE_LEVEL_NONE;    /* No traces */
 #endif
 
-    smp_l2cap_if_init();    
+    smp_l2cap_if_init();
 }
 
 
@@ -104,7 +117,7 @@ BOOLEAN SMP_Register (tSMP_CALLBACK *p_cback)
 **
 ** Function         SMP_Pair
 **
-** Description      This function call to perform a SMP pairing with peer device. 
+** Description      This function call to perform a SMP pairing with peer device.
 **                  Device support one SMP pairing at one time.
 **
 ** Parameters       bd_addr - peer device bd address.
@@ -127,7 +140,7 @@ tSMP_STATUS SMP_Pair (BD_ADDR bd_addr)
     {
         p_cb->flags = SMP_PAIR_FLAGS_WE_STARTED_DD;
 
-        memcpy (p_cb->pairing_bda, bd_addr, BD_ADDR_LEN);  
+        memcpy (p_cb->pairing_bda, bd_addr, BD_ADDR_LEN);
 
         if (!L2CA_ConnectFixedChnl (L2CAP_SMP_CID, bd_addr))
         {
@@ -145,7 +158,7 @@ tSMP_STATUS SMP_Pair (BD_ADDR bd_addr)
 **
 ** Function         SMP_PairCancel
 **
-** Description      This function call to cancel a SMP pairing with peer device. 
+** Description      This function call to cancel a SMP pairing with peer device.
 **
 ** Parameters       bd_addr - peer device bd address.
 **
@@ -159,7 +172,7 @@ BOOLEAN SMP_PairCancel (BD_ADDR bd_addr)
     BOOLEAN   status = FALSE;
 
     BTM_TRACE_EVENT2 ("SMP_CancelPair state=%d flag=0x%x ", p_cb->state, p_cb->flags);
-    if ( (p_cb->state != SMP_ST_IDLE)  &&  
+    if ( (p_cb->state != SMP_ST_IDLE)  &&
          (!memcmp (p_cb->pairing_bda, bd_addr, BD_ADDR_LEN)) )
     {
         p_cb->is_pair_cancel = TRUE;
@@ -177,8 +190,8 @@ BOOLEAN SMP_PairCancel (BD_ADDR bd_addr)
 ** Description      This function is called to grant security process.
 **
 ** Parameters       bd_addr - peer device bd address.
-**                  res     - result of the operation SMP_SUCCESS if success. 
-**                            Otherwise, SMP_REPEATED_ATTEMPTS is too many attempts. 
+**                  res     - result of the operation SMP_SUCCESS if success.
+**                            Otherwise, SMP_REPEATED_ATTEMPTS is too many attempts.
 **
 ** Returns          None
 **
@@ -191,7 +204,7 @@ void SMP_SecurityGrant(BD_ADDR bd_addr, UINT8 res)
         memcmp (smp_cb.pairing_bda, bd_addr, BD_ADDR_LEN))
         return;
 
-    smp_sm_event(&smp_cb, SMP_API_SEC_GRANT_EVT, &res);    
+    smp_sm_event(&smp_cb, SMP_API_SEC_GRANT_EVT, &res);
 }
 
 /*******************************************************************************
@@ -202,7 +215,7 @@ void SMP_SecurityGrant(BD_ADDR bd_addr, UINT8 res)
 **                  passkey request to the application.
 **
 ** Parameters:      bd_addr      - Address of the device for which passkey was requested
-**                  res          - result of the operation SMP_SUCCESS if success 
+**                  res          - result of the operation SMP_SUCCESS if success
 **                  passkey - numeric value in the range of
 **                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
 **
@@ -259,7 +272,7 @@ void SMP_PasskeyReply (BD_ADDR bd_addr, UINT8 res, UINT32 passkey)
 **                  SMP in response to SMP_OOB_REQ_EVT
 **
 ** Parameters:      bd_addr     - Address of the peer device
-**                  res         - result of the operation SMP_SUCCESS if success 
+**                  res         - result of the operation SMP_SUCCESS if success
 **                  p_data      - simple pairing Randomizer  C.
 **
 *******************************************************************************/
@@ -300,18 +313,18 @@ void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, UINT8 len, UINT8 *p_data
 **
 ** Description      This function is called to encrypt the data with the specified
 **                  key
-** 
+**
 ** Parameters:      key                 - Pointer to key key[0] conatins the MSB
 **                  key_len             - key length
 **                  plain_text          - Pointer to data to be encrypted
 **                                        plain_text[0] conatins the MSB
 **                  pt_len              - plain text length
 **                  p_out                - output of the encrypted texts
-**                                    
-**  Returns         Boolean - request is successful               
+**
+**  Returns         Boolean - request is successful
 *******************************************************************************/
-BOOLEAN SMP_Encrypt (UINT8 *key, UINT8 key_len, 
-                     UINT8 *plain_text, UINT8 pt_len, 
+BOOLEAN SMP_Encrypt (UINT8 *key, UINT8 key_len,
+                     UINT8 *plain_text, UINT8 pt_len,
                      tSMP_ENC *p_out)
 
 {

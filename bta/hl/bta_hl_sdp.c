@@ -1,13 +1,20 @@
-/*****************************************************************************
-**
-**  Name:       bta_hl_sdp.c
-**
-**  File:       Implements the SDP functions used by HeaLth device profile
-**
-**  Copyright (c) 1998-2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1998-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 
 #include <string.h>
 
@@ -28,7 +35,7 @@
 **                  If found, the passed protocol list element is filled in.
 **
 *******************************************************************************/
-BOOLEAN bta_hl_fill_sup_feature_list( const tSDP_DISC_ATTR  *p_attr, 
+BOOLEAN bta_hl_fill_sup_feature_list( const tSDP_DISC_ATTR  *p_attr,
                                       tBTA_HL_SUP_FEATURE_LIST_ELEM *p_list)
 {
     tSDP_DISC_ATTR  *p_sattr;
@@ -139,7 +146,7 @@ BOOLEAN bta_hl_add_sup_feature_list (UINT32 handle, UINT16 num_elem,
 {
     UINT8       *p_buf;
     int         offset;
-    BOOLEAN     result = FALSE; 
+    BOOLEAN     result = FALSE;
 
     if ((p_buf = (UINT8 *)GKI_getbuf(BTA_HL_SUP_FEATURE_SDP_BUF_SIZE)) != NULL)
     {
@@ -170,14 +177,14 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
     UINT16                          svc_class_id_list[BTA_HL_NUM_SVC_ELEMS];
     tSDP_PROTOCOL_ELEM              proto_elem_list[BTA_HL_NUM_PROTO_ELEMS];
     tSDP_PROTO_LIST_ELEM            add_proto_list;
-    tBTA_HL_SUP_FEATURE_LIST_ELEM   sup_feature_list;    
+    tBTA_HL_SUP_FEATURE_LIST_ELEM   sup_feature_list;
     UINT16                          browse_list[] = {UUID_SERVCLASS_PUBLIC_BROWSE_GROUP};
     UINT8                           i,j, cnt,mdep_id, mdep_role;
     UINT8                           data_exchange_spec = BTA_HL_SDP_IEEE_11073_20601;
     UINT8                           mcap_sup_proc = BTA_HL_MCAP_SUP_PROC_MASK;
     UINT16                          profile_uuid = UUID_SERVCLASS_HDP_PROFILE;
-    UINT16                          version = BTA_HL_VERSION_01_00; 
-    UINT8                           num_services=1; 
+    UINT16                          version = BTA_HL_VERSION_01_00;
+    UINT8                           num_services=1;
     tBTA_HL_APP_CB                  *p_cb = BTA_HL_GET_APP_CB_PTR(app_idx);
     BOOLEAN                         result = TRUE;
     tBTA_HL_STATUS                  status = BTA_HL_STATUS_OK;
@@ -186,7 +193,7 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
     APPL_TRACE_DEBUG1("bta_hl_sdp_register app_idx=%d",app_idx);
 #endif
 
-    if ((p_cb->sup_feature.app_role_mask == BTA_HL_MDEP_ROLE_MASK_SOURCE) && 
+    if ((p_cb->sup_feature.app_role_mask == BTA_HL_MDEP_ROLE_MASK_SOURCE) &&
         (!p_cb->sup_feature.advertize_source_sdp))
     {
         return BTA_HL_STATUS_OK;
@@ -212,7 +219,7 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
             svc_class_id_list[1]= UUID_SERVCLASS_HDP_SINK;
         }
     }
-    result &= SDP_AddServiceClassIdList(p_cb->sdp_handle, num_services, svc_class_id_list); 
+    result &= SDP_AddServiceClassIdList(p_cb->sdp_handle, num_services, svc_class_id_list);
 
     if (result)
     {
@@ -221,7 +228,7 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
         proto_elem_list[0].num_params = 1;
         proto_elem_list[0].params[0] = p_cb->ctrl_psm;
         proto_elem_list[1].protocol_uuid = UUID_PROTOCOL_MCAP_CTRL;
-        proto_elem_list[1].num_params = 1;        
+        proto_elem_list[1].num_params = 1;
         proto_elem_list[1].params[0] = version;
         result &= SDP_AddProtocolList(p_cb->sdp_handle, BTA_HL_NUM_PROTO_ELEMS, proto_elem_list);
 
@@ -236,7 +243,7 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
         add_proto_list.list_elem[0].params[0] = p_cb->data_psm;
         add_proto_list.list_elem[1].protocol_uuid = UUID_PROTOCOL_MCAP_DATA;
         add_proto_list.list_elem[1].num_params = 0;
-        result &= SDP_AddAdditionProtoLists(p_cb->sdp_handle, BTA_HL_NUM_ADD_PROTO_LISTS, 
+        result &= SDP_AddAdditionProtoLists(p_cb->sdp_handle, BTA_HL_NUM_ADD_PROTO_LISTS,
                                             (tSDP_PROTO_LIST_ELEM *)&add_proto_list);
     }
 
@@ -285,14 +292,14 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
         cnt=0;
         for (i=1; i<= p_cb->sup_feature.num_of_mdeps; i++)
         {
-            mdep_id = (UINT8)p_cb->sup_feature.mdep[i].mdep_id; 
+            mdep_id = (UINT8)p_cb->sup_feature.mdep[i].mdep_id;
             mdep_role = (UINT8)p_cb->sup_feature.mdep[i].mdep_cfg.mdep_role;
 
             for (j=0; j<p_cb->sup_feature.mdep[i].mdep_cfg.num_of_mdep_data_types; j++)
             {
                 sup_feature_list.list_elem[cnt].mdep_id = mdep_id;
                 sup_feature_list.list_elem[cnt].mdep_role = mdep_role;
-                sup_feature_list.list_elem[cnt].data_type = p_cb->sup_feature.mdep[i].mdep_cfg.data_cfg[j].data_type;   
+                sup_feature_list.list_elem[cnt].data_type = p_cb->sup_feature.mdep[i].mdep_cfg.data_cfg[j].data_type;
                 if (p_cb->sup_feature.mdep[i].mdep_cfg.data_cfg[j].desp[0] != '\0')
                 {
                     sup_feature_list.list_elem[cnt].p_mdep_desp = p_cb->sup_feature.mdep[i].mdep_cfg.data_cfg[j].desp;
@@ -311,7 +318,7 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
             }
         }
         sup_feature_list.num_elems = cnt;
-        result &=   bta_hl_add_sup_feature_list (p_cb->sdp_handle, 
+        result &=   bta_hl_add_sup_feature_list (p_cb->sdp_handle,
                                                  sup_feature_list.num_elems,
                                                  sup_feature_list.list_elem);
     }
@@ -336,8 +343,8 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
     if (result)
     {
         for(i=0; i < num_services; i++)
-        {     
-            bta_sys_add_uuid(svc_class_id_list[i]);  
+        {
+            bta_sys_add_uuid(svc_class_id_list[i]);
             APPL_TRACE_DEBUG2("dbg bta_sys_add_uuid i=%d uuid=0x%x", i, svc_class_id_list[i]); //todo
         }
     }
@@ -360,7 +367,7 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
 **
 ** Function         bta_hl_find_sink_or_src_srv_class_in_db
 **
-** Description      This function queries an SDP database for either a HDP Sink or 
+** Description      This function queries an SDP database for either a HDP Sink or
 **                  Source service class ID.
 **                  If the p_start_rec pointer is NULL, it looks from the beginning
 **                  of the database, else it continues from the next record after
@@ -369,7 +376,7 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
 ** Returns          Pointer to record containing service class, or NULL
 **
 *******************************************************************************/
-tSDP_DISC_REC *bta_hl_find_sink_or_src_srv_class_in_db (const tSDP_DISCOVERY_DB *p_db, 
+tSDP_DISC_REC *bta_hl_find_sink_or_src_srv_class_in_db (const tSDP_DISCOVERY_DB *p_db,
                                                         const tSDP_DISC_REC *p_start_rec)
 {
 #if SDP_CLIENT_ENABLED == TRUE

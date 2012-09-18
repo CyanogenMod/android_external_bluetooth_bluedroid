@@ -1,13 +1,26 @@
-/*****************************************************************************
-**
-**  Name:          gatts_db.c
-**
-**  Description:   this file contains GATT database building and query
-**                 functions
-**
-**  Copyright (c) 2009-2011, Broadcom Corp, All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2009-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  this file contains GATT database building and query functions
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 
@@ -29,22 +42,22 @@ static BOOLEAN deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr);
 static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 len);
 
 static void gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID service, BOOLEAN is_pri);
-static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code, 
+static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
                                                 UINT16 handle, UINT16 offset, UINT32 trans_id);
 
 /*******************************************************************************
 **
-** Function         gatts_init_service_db 
+** Function         gatts_init_service_db
 **
 ** Description      This function initialize a memory space to be a service database.
 **
 ** Parameter        p_db: database pointer.
 **                  len: size of the memory space.
 **
-** Returns          Status of te operation. 
+** Returns          Status of te operation.
 **
 *******************************************************************************/
-BOOLEAN gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID service,  BOOLEAN is_pri, 
+BOOLEAN gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID service,  BOOLEAN is_pri,
                                UINT16 s_hdl, UINT16 num_handle)
 {
     if (!allocate_svc_db_buf(p_db))
@@ -53,7 +66,7 @@ BOOLEAN gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID service,  BOOLEAN is
         return FALSE;
     }
 
-    GATT_TRACE_DEBUG0("gatts_init_service_db"); 
+    GATT_TRACE_DEBUG0("gatts_init_service_db");
     GATT_TRACE_DEBUG2("s_hdl = %d num_handle = %d", s_hdl, num_handle );
 
     /* update service database information */
@@ -67,14 +80,14 @@ BOOLEAN gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID service,  BOOLEAN is
 
 /*******************************************************************************
 **
-** Function         gatts_init_service_db 
+** Function         gatts_init_service_db
 **
 ** Description      This function initialize a memory space to be a service database.
 **
 ** Parameter        p_db: database pointer.
 **                  len: size of the memory space.
 **
-** Returns          Status of te operation. 
+** Returns          Status of te operation.
 **
 *******************************************************************************/
 tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db)
@@ -93,15 +106,15 @@ tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db)
 
 /*******************************************************************************
 **
-** Function         gatts_check_attr_readability 
+** Function         gatts_check_attr_readability
 **
 ** Description      check attribute readability
 **
-** Returns          status of operation. 
+** Returns          status of operation.
 **
 *******************************************************************************/
-static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR16 *p_attr, 
-                                                 UINT16 offset,   
+static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR16 *p_attr,
+                                                 UINT16 offset,
                                                  BOOLEAN read_long,
                                                  tGATT_SEC_FLAG sec_flag,
                                                  UINT8 key_size)
@@ -142,7 +155,7 @@ static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR16 *p_attr,
     if ( (perm & GATT_READ_ENCRYPTED_REQUIRED) && (sec_flag & GATT_SEC_FLAG_ENCRYPTED) && (key_size < min_key_size))
     {
         GATT_TRACE_ERROR0( "GATT_INSUF_KEY_SIZE");
-        return GATT_INSUF_KEY_SIZE;         
+        return GATT_INSUF_KEY_SIZE;
     }
 
 
@@ -171,7 +184,7 @@ static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR16 *p_attr,
 
 /*******************************************************************************
 **
-** Function         read_attr_value 
+** Function         read_attr_value
 **
 ** Description      Utility function to read an attribute value.
 **
@@ -181,15 +194,15 @@ static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR16 *p_attr,
 **                  p_len: output parameter to carry out the attribute length.
 **                  read_long: this is a read blob request.
 **                  mtu: MTU
-**                  sec_flag: current link security status. 
-**                  key_size: encryption key size. 
+**                  sec_flag: current link security status.
+**                  key_size: encryption key size.
 **
-** Returns          status of operation. 
+** Returns          status of operation.
 **
 *******************************************************************************/
-static tGATT_STATUS read_attr_value (void *p_attr, 
-                                     UINT16 offset, 
-                                     UINT8 **p_data,   
+static tGATT_STATUS read_attr_value (void *p_attr,
+                                     UINT16 offset,
+                                     UINT8 **p_data,
                                      BOOLEAN read_long,
                                      UINT16 mtu,
                                      UINT16 *p_len,
@@ -204,7 +217,7 @@ static tGATT_STATUS read_attr_value (void *p_attr,
 
     GATT_TRACE_DEBUG5("read_attr_value uuid=0x%04x perm=0x%0x sec_flag=0x%x offset=%d read_long=%d",
                       p_attr16->uuid,
-                      p_attr16->permission, 
+                      p_attr16->permission,
                       sec_flag,
                       offset,
                       read_long);
@@ -282,7 +295,7 @@ static tGATT_STATUS read_attr_value (void *p_attr,
 
 /*******************************************************************************
 **
-** Function         gatts_db_read_attr_value_by_type 
+** Function         gatts_db_read_attr_value_by_type
 **
 ** Description      Query attribute value by attribute type.
 **
@@ -292,20 +305,20 @@ static tGATT_STATUS read_attr_value (void *p_attr,
 **                  e_handle: ending handle of the range we are looking for.
 **                  type: Attribute type.
 **                  mtu: MTU.
-**                  sec_flag: current link security status. 
-**                  key_size: encryption key size.  
+**                  sec_flag: current link security status.
+**                  key_size: encryption key size.
 **
-** Returns          Status of the operation. 
+** Returns          Status of the operation.
 **
 *******************************************************************************/
-tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb, 
+tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
                                                tGATT_SVC_DB    *p_db,
                                                UINT8        op_code,
-                                               BT_HDR      *p_rsp, 
-                                               UINT16       s_handle, 
-                                               UINT16       e_handle, 
-                                               tBT_UUID     type, 
-                                               UINT16      *p_len, 
+                                               BT_HDR      *p_rsp,
+                                               UINT16       s_handle,
+                                               UINT16       e_handle,
+                                               tBT_UUID     type,
+                                               UINT16      *p_len,
                                                tGATT_SEC_FLAG sec_flag,
                                                UINT8        key_size,
                                                UINT32       trans_id,
@@ -344,7 +357,7 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
 
                 UINT16_TO_STREAM (p, p_attr->handle);
 
-                status = read_attr_value ((void *)p_attr, 0, &p, FALSE, (UINT16)(*p_len -2), &len, sec_flag, key_size);  
+                status = read_attr_value ((void *)p_attr, 0, &p, FALSE, (UINT16)(*p_len -2), &len, sec_flag, key_size);
 
                 if (status == GATT_PENDING)
                 {
@@ -385,22 +398,22 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
 
 /*******************************************************************************
 **
-** Function         gatts_add_included_service 
+** Function         gatts_add_included_service
 **
 ** Description      This function adds an included service into a database.
 **
 ** Parameter        p_db: database pointer.
 **                  inc_srvc_type: included service type.
 **
-** Returns          Status of the operation. 
+** Returns          Status of the operation.
 **
 *******************************************************************************/
-UINT16 gatts_add_included_service (tGATT_SVC_DB *p_db, UINT16 s_handle, UINT16 e_handle, 
+UINT16 gatts_add_included_service (tGATT_SVC_DB *p_db, UINT16 s_handle, UINT16 e_handle,
                                    tBT_UUID service)
 {
     tGATT_ATTR16      *p_attr;
 
-    GATT_TRACE_DEBUG3("gatts_add_included_service: s_hdl = 0x%04x e_hdl = 0x%04x uuid = 0x%04x", 
+    GATT_TRACE_DEBUG3("gatts_add_included_service: s_hdl = 0x%04x e_hdl = 0x%04x uuid = 0x%04x",
                       s_handle, e_handle, service.uu.uuid16);
 
     if (service.len == 0 || s_handle == 0 || e_handle == 0)
@@ -430,7 +443,7 @@ UINT16 gatts_add_included_service (tGATT_SVC_DB *p_db, UINT16 s_handle, UINT16 e
 
 /*******************************************************************************
 **
-** Function         gatts_add_characteristic 
+** Function         gatts_add_characteristic
 **
 ** Description      This function add a characteristics and its descriptor into
 **                  a servce identified by the service database pointer.
@@ -440,11 +453,11 @@ UINT16 gatts_add_included_service (tGATT_SVC_DB *p_db, UINT16 s_handle, UINT16 e
 **                  property: property of the characteristic.
 **                  p_char: characteristic value information.
 **
-** Returns          Status of te operation. 
+** Returns          Status of te operation.
 **
 *******************************************************************************/
-UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm, 
-                                 tGATT_CHAR_PROP property, 
+UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
+                                 tGATT_CHAR_PROP property,
                                  tBT_UUID * p_char_uuid)
 {
     tGATT_ATTR16     *p_char_decl, *p_char_val;
@@ -456,7 +469,7 @@ UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
     {
         if (!copy_extra_byte_in_db(p_db, (void **)&p_char_decl->p_value, sizeof(tGATT_CHAR_DECL)))
         {
-            deallocate_attr_in_db(p_db, p_char_decl);  
+            deallocate_attr_in_db(p_db, p_char_decl);
             return 0;
         }
 
@@ -464,7 +477,7 @@ UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
 
         if (p_char_val == NULL)
         {
-            deallocate_attr_in_db(p_db, p_char_decl);  
+            deallocate_attr_in_db(p_db, p_char_decl);
             return 0;
         }
 
@@ -481,11 +494,11 @@ UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
 
 /*******************************************************************************
 **
-** Function         gatt_convertchar_descr_type 
+** Function         gatt_convertchar_descr_type
 **
 ** Description      This function convert a char descript UUID into descriptor type.
 **
-** Returns          descriptor type. 
+** Returns          descriptor type.
 **
 *******************************************************************************/
 UINT8 gatt_convertchar_descr_type(tBT_UUID *p_descr_uuid)
@@ -525,7 +538,7 @@ UINT8 gatt_convertchar_descr_type(tBT_UUID *p_descr_uuid)
 
 /*******************************************************************************
 **
-** Function         gatts_add_char_descr 
+** Function         gatts_add_char_descr
 **
 ** Description      This function add a characteristics descriptor.
 **
@@ -534,10 +547,10 @@ UINT8 gatt_convertchar_descr_type(tBT_UUID *p_descr_uuid)
 **                  char_dscp_tpye: the characteristic descriptor masks.
 **                  p_dscp_params: characteristic descriptors values.
 **
-** Returns          Status of the operation. 
+** Returns          Status of the operation.
 **
 *******************************************************************************/
-UINT16 gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm, 
+UINT16 gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
                              tBT_UUID *     p_descr_uuid)
 {
     tGATT_ATTR16    *p_char_dscptr;
@@ -546,10 +559,10 @@ UINT16 gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
     GATT_TRACE_DEBUG1("gatts_add_char_descr uuid=0x%04x", p_descr_uuid->uu.uuid16);
 
     /* Add characteristic descriptors */
-    if ((p_char_dscptr = (tGATT_ATTR16 *)allocate_attr_in_db(p_db, 
-                                                             uuid16, 
-                                                             p_descr_uuid->uu.uuid128, 
-                                                             perm)) 
+    if ((p_char_dscptr = (tGATT_ATTR16 *)allocate_attr_in_db(p_db,
+                                                             uuid16,
+                                                             p_descr_uuid->uu.uuid128,
+                                                             perm))
         == NULL)
     {
         GATT_TRACE_DEBUG0("gatts_add_char_descr Fail for adding char descriptors.");
@@ -566,7 +579,7 @@ UINT16 gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
 /*******************************************************************************/
 /*******************************************************************************
 **
-** Function         gatts_read_attr_value_by_handle 
+** Function         gatts_read_attr_value_by_handle
 **
 ** Description      Query attribute value by attribute handle.
 **
@@ -577,17 +590,17 @@ UINT16 gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
 **                  p_len: output parameter as attribute length read.
 **                  read_long: this is a read blob request.
 **                  mtu: MTU.
-**                  sec_flag: current link security status.  
-**                  key_size: encryption key size  
+**                  sec_flag: current link security status.
+**                  key_size: encryption key size
 **
-** Returns          Status of operation. 
+** Returns          Status of operation.
 **
 *******************************************************************************/
 tGATT_STATUS gatts_read_attr_value_by_handle(tGATT_TCB *p_tcb,
-                                             tGATT_SVC_DB *p_db, 
-                                             UINT8 op_code, 
-                                             UINT16 handle, UINT16 offset, 
-                                             UINT8 *p_value, UINT16 *p_len, 
+                                             tGATT_SVC_DB *p_db,
+                                             UINT8 op_code,
+                                             UINT16 handle, UINT16 offset,
+                                             UINT8 *p_value, UINT16 *p_len,
                                              UINT16 mtu,
                                              tGATT_SEC_FLAG sec_flag,
                                              UINT8 key_size,
@@ -605,8 +618,8 @@ tGATT_STATUS gatts_read_attr_value_by_handle(tGATT_TCB *p_tcb,
         {
             if (p_attr->handle == handle)
             {
-                status = read_attr_value (p_attr, offset, &pp,  
-                                          (BOOLEAN)(op_code == GATT_REQ_READ_BLOB), 
+                status = read_attr_value (p_attr, offset, &pp,
+                                          (BOOLEAN)(op_code == GATT_REQ_READ_BLOB),
                                           mtu, p_len, sec_flag, key_size);
 
                 if (status == GATT_PENDING)
@@ -624,7 +637,7 @@ tGATT_STATUS gatts_read_attr_value_by_handle(tGATT_TCB *p_tcb,
 
 /*******************************************************************************
 **
-** Function         gatts_read_attr_perm_check 
+** Function         gatts_read_attr_perm_check
 **
 ** Description      Check attribute readability.
 **
@@ -635,15 +648,15 @@ tGATT_STATUS gatts_read_attr_value_by_handle(tGATT_TCB *p_tcb,
 **                  p_len: output parameter as attribute length read.
 **                  read_long: this is a read blob request.
 **                  mtu: MTU.
-**                  sec_flag: current link security status.  
-**                  key_size: encryption key size  
+**                  sec_flag: current link security status.
+**                  key_size: encryption key size
 **
-** Returns          Status of operation. 
+** Returns          Status of operation.
 **
 *******************************************************************************/
-tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db, 
-                                        BOOLEAN is_long, 
-                                        UINT16 handle, 
+tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db,
+                                        BOOLEAN is_long,
+                                        UINT16 handle,
                                         tGATT_SEC_FLAG sec_flag,
                                         UINT8 key_size)
 {
@@ -658,8 +671,8 @@ tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db,
         {
             if (p_attr->handle == handle)
             {
-                status = gatts_check_attr_readability (p_attr, 0,   
-                                                       is_long, 
+                status = gatts_check_attr_readability (p_attr, 0,
+                                                       is_long,
                                                        sec_flag, key_size);
                 break;
             }
@@ -671,7 +684,7 @@ tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db,
 }
 /*******************************************************************************
 **
-** Function         gatts_write_attr_perm_check 
+** Function         gatts_write_attr_perm_check
 **
 ** Description      Write attribute value into database.
 **
@@ -681,14 +694,14 @@ tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db,
 **                  offset: Write offset if write op code is write blob.
 **                  p_data: Attribute value to write.
 **                  len: attribute data length.
-**                  sec_flag: current link security status. 
-**                  key_size: encryption key size  
+**                  sec_flag: current link security status.
+**                  key_size: encryption key size
 **
-** Returns          Status of the operation. 
+** Returns          Status of the operation.
 **
 *******************************************************************************/
 tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
-                                          UINT16 handle, UINT16 offset, UINT8 *p_data, 
+                                          UINT16 handle, UINT16 offset, UINT8 *p_data,
                                           UINT16 len, tGATT_SEC_FLAG sec_flag, UINT8 key_size)
 {
     tGATT_STATUS    status = GATT_NOT_FOUND;
@@ -697,7 +710,7 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
     tGATT_PERM      perm;
     UINT16          min_key_size;
 
-    GATT_TRACE_DEBUG6( "gatts_write_attr_perm_check op_code=0x%0x handle=0x%04x offset=%d len=%d sec_flag=0x%0x key_size=%d", 
+    GATT_TRACE_DEBUG6( "gatts_write_attr_perm_check op_code=0x%0x handle=0x%04x offset=%d len=%d sec_flag=0x%0x key_size=%d",
                        op_code, handle, offset, len, sec_flag, key_size);
 
     if (p_db != NULL)
@@ -714,7 +727,7 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                 {
                     min_key_size +=6;
                 }
-                GATT_TRACE_DEBUG2( "gatts_write_attr_perm_check p_attr->permission =0x%04x min_key_size==0x%04x", 
+                GATT_TRACE_DEBUG2( "gatts_write_attr_perm_check p_attr->permission =0x%04x min_key_size==0x%04x",
                                    p_attr->permission,
                                    min_key_size);
 
@@ -836,9 +849,9 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
 
 /*******************************************************************************
 **
-** Function         allocate_attr_in_db 
+** Function         allocate_attr_in_db
 **
-** Description      Allocate a memory space for a new attribute, and link this 
+** Description      Allocate a memory space for a new attribute, and link this
 **                  attribute into the database attribute list.
 **
 **
@@ -865,7 +878,7 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, UINT16 uuid16, UINT8 *uuid1
     if (p_db->end_handle <= p_db->next_handle)
     {
         GATT_TRACE_DEBUG2("handle space full. handle_max = %d next_handle = %d",
-                          p_db->end_handle, p_db->next_handle);  
+                          p_db->end_handle, p_db->next_handle);
         return NULL;
     }
 
@@ -878,8 +891,8 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, UINT16 uuid16, UINT8 *uuid1
         }
     }
 
-    p_attr16 = (tGATT_ATTR16 *) p_db->p_free_mem; 
-    p_attr128 = (tGATT_ATTR128 *) p_db->p_free_mem; 
+    p_attr16 = (tGATT_ATTR16 *) p_db->p_free_mem;
+    p_attr128 = (tGATT_ATTR128 *) p_db->p_free_mem;
 
     memset(p_attr16, 0, len);
 
@@ -901,7 +914,7 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, UINT16 uuid16, UINT8 *uuid1
     p_attr16->permission = perm;
     p_attr16->p_next = NULL;
 
-    /* link the attribute record into the end of DB */   
+    /* link the attribute record into the end of DB */
     if (p_db->p_attr_list == NULL)
         p_db->p_attr_list = p_attr16;
     else
@@ -916,13 +929,13 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, UINT16 uuid16, UINT8 *uuid1
 
     if (p_attr16->uuid_type == GATT_ATTR_UUID_TYPE_16)
     {
-        GATT_TRACE_DEBUG3("=====> handle = [0x%04x] uuid = [0x%04x] perm=0x%02x ", 
+        GATT_TRACE_DEBUG3("=====> handle = [0x%04x] uuid = [0x%04x] perm=0x%02x ",
                           p_attr16->handle, p_attr16->uuid, p_attr16->permission);
     }
     else
     {
-        GATT_TRACE_DEBUG4("=====> handle = [0x%04x] uuid128 = [0x%02x:0x%02x] perm=0x%02x ", 
-                          p_attr128->handle, p_attr128->uuid[0],p_attr128->uuid[1], 
+        GATT_TRACE_DEBUG4("=====> handle = [0x%04x] uuid128 = [0x%02x:0x%02x] perm=0x%02x ",
+                          p_attr128->handle, p_attr128->uuid[0],p_attr128->uuid[1],
                           p_attr128->permission);
     }
     return(void *)p_attr16;
@@ -930,9 +943,9 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, UINT16 uuid16, UINT8 *uuid1
 
 /*******************************************************************************
 **
-** Function         deallocate_attr_in_db 
+** Function         deallocate_attr_in_db
 **
-** Description      Free an attribute within the database. 
+** Description      Free an attribute within the database.
 **
 ** Parameter        p_db: database pointer.
 **                  p_attr: pointer to the attribute record to be freed.
@@ -951,7 +964,7 @@ static BOOLEAN deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr)
     p_cur   = (tGATT_ATTR16 *) p_db->p_attr_list;
     p_next  = (tGATT_ATTR16 *) p_cur->p_next;
 
-    for (; p_cur != NULL && p_next != NULL; 
+    for (; p_cur != NULL && p_next != NULL;
         p_cur = p_next, p_next = (tGATT_ATTR16 *)p_next->p_next)
     {
         if (p_next == p_attr)
@@ -974,7 +987,7 @@ static BOOLEAN deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr)
 
 /*******************************************************************************
 **
-** Function         copy_extra_byte_in_db 
+** Function         copy_extra_byte_in_db
 **
 ** Description      Utility function to allocate extra bytes memory in DB and copy
 **                  the value from a source place.
@@ -985,7 +998,7 @@ static BOOLEAN deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr)
 **                  p_src: source data pointer.
 **                  len: data length to be copied.
 **
-** Returns          None. 
+** Returns          None.
 **
 *******************************************************************************/
 static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 len)
@@ -1003,7 +1016,7 @@ static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 le
 
     p = p_db->p_free_mem;
     p_db->p_free_mem += len;
-    p_db->mem_free -= len;                
+    p_db->mem_free -= len;
     memset((void *)p, 0, len);
     *p_dst = (void *)p;
 
@@ -1012,11 +1025,11 @@ static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 le
 
 /*******************************************************************************
 **
-** Function         allocate_svc_db_buf 
+** Function         allocate_svc_db_buf
 **
 ** Description      Utility function to allocate extra buffer for service database.
 **
-** Returns          TRUE if allocation succeed, otherwise FALSE. 
+** Returns          TRUE if allocation succeed, otherwise FALSE.
 **
 *******************************************************************************/
 static BOOLEAN allocate_svc_db_buf(tGATT_SVC_DB *p_db)
@@ -1043,14 +1056,14 @@ static BOOLEAN allocate_svc_db_buf(tGATT_SVC_DB *p_db)
 
 /*******************************************************************************
 **
-** Function         gatts_send_app_read_request 
+** Function         gatts_send_app_read_request
 **
 ** Description      Send application read request callback
 **
-** Returns          status of operation. 
+** Returns          status of operation.
 **
 *******************************************************************************/
-static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code, 
+static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
                                                 UINT16 handle, UINT16 offset, UINT32 trans_id)
 {
     tGATTS_DATA   sr_data;
@@ -1064,7 +1077,7 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
 
     if (trans_id == 0)
     {
-        trans_id = gatt_sr_enqueue_cmd(p_tcb, op_code, handle);  
+        trans_id = gatt_sr_enqueue_cmd(p_tcb, op_code, handle);
         gatt_sr_update_cback_cnt(p_tcb, p_sreg->gatt_if, TRUE, TRUE);
     }
 
@@ -1076,7 +1089,7 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
         sr_data.read_req.is_long = (BOOLEAN)(op_code == GATT_REQ_READ_BLOB);
         sr_data.read_req.offset = offset;
 
-        gatt_sr_send_req_callback(conn_id,  
+        gatt_sr_send_req_callback(conn_id,
                                   trans_id, GATTS_REQ_TYPE_READ, &sr_data);
         return(tGATT_STATUS) GATT_PENDING;
     }
@@ -1087,7 +1100,7 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
 
 /*******************************************************************************
 **
-** Function         gatts_db_add_service_declaration 
+** Function         gatts_db_add_service_declaration
 **
 ** Description      Update a service database service declaration record.
 **
@@ -1102,7 +1115,7 @@ static void gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID servic
     tGATT_ATTR16  *p_attr;
     UINT16      service_type = is_pri ? GATT_UUID_PRI_SERVICE: GATT_UUID_SEC_SERVICE;
 
-    GATT_TRACE_DEBUG0( "add_service_declaration"); 
+    GATT_TRACE_DEBUG0( "add_service_declaration");
 
     /* add service declration record */
     if ((p_attr = (tGATT_ATTR16 *)(allocate_attr_in_db(p_db, service_type, NULL, GATT_PERM_READ))) != NULL)

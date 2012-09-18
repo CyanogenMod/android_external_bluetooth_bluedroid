@@ -1,14 +1,27 @@
-/*****************************************************************************
-**
-**  Name:           avdt_api.h
-**
-**  Description:    This interface file contains the interface to the Audio
-**                  Video Distribution Transport Protocol (AVDTP).
-**
-**  Copyright (c) 2002-2009, Broadcom Corp., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2002-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This interface file contains the interface to the Audio Video
+ *  Distribution Transport Protocol (AVDTP).
+ *
+ ******************************************************************************/
 #ifndef AVDT_API_H
 #define AVDT_API_H
 
@@ -57,7 +70,7 @@
 /* The marker bit is used by the application to mark significant events such
 ** as frame boundaries in the data stream.  This constant is used to check or
 ** set the marker bit in the m_pt parameter of an AVDT_WriteReq()
-** or AVDT_DATA_IND_EVT.  
+** or AVDT_DATA_IND_EVT.
 */
 #define AVDT_MARKER_SET             0x80
 
@@ -273,7 +286,7 @@ typedef struct {
 } tAVDT_EVT_HDR;
 
 /* This data structure is associated with the AVDT_GETCAP_CFM_EVT,
-** AVDT_RECONFIG_IND_EVT, and AVDT_RECONFIG_CFM_EVT. 
+** AVDT_RECONFIG_IND_EVT, and AVDT_RECONFIG_CFM_EVT.
 */
 typedef struct {
     tAVDT_EVT_HDR   hdr;                /* Event header */
@@ -365,7 +378,7 @@ typedef void (tAVDT_MEDIA_CBACK)(UINT8 handle, UINT8 *p_payload, UINT32 payload_
 
 #if AVDT_REPORTING == TRUE
 /* This is the report callback function.  It is executed when AVDTP has a reporting
-** packet ready for the application.  This function is required for streams 
+** packet ready for the application.  This function is required for streams
 ** created with AVDT_PSC_REPORT.
 */
 typedef void (tAVDT_REPORT_CBACK)(UINT8 handle, AVDT_REPORT_TYPE type,
@@ -412,7 +425,7 @@ extern "C"
 **                  prepares the protocol stack for its use.  This function
 **                  must be called once by the system or platform using AVDTP
 **                  before the other functions of the API an be used.
-**                  
+**
 **
 ** Returns          void
 **
@@ -427,7 +440,7 @@ AVDT_API extern void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback);
 **                  It is called when AVDTP is no longer being used by any
 **                  application in the system.  Before this function can be
 **                  called, all streams must be removed with AVDT_RemoveStream().
-**                  
+**
 **
 ** Returns          void
 **
@@ -443,7 +456,7 @@ AVDT_API extern void AVDT_Deregister(void);
 **                  this endpoint and an endpoint on a peer device.  In
 **                  addition, a peer device can discover, get the capabilities,
 **                  and connect to this endpoint.
-**                  
+**
 **
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
@@ -459,7 +472,7 @@ AVDT_API extern UINT16 AVDT_CreateStream(UINT8 *p_handle, tAVDT_CS *p_cs);
 **                  If this function is called when the endpoint is connected
 **                  the connection is closed and then the stream endpoint
 **                  is removed.
-**                  
+**
 **
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
@@ -476,7 +489,7 @@ AVDT_API extern UINT16 AVDT_RemoveStream(UINT8 handle);
 **                  that AVDTP discovery is unrelated to SDP discovery).
 **                  This function can be called at any time regardless of whether
 **                  there is an AVDTP connection to the peer device.
-**                  
+**
 **                  When discovery is complete, an AVDT_DISCOVER_CFM_EVT
 **                  is sent to the application via its callback function.
 **                  The application must not call AVDT_GetCapReq() or
@@ -505,7 +518,7 @@ AVDT_API extern UINT16 AVDT_DiscoverReq(BD_ADDR bd_addr, tAVDT_SEP_INFO *p_sep_i
 **                  capabilities of a stream endpoint on the peer device.
 **                  This function can be called at any time regardless of
 **                  whether there is an AVDTP connection to the peer device.
-**                  
+**
 **                  When the procedure is complete, an AVDT_GETCAP_CFM_EVT is
 **                  sent to the application via its callback function.  The
 **                  application must not call AVDT_GetCapReq() or
@@ -532,7 +545,7 @@ AVDT_API extern UINT16 AVDT_GetCapReq(BD_ADDR bd_addr, UINT8 seid, tAVDT_CFG *p_
 **                  capabilities of a stream endpoint on the peer device.
 **                  This function can be called at any time regardless of
 **                  whether there is an AVDTP connection to the peer device.
-**                  
+**
 **                  When the procedure is complete, an AVDT_GETCAP_CFM_EVT is
 **                  sent to the application via its callback function.  The
 **                  application must not call AVDT_GetCapReq() or
@@ -832,10 +845,10 @@ AVDT_API extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 dat
 **                  buffer if argument p_buf is NULL. This function can only
 **                  be called if the stream is a SNK.
 **
-**                  AVDTP uses this buffer to reassemble fragmented media packets. 
+**                  AVDTP uses this buffer to reassemble fragmented media packets.
 **                  When AVDTP receives a complete media packet, it calls the
 **                  p_media_cback assigned by AVDT_CreateStream().
-**                  This function can be called during callback to assign a 
+**                  This function can be called during callback to assign a
 **                  different buffer for next media packet or can leave the current
 **                  buffer for next packet.
 **
@@ -848,11 +861,11 @@ AVDT_API extern UINT16 AVDT_SetMediaBuf(UINT8 handle, UINT8 *p_buf, UINT32 buf_l
 **
 ** Function         AVDT_SendReport
 **
-** Description      
-**                  
+** Description
 **
 **
-** Returns          
+**
+** Returns
 **
 *******************************************************************************/
 AVDT_API extern UINT16 AVDT_SendReport(UINT8 handle, AVDT_REPORT_TYPE type,

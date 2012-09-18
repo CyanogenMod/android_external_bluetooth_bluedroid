@@ -1,12 +1,26 @@
-/*****************************************************************************
-**
-**  Name:          l2c_ble.c
-**
-**  Description:   this file contains functions relating to BLE management.
-**
-**
-**  Copyright (c) 2009-2012, Broadcom Corp, All Rights Reserved.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2009-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  this file contains functions relating to BLE management.
+ *
+ ******************************************************************************/
 
 #include <string.h>
 #include "bt_target.h"
@@ -63,7 +77,7 @@ BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda)
         btm_ble_update_bg_state();
         btm_ble_resume_bg_conn(NULL, TRUE);
 
-        return(TRUE); 
+        return(TRUE);
     }
     else
         return(FALSE);
@@ -163,19 +177,19 @@ BOOLEAN L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, BOOLEAN enable)
             p_lcb->upd_disabled = UPD_ENABLED;
         }
     }
-    else 
+    else
     {
-        /* application requests to disable parameters update.  If parameters are already updated, lets set them 
+        /* application requests to disable parameters update.  If parameters are already updated, lets set them
         up to what has been requested during connection establishement */
         if (p_lcb->upd_disabled == UPD_UPDATED)
         {
             tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_or_alloc_dev (rem_bda);
 
-            btsnd_hcic_ble_upd_ll_conn_params (p_lcb->handle, 
+            btsnd_hcic_ble_upd_ll_conn_params (p_lcb->handle,
                 (UINT16)((p_dev_rec->conn_params.min_conn_int != BTM_BLE_CONN_PARAM_UNDEF) ? p_dev_rec->conn_params.min_conn_int : L2CAP_LE_INT_MIN),
                 (UINT16)((p_dev_rec->conn_params.max_conn_int != BTM_BLE_CONN_PARAM_UNDEF) ? p_dev_rec->conn_params.max_conn_int : L2CAP_LE_INT_MAX),
-                (UINT16)((p_dev_rec->conn_params.slave_latency != BTM_BLE_CONN_PARAM_UNDEF) ? p_dev_rec->conn_params.slave_latency : 0), 
-                (UINT16) ((p_dev_rec->conn_params.supervision_tout != BTM_BLE_CONN_PARAM_UNDEF) ? p_dev_rec->conn_params.supervision_tout : L2CAP_LE_TIMEOUT_MAX), 
+                (UINT16)((p_dev_rec->conn_params.slave_latency != BTM_BLE_CONN_PARAM_UNDEF) ? p_dev_rec->conn_params.slave_latency : 0),
+                (UINT16) ((p_dev_rec->conn_params.supervision_tout != BTM_BLE_CONN_PARAM_UNDEF) ? p_dev_rec->conn_params.supervision_tout : L2CAP_LE_TIMEOUT_MAX),
                 0, 0);
         }
         p_lcb->upd_disabled = UPD_DISABLED;
@@ -295,21 +309,21 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type, 
          (p_dev_rec->conn_params.slave_latency    <= L2CAP_LE_LATENCY_MAX ) &&
          (p_dev_rec->conn_params.supervision_tout >= L2CAP_LE_TIMEOUT_MIN) &&
          (p_dev_rec->conn_params.supervision_tout <= L2CAP_LE_TIMEOUT_MAX) &&
-         ((conn_interval < p_dev_rec->conn_params.min_conn_int && 
-          p_dev_rec->conn_params.min_conn_int != BTM_BLE_CONN_PARAM_UNDEF) || 
-          (conn_interval > p_dev_rec->conn_params.max_conn_int) ||  
-          (conn_latency > p_dev_rec->conn_params.slave_latency) || 
+         ((conn_interval < p_dev_rec->conn_params.min_conn_int &&
+          p_dev_rec->conn_params.min_conn_int != BTM_BLE_CONN_PARAM_UNDEF) ||
+          (conn_interval > p_dev_rec->conn_params.max_conn_int) ||
+          (conn_latency > p_dev_rec->conn_params.slave_latency) ||
           (conn_timeout > p_dev_rec->conn_params.supervision_tout)))
     {
         L2CAP_TRACE_ERROR5 ("upd_ll_conn_params: HANDLE=%d min_conn_int=%d max_conn_int=%d slave_latency=%d supervision_tout=%d",
                             handle, p_dev_rec->conn_params.min_conn_int, p_dev_rec->conn_params.max_conn_int,
                             p_dev_rec->conn_params.slave_latency, p_dev_rec->conn_params.supervision_tout);
 
-        btsnd_hcic_ble_upd_ll_conn_params (handle, 
-                                           p_dev_rec->conn_params.min_conn_int, 
+        btsnd_hcic_ble_upd_ll_conn_params (handle,
+                                           p_dev_rec->conn_params.min_conn_int,
                                            p_dev_rec->conn_params.max_conn_int,
-                                           p_dev_rec->conn_params.slave_latency, 
-                                           p_dev_rec->conn_params.supervision_tout, 
+                                           p_dev_rec->conn_params.slave_latency,
+                                           p_dev_rec->conn_params.supervision_tout,
                                            0, 0);
     }
 
@@ -318,7 +332,7 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type, 
 
     if (p_lcb->p_echo_rsp_cb)
     {
-        L2CAP_TRACE_ERROR0 ("l2cu_send_peer_echo_req");          
+        L2CAP_TRACE_ERROR0 ("l2cu_send_peer_echo_req");
         l2cu_send_peer_echo_req (p_lcb, NULL, 0);
     }
 
@@ -399,7 +413,7 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
 ** Returns          void
 **
 *******************************************************************************/
-void l2cble_conn_comp(UINT16 handle, UINT8 role, BD_ADDR bda, tBLE_ADDR_TYPE type, 
+void l2cble_conn_comp(UINT16 handle, UINT8 role, BD_ADDR bda, tBLE_ADDR_TYPE type,
                       UINT16 conn_interval, UINT16 conn_latency, UINT16 conn_timeout)
 {
     if (role == HCI_ROLE_MASTER)
@@ -415,7 +429,7 @@ void l2cble_conn_comp(UINT16 handle, UINT8 role, BD_ADDR bda, tBLE_ADDR_TYPE typ
 **
 ** Function         l2cble_process_sig_cmd
 **
-** Description      This function is called when a signalling packet is received 
+** Description      This function is called when a signalling packet is received
 **                  on the BLE signalling CID
 **
 ** Returns          void
@@ -464,7 +478,7 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             {
                 if (min_interval < L2CAP_LE_INT_MIN || min_interval > L2CAP_LE_INT_MAX ||
                     max_interval < L2CAP_LE_INT_MIN || max_interval > L2CAP_LE_INT_MAX ||
-                    latency  > L2CAP_LE_LATENCY_MAX || 
+                    latency  > L2CAP_LE_LATENCY_MAX ||
                     /*(timeout >= max_interval && latency > (timeout * 10/(max_interval * 1.25) - 1)) ||*/
                     timeout < L2CAP_LE_TIMEOUT_MIN || timeout > L2CAP_LE_TIMEOUT_MAX ||
                     max_interval < min_interval)
@@ -514,7 +528,7 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 **
 ** Function         l2cble_create_conn
 **
-** Description      This function initiates an acl connection via HCI 
+** Description      This function initiates an acl connection via HCI
 **
 ** Returns          TRUE if successful, FALSE if connection not started.
 **

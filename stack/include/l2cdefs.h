@@ -1,15 +1,20 @@
-/****************************************************************************
-**
-**  Name:       l2cdefs.h
-**
-**   Function:   This file contains L2CAP protocol definitions
-**
-**
-**
-**  Copyright (c) 1999-2009, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 
 #ifndef L2CDEFS_H
 #define L2CDEFS_H
@@ -203,7 +208,7 @@
 #define L2CAP_INFO_RESP_RESULT_SUCCESS          0
 #define L2CAP_INFO_RESP_RESULT_NOT_SUPPORTED    1
 
-/* Define the info-type fields of information request & response 
+/* Define the info-type fields of information request & response
 */
 #define L2CAP_CONNLESS_MTU_INFO_TYPE      0x0001
 #define L2CAP_EXTENDED_FEATURES_INFO_TYPE 0x0002    /* Used in Information Req/Response */
@@ -249,7 +254,7 @@
 #define L2CAP_MAX_HEADER_FCS       (L2CAP_PKT_OVERHEAD + L2CAP_EXT_CONTROL_OVERHEAD + L2CAP_SDU_LEN_OVERHEAD + L2CAP_FCS_LEN)
                                    /* length(2), channel(2), control(4), SDU length(2) FCS(2) */
 /* Part of L2CAP_MIN_OFFSET that is not part of L2CAP
-*/  
+*/
 #define L2CAP_OFFSET_WO_L2HDR  (L2CAP_MIN_OFFSET-(L2CAP_PKT_OVERHEAD+L2CAP_FCR_OVERHEAD))
 
 /* SAR bits in the control word

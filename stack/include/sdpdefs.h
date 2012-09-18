@@ -1,13 +1,27 @@
-/****************************************************************************/
-/*                                                                          */
-/*  Name:       sdp_defs.h                                                  */
-/*                                                                          */
-/*  Function    this file contains the definitions for the SDP API          */
-/*                                                                          */
-/*  Copyright (c) 1999-2009, Broadcom Corp, All Rights Reserved.            */
-/*  Broadcom Bluetooth Core. Proprietary and confidential.                  */
-/*                                                                          */
-/*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the definitions for the SDP API
+ *
+ ******************************************************************************/
+
 #ifndef SDP_DEFS_H
 #define SDP_DEFS_H
 
@@ -164,7 +178,7 @@
 #define UUID_PROTOCOL_MCAP_CTRL              0x001E
 #define UUID_PROTOCOL_MCAP_DATA              0x001F
 #define UUID_PROTOCOL_L2CAP                  0x0100
-#define UUID_PROTOCOL_ATT                    0x0007     
+#define UUID_PROTOCOL_ATT                    0x0007
 
 /* Define common 16-bit service class UUIDs
 */
@@ -240,8 +254,8 @@
 #define UUID_SERVCLASS_MESSAGE_ACCESS           0X1132  /* Message Access Service UUID */
 #define UUID_SERVCLASS_MESSAGE_NOTIFICATION     0X1133  /* Message Notification Service UUID */
 
-#define UUID_SERVCLASS_GAP_SERVER               0x1800  
-#define UUID_SERVCLASS_GATT_SERVER              0x1801  
+#define UUID_SERVCLASS_GAP_SERVER               0x1800
+#define UUID_SERVCLASS_GATT_SERVER              0x1801
 #define UUID_SERVCLASS_IMMEDIATE_ALERT          0x1802      /* immediate alert */
 #define UUID_SERVCLASS_LINKLOSS                 0x1803      /* Link Loss Alert */
 #define UUID_SERVCLASS_TX_POWER                 0x1804      /* TX power */

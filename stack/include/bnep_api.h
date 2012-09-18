@@ -1,14 +1,27 @@
-/*****************************************************************************
-**
-**  Name:          bnep_api.h
-**
-**  Description:   This interface file contains the interface to the Bluetooth
-**                 Network Encapsilation Protocol (BNEP).
-**
-**
-**  Copyright (c) 2001-2004, WIDCOMM Inc., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2001-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This interface file contains the interface to the Bluetooth Network
+ *  Encapsilation Protocol (BNEP).
+ *
+ ******************************************************************************/
 #ifndef BNEP_API_H
 #define BNEP_API_H
 
@@ -19,7 +32,7 @@
 *****************************************************************************/
 
 /* Define the minimum offset needed in a GKI buffer for
-** sending BNEP packets. Note, we are currently not sending 
+** sending BNEP packets. Note, we are currently not sending
 ** extension headers, but may in the future, so allow
 ** space for them
 */
@@ -53,7 +66,7 @@ enum
     BNEP_IGNORE_CMD,                    /* To ignore the rcvd command */
     BNEP_TX_FLOW_ON,                    /* tx data flow enabled */
     BNEP_TX_FLOW_OFF                    /* tx data flow disabled */
- 
+
 }; typedef UINT8 tBNEP_RESULT;
 
 
@@ -223,7 +236,7 @@ extern "C" {
 **                  its callbacks with BNEP
 **
 ** Parameters:      p_reg_info - contains all callback function pointers
-**                  
+**
 **
 ** Returns          BNEP_SUCCESS        if registered successfully
 **                  BNEP_FAILURE        if connection state callback is missing
@@ -239,7 +252,7 @@ BNEP_API extern tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info);
 **                  its callbacks.
 **
 ** Parameters:      void
-**                  
+**
 **
 ** Returns          void
 **
@@ -273,7 +286,7 @@ BNEP_API extern tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
 ** Function         BNEP_ConnectResp
 **
 ** Description      This function is called in responce to connection indication
-**                  
+**
 **
 ** Parameters:      handle  - handle given in the connection indication
 **                  resp    - responce for the connection indication

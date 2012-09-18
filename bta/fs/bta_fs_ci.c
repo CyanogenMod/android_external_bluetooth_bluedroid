@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_fs_ci.c
-**
-**  Description:    This is the implementation file for the file system
-**                  call-in functions.
-**
-**  Copyright (c) 2003-2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the implementation file for the file system call-in functions.
+ *
+ ******************************************************************************/
 #include <string.h>
 
 #include "bta_api.h"
@@ -21,7 +33,7 @@
 **
 ** Function         bta_fs_ci_write
 **
-** Description      This function sends an event to IO indicating the phone 
+** Description      This function sends an event to IO indicating the phone
 **                  has written the number of bytes specified in the call-out
 **                  function, bta_fs_co_write(), and is ready for more data.
 **                  This function is used to control the TX data flow.
@@ -32,7 +44,7 @@
 **                       bta_fs_ci_open call-in function.
 **                  status - BTA_FS_CO_OK or BTA_FS_CO_FAIL
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 void bta_fs_ci_write(int fd, tBTA_FS_CO_STATUS status, UINT16 evt)
@@ -58,7 +70,7 @@ void bta_fs_ci_write(int fd, tBTA_FS_CO_STATUS status, UINT16 evt)
 **                  bta_fs_co_read() call-out function.  It should only be called
 **                  when the requested number of bytes has been read in, or after
 **                  the end of the file has been detected.
-**                  
+**
 ** Parameters       fd - file descriptor passed to the stack in the
 **                       bta_fs_ci_open call-in function.
 **                  num_bytes_read - number of bytes read into the buffer
@@ -67,7 +79,7 @@ void bta_fs_ci_write(int fd, tBTA_FS_CO_STATUS status, UINT16 evt)
 **                           BTA_FS_CO_EOF if the end of file has been reached,
 **                           BTA_FS_CO_FAIL if an error has occurred.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 void bta_fs_ci_read(int fd, UINT16 num_bytes_read, tBTA_FS_CO_STATUS status, UINT16 evt)
@@ -91,7 +103,7 @@ void bta_fs_ci_read(int fd, UINT16 num_bytes_read, tBTA_FS_CO_STATUS status, UIN
 **
 ** Description      This function sends an event to BTA indicating the phone has
 **                  finished opening a file for reading or writing.
-**                  
+**
 ** Parameters       fd - file descriptor passed to the stack in the
 **                       bta_fs_ci_open call-in function.
 **                  status - BTA_FS_CO_OK if file was opened in mode specified
@@ -103,7 +115,7 @@ void bta_fs_ci_read(int fd, UINT16 num_bytes_read, tBTA_FS_CO_STATUS status, UIN
 **                  evt - Used Internally by BTA -> MUST be same value passed
 **                       in call-out function.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 void bta_fs_ci_open(int fd, tBTA_FS_CO_STATUS status, UINT32 file_size, UINT16 evt)
@@ -133,7 +145,7 @@ void bta_fs_ci_open(int fd, tBTA_FS_CO_STATUS status, UINT32 file_size, UINT16 e
 **                           BTA_FS_CO_EODIR if no more entries (p_entry is ignored).
 **                           BTA_FS_CO_FAIL if any errors have occurred.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 void bta_fs_ci_direntry(tBTA_FS_CO_STATUS status, UINT16 evt)
@@ -164,7 +176,7 @@ void bta_fs_ci_direntry(tBTA_FS_CO_STATUS status, UINT16 evt)
 **                  evt - Used Internally by BTA -> MUST be same value passed
 **                       in call-out function.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 void bta_fs_ci_resume (BD_ADDR_PTR p_addr, UINT8 *p_sess_info,
@@ -206,7 +218,7 @@ void bta_fs_ci_resume (BD_ADDR_PTR p_addr, UINT8 *p_sess_info,
 **                  evt - Used Internally by BTA -> MUST be same value passed
 **                       in call-out function.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 void bta_fs_ci_action(tBTA_FS_CO_STATUS status, UINT16 evt)
@@ -228,7 +240,7 @@ void bta_fs_ci_action(tBTA_FS_CO_STATUS status, UINT16 evt)
 **
 ** Description      This function sends an event to BTA indicating the phone has
 **                  finished opening a file for reading or writing on resume.
-**                  
+**
 ** Parameters       fd - file descriptor passed to the stack in the
 **                       bta_fs_ci_open call-in function.
 **                  status - BTA_FS_CO_OK if file was opened in mode specified
@@ -241,7 +253,7 @@ void bta_fs_ci_action(tBTA_FS_CO_STATUS status, UINT16 evt)
 **                  evt - Used Internally by BTA -> MUST be same value passed
 **                       in call-out function.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 void bta_fs_ci_resume_op(int fd, tBTA_FS_CO_STATUS status, const char *p_file,

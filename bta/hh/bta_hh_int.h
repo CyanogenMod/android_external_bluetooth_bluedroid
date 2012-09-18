@@ -1,13 +1,26 @@
-/****************************************************************************/
-/*                                                                          */
-/*  Name:       bta_hh_int.h                                                */
-/*                                                                          */
-/*  Function:   this file contains BTA HID Host internal definitions        */
-/*                                                                          */
-/*  Copyright (c) 2005, Broadcom Corp, All Rights Reserved.                 */
-/*  WIDCOMM Bluetooth Core. Proprietary and confidential.                   */
-/*                                                                          */
-/****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2005-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains BTA HID Host internal definitions
+ *
+ ******************************************************************************/
 
 #ifndef BTA_HH_INT_H
 #define BTA_HH_INT_H
@@ -23,7 +36,7 @@
 
 /* state machine events, these events are handled by the state machine */
 enum
-{   
+{
     BTA_HH_API_OPEN_EVT     = BTA_SYS_EVT_START(BTA_ID_HH),
     BTA_HH_API_CLOSE_EVT,
     BTA_HH_INT_OPEN_EVT,
@@ -87,7 +100,7 @@ typedef struct
 typedef struct
 {
     BT_HDR          hdr;
-    BD_ADDR         bd_addr; 
+    BD_ADDR         bd_addr;
     UINT8           sec_mask;
     tBTA_HH_PROTO_MODE  mode;
 }tBTA_HH_API_CONN;
@@ -105,7 +118,7 @@ typedef struct
     BT_HDR              hdr;
     BD_ADDR             bda;
     UINT16              attr_mask;
-    UINT16              sub_event;      
+    UINT16              sub_event;
     UINT8               sub_class;
     UINT8               app_id;
     tBTA_HH_DEV_DSCP_INFO      dscp_info;
@@ -155,16 +168,16 @@ typedef struct
 /******************************************************************************
 ** Main Control Block
 *******************************************************************************/
-typedef struct 
+typedef struct
 {
-    tBTA_HH_KB_CB           kb_cb;                  /* key board control block, 
-                                                       suppose BTA will connect 
-                                                       to only one keyboard at 
+    tBTA_HH_KB_CB           kb_cb;                  /* key board control block,
+                                                       suppose BTA will connect
+                                                       to only one keyboard at
                                                         the same time */
     tBTA_HH_DEV_CB          kdev[BTA_HH_MAX_KNOWN]; /* device control block */
-    tBTA_HH_DEV_CB*         p_cur;              /* current device control 
+    tBTA_HH_DEV_CB*         p_cur;              /* current device control
                                                        block idx, used in sdp */
-    UINT8                   cb_index[BTA_HH_MAX_KNOWN]; /* maintain a CB index 
+    UINT8                   cb_index[BTA_HH_MAX_KNOWN]; /* maintain a CB index
                                                         map to dev handle */
     tBTA_HH_CBACK       *p_cback;               /* Application callbacks */
     tSDP_DISCOVERY_DB*      p_disc_db;
@@ -188,7 +201,7 @@ extern tBTA_HH_CFG *p_bta_hh_cfg;
 **  Function prototypes
 *****************************************************************************/
 extern BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg);
-extern void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, 
+extern void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event,
                               tBTA_HH_DATA *p_data);
 
 /* action functions */
@@ -207,16 +220,16 @@ extern void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data);
 
 /* utility functions */
 extern UINT8  bta_hh_find_cb(BD_ADDR bda);
-extern void bta_hh_parse_keybd_rpt(tBTA_HH_BOOT_RPT *p_kb_data, 
+extern void bta_hh_parse_keybd_rpt(tBTA_HH_BOOT_RPT *p_kb_data,
              UINT8 *p_report, UINT16 report_len);
-extern void bta_hh_parse_mice_rpt(tBTA_HH_BOOT_RPT *p_kb_data, 
+extern void bta_hh_parse_mice_rpt(tBTA_HH_BOOT_RPT *p_kb_data,
                                   UINT8 *p_report, UINT16 report_len);
 extern BOOLEAN bta_hh_tod_spt(tBTA_HH_DEV_CB *p_cb,UINT8 sub_class);
 extern void bta_hh_clean_up_kdev(tBTA_HH_DEV_CB *p_cb);
 
-extern void bta_hh_add_device_to_list(tBTA_HH_DEV_CB *p_cb, UINT8 handle, 
-                                      UINT16 attr_mask, 
-                                      tHID_DEV_DSCP_INFO *p_dscp_info, 
+extern void bta_hh_add_device_to_list(tBTA_HH_DEV_CB *p_cb, UINT8 handle,
+                                      UINT16 attr_mask,
+                                      tHID_DEV_DSCP_INFO *p_dscp_info,
                                       UINT8 sub_class, UINT16 max_latency, UINT16 min_tout, UINT8 app_id);
 extern void bta_hh_update_di_info(tBTA_HH_DEV_CB *p_cb, UINT16 vendor_id, UINT16 product_id,
                            UINT16 version);

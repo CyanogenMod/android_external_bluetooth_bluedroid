@@ -1,12 +1,26 @@
-/*****************************************************************************
-**
-**  Name:          l2c_int.h
-**
-**  Description:   This file contains L2CAP internal definitions
-**
-**  Copyright (c) 1999-2012, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains L2CAP internal definitions
+ *
+ ******************************************************************************/
 #ifndef L2C_INT_H
 #define L2C_INT_H
 
@@ -293,7 +307,7 @@ typedef struct t_l2c_ccb
     UINT8               flags;
 
     tL2CAP_CFG_INFO     our_cfg;                /* Our saved configuration options    */
-    tL2CAP_CH_CFG_BITS  peer_cfg_bits;          /* Store what peer wants to configure */  
+    tL2CAP_CH_CFG_BITS  peer_cfg_bits;          /* Store what peer wants to configure */
     tL2CAP_CFG_INFO     peer_cfg;               /* Peer's saved configuration options */
 
     BUFFER_Q            xmit_hold_q;            /* Transmit data hold queue         */
@@ -332,7 +346,7 @@ typedef struct t_l2c_ccb
 /***********************************************************************
 ** Define a queue of linked CCBs.
 */
-typedef struct 
+typedef struct
 {
     tL2C_CCB        *p_first_ccb;               /* The first channel in this queue */
     tL2C_CCB        *p_last_ccb;                /* The last  channel in this queue */
@@ -745,7 +759,7 @@ extern void     l2c_fcr_stop_timer (tL2C_CCB *p_ccb);
 #if (BLE_INCLUDED == TRUE)
 extern BOOLEAN l2cble_create_conn (tL2C_LCB *p_lcb);
 extern void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len);
-extern void l2cble_conn_comp (UINT16 handle, UINT8 role, BD_ADDR bda, tBLE_ADDR_TYPE type, 
+extern void l2cble_conn_comp (UINT16 handle, UINT8 role, BD_ADDR bda, tBLE_ADDR_TYPE type,
                               UINT16 conn_interval, UINT16 conn_latency, UINT16 conn_timeout);
 
 #endif

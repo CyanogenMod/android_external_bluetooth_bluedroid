@@ -1,13 +1,26 @@
-/*****************************************************************************
-**
-**  Name:          gatt_auth.c
-**
-**  Description:   this file contains GATT authentication handling functions
-**
-**
-**  Copyright (c) 1999-2011, Broadcom Corp, All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  this file contains GATT authentication handling functions
+ *
+ ******************************************************************************/
 #include "bt_target.h"
 
 #if BLE_INCLUDED == TRUE
@@ -49,13 +62,13 @@ static BOOLEAN gatt_sign_data (tGATT_CLCB *p_clcb)
             p_attr->len = payload_size - GATT_AUTH_SIGN_LEN - 3;
 
         p_signature = p_attr->value + p_attr->len;
-        if (BTM_BleDataSignature(p_clcb->p_tcb->peer_bda,  
-                                p_data, 
+        if (BTM_BleDataSignature(p_clcb->p_tcb->peer_bda,
+                                p_data,
                                 (UINT16)(p_attr->len + 3), /* 3 = 2 byte handle + opcode */
                                 p_signature))
         {
-            p_attr->len += BTM_BLE_AUTH_SIGN_LEN; 
-            gatt_set_ch_state(p_clcb->p_tcb, GATT_CH_OPEN);  
+            p_attr->len += BTM_BLE_AUTH_SIGN_LEN;
+            gatt_set_ch_state(p_clcb->p_tcb, GATT_CH_OPEN);
             gatt_act_write(p_clcb);
         }
         else
@@ -73,17 +86,17 @@ static BOOLEAN gatt_sign_data (tGATT_CLCB *p_clcb)
 **
 ** Function         gatt_verify_signature
 **
-** Description      This function start to verify the sign data when receiving 
+** Description      This function start to verify the sign data when receiving
 **                  the data from peer device.
 **
-** Returns          
+** Returns
 **
 *******************************************************************************/
 void gatt_verify_signature(tGATT_TCB *p_tcb, BT_HDR *p_buf)
 {
     UINT16  cmd_len;
     UINT8   op_code;
-    UINT8   *p, *p_orig = (UINT8 *)(p_buf + 1) + p_buf->offset;   
+    UINT8   *p, *p_orig = (UINT8 *)(p_buf + 1) + p_buf->offset;
     UINT32  counter;
 
     cmd_len = p_buf->len - GATT_AUTH_SIGN_LEN + 4;
@@ -137,7 +150,7 @@ void gatt_sec_check_complete(BOOLEAN sec_check_ok, tGATT_CLCB   *p_clcb)
 **
 ** Description      link encryption complete callback.
 **
-** Returns          
+** Returns
 **
 *******************************************************************************/
 void gatt_enc_cmpl_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
@@ -149,7 +162,7 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
     GATT_TRACE_DEBUG0("gatt_enc_cmpl_cback");
     if ((p_tcb = gatt_find_tcb_by_addr(bd_addr)) != NULL)
     {
-        gatt_set_ch_state(p_tcb, GATT_CH_OPEN);    
+        gatt_set_ch_state(p_tcb, GATT_CH_OPEN);
 
         if (result == BTM_SUCCESS)
         {
@@ -271,8 +284,8 @@ tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
     /* now check link needs to be encrypted or not if the link key upgrade is not required */
     if (act == GATT_SEC_OK)
     {
-        if (is_le_link && 
-            (p_clcb->operation == GATTC_OPTYPE_WRITE) && 
+        if (is_le_link &&
+            (p_clcb->operation == GATTC_OPTYPE_WRITE) &&
             (p_clcb->op_subtype == GATT_WRITE_NO_RSP))
         {
             /* this is a write command request
@@ -282,7 +295,7 @@ tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
                 btm_ble_get_enc_key_type(p_tcb->peer_bda, &key_type);
 
                 if ( (key_type & BTM_LE_KEY_LCSRK) &&
-                     ((auth_req == GATT_AUTH_REQ_SIGNED_NO_MITM) || 
+                     ((auth_req == GATT_AUTH_REQ_SIGNED_NO_MITM) ||
                       (auth_req == GATT_AUTH_REQ_SIGNED_MITM)))
                 {
                     act = GATT_SEC_SIGN_DATA;
@@ -314,7 +327,7 @@ tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
 ** Function         gatt_get_link_encrypt_status
 **
 ** Description      This routine get the encryption status of the specified link
-**                  
+**
 **
 ** Returns          tGATT_STATUS link encryption status
 **
@@ -322,7 +335,7 @@ tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
 tGATT_STATUS gatt_get_link_encrypt_status(tGATT_TCB *p_tcb)
 {
     tGATT_STATUS    encrypt_status = GATT_NOT_ENCRYPTED;
-    UINT8           sec_flag=0;     
+    UINT8           sec_flag=0;
 
     BTM_GetSecurityFlags(p_tcb->peer_bda, &sec_flag);
 
@@ -400,8 +413,8 @@ BOOLEAN gatt_security_check_start(tGATT_CLCB *p_clcb)
             case GATT_SEC_ENCRYPT_NO_MITM:
             case GATT_SEC_ENCRYPT_MITM:
                 GATT_TRACE_DEBUG0("gatt_security_check_start: Encrypt now or key upgreade first");
-                gatt_convert_sec_action(p_tcb->sec_act, &btm_ble_sec_act); 
-                gatt_set_ch_state(p_tcb, GATT_CH_W4_SEC_COMP);    
+                gatt_convert_sec_action(p_tcb->sec_act, &btm_ble_sec_act);
+                gatt_set_ch_state(p_tcb, GATT_CH_W4_SEC_COMP);
                 p_tcb->p_clcb = p_clcb;           /* keep the clcb pointer in CCB */
                 btm_status = BTM_SetEncryption(p_tcb->peer_bda, gatt_enc_cmpl_cback, &btm_ble_sec_act);
                 if ( (btm_status != BTM_SUCCESS) && (btm_status != BTM_CMD_STARTED))
@@ -419,7 +432,7 @@ BOOLEAN gatt_security_check_start(tGATT_CLCB *p_clcb)
         if (status == FALSE)
         {
             gatt_set_sec_act(p_tcb, GATT_SEC_NONE);
-            gatt_set_ch_state(p_tcb, GATT_CH_OPEN);  
+            gatt_set_ch_state(p_tcb, GATT_CH_OPEN);
         }
     }
     else

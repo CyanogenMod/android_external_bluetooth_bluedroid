@@ -1,14 +1,27 @@
-/*****************************************************************************
-**
-**  Name:          btm_devctl.c
-**
-**  Description:   This file contains functions that handle BTM interface
-**                 functions for the Bluetooth device including Rest, HCI
-**                 buffer size and others
-**
-**  Copyright (c) 1999-2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains functions that handle BTM interface functions for the
+ *  Bluetooth device including Rest, HCI buffer size and others
+ *
+ ******************************************************************************/
 
 #include <stdlib.h>
 #include <string.h>
@@ -67,19 +80,19 @@ extern BOOLEAN BTA_PRM_CHECK_FW_VER(UINT8 *p);
 #define BTM_AFTER_RESET_TIMEOUT 0
 #endif
 
-/* Internal baseband so the parameters such as local features, version etc. are known 
+/* Internal baseband so the parameters such as local features, version etc. are known
 so there is no need to issue HCI commands and wait for responses at BTM initialization */
 #ifndef BTM_INTERNAL_BB
 #define BTM_INTERNAL_BB FALSE
 #endif
 
-/* The local version information in the format specified in the HCI read local version 
+/* The local version information in the format specified in the HCI read local version
 response message */
 #ifndef BTM_INTERNAL_LOCAL_VER
 #define BTM_INTERNAL_LOCAL_VER {0x00, 0x01, 0x05, 0x81, 0x01, 0x30, 0x00, 0x40, 0x8D}
 #endif
 
-/* The local features information in the format specified in the HCI read local features 
+/* The local features information in the format specified in the HCI read local features
 response message */
 #ifndef BTM_INTERNAL_LOCAL_FEA
 #define BTM_INTERNAL_LOCAL_FEA {0x00, 0xFF, 0xF9, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}
@@ -239,7 +252,7 @@ void btm_dev_absent (void)
 ** Function         BTM_DeviceReset
 **
 ** Description      This function is called to reset the HCI.  Callback function
-**                  if provided is called when startup of the device is 
+**                  if provided is called when startup of the device is
 **                  completed.
 **
 ** Returns          void
@@ -300,7 +313,7 @@ BOOLEAN BTM_IsDeviceUp (void)
 *******************************************************************************/
 tBTM_STATUS BTM_SetAfhChannels (UINT8 first, UINT8 last)
 {
-    BTM_TRACE_API4 ("BTM_SetAfhChannels first: %d (%d) last: %d (%d)", 
+    BTM_TRACE_API4 ("BTM_SetAfhChannels first: %d (%d) last: %d (%d)",
                        first, btm_cb.first_disabled_channel, last,
                        btm_cb.last_disabled_channel);
 
@@ -377,9 +390,9 @@ void BTM_ContinueReset (void)
 **
 *******************************************************************************/
 static void btm_dev_reset (void)
-{    
+{
     btm_cb.devcb.state = BTM_DEV_STATE_WAIT_RESET_CMPLT;
-    	
+
     /* flush out the command complete queue and command transmit queue */
     btu_hcif_flush_cmd_queue();
 
@@ -403,12 +416,12 @@ static void btm_dev_reset (void)
 *******************************************************************************/
 void btm_get_hci_buf_size (void)
 {
-    
+
     btu_start_timer (&btm_cb.devcb.reset_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_DEV_REPLY_TIMEOUT);
 
     /* Send a Read Buffer Size message to the Host Controller. */
     btsnd_hcic_read_buffer_size ();
-    
+
 }
 #if BLE_INCLUDED == TRUE
 /*******************************************************************************
@@ -425,7 +438,7 @@ void btm_read_ble_wl_size(void)
     BTM_TRACE_DEBUG0("btm_read_ble_wl_size ");
     btu_start_timer (&btm_cb.devcb.reset_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_DEV_REPLY_TIMEOUT);
 
-    /* Send a Read Buffer Size message to the Host Controller. */        
+    /* Send a Read Buffer Size message to the Host Controller. */
     btsnd_hcic_ble_read_white_list_size();
 }
 /*******************************************************************************
@@ -457,7 +470,7 @@ void btm_get_ble_buffer_size(void)
 *******************************************************************************/
 void btm_get_local_version (void)
 {
-   
+
     btu_start_timer (&btm_cb.devcb.reset_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_DEV_REPLY_TIMEOUT);
 
     /* Send a Read Local Version message to the Host Controller. */
@@ -467,7 +480,7 @@ void btm_get_local_version (void)
 #if BTM_PWR_MGR_INCLUDED == TRUE
         btm_pm_reset();
 #endif
-    
+
 }
 
 /*******************************************************************************
@@ -521,7 +534,7 @@ void btm_dev_timeout (TIMER_LIST_ENT  *p_tle)
 **
 ** Description      This function is called when command complete for HCI_Reset
 **                  is received.  It does not make sense to send next command
-**                  because device is resetting after command complete is 
+**                  because device is resetting after command complete is
 **                  received.  Just start timer and set required state.
 **
 ** Returns          void
@@ -641,7 +654,7 @@ void btm_after_reset_hold_complete (void)
 **
 ** Function         btm_read_hci_buf_size_complete
 **
-** Description      This function is called when command complete for 
+** Description      This function is called when command complete for
 **                  get HCI buffer size is received.  Start timer and send
 **                  read local featues request
 **
@@ -705,7 +718,7 @@ void btm_read_hci_buf_size_complete (UINT8 *p, UINT16 evt_len)
 **
 ** Function         btm_read_ble_buf_size_complete
 **
-** Description      This function is called when command complete for 
+** Description      This function is called when command complete for
 **                  get HCI buffer size is received.  Start timer and send
 **                  read local featues request
 **
@@ -791,7 +804,7 @@ void btm_read_local_version_complete (UINT8 *p, UINT16 evt_len)
     STREAM_TO_UINT8  (status, p);
     if (status == HCI_SUCCESS)
     {
-        
+
         STREAM_TO_UINT8  (p_vi->hci_version, p);
         STREAM_TO_UINT16 (p_vi->hci_revision, p);
         STREAM_TO_UINT8  (p_vi->lmp_version, p);
@@ -847,7 +860,7 @@ void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len)
     {
         /* stop guard timer to avoid accidental timeout */
         btu_stop_timer(&p_devcb->reset_timer);
-        
+
         p_devcb->state = BTM_DEV_STATE_READY;
 
         /* Extract features and create "btm_acl_pkt_types_supported" flag
@@ -865,10 +878,10 @@ void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len)
                                                    BTM_ACL_PKT_TYPES_MASK_DM3);
 
         if (HCI_5_SLOT_PACKETS_SUPPORTED(p_devcb->local_features))
-            btm_cb.btm_acl_pkt_types_supported |= (BTM_ACL_PKT_TYPES_MASK_DH5 + 
+            btm_cb.btm_acl_pkt_types_supported |= (BTM_ACL_PKT_TYPES_MASK_DH5 +
                                                    BTM_ACL_PKT_TYPES_MASK_DM5);
 
-        /* _NO_X_DXX masks are reserved before ver 2.0. 
+        /* _NO_X_DXX masks are reserved before ver 2.0.
            Set them only for later versions of controller */
         if (btm_cb.devcb.local_version.hci_version >= HCI_PROTO_VERSION_2_0)
         {
@@ -902,7 +915,7 @@ void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len)
             }
         }
 
-        BTM_TRACE_DEBUG1("Local supported ACL packet types: 0x%04x", 
+        BTM_TRACE_DEBUG1("Local supported ACL packet types: 0x%04x",
                          btm_cb.btm_acl_pkt_types_supported);
 
         /* Create (e)SCO supported packet types mask
@@ -960,7 +973,7 @@ void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len)
         }
 #endif
 
-        BTM_TRACE_DEBUG1("Local supported SCO packet types: 0x%04x", 
+        BTM_TRACE_DEBUG1("Local supported SCO packet types: 0x%04x",
                          btm_cb.btm_sco_pkt_types_supported);
 
         /* Create Default Policy Settings
@@ -1113,7 +1126,7 @@ tBTM_STATUS BTM_SetLocalDeviceName (char *p_name)
 ** Returns          status of the operation
 **                  If success, BTM_SUCCESS is returned and p_name points stored
 **                              local device name
-**                  If BTM doesn't store local device name, BTM_NO_RESOURCES is 
+**                  If BTM doesn't store local device name, BTM_NO_RESOURCES is
 **                              is returned and p_name is set to NULL
 **
 *******************************************************************************/
@@ -1133,7 +1146,7 @@ tBTM_STATUS BTM_ReadLocalDeviceName (char **p_name)
 **
 ** Function         BTM_ReadLocalDeviceNameFromController
 **
-** Description      Get local device name from controller. Do not use cached 
+** Description      Get local device name from controller. Do not use cached
 **                  name (used to get chip-id prior to btm reset complete).
 **
 ** Returns          BTM_CMD_STARTED if successful, otherwise an error
@@ -1145,12 +1158,12 @@ tBTM_STATUS BTM_ReadLocalDeviceNameFromController (tBTM_CMPL_CB *p_rln_cmpl_cbac
     if (btm_cb.devcb.p_rln_cmpl_cb)
         return(BTM_NO_RESOURCES);
 
-    /* Save callback */        
+    /* Save callback */
     btm_cb.devcb.p_rln_cmpl_cb = p_rln_cmpl_cback;
-    
+
     btsnd_hcic_read_name();
     btu_start_timer (&btm_cb.devcb.rln_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_DEV_REPLY_TIMEOUT);
-    
+
     return BTM_CMD_STARTED;
 }
 
@@ -1288,7 +1301,7 @@ tBTM_STATUS BTM_SetDeviceClass (DEV_CLASS dev_class)
     if (!btsnd_hcic_write_dev_class (dev_class))
         return (BTM_NO_RESOURCES);
 
-    return (BTM_SUCCESS);  
+    return (BTM_SUCCESS);
 }
 
 
@@ -1337,7 +1350,7 @@ UINT8 *BTM_ReadBrcmFeatures (void)
 
 /*******************************************************************************
 **
-** Function         BTM_RegisterForDeviceStatusNotif 
+** Function         BTM_RegisterForDeviceStatusNotif
 **
 ** Description      This function is called to register for device status
 **                  change notifications.
@@ -1359,7 +1372,7 @@ tBTM_DEV_STATUS_CB *BTM_RegisterForDeviceStatusNotif (tBTM_DEV_STATUS_CB *p_cb)
 
 /*******************************************************************************
 **
-** Function         BTM_VendorSpecificCommand 
+** Function         BTM_VendorSpecificCommand
 **
 ** Description      Send a vendor specific HCI command to the controller.
 **
@@ -1408,7 +1421,7 @@ tBTM_STATUS BTM_VendorSpecificCommand(UINT16 opcode, UINT8 param_len,
 **
 ** Returns          void
 **
-*******************************************************************************/ 
+*******************************************************************************/
 void btm_vsc_complete (UINT8 *p, UINT16 opcode, UINT16 evt_len,
                        tBTM_CMPL_CB *p_vsc_cplt_cback)
 {
@@ -1487,9 +1500,9 @@ tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, BOOLEAN is_register)
 
 /*******************************************************************************
 **
-** Function         btm_vendor_specific_evt 
+** Function         btm_vendor_specific_evt
 **
-** Description      Process event HCI_VENDOR_SPECIFIC_EVT 
+** Description      Process event HCI_VENDOR_SPECIFIC_EVT
 **
 **                  Note: Some controllers do not send command complete, so
 **                  the callback and busy flag are cleared here also.
@@ -1513,12 +1526,12 @@ void btm_vendor_specific_evt (UINT8 *p, UINT8 evt_len)
 
 /*******************************************************************************
 **
-** Function         BTM_WritePageTimeout 
+** Function         BTM_WritePageTimeout
 **
 ** Description      Send HCI Write Page Timeout.
 **
 ** Returns
-**      BTM_SUCCESS         Command sent. 
+**      BTM_SUCCESS         Command sent.
 **      BTM_NO_RESOURCES     If out of resources to send the command.
 **
 **
@@ -1536,13 +1549,13 @@ tBTM_STATUS BTM_WritePageTimeout(UINT16 timeout)
 
 /*******************************************************************************
 **
-** Function         BTM_WriteVoiceSettings 
+** Function         BTM_WriteVoiceSettings
 **
 ** Description      Send HCI Write Voice Settings command.
 **                  See hcidefs.h for settings bitmask values.
 **
 ** Returns
-**      BTM_SUCCESS         Command sent. 
+**      BTM_SUCCESS         Command sent.
 **      BTM_NO_RESOURCES     If out of resources to send the command.
 **
 **
@@ -1560,22 +1573,22 @@ tBTM_STATUS BTM_WriteVoiceSettings(UINT16 settings)
 
 /*******************************************************************************
 **
-** Function         BTM_EnableTestMode 
+** Function         BTM_EnableTestMode
 **
 ** Description      Send HCI the enable device under test command.
 **
-**                  Note: Controller can only be taken out of this mode by 
+**                  Note: Controller can only be taken out of this mode by
 **                      resetting the controller.
 **
 ** Returns
-**      BTM_SUCCESS         Command sent. 
+**      BTM_SUCCESS         Command sent.
 **      BTM_NO_RESOURCES    If out of resources to send the command.
 **
 **
 *******************************************************************************/
 tBTM_STATUS BTM_EnableTestMode(void)
 {
-    UINT8   cond; 
+    UINT8   cond;
 
     BTM_TRACE_EVENT0 ("BTM: BTM_EnableTestMode");
 
@@ -1591,23 +1604,23 @@ tBTM_STATUS BTM_EnableTestMode(void)
 
     /* put device to connectable mode */
     if (!BTM_SetConnectability(BTM_CONNECTABLE, BTM_DEFAULT_CONN_WINDOW,
-                               BTM_DEFAULT_CONN_INTERVAL) == BTM_SUCCESS) 
+                               BTM_DEFAULT_CONN_INTERVAL) == BTM_SUCCESS)
     {
-        return BTM_NO_RESOURCES; 
+        return BTM_NO_RESOURCES;
     }
 
     /* put device to discoverable mode */
     if (!BTM_SetDiscoverability(BTM_GENERAL_DISCOVERABLE, BTM_DEFAULT_DISC_WINDOW,
-                                BTM_DEFAULT_DISC_INTERVAL) == BTM_SUCCESS) 
+                                BTM_DEFAULT_DISC_INTERVAL) == BTM_SUCCESS)
     {
-        return BTM_NO_RESOURCES; 
+        return BTM_NO_RESOURCES;
     }
 
     /* mask off all of event from controller */
     if (!btsnd_hcic_set_event_mask(LOCAL_BR_EDR_CONTROLLER_ID,
                                    (UINT8 *)"\x00\x00\x00\x00\x00\x00\x00\x00"))
     {
-        return BTM_NO_RESOURCES; 
+        return BTM_NO_RESOURCES;
     }
 
     /* Send the HCI command */
@@ -1641,7 +1654,7 @@ UINT8 btm_get_hci_version (void)
 **                  device from the NVRAM storage attached to the Bluetooth
 **                  controller.
 **
-** Parameters:      bd_addr      - Address of the device 
+** Parameters:      bd_addr      - Address of the device
 **                  p_cb         - Call back function to be called to return
 **                                 the results
 **

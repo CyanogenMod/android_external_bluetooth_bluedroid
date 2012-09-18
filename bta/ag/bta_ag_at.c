@@ -1,13 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_ag_at.c
-**
-**  Description:    BTA AG AT command interpreter.
-**
-**  Copyright (c) 2004-2005, Widcomm Inc., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2004-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  BTA AG AT command interpreter.
+ *
+ ******************************************************************************/
 
 #include <string.h>
 #include "gki.h"
@@ -23,7 +36,7 @@
 ** Function         bta_ag_at_init
 **
 ** Description      Initialize the AT command parser control block.
-**                  
+**
 **
 ** Returns          void
 **
@@ -41,7 +54,7 @@ void bta_ag_at_init(tBTA_AG_AT_CB *p_cb)
 ** Description      Re-initialize the AT command parser control block.  This
 **                  function resets the AT command parser state and frees
 **                  any GKI buffer.
-**                  
+**
 **
 ** Returns          void
 **
@@ -62,7 +75,7 @@ void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb)
 ** Description      Parse AT commands.  This function will take the input
 **                  character string and parse it for AT commands according to
 **                  the AT command table passed in the control block.
-**                  
+**
 **
 ** Returns          void
 **
@@ -138,7 +151,7 @@ void bta_ag_process_at(tBTA_AG_AT_CB *p_cb)
                 }
                 else
                 {
-                    
+
                     (*p_cb->p_cmd_cback)(p_cb->p_user, idx, arg_type, p_arg, int_arg);
                 }
             }
@@ -167,7 +180,7 @@ void bta_ag_process_at(tBTA_AG_AT_CB *p_cb)
 ** Description      Parse AT commands.  This function will take the input
 **                  character string and parse it for AT commands according to
 **                  the AT command table passed in the control block.
-**                  
+**
 **
 ** Returns          void
 **
@@ -193,7 +206,7 @@ void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, UINT16 len)
                 i++;
                 continue;
             }
-            
+
             p_cb->p_cmd_buf[p_cb->cmd_pos] = p_buf[i++];
             if ( p_cb->p_cmd_buf[p_cb->cmd_pos] == '\r' || p_cb->p_cmd_buf[p_cb->cmd_pos] == '\n')
             {
@@ -209,8 +222,8 @@ void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, UINT16 len)
                 }
 
                 p_cb->cmd_pos = 0;
-                
-            }            
+
+            }
             else if( p_cb->p_cmd_buf[p_cb->cmd_pos] == 0x1A || p_cb->p_cmd_buf[p_cb->cmd_pos] == 0x1B )
             {
                 p_cb->p_cmd_buf[++p_cb->cmd_pos] = 0;

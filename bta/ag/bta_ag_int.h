@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_ag_int.h
-**
-**  Description:    This is the private interface file for the BTA audio
-**                  gateway.
-**
-**  Copyright (c) 2003-2005, Widcomm Inc., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the private interface file for the BTA audio gateway.
+ *
+ ******************************************************************************/
 #ifndef BTA_AG_INT_H
 #define BTA_AG_INT_H
 
@@ -283,14 +295,14 @@ typedef struct
 typedef struct
 {
     tBTM_ESCO_CONN_REQ_EVT_DATA  conn_data;     /* SCO data for pending conn request */
-    tBTA_AG_SCB                 *p_curr_scb;    /* SCB associated with SCO connection */    
-    tBTA_AG_SCB                 *p_xfer_scb;    /* SCB associated with SCO transfer */    
+    tBTA_AG_SCB                 *p_curr_scb;    /* SCB associated with SCO connection */
+    tBTA_AG_SCB                 *p_xfer_scb;    /* SCB associated with SCO transfer */
     UINT16                      cur_idx;        /* SCO handle */
     UINT8                       state;          /* SCO state variable */
     BOOLEAN                     param_updated;  /* if params were updated to non-default */
     tBTM_ESCO_PARAMS            params;         /* ESCO parameters */
 } tBTA_AG_SCO_CB;
-    
+
 
 /* type for AG control block */
 typedef struct
@@ -336,7 +348,7 @@ extern BOOLEAN bta_ag_other_scb_open(tBTA_AG_SCB *p_curr_scb);
 extern tBTA_AG_SCB *bta_ag_get_other_idle_scb (tBTA_AG_SCB *p_curr_scb);
 extern void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, UINT16 event, tBTA_AG_DATA *p_data);
 extern BOOLEAN bta_ag_hdl_event(BT_HDR *p_msg);
-extern void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id, 
+extern void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
                                     UINT8 app_id, BD_ADDR peer_addr);
 extern void bta_ag_resume_open (tBTA_AG_SCB *p_scb);
 

@@ -1,12 +1,26 @@
-/****************************************************************************
-**
-**  Name:          sdp_discovery.c
-**
-**  Description:   this file contains SDP discovery functions
-**
-**  Copyright (c) 1999-2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  this file contains SDP discovery functions
+ *
+ ******************************************************************************/
 
 #include <stdlib.h>
 #include <string.h>
@@ -372,7 +386,7 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, UINT16 len, BOOLEAN offset)
     UINT8           * p_temp;
     UINT8           type;
     UINT32          delta_len = 0;
-    
+
 #if (SDP_DEBUG_RAW == TRUE)
     UINT8 num_array[SDP_MAX_LIST_BYTE_COUNT];
     UINT32 i;
@@ -395,7 +409,7 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, UINT16 len, BOOLEAN offset)
             type = *p++;
             p = sdpu_get_len_from_type (p, type, &list_len);
         }
-        if(list_len && list_len < cpy_len ) 
+        if(list_len && list_len < cpy_len )
         {
             cpy_len = list_len;
         }
@@ -1003,7 +1017,7 @@ static UINT8 *add_attr (UINT8 *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
             else
             {
                  /* coverity[overrun-local] */
-                 /*   
+                 /*
                     Event overrun-local: Overrun of static array "p_attr->attr_value.v.array" of size 4 at position 15 with index variable "ijk"
                     False-positive: SDP uses scratch buffer to hold the attribute value.
                     The actual size of tSDP_DISC_ATVAL does not matter.

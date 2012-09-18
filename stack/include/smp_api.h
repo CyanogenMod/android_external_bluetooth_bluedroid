@@ -1,18 +1,26 @@
-/*****************************************************************************
-**
-**  Name:          smp_api.h
-**
-**  Description:   This file contains the SMP API function
-**                 external definitions.
-**
-**                 The SMP consists of several management entities:
-**                      1. Address & Identity Privacy
-**                      2. Authentication
-**                      3. Encryption
-**
-**  Copyright (c) 1999-2008, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the SMP API function external definitions.
+ *
+ ******************************************************************************/
 #ifndef SMP_API_H
 #define SMP_API_H
 
@@ -81,25 +89,25 @@ enum
 typedef UINT8  tSMP_OOB_FLAG;
 
 #define SMP_AUTH_NO_BOND        0x00
-#define SMP_AUTH_GEN_BOND       0x01 //todo sdh change GEN_BOND to BOND 
+#define SMP_AUTH_GEN_BOND       0x01 //todo sdh change GEN_BOND to BOND
 
 /* SMP Authentication requirement */
 #define SMP_AUTH_YN_BIT           (1 << 2)
 #define SMP_AUTH_MASK           (SMP_AUTH_GEN_BOND|SMP_AUTH_YN_BIT)
 
 
-#define SMP_AUTH_BOND           SMP_AUTH_GEN_BOND 
+#define SMP_AUTH_BOND           SMP_AUTH_GEN_BOND
 
 #define SMP_AUTH_NB_ENC_ONLY    0x00 //(SMP_AUTH_MASK | BTM_AUTH_SP_NO)   /* no MITM, No Bonding, Encryptino only */
-#define SMP_AUTH_NB_IOCAP       (SMP_AUTH_NO_BOND | SMP_AUTH_YN_BIT)   /* MITM, No Bonding, Use IO Capability 
-                                        to detrermine authenticaion procedure */                                        
+#define SMP_AUTH_NB_IOCAP       (SMP_AUTH_NO_BOND | SMP_AUTH_YN_BIT)   /* MITM, No Bonding, Use IO Capability
+                                        to detrermine authenticaion procedure */
 #define SMP_AUTH_GB_ENC_ONLY    (SMP_AUTH_GEN_BOND )   /* no MITM, General Bonding, Encryptino only */
-#define SMP_AUTH_GB_IOCAP       (SMP_AUTH_GEN_BOND | SMP_AUTH_YN_BIT)  /* MITM, General Bonding, Use IO Capability 
+#define SMP_AUTH_GB_IOCAP       (SMP_AUTH_GEN_BOND | SMP_AUTH_YN_BIT)  /* MITM, General Bonding, Use IO Capability
                                         to detrermine authenticaion procedure   */
 typedef UINT8 tSMP_AUTH_REQ;
 
 #define SMP_SEC_NONE                 0
-#define SMP_SEC_UNAUTHENTICATE      (1 << 0) 
+#define SMP_SEC_UNAUTHENTICATE      (1 << 0)
 #define SMP_SEC_AUTHENTICATED       (1 << 2)
 typedef UINT8 tSMP_SEC_LEVEL;
 
@@ -120,7 +128,7 @@ typedef struct
     tSMP_AUTH_REQ   auth_req;       /* Authentication required (for local device) */
     UINT8           max_key_size;   /* max encryption key size */
     tSMP_KEYS       init_keys;      /* initiator keys to be distributed */
-    tSMP_KEYS       resp_keys;      /* responder keys */      
+    tSMP_KEYS       resp_keys;      /* responder keys */
 } tSMP_IO_REQ;
 
 typedef struct
@@ -228,8 +236,8 @@ extern "C"
 ** Description      This function is called to grant security process.
 **
 ** Parameters       bd_addr - peer device bd address.
-**                  res     - result of the operation SMP_SUCCESS if success. 
-**                            Otherwise, SMP_REPEATED_ATTEMPTS is too many attempts. 
+**                  res     - result of the operation SMP_SUCCESS if success.
+**                            Otherwise, SMP_REPEATED_ATTEMPTS is too many attempts.
 **
 ** Returns          None
 **
@@ -244,7 +252,7 @@ extern "C"
 **                  Passkey request to the application.
 **
 ** Parameters:      bd_addr      - Address of the device for which PIN was requested
-**                  res          - result of the operation BTM_SUCCESS if success 
+**                  res          - result of the operation BTM_SUCCESS if success
 **                  passkey      - numeric value in the range of
 **                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
 **
@@ -259,11 +267,11 @@ extern "C"
 **                  Simple Pairing in response to BTM_SP_RMT_OOB_EVT
 **
 ** Parameters:      bd_addr     - Address of the peer device
-**                  res         - result of the operation SMP_SUCCESS if success 
+**                  res         - result of the operation SMP_SUCCESS if success
 **                  p_data      - simple pairing Randomizer  C.
 **
 *******************************************************************************/
-    SMP_API extern void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, UINT8 len, 
+    SMP_API extern void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, UINT8 len,
                                          UINT8 *p_data);
 
 /*******************************************************************************
@@ -272,18 +280,18 @@ extern "C"
 **
 ** Description      This function is called to encrypt the data with the specified
 **                  key
-** 
+**
 ** Parameters:      key                 - Pointer to key key[0] conatins the MSB
 **                  key_len             - key length
 **                  plain_text          - Pointer to data to be encrypted
 **                                        plain_text[0] conatins the MSB
 **                  pt_len              - plain text length
 **                  p_out               - pointer to the encrypted outputs
-**                                    
-**  Returns         Boolean - TRUE: encryption is successful               
+**
+**  Returns         Boolean - TRUE: encryption is successful
 *******************************************************************************/
-    SMP_API extern BOOLEAN SMP_Encrypt (UINT8 *key, UINT8 key_len, 
-                                        UINT8 *plain_text, UINT8 pt_len, 
+    SMP_API extern BOOLEAN SMP_Encrypt (UINT8 *key, UINT8 key_len,
+                                        UINT8 *plain_text, UINT8 pt_len,
                                         tSMP_ENC *p_out);
 
 #ifdef __cplusplus

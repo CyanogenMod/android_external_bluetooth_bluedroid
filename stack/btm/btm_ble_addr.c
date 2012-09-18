@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:          btm_ble_addr.c
-**
-**  Description:   This file contains functions for BLE address management.
-**
-**
-**
-**  Copyright (c) 1999-2010, Broadcom Corp., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains functions for BLE address management.
+ *
+ ******************************************************************************/
 
 #include <string.h>
 
@@ -26,22 +38,22 @@
 **
 ** Function         btm_gen_resolve_paddr_cmpl
 **
-** Description      This is callback functioin when resolvable private address 
+** Description      This is callback functioin when resolvable private address
 **                  generation is complete.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
-static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p) 
+static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
 {
     tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
     tBTM_BLE_INQ_CB  *p_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
     BTM_TRACE_EVENT0 ("btm_gen_resolve_paddr_cmpl");
     if (p && p->param_buf)
     {
-        /* get the high bytes of the random address */                
-        p_cb->private_addr[2] = p->param_buf[0];        
-        p_cb->private_addr[1] = p->param_buf[1];    
+        /* get the high bytes of the random address */
+        p_cb->private_addr[2] = p->param_buf[0];
+        p_cb->private_addr[1] = p->param_buf[1];
         p_cb->private_addr[0] = p->param_buf[2];
         /* mask off the 1st MSB */
         p_cb->private_addr[0] &= 0xfe;
@@ -54,8 +66,8 @@ static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
 
         /* start a periodical timer to refresh random addr */
         btu_stop_timer(&p_cb->raddr_timer_ent);
-        btu_start_timer (&p_cb->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR, 
-                         BTM_BLE_PRIVATE_ADDR_INT);     
+        btu_start_timer (&p_cb->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
+                         BTM_BLE_PRIVATE_ADDR_INT);
 
         /* if adv is active, restart adv with new private addr */
         if (p_inq_cb->adv_mode == BTM_BLE_ADV_ENABLE)
@@ -63,12 +75,12 @@ static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
             btsnd_hcic_ble_set_adv_enable (BTM_BLE_ADV_DISABLE);
 
             btsnd_hcic_ble_write_adv_params (p_inq_cb->adv_interval_min,
-                                             p_inq_cb->adv_interval_max, 
-                                             p_inq_cb->evt_type, 
-                                             p_inq_cb->own_addr_type, 
-                                             p_inq_cb->direct_bda.type, 
+                                             p_inq_cb->adv_interval_max,
+                                             p_inq_cb->evt_type,
+                                             p_inq_cb->own_addr_type,
+                                             p_inq_cb->direct_bda.type,
                                              p_inq_cb->direct_bda.bda,
-                                             p_inq_cb->adv_chnl_map, 
+                                             p_inq_cb->adv_chnl_map,
                                              p_inq_cb->afp);
         }
     }
@@ -84,7 +96,7 @@ static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
 **
 ** Description      This function is called when random address has generate the
 **                  random number base for low 3 byte bd address.
-**                  
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -97,8 +109,8 @@ static void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
     BTM_TRACE_EVENT0 ("btm_gen_resolve_paddr_low");
     if (p && p->param_buf)
     {
-        p_cb->private_addr[5] = p->param_buf[0];        
-        p_cb->private_addr[4] = p->param_buf[1];    
+        p_cb->private_addr[5] = p->param_buf[0];
+        p_cb->private_addr[4] = p->param_buf[1];
         p_cb->private_addr[3] = p->param_buf[2];
 
         /* encrypt with ur IRK */
@@ -133,9 +145,9 @@ void btm_gen_resolvable_private_addr (void)
 **
 ** Function         btm_gen_non_resolve_paddr_cmpl
 **
-** Description      This is the callback function when non-resolvable private 
+** Description      This is the callback function when non-resolvable private
 **                  function is generated and write to controller.
-** 
+**
 ** Returns          void
 **
 *******************************************************************************/
@@ -157,7 +169,7 @@ static void btm_gen_non_resolve_paddr_cmpl(tBTM_RAND_ENC *p)
     }
     else
     {
-        BTM_TRACE_DEBUG0("btm_gen_non_resolvable_private_addr failed");        
+        BTM_TRACE_DEBUG0("btm_gen_non_resolvable_private_addr failed");
     }
 }
 /*******************************************************************************
@@ -165,7 +177,7 @@ static void btm_gen_non_resolve_paddr_cmpl(tBTM_RAND_ENC *p)
 ** Function         btm_gen_non_resolvable_private_addr
 **
 ** Description      This function generate a non-resolvable private address.
-**                  
+**
 **
 ** Returns          void
 **
@@ -188,7 +200,7 @@ void btm_gen_non_resolvable_private_addr (void)
 **
 ** Description      This function sends the random address resolving complete
 **                  callback.
-**                                    
+**
 ** Returns          None.
 **
 *******************************************************************************/
@@ -211,7 +223,7 @@ static void btm_ble_resolve_address_cmpl(void)
 **
 ** Description      This function compares the X with random address 3 MSO bytes
 **                  to find a match, if not match, continue for next record.
-**                                    
+**
 ** Returns          None.
 **
 *******************************************************************************/
@@ -243,8 +255,8 @@ static BOOLEAN btm_ble_proc_resolve_x(tSMP_ENC *p)
 **
 ** Description      This function match the random address to the appointed device
 **                  record, starting from calculating IRK. If record index exceed
-**                  the maximum record number, matching failed and send callback. 
-**                                    
+**                  the maximum record number, matching failed and send callback.
+**
 ** Returns          None.
 **
 *******************************************************************************/
@@ -272,8 +284,8 @@ static BOOLEAN btm_ble_match_random_bda(UINT16 rec_index)
         if ((p_dev_rec->device_type == BT_DEVICE_TYPE_BLE) &&
             (p_dev_rec->ble.key_type & BTM_LE_KEY_PID))
         {
-            /* generate X = E irk(R0, R1, R2) and R is random address 3 LSO */            
-            SMP_Encrypt(p_dev_rec->ble.keys.irk, BT_OCTET16_LEN, 
+            /* generate X = E irk(R0, R1, R2) and R is random address 3 LSO */
+            SMP_Encrypt(p_dev_rec->ble.keys.irk, BT_OCTET16_LEN,
                         &rand[0], 3, &output);
             return btm_ble_proc_resolve_x(&output);
         }
@@ -296,13 +308,13 @@ static BOOLEAN btm_ble_match_random_bda(UINT16 rec_index)
 ** Function         btm_ble_resolve_random_addr
 **
 ** Description      This function is called to resolve a random address.
-**                                    
-** Returns          pointer to the security record of the device whom a random 
+**
+** Returns          pointer to the security record of the device whom a random
 **                  address is matched to.
 **
 *******************************************************************************/
 void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_cback, void *p)
-{    
+{
     tBTM_LE_RANDOM_CB   *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
 
     BTM_TRACE_EVENT0 ("btm_ble_resolve_random_addr");
@@ -310,7 +322,7 @@ void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_
     {
         p_mgnt_cb->p = p;
         p_mgnt_cb->busy = TRUE;
-        p_mgnt_cb->index = 0;        
+        p_mgnt_cb->index = 0;
         p_mgnt_cb->p_resolve_cback = p_cback;
         memcpy(p_mgnt_cb->random_bda, random_bda, BD_ADDR_LEN);
         /* start to resolve random address */
@@ -342,7 +354,7 @@ tBLE_ADDR_TYPE btm_ble_map_bda_to_conn_bda(BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC    *p_dev_rec = NULL;
     BTM_TRACE_EVENT0 ("btm_ble_map_bda_to_conn_bda");
-    if ((p_dev_rec = btm_find_dev (bd_addr)) != NULL && 
+    if ((p_dev_rec = btm_find_dev (bd_addr)) != NULL &&
         p_dev_rec->device_type == BT_DEVICE_TYPE_BLE)
     {
         if (p_dev_rec->ble.ble_addr_type != BLE_ADDR_PUBLIC)
@@ -358,7 +370,7 @@ tBLE_ADDR_TYPE btm_ble_map_bda_to_conn_bda(BD_ADDR bd_addr)
 **
 ** Function         btm_ble_map_bda_to_pseudo_bda
 **
-** Description      This function map a BD address to a pseudo address when the 
+** Description      This function map a BD address to a pseudo address when the
 **                  address given is a random address.
 **
 *******************************************************************************/

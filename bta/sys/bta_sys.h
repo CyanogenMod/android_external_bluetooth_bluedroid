@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_sys.h
-**
-**  Description:    This is the public interface file for the BTA system
-**                  manager.
-**
-**  Copyright (c) 2003-2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the public interface file for the BTA system manager.
+ *
+ ******************************************************************************/
 #ifndef BTA_SYS_H
 #define BTA_SYS_H
 
@@ -79,9 +91,9 @@ typedef UINT16 tBTA_SYS_HW_MODULE;
 #define BTA_ID_MSE          28           /* Message Server Equipment */
 #define BTA_ID_MCE          29           /* Message Client Equipment */
 #define BTA_ID_HL           30           /* Health Device Profile*/
-#define BTA_ID_GATTC        31           /* GATT Client */  
-#define BTA_ID_GATTS        32           /* GATT Client */  
-#define BTA_ID_BLUETOOTH_MAX   33        /* last BT profile */  
+#define BTA_ID_GATTC        31           /* GATT Client */
+#define BTA_ID_GATTS        32           /* GATT Client */
+#define BTA_ID_BLUETOOTH_MAX   33        /* last BT profile */
 
 /* FM */
 #define BTA_ID_FM           34           /* FM  */
@@ -165,7 +177,7 @@ typedef struct
 /* data type to send events to BTA SYS HW manager */
 typedef struct
 {
-    BT_HDR                hdr;      
+    BT_HDR                hdr;
     tBTA_SYS_HW_MODULE   hw_module;
 } tBTA_SYS_HW_MSG;
 
@@ -216,7 +228,7 @@ enum
 
 };
 typedef UINT8 tBTA_SYS_HW_EVT;
-    
+
 /* HW enable callback type */
 typedef void (tBTA_SYS_HW_CBACK)(tBTA_SYS_HW_EVT status);
 

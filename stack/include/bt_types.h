@@ -1,14 +1,20 @@
-/****************************************************************************
-**
-**  Name        bt_types.h
-**
-**  Function    this file contains definitions that are shared between
-**              units in the Bluetooth system such as events.
-**
-**  Copyright (c) 1999-2010, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 
 #ifndef BT_TYPES_H
 #define BT_TYPES_H
@@ -29,7 +35,7 @@
 ** that global events MUST be one of these events defined below.
 **
 ** The convention used is the the event name contains the layer that the
-** event is going to. 
+** event is going to.
 */
 #define BT_EVT_MASK                 0xFF00
 #define BT_SUB_EVT_MASK             0x00FF
@@ -149,7 +155,7 @@
 
 /* BPP Events */
 #define BT_EVT_TO_BPP_PR_CMDS       0x6100      /* Printer Events */
-#define BT_EVT_TO_BPP_SND_CMDS      0x6200      /* BPP Sender Events */  
+#define BT_EVT_TO_BPP_SND_CMDS      0x6200      /* BPP Sender Events */
 
 /* BIP Events */
 #define BT_EVT_TO_BIP_CMDS          0x6300
@@ -205,7 +211,7 @@ typedef struct
 #define BT_PSM_BNEP                     0x000F
 #define BT_PSM_HIDC                     0x0011
 #define BT_PSM_HIDI                     0x0013
-#define BT_PSM_UPNP                     0x0015 
+#define BT_PSM_UPNP                     0x0015
 #define BT_PSM_AVCTP                    0x0017
 #define BT_PSM_AVDTP                    0x0019
 #define BT_PSM_AVCTP_13                 0x001B /* Advanced Control - Browsing */
@@ -353,7 +359,7 @@ typedef struct {
     UINT32              token_bucket_size;  /* bytes */
     UINT32              peak_bandwidth;     /* bytes/second */
     UINT32              latency;            /* microseconds */
-    UINT32              delay_variation;    /* microseconds */          
+    UINT32              delay_variation;    /* microseconds */
 } FLOW_SPEC;
 
 /* Values for service_type */
@@ -459,8 +465,8 @@ typedef struct
 */
 
 /* Structure to hold connection stats */
-#ifndef BT_CONN_STATS_DEFINED  
-#define BT_CONN_STATS_DEFINED  
+#ifndef BT_CONN_STATS_DEFINED
+#define BT_CONN_STATS_DEFINED
 
 /* These bits are used in the bIsConnected field */
 #define BT_CONNECTED_USING_BREDR   1
@@ -563,11 +569,11 @@ typedef UINT8 tBT_DEVICE_TYPE;
 #define TRACE_LAYER_BNEP            0x001b0000
 #define TRACE_LAYER_PAN             0x001c0000
 #define TRACE_LAYER_HFP             0x001d0000
-#define TRACE_LAYER_HID             0x001e0000  
-#define TRACE_LAYER_BIP             0x001f0000 
-#define TRACE_LAYER_AVP             0x00200000  
-#define TRACE_LAYER_A2D             0x00210000  
-#define TRACE_LAYER_SAP             0x00220000  
+#define TRACE_LAYER_HID             0x001e0000
+#define TRACE_LAYER_BIP             0x001f0000
+#define TRACE_LAYER_AVP             0x00200000
+#define TRACE_LAYER_A2D             0x00210000
+#define TRACE_LAYER_SAP             0x00220000
 #define TRACE_LAYER_AMP             0x00230000
 #define TRACE_LAYER_MCA             0x00240000
 #define TRACE_LAYER_ATT             0x00250000
@@ -627,7 +633,7 @@ typedef UINT8 tBT_DEVICE_TYPE;
 #define TRACE_TYPE_CMD_TX           0x0000000b
 #define TRACE_TYPE_EVT_TX           0x0000000c
 #define TRACE_TYPE_ACL_TX           0x0000000d
-#define TRACE_TYPE_CMD_RX           0x0000000e  
+#define TRACE_TYPE_CMD_RX           0x0000000e
 #define TRACE_TYPE_EVT_RX           0x0000000f
 #define TRACE_TYPE_ACL_RX           0x00000010
 #define TRACE_TYPE_TARGET_TRACE     0x00000011
@@ -676,7 +682,7 @@ typedef UINT8 tBT_DEVICE_TYPE;
 /* Define PSMs HID uses */
 #define HID_PSM_CONTROL         0x0011
 #define HID_PSM_INTERRUPT       0x0013
- 
+
 /* Define a function for logging */
 typedef void (BT_LOG_FUNC) (int trace_type, const char *fmt_str, ...);
 

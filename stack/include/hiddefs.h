@@ -1,14 +1,26 @@
-/****************************************************************************/
-/*                                                                          */
-/*  Name:       hiddefs.h                                                   */
-/*                                                                          */
-/*  Function:   this file contains HID protocol definitions                 */
-/*                                                                          */
-/*                                                                          */
-/*  Copyright (c) 2002-2004, WIDCOMM Inc., All Rights Reserved.             */
-/*  WIDCOMM Bluetooth Core. Proprietary and confidential.                   */
-/*                                                                          */
-/****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2002-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains HID protocol definitions
+ *
+ ******************************************************************************/
 
 #ifndef HIDDEFS_H
 #define HIDDEFS_H
@@ -100,7 +112,7 @@ typedef UINT8 tHID_STATUS;
 */
 
 /* Buffer size in two bytes after Report ID */
-#define HID_PAR_GET_REP_BUFSIZE_FOLLOWS             (0x08)            
+#define HID_PAR_GET_REP_BUFSIZE_FOLLOWS             (0x08)
 
 
 /* Parameters for Protocol Type
@@ -137,7 +149,7 @@ typedef struct sdp_info
     UINT8     ctry_code;     /*Country Code.*/
     UINT16    sup_timeout;/* Supervisory Timeout */
 
-    tHID_DEV_DSCP_INFO  dscp_info;   /* Descriptor list and Report list to be set in the SDP record. 
+    tHID_DEV_DSCP_INFO  dscp_info;   /* Descriptor list and Report list to be set in the SDP record.
                                        This parameter is used if HID_DEV_USE_GLB_SDP_REC is set to FALSE.*/
     tSDP_DISC_REC       *p_sdp_layer_rec;
 } tHID_DEV_SDP_INFO;

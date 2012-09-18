@@ -1,22 +1,33 @@
 /******************************************************************************
-**
-**  File Name:   $RCSfile: sbc_encoder.h,v $
-**
-**  Description: This file contains constants and structures used by Encoder.
-**
-**  Revision :   $Id: sbc_encoder.h,v 1.28 2006/06/27 12:29:32 mjougit Exp $
-**
-**  Copyright (c) 1999-2008, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-******************************************************************************/
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains constants and structures used by Encoder.
+ *
+ ******************************************************************************/
 
 #ifndef SBC_ENCODER_H
 #define SBC_ENCODER_H
 
 #define ENCODER_VERSION "0025"
- 
-#ifdef BUILDCFG 
+
+#ifdef BUILDCFG
     #include "bt_target.h"
 #endif
 
@@ -60,7 +71,7 @@
 #define SBC_MAX_NUM_FRAME 1
 #endif
 
-#ifndef SBC_DSP_OPT 
+#ifndef SBC_DSP_OPT
 #define SBC_DSP_OPT FALSE
 #endif
 
@@ -101,7 +112,7 @@
 /* -> more MIPS required for a better audio quality. comparasion with the SIG utilities shows a division by 10 of the RMS */
 /* CAUTION: It only apply in the if SBC_FAST_DCT is set to TRUE */
 #ifndef SBC_IS_64_MULT_IN_IDCT
-#define SBC_IS_64_MULT_IN_IDCT  FALSE			
+#define SBC_IS_64_MULT_IN_IDCT  FALSE
 #endif /*SBC_IS_64_MULT_IN_IDCT */
 
 /* set SBC_IS_64_MULT_IN_QUANTIZER to TRUE to use 64 bits multiplication in the quantizer */
@@ -126,7 +137,7 @@
 #endif
 
 #define MINIMUM_ENC_VX_BUFFER_SIZE (8*10*2)
-#ifndef ENC_VX_BUFFER_SIZE 
+#ifndef ENC_VX_BUFFER_SIZE
 #define ENC_VX_BUFFER_SIZE (MINIMUM_ENC_VX_BUFFER_SIZE + 64)
 /*#define ENC_VX_BUFFER_SIZE MINIMUM_ENC_VX_BUFFER_SIZE + 1024*/
 #endif
@@ -148,7 +159,7 @@ typedef struct SBC_ENC_PARAMS_TAG
     SINT16 s16NumOfChannels;
     SINT16 s16NumOfBlocks;                          /* 4, 8, 12 or 16*/
     SINT16 s16AllocationMethod;                     /* loudness or SNR*/
-    SINT16 s16BitPool;                              /* 16*numOfSb for mono & dual; 
+    SINT16 s16BitPool;                              /* 16*numOfSb for mono & dual;
                                                        32*numOfSb for stereo & joint stereo */
     UINT16 u16BitRate;
     UINT8   u8NumPacketToEncode;                    /* number of sbc frame to encode. Default is 1 */

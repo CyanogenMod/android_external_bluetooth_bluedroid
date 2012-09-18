@@ -1,14 +1,27 @@
-/*****************************************************************************
-**
-**  Name:           avdt_api.c
-**
-**  Description:    This module contains API of the audio/video distribution
-**                  transport protocol.
-**
-**  Copyright (c) 2002-2011, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2002-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This module contains API of the audio/video distribution transport
+ *  protocol.
+ *
+ ******************************************************************************/
 
 #include <string.h>
 #include "data_types.h"
@@ -40,7 +53,7 @@ tAVDT_CB avdt_cb;
 **                  appropriate CCB or SCB state machine.
 **
 **                  This function is for use internal to the stack only.
-**                  
+**
 **
 ** Returns          void
 **
@@ -92,7 +105,7 @@ void avdt_process_timeout(TIMER_LIST_ENT *p_tle)
 **                  prepares the protocol stack for its use.  This function
 **                  must be called once by the system or platform using AVDTP
 **                  before the other functions of the API an be used.
-**                  
+**
 **
 ** Returns          void
 **
@@ -104,7 +117,7 @@ void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback)
 
     /* register PSM with L2CAP */
     L2CA_Register(AVDT_PSM, (tL2CAP_APPL_INFO *) &avdt_l2c_appl);
-    
+
     /* set security level */
     BTM_SetSecurityLevel(TRUE, "", BTM_SEC_SERVICE_AVDTP, p_reg->sec_mask,
         AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_SIG);
@@ -148,7 +161,7 @@ void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback)
 **                  It is called when AVDTP is no longer being used by any
 **                  application in the system.  Before this function can be
 **                  called, all streams must be removed with AVDT_RemoveStream().
-**                  
+**
 **
 ** Returns          void
 **
@@ -170,7 +183,7 @@ void AVDT_Deregister(void)
 **                  this endpoint and an endpoint on a peer device.  In
 **                  addition, a peer device can discover, get the capabilities,
 **                  and connect to this endpoint.
-**                  
+**
 **
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
@@ -186,7 +199,7 @@ UINT16 AVDT_CreateStream(UINT8 *p_handle, tAVDT_CS *p_cs)
     if (((p_cs->cfg.psc_mask & (~AVDT_PSC)) != 0) || (p_cs->p_ctrl_cback == NULL))
     {
         result = AVDT_BAD_PARAMS;
-    }   
+    }
     /* Allocate scb; if no scbs, return failure */
     else if ((p_scb = avdt_scb_alloc(p_cs)) == NULL)
     {
@@ -208,7 +221,7 @@ UINT16 AVDT_CreateStream(UINT8 *p_handle, tAVDT_CS *p_cs)
 **                  If this function is called when the endpoint is connected
 **                  the connection is closed and then the stream endpoint
 **                  is removed.
-**                  
+**
 **
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
@@ -244,7 +257,7 @@ UINT16 AVDT_RemoveStream(UINT8 handle)
 **                  that AVDTP discovery is unrelated to SDP discovery).
 **                  This function can be called at any time regardless of whether
 **                  there is an AVDTP connection to the peer device.
-**                  
+**
 **                  When discovery is complete, an AVDT_DISCOVER_CFM_EVT
 **                  is sent to the application via its callback function.
 **                  The application must not call AVDT_GetCapReq() or
@@ -354,7 +367,7 @@ static UINT16 avdt_get_cap_req(BD_ADDR bd_addr, tAVDT_CCB_API_GETCAP *p_evt)
 **                  capabilities of a stream endpoint on the peer device.
 **                  This function can be called at any time regardless of
 **                  whether there is an AVDTP connection to the peer device.
-**                  
+**
 **                  When the procedure is complete, an AVDT_GETCAP_CFM_EVT is
 **                  sent to the application via its callback function.  The
 **                  application must not call AVDT_GetCapReq() or
@@ -391,7 +404,7 @@ UINT16 AVDT_GetCapReq(BD_ADDR bd_addr, UINT8 seid, tAVDT_CFG *p_cfg, tAVDT_CTRL_
 **                  capabilities of a stream endpoint on the peer device.
 **                  This function can be called at any time regardless of
 **                  whether there is an AVDTP connection to the peer device.
-**                  
+**
 **                  When the procedure is complete, an AVDT_GETCAP_CFM_EVT is
 **                  sent to the application via its callback function.  The
 **                  application must not call AVDT_GetCapReq() or
@@ -582,7 +595,7 @@ UINT16 AVDT_StartReq(UINT8 *p_handles, UINT8 num_handles)
     tAVDT_CCB_EVT   evt;
     UINT16          result = AVDT_SUCCESS;
     int             i;
-        
+
     BTTRC_AVDT_API0(AVDT_TRACE_API_START_REQ);
 
     if ((num_handles == 0) || (num_handles > AVDT_NUM_SEPS))
@@ -640,7 +653,7 @@ UINT16 AVDT_SuspendReq(UINT8 *p_handles, UINT8 num_handles)
     tAVDT_CCB_EVT   evt;
     UINT16          result = AVDT_SUCCESS;
     int             i;
-    
+
     BTTRC_AVDT_API0(AVDT_TRACE_API_SUSPEND_REQ);
 
     if ((num_handles == 0) || (num_handles > AVDT_NUM_SEPS))
@@ -967,7 +980,7 @@ UINT16 AVDT_ConnectReq(BD_ADDR bd_addr, UINT8 sec_mask, tAVDT_CTRL_CBACK *p_cbac
         /* ccb was already allocated for the incoming signalling. */
         result = AVDT_BUSY;
     }
-    
+
     if (result == AVDT_SUCCESS)
     {
         /* send event to ccb */
@@ -1177,10 +1190,10 @@ AVDT_API extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 dat
 **                  buffer if argument p_buf is NULL. This function can only
 **                  be called if the stream is a SNK.
 **
-**                  AVDTP uses this buffer to reassemble fragmented media packets. 
+**                  AVDTP uses this buffer to reassemble fragmented media packets.
 **                  When AVDTP receives a complete media packet, it calls the
 **                  p_media_cback assigned by AVDT_CreateStream().
-**                  This function can be called during callback to assign a 
+**                  This function can be called during callback to assign a
 **                  different buffer for next media packet or can leave the current
 **                  buffer for next packet.
 **
@@ -1219,11 +1232,11 @@ AVDT_API extern UINT16 AVDT_SetMediaBuf(UINT8 handle, UINT8 *p_buf, UINT32 buf_l
 **
 ** Function         AVDT_SendReport
 **
-** Description      
-**                  
+** Description
 **
 **
-** Returns          
+**
+** Returns
 **
 *******************************************************************************/
 UINT16 AVDT_SendReport(UINT8 handle, AVDT_REPORT_TYPE type,

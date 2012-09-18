@@ -2,50 +2,21 @@
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
- *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed
- *  pursuant to the terms and conditions of a separate, written license
- *  agreement executed between you and Broadcom (an "Authorized License").
- *  Except as set forth in an Authorized License, Broadcom grants no license
- *  (express or implied), right to use, or waiver of any kind with respect to
- *  the Software, and Broadcom expressly reserves all rights in and to the
- *  Software and all intellectual property rights therein.
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
- *  ALL USE OF THE SOFTWARE.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
  *
- *  Except as expressly set forth in the Authorized License,
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- *  1.     This program, including its structure, sequence and organization,
- *         constitutes the valuable trade secrets of Broadcom, and you shall
- *         use all reasonable efforts to protect the confidentiality thereof,
- *         and to use this information only in connection with your use of
- *         Broadcom integrated circuit products.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
- *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
- *         OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
- *
- *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
- *         OR ITS LICENSORS BE LIABLE FOR
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
- *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
- *
- *****************************************************************************/
+ ******************************************************************************/
 
-/*****************************************************************************
+/*******************************************************************************
  *
  *  Filename:      btif_api.h
  *
@@ -54,7 +25,7 @@
  *                 require headerfiles as they would be accessed through
  *                 callout/callins.
  *
- *****************************************************************************/
+ *******************************************************************************/
 
 #ifndef BTIF_API_H
 #define BTIF_API_H
@@ -62,31 +33,9 @@
 #include "btif_common.h"
 #include "btif_dm.h"
 
-/*****************************************************************************
-**  Constants & Macros
-******************************************************************************/
-
-/*****************************************************************************
-**  Type definitions for callback functions
-******************************************************************************/
-
-/*****************************************************************************
-**  Type definitions and return values
-******************************************************************************/
-
-/*****************************************************************************
-**  Extern variables and functions
-******************************************************************************/
-
-/*****************************************************************************
-**  Functions
-******************************************************************************/
-
-
-/*****************************************************************************
+/*******************************************************************************
 **  BTIF CORE API
-******************************************************************************/
-
+********************************************************************************/
 
 /*******************************************************************************
 **
@@ -97,7 +46,6 @@
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_init_bluetooth(void);
 
 /*******************************************************************************
@@ -109,7 +57,6 @@ bt_status_t btif_init_bluetooth(void);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_enable_bluetooth(void);
 
 /*******************************************************************************
@@ -123,7 +70,6 @@ bt_status_t btif_enable_bluetooth(void);
 ** Returns          void
 **
 *******************************************************************************/
-
 bt_status_t btif_disable_bluetooth(void);
 
 /*******************************************************************************
@@ -137,9 +83,7 @@ bt_status_t btif_disable_bluetooth(void);
 ** Returns          void
 **
 *******************************************************************************/
-
 bt_status_t btif_shutdown_bluetooth(void);
-
 
 /*******************************************************************************
 **
@@ -150,7 +94,6 @@ bt_status_t btif_shutdown_bluetooth(void);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_get_adapter_properties(void);
 
 /*******************************************************************************
@@ -162,7 +105,6 @@ bt_status_t btif_get_adapter_properties(void);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_get_adapter_property( bt_property_type_t type);
 
 /*******************************************************************************
@@ -175,7 +117,6 @@ bt_status_t btif_get_adapter_property( bt_property_type_t type);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_set_adapter_property( const bt_property_t *property);
 
 /*******************************************************************************
@@ -187,10 +128,8 @@ bt_status_t btif_set_adapter_property( const bt_property_t *property);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_get_remote_device_property( bt_bdaddr_t *remote_addr,
                                              bt_property_type_t type);
-
 
 /*******************************************************************************
 **
@@ -201,9 +140,7 @@ bt_status_t btif_get_remote_device_property( bt_bdaddr_t *remote_addr,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_get_remote_device_properties( bt_bdaddr_t *remote_addr);
-
 
 /*******************************************************************************
 **
@@ -216,10 +153,8 @@ bt_status_t btif_get_remote_device_properties( bt_bdaddr_t *remote_addr);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_set_remote_device_property( bt_bdaddr_t *remote_addr,
                                              const bt_property_t *property);
-
 
 /*******************************************************************************
 **
@@ -231,13 +166,13 @@ bt_status_t btif_set_remote_device_property( bt_bdaddr_t *remote_addr,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_get_remote_service_record( bt_bdaddr_t *remote_addr,
                                             bt_uuid_t *uuid);
 
-/*****************************************************************************
+
+/*******************************************************************************
 **  BTIF DM API
-******************************************************************************/
+********************************************************************************/
 
 /*******************************************************************************
 **
@@ -249,7 +184,6 @@ bt_status_t btif_get_remote_service_record( bt_bdaddr_t *remote_addr,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_dm_start_discovery(void);
 
 /*******************************************************************************
@@ -261,7 +195,6 @@ bt_status_t btif_dm_start_discovery(void);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_dm_cancel_discovery(void);
 
 /*******************************************************************************
@@ -273,7 +206,6 @@ bt_status_t btif_dm_cancel_discovery(void);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr);
 
 /*******************************************************************************
@@ -285,7 +217,6 @@ bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_dm_cancel_bond(const bt_bdaddr_t *bd_addr);
 
 /*******************************************************************************
@@ -297,7 +228,6 @@ bt_status_t btif_dm_cancel_bond(const bt_bdaddr_t *bd_addr);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr);
 
 /*******************************************************************************
@@ -309,7 +239,6 @@ bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_dm_pin_reply( const bt_bdaddr_t *bd_addr, uint8_t accept,
                                uint8_t pin_len, bt_pin_code_t *pin_code);
 
@@ -322,7 +251,6 @@ bt_status_t btif_dm_pin_reply( const bt_bdaddr_t *bd_addr, uint8_t accept,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_dm_passkey_reply( const bt_bdaddr_t *bd_addr,
                                    uint8_t accept, uint32_t passkey);
 
@@ -335,7 +263,6 @@ bt_status_t btif_dm_passkey_reply( const bt_bdaddr_t *bd_addr,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_dm_ssp_reply( const bt_bdaddr_t *bd_addr,
                               bt_ssp_variant_t variant, uint8_t accept,
                               uint32_t passkey);
@@ -349,7 +276,6 @@ bt_status_t btif_dm_ssp_reply( const bt_bdaddr_t *bd_addr,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_dm_get_adapter_property(bt_property_t *prop);
 
 /*******************************************************************************
@@ -361,7 +287,6 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t *prop);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_dm_get_remote_service_record(bt_bdaddr_t *remote_addr,
                                               bt_uuid_t *uuid);
 
@@ -401,4 +326,3 @@ bt_status_t btif_dut_mode_configure(uint8_t enable);
 bt_status_t btif_dut_mode_send(uint16_t opcode, uint8_t *buf, uint8_t len);
 
 #endif /* BTIF_API_H */
-

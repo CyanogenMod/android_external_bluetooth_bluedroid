@@ -1,13 +1,26 @@
-/*****************************************************************************
-**
-**  Name:          bnep_main.c
-**
-**  Description:   this file contains the main BNEP functions
-**
-**
-**  Copyright (c) 2001-2008, Broadcom Corp., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2001-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  this file contains the main BNEP functions
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 #include <stdlib.h>
@@ -99,7 +112,7 @@ tBNEP_RESULT bnep_register_with_l2cap (void)
 **
 ** Description      This function handles an inbound connection indication
 **                  from L2CAP. This is the case where we are acting as a
-**                  server. 
+**                  server.
 **
 ** Returns          void
 **
@@ -113,7 +126,7 @@ static void bnep_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UI
     if (!(bnep_cb.profile_registered) || (p_bcb)
      || ((p_bcb = bnepu_allocate_bcb(bd_addr)) == NULL))
     {
-        L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_NO_PSM, 0); 
+        L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_NO_PSM, 0);
         return;
     }
 
@@ -124,7 +137,7 @@ static void bnep_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UI
     p_bcb->l2cap_cid = l2cap_cid;
 
     /* Send response to the L2CAP layer. */
-    L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_OK, L2CAP_CONN_OK); 
+    L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_OK, L2CAP_CONN_OK);
 
     /* Send a Configuration Request. */
     L2CA_ConfigReq (l2cap_cid, &bnep_cb.l2cap_my_cfg);
@@ -385,7 +398,7 @@ static void bnep_disconnect_cfm (UINT16 l2cap_cid, UINT16 result)
 **
 ** Function         bnep_congestion_ind
 **
-** Description      This is a callback function called by L2CAP when 
+** Description      This is a callback function called by L2CAP when
 **                  congestion status changes
 **
 *******************************************************************************/

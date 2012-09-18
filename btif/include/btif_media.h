@@ -2,57 +2,27 @@
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
- *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed
- *  pursuant to the terms and conditions of a separate, written license
- *  agreement executed between you and Broadcom (an "Authorized License").
- *  Except as set forth in an Authorized License, Broadcom grants no license
- *  (express or implied), right to use, or waiver of any kind with respect to
- *  the Software, and Broadcom expressly reserves all rights in and to the
- *  Software and all intellectual property rights therein.
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
- *  ALL USE OF THE SOFTWARE.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
  *
- *  Except as expressly set forth in the Authorized License,
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- *  1.     This program, including its structure, sequence and organization,
- *         constitutes the valuable trade secrets of Broadcom, and you shall
- *         use all reasonable efforts to protect the confidentiality thereof,
- *         and to use this information only in connection with your use of
- *         Broadcom integrated circuit products.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
- *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
- *         OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
- *
- *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
- *         OR ITS LICENSORS BE LIABLE FOR
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
- *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
- *
- ************************************************************************************/
+ ******************************************************************************/
 
-/************************************************************************************
+/*******************************************************************************
  *
  *  Filename:      btif_media.h
  *
  *  Description:   This is the audio module for the BTIF system.
  *
- ***********************************************************************************/
-
+ *******************************************************************************/
 
 #ifndef BTIF_MEDIA_H
 #define BTIF_MEDIA_H
@@ -63,15 +33,15 @@
 #include "btif_av_api.h"
 #include "audio_a2dp_hw.h"
 
-/*****************************************************************************
+/*******************************************************************************
  **  Constants
- *****************************************************************************/
+ *******************************************************************************/
 
 /* Generic part */
 #define BTIF_SUCCESS                         0
 
-/*
-* AV (Audio Video source) Errors
+/**
+ * AV (Audio Video source) Errors
  */
 #define BTIF_ERROR_SRV_AV_NOT_ENABLED        700     /* AV is not enabled */
 #define BTIF_ERROR_SRV_AV_FEEDING_NOT_SUPPORTED 701  /* Requested Feeding not supported */
@@ -80,14 +50,14 @@
 #define BTIF_ERROR_SRV_AV_NOT_STARTED        704     /* AV is not started */
 #define BTIF_ERROR_SRV_AV_CP_NOT_SUPPORTED   705     /* Content protection is not supported by all headsets */
 
-/* transcoding definition for TxTranscoding and RxTranscoding */
+/* Transcoding definition for TxTranscoding and RxTranscoding */
 #define BTIF_MEDIA_TRSCD_OFF             0
 #define BTIF_MEDIA_TRSCD_PCM_2_SBC       1  /* Tx */
 
 
-/*****************************************************************************
+/*******************************************************************************
  **  Data types
- *****************************************************************************/
+ *******************************************************************************/
 
 typedef int tBTIF_STATUS;
 
@@ -123,13 +93,9 @@ typedef struct
 #endif
 
 
-/*****************************************************************************
- **  Local data
- *****************************************************************************/
-
-/*****************************************************************************
- **  public functions
- *****************************************************************************/
+/*******************************************************************************
+ **  Public functions
+ *******************************************************************************/
 
 /*******************************************************************************
  **
@@ -141,7 +107,6 @@ typedef struct
  **
  *******************************************************************************/
 extern int btif_media_task(void *p);
-
 
 /*******************************************************************************
  **
@@ -166,6 +131,7 @@ extern BOOLEAN btif_media_task_enc_init_req(tBTIF_MEDIA_INIT_AUDIO * p_msg);
 #if (BTA_AV_INCLUDED == TRUE)
 extern BOOLEAN btif_media_task_enc_update_req(tBTIF_MEDIA_UPDATE_AUDIO * p_msg);
 #endif
+
 /*******************************************************************************
  **
  ** Function         btif_media_task_start_aa_req
@@ -235,7 +201,6 @@ extern BOOLEAN btif_media_av_writebuf(UINT8 *p_media, UINT32 media_len,
                                      UINT32 timestamp, UINT16 seq_num);
 
 #if (BTA_AV_INCLUDED == TRUE)
-
 /*******************************************************************************
  **
  ** Function         btif_media_task_audio_feeding_init_req
@@ -249,7 +214,6 @@ extern BOOLEAN btif_media_av_writebuf(UINT8 *p_media, UINT32 media_len,
 extern BOOLEAN btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEEDING *p_msg);
 #endif
 
-
 /*******************************************************************************
  **
  ** Function         dump_codec_info
@@ -261,8 +225,8 @@ extern BOOLEAN btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEE
  *******************************************************************************/
 extern void dump_codec_info(unsigned char *p_codec);
 
-/*
- * local adaptation helper functions between btif and media task
+/**
+ * Local adaptation helper functions between btif and media task
  */
 
 int btif_a2dp_start_media_task(void);
@@ -280,4 +244,3 @@ void btif_a2dp_on_suspended(tBTA_AV_SUSPEND *p_av);
 void btif_a2dp_set_tx_flush(BOOLEAN enable);
 
 #endif
-

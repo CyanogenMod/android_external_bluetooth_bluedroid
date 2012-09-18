@@ -1,14 +1,27 @@
-/*****************************************************************************
-**
-**  Name:           avct_ccb.c
-**
-**  Description:    This module contains functions which operate on the
-**                  AVCTP connection control block.
-**
-**  Copyright (c) 2003-2004, WIDCOMM Inc., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2003-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This module contains functions which operate on the AVCTP connection
+ *  control block.
+ *
+ ******************************************************************************/
 
 #include <string.h>
 #include "data_types.h"
@@ -21,7 +34,7 @@
 ** Function         avct_ccb_alloc
 **
 ** Description      Allocate a connection control block; copy parameters to ccb.
-**                  
+**
 **
 ** Returns          pointer to the ccb, or NULL if none could be allocated.
 **
@@ -41,7 +54,7 @@ tAVCT_CCB *avct_ccb_alloc(tAVCT_CC *p_cc)
             break;
         }
     }
-    
+
     if (i == AVCT_NUM_CONN)
     {
         /* out of ccbs */
@@ -57,7 +70,7 @@ tAVCT_CCB *avct_ccb_alloc(tAVCT_CC *p_cc)
 **
 ** Description      Deallocate a connection control block and call application
 **                  callback.
-**                  
+**
 **
 ** Returns          void.
 **
@@ -91,7 +104,7 @@ void avct_ccb_dealloc(tAVCT_CCB *p_ccb, UINT8 event, UINT16 result, BD_ADDR bd_a
 ** Function         avct_ccb_to_idx
 **
 ** Description      Given a pointer to an ccb, return its index.
-**                  
+**
 **
 ** Returns          Index of ccb.
 **
@@ -107,7 +120,7 @@ UINT8 avct_ccb_to_idx(tAVCT_CCB *p_ccb)
 ** Function         avct_ccb_by_idx
 **
 ** Description      Return ccb pointer based on ccb index (or handle).
-**                  
+**
 **
 ** Returns          pointer to the ccb, or NULL if none found.
 **
@@ -126,7 +139,7 @@ tAVCT_CCB *avct_ccb_by_idx(UINT8 idx)
         {
             p_ccb = NULL;
             AVCT_TRACE_WARNING1("ccb %d not allocated", idx);
-        }   
+        }
     }
     else
     {

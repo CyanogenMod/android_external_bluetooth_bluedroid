@@ -1,13 +1,26 @@
-/*****************************************************************************/
-/*                                                                           */
-/*  Name:          bnep_api.c                                                */
-/*                                                                           */
-/*  Description:   this file contains the BNEP API code                      */
-/*                                                                           */
-/*                                                                           */
-/*  Copyright (c) 2001-2004, WIDCOMM Inc., All Rights Reserved.              */
-/*  WIDCOMM Bluetooth Core. Proprietary and confidential.                    */
-/*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2001-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the BNEP API code
+ *
+ ******************************************************************************/
 
 #include <string.h>
 #include "bnep_api.h"
@@ -46,7 +59,7 @@ void BNEP_Init (void)
 **                  its callbacks with BNEP
 **
 ** Parameters:      p_reg_info - contains all callback function pointers
-**                  
+**
 **
 ** Returns          BNEP_SUCCESS        if registered successfully
 **                  BNEP_FAILURE        if connection state callback is missing
@@ -65,7 +78,7 @@ tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info)
     bnep_cb.p_filter_ind_cb     = p_reg_info->p_filter_ind_cb;
     bnep_cb.p_mfilter_ind_cb    = p_reg_info->p_mfilter_ind_cb;
     bnep_cb.p_tx_data_flow_cb   = p_reg_info->p_tx_data_flow_cb;
-    
+
     if (bnep_register_with_l2cap ())
         return BNEP_SECURITY_FAIL;
 
@@ -83,7 +96,7 @@ tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info)
 **                  its callbacks.
 **
 ** Parameters:      void
-**                  
+**
 **
 ** Returns          void
 **
@@ -214,7 +227,7 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
 ** Function         BNEP_ConnectResp
 **
 ** Description      This function is called in responce to connection indication
-**                  
+**
 **
 ** Parameters:      handle  - handle given in the connection indication
 **                  resp    - responce for the connection indication

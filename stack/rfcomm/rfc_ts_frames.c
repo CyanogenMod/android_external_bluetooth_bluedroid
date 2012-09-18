@@ -1,13 +1,26 @@
-/*****************************************************************************
-**
-**  Name:          rfc_ts_frames.c
-**
-**  Description:   This file contains functions to send TS 07.10 frames
-**
-**
-**  Copyright (c) 1999-2008, Broadcom Corp., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains functions to send TS 07.10 frames
+ *
+ ******************************************************************************/
 #include "bt_target.h"
 #include "gki.h"
 #include "rfcdefs.h"
@@ -168,7 +181,7 @@ void rfc_send_buf_uih (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
 
     if (credits)
         p_buf->offset--;
-       
+
     p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
 
     /* UIH frame, command, PF = 0, dlci */
@@ -316,7 +329,7 @@ void rfc_send_fcoff (tRFC_MCB *p_mcb, BOOLEAN is_command)
 ** Description      This function sends Modem Status Command Frame.
 **
 *******************************************************************************/
-void rfc_send_msc (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, 
+void rfc_send_msc (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
                    tPORT_CTRL *p_pars)
 {
     BT_HDR  *p_buf;
@@ -343,13 +356,13 @@ void rfc_send_msc (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
     *p_data++ = RFCOMM_EA | (len << 1);
 
     *p_data++ = RFCOMM_EA | RFCOMM_CR_MASK | (dlci << RFCOMM_SHIFT_DLCI);
-    *p_data++ = RFCOMM_EA | 
+    *p_data++ = RFCOMM_EA |
                 ((p_pars->fc)                    ? RFCOMM_MSC_FC : 0)  |
                 ((signals & MODEM_SIGNAL_DTRDSR) ? RFCOMM_MSC_RTC : 0) |
                 ((signals & MODEM_SIGNAL_RTSCTS) ? RFCOMM_MSC_RTR : 0) |
                 ((signals & MODEM_SIGNAL_RI)     ? RFCOMM_MSC_IC : 0)  |
                 ((signals & MODEM_SIGNAL_DCD)    ? RFCOMM_MSC_DV : 0);
-    
+
     if (break_duration)
     {
         *p_data++ = RFCOMM_EA | RFCOMM_MSC_BREAK_PRESENT_MASK |
@@ -415,8 +428,8 @@ void rfc_send_nsc (tRFC_MCB *p_mcb)
     *p_data++ = RFCOMM_EA | RFCOMM_I_CR(FALSE) | RFCOMM_MX_NSC;
     *p_data++ = RFCOMM_EA | (RFCOMM_MX_NSC_LEN << 1);
 
-    *p_data++ =  rfc_cb.rfc.rx_frame.ea | 
-                (rfc_cb.rfc.rx_frame.cr << RFCOMM_SHIFT_CR) | 
+    *p_data++ =  rfc_cb.rfc.rx_frame.ea |
+                (rfc_cb.rfc.rx_frame.cr << RFCOMM_SHIFT_CR) |
                  rfc_cb.rfc.rx_frame.type;
 
     /* Total length is sizeof NSC data + mx header 2 */
@@ -433,7 +446,7 @@ void rfc_send_nsc (tRFC_MCB *p_mcb)
 ** Description      This function sends Remote Port Negotiation Command
 **
 *******************************************************************************/
-void rfc_send_rpn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, 
+void rfc_send_rpn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
                    tPORT_STATE *p_pars, UINT16 mask)
 {
     BT_HDR   *p_buf;
@@ -605,8 +618,8 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
     switch (p_frame->type)
     {
     case RFCOMM_SABME:
-        if (RFCOMM_FRAME_IS_RSP(p_mcb->is_initiator, p_frame->cr) 
-         || !p_frame->pf || len || !RFCOMM_VALID_DLCI (p_frame->dlci) 
+        if (RFCOMM_FRAME_IS_RSP(p_mcb->is_initiator, p_frame->cr)
+         || !p_frame->pf || len || !RFCOMM_VALID_DLCI (p_frame->dlci)
          || !rfc_check_fcs (RFCOMM_CTRL_FRAME_LEN, p_start, fcs))
         {
             RFCOMM_TRACE_ERROR0 ("Bad SABME");
@@ -616,7 +629,7 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
             return (RFC_EVENT_SABME);
 
     case RFCOMM_UA:
-        if (RFCOMM_FRAME_IS_CMD(p_mcb->is_initiator, p_frame->cr) 
+        if (RFCOMM_FRAME_IS_CMD(p_mcb->is_initiator, p_frame->cr)
           || !p_frame->pf || len || !RFCOMM_VALID_DLCI (p_frame->dlci)
           || !rfc_check_fcs (RFCOMM_CTRL_FRAME_LEN, p_start, fcs))
         {
@@ -627,8 +640,8 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
             return (RFC_EVENT_UA);
 
     case RFCOMM_DM:
-        if (RFCOMM_FRAME_IS_CMD(p_mcb->is_initiator, p_frame->cr) 
-         || len || !RFCOMM_VALID_DLCI(p_frame->dlci) 
+        if (RFCOMM_FRAME_IS_CMD(p_mcb->is_initiator, p_frame->cr)
+         || len || !RFCOMM_VALID_DLCI(p_frame->dlci)
          || !rfc_check_fcs (RFCOMM_CTRL_FRAME_LEN, p_start, fcs))
         {
             RFCOMM_TRACE_ERROR0 ("Bad DM");
@@ -638,8 +651,8 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
             return (RFC_EVENT_DM);
 
     case RFCOMM_DISC:
-        if (RFCOMM_FRAME_IS_RSP(p_mcb->is_initiator, p_frame->cr) 
-          || !p_frame->pf || len || !RFCOMM_VALID_DLCI(p_frame->dlci) 
+        if (RFCOMM_FRAME_IS_RSP(p_mcb->is_initiator, p_frame->cr)
+          || !p_frame->pf || len || !RFCOMM_VALID_DLCI(p_frame->dlci)
           || !rfc_check_fcs (RFCOMM_CTRL_FRAME_LEN, p_start, fcs))
         {
             RFCOMM_TRACE_ERROR0 ("Bad DISC");
@@ -649,11 +662,11 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
             return (RFC_EVENT_DISC);
 
     case RFCOMM_UIH:
-        if (!RFCOMM_VALID_DLCI(p_frame->dlci)) 
+        if (!RFCOMM_VALID_DLCI(p_frame->dlci))
         {
             RFCOMM_TRACE_ERROR0 ("Bad UIH - invalid DLCI");
             return (RFC_EVENT_BAD_FRAME);
-        }        
+        }
         else if (!rfc_check_fcs (2, p_start, fcs))
         {
             RFCOMM_TRACE_ERROR0 ("Bad UIH - FCS");
@@ -665,7 +678,7 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
             RFCOMM_TRACE_ERROR0 ("Bad UIH - response");
             return (RFC_EVENT_UIH);
         }
-        else 
+        else
             return (RFC_EVENT_UIH);
     }
 
@@ -677,7 +690,7 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
 **
 ** Function         rfc_process_mx_message
 **
-** Description      This function processes UIH frames received on the 
+** Description      This function processes UIH frames received on the
 **                  multiplexer control channel.
 **
 *******************************************************************************/
@@ -708,7 +721,7 @@ void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
 
     mx_len = *p_data++ >> RFCOMM_SHIFT_LENGTH1;
     length--;
-    
+
     if (!ea)
     {
         mx_len += *p_data++ << RFCOMM_SHIFT_LENGTH2;
@@ -833,7 +846,7 @@ void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
         if ((length != RFCOMM_MX_RPN_REQ_LEN) && (length != RFCOMM_MX_RPN_LEN))
             break;
 
-        ea                   = *p_data & RFCOMM_EA;                          
+        ea                   = *p_data & RFCOMM_EA;
         cr                   = (*p_data & RFCOMM_CR_MASK) >> RFCOMM_SHIFT_CR;
         p_rx_frame->dlci = *p_data++ >> RFCOMM_SHIFT_DLCI;
 
@@ -868,7 +881,7 @@ void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
         if (length != RFCOMM_MX_RLS_LEN)
             break;
 
-        ea = *p_data & RFCOMM_EA;                          
+        ea = *p_data & RFCOMM_EA;
         cr = (*p_data & RFCOMM_CR_MASK) >> RFCOMM_SHIFT_CR;
 
         p_rx_frame->dlci              = *p_data++ >> RFCOMM_SHIFT_DLCI;

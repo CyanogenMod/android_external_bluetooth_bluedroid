@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           bta_gattc_ci.c
-**
-**  Description:    This is the implementation file for the GATT
-**                  call-in functions.
-**
-**  Copyright (c) 2010, Broadcom Corp., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2010-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the implementation file for the GATT call-in functions.
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 
@@ -33,7 +45,7 @@
 **                  status - BTA_GATT_OK if full buffer of data,
 **                           BTA_GATT_FAIL if an error has occurred.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 void bta_gattc_ci_cache_open(BD_ADDR server_bda, UINT16 evt, tBTA_GATT_STATUS status,
@@ -57,18 +69,18 @@ void bta_gattc_ci_cache_open(BD_ADDR server_bda, UINT16 evt, tBTA_GATT_STATUS st
 **
 ** Description      This function sends an event to BTA indicating the phone has
 **                  load the servere cache and ready to send it to the stack.
-**                  
+**
 ** Parameters       server_bda - server BDA of this cache.
 **                  num_bytes_read - number of bytes read into the buffer
 **                      specified in the read callout-function.
 **                  status - BTA_GATT_OK if full buffer of data,
 **                           BTA_GATT_FAIL if an error has occurred.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_ci_cache_load(BD_ADDR server_bda, UINT16 evt, UINT16 num_attr, 
-                             tBTA_GATTC_NV_ATTR *p_attr, tBTA_GATT_STATUS status, 
+void bta_gattc_ci_cache_load(BD_ADDR server_bda, UINT16 evt, UINT16 num_attr,
+                             tBTA_GATTC_NV_ATTR *p_attr, tBTA_GATT_STATUS status,
                              UINT16 conn_id)
 {
     tBTA_GATTC_CI_LOAD  *p_evt;
@@ -98,14 +110,14 @@ void bta_gattc_ci_cache_load(BD_ADDR server_bda, UINT16 evt, UINT16 num_attr,
 **
 ** Description      This function sends an event to BTA indicating the phone has
 **                  save the servere cache.
-**                  
+**
 ** Parameters       server_bda - server BDA of this cache.
 **                  evt - callin event code.
 **                  status - BTA_GATT_OK if full buffer of data,
 **                           BTA_GATT_ERROR if an error has occurred.
 *8                  conn_id - for this NV operation for.
 **
-** Returns          void 
+** Returns          void
 **
 *******************************************************************************/
 void bta_gattc_ci_cache_save(BD_ADDR server_bda, UINT16 evt, tBTA_GATT_STATUS status,

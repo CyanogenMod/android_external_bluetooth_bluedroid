@@ -1,14 +1,20 @@
-/********************************************************************************
-**                                                                              *
-**  Name        gki_buffer.c                                                    *
-**                                                                              *
-**  Function    this file contains GKI buffer handling functions                *
-**                                                                              *
-**                                                                              *
-**  Copyright (c) 1999-2009, Broadcom Corp., All Rights Reserved.               *
-**  Proprietary and confidential.                                               *
-**                                                                              *
-*********************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 #include "gki_int.h"
 #include <cutils/log.h>
 
@@ -51,7 +57,7 @@ static void gki_init_free_queue (UINT8 id, UINT16 size, UINT16 total, void *p_me
         p_cb->pool_end[id]   = (UINT8 *)p_mem + (act_size * total);
     }
 // btla-specific --
-    
+
     p_cb->pool_size[id]  = act_size;
 
     p_cb->freeq[id].size      = (UINT16) tempsize;
@@ -90,9 +96,9 @@ static BOOLEAN gki_alloc_free_queue(UINT8 id)
     FREE_QUEUE_T  *Q;
     tGKI_COM_CB *p_cb = &gki_cb.com;
     GKI_TRACE("\ngki_alloc_free_queue in, id:%d \n", (int)id );
-    
+
     Q = &p_cb->freeq[p_cb->pool_list[id]];
-    
+
     if(Q->p_first == 0)
     {
         void* p_mem = GKI_os_malloc((Q->size + BUFFER_PADDING_SIZE) * Q->total);
@@ -105,7 +111,7 @@ static BOOLEAN gki_alloc_free_queue(UINT8 id)
             return TRUE;
         }
         GKI_exception (GKI_ERROR_BUF_SIZE_TOOBIG, "gki_alloc_free_queue: Not enough memory");
-    }   
+    }
     GKI_TRACE("\ngki_alloc_free_queue out failed, id:%d\n", id);
     return FALSE;
 }
@@ -125,10 +131,10 @@ void gki_dealloc_free_queue(void)
             p_cb->freeq[i].max_cnt   = 0;
             p_cb->freeq[i].p_first   = NULL;
             p_cb->freeq[i].p_last    = NULL;
-            
+
             p_cb->pool_start[i] = NULL;
             p_cb->pool_end[i]   = NULL;
-            p_cb->pool_size[i]  = 0;        
+            p_cb->pool_size[i]  = 0;
         }
     }
 }
@@ -176,7 +182,7 @@ void gki_buffer_init(void)
     }
 
     /* Use default from target.h */
-    p_cb->pool_access_mask = GKI_DEF_BUFPOOL_PERM_MASK;            
+    p_cb->pool_access_mask = GKI_DEF_BUFPOOL_PERM_MASK;
 
 // btla-specific ++
 #if (!defined GKI_USE_DEFERED_ALLOC_BUF_POOLS && (GKI_USE_DYNAMIC_BUFFERS == TRUE))
@@ -389,7 +395,7 @@ void *GKI_getbuf (UINT16 size)
     GKI_disable();
 
     /* search the public buffer pools that are big enough to hold the size
-     * until a free buffer is found */ 
+     * until a free buffer is found */
     for ( ; i < p_cb->curr_total_no_of_pools; i++)
     {
         /* Only look at PUBLIC buffer pools (bypass RESTRICTED pools) */
@@ -397,7 +403,7 @@ void *GKI_getbuf (UINT16 size)
             continue;
 
         Q = &p_cb->freeq[p_cb->pool_list[i]];
-        if(Q->cur_cnt < Q->total) 
+        if(Q->cur_cnt < Q->total)
         {
 // btla-specific ++
         #ifdef GKI_USE_DEFERED_ALLOC_BUF_POOLS
@@ -494,7 +500,7 @@ void *GKI_getpoolbuf (UINT8 pool_id)
 
     /* try for free buffers in public pools */
     return (GKI_getbuf(p_cb->freeq[pool_id].size));
-    
+
 }
 
 /*******************************************************************************
@@ -512,7 +518,7 @@ void GKI_freebuf (void *p_buf)
 {
     FREE_QUEUE_T    *Q;
     BUFFER_HDR_T    *p_hdr;
-    
+
 #if (GKI_ENABLE_BUF_CORRUPTION_CHECK == TRUE)
     if (!p_buf || gki_chk_buf_damage(p_buf))
     {
@@ -520,23 +526,23 @@ void GKI_freebuf (void *p_buf)
         return;
     }
 #endif
-    
+
     p_hdr = (BUFFER_HDR_T *) ((UINT8 *)p_buf - BUFFER_HDR_SIZE);
-    
+
     if (p_hdr->status != BUF_STATUS_UNLINKED)
     {
         GKI_exception(GKI_ERROR_FREEBUF_BUF_LINKED, "Freeing Linked Buf");
         return;
     }
-    
+
     if (p_hdr->q_id >= GKI_NUM_TOTAL_BUF_POOLS)
     {
         GKI_exception(GKI_ERROR_FREEBUF_BAD_QID, "Bad Buf QId");
         return;
     }
-    
+
     GKI_disable();
-    
+
     /*
     ** Release the buffer
     */
@@ -545,16 +551,16 @@ void GKI_freebuf (void *p_buf)
         Q->p_last->p_next = p_hdr;
     else
         Q->p_first = p_hdr;
-    
+
     Q->p_last      = p_hdr;
     p_hdr->p_next  = NULL;
     p_hdr->status  = BUF_STATUS_FREE;
     p_hdr->task_id = GKI_INVALID_TASK;
     if (Q->cur_cnt > 0)
         Q->cur_cnt--;
-    
+
     GKI_enable();
-    
+
     return;
 }
 
@@ -576,7 +582,7 @@ UINT16 GKI_get_buf_size (void *p_buf)
 
     p_hdr = (BUFFER_HDR_T *)((UINT8 *) p_buf - BUFFER_HDR_SIZE);
 
-    if ((UINT32)p_hdr & 1) 
+    if ((UINT32)p_hdr & 1)
         return (0);
 
     if (p_hdr->q_id < GKI_NUM_TOTAL_BUF_POOLS)
@@ -1001,7 +1007,7 @@ void *GKI_getnext (void *p_buf)
 BOOLEAN GKI_queue_is_empty(BUFFER_Q *p_q)
 {
     return ((BOOLEAN) (p_q->count == 0));
-}        
+}
 
 /*******************************************************************************
 **
@@ -1068,10 +1074,10 @@ UINT8 GKI_set_pool_permission(UINT8 pool_id, UINT8 permission)
     {
         if (permission == GKI_RESTRICTED_POOL)
             p_cb->pool_access_mask = (UINT16)(p_cb->pool_access_mask | (1 << pool_id));
-        
+
         else    /* mark the pool as public */
             p_cb->pool_access_mask = (UINT16)(p_cb->pool_access_mask & ~(1 << pool_id));
-        
+
         return (GKI_SUCCESS);
     }
     else
@@ -1082,7 +1088,7 @@ UINT8 GKI_set_pool_permission(UINT8 pool_id, UINT8 permission)
 **
 ** Function         gki_add_to_pool_list
 **
-** Description      Adds pool to the pool list which is arranged in the 
+** Description      Adds pool to the pool list which is arranged in the
 **                  order of size
 **
 ** Returns          void
@@ -1095,7 +1101,7 @@ static void gki_add_to_pool_list(UINT8 pool_id)
     tGKI_COM_CB *p_cb = &gki_cb.com;
 
      /* Find the position where the specified pool should be inserted into the list */
-    for(i=0; i < p_cb->curr_total_no_of_pools; i++) 
+    for(i=0; i < p_cb->curr_total_no_of_pools; i++)
     {
 
         if(p_cb->freeq[pool_id].size <= p_cb->freeq[ p_cb->pool_list[i] ].size)
@@ -1117,7 +1123,7 @@ static void gki_add_to_pool_list(UINT8 pool_id)
 **
 ** Function         gki_remove_from_pool_list
 **
-** Description      Removes pool from the pool list. Called when a pool is deleted 
+** Description      Removes pool from the pool list. Called when a pool is deleted
 **
 ** Returns          void
 **
@@ -1126,7 +1132,7 @@ static void gki_remove_from_pool_list(UINT8 pool_id)
 {
     tGKI_COM_CB *p_cb = &gki_cb.com;
     UINT8 i;
- 
+
     for(i=0; i < p_cb->curr_total_no_of_pools; i++)
     {
         if(pool_id == p_cb->pool_list[i])
@@ -1184,7 +1190,7 @@ void *GKI_igetpoolbuf (UINT8 pool_id)
         return ((void *) ((UINT8 *)p_hdr + BUFFER_HDR_SIZE));
     }
 
-    return (NULL);   
+    return (NULL);
 }
 
 /*******************************************************************************
@@ -1393,13 +1399,13 @@ void GKI_delete_pool (UINT8 pool_id)
 {
     FREE_QUEUE_T    *Q;
     tGKI_COM_CB     *p_cb = &gki_cb.com;
-    
+
     if ((pool_id >= GKI_NUM_TOTAL_BUF_POOLS) || (!p_cb->pool_start[pool_id]))
         return;
-    
+
     GKI_disable();
     Q  = &p_cb->freeq[pool_id];
-    
+
     if (!Q->cur_cnt)
     {
         Q->size      = 0;
@@ -1408,21 +1414,21 @@ void GKI_delete_pool (UINT8 pool_id)
         Q->max_cnt   = 0;
         Q->p_first   = NULL;
         Q->p_last    = NULL;
-        
+
         GKI_os_free (p_cb->pool_start[pool_id]);
-        
+
         p_cb->pool_start[pool_id] = NULL;
         p_cb->pool_end[pool_id]   = NULL;
         p_cb->pool_size[pool_id]  = 0;
-        
+
         gki_remove_from_pool_list(pool_id);
         p_cb->curr_total_no_of_pools--;
     }
     else
         GKI_exception(GKI_ERROR_DELETE_POOL_BAD_QID, "Deleting bad pool");
-    
+
     GKI_enable();
-    
+
     return;
 }
 

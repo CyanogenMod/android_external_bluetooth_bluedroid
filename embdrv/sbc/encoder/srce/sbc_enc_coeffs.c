@@ -1,22 +1,33 @@
 /******************************************************************************
-**
-**  File Name:   $RCSfile: sbc_enc_coeffs.c,v $
-**
-**  Description: This file contains the Windowing coeffs for synthesis filter
-**
-**  Revision :   $Id: sbc_enc_coeffs.c,v 1.10 2006/04/11 17:05:34 mjougit Exp $
-**
-**  Copyright (c) 1999-2002, Widcomm Inc., All Rights Reserved.
-**  Widcomm Bluetooth Core. Proprietary and confidential.
-**
-******************************************************************************/
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the Windowing coeffs for synthesis filter
+ *
+ ******************************************************************************/
 
 #include "sbc_encoder.h"
 
 #if (SBC_ARM_ASM_OPT==FALSE && SBC_IPAQ_OPT==FALSE)
 #if (SBC_IS_64_MULT_IN_WINDOW_ACCU ==  FALSE)
 /*Window coeff for 4 sub band case*/
-const SINT16 gas32CoeffFor4SBs[] = 
+const SINT16 gas32CoeffFor4SBs[] =
 {
     (SINT16)((SINT32)0x00000000 >> 16),	(SINT16)0x00000000,
 	(SINT16)((SINT32)0x001194E6 >> 16),	(SINT16)0x001194E6,
@@ -65,7 +76,7 @@ const SINT16 gas32CoeffFor4SBs[] =
 };
 
 /*Window coeff for 8 sub band case*/
-const SINT16 gas32CoeffFor8SBs[] = 
+const SINT16 gas32CoeffFor8SBs[] =
 {
     (SINT16)((SINT32)0x00000000 >>16),	(SINT16)0x00000000,
 	(SINT16)((SINT32)0x00052173 >>16),	(SINT16)0x00052173,
@@ -161,7 +172,7 @@ const SINT16 gas32CoeffFor8SBs[] =
 #else
 
 /*Window coeff for 4 sub band case*/
-const SINT32 gas32CoeffFor4SBs[] = 
+const SINT32 gas32CoeffFor4SBs[] =
 {
     (SINT32)0x00000000,
 	(SINT32)0x001194E6,
@@ -210,7 +221,7 @@ const SINT32 gas32CoeffFor4SBs[] =
 };
 
 /*Window coeff for 8 sub band case*/
-const SINT32 gas32CoeffFor8SBs[] = 
+const SINT32 gas32CoeffFor8SBs[] =
 {
     (SINT32)0x00000000,
 	(SINT32)0x00052173,

@@ -1,13 +1,28 @@
-/*****************************************************************************
-**
-**  Name:       a2d_sbc.c
-**
-**  Description:utility functions to help build and parse SBC 
-**              Codec Information Element and Media Payload.
-**  Copyright (c) 2002-2004, WIDCOMM Inc., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2002-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  Utility functions to help build and parse SBC Codec Information Element
+ *  and Media Payload.
+ *
+ ******************************************************************************/
+
 #include "bt_target.h"
 
 #if (A2D_SBC_INCLUDED == TRUE)
@@ -46,7 +61,7 @@
  *
  *    if(index > 0)
  *    {
- *        p = &u8frame[base_index]; 
+ *        p = &u8frame[base_index];
  *        if((index&1)&&(u16PacketLength > (base_index+index*2)))
  *        {
  *            // odd index: swap 2 bytes

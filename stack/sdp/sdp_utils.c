@@ -1,12 +1,26 @@
-/*****************************************************************************/
-/*                                                                           */
-/*  Name:          sdp_utils.c                                               */
-/*                                                                           */
-/*  Description:   this file contains SDP utility functions                  */
-/*                                                                           */
-/*  Copyright (c) 1999-2011, Broadcom Corp., All Rights Reserved.            */
-/*  Broadcom Bluetooth Core. Proprietary and confidential.                    */
-/*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains SDP utility functions
+ *
+ ******************************************************************************/
 
 #include <stdlib.h>
 #include <string.h>
@@ -256,7 +270,7 @@ UINT8 *sdpu_build_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr)
 
         return (p_out);
     }
-    
+
     /* Now, store the attribute value */
     switch (p_attr->len)
     {
@@ -347,7 +361,7 @@ void sdpu_build_n_send_error (tCONN_CB *p_ccb, UINT16 trans_num, UINT16 error_co
 ** Function         sdpu_extract_uid_seq
 **
 ** Description      This function extracts a UUID sequence from the passed input
-**                  buffer, and puts it into the passed output list. 
+**                  buffer, and puts it into the passed output list.
 **
 ** Returns          Pointer to next byte in the input buffer after the sequence.
 **
@@ -461,7 +475,7 @@ UINT8 *sdpu_extract_uid_seq (UINT8 *p, UINT16 param_len, tSDP_UUID_SEQ *p_seq)
 ** Function         sdpu_extract_attr_seq
 **
 ** Description      This function extracts an attribute sequence from the passed
-**                  input buffer, and puts it into the passed output list. 
+**                  input buffer, and puts it into the passed output list.
 **
 ** Returns          Pointer to next byte in the input buffer after the sequence.
 **
@@ -772,7 +786,7 @@ BOOLEAN sdpu_compare_uuid_with_attr (tBT_UUID *p_btuuid, tSDP_DISC_ATTR *p_attr)
        Event overrun-buffer-arg: Overrun of static array "&p_attr->attr_value.v.array" of size 4 bytes by passing it to a function which indexes it with argument "16U" at byte position 15
        FALSE-POSITIVE error from Coverity test tool. Please do NOT remove following comment.
        False-positive: SDP uses scratch buffer to hold the attribute value.
-       The actual size of tSDP_DISC_ATVAL does not matter. 
+       The actual size of tSDP_DISC_ATVAL does not matter.
        If the array size in tSDP_DISC_ATVAL is increase, we would increase the system RAM usage unnecessarily
     */
     else if (!memcmp (p_btuuid->uu.uuid128, p_attr->attr_value.v.array, MAX_UUID_SIZE))
@@ -820,7 +834,7 @@ void sdpu_sort_attr_list( UINT16 num_attr, tSDP_DISCOVERY_DB *p_db )
         }
         else
             i++;
-    }    
+    }
 }
 
 
@@ -946,7 +960,7 @@ UINT16 sdpu_get_attrib_entry_len(tSDP_ATTRIBUTE *p_attr)
         len += p_attr->len;
         return len;
 	}
-	
+
     /* Now, the attribute value */
     switch (p_attr->len)
     {
@@ -1010,7 +1024,7 @@ UINT8 *sdpu_build_partial_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr, UI
 ** Description      This function converts UUID-16 to UUID-128 by including the base UUID
 **
 **                  uuid16: 2-byte UUID
-**                  p_uuid128: Expanded 128-bit UUID 
+**                  p_uuid128: Expanded 128-bit UUID
 **
 ** Returns          None
 **

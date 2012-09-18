@@ -1,14 +1,27 @@
-/*****************************************************************************
-**
-**  Name:          rfc_mx_fsm.c
-**
-**  Description:   This file contains state machine and action routines for
-**                 multiplexer channel of the RFCOMM unit
-**
-**
-**  Copyright (c) 1999-2010, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains state machine and action routines for multiplexer
+ *  channel of the RFCOMM unit
+ *
+ ******************************************************************************/
 #include <string.h>
 #include "gki.h"
 #include "bt_types.h"
@@ -158,8 +171,8 @@ void rfc_mx_sm_state_idle (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 **
 ** Function         rfc_mx_sm_state_wait_conn_cnf
 **
-** Description      This function handles events when the multiplexer is 
-**                  waiting for Connection Confirm from L2CAP. 
+** Description      This function handles events when the multiplexer is
+**                  waiting for Connection Confirm from L2CAP.
 **
 ** Returns          void
 **
@@ -276,7 +289,7 @@ void rfc_mx_sm_state_configure (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         p_mcb->state = RFC_MX_STATE_IDLE;
         L2CA_DisconnectReq (p_mcb->lcid);
 
-        PORT_StartCnf (p_mcb, RFCOMM_ERROR);  
+        PORT_StartCnf (p_mcb, RFCOMM_ERROR);
         return;
     }
     RFCOMM_TRACE_EVENT2 ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
@@ -287,7 +300,7 @@ void rfc_mx_sm_state_configure (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 **
 ** Function         rfc_mx_sm_sabme_wait_ua
 **
-** Description      This function handles events when the multiplexer sent 
+** Description      This function handles events when the multiplexer sent
 **                  SABME and is waiting for UA reply.
 **
 ** Returns          void
@@ -338,7 +351,7 @@ void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         p_mcb->state = RFC_MX_STATE_IDLE;
         L2CA_DisconnectReq (p_mcb->lcid);
 
-        PORT_StartCnf (p_mcb, RFCOMM_ERROR);  
+        PORT_StartCnf (p_mcb, RFCOMM_ERROR);
         return;
     }
     RFCOMM_TRACE_EVENT2 ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
@@ -348,7 +361,7 @@ void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 **
 ** Function         rfc_mx_sm_state_wait_sabme
 **
-** Description      This function handles events when the multiplexer is 
+** Description      This function handles events when the multiplexer is
 **                  waiting for SABME on the acceptor side after configuration
 **
 ** Returns          void
@@ -382,7 +395,7 @@ void rfc_mx_sm_state_wait_sabme (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         else
         {
             rfc_timer_stop (p_mcb);
-            PORT_StartInd (p_mcb); 
+            PORT_StartInd (p_mcb);
         }
         return;
 
@@ -415,7 +428,7 @@ void rfc_mx_sm_state_wait_sabme (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 **
 ** Function         rfc_mx_sm_state_connected
 **
-** Description      This function handles events when the multiplexer is 
+** Description      This function handles events when the multiplexer is
 **                  in the CONNECTED state
 **
 ** Returns          void
@@ -459,7 +472,7 @@ void rfc_mx_sm_state_connected (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 **
 ** Function         rfc_mx_sm_state_disc_wait_ua
 **
-** Description      This function handles events when the multiplexer sent 
+** Description      This function handles events when the multiplexer sent
 **                  DISC and is waiting for UA reply.
 **
 ** Returns          void
@@ -537,8 +550,8 @@ void rfc_mx_sm_state_disc_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 **
 ** Function         rfc_mx_send_config_req
 **
-** Description      This function handles L2CA_ConnectInd message from the 
-**                  L2CAP.  Accept connection.  
+** Description      This function handles L2CA_ConnectInd message from the
+**                  L2CAP.  Accept connection.
 **
 *******************************************************************************/
 static void rfc_mx_send_config_req (tRFC_MCB *p_mcb)
@@ -568,8 +581,8 @@ static void rfc_mx_send_config_req (tRFC_MCB *p_mcb)
 **
 ** Function         rfc_mx_conf_cnf
 **
-** Description      This function handles L2CA_ConfigCnf message from the 
-**                  L2CAP.  If result is not success tell upper layer that 
+** Description      This function handles L2CA_ConfigCnf message from the
+**                  L2CAP.  If result is not success tell upper layer that
 **                  start has not been accepted.  If initiator send SABME
 **                  on DLCI 0.  T1 is still running.
 **
@@ -611,7 +624,7 @@ static void rfc_mx_conf_cnf (tRFC_MCB *p_mcb, tL2CAP_CFG_INFO *p_cfg)
 **
 ** Function         rfc_mx_conf_ind
 **
-** Description      This function handles L2CA_ConfigInd message from the 
+** Description      This function handles L2CA_ConfigInd message from the
 **                  L2CAP.  Send the L2CA_ConfigRsp message.
 **
 *******************************************************************************/

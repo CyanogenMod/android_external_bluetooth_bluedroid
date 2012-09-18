@@ -2,58 +2,30 @@
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
- *  This program is the proprietary software of Broadcom Corporation and/or its
- *  licensors, and may only be used, duplicated, modified or distributed
- *  pursuant to the terms and conditions of a separate, written license
- *  agreement executed between you and Broadcom (an "Authorized License").
- *  Except as set forth in an Authorized License, Broadcom grants no license
- *  (express or implied), right to use, or waiver of any kind with respect to
- *  the Software, and Broadcom expressly reserves all rights in and to the
- *  Software and all intellectual property rights therein.
- *  IF YOU HAVE NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS
- *  SOFTWARE IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
- *  ALL USE OF THE SOFTWARE.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
  *
- *  Except as expressly set forth in the Authorized License,
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- *  1.     This program, including its structure, sequence and organization,
- *         constitutes the valuable trade secrets of Broadcom, and you shall
- *         use all reasonable efforts to protect the confidentiality thereof,
- *         and to use this information only in connection with your use of
- *         Broadcom integrated circuit products.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- *  2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
- *         "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
- *         REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
- *         OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
- *         DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
- *         NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
- *         ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
- *         CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
- *         OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
- *
- *  3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
- *         OR ITS LICENSORS BE LIABLE FOR
- *         (i)   CONSEQUENTIAL, INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY
- *               DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY RELATING TO
- *               YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
- *               HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR
- *         (ii)  ANY AMOUNT IN EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE
- *               SOFTWARE ITSELF OR U.S. $1, WHICHEVER IS GREATER. THESE
- *               LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF
- *               ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
- *
- *****************************************************************************/
+ ******************************************************************************/
 
 /*****************************************************************************
  **
  **  Name:           btif_av_api.h
  **
  **  Description:    This is the public interface file for the advanced
- **                  audio/video streaming (AV) subsystem of BTIF, Widcomm's
+ **                  audio/video streaming (AV) subsystem of BTIF, Broadcom's
  **                  Bluetooth application layer for mobile phones.
  **
  *****************************************************************************/
+
 #ifndef BTIF_AV_API_H
 #define BTIF_AV_API_H
 
@@ -70,7 +42,7 @@
  **  Constants and data types
  *****************************************************************************/
 
-/* codec type */
+/* Codec type */
 #define BTIF_AV_CODEC_NONE       0xFF
 #define BTIF_AV_CODEC_SBC        A2D_MEDIA_CT_SBC        /* SBC media codec type */
 
@@ -93,7 +65,7 @@ typedef UINT8 tBTIF_AV_CHNL;
 
 typedef UINT8 tBTIF_AV_HNDL;
 
-/* operation id list for BTIF_AvRemoteCmd */
+/* Operation id list for BTIF_AvRemoteCmd */
 #define BTIF_AV_ID_SELECT      0x00    /* select */
 #define BTIF_AV_ID_UP          0x01    /* up */
 #define BTIF_AV_ID_DOWN        0x02    /* down */
@@ -155,7 +127,7 @@ typedef UINT8 tBTIF_AV_HNDL;
 
 typedef UINT8 tBTIF_AV_RC;
 
-/* state flag for pass through command */
+/* State flag for pass through command */
 #define BTIF_AV_STATE_PRESS      0    /* key pressed */
 #define BTIF_AV_STATE_RELEASE    1  /* key released */
 
@@ -163,7 +135,7 @@ typedef UINT8 tBTIF_AV_STATE;
 
 typedef UINT8 tBTIF_AV_RC_HNDL;
 
-/* command codes for BTIF_AvVendorCmd */
+/* Command codes for BTIF_AvVendorCmd */
 #define BTIF_AV_CMD_CTRL         0
 #define BTIF_AV_CMD_STATUS       1
 #define BTIF_AV_CMD_SPEC_INQ     2
@@ -199,16 +171,17 @@ typedef UINT8 tBTIF_AV_FEEDING_MODE;
 #define BTIF_AV_CHANNEL_MODE_DUAL    A2D_SBC_IE_CH_MD_DUAL
 
 typedef UINT8 tBTIF_AV_CHANNEL_MODE;
-/*
+
+/**
  * Structure used to configure the AV codec capabilities/config
  */
 typedef struct
 {
     tBTIF_AV_CODEC_ID id;            /* Codec ID (in terms of BTIF) */
-    UINT8 info[AVDT_CODEC_SIZE];    /* Codec info (can be config or capabilities) */
+    UINT8 info[AVDT_CODEC_SIZE];     /* Codec info (can be config or capabilities) */
 } tBTIF_AV_CODEC_INFO;
 
-/*
+/**
  * Structure used to configure the AV media feeding
  */
 typedef struct
@@ -218,10 +191,9 @@ typedef struct
     UINT8  bit_per_sample;  /* Number of bits per sample (8, 16) */
 } tBTIF_AV_MEDIA_FEED_CFG_PCM;
 
-
 typedef union
 {
-    tBTIF_AV_MEDIA_FEED_CFG_PCM pcm;     /* raw PCM feeding format */
+    tBTIF_AV_MEDIA_FEED_CFG_PCM pcm;     /* Raw PCM feeding format */
 }tBTIF_AV_MEDIA_FEED_CFG;
 
 typedef struct

@@ -1,14 +1,27 @@
-/*****************************************************************************
-**
-**  Name:           mca_dact.c
-**
-**  Description:    This is the implementation file for the MCAP
-**                  Data Channel Action Functions.
-**
-**  Copyright (c) 2009-2009, Broadcom Corp., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2009-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the implementation file for the MCAP Data Channel Action
+ *  Functions.
+ *
+ ******************************************************************************/
 #include "bt_target.h"
 #include "gki.h"
 #include "mca_api.h"
@@ -37,8 +50,8 @@ void mca_dcb_report_cong (tMCA_DCB *p_dcb)
 **
 ** Function         mca_dcb_tc_open
 **
-** Description      This function is called to report MCA_OPEN_IND_EVT or 
-**                  MCA_OPEN_CFM_EVT event. 
+** Description      This function is called to report MCA_OPEN_IND_EVT or
+**                  MCA_OPEN_CFM_EVT event.
 **                  It also clears the congestion flag (dcb.cong).
 **
 ** Returns          void.
@@ -136,7 +149,7 @@ void mca_dcb_snd_data (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 **
 ** Function         mca_dcb_hdl_data
 **
-** Description      This function reports the received data through the data 
+** Description      This function reports the received data through the data
 **                  callback function.
 **
 ** Returns          void.

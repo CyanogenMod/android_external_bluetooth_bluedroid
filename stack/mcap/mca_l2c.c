@@ -1,14 +1,26 @@
-/*****************************************************************************
-**
-**  Name:           mca_l2c.c
-**
-**  Description:    This is the implementation file for the MCAP
-**                  at L2CAP Interface.
-**
-**  Copyright (c) 2009-2009, Broadcom Corp., All Rights Reserved.
-**  WIDCOMM Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2009-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This is the implementation file for the MCAP at L2CAP Interface.
+ *
+ ******************************************************************************/
 #include <string.h>
 
 #include "bt_target.h"
@@ -58,8 +70,8 @@ const tL2CAP_FCR_OPTS mca_l2c_fcr_opts_def = {
 **
 ** Function         mca_sec_check_complete_term
 **
-** Description      The function called when Security Manager finishes 
-**                  verification of the service side connection 
+** Description      The function called when Security Manager finishes
+**                  verification of the service side connection
 **
 ** Returns          void
 **
@@ -83,7 +95,7 @@ static void mca_sec_check_complete_term (BD_ADDR bd_addr, void *p_ref_data, UINT
         ertm_info.fcr_rx_pool_id    = MCA_FCR_RX_POOL_ID;
         ertm_info.fcr_tx_pool_id    = MCA_FCR_TX_POOL_ID;
         /* Send response to the L2CAP layer. */
-        L2CA_ErtmConnectRsp (bd_addr, p_tbl->id, p_tbl->lcid, L2CAP_CONN_OK, L2CAP_CONN_OK, &ertm_info); 
+        L2CA_ErtmConnectRsp (bd_addr, p_tbl->id, p_tbl->lcid, L2CAP_CONN_OK, L2CAP_CONN_OK, &ertm_info);
 
         /* transition to configuration state */
         p_tbl->state = MCA_TC_ST_CFG;
@@ -94,7 +106,7 @@ static void mca_sec_check_complete_term (BD_ADDR bd_addr, void *p_ref_data, UINT
     }
     else
     {
-        L2CA_ConnectRsp (bd_addr, p_tbl->id, p_tbl->lcid, L2CAP_CONN_SECURITY_BLOCK, L2CAP_CONN_OK); 
+        L2CA_ConnectRsp (bd_addr, p_tbl->id, p_tbl->lcid, L2CAP_CONN_SECURITY_BLOCK, L2CAP_CONN_OK);
         mca_tc_close_ind(p_tbl, L2CAP_CONN_SECURITY_BLOCK);
     }
 }
@@ -103,8 +115,8 @@ static void mca_sec_check_complete_term (BD_ADDR bd_addr, void *p_ref_data, UINT
 **
 ** Function         mca_sec_check_complete_orig
 **
-** Description      The function called when Security Manager finishes 
-**                  verification of the service side connection 
+** Description      The function called when Security Manager finishes
+**                  verification of the service side connection
 **
 ** Returns          void
 **
@@ -190,9 +202,9 @@ void mca_l2c_cconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
     if (!p_tbl || (p_tbl->state != MCA_TC_ST_CFG))
     {
         /* Send L2CAP connect rsp */
-        L2CA_ErtmConnectRsp (bd_addr, id, lcid, result, L2CAP_CONN_OK, p_ertm_info); 
+        L2CA_ErtmConnectRsp (bd_addr, id, lcid, result, L2CAP_CONN_OK, p_ertm_info);
 
-        /* if result ok, proceed with connection and send L2CAP    
+        /* if result ok, proceed with connection and send L2CAP
            config req */
         if (result == L2CAP_CONN_OK)
         {
@@ -211,7 +223,7 @@ void mca_l2c_cconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
 ** Function         mca_l2c_dconn_ind_cback
 **
 ** Description      This is the L2CAP connect indication callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -253,13 +265,13 @@ void mca_l2c_dconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
     }
     else
     {
-        /* else we're not listening for traffic channel; reject 
+        /* else we're not listening for traffic channel; reject
          * (this error code is specified by MCAP spec) */
         result = L2CAP_CONN_NO_RESOURCES;
     }
 
     /* Send L2CAP connect rsp */
-    L2CA_ErtmConnectRsp (bd_addr, id, lcid, result, result, p_ertm_info); 
+    L2CA_ErtmConnectRsp (bd_addr, id, lcid, result, result, p_ertm_info);
 
     /* if result ok, proceed with connection */
     if (result == L2CAP_CONN_OK)
@@ -278,7 +290,7 @@ void mca_l2c_dconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
 ** Function         mca_l2c_connect_cfm_cback
 **
 ** Description      This is the L2CAP connect confirm callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -325,8 +337,8 @@ void mca_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
                         p_tbl->cfg_flags= MCA_L2C_CFG_CONN_INT;
 
                         /* Check the security */
-                        btm_sec_mx_access_request (p_ccb->peer_addr, p_ccb->ctrl_vpsm, 
-                                                   TRUE, BTM_SEC_PROTO_MCA, 
+                        btm_sec_mx_access_request (p_ccb->peer_addr, p_ccb->ctrl_vpsm,
+                                                   TRUE, BTM_SEC_PROTO_MCA,
                                                    p_tbl->tcid,
                                                    &mca_sec_check_complete_orig, p_tbl);
                     }
@@ -348,7 +360,7 @@ void mca_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Function         mca_l2c_config_cfm_cback
 **
 ** Description      This is the L2CAP config confirm callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -390,7 +402,7 @@ void mca_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Function         mca_l2c_config_ind_cback
 **
 ** Description      This is the L2CAP config indication callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -443,7 +455,7 @@ void mca_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Function         mca_l2c_disconnect_ind_cback
 **
 ** Description      This is the L2CAP disconnect indication callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -476,7 +488,7 @@ void mca_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
 ** Function         mca_l2c_disconnect_cfm_cback
 **
 ** Description      This is the L2CAP disconnect confirm callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -501,7 +513,7 @@ void mca_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Function         mca_l2c_congestion_ind_cback
 **
 ** Description      This is the L2CAP congestion indication callback function.
-**                  
+**
 **
 ** Returns          void
 **
@@ -522,7 +534,7 @@ void mca_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested)
 ** Function         mca_l2c_data_ind_cback
 **
 ** Description      This is the L2CAP data indication callback function.
-**                  
+**
 **
 ** Returns          void
 **

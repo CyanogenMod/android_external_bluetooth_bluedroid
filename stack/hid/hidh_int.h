@@ -1,13 +1,26 @@
-/****************************************************************************/
-/*                                                                          */
-/*  Name:       hidh_int.h                                                  */
-/*                                                                          */
-/*  Function:   this file contains HID HOST internal definitions            */
-/*                                                                          */
-/*  Copyright (c) 2002-2004, WIDCOMM Inc., All Rights Reserved.             */
-/*  WIDCOMM Bluetooth Core. Proprietary and confidential.                   */
-/*                                                                          */
-/****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2002-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains HID HOST internal definitions
+ *
+ ******************************************************************************/
 
 #ifndef HIDH_INT_H
 #define HIDH_INT_H
@@ -28,7 +41,7 @@ typedef struct per_device_ctb
     UINT16         attr_mask; /* 0x01- virtual_cable; 0x02- normally_connectable; 0x03- reconn_initiate;
     			                 0x04- sdp_disable; */
     UINT8          state;  /* Device state if in HOST-KNOWN mode */
-    UINT8          conn_substate; 
+    UINT8          conn_substate;
     UINT8          conn_tries; /* Remembers to the number of connection attempts while CONNECTING */
 
     tHID_CONN      conn; /* L2CAP channel info */
@@ -43,7 +56,7 @@ typedef struct host_ctb
 #define MAX_SERVICE_DB_SIZE    4000
 
     BOOLEAN                 sdp_busy;
-    tHID_HOST_SDP_CALLBACK  *sdp_cback;             
+    tHID_HOST_SDP_CALLBACK  *sdp_cback;
     tSDP_DISCOVERY_DB       *p_sdp_db;
     tHID_DEV_SDP_INFO       sdp_rec;
     BOOLEAN                 reg_flag;

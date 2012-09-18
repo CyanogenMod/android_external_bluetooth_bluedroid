@@ -1,19 +1,32 @@
-/*****************************************************************************/
-/*                                                                           */
-/*  Name:          btu_task.c                                                */
-/*                                                                           */
-/*  Description:   this file contains the main Bluetooth Upper Layer         */
-/*                 processing loop. The Widcomm implementations of L2CAP     */
-/*                 RFCOMM, SDP and the BTIf run as one GKI task. This        */
-/*                 btu_task switches between them.                           */
-/*                                                                           */
-/*                 Note that there will always be an L2CAP, but there may    */
-/*                 or may not be an RFCOMM or SDP. Whether these layers      */
-/*                 are present or not is determined by compile switches.     */
-/*                                                                           */
-/*  Copyright (c) 1999-2011, Broadcom Corp., All Rights Reserved.            */
-/*  Broadcom Corp Bluetooth Core. Proprietary and confidential.              */
-/*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains the main Bluetooth Upper Layer processing loop.
+ *  The Broadcom implementations of L2CAP RFCOMM, SDP and the BTIf run as one
+ *  GKI task. This btu_task switches between them.
+ *
+ *  Note that there will always be an L2CAP, but there may or may not be an
+ *  RFCOMM or SDP. Whether these layers are present or not is determined by
+ *  compile switches.
+ *
+ ******************************************************************************/
 
 #include <stdlib.h>
 #include <string.h>
@@ -51,7 +64,7 @@
 #include "bip_int.h"
 #endif /* BIP */
 
-#if (BPP_SND_INCLUDED == TRUE ||  BPP_INCLUDED == TRUE)  
+#if (BPP_SND_INCLUDED == TRUE ||  BPP_INCLUDED == TRUE)
 #include "bpp_int.h"
 #endif /* BPP */
 
@@ -114,7 +127,7 @@ extern void avdt_rcv_sync_info (BT_HDR *p_buf); /* this is for hci_test */
 #endif
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 {
 #endif
 
@@ -157,7 +170,7 @@ BTU_API UINT32 btu_task (UINT32 param)
     /* wait an event that HCISU is ready */
     GKI_wait(0xFFFF, 0);
 #endif
-    /* Initialize the mandatory core stack control blocks 
+    /* Initialize the mandatory core stack control blocks
        (BTU, BTM, L2CAP, and SDP)
      */
     btu_init_core();
@@ -206,7 +219,7 @@ BTU_API UINT32 btu_task (UINT32 param)
 #if BTM_SCO_INCLUDED == TRUE
                         btm_route_sco_data (p_msg);
                         break;
-#endif                        
+#endif
 
                     case BT_EVT_TO_BTU_HCI_EVT:
                         btu_hcif_process_event ((UINT8)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
@@ -431,7 +444,7 @@ BTU_API UINT32 btu_task (UINT32 param)
                     case BTU_TTYPE_ATT_WAIT_FOR_RSP:
                         gatt_rsp_timeout(p_tle);
                         break;
-  
+
                     case BTU_TTYPE_ATT_WAIT_FOR_IND_ACK:
                         gatt_ind_ack_timeout(p_tle);
                         break;
@@ -806,7 +819,7 @@ void btu_deregister_event_range (UINT16 range)
 *******************************************************************************/
 void btu_check_bt_sleep (void)
 {
-    if ((btu_cb.hci_cmd_cb[LOCAL_BR_EDR_CONTROLLER_ID].cmd_cmpl_q.count == 0) 
+    if ((btu_cb.hci_cmd_cb[LOCAL_BR_EDR_CONTROLLER_ID].cmd_cmpl_q.count == 0)
         &&(btu_cb.hci_cmd_cb[LOCAL_BR_EDR_CONTROLLER_ID].cmd_xmit_q.count == 0))
     {
         if (l2cb.controller_xmit_window == l2cb.num_lm_acl_bufs)

@@ -1,13 +1,26 @@
-/****************************************************************************/
-/*                                                                          */
-/*  Name:       gattdefs.h                                                  */
-/*                                                                          */
-/*  Function    this file contains internally used ATT definitions          */
-/*                                                                          */
-/*  Copyright (c) 1999-2010, Broadcom Corp., All Rights Reserved.           */
-/*  WIDCOMM Bluetooth Core. Proprietary and confidential.                   */
-/*                                                                          */
-/*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains internally used ATT definitions
+ *
+ ******************************************************************************/
 
 #ifndef  _GATTDEFS_H
 #define  _GATTDEFS_H
@@ -64,10 +77,10 @@
 #define GATT_UUID_RINGER_SETTING        0x2A41     /* ringer setting */
 
 /* Glucose Service */
-#define GATT_UUID_GM_MEASUREMENT        0x2A18  
-#define GATT_UUID_GM_CONTEXT            0x2A34  
-#define GATT_UUID_GM_CONTROL_POINT      0x2A52 
-#define GATT_UUID_GM_FEATURE            0x2A51  
+#define GATT_UUID_GM_MEASUREMENT        0x2A18
+#define GATT_UUID_GM_CONTEXT            0x2A34
+#define GATT_UUID_GM_CONTROL_POINT      0x2A52
+#define GATT_UUID_GM_FEATURE            0x2A51
 
 /* device infor characteristic */
 #define GATT_UUID_SYSTEM_ID             0x2A23

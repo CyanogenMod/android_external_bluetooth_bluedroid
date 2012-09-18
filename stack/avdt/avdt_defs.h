@@ -1,16 +1,27 @@
-/*****************************************************************************
-**
-**  Name:           avdt_defs.h
-**
-**  Description:    This contains constants definitions and other information
-**                  from the AVDTP specification.  This file is intended for
-**                  use internal to AVDT only.
-**                  
-**
-**  Copyright (c) 2002-2010, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2002-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This contains constants definitions and other information from the AVDTP
+ *  specification.  This file is intended for use internal to AVDT only.
+ *
+ ******************************************************************************/
 #ifndef AVDT_DEFS_H
 #define AVDT_DEFS_H
 
@@ -165,7 +176,7 @@
 #define AVDT_MSG_PRS_M_PT(p, m_pt, marker) \
     marker = *(p) >> 7; \
     m_pt = *(p)++ & 0x7F;
-         
+
 #define AVDT_MSG_BLD_HDR(p, lbl, pkt, msg) \
     *(p)++ = (UINT8) ((lbl) << 4) | ((pkt) << 2) | (msg);
 
@@ -187,6 +198,6 @@
 
 #define AVDT_MSG_BLD_NOSP(p, nosp) \
     *(p)++ = (UINT8) (nosp);
-         
+
 #endif /* AVDT_DEFS_H */
 

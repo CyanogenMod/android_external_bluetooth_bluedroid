@@ -1,16 +1,29 @@
-/*****************************************************************************
-**
-**  Name:          btu_hcif.c
-**
-**  Description:   This file contains functions that interface with the HCI
-**                 transport. On the receive side, it routes events to
-**                 the appropriate handler, e.g. L2CAP, ScoMgr. On the
-**                 transmit side, it manages the command transmission.
-**
-**
-**  Copyright (c) 1999-2012, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 1999-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This file contains functions that interface with the HCI transport. On
+ *  the receive side, it routes events to the appropriate handler, e.g.
+ *  L2CAP, ScoMgr. On the transmit side, it manages the command
+ *  transmission.
+ *
+ ******************************************************************************/
 
 #include <stdlib.h>
 #include <string.h>
@@ -160,7 +173,7 @@ static void btu_hcif_store_cmd (UINT8 controller_id, BT_HDR *p_buf)
     /* If vendor specific save the callback function */
     if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC
 #if BLE_INCLUDED == TRUE
-        || (opcode == HCI_BLE_RAND ) 
+        || (opcode == HCI_BLE_RAND )
         || (opcode == HCI_BLE_ENCRYPT)
 #endif
        )
@@ -386,17 +399,17 @@ void btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_msg)
                 case HCI_BLE_ADV_PKT_RPT_EVT: /* result of inquiry */
                     btu_ble_process_adv_pkt(p, hci_evt_len);
                     break;
-                case HCI_BLE_CONN_COMPLETE_EVT: 
+                case HCI_BLE_CONN_COMPLETE_EVT:
                     btu_ble_ll_conn_complete_evt(p, hci_evt_len);
                     break;
                 case HCI_BLE_LL_CONN_PARAM_UPD_EVT:
-                    btu_ble_ll_conn_param_upd_evt(p, hci_evt_len);    
+                    btu_ble_ll_conn_param_upd_evt(p, hci_evt_len);
                     break;
                 case HCI_BLE_READ_REMOTE_FEAT_CMPL_EVT:
-                    btu_ble_read_remote_feat_evt(p, hci_evt_len);    
+                    btu_ble_read_remote_feat_evt(p, hci_evt_len);
                     break;
                 case HCI_BLE_LTK_REQ_EVT: /* received only at slave device */
-                    btu_ble_proc_ltk_req(p, hci_evt_len);    
+                    btu_ble_proc_ltk_req(p, hci_evt_len);
                     break;
             }
             break;
@@ -437,7 +450,7 @@ void btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_buf)
 
     /* Allow for startup case, where no acks may be received */
     if ( ((controller_id == LOCAL_BR_EDR_CONTROLLER_ID)
-         && (p_hci_cmd_cb->cmd_window == 0) 
+         && (p_hci_cmd_cb->cmd_window == 0)
          && (btm_cb.devcb.state == BTM_DEV_STATE_WAIT_RESET_CMPLT)) )
     {
         p_hci_cmd_cb->cmd_window = p_hci_cmd_cb->cmd_xmit_q.count + 1;
@@ -528,9 +541,9 @@ void btu_hcif_send_host_rdy_for_data(void)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_inquiry_comp_evt 
+** Function         btu_hcif_inquiry_comp_evt
 **
-** Description      Process event HCI_INQUIRY_COMP_EVT 
+** Description      Process event HCI_INQUIRY_COMP_EVT
 **
 ** Returns          void
 **
@@ -548,9 +561,9 @@ static void btu_hcif_inquiry_comp_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_inquiry_result_evt 
+** Function         btu_hcif_inquiry_result_evt
 **
-** Description      Process event HCI_INQUIRY_RESULT_EVT 
+** Description      Process event HCI_INQUIRY_RESULT_EVT
 **
 ** Returns          void
 **
@@ -563,9 +576,9 @@ static void btu_hcif_inquiry_result_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_inquiry_rssi_result_evt 
+** Function         btu_hcif_inquiry_rssi_result_evt
 **
-** Description      Process event HCI_INQUIRY_RSSI_RESULT_EVT 
+** Description      Process event HCI_INQUIRY_RSSI_RESULT_EVT
 **
 ** Returns          void
 **
@@ -578,9 +591,9 @@ static void btu_hcif_inquiry_rssi_result_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_extended_inquiry_result_evt 
+** Function         btu_hcif_extended_inquiry_result_evt
 **
-** Description      Process event HCI_EXTENDED_INQUIRY_RESULT_EVT 
+** Description      Process event HCI_EXTENDED_INQUIRY_RESULT_EVT
 **
 ** Returns          void
 **
@@ -595,9 +608,9 @@ static void btu_hcif_extended_inquiry_result_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_connection_comp_evt 
+** Function         btu_hcif_connection_comp_evt
 **
-** Description      Process event HCI_CONNECTION_COMP_EVT 
+** Description      Process event HCI_CONNECTION_COMP_EVT
 **
 ** Returns          void
 **
@@ -635,15 +648,15 @@ static void btu_hcif_connection_comp_evt (UINT8 *p, UINT16 evt_len)
         memcpy (esco_data.bd_addr, bda, BD_ADDR_LEN);
         btm_sco_connected (status, bda, handle, &esco_data);
     }
-#endif /* BTM_SCO_INCLUDED */        
+#endif /* BTM_SCO_INCLUDED */
 }
 
 
 /*******************************************************************************
 **
-** Function         btu_hcif_connection_request_evt 
+** Function         btu_hcif_connection_request_evt
 **
-** Description      Process event HCI_CONNECTION_REQUEST_EVT 
+** Description      Process event HCI_CONNECTION_REQUEST_EVT
 **
 ** Returns          void
 **
@@ -675,9 +688,9 @@ static void btu_hcif_connection_request_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_disconnection_comp_evt 
+** Function         btu_hcif_disconnection_comp_evt
 **
-** Description      Process event HCI_DISCONNECTION_COMP_EVT 
+** Description      Process event HCI_DISCONNECTION_COMP_EVT
 **
 ** Returns          void
 **
@@ -708,9 +721,9 @@ static void btu_hcif_disconnection_comp_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_authentication_comp_evt 
+** Function         btu_hcif_authentication_comp_evt
 **
-** Description      Process event HCI_AUTHENTICATION_COMP_EVT 
+** Description      Process event HCI_AUTHENTICATION_COMP_EVT
 **
 ** Returns          void
 **
@@ -729,9 +742,9 @@ static void btu_hcif_authentication_comp_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_rmt_name_request_comp_evt 
+** Function         btu_hcif_rmt_name_request_comp_evt
 **
-** Description      Process event HCI_RMT_NAME_REQUEST_COMP_EVT 
+** Description      Process event HCI_RMT_NAME_REQUEST_COMP_EVT
 **
 ** Returns          void
 **
@@ -754,9 +767,9 @@ static void btu_hcif_rmt_name_request_comp_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_encryption_change_evt 
+** Function         btu_hcif_encryption_change_evt
 **
-** Description      Process event HCI_ENCRYPTION_CHANGE_EVT 
+** Description      Process event HCI_ENCRYPTION_CHANGE_EVT
 **
 ** Returns          void
 **
@@ -778,9 +791,9 @@ static void btu_hcif_encryption_change_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_change_conn_link_key_evt 
+** Function         btu_hcif_change_conn_link_key_evt
 **
-** Description      Process event HCI_CHANGE_CONN_LINK_KEY_EVT 
+** Description      Process event HCI_CHANGE_CONN_LINK_KEY_EVT
 **
 ** Returns          void
 **
@@ -799,9 +812,9 @@ static void btu_hcif_change_conn_link_key_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_master_link_key_comp_evt 
+** Function         btu_hcif_master_link_key_comp_evt
 **
-** Description      Process event HCI_MASTER_LINK_KEY_COMP_EVT 
+** Description      Process event HCI_MASTER_LINK_KEY_COMP_EVT
 **
 ** Returns          void
 **
@@ -822,9 +835,9 @@ static void btu_hcif_master_link_key_comp_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_read_rmt_features_comp_evt 
+** Function         btu_hcif_read_rmt_features_comp_evt
 **
-** Description      Process event HCI_READ_RMT_FEATURES_COMP_EVT 
+** Description      Process event HCI_READ_RMT_FEATURES_COMP_EVT
 **
 ** Returns          void
 **
@@ -836,9 +849,9 @@ static void btu_hcif_read_rmt_features_comp_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_read_rmt_ext_features_comp_evt 
+** Function         btu_hcif_read_rmt_ext_features_comp_evt
 **
-** Description      Process event HCI_READ_RMT_EXT_FEATURES_COMP_EVT 
+** Description      Process event HCI_READ_RMT_EXT_FEATURES_COMP_EVT
 **
 ** Returns          void
 **
@@ -854,9 +867,9 @@ static void btu_hcif_read_rmt_ext_features_comp_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_read_rmt_version_comp_evt 
+** Function         btu_hcif_read_rmt_version_comp_evt
 **
-** Description      Process event HCI_READ_RMT_VERSION_COMP_EVT 
+** Description      Process event HCI_READ_RMT_VERSION_COMP_EVT
 **
 ** Returns          void
 **
@@ -869,9 +882,9 @@ static void btu_hcif_read_rmt_version_comp_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_qos_setup_comp_evt 
+** Function         btu_hcif_qos_setup_comp_evt
 **
-** Description      Process event HCI_QOS_SETUP_COMP_EVT 
+** Description      Process event HCI_QOS_SETUP_COMP_EVT
 **
 ** Returns          void
 **
@@ -897,9 +910,9 @@ static void btu_hcif_qos_setup_comp_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_esco_connection_comp_evt 
+** Function         btu_hcif_esco_connection_comp_evt
 **
-** Description      Process event HCI_ESCO_CONNECTION_COMP_EVT 
+** Description      Process event HCI_ESCO_CONNECTION_COMP_EVT
 **
 ** Returns          void
 **
@@ -931,9 +944,9 @@ static void btu_hcif_esco_connection_comp_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_esco_connection_chg_evt 
+** Function         btu_hcif_esco_connection_chg_evt
 **
-** Description      Process event HCI_ESCO_CONNECTION_CHANGED_EVT 
+** Description      Process event HCI_ESCO_CONNECTION_CHANGED_EVT
 **
 ** Returns          void
 **
@@ -964,9 +977,9 @@ static void btu_hcif_esco_connection_chg_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_hdl_command_complete 
+** Function         btu_hcif_hdl_command_complete
 **
-** Description      Handle command complete event 
+** Description      Handle command complete event
 **
 ** Returns          void
 **
@@ -1057,11 +1070,11 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             btm_read_white_list_size_complete(p, evt_len);
             break;
 
-        case HCI_BLE_ADD_WHITE_LIST:    
+        case HCI_BLE_ADD_WHITE_LIST:
             btm_ble_add_2_white_list_complete(p, evt_len);
             break;
 
-        case HCI_BLE_CLEAR_WHITE_LIST: 
+        case HCI_BLE_CLEAR_WHITE_LIST:
             btm_ble_clear_white_list_complete(p, evt_len);
             break;
 
@@ -1097,9 +1110,9 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
 
 /*******************************************************************************
 **
-** Function         btu_hcif_command_complete_evt 
+** Function         btu_hcif_command_complete_evt
 **
-** Description      Process event HCI_COMMAND_COMPLETE_EVT 
+** Description      Process event HCI_COMMAND_COMPLETE_EVT
 **
 ** Returns          void
 **
@@ -1128,7 +1141,7 @@ static void btu_hcif_command_complete_evt (UINT8 controller_id, UINT8 *p, UINT16
     {
         /* dequeue and free stored command */
 
-/* always use cmd code check, when one cmd timeout waiting for cmd_cmpl, 
+/* always use cmd code check, when one cmd timeout waiting for cmd_cmpl,
    it'll cause the rest of the command goes in wrong order                  */
         p_cmd = (BT_HDR *) GKI_getfirst (&p_hci_cmd_cb->cmd_cmpl_q);
 
@@ -1152,7 +1165,7 @@ static void btu_hcif_command_complete_evt (UINT8 controller_id, UINT8 *p, UINT16
             /* If command was a VSC, then extract command_complete callback */
             if ((cc_opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC
 #if BLE_INCLUDED == TRUE
-                || (cc_opcode == HCI_BLE_RAND ) 
+                || (cc_opcode == HCI_BLE_RAND )
                 || (cc_opcode == HCI_BLE_ENCRYPT)
 #endif
                )
@@ -1173,7 +1186,7 @@ static void btu_hcif_command_complete_evt (UINT8 controller_id, UINT8 *p, UINT16
 #if (defined(BTU_CMD_CMPL_TOUT_DOUBLE_CHECK) && BTU_CMD_CMPL_TOUT_DOUBLE_CHECK == TRUE)
                 p_hci_cmd_cb->checked_hcisu = FALSE;
 #endif
-                btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer), 
+                btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
                                  (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
                                  BTU_CMD_CMPL_TIMEOUT);
             }
@@ -1196,7 +1209,7 @@ static void btu_hcif_command_complete_evt (UINT8 controller_id, UINT8 *p, UINT16
 **
 ** Function         btu_hcif_hdl_command_status
 **
-** Description      Handle a command status event 
+** Description      Handle a command status event
 **
 ** Returns          void
 **
@@ -1281,7 +1294,7 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
                             btm_acl_role_changed(status, bd_addr, BTM_ROLE_UNDEFINED);
                         }
                         else
-                            btm_acl_role_changed(status, NULL, BTM_ROLE_UNDEFINED); 
+                            btm_acl_role_changed(status, NULL, BTM_ROLE_UNDEFINED);
                         l2c_link_role_changed (NULL, BTM_ROLE_UNDEFINED, HCI_ERR_COMMAND_DISALLOWED);
                         break;
 
@@ -1354,9 +1367,9 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
 
 /*******************************************************************************
 **
-** Function         btu_hcif_command_status_evt 
+** Function         btu_hcif_command_status_evt
 **
-** Description      Process event HCI_COMMAND_STATUS_EVT 
+** Description      Process event HCI_COMMAND_STATUS_EVT
 **
 ** Returns          void
 **
@@ -1413,7 +1426,7 @@ static void btu_hcif_command_status_evt (UINT8 controller_id, UINT8 *p, UINT16 e
 #if (defined(BTU_CMD_CMPL_TOUT_DOUBLE_CHECK) && BTU_CMD_CMPL_TOUT_DOUBLE_CHECK == TRUE)
                 p_hci_cmd_cb->checked_hcisu = FALSE;
 #endif
-                btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer), 
+                btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
                                  (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
                                  BTU_CMD_CMPL_TIMEOUT);
             }
@@ -1439,7 +1452,7 @@ static void btu_hcif_command_status_evt (UINT8 controller_id, UINT8 *p, UINT16 e
 
 /*******************************************************************************
 **
-** Function         btu_hcif_cmd_timeout 
+** Function         btu_hcif_cmd_timeout
 **
 ** Description      Handle a command timeout
 **
@@ -1465,7 +1478,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
         /* trigger HCISU to read any pending data in transport buffer */
         GKI_send_event(HCISU_TASK, HCISU_EVT_MASK);
 
-        btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer), 
+        btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
                          (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
                          2); /* start short timer, if timer is set to 1 then it could expire before HCISU checks. */
 
@@ -1494,7 +1507,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
 #if (defined(BTU_CMD_CMPL_TOUT_DOUBLE_CHECK) && BTU_CMD_CMPL_TOUT_DOUBLE_CHECK == TRUE)
             p_hci_cmd_cb->checked_hcisu = FALSE;
 #endif
-            btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer), 
+            btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
                              (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
                              BTU_CMD_CMPL_TIMEOUT);
         }
@@ -1519,7 +1532,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
     ALOGE("#");
     ALOGE("# WARNING : BTU HCI(id=%d) command timeout. opcode=0x%x", controller_id, opcode);
     ALOGE("#");
-    ALOGE("######################################################################");    
+    ALOGE("######################################################################");
 #else
     BT_TRACE_2 (TRACE_LAYER_HCI, TRACE_TYPE_WARNING, "BTU HCI(id=%d) command timeout. opcode=0x%x", controller_id, opcode);
 #endif
@@ -1553,7 +1566,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
 
         default:
             /* If vendor specific restore the callback function */
-            if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC 
+            if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC
 #if BLE_INCLUDED == TRUE
                 || (opcode == HCI_BLE_RAND ) ||
                 (opcode == HCI_BLE_ENCRYPT)
@@ -1573,7 +1586,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
             event = HCI_ERR_UNSPECIFIED;
             btu_hcif_hdl_command_complete (opcode, (UINT8 *)&event, 1, p_cplt_cback, controller_id);
 // btla-specific --
-            break;       
+            break;
     }
 
     /* free stored command */
@@ -1588,9 +1601,9 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_hardware_error_evt 
+** Function         btu_hcif_hardware_error_evt
 **
-** Description      Process event HCI_HARDWARE_ERROR_EVT 
+** Description      Process event HCI_HARDWARE_ERROR_EVT
 **
 ** Returns          void
 **
@@ -1610,9 +1623,9 @@ static void btu_hcif_hardware_error_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_flush_occured_evt 
+** Function         btu_hcif_flush_occured_evt
 **
-** Description      Process event HCI_FLUSH_OCCURED_EVT 
+** Description      Process event HCI_FLUSH_OCCURED_EVT
 **
 ** Returns          void
 **
@@ -1624,9 +1637,9 @@ static void btu_hcif_flush_occured_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_role_change_evt 
+** Function         btu_hcif_role_change_evt
 **
-** Description      Process event HCI_ROLE_CHANGE_EVT 
+** Description      Process event HCI_ROLE_CHANGE_EVT
 **
 ** Returns          void
 **
@@ -1648,9 +1661,9 @@ static void btu_hcif_role_change_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_num_compl_data_pkts_evt 
+** Function         btu_hcif_num_compl_data_pkts_evt
 **
-** Description      Process event HCI_NUM_COMPL_DATA_PKTS_EVT 
+** Description      Process event HCI_NUM_COMPL_DATA_PKTS_EVT
 **
 ** Returns          void
 **
@@ -1666,9 +1679,9 @@ static void btu_hcif_num_compl_data_pkts_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_mode_change_evt 
+** Function         btu_hcif_mode_change_evt
 **
-** Description      Process event HCI_MODE_CHANGE_EVT 
+** Description      Process event HCI_MODE_CHANGE_EVT
 **
 ** Returns          void
 **
@@ -1701,9 +1714,9 @@ static void btu_hcif_mode_change_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_ssr_evt 
+** Function         btu_hcif_ssr_evt
 **
-** Description      Process event HCI_SNIFF_SUB_RATE_EVT 
+** Description      Process event HCI_SNIFF_SUB_RATE_EVT
 **
 ** Returns          void
 **
@@ -1720,9 +1733,9 @@ static void btu_hcif_ssr_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_return_link_keys_evt 
+** Function         btu_hcif_return_link_keys_evt
 **
-** Description      Process event HCI_RETURN_LINK_KEYS_EVT 
+** Description      Process event HCI_RETURN_LINK_KEYS_EVT
 **
 ** Returns          void
 **
@@ -1751,9 +1764,9 @@ static void btu_hcif_return_link_keys_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_pin_code_request_evt 
+** Function         btu_hcif_pin_code_request_evt
 **
-** Description      Process event HCI_PIN_CODE_REQUEST_EVT 
+** Description      Process event HCI_PIN_CODE_REQUEST_EVT
 **
 ** Returns          void
 **
@@ -1774,9 +1787,9 @@ static void btu_hcif_pin_code_request_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_link_key_request_evt 
+** Function         btu_hcif_link_key_request_evt
 **
-** Description      Process event HCI_LINK_KEY_REQUEST_EVT 
+** Description      Process event HCI_LINK_KEY_REQUEST_EVT
 **
 ** Returns          void
 **
@@ -1792,9 +1805,9 @@ static void btu_hcif_link_key_request_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_link_key_notification_evt 
+** Function         btu_hcif_link_key_notification_evt
 **
-** Description      Process event HCI_LINK_KEY_NOTIFICATION_EVT 
+** Description      Process event HCI_LINK_KEY_NOTIFICATION_EVT
 **
 ** Returns          void
 **
@@ -1815,9 +1828,9 @@ static void btu_hcif_link_key_notification_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_loopback_command_evt 
+** Function         btu_hcif_loopback_command_evt
 **
-** Description      Process event HCI_LOOPBACK_COMMAND_EVT 
+** Description      Process event HCI_LOOPBACK_COMMAND_EVT
 **
 ** Returns          void
 **
@@ -1829,9 +1842,9 @@ static void btu_hcif_loopback_command_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_data_buf_overflow_evt 
+** Function         btu_hcif_data_buf_overflow_evt
 **
-** Description      Process event HCI_DATA_BUF_OVERFLOW_EVT 
+** Description      Process event HCI_DATA_BUF_OVERFLOW_EVT
 **
 ** Returns          void
 **
@@ -1843,9 +1856,9 @@ static void btu_hcif_data_buf_overflow_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_max_slots_changed_evt 
+** Function         btu_hcif_max_slots_changed_evt
 **
-** Description      Process event HCI_MAX_SLOTS_CHANGED_EVT 
+** Description      Process event HCI_MAX_SLOTS_CHANGED_EVT
 **
 ** Returns          void
 **
@@ -1857,9 +1870,9 @@ static void btu_hcif_max_slots_changed_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_read_clock_off_comp_evt 
+** Function         btu_hcif_read_clock_off_comp_evt
 **
-** Description      Process event HCI_READ_CLOCK_OFF_COMP_EVT 
+** Description      Process event HCI_READ_CLOCK_OFF_COMP_EVT
 **
 ** Returns          void
 **
@@ -1888,9 +1901,9 @@ static void btu_hcif_read_clock_off_comp_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_conn_pkt_type_change_evt 
+** Function         btu_hcif_conn_pkt_type_change_evt
 **
-** Description      Process event HCI_CONN_PKT_TYPE_CHANGE_EVT 
+** Description      Process event HCI_CONN_PKT_TYPE_CHANGE_EVT
 **
 ** Returns          void
 **
@@ -1902,9 +1915,9 @@ static void btu_hcif_conn_pkt_type_change_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_qos_violation_evt 
+** Function         btu_hcif_qos_violation_evt
 **
-** Description      Process event HCI_QOS_VIOLATION_EVT 
+** Description      Process event HCI_QOS_VIOLATION_EVT
 **
 ** Returns          void
 **
@@ -1924,9 +1937,9 @@ static void btu_hcif_qos_violation_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_page_scan_mode_change_evt 
+** Function         btu_hcif_page_scan_mode_change_evt
 **
-** Description      Process event HCI_PAGE_SCAN_MODE_CHANGE_EVT 
+** Description      Process event HCI_PAGE_SCAN_MODE_CHANGE_EVT
 **
 ** Returns          void
 **
@@ -1938,9 +1951,9 @@ static void btu_hcif_page_scan_mode_change_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_page_scan_rep_mode_chng_evt 
+** Function         btu_hcif_page_scan_rep_mode_chng_evt
 **
-** Description      Process event HCI_PAGE_SCAN_REP_MODE_CHNG_EVT 
+** Description      Process event HCI_PAGE_SCAN_REP_MODE_CHNG_EVT
 **
 ** Returns          void
 **
@@ -1955,9 +1968,9 @@ static void btu_hcif_page_scan_rep_mode_chng_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_host_support_evt 
+** Function         btu_hcif_host_support_evt
 **
-** Description      Process event HCI_RMT_HOST_SUP_FEAT_NOTIFY_EVT 
+** Description      Process event HCI_RMT_HOST_SUP_FEAT_NOTIFY_EVT
 **
 ** Returns          void
 **
@@ -1969,9 +1982,9 @@ static void btu_hcif_host_support_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_io_cap_request_evt 
+** Function         btu_hcif_io_cap_request_evt
 **
-** Description      Process event HCI_IO_CAPABILITY_REQUEST_EVT 
+** Description      Process event HCI_IO_CAPABILITY_REQUEST_EVT
 **
 ** Returns          void
 **
@@ -1984,9 +1997,9 @@ static void btu_hcif_io_cap_request_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_io_cap_response_evt 
+** Function         btu_hcif_io_cap_response_evt
 **
-** Description      Process event HCI_IO_CAPABILITY_RESPONSE_EVT 
+** Description      Process event HCI_IO_CAPABILITY_RESPONSE_EVT
 **
 ** Returns          void
 **
@@ -1999,9 +2012,9 @@ static void btu_hcif_io_cap_response_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_user_conf_request_evt 
+** Function         btu_hcif_user_conf_request_evt
 **
-** Description      Process event HCI_USER_CONFIRMATION_REQUEST_EVT 
+** Description      Process event HCI_USER_CONFIRMATION_REQUEST_EVT
 **
 ** Returns          void
 **
@@ -2014,9 +2027,9 @@ static void btu_hcif_user_conf_request_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_user_passkey_request_evt 
+** Function         btu_hcif_user_passkey_request_evt
 **
-** Description      Process event HCI_USER_PASSKEY_REQUEST_EVT 
+** Description      Process event HCI_USER_PASSKEY_REQUEST_EVT
 **
 ** Returns          void
 **
@@ -2028,9 +2041,9 @@ static void btu_hcif_user_passkey_request_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_user_passkey_notif_evt 
+** Function         btu_hcif_user_passkey_notif_evt
 **
-** Description      Process event HCI_USER_PASSKEY_NOTIFY_EVT 
+** Description      Process event HCI_USER_PASSKEY_NOTIFY_EVT
 **
 ** Returns          void
 **
@@ -2042,9 +2055,9 @@ static void btu_hcif_user_passkey_notif_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_keypress_notif_evt 
+** Function         btu_hcif_keypress_notif_evt
 **
-** Description      Process event HCI_KEYPRESS_NOTIFY_EVT 
+** Description      Process event HCI_KEYPRESS_NOTIFY_EVT
 **
 ** Returns          void
 **
@@ -2056,9 +2069,9 @@ static void btu_hcif_keypress_notif_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_link_super_tout_evt 
+** Function         btu_hcif_link_super_tout_evt
 **
-** Description      Process event HCI_LINK_SUPER_TOUT_CHANGED_EVT 
+** Description      Process event HCI_LINK_SUPER_TOUT_CHANGED_EVT
 **
 ** Returns          void
 **
@@ -2074,9 +2087,9 @@ static void btu_hcif_link_super_tout_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_rem_oob_request_evt 
+** Function         btu_hcif_rem_oob_request_evt
 **
-** Description      Process event HCI_REMOTE_OOB_DATA_REQUEST_EVT 
+** Description      Process event HCI_REMOTE_OOB_DATA_REQUEST_EVT
 **
 ** Returns          void
 **
@@ -2090,9 +2103,9 @@ static void btu_hcif_rem_oob_request_evt (UINT8 *p, UINT16 evt_len)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_simple_pair_complete_evt 
+** Function         btu_hcif_simple_pair_complete_evt
 **
-** Description      Process event HCI_SIMPLE_PAIRING_COMPLETE_EVT 
+** Description      Process event HCI_SIMPLE_PAIRING_COMPLETE_EVT
 **
 ** Returns          void
 **
@@ -2103,7 +2116,7 @@ static void btu_hcif_simple_pair_complete_evt (UINT8 *p, UINT16 evt_len)
 }
 /*******************************************************************************
 **
-** Function         btu_hcif_flush_cmd_queue 
+** Function         btu_hcif_flush_cmd_queue
 **
 ** Description      Flush the HCI command complete queue and transmit queue when
 **                  needed.
@@ -2111,11 +2124,11 @@ static void btu_hcif_simple_pair_complete_evt (UINT8 *p, UINT16 evt_len)
 ** Returns          void
 **
 *******************************************************************************/
-void btu_hcif_flush_cmd_queue(void)                             
-{                               
-    BT_HDR *p_cmd;                              
+void btu_hcif_flush_cmd_queue(void)
+{
+    BT_HDR *p_cmd;
 
-    btu_cb.hci_cmd_cb[0].cmd_window = 0;                                
+    btu_cb.hci_cmd_cb[0].cmd_window = 0;
     while ((p_cmd = (BT_HDR *) GKI_dequeue (&btu_cb.hci_cmd_cb[0].cmd_cmpl_q)) != NULL)
     {
         GKI_freebuf (p_cmd);
@@ -2128,9 +2141,9 @@ void btu_hcif_flush_cmd_queue(void)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_enhanced_flush_complete_evt 
+** Function         btu_hcif_enhanced_flush_complete_evt
 **
-** Description      Process event HCI_ENHANCED_FLUSH_COMPLETE_EVT 
+** Description      Process event HCI_ENHANCED_FLUSH_COMPLETE_EVT
 **
 ** Returns          void
 **
@@ -2192,7 +2205,7 @@ static void btu_ble_ll_conn_complete_evt ( UINT8 *p, UINT16 evt_len)
     {
         btm_ble_connected(bda, handle, HCI_ENCRYPT_MODE_DISABLED, role);
 
-        l2cble_conn_comp (handle, role, bda, bda_type, conn_interval, 
+        l2cble_conn_comp (handle, role, bda, bda_type, conn_interval,
                           conn_latency, conn_timeout);
     }
     else
@@ -2227,12 +2240,12 @@ static void btu_ble_read_remote_feat_evt (UINT8 *p, UINT16 evt_len)
 
 static void btu_ble_proc_ltk_req (UINT8 *p, UINT16 evt_len)
 {
-    UINT16 ediv, handle; 
+    UINT16 ediv, handle;
     UINT8   *pp;
 
-    STREAM_TO_UINT16(handle, p); 
+    STREAM_TO_UINT16(handle, p);
     pp = p + 8;
-    STREAM_TO_UINT16(ediv, pp); 
+    STREAM_TO_UINT16(ediv, pp);
 #if SMP_INCLUDED == TRUE
     btm_ble_ltk_request(handle, p, ediv);
 #endif

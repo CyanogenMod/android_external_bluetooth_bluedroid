@@ -1,17 +1,27 @@
-/*****************************************************************************
-**                                                                           *
-**  Name:          bte_init.c                                                *
-**                                                                           *
-**  Description:   This module contains the routines that initialize the     *
-**                 stack components.  It must be called before the BTU task  *
-**                 is started.                                               *
-**                                                                           *
-**                 Note: If using dynamic memory, the control bloacks for    *
-**                       each component must already be allocated            *
-**                                                                           *
-**  Copyright (c) 2000-2011, Broadcom Corp., All Rights Reserved.            *
-**  Broadcom Bluetooth Core. Proprietary and confidential.                   *
-******************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2000-2012 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
+ *
+ *  This module contains the routines that initialize the stack components. 
+ *  It must be called before the BTU task is started.
+ *
+ ******************************************************************************/
 
 #include "bt_target.h"
 #include <string.h>
@@ -84,7 +94,7 @@
 #endif
 
 #if ((defined(HSP2_INCLUDED) && HSP2_INCLUDED == TRUE)) || \
-    ((defined(HFP_INCLUDED) && HFP_INCLUDED == TRUE)) 
+    ((defined(HFP_INCLUDED) && HFP_INCLUDED == TRUE))
 #include "hsp2_api.h"
 #endif
 
@@ -455,13 +465,13 @@ BT_API void BTE_InitStack(void)
 #endif
 #if BTA_SS_INCLUDED==TRUE
     memset((void*)bta_ss_cb_ptr, 0, sizeof(tBTA_SS_CB));
-#endif  	
-#if BTA_CT_INCLUDED==TRUE	
+#endif
+#if BTA_CT_INCLUDED==TRUE
     memset((void*)bta_ct_cb_ptr, 0, sizeof(tBTA_CT_CB));
-#endif  	
-#if BTA_CG_INCLUDED==TRUE	
+#endif
+#if BTA_CG_INCLUDED==TRUE
     memset((void*)bta_cg_cb_ptr, 0, sizeof(tBTA_CG_CB));
-#endif  	
+#endif
 #if BTA_BI_INCLUDED==TRUE
     memset((void *)bta_bic_cb_ptr, 0, sizeof(tBTA_BIC_CB));
     memset((void *)bta_bis_cb_ptr, 0, sizeof(tBTA_BIS_CB));
