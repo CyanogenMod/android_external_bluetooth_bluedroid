@@ -173,7 +173,7 @@ const tAVCT_LCB_ST_TBL avct_lcb_st_tbl[] = {
 ** Function         avct_lcb_event
 **
 ** Description      State machine event handling function for lcb
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -215,7 +215,7 @@ void avct_lcb_event(tAVCT_LCB *p_lcb, UINT8 event, tAVCT_LCB_EVT *p_data)
 ** Function         avct_bcb_event
 **
 ** Description      State machine event handling function for lcb
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -259,7 +259,7 @@ void avct_bcb_event(tAVCT_BCB *p_bcb, UINT8 event, tAVCT_LCB_EVT *p_data)
 ** Function         avct_lcb_by_bd
 **
 ** Description      This lookup function finds the lcb for a BD address.
-**
+**                  
 **
 ** Returns          pointer to the lcb, or NULL if none found.
 **
@@ -277,7 +277,7 @@ tAVCT_LCB *avct_lcb_by_bd(BD_ADDR bd_addr)
             break;
         }
     }
-
+    
     if (i == AVCT_NUM_LINKS)
     {
         /* if no lcb found */
@@ -294,7 +294,7 @@ tAVCT_LCB *avct_lcb_by_bd(BD_ADDR bd_addr)
 ** Function         avct_lcb_alloc
 **
 ** Description      Allocate a link control block.
-**
+**                  
 **
 ** Returns          pointer to the lcb, or NULL if none could be allocated.
 **
@@ -314,7 +314,7 @@ tAVCT_LCB *avct_lcb_alloc(BD_ADDR bd_addr)
             break;
         }
     }
-
+    
     if (i == AVCT_NUM_LINKS)
     {
         /* out of lcbs */
@@ -329,7 +329,7 @@ tAVCT_LCB *avct_lcb_alloc(BD_ADDR bd_addr)
 ** Function         avct_lcb_dealloc
 **
 ** Description      Deallocate a link control block.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -374,7 +374,7 @@ void avct_lcb_dealloc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 ** Function         avct_lcb_by_lcid
 **
 ** Description      Find the LCB associated with the L2CAP LCID
-**
+**                  
 **
 ** Returns          pointer to the lcb, or NULL if none found.
 **
@@ -391,7 +391,7 @@ tAVCT_LCB *avct_lcb_by_lcid(UINT16 lcid)
             break;
         }
     }
-
+    
     if (i == AVCT_NUM_LINKS)
     {
         /* out of lcbs */
@@ -407,7 +407,7 @@ tAVCT_LCB *avct_lcb_by_lcid(UINT16 lcid)
 ** Function         avct_lcb_has_pid
 **
 ** Description      See if any ccbs on this lcb have a particular pid.
-**
+**                  
 **
 ** Returns          Pointer to CCB if PID found, NULL otherwise.
 **
@@ -432,7 +432,7 @@ tAVCT_CCB *avct_lcb_has_pid(tAVCT_LCB *p_lcb, UINT16 pid)
 ** Function         avct_lcb_last_ccb
 **
 ** Description      See if given ccb is only one on the lcb.
-**
+**                  
 **
 ** Returns          TRUE if ccb is last, FALSE otherwise.
 **

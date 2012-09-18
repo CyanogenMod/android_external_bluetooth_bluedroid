@@ -27,9 +27,9 @@
 #define BTM_BLE_NAME_CMPL                   0x02
 
 #define BTM_BLE_FILTER_TARGET_UNKNOWN       0xff
-#define BTM_BLE_POLICY_UNKNOWN              0xff
+#define BTM_BLE_POLICY_UNKNOWN              0xff   
 
-#define BLE_RESOLVE_ADDR_MSB                 0x40   /*  most significant bit, bit7, bit6 is 01 to be resolvable random */
+#define BLE_RESOLVE_ADDR_MSB                 0x40   /*  most significant bit, bit7, bit6 is 01 to be resolvable random */    
 #define BLE_RESOLVE_ADDR_MASK                0xc0   /* bit 6, and bit7 */
 #define BTM_BLE_IS_RESOLVE_BDA(x)           ((x[0] & BLE_RESOLVE_ADDR_MASK) == BLE_RESOLVE_ADDR_MSB)
 
@@ -60,7 +60,7 @@ static UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_ds
 ** Description      This function is called to reset ULP controller.
 **
 ** Parameters       None.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -73,16 +73,16 @@ void BTM_BleReset(void)
 **
 ** Function         BTM_BleObserve
 **
-** Description      This procedure keep the device listening for advertising
-**                  events from a broadcast device.
+** Description      This procedure keep the device listening for advertising 
+**                  events from a broadcast device. 
 **
 ** Parameters       start: start or stop observe.
 **                  white_list: use white list in observer mode or not.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
-tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
+tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration, 
                            tBTM_INQ_RESULTS_CB *p_results_cb, tBTM_CMPL_CB *p_cmpl_cb)
 {
     tBTM_BLE_INQ_CB *p_inq = &btm_cb.ble_ctr_cb.inq_var;
@@ -100,7 +100,7 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
 
         /* allow config scanning type */
         if (btsnd_hcic_ble_set_scan_params ((UINT8)((p_inq->scan_type == BTM_BLE_SCAN_MODE_NONE) ? BTM_BLE_SCAN_MODE_ACTI: p_inq->scan_type),
-                                            (UINT16)(!p_inq->scan_interval ? BTM_BLE_GAP_DISC_SCAN_INT : p_inq->scan_interval),
+                                            (UINT16)(!p_inq->scan_interval ? BTM_BLE_GAP_DISC_SCAN_INT : p_inq->scan_interval), 
                                             (UINT16)(!p_inq->scan_window ? BTM_BLE_GAP_DISC_SCAN_WIN : p_inq->scan_window),
                                             BLE_ADDR_PUBLIC,
                                             BTM_BLE_DEFAULT_SFP)) /* assume observe always not using white list */
@@ -115,7 +115,7 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
                 if (duration != 0)
                 {
                     /* start inquiry timer */
-                    btu_start_timer (&p_inq->inq_timer_ent, BTU_TTYPE_BLE_INQUIRY, duration);
+                    btu_start_timer (&p_inq->inq_timer_ent, BTU_TTYPE_BLE_INQUIRY, duration);        
                 }
             }
         }
@@ -132,10 +132,10 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
 **
 ** Function         BTM_BleBroadcast
 **
-** Description      This function is to start or stop broadcasting.
+** Description      This function is to start or stop broadcasting. 
 **
 ** Parameters       start: start or stop broadcasting.
-**
+**              
 ** Returns          status.
 **
 *******************************************************************************/
@@ -143,12 +143,12 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
 {
     tBTM_STATUS status = BTM_NO_RESOURCES;
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
-    UINT8 evt_type = p_cb->scan_rsp ? BTM_BLE_DISCOVER_EVT: BTM_BLE_NON_CONNECT_EVT;
+    UINT8 evt_type = p_cb->scan_rsp ? BTM_BLE_DISCOVER_EVT: BTM_BLE_NON_CONNECT_EVT; 
 
 #ifdef  BTM_BLE_PC_ADV_TEST_MODE
     if (BTM_BLE_PC_ADV_TEST_MODE)
     {
-        evt_type = p_cb->scan_rsp ? BTM_BLE_CONNECT_EVT: BTM_BLE_NON_CONNECT_EVT;
+        evt_type = p_cb->scan_rsp ? BTM_BLE_CONNECT_EVT: BTM_BLE_NON_CONNECT_EVT; 
     }
 #endif
 
@@ -156,11 +156,11 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
     {
         /* update adv params */
         if (!btsnd_hcic_ble_write_adv_params ((UINT16)(p_cb->adv_interval_min ? p_cb->adv_interval_min : BTM_BLE_GAP_ADV_INT),
-                                              (UINT16)(p_cb->adv_interval_max ? p_cb->adv_interval_max : BTM_BLE_GAP_ADV_INT),
-                                              evt_type,
-                                              p_cb->own_addr_type,
+                                              (UINT16)(p_cb->adv_interval_max ? p_cb->adv_interval_max : BTM_BLE_GAP_ADV_INT), 
+                                              evt_type, 
+                                              p_cb->own_addr_type, 
                                               p_cb->direct_bda.type, p_cb->direct_bda.bda,
-                                              p_cb->adv_chnl_map,
+                                              p_cb->adv_chnl_map, 
                                               p_cb->afp))
 
             status = BTM_NO_RESOURCES;
@@ -186,7 +186,7 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
     else
     {
         status = BTM_WRONG_MODE;
-        BTM_TRACE_ERROR2("Can not %s Broadcast, device %s in Broadcast mode",
+        BTM_TRACE_ERROR2("Can not %s Broadcast, device %s in Broadcast mode", 
             (start ? "Start" : "Stop"), (start ? "alerady" :"not"));
     }
 
@@ -203,12 +203,12 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
 **
 ** Function         BTM_RegisterScanReqEvt
 **
-** Description      This function is called to register a scan request callback
+** Description      This function is called to register a scan request callback 
 **                  on the advertiser.
 **
 ** Parameters       p_scan_req_cback: scan request callback.  If NULL, remove the
-**                                    registration.
-**
+**                                    registration.  
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -226,11 +226,11 @@ void BTM_RegisterScanReqEvt(tBTM_BLE_SCAN_REQ_CBACK   *p_scan_req_cback)
 **
 ** Function         BTM_BleConfigPrivacy
 **
-** Description      This function is called to enable or disable the privacy in
+** Description      This function is called to enable or disable the privacy in 
 **                  the local device.
 **
-** Parameters       enable: TRUE to enable it; FALSE to disable it.
-**
+** Parameters       enable: TRUE to enable it; FALSE to disable it.    
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -245,17 +245,17 @@ void BTM_BleConfigPrivacy(BOOLEAN enable)
 **
 ** Function         BTM_BleSetBgConnType
 **
-** Description      This function is called to set BLE connectable mode for a
+** Description      This function is called to set BLE connectable mode for a 
 **                  peripheral device.
 **
-** Parameters       bg_conn_type: it can be auto connection, or selective connection.
+** Parameters       bg_conn_type: it can be auto connection, or selective connection.     
 **                  p_select_cback: callback function when selective connection procedure
 **                              is being used.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   bg_conn_type,
+BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   bg_conn_type, 
                              tBTM_BLE_SEL_CBACK   *p_select_cback)
 {
     BOOLEAN started = TRUE;
@@ -275,7 +275,7 @@ BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   bg_conn_type,
                 {
                     btm_ble_start_auto_conn(FALSE);
                 }
-                started = btm_ble_start_select_conn(TRUE, p_select_cback);
+                started = btm_ble_start_select_conn(TRUE, p_select_cback);            
                 break;
 
             case BTM_BLE_CONN_NONE:
@@ -313,7 +313,7 @@ BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   bg_conn_type,
 **
 ** Parameters       add_remove: TRUE to add; FALSE to remove.
 **                  remote_bda: device address to add/remove.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -366,12 +366,12 @@ BOOLEAN BTM_BleUpdateBgConnDev(BOOLEAN add_remove, BD_ADDR   remote_bda)
 **
 ** Function         BTM_BleSetConnMode
 **
-** Description      This function is called to set BLE connectable mode for a
+** Description      This function is called to set BLE connectable mode for a 
 **                  peripheral device.
 **
 ** Parameters       directed: is directed connectable mode, or non-directed.
-**                  p_dir_bda: connectable direct initiator's LE device address
-**
+**                  p_dir_bda: connectable direct initiator's LE device address      
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -423,13 +423,13 @@ tBTM_STATUS BTM_BleSetConnMode(BOOLEAN directed, tBLE_BD_ADDR *p_dir_bda)
 **
 ** Parameters       adv_int_min: minimum advertising interval
 **                  adv_int_max: maximum advertising interval
-**                  p_dir_bda: connectable direct initiator's LE device address
+**                  p_dir_bda: connectable direct initiator's LE device address      
 **                  chnl_map: advertising channel map.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
-tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max,
+tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max, 
                                 tBLE_BD_ADDR *p_dir_bda,
                                 tBTM_BLE_ADV_CHNL_MAP chnl_map)
 {
@@ -474,16 +474,16 @@ tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max,
         else
         /* update adv params */
         if (!btsnd_hcic_ble_write_adv_params (p_cb->adv_interval_min,
-                                              p_cb->adv_interval_max,
-                                              p_cb->evt_type,
-                                              p_cb->own_addr_type,
-                                              p_cb->direct_bda.type,
+                                              p_cb->adv_interval_max, 
+                                              p_cb->evt_type, 
+                                              p_cb->own_addr_type, 
+                                              p_cb->direct_bda.type, 
                                               p_cb->direct_bda.bda,
-                                              p_cb->adv_chnl_map,
+                                              p_cb->adv_chnl_map, 
                                               p_cb->afp))
 
             status = BTM_NO_RESOURCES;
-
+        
         else if (!btsnd_hcic_ble_set_adv_enable (BTM_BLE_ADV_ENABLE))
         {
             p_cb->adv_mode = BTM_BLE_ADV_DISABLE;
@@ -504,9 +504,9 @@ tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max,
 **
 ** Parameters       adv_int_min: minimum advertising interval
 **                  adv_int_max: maximum advertising interval
-**                  p_dir_bda: connectable direct initiator's LE device address
+**                  p_dir_bda: connectable direct initiator's LE device address      
 **                  chnl_map: advertising channel map.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -536,10 +536,10 @@ void BTM_BleReadAdvParams (UINT16 *adv_int_min, UINT16 *adv_int_max,
 **
 ** Parameters       adv_int_min: minimum advertising interval
 **                  adv_int_max: maximum advertising interval
-**                  p_dir_bda: connectable direct initiator's LE device address
+**                  p_dir_bda: connectable direct initiator's LE device address      
 **                  chnl_map: advertising channel map.
 **                  scan_type: active scan or passive scan
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -548,7 +548,7 @@ void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_window, tBTM_BLE_SCA
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
     BTM_TRACE_EVENT0 (" BTM_BleSetScanParams");
-
+    
     if (BTM_BLE_VALID_PRAM(scan_interval, BTM_BLE_SCAN_INT_MIN, BTM_BLE_SCAN_INT_MAX) &&
         BTM_BLE_VALID_PRAM(scan_window, BTM_BLE_SCAN_WIN_MIN, BTM_BLE_SCAN_WIN_MAX) &&
         (scan_mode == BTM_BLE_SCAN_MODE_ACTI || scan_mode == BTM_BLE_SCAN_MODE_PASS))
@@ -563,7 +563,7 @@ void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_window, tBTM_BLE_SCA
     }
     else
     {
-        BTM_TRACE_ERROR2("Illegal params: scan_interval = %d scan_window = %d",
+        BTM_TRACE_ERROR2("Illegal params: scan_interval = %d scan_window = %d", 
                         scan_interval, scan_window);
     }
 
@@ -576,14 +576,14 @@ void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_window, tBTM_BLE_SCA
 ** Description      This function is called to write LE scan response.
 **
 ** Parameters:      p_scan_rsp: scan response information.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
 tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data)
 {
     tBTM_STATUS     status = BTM_NO_RESOURCES;
-    UINT8   rsp_data[BTM_BLE_AD_DATA_LEN],
+    UINT8   rsp_data[BTM_BLE_AD_DATA_LEN], 
             *p = rsp_data;
 
     BTM_TRACE_EVENT0 (" BTM_BleWriteScanRsp");
@@ -592,7 +592,7 @@ tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
 
     if (btsnd_hcic_ble_set_scan_rsp_data((UINT8)(p - rsp_data), rsp_data))
     {
-        status = BTM_SUCCESS;
+        status = BTM_SUCCESS;   
 
         if (p_data != NULL)
             btm_cb.ble_ctr_cb.inq_var.scan_rsp = TRUE;
@@ -612,7 +612,7 @@ tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
 ** Description      This function is called to write advertising data.
 **
 ** Parameters:       None.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -638,7 +638,7 @@ tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
 
     p_cb_data->data_mask &= ~mask;
 
-    if (btsnd_hcic_ble_set_adv_data((UINT8)(p_cb_data->p_pad - p_cb_data->ad_data),
+    if (btsnd_hcic_ble_set_adv_data((UINT8)(p_cb_data->p_pad - p_cb_data->ad_data), 
                                     p_cb_data->ad_data))
         return BTM_SUCCESS;
     else
@@ -656,7 +656,7 @@ tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
 **                  type   - finding ADV data type
 **                  p_length - return the length of ADV data not including type
 **
-** Returns          pointer of ADV data
+** Returns          pointer of ADV data 
 **
 *******************************************************************************/
 UINT8 *BTM_CheckAdvData( UINT8 *p_adv, UINT8 type, UINT8 *p_length)
@@ -695,7 +695,7 @@ UINT8 *BTM_CheckAdvData( UINT8 *p_adv, UINT8 type, UINT8 *p_length)
 static UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst, tBTM_BLE_ADV_DATA *p_data)
 {
     UINT16 data_mask = *p_data_mask;
-    UINT8   *p = *p_dst,
+    UINT8   *p = *p_dst, 
     *p_flag = NULL;
     UINT16  len = BTM_BLE_AD_DATA_LEN, cp_len = 0;
     UINT8   i = 0;
@@ -736,14 +736,14 @@ static UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_ds
                 cp_len = (UINT16)strlen(btm_cb.cfg.bd_name);
                 *p++ = cp_len + 1;
                 *p++ = BTM_BLE_AD_TYPE_NAME_CMPL;
-                ARRAY_TO_STREAM(p, btm_cb.cfg.bd_name, cp_len);
+                ARRAY_TO_STREAM(p, btm_cb.cfg.bd_name, cp_len);            
             }
 
             len -= (cp_len + 2);
             data_mask &= ~BTM_BLE_AD_BIT_DEV_NAME;
         }
         /* manufacturer data */
-        if (len > 2 && data_mask & BTM_BLE_AD_BIT_MANU &&
+        if (len > 2 && data_mask & BTM_BLE_AD_BIT_MANU && 
             p_data && p_data->manu.len != 0 && p_data->manu.p_val)
         {
             if (p_data->manu.len > (len - 2))
@@ -777,13 +777,13 @@ static UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_ds
             {
                 cp_len = (len - 2)/2;
                 *p ++ = 1 + cp_len * 2;
-                *p++ = BTM_BLE_AD_TYPE_SRV_PART;
+                *p++ = BTM_BLE_AD_TYPE_SRV_PART;   
             }
             else
             {
                 cp_len = p_data->services.num_service;
                 *p++ = 1 + cp_len * 2;
-                *p++ = BTM_BLE_AD_TYPE_SRV_CMPL;
+                *p++ = BTM_BLE_AD_TYPE_SRV_CMPL;   
             }
             for (i = 0; i < cp_len; i ++)
             {
@@ -820,7 +820,7 @@ static UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_ds
                 }
                 else
                     break;
-            }
+            }   
             if (i == p_data->attr.num_attr)
                 data_mask &= ~BTM_BLE_AD_BIT_ATTR;
         }
@@ -861,7 +861,7 @@ static UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_ds
 ** Description      This function is called to set BLE discoverable mode.
 **
 ** Parameters:      mode: discoverability mode.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -906,13 +906,13 @@ tBTM_STATUS btm_ble_set_discoverability(UINT16 combined_mode)
     {
         BTM_TRACE_EVENT0 ("mode == BTM_BLE_NON_DISCOVERABLE ");
 
-        if (p_cb->connectable_mode == BTM_BLE_NON_CONNECTABLE)
+        if (p_cb->connectable_mode == BTM_BLE_NON_CONNECTABLE) 
         {
             p_cb->br_edr_supported_flag = 0;
 
             BTM_TRACE_EVENT0 ("always disable adv in non-discoverable non-connectable mode if no scan rsp ");
             if (!p_cb->scan_rsp )
-	            new_mode = BTM_BLE_ADV_DISABLE;
+	            new_mode = BTM_BLE_ADV_DISABLE;  
         }
         else
         {
@@ -943,11 +943,11 @@ tBTM_STATUS btm_ble_set_discoverability(UINT16 combined_mode)
 
         /* update adv params */
         if (!btsnd_hcic_ble_write_adv_params ((UINT16)(p_cb->adv_interval_min ? p_cb->adv_interval_min : BTM_BLE_GAP_ADV_INT),
-                                              (UINT16)(p_cb->adv_interval_max ? p_cb->adv_interval_max : BTM_BLE_GAP_ADV_INT),
-                                              evt_type,
-                                              p_cb->own_addr_type,
+                                              (UINT16)(p_cb->adv_interval_max ? p_cb->adv_interval_max : BTM_BLE_GAP_ADV_INT), 
+                                              evt_type, 
+                                              p_cb->own_addr_type, 
                                               p_cb->direct_bda.type, p_cb->direct_bda.bda,
-                                              p_cb->adv_chnl_map,
+                                              p_cb->adv_chnl_map, 
                                               p_cb->afp))
 
             status = BTM_NO_RESOURCES;
@@ -969,8 +969,8 @@ tBTM_STATUS btm_ble_set_discoverability(UINT16 combined_mode)
     {
         BTM_TRACE_EVENT1 ("start timer for limited disc mode duration=%d (30 secs)", BTM_BLE_GAP_LIM_TOUT);
         /* start Tgap(lim_timeout) */
-        btu_start_timer (&p_cb->inq_timer_ent, BTU_TTYPE_BLE_GAP_LIM_DISC,
-                         BTM_BLE_GAP_LIM_TOUT);
+        btu_start_timer (&p_cb->inq_timer_ent, BTU_TTYPE_BLE_GAP_LIM_DISC, 
+                         BTM_BLE_GAP_LIM_TOUT);        
     }
     return status;
 }
@@ -982,7 +982,7 @@ tBTM_STATUS btm_ble_set_discoverability(UINT16 combined_mode)
 ** Description      This function is called to set BLE connectability mode.
 **
 ** Parameters:      mode: connectability mode.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -992,10 +992,10 @@ tBTM_STATUS btm_ble_set_connectability(UINT16 combined_mode)
     UINT16                  mode = (combined_mode & BTM_BLE_CONNECTABLE_MASK);
     UINT8                   cur_flag = 0;
     UINT8                   cur_br_edr_not_sup_flag;
-    UINT8                   new_flag;
+    UINT8                   new_flag; 
     UINT8                   new_mode = BTM_BLE_ADV_ENABLE;
     UINT8                   evt_type = (p_cb->scan_rsp) ? BTM_BLE_DISCOVER_EVT: BTM_BLE_NON_CONNECT_EVT;
-    tBTM_STATUS             status = BTM_SUCCESS;
+    tBTM_STATUS             status = BTM_SUCCESS; 
 
     BTM_TRACE_EVENT2 ("btm_ble_set_connectability mode=0x%0x combined_mode=0x%x", mode, combined_mode);
 
@@ -1051,12 +1051,12 @@ tBTM_STATUS btm_ble_set_connectability(UINT16 combined_mode)
         }
 
         if (!btsnd_hcic_ble_write_adv_params ((UINT16)(p_cb->adv_interval_min ? p_cb->adv_interval_min : BTM_BLE_GAP_ADV_INT),
-                                              (UINT16)(p_cb->adv_interval_max ? p_cb->adv_interval_max : BTM_BLE_GAP_ADV_INT),
-                                              evt_type,
-                                              p_cb->own_addr_type,
-                                              p_cb->direct_bda.type,
+                                              (UINT16)(p_cb->adv_interval_max ? p_cb->adv_interval_max : BTM_BLE_GAP_ADV_INT), 
+                                              evt_type, 
+                                              p_cb->own_addr_type, 
+                                              p_cb->direct_bda.type, 
                                               p_cb->direct_bda.bda,
-                                              p_cb->adv_chnl_map,
+                                              p_cb->adv_chnl_map, 
                                               p_cb->afp))
             status = BTM_NO_RESOURCES;
         else
@@ -1088,7 +1088,7 @@ tBTM_STATUS btm_ble_set_connectability(UINT16 combined_mode)
 **                  p_results_cb - callback returning pointer to results (tBTM_INQ_RESULTS)
 **                  p_cmpl_cb - callback indicating the end of an inquiry
 **
-**
+**                  
 **
 ** Returns          BTM_CMD_STARTED if successfully started
 **                  BTM_ILLEGAL_VALUE if a bad parameter is detected
@@ -1117,15 +1117,15 @@ tBTM_STATUS btm_ble_start_inquiry (UINT8 mode, UINT8   duration)
     if (btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_ENABLE, BTM_BLE_DUPLICATE_DISABLE))
     {
         status = BTM_SUCCESS;
-        p_inq->proc_mode = mode;
+        p_inq->proc_mode = mode;  
 
         if (duration != 0)
         {
             /* start inquiry timer */
-            btu_start_timer (&p_inq->inq_timer_ent, BTU_TTYPE_BLE_INQUIRY, duration);
+            btu_start_timer (&p_inq->inq_timer_ent, BTU_TTYPE_BLE_INQUIRY, duration);        
         }
     }
-
+    
     return status;
 }
 
@@ -1134,7 +1134,7 @@ tBTM_STATUS btm_ble_start_inquiry (UINT8 mode, UINT8   duration)
 ** Function         btm_ble_read_remote_name_cmpl
 **
 ** Description      This function is called when BLE remote name is received.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -1159,11 +1159,11 @@ void btm_ble_read_remote_name_cmpl(BOOLEAN status, BD_ADDR bda, UINT16 length, c
 **
 ** Function         btm_ble_read_remote_name
 **
-** Description      This function read remote LE device name using GATT read
+** Description      This function read remote LE device name using GATT read 
 **                  procedure.
 **
 ** Parameters:       None.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -1205,7 +1205,7 @@ tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur, t
 ** Description      This function cancel read remote LE device name.
 **
 ** Parameters:       None.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -1231,7 +1231,7 @@ BOOLEAN btm_ble_cancel_remote_name(BD_ADDR remote_bda)
 **                  data.
 **
 ** Parameters:       None.
-**
+**              
 ** Returns          void
 **
 *******************************************************************************/
@@ -1261,11 +1261,11 @@ static void btm_ble_update_adv_flag(UINT8 flag)
         *p++ = 2;
         *p++ = BTM_BLE_AD_TYPE_FLAG;
         p_adv_data->p_flags = p;
-        *p++ = flag;
+        *p++ = flag; 
         p_adv_data->p_pad = p;
     }
 
-    if (btsnd_hcic_ble_set_adv_data((UINT8)(p_adv_data->p_pad - p_adv_data->ad_data),
+    if (btsnd_hcic_ble_set_adv_data((UINT8)(p_adv_data->p_pad - p_adv_data->ad_data), 
                                     p_adv_data->ad_data))
         p_adv_data->data_mask |= BTM_BLE_AD_BIT_FLAGS;
 
@@ -1281,12 +1281,12 @@ static void btm_ble_update_adv_flag(UINT8 flag)
 ** Returns          pointer to entry, or NULL if not found
 **
 *******************************************************************************/
-static void btm_ble_parse_adv_data(tBTM_INQ_INFO *p_info, UINT8 *p_data,
+static void btm_ble_parse_adv_data(tBTM_INQ_INFO *p_info, UINT8 *p_data, 
                                    UINT8 len, tBTM_BLE_INQ_DATA *p_adv_data, UINT8 *p_buf)
 {
     UINT8   *p_cur = p_data;
     UINT8   ad_len, ad_type, ad_flag;
-    tBTM_BLE_ATTR   *p_attr;
+    tBTM_BLE_ATTR   *p_attr; 
 
     BTM_TRACE_EVENT0 (" btm_ble_parse_adv_data");
 
@@ -1312,7 +1312,7 @@ static void btm_ble_parse_adv_data(tBTM_INQ_INFO *p_info, UINT8 *p_data,
                                               BTM_BLE_NAME_SHORT: BTM_BLE_NAME_CMPL;
                     memcpy(p_info->remote_name, p_cur, ad_len -1);
                     p_info->remote_name[ad_len] = 0;
-                    p_adv_data->p_remote_name = p_info->remote_name;
+                    p_adv_data->p_remote_name = p_info->remote_name; 
                     p_info->remote_name_len = p_adv_data->remote_name_len = ad_len - 1;
                     BTM_TRACE_DEBUG1("BTM_BLE_AD_TYPE_NAME name = %s",p_adv_data->p_remote_name);
                 }
@@ -1375,7 +1375,7 @@ static void btm_ble_parse_adv_data(tBTM_INQ_INFO *p_info, UINT8 *p_data,
 **
 ** Function         btm_ble_cache_adv_data
 **
-** Description      Update advertising cache data.
+** Description      Update advertising cache data.   
 **
 ** Returns          void
 **
@@ -1421,7 +1421,7 @@ void btm_ble_cache_adv_data(tBTM_INQ_RESULTS *p_cur, UINT8 data_len, UINT8 *p, U
 ** Description      check ADV flag to make sure device is discoverable and match
 **                  the search condition
 **
-** Parameters
+** Parameters       
 **
 ** Returns          void
 **
@@ -1448,14 +1448,14 @@ BOOLEAN btm_ble_is_discoverable(BD_ADDR bda, UINT8 evt_type, UINT8 *p)
         BTM_TRACE_DEBUG0("BD ADDR does not meet filter condition");
         return FALSE;
     }
-
+    
     /* scan response does not include the flag */
     if (evt_type == BTM_BLE_SCAN_RSP_EVT)
         return FALSE;
 
     if (data_len > BTM_BLE_ADV_DATA_LEN_MAX)
     {
-        BTM_TRACE_WARNING1("ADV data too long %d. discard", data_len);
+        BTM_TRACE_WARNING1("ADV data too long %d. discard", data_len); 
         return FALSE;
     }
 
@@ -1464,30 +1464,30 @@ BOOLEAN btm_ble_is_discoverable(BD_ADDR bda, UINT8 evt_type, UINT8 *p)
         if ((p_flag = BTM_CheckAdvData(p, BTM_BLE_AD_TYPE_FLAG, &data_len)) != NULL)
         {
             flag = * p_flag;
-
+            
             if ((btm_cb.ble_ctr_cb.inq_var.proc_mode == BTM_BLE_GENERAL_INQUIRY) &&
                 (flag & (BTM_BLE_LIMIT_DISC_FLAG|BTM_BLE_GEN_DISC_FLAG)) != 0)
             {
-                BTM_TRACE_DEBUG0("Find Generable Discoverable device");
+                BTM_TRACE_DEBUG0("Find Generable Discoverable device"); 
                 is_discoverable = TRUE;
             }
 
             else if (btm_cb.ble_ctr_cb.inq_var.proc_mode == BTM_BLE_LIMITED_INQUIRY &&
                      (flag & BTM_BLE_LIMIT_DISC_FLAG) != 0)
             {
-                BTM_TRACE_DEBUG0("Find limited discoverable device");
+                BTM_TRACE_DEBUG0("Find limited discoverable device"); 
                 is_discoverable = TRUE;
             }
-
+            
         }
     }
-
+    
     if (!is_discoverable)
     {
         BTM_TRACE_ERROR1("discoverable flag not desired: %d", flag);
     }
 
-    return is_discoverable;
+    return is_discoverable;    
 }
 /*******************************************************************************
 **
@@ -1495,7 +1495,7 @@ BOOLEAN btm_ble_is_discoverable(BD_ADDR bda, UINT8 evt_type, UINT8 *p)
 **
 ** Description      Update adv packet information into inquiry result.
 **
-** Parameters
+** Parameters       
 **
 ** Returns          void
 **
@@ -1515,7 +1515,7 @@ BOOLEAN btm_ble_update_inq_result(tINQ_DB_ENT *p_i, UINT8 addr_type, UINT8 evt_t
 
     if (data_len > BTM_BLE_ADV_DATA_LEN_MAX)
     {
-        BTM_TRACE_WARNING1("EIR data too long %d. discard", data_len);
+        BTM_TRACE_WARNING1("EIR data too long %d. discard", data_len); 
         return FALSE;
     }
     btm_ble_cache_adv_data(p_cur, data_len, p, evt_type);
@@ -1557,12 +1557,12 @@ BOOLEAN btm_ble_update_inq_result(tINQ_DB_ENT *p_i, UINT8 addr_type, UINT8 evt_t
     /* if BR/EDR not supported is not set, assume is a DUMO device */
     if ((p_cur->flag & BTM_BLE_BREDR_NOT_SPT) == 0)
     {
-        BTM_TRACE_ERROR0("BR/EDR NOT support bit not set, treat as DUMO");
+        BTM_TRACE_ERROR0("BR/EDR NOT support bit not set, treat as DUMO");    
         p_cur->device_type |= BT_DEVICE_TYPE_DUMO;
     }
     else
     {
-        BTM_TRACE_DEBUG0("BR/EDR NOT SUPPORT bit set, LE only device");
+        BTM_TRACE_DEBUG0("BR/EDR NOT SUPPORT bit set, LE only device"); 
     }
 
     return to_report;
@@ -1575,7 +1575,7 @@ BOOLEAN btm_ble_update_inq_result(tINQ_DB_ENT *p_i, UINT8 addr_type, UINT8 evt_t
 **
 ** Description      send selection connection request callback.
 **
-** Parameters
+** Parameters       
 **
 ** Returns          void
 **
@@ -1585,13 +1585,13 @@ void btm_send_sel_conn_callback(BD_ADDR remote_bda, UINT8 evt_type, UINT8 *p_dat
     UINT8   data_len, len;
     UINT8   *p_dev_name, remname[31] = {0};
 
-    if (btm_cb.ble_ctr_cb.p_select_cback == NULL ||
+    if (btm_cb.ble_ctr_cb.p_select_cback == NULL || 
         /* non-connectable device */
         (evt_type != BTM_BLE_EVT_CONN_ADV && evt_type != BTM_BLE_EVT_CONN_DIR_ADV))
         return;
 
     STREAM_TO_UINT8    (data_len, p_data);
-
+    
     /* get the device name if exist in ADV data */
     if (data_len != 0)
     {
@@ -1615,7 +1615,7 @@ void btm_send_sel_conn_callback(BD_ADDR remote_bda, UINT8 evt_type, UINT8 *p_dat
 **
 ** Function         btm_ble_resolve_random_addr_cmpl
 **
-** Description      resolve random address complete callback.
+** Description      resolve random address complete callback.   
 **
 ** Returns          void
 **
@@ -1648,17 +1648,17 @@ static void btm_ble_resolve_random_addr_cmpl(void * p_rec, void *p)
     btm_ble_process_adv_pkt_cont(bda, addr_type, evt_type, pp);
 
     return;
-}
+} 
 
 /*******************************************************************************
 **
 ** Function         btm_ble_process_adv_pkt
 **
-** Description      This function is called when adv packet report events are
-**                  received from the device. It updates the inquiry database.
+** Description      This function is called when adv packet report events are 
+**                  received from the device. It updates the inquiry database. 
 **                  If the inquiry database is full, the oldest entry is discarded.
 **
-** Parameters
+** Parameters       
 **
 ** Returns          void
 **
@@ -1688,9 +1688,9 @@ void btm_ble_process_adv_pkt (UINT8 *p_data)
 #endif
 
     /* Only process the results if the inquiry is still active */
-    if (!btm_cb.btm_inq_vars.inq_active &&
+    if (!btm_cb.btm_inq_vars.inq_active && 
         (btm_cb.ble_ctr_cb.bg_conn_type != BTM_BLE_CONN_SELECTIVE ||
-         /* or selective auto connection is active */
+         /* or selective auto connection is active */ 
          btm_cb.ble_ctr_cb.p_select_cback == NULL))
         return;
 
@@ -1709,10 +1709,10 @@ void btm_ble_process_adv_pkt (UINT8 *p_data)
 **
 ** Function         btm_ble_process_adv_pkt_cont
 **
-** Description      This function is called after random address resolution is
+** Description      This function is called after random address resolution is 
 **                  done, and proceed to process adv packet.
 **
-** Parameters
+** Parameters       
 **
 ** Returns          void
 **
@@ -1731,11 +1731,11 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
     if (btm_inq_find_bdaddr(bda))
     {
         /* never been report as an LE device */
-        if ((p_i &&
+        if ((p_i && 
             (!(p_i->inq_info.results.device_type & BT_DEVICE_TYPE_BLE) ||
               /* scan repsonse to be updated */
               (!p_i->scan_rsp)))
-            ||
+            ||             
             btm_cb.ble_ctr_cb.inq_var.proc_mode == BTM_BLE_OBSERVE)
         {
             BTM_TRACE_DEBUG0("update new BLE information ");
@@ -1761,7 +1761,7 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
         {
             if ((p_i = btm_inq_db_new (bda)) != NULL)
             {
-                p_inq->inq_cmpl_info.num_resp++;
+                p_inq->inq_cmpl_info.num_resp++;     
                 BTM_TRACE_DEBUG0("adv pkt process:  new record is added into inq db");
                 to_report = TRUE;
             }
@@ -1776,7 +1776,7 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
     }
     else if (p_i->inq_count != p_inq->inq_counter) /* first time seen in this inquiry */
     {
-        p_inq->inq_cmpl_info.num_resp++;
+        p_inq->inq_cmpl_info.num_resp++;     
     }
 
     /* update the LE device information in inquiry database */
@@ -1787,7 +1787,7 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
 
 #if BTM_USE_INQ_RESULTS_FILTER == TRUE
     /* If the number of responses found and limited, issue a cancel inquiry */
-    if (p_inq->inqparms.max_resps &&
+    if (p_inq->inqparms.max_resps && 
         p_inq->inq_cmpl_info.num_resp == p_inq->inqparms.max_resps)
     {
         /* new device */
@@ -1795,7 +1795,7 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
             (/* assume a DUMO device, BR/EDR inquiry is always active */
              p_i && p_i->inq_info.results.device_type == BT_DEVICE_TYPE_BLE && p_i->scan_rsp))
         {
-            BTM_TRACE_WARNING0("INQ RES: Extra Response Received...cancelling inquiry..");
+            BTM_TRACE_WARNING0("INQ RES: Extra Response Received...cancelling inquiry.."); 
 
             if (!(p_inq->inq_active & BTM_PERIODIC_INQUIRY_ACTIVE) )
                 btsnd_hcic_inq_cancel();
@@ -1813,11 +1813,11 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
     /* background connection in selective connection mode */
     if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_SELECTIVE)
     {
-        btm_send_sel_conn_callback(bda, evt_type, p, addr_type);
+        btm_send_sel_conn_callback(bda, evt_type, p, addr_type);            
     }
     else if (p_inq_results_cb && to_report)
     {
-        BTM_TRACE_DEBUG0("BTMINQ LE: Found devices, send callback btm_inqrslt_cb");
+        BTM_TRACE_DEBUG0("BTMINQ LE: Found devices, send callback btm_inqrslt_cb"); 
 
         if (p_inq->inq_active)
             (p_inq_results_cb)((tBTM_INQ_RESULTS *) &p_i->inq_info.results, p_le_inq_cb->adv_data_cache);
@@ -1850,7 +1850,7 @@ void btm_ble_stop_scan(void)
     btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_DISABLE, BTM_BLE_DUPLICATE_ENABLE);
 
     /* If we have a callback registered for inquiry complete, call it */
-    BTM_TRACE_DEBUG2 ("BTM Inq Compl Callback: status 0x%02x, num results %d",
+    BTM_TRACE_DEBUG2 ("BTM Inq Compl Callback: status 0x%02x, num results %d", 
                       p_inq->inq_cmpl_info.status, p_inq->inq_cmpl_info.num_resp);
 
     btm_update_scanner_filter_policy(SP_ADV_ALL);
@@ -1863,7 +1863,7 @@ void btm_ble_stop_scan(void)
 **
 ** Function         btm_ble_stop_adv
 **
-** Description      Stop the BLE advertising.
+** Description      Stop the BLE advertising. 
 **
 ** Returns          void
 **
@@ -1920,7 +1920,7 @@ void btm_ble_timeout(TIMER_LIST_ENT *p_tle)
 **
 ** Function         btm_ble_connected
 **
-** Description      This function is when a LE connection to the peer device is
+** Description      This function is when a LE connection to the peer device is 
 **                  establsihed
 **
 ** Returns          void

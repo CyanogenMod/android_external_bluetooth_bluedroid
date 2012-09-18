@@ -66,7 +66,7 @@ typedef UINT8 tBTA_AG_STATUS;
 #define BTA_AG_IND_RES              5   /* Update an indicator value */
 #define BTA_AG_BVRA_RES             6   /* Update voice recognition state */
 #define BTA_AG_CNUM_RES             7   /* Send subscriber number response for AT+CNUM */
-#define BTA_AG_BTRH_RES             8   /* Send CCAP incoming call hold */
+#define BTA_AG_BTRH_RES             8   /* Send CCAP incoming call hold */ 
 #define BTA_AG_CLCC_RES             9   /* Query list of calls */
 #define BTA_AG_COPS_RES             10  /* Read network operator */
 #define BTA_AG_IN_CALL_RES          11  /* Indicate incoming phone call */
@@ -357,7 +357,7 @@ extern "C"
 **
 ** Function         BTA_AgEnable
 **
-** Description      Enable the audio gateway service. When the enable
+** Description      Enable the audio gateway service. When the enable 
 **                  operation is complete the callback function will be
 **                  called with a BTA_AG_ENABLE_EVT. This function must
 **                  be called before other function in the AG API are
@@ -373,7 +373,7 @@ BTA_API tBTA_STATUS BTA_AgEnable(tBTA_AG_PARSE_MODE parse_mode, tBTA_AG_CBACK *p
 ** Function         BTA_AgDisable
 **
 ** Description      Disable the audio gateway service
-**
+**                  
 **
 ** Returns          void
 **
@@ -398,7 +398,7 @@ BTA_API void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,
 ** Function         BTA_AgDeregister
 **
 ** Description      Deregister an audio gateway service.
-**
+**                  
 **
 ** Returns          void
 **
@@ -413,7 +413,7 @@ BTA_API void BTA_AgDeregister(UINT16 handle);
 **                  When connection is open callback function is called
 **                  with a BTA_AG_OPEN_EVT. Only the data connection is
 **                  opened. The audio connection is not opened.
-**
+**                  
 **
 ** Returns          void
 **
@@ -426,7 +426,7 @@ BTA_API void BTA_AgOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_
 **
 ** Description      Close the current connection to a headset or a handsfree
 **                  Any current audio connection will also be closed
-**
+**                  
 **
 ** Returns          void
 **
@@ -439,7 +439,7 @@ BTA_API void BTA_AgClose(UINT16 handle);
 **
 ** Description      Opens an audio connection to the currently connected
 **                  headset or hnadsfree
-**
+**                  
 **
 ** Returns          void
 **
@@ -452,7 +452,7 @@ BTA_API void BTA_AgAudioOpen(UINT16 handle);
 **
 ** Description      Close the currently active audio connection to a headset
 **                  or hnadsfree. The data connection remains open
-**
+**                  
 **
 ** Returns          void
 **
@@ -464,7 +464,7 @@ BTA_API void BTA_AgAudioClose(UINT16 handle);
 ** Function         BTA_AgResult
 **
 ** Description      Send an AT result code to a headset or hands-free device.
-**                  This function is only used when the AG parse mode is set
+**                  This function is only used when the AG parse mode is set 
 **                  to BTA_AG_PARSE.
 **
 **
@@ -477,9 +477,9 @@ BTA_API void BTA_AgResult(UINT16 handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p
 **
 ** Function         BTA_AgSetCodec
 **
-** Description      Specify the codec type to be used for the subsequent
-**                  audio connection.
-**
+** Description      Specify the codec type to be used for the subsequent 
+**                  audio connection. 
+**                  
 **
 **
 ** Returns          void

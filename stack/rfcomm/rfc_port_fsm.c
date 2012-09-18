@@ -86,7 +86,7 @@ void rfc_port_sm_execute (tPORT *p_port, UINT16 event, void *p_data)
 ** Function         rfc_port_sm_state_closed
 **
 ** Description      This function handles events when the port is in
-**                  CLOSED state. This state exists when port is
+**                  CLOSED state. This state exists when port is 
 **                  being initially established.
 **
 ** Returns          void
@@ -98,7 +98,7 @@ void rfc_port_sm_state_closed (tPORT *p_port, UINT16 event, void *p_data)
     {
     case RFC_EVENT_OPEN:
         p_port->rfc.state = RFC_STATE_ORIG_WAIT_SEC_CHECK;
-        btm_sec_mx_access_request (p_port->rfc.p_mcb->bd_addr, BT_PSM_RFCOMM, TRUE,
+        btm_sec_mx_access_request (p_port->rfc.p_mcb->bd_addr, BT_PSM_RFCOMM, TRUE, 
                                    BTM_SEC_PROTO_RFCOMM, (UINT32)(p_port->dlci / 2),
                                    &rfc_sec_check_complete, p_port);
         return;
@@ -119,7 +119,7 @@ void rfc_port_sm_state_closed (tPORT *p_port, UINT16 event, void *p_data)
 
         /* Open will be continued after security checks are passed */
         p_port->rfc.state = RFC_STATE_TERM_WAIT_SEC_CHECK;
-        btm_sec_mx_access_request (p_port->rfc.p_mcb->bd_addr, BT_PSM_RFCOMM, FALSE,
+        btm_sec_mx_access_request (p_port->rfc.p_mcb->bd_addr, BT_PSM_RFCOMM, FALSE, 
                                    BTM_SEC_PROTO_RFCOMM, (UINT32)(p_port->dlci / 2),
                                    &rfc_sec_check_complete, p_port);
         return;
@@ -187,18 +187,18 @@ void rfc_port_sm_sabme_wait_ua (tPORT *p_port, UINT16 event, void *p_data)
     case RFC_EVENT_UA:
         rfc_port_timer_stop (p_port);
         p_port->rfc.state = RFC_STATE_OPENED;
-        PORT_DlcEstablishCnf (p_port->rfc.p_mcb, p_port->dlci, p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_SUCCESS);
+        PORT_DlcEstablishCnf (p_port->rfc.p_mcb, p_port->dlci, p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_SUCCESS); 
         return;
 
     case RFC_EVENT_DM:
         p_port->rfc.p_mcb->is_disc_initiator = TRUE;
-        PORT_DlcEstablishCnf (p_port->rfc.p_mcb, p_port->dlci, p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_ERROR);
+        PORT_DlcEstablishCnf (p_port->rfc.p_mcb, p_port->dlci, p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_ERROR); 
         rfc_port_closed (p_port);
         return;
 
     case RFC_EVENT_DISC:
         rfc_send_ua (p_port->rfc.p_mcb, p_port->dlci);
-        PORT_DlcEstablishCnf (p_port->rfc.p_mcb, p_port->dlci, p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_ERROR);
+        PORT_DlcEstablishCnf (p_port->rfc.p_mcb, p_port->dlci, p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_ERROR); 
         rfc_port_closed (p_port);
         return;
 
@@ -213,7 +213,7 @@ void rfc_port_sm_sabme_wait_ua (tPORT *p_port, UINT16 event, void *p_data)
 
     case RFC_EVENT_TIMEOUT:
         p_port->rfc.state = RFC_STATE_CLOSED;
-        PORT_DlcEstablishCnf (p_port->rfc.p_mcb, p_port->dlci, p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_ERROR);
+        PORT_DlcEstablishCnf (p_port->rfc.p_mcb, p_port->dlci, p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_ERROR); 
         return;
     }
     RFCOMM_TRACE_WARNING1 ("Port state sabme_wait_ua Event ignored %d", event);
@@ -224,7 +224,7 @@ void rfc_port_sm_sabme_wait_ua (tPORT *p_port, UINT16 event, void *p_data)
 **
 ** Function         rfc_port_sm_term_wait_sec_check
 **
-** Description      This function handles events for the port in the
+** Description      This function handles events for the port in the 
 **                  WAIT_SEC_CHECK state.  SABME has been received from the
 **                  peer and Security Manager verifes BD_ADDR, before we can
 **                  send ESTABLISH_IND to the Port entity
@@ -250,7 +250,7 @@ void rfc_port_sm_term_wait_sec_check (tPORT *p_port, UINT16 event, void *p_data)
         }
         else
         {
-            PORT_DlcEstablishInd (p_port->rfc.p_mcb, p_port->dlci, p_port->rfc.p_mcb->peer_l2cap_mtu);
+            PORT_DlcEstablishInd (p_port->rfc.p_mcb, p_port->dlci, p_port->rfc.p_mcb->peer_l2cap_mtu); 
         }
         return;
 
@@ -278,7 +278,7 @@ void rfc_port_sm_term_wait_sec_check (tPORT *p_port, UINT16 event, void *p_data)
         p_port->rfc.state = RFC_STATE_CLOSED;
         rfc_send_ua (p_port->rfc.p_mcb, p_port->dlci);
 
-        PORT_DlcReleaseInd (p_port->rfc.p_mcb, p_port->dlci);
+        PORT_DlcReleaseInd (p_port->rfc.p_mcb, p_port->dlci); 
         return;
 
     case RFC_EVENT_UIH:
@@ -306,7 +306,7 @@ void rfc_port_sm_term_wait_sec_check (tPORT *p_port, UINT16 event, void *p_data)
 **
 ** Function         rfc_port_sm_orig_wait_sec_check
 **
-** Description      This function handles events for the port in the
+** Description      This function handles events for the port in the 
 **                  ORIG_WAIT_SEC_CHECK state.  RFCOMM is waiting for Security
 **                  manager to finish before sending SABME to the peer
 **
@@ -321,7 +321,7 @@ void rfc_port_sm_orig_wait_sec_check (tPORT *p_port, UINT16 event, void *p_data)
         if (*((UINT8 *)p_data) != BTM_SUCCESS)
         {
             p_port->rfc.p_mcb->is_disc_initiator = TRUE;
-            PORT_DlcEstablishCnf (p_port->rfc.p_mcb, p_port->dlci, 0, RFCOMM_SECURITY_ERR);
+            PORT_DlcEstablishCnf (p_port->rfc.p_mcb, p_port->dlci, 0, RFCOMM_SECURITY_ERR); 
             rfc_port_closed (p_port);
             return;
         }
@@ -410,7 +410,7 @@ void rfc_port_sm_opened (tPORT *p_port, UINT16 event, void *p_data)
         return;
 
     case RFC_EVENT_DM:
-        PORT_DlcReleaseInd (p_port->rfc.p_mcb, p_port->dlci);
+        PORT_DlcReleaseInd (p_port->rfc.p_mcb, p_port->dlci); 
         rfc_port_closed (p_port);
         return;
 
@@ -424,7 +424,7 @@ void rfc_port_sm_opened (tPORT *p_port, UINT16 event, void *p_data)
             rfc_port_timer_start (p_port, RFC_DISC_TIMEOUT);
         }
         else
-            PORT_DlcReleaseInd (p_port->rfc.p_mcb, p_port->dlci);
+            PORT_DlcReleaseInd (p_port->rfc.p_mcb, p_port->dlci); 
         return;
 
     case RFC_EVENT_UIH:
@@ -463,10 +463,10 @@ void rfc_port_sm_disc_wait_ua (tPORT *p_port, UINT16 event, void *p_data)
         rfc_port_closed (p_port);
         return;
 
-    case RFC_EVENT_DATA:
-        GKI_freebuf (p_data);
-        return;
-
+    case RFC_EVENT_DATA: 
+        GKI_freebuf (p_data); 
+        return; 
+ 
     case RFC_EVENT_UA:
         p_port->rfc.p_mcb->is_disc_initiator = TRUE;
         /* Case falls through */
@@ -549,7 +549,7 @@ void rfc_process_pn (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
     rfc_port_timer_stop (p_port);
 
     PORT_ParNegCnf (p_mcb, dlci, p_frame->u.pn.mtu,
-                    p_frame->u.pn.conv_layer, p_frame->u.pn.k);
+                    p_frame->u.pn.conv_layer, p_frame->u.pn.k);  
 }
 
 
@@ -557,17 +557,17 @@ void rfc_process_pn (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
 **
 ** Function         rfc_process_rpn
 **
-** Description      This function handles Remote DLC parameter negotiation
-**                  command/response.  Pass command to the user.
+** Description      This function handles Remote DLC parameter negotiation 
+**                  command/response.  Pass command to the user.  
 **
 *******************************************************************************/
-void rfc_process_rpn (tRFC_MCB *p_mcb, BOOLEAN is_command,
+void rfc_process_rpn (tRFC_MCB *p_mcb, BOOLEAN is_command, 
                       BOOLEAN is_request, MX_FRAME *p_frame)
 {
     tPORT_STATE port_pars;
     tPORT       *p_port;
 
-    if ((p_port = port_find_mcb_dlci_port (p_mcb, p_frame->dlci)) == NULL)
+    if ((p_port = port_find_mcb_dlci_port (p_mcb, p_frame->dlci)) == NULL) 
     {
         /* This is the first command on the port */
         if (is_command)
@@ -575,7 +575,7 @@ void rfc_process_rpn (tRFC_MCB *p_mcb, BOOLEAN is_command,
 
             memset(&port_pars, 0, sizeof(tPORT_STATE));
             rfc_set_port_state(&port_pars, p_frame);
-
+        
             PORT_PortNegInd(p_mcb, p_frame->dlci, &port_pars, p_frame->u.rpn.param_mask);
         }
         return;
@@ -626,7 +626,7 @@ void rfc_process_rpn (tRFC_MCB *p_mcb, BOOLEAN is_command,
             p_port->peer_port_pars.fc_type = (RFCOMM_FC_RTR_ON_INPUT | RFCOMM_FC_RTR_ON_OUTPUT);
 
             p_port->rfc.expected_rsp |= RFC_RSP_RPN;
-            rfc_send_rpn (p_mcb, p_frame->dlci, TRUE, &p_port->peer_port_pars,
+            rfc_send_rpn (p_mcb, p_frame->dlci, TRUE, &p_port->peer_port_pars, 
                           RFCOMM_RPN_PM_RTR_ON_INPUT | RFCOMM_RPN_PM_RTR_ON_OUTPUT);
             rfc_port_timer_start (p_port, RFC_T2_TIMEOUT) ;
             return;
@@ -636,9 +636,9 @@ void rfc_process_rpn (tRFC_MCB *p_mcb, BOOLEAN is_command,
         p_port->rfc.expected_rsp &= ~RFC_RSP_RPN;
 
     /* Check if all suggested parameters were accepted */
-    if (((p_frame->u.rpn.param_mask & (RFCOMM_RPN_PM_RTR_ON_INPUT | RFCOMM_RPN_PM_RTR_ON_OUTPUT)) ==
+    if (((p_frame->u.rpn.param_mask & (RFCOMM_RPN_PM_RTR_ON_INPUT | RFCOMM_RPN_PM_RTR_ON_OUTPUT)) == 
         (RFCOMM_RPN_PM_RTR_ON_INPUT | RFCOMM_RPN_PM_RTR_ON_OUTPUT))
-     || ((p_frame->u.rpn.param_mask & (RFCOMM_RPN_PM_RTC_ON_INPUT | RFCOMM_RPN_PM_RTC_ON_OUTPUT)) ==
+     || ((p_frame->u.rpn.param_mask & (RFCOMM_RPN_PM_RTC_ON_INPUT | RFCOMM_RPN_PM_RTC_ON_OUTPUT)) == 
         (RFCOMM_RPN_PM_RTC_ON_INPUT | RFCOMM_RPN_PM_RTC_ON_OUTPUT)))
     {
         PORT_PortNegCnf (p_mcb, p_port->dlci, &port_pars, RFCOMM_SUCCESS);
@@ -655,7 +655,7 @@ void rfc_process_rpn (tRFC_MCB *p_mcb, BOOLEAN is_command,
 
         p_port->rfc.expected_rsp |= RFC_RSP_RPN;
 
-        rfc_send_rpn (p_mcb, p_frame->dlci, TRUE, &p_port->peer_port_pars,
+        rfc_send_rpn (p_mcb, p_frame->dlci, TRUE, &p_port->peer_port_pars, 
                       RFCOMM_RPN_PM_RTC_ON_INPUT | RFCOMM_RPN_PM_RTC_ON_OUTPUT);
         rfc_port_timer_start (p_port, RFC_T2_TIMEOUT) ;
         return;
@@ -674,8 +674,8 @@ void rfc_process_rpn (tRFC_MCB *p_mcb, BOOLEAN is_command,
 **
 ** Function         rfc_process_msc
 **
-** Description      This function handles Modem Status Command.
-**                  Pass command to the user.
+** Description      This function handles Modem Status Command. 
+**                  Pass command to the user.  
 **
 *******************************************************************************/
 void rfc_process_msc (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
@@ -686,7 +686,7 @@ void rfc_process_msc (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
     BOOLEAN    new_peer_fc = FALSE;
 
     p_port = port_find_mcb_dlci_port (p_mcb, p_frame->dlci);
-    if (p_port == NULL)
+    if (p_port == NULL) 
         return;
 
     pars.modem_signal = 0;
@@ -704,8 +704,8 @@ void rfc_process_msc (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
         pars.modem_signal |= MODEM_SIGNAL_DCD;
 
     pars.fc = ((modem_signals & RFCOMM_MSC_FC) == RFCOMM_MSC_FC);
-
-    pars.break_signal     = (p_frame->u.msc.break_present) ?
+    
+    pars.break_signal     = (p_frame->u.msc.break_present) ? 
                              p_frame->u.msc.break_duration : 0;
     pars.discard_buffers  = 0;
     pars.break_signal_seq = RFCOMM_CTRL_BREAK_IN_SEQ;   /* this is default */
@@ -745,8 +745,8 @@ void rfc_process_msc (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
 **
 ** Function         rfc_process_rls
 **
-** Description      This function handles Remote Line Status command.
-**                  Pass command to the user.
+** Description      This function handles Remote Line Status command.  
+**                  Pass command to the user.  
 **
 *******************************************************************************/
 void rfc_process_rls (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
@@ -790,7 +790,7 @@ void rfc_process_nsc (tRFC_MCB *p_mcb, MX_FRAME *p_frame)
 ** Function         rfc_process_test
 **
 ** Description      This function handles Test frame.  If this is a command
-**                  reply to it.  Otherwise pass response to the user.
+**                  reply to it.  Otherwise pass response to the user.  
 **
 *******************************************************************************/
 void rfc_process_test_rsp (tRFC_MCB *p_mcb, BT_HDR *p_buf)
@@ -803,8 +803,8 @@ void rfc_process_test_rsp (tRFC_MCB *p_mcb, BT_HDR *p_buf)
 **
 ** Function         rfc_process_fcon
 **
-** Description      This function handles FCON frame.  The peer entity is able
-**                  to receive new information
+** Description      This function handles FCON frame.  The peer entity is able 
+**                  to receive new information 
 **
 *******************************************************************************/
 void rfc_process_fcon (tRFC_MCB *p_mcb, BOOLEAN is_command)
@@ -824,8 +824,8 @@ void rfc_process_fcon (tRFC_MCB *p_mcb, BOOLEAN is_command)
 **
 ** Function         rfc_process_fcoff
 **
-** Description      This function handles FCOFF frame.  The peer entity is unable
-**                  to receive new information
+** Description      This function handles FCOFF frame.  The peer entity is unable 
+**                  to receive new information 
 **
 *******************************************************************************/
 void rfc_process_fcoff (tRFC_MCB *p_mcb, BOOLEAN is_command)

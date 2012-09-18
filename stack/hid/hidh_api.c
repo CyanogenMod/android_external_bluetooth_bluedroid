@@ -134,31 +134,31 @@ static void hidh_search_callback (UINT16 sdp_result)
         attr_mask |= HID_VIRTUAL_CABLE;
     }
 
-    if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_RECONNECT_INITIATE)) != NULL) &&
+    if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_RECONNECT_INITIATE)) != NULL) && 
         (p_attr->attr_value.v.u8) )
     {
         attr_mask |= HID_RECONN_INIT;
     }
 
-    if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_NORMALLY_CONNECTABLE)) != NULL) &&
+    if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_NORMALLY_CONNECTABLE)) != NULL) && 
         (p_attr->attr_value.v.u8) )
     {
         attr_mask |= HID_NORMALLY_CONNECTABLE;
     }
 
-    if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_SDP_DISABLE)) != NULL)&&
+    if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_SDP_DISABLE)) != NULL)&& 
         (p_attr->attr_value.v.u8) )
     {
         attr_mask |= HID_SDP_DISABLE;
     }
 
-    if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_BATTERY_POWER)) != NULL)&&
+    if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_BATTERY_POWER)) != NULL)&& 
         (p_attr->attr_value.v.u8) )
     {
         attr_mask |= HID_BATTERY_POWER;
     }
 
-    if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_REMOTE_WAKE)) != NULL)&&
+    if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_REMOTE_WAKE)) != NULL)&& 
         (p_attr->attr_value.v.u8) )
     {
         attr_mask |= HID_REMOTE_WAKE;
@@ -169,33 +169,33 @@ static void hidh_search_callback (UINT16 sdp_result)
     hidh_get_str_attr( p_rec, ATTR_ID_PROVIDER_NAME, HID_MAX_PROV_NAME_LEN, p_nvi->prov_name );
 
     if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_DEVICE_RELNUM)) != NULL))
-    {
+    { 
         p_nvi->rel_num = p_attr->attr_value.v.u16;
     }
 
     if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_COUNTRY_CODE)) != NULL))
-    {
+    { 
         p_nvi->ctry_code = p_attr->attr_value.v.u8;
     }
 
     if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_DEVICE_SUBCLASS)) != NULL))
-    {
+    { 
         p_nvi->sub_class = p_attr->attr_value.v.u8;
     }
 
     if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_PARSER_VERSION)) != NULL))
-    {
+    { 
         p_nvi->hpars_ver = p_attr->attr_value.v.u16;
     }
 
     if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_LINK_SUPERVISION_TO)) != NULL))
-    {
+    { 
         attr_mask |= HID_SUP_TOUT_AVLBL;
         p_nvi->sup_timeout = p_attr->attr_value.v.u16;
     }
 
     if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_SSR_HOST_MAX_LAT)) != NULL))
-    {
+    { 
         attr_mask |= HID_SSR_MAX_LATENCY;
         p_nvi->ssr_max_latency = p_attr->attr_value.v.u16;
     }
@@ -203,7 +203,7 @@ static void hidh_search_callback (UINT16 sdp_result)
         p_nvi->ssr_max_latency = HID_SSR_PARAM_INVALID;
 
     if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_SSR_HOST_MIN_TOUT)) != NULL))
-    {
+    { 
         attr_mask |= HID_SSR_MIN_TOUT;
         p_nvi->ssr_min_tout = p_attr->attr_value.v.u16;
     }
@@ -304,7 +304,7 @@ tHID_STATUS HID_HostDeregister(void)
     {
         HID_HostRemoveDev( i ) ;
     }
-
+    
     hidh_conn_dereg();
     hh_cb.reg_flag = FALSE;
 
@@ -421,11 +421,11 @@ tHID_STATUS HID_HostOpenDev ( UINT8 dev_handle )
 **
 **                  report_id: is only used on GET_REPORT transaction if is specified.
 **                              only valid when it's a non-zero value.
-**
+**                               
 ** Returns          void
 **
 *******************************************************************************/
-tHID_STATUS HID_HostWriteDev( UINT8 dev_handle, UINT8 t_type,
+tHID_STATUS HID_HostWriteDev( UINT8 dev_handle, UINT8 t_type, 
                               UINT8 param, UINT16 data, UINT8 report_id, BT_HDR *pbuf  )
 {
     tHID_STATUS status = HID_SUCCESS;
@@ -455,7 +455,7 @@ tHID_STATUS HID_HostWriteDev( UINT8 dev_handle, UINT8 t_type,
     }
     else
         status = hidh_conn_snd_data( dev_handle, t_type, param, data, report_id, pbuf ) ;
-
+    
     return status;
 }
 
@@ -488,42 +488,42 @@ tHID_STATUS HID_HostCloseDev( UINT8 dev_handle )
 
 tHID_STATUS HID_HostSetSecurityLevel( char serv_name[], UINT8 sec_lvl )
 {
-    if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HID_SEC_CTRL,
+    if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HID_SEC_CTRL, 
                                sec_lvl, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_SEC_CHN))
     {
         HIDH_TRACE_ERROR0 ("Security Registration 1 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
-    if (!BTM_SetSecurityLevel (TRUE, serv_name, BTM_SEC_SERVICE_HID_SEC_CTRL,
+    if (!BTM_SetSecurityLevel (TRUE, serv_name, BTM_SEC_SERVICE_HID_SEC_CTRL, 
                                sec_lvl, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_SEC_CHN))
     {
         HIDH_TRACE_ERROR0 ("Security Registration 2 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
-    if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HID_NOSEC_CTRL,
+    if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HID_NOSEC_CTRL, 
                                BTM_SEC_NONE, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_NOSEC_CHN))
     {
         HIDH_TRACE_ERROR0 ("Security Registration 3 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
-    if (!BTM_SetSecurityLevel (TRUE, serv_name, BTM_SEC_SERVICE_HID_NOSEC_CTRL,
+    if (!BTM_SetSecurityLevel (TRUE, serv_name, BTM_SEC_SERVICE_HID_NOSEC_CTRL, 
                                BTM_SEC_NONE, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_NOSEC_CHN))
     {
         HIDH_TRACE_ERROR0 ("Security Registration 4 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
-    if (!BTM_SetSecurityLevel (TRUE, serv_name, BTM_SEC_SERVICE_HID_INTR,
+    if (!BTM_SetSecurityLevel (TRUE, serv_name, BTM_SEC_SERVICE_HID_INTR, 
                                BTM_SEC_NONE, HID_PSM_INTERRUPT, BTM_SEC_PROTO_HID, 0))
     {
         HIDH_TRACE_ERROR0 ("Security Registration 5 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
-    if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HID_INTR,
+    if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HID_INTR, 
                                BTM_SEC_NONE, HID_PSM_INTERRUPT, BTM_SEC_PROTO_HID, 0))
     {
         HIDH_TRACE_ERROR0 ("Security Registration 6 failed");

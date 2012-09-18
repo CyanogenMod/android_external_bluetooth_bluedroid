@@ -2,7 +2,7 @@
 **
 **  Name:           bta_ag_rfc.c
 **
-**  Description:    This file contains the audio gateway functions
+**  Description:    This file contains the audio gateway functions 
 **                  controlling the RFCOMM connections.
 **
 **  Copyright (c) 2004-2008, Broadcom Corp., All Rights Reserved.
@@ -67,7 +67,7 @@ const tBTA_AG_DATA_CBACK bta_ag_data_cback_tbl[] =
 ** Function         bta_ag_port_cback
 **
 ** Description      RFCOMM Port callback
-**
+**                  
 **
 ** Returns          void
 **
@@ -101,7 +101,7 @@ static void bta_ag_port_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
 ** Function         bta_ag_mgmt_cback
 **
 ** Description      RFCOMM management callback
-**
+**                  
 **
 ** Returns          void
 **
@@ -116,7 +116,7 @@ static void bta_ag_mgmt_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
 
     APPL_TRACE_DEBUG3("ag_mgmt_cback : code = %d, port_handle = %d, handle = %d",
                         code, port_handle, handle);
-
+            
     if ((p_scb = bta_ag_scb_by_idx(handle)) != NULL)
     {
         /* ignore close event for port handles other than connected handle */
@@ -175,7 +175,7 @@ static void bta_ag_mgmt_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
 ** Function         bta_ag_data_cback
 **
 ** Description      RFCOMM data callback
-**
+**                  
 **
 ** Returns          void
 **
@@ -194,7 +194,7 @@ static int bta_ag_data_cback(UINT16 port_handle, void *p_data, UINT16 len, UINT1
 **
 ** Description      RFCOMM callback functions.  This is an easy way to
 **                  distinguish scb from the callback.
-**
+**                  
 **
 ** Returns          void
 **
@@ -212,7 +212,7 @@ void bta_ag_port_cback_3(UINT32 code, UINT16 handle) {bta_ag_port_cback(code, ha
 **
 ** Description      RFCOMM data callback functions.  This is an easy way to
 **                  distinguish scb from the callback.
-**
+**                  
 **
 ** Returns          void
 **
@@ -235,7 +235,7 @@ int bta_ag_data_cback_3(UINT16 port_handle, void *p_data, UINT16 len)
 ** Function         bta_ag_setup_port
 **
 ** Description      Setup RFCOMM port for use by AG.
-**
+**                  
 **
 ** Returns          void
 **
@@ -249,7 +249,7 @@ void bta_ag_setup_port(tBTA_AG_SCB *p_scb, UINT16 handle)
     {
         PORT_SetDataCallback(handle, bta_ag_data_cback_tbl[i]);
     }
-
+    
     PORT_SetEventMask(handle, BTA_AG_PORT_EV_MASK);
     PORT_SetEventCallback(handle, bta_ag_port_cback_tbl[i]);
 }
@@ -259,7 +259,7 @@ void bta_ag_setup_port(tBTA_AG_SCB *p_scb, UINT16 handle)
 ** Function         bta_ag_start_servers
 **
 ** Description      Setup RFCOMM servers for use by AG.
-**
+**                  
 **
 ** Returns          void
 **
@@ -300,7 +300,7 @@ void bta_ag_start_servers(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK services)
 ** Function         bta_ag_close_servers
 **
 ** Description      Close RFCOMM servers port for use by AG.
-**
+**                  
 **
 ** Returns          void
 **
@@ -326,7 +326,7 @@ void bta_ag_close_servers(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK services)
 ** Function         bta_ag_is_server_closed
 **
 ** Description      Returns TRUE if all servers are closed.
-**
+**                  
 **
 ** Returns          TRUE if all servers are closed, FALSE otherwise
 **
@@ -350,7 +350,7 @@ BOOLEAN bta_ag_is_server_closed (tBTA_AG_SCB *p_scb)
 ** Function         bta_ag_rfc_do_open
 **
 ** Description      Open an RFCOMM connection to the peer device.
-**
+**                  
 **
 ** Returns          void
 **
@@ -379,7 +379,7 @@ void bta_ag_rfc_do_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Function         bta_ag_rfc_do_close
 **
 ** Description      Close RFCOMM connection.
-**
+**                  
 **
 ** Returns          void
 **
@@ -396,7 +396,7 @@ void bta_ag_rfc_do_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     {
         /* Close API was called while AG is in Opening state.               */
         /* Need to trigger the state machine to send callback to the app    */
-        /* and move back to INIT state.                                     */
+        /* and move back to INIT state.                                     */        
         if ((p_buf = (tBTA_AG_RFC *) GKI_getbuf(sizeof(tBTA_AG_RFC))) != NULL)
         {
             p_buf->hdr.event = BTA_AG_RFC_CLOSE_EVT;

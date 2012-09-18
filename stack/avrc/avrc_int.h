@@ -17,8 +17,8 @@
 #include "avrc_api.h"
 
 /*      DEBUG FLAGS
- *
- * #define META_DEBUG_ENABLED
+ * 
+ * #define META_DEBUG_ENABLED                 
  */
 /*****************************************************************************
 **  Constants

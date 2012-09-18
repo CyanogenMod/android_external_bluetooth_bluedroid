@@ -69,7 +69,7 @@ typedef struct
 ** Function         bta_ag_at_init
 **
 ** Description      Initialize the AT command parser control block.
-**
+**                  
 **
 ** Returns          void
 **
@@ -83,7 +83,7 @@ extern void bta_ag_at_init(tBTA_AG_AT_CB *p_cb);
 ** Description      Re-initialize the AT command parser control block.  This
 **                  function resets the AT command parser state and frees
 **                  any GKI buffer.
-**
+**                  
 **
 ** Returns          void
 **
@@ -97,7 +97,7 @@ extern void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb);
 ** Description      Parse AT commands.  This function will take the input
 **                  character string and parse it for AT commands according to
 **                  the AT command table passed in the control block.
-**
+**                  
 **
 ** Returns          void
 **

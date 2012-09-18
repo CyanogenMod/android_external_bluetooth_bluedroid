@@ -100,7 +100,7 @@ typedef UINT8 tHID_STATUS;
 */
 
 /* Buffer size in two bytes after Report ID */
-#define HID_PAR_GET_REP_BUFSIZE_FOLLOWS             (0x08)
+#define HID_PAR_GET_REP_BUFSIZE_FOLLOWS             (0x08)            
 
 
 /* Parameters for Protocol Type
@@ -137,7 +137,7 @@ typedef struct sdp_info
     UINT8     ctry_code;     /*Country Code.*/
     UINT16    sup_timeout;/* Supervisory Timeout */
 
-    tHID_DEV_DSCP_INFO  dscp_info;   /* Descriptor list and Report list to be set in the SDP record.
+    tHID_DEV_DSCP_INFO  dscp_info;   /* Descriptor list and Report list to be set in the SDP record. 
                                        This parameter is used if HID_DEV_USE_GLB_SDP_REC is set to FALSE.*/
     tSDP_DISC_REC       *p_sdp_layer_rec;
 } tHID_DEV_SDP_INFO;

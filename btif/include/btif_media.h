@@ -45,13 +45,14 @@
  *
  ************************************************************************************/
 
-/*******************************************************************************
+/************************************************************************************
  *
  *  Filename:      btif_media.h
  *
  *  Description:   This is the audio module for the BTIF system.
  *
- *******************************************************************************/
+ ***********************************************************************************/
+
 
 #ifndef BTIF_MEDIA_H
 #define BTIF_MEDIA_H
@@ -62,15 +63,15 @@
 #include "btif_av_api.h"
 #include "audio_a2dp_hw.h"
 
-/*******************************************************************************
+/*****************************************************************************
  **  Constants
- *******************************************************************************/
+ *****************************************************************************/
 
 /* Generic part */
 #define BTIF_SUCCESS                         0
 
-/**
- * AV (Audio Video source) Errors
+/*
+* AV (Audio Video source) Errors
  */
 #define BTIF_ERROR_SRV_AV_NOT_ENABLED        700     /* AV is not enabled */
 #define BTIF_ERROR_SRV_AV_FEEDING_NOT_SUPPORTED 701  /* Requested Feeding not supported */
@@ -79,14 +80,14 @@
 #define BTIF_ERROR_SRV_AV_NOT_STARTED        704     /* AV is not started */
 #define BTIF_ERROR_SRV_AV_CP_NOT_SUPPORTED   705     /* Content protection is not supported by all headsets */
 
-/* Transcoding definition for TxTranscoding and RxTranscoding */
+/* transcoding definition for TxTranscoding and RxTranscoding */
 #define BTIF_MEDIA_TRSCD_OFF             0
 #define BTIF_MEDIA_TRSCD_PCM_2_SBC       1  /* Tx */
 
 
-/*******************************************************************************
+/*****************************************************************************
  **  Data types
- *******************************************************************************/
+ *****************************************************************************/
 
 typedef int tBTIF_STATUS;
 
@@ -122,9 +123,13 @@ typedef struct
 #endif
 
 
-/*******************************************************************************
- **  Public functions
- *******************************************************************************/
+/*****************************************************************************
+ **  Local data
+ *****************************************************************************/
+
+/*****************************************************************************
+ **  public functions
+ *****************************************************************************/
 
 /*******************************************************************************
  **
@@ -136,6 +141,7 @@ typedef struct
  **
  *******************************************************************************/
 extern int btif_media_task(void *p);
+
 
 /*******************************************************************************
  **
@@ -160,7 +166,6 @@ extern BOOLEAN btif_media_task_enc_init_req(tBTIF_MEDIA_INIT_AUDIO * p_msg);
 #if (BTA_AV_INCLUDED == TRUE)
 extern BOOLEAN btif_media_task_enc_update_req(tBTIF_MEDIA_UPDATE_AUDIO * p_msg);
 #endif
-
 /*******************************************************************************
  **
  ** Function         btif_media_task_start_aa_req
@@ -230,6 +235,7 @@ extern BOOLEAN btif_media_av_writebuf(UINT8 *p_media, UINT32 media_len,
                                      UINT32 timestamp, UINT16 seq_num);
 
 #if (BTA_AV_INCLUDED == TRUE)
+
 /*******************************************************************************
  **
  ** Function         btif_media_task_audio_feeding_init_req
@@ -243,6 +249,7 @@ extern BOOLEAN btif_media_av_writebuf(UINT8 *p_media, UINT32 media_len,
 extern BOOLEAN btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEEDING *p_msg);
 #endif
 
+
 /*******************************************************************************
  **
  ** Function         dump_codec_info
@@ -254,8 +261,8 @@ extern BOOLEAN btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEE
  *******************************************************************************/
 extern void dump_codec_info(unsigned char *p_codec);
 
-/**
- * Local adaptation helper functions between btif and media task
+/*
+ * local adaptation helper functions between btif and media task
  */
 
 int btif_a2dp_start_media_task(void);
@@ -273,3 +280,4 @@ void btif_a2dp_on_suspended(tBTA_AV_SUSPEND *p_av);
 void btif_a2dp_set_tx_flush(BOOLEAN enable);
 
 #endif
+

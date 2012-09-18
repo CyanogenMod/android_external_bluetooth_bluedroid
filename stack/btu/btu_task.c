@@ -51,7 +51,7 @@
 #include "bip_int.h"
 #endif /* BIP */
 
-#if (BPP_SND_INCLUDED == TRUE ||  BPP_INCLUDED == TRUE)
+#if (BPP_SND_INCLUDED == TRUE ||  BPP_INCLUDED == TRUE)  
 #include "bpp_int.h"
 #endif /* BPP */
 
@@ -114,7 +114,7 @@ extern void avdt_rcv_sync_info (BT_HDR *p_buf); /* this is for hci_test */
 #endif
 
 #ifdef __cplusplus
-extern "C"
+extern "C" 
 {
 #endif
 
@@ -157,7 +157,7 @@ BTU_API UINT32 btu_task (UINT32 param)
     /* wait an event that HCISU is ready */
     GKI_wait(0xFFFF, 0);
 #endif
-    /* Initialize the mandatory core stack control blocks
+    /* Initialize the mandatory core stack control blocks 
        (BTU, BTM, L2CAP, and SDP)
      */
     btu_init_core();
@@ -206,7 +206,7 @@ BTU_API UINT32 btu_task (UINT32 param)
 #if BTM_SCO_INCLUDED == TRUE
                         btm_route_sco_data (p_msg);
                         break;
-#endif
+#endif                        
 
                     case BT_EVT_TO_BTU_HCI_EVT:
                         btu_hcif_process_event ((UINT8)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
@@ -431,7 +431,7 @@ BTU_API UINT32 btu_task (UINT32 param)
                     case BTU_TTYPE_ATT_WAIT_FOR_RSP:
                         gatt_rsp_timeout(p_tle);
                         break;
-
+  
                     case BTU_TTYPE_ATT_WAIT_FOR_IND_ACK:
                         gatt_ind_ack_timeout(p_tle);
                         break;
@@ -806,7 +806,7 @@ void btu_deregister_event_range (UINT16 range)
 *******************************************************************************/
 void btu_check_bt_sleep (void)
 {
-    if ((btu_cb.hci_cmd_cb[LOCAL_BR_EDR_CONTROLLER_ID].cmd_cmpl_q.count == 0)
+    if ((btu_cb.hci_cmd_cb[LOCAL_BR_EDR_CONTROLLER_ID].cmd_cmpl_q.count == 0) 
         &&(btu_cb.hci_cmd_cb[LOCAL_BR_EDR_CONTROLLER_ID].cmd_xmit_q.count == 0))
     {
         if (l2cb.controller_xmit_window == l2cb.num_lm_acl_bufs)

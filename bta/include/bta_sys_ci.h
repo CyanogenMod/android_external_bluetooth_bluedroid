@@ -28,9 +28,9 @@ extern "C"
 **
 ** Description      This function must be called in response to function
 **                  bta_sys_hw_co_enable(), when HW is indeed enabled
+**                  
 **
-**
-** Returns          void
+** Returns          void                  
 **
 *******************************************************************************/
 BTA_API  void bta_sys_hw_ci_enabled(tBTA_SYS_HW_MODULE module );
@@ -42,9 +42,9 @@ BTA_API  void bta_sys_hw_ci_enabled(tBTA_SYS_HW_MODULE module );
 **
 ** Description      This function must be called in response to function
 **                  bta_sys_hw_co_disable() when HW is really OFF
+**                  
 **
-**
-** Returns          void
+** Returns          void                  
 **
 *******************************************************************************/
 BTA_API void bta_sys_hw_ci_disabled( tBTA_SYS_HW_MODULE module  );

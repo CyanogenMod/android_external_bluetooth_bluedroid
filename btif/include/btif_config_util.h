@@ -45,25 +45,21 @@
  *
  ************************************************************************************/
 
+
 /************************************************************************************
  *
  *  Filename:      btif_config_util.h
  *
  *  Description:   Bluetooth configuration utility api
  *
+ *
  ***********************************************************************************/
 
-#ifndef BTIF_CONFIG_UTIL_H
-#define BTIF_CONFIG_UTIL_H
-
+#ifndef btif_config_util_h_
+#define btif_config_util_h_
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/*******************************************************************************
-** Constants & Macros
-********************************************************************************/
-
 #define BLUEZ_PATH "/data/misc/bluetoothd/"
 #define BLUEZ_PATH_BAK "/data/misc/bluetoothd_bak"
 #define BLUEZ_LINKKEY  "linkkeys"
@@ -73,17 +69,10 @@ extern "C" {
 #define BLUEZ_TYPES "types"
 #define BLUEZ_CONFIG "config"
 #define BLUEZ_ALIASES "aliases"
-
-
-/*******************************************************************************
-**  Functions
-********************************************************************************/
-
 int btif_config_save_file(const char* file_name);
 int btif_config_load_file(const char* file_name);
 int load_bluez_adapter_info(char* adapter_path, int size);
 int load_bluez_linkkeys(const char* adapter_path);
-
 #ifdef __cplusplus
 }
 #endif

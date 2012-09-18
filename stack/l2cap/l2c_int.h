@@ -293,7 +293,7 @@ typedef struct t_l2c_ccb
     UINT8               flags;
 
     tL2CAP_CFG_INFO     our_cfg;                /* Our saved configuration options    */
-    tL2CAP_CH_CFG_BITS  peer_cfg_bits;          /* Store what peer wants to configure */
+    tL2CAP_CH_CFG_BITS  peer_cfg_bits;          /* Store what peer wants to configure */  
     tL2CAP_CFG_INFO     peer_cfg;               /* Peer's saved configuration options */
 
     BUFFER_Q            xmit_hold_q;            /* Transmit data hold queue         */
@@ -332,7 +332,7 @@ typedef struct t_l2c_ccb
 /***********************************************************************
 ** Define a queue of linked CCBs.
 */
-typedef struct
+typedef struct 
 {
     tL2C_CCB        *p_first_ccb;               /* The first channel in this queue */
     tL2C_CCB        *p_last_ccb;                /* The last  channel in this queue */
@@ -745,7 +745,7 @@ extern void     l2c_fcr_stop_timer (tL2C_CCB *p_ccb);
 #if (BLE_INCLUDED == TRUE)
 extern BOOLEAN l2cble_create_conn (tL2C_LCB *p_lcb);
 extern void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len);
-extern void l2cble_conn_comp (UINT16 handle, UINT8 role, BD_ADDR bda, tBLE_ADDR_TYPE type,
+extern void l2cble_conn_comp (UINT16 handle, UINT8 role, BD_ADDR bda, tBLE_ADDR_TYPE type, 
                               UINT16 conn_interval, UINT16 conn_latency, UINT16 conn_timeout);
 
 #endif

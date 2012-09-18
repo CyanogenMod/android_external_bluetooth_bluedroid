@@ -31,7 +31,7 @@
 **                  services.
 **
 ** Returns          PSM to use or zero if error. Typically, the PSM returned
-**                  is the same as was passed in, but for an outgoing-only
+**                  is the same as was passed in, but for an outgoing-only 
 **                  connection to a dynamic PSM, a "virtual" PSM is returned
 **                  and should be used in the calls to L2CA_ConnectReq(),
 **                  L2CA_ErtmConnectReq() and L2CA_Deregister()
@@ -150,7 +150,7 @@ void L2CA_Deregister (UINT16 psm)
 ** Description      Other layers call this function to find an unused PSM for L2CAP
 **                  services.
 **
-** Returns          PSM to use.
+** Returns          PSM to use. 
 **
 *******************************************************************************/
 UINT16 L2CA_AllocatePSM(void)
@@ -221,8 +221,8 @@ UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO *p_e
     tL2C_RCB        *p_rcb;
 
     L2CAP_TRACE_API6 ("L2CA_ErtmConnectReq()  PSM: 0x%04x  BDA: %08x%04x  p_ertm_info: 0x%08x allowed:0x%x preferred:%d", psm,
-                      (p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3],
-                      (p_bd_addr[4]<<8)+p_bd_addr[5], p_ertm_info,
+                      (p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3], 
+                      (p_bd_addr[4]<<8)+p_bd_addr[5], p_ertm_info, 
                       (p_ertm_info) ? p_ertm_info->allowed_modes : 0, (p_ertm_info) ? p_ertm_info->preferred_mode : 0);
 
     /* Fail if we have not established communications with the controller */
@@ -341,9 +341,9 @@ BOOLEAN L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 re
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
 
-    L2CAP_TRACE_API6 ("L2CA_ErtmConnectRsp()  CID: 0x%04x  Result: %d  Status: %d  BDA: %08x%04x  p_ertm_info:0x%08x",
+    L2CAP_TRACE_API6 ("L2CA_ErtmConnectRsp()  CID: 0x%04x  Result: %d  Status: %d  BDA: %08x%04x  p_ertm_info:0x%08x", 
                       lcid, result, status,
-                      (p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3],
+                      (p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3], 
                       (p_bd_addr[4]<<8)+p_bd_addr[5], p_ertm_info);
 
     /* First, find the link control block */
@@ -424,7 +424,7 @@ BOOLEAN L2CA_ConfigReq (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tL2C_CCB        *p_ccb;
 
-    L2CAP_TRACE_API5 ("L2CA_ConfigReq()  CID 0x%04x: fcr_present:%d (mode %d) mtu_present:%d (%d)",
+    L2CAP_TRACE_API5 ("L2CA_ConfigReq()  CID 0x%04x: fcr_present:%d (mode %d) mtu_present:%d (%d)", 
         cid, p_cfg->fcr_present, p_cfg->fcr.mode, p_cfg->mtu_present, p_cfg->mtu);
 
     /* Find the channel control block. We don't know the link it is on. */
@@ -475,7 +475,7 @@ BOOLEAN L2CA_ConfigRsp (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tL2C_CCB        *p_ccb;
 
-    L2CAP_TRACE_API6 ("L2CA_ConfigRsp()  CID: 0x%04x  Result: %d MTU present:%d Flush TO:%d FCR:%d FCS:%d",
+    L2CAP_TRACE_API6 ("L2CA_ConfigRsp()  CID: 0x%04x  Result: %d MTU present:%d Flush TO:%d FCR:%d FCS:%d", 
         cid, p_cfg->result, p_cfg->mtu_present, p_cfg->flush_to_present, p_cfg->fcr_present, p_cfg->fcs_present);
 
     /* Find the channel control block. We don't know the link it is on. */
@@ -537,7 +537,7 @@ BOOLEAN L2CA_DisconnectReq (UINT16 cid)
 **
 ** Function         L2CA_DisconnectRsp
 **
-** Description      Higher layers call this function to acknowledge the
+** Description      Higher layers call this function to acknowledge the 
 **                  disconnection of a channel.
 **
 ** Returns          void
@@ -663,7 +663,7 @@ BOOLEAN  L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_cal
         L2CAP_TRACE_ERROR0 ("L2CA_Echo ERROR : link not established");
         return FALSE;
     }
-
+    
     if (p_lcb->link_state != LST_CONNECTED)
     {
         L2CAP_TRACE_ERROR0 ("L2CA_Echo ERROR : link is not connected");
@@ -679,7 +679,7 @@ BOOLEAN  L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_cal
     l2cu_send_peer_echo_req (p_lcb, pp, p_data->len);
 
     return (TRUE);
-
+    
 }
 
 /*******************************************************************************
@@ -735,18 +735,18 @@ BOOLEAN L2CA_SetIdleTimeout (UINT16 cid, UINT16 timeout, BOOLEAN is_global)
 ** Function         L2CA_SetIdleTimeoutByBdAddr
 **
 ** Description      Higher layers call this function to set the idle timeout for
-**                  a connection. The "idle timeout" is the amount of time that
-**                  a connection can remain up with no L2CAP channels on it.
-**                  A timeout of zero means that the connection will be torn
-**                  down immediately when the last channel is removed.
-**                  A timeout of 0xFFFF means no timeout. Values are in seconds.
-**                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY,
-**                  then the idle timeouts for all active l2cap links will be
+**                  a connection. The "idle timeout" is the amount of time that 
+**                  a connection can remain up with no L2CAP channels on it. 
+**                  A timeout of zero means that the connection will be torn 
+**                  down immediately when the last channel is removed. 
+**                  A timeout of 0xFFFF means no timeout. Values are in seconds. 
+**                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY, 
+**                  then the idle timeouts for all active l2cap links will be 
 **                  changed.
 **
 ** Returns          TRUE if command succeeded, FALSE if failed
 **
-** NOTE             This timeout applies to all logical channels active on the
+** NOTE             This timeout applies to all logical channels active on the 
 **                  ACL link.
 *******************************************************************************/
 BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout)
@@ -908,7 +908,7 @@ UINT16 L2CA_LocalLoopbackReq (UINT16 psm, UINT16 handle, BD_ADDR p_bd_addr)
 BOOLEAN L2CA_SetAclPriority (BD_ADDR bd_addr, UINT8 priority)
 {
     L2CAP_TRACE_API6 ("L2CA_SetAclPriority()  bdaddr: %02x%02x%02x%02x%04x, priority:%d",
-                    bd_addr[0], bd_addr[1], bd_addr[2],
+                    bd_addr[0], bd_addr[1], bd_addr[2], 
                     bd_addr[3], (bd_addr[4] << 8) + bd_addr[5], priority);
 
     return (l2cu_set_acl_priority(bd_addr, priority, FALSE));
@@ -1056,21 +1056,21 @@ BOOLEAN L2CA_SetChnlDataRate (UINT16 cid, tL2CAP_CHNL_DATA_RATE tx, tL2CAP_CHNL_
 **
 ** Function         L2CA_SetFlushTimeout
 **
-** Description      This function set the automatic flush time out in Baseband
+** Description      This function set the automatic flush time out in Baseband 
 **                  for ACL-U packets.
 **                  BdAddr : the remote BD address of ACL link. If it is BT_DB_ANY
 **                           then the flush time out will be applied to all ACL link.
 **                  FlushTimeout: flush time out in ms
-**                           0x0000 : No automatic flush
-**                           L2CAP_NO_RETRANSMISSION : No retransmission
-**                           0x0002 - 0xFFFE : flush time out, if (flush_tout*8)+3/5)
+**                           0x0000 : No automatic flush  
+**                           L2CAP_NO_RETRANSMISSION : No retransmission  
+**                           0x0002 - 0xFFFE : flush time out, if (flush_tout*8)+3/5) 
 **                                    <= HCI_MAX_AUTO_FLUSH_TOUT (in 625us slot).
 **                                    Otherwise, return FALSE.
-**                           L2CAP_NO_AUTOMATIC_FLUSH : No automatic flush
+**                           L2CAP_NO_AUTOMATIC_FLUSH : No automatic flush  
 **
 ** Returns          TRUE if command succeeded, FALSE if failed
 **
-** NOTE             This flush timeout applies to all logical channels active on the
+** NOTE             This flush timeout applies to all logical channels active on the 
 **                  ACL link.
 *******************************************************************************/
 BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout)
@@ -1094,7 +1094,7 @@ BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout)
         hci_flush_to = flush_tout;
     }
     /* no automatic flush (infinite timeout) */
-    else if (flush_tout == L2CAP_NO_AUTOMATIC_FLUSH)
+    else if (flush_tout == L2CAP_NO_AUTOMATIC_FLUSH) 
     {
         hci_flush_to = 0x0000;
     }
@@ -1125,7 +1125,7 @@ BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout)
             {
                 p_lcb->link_flush_tout = flush_tout;
 
-                L2CAP_TRACE_API4 ("L2CA_SetFlushTimeout 0x%04x ms for bd_addr [...;%02x%02x%02x]",
+                L2CAP_TRACE_API4 ("L2CA_SetFlushTimeout 0x%04x ms for bd_addr [...;%02x%02x%02x]", 
                                   flush_tout, bd_addr[3], bd_addr[4], bd_addr[5]);
 
                 if (!btsnd_hcic_write_auto_flush_tout (p_lcb->handle, hci_flush_to))
@@ -1134,7 +1134,7 @@ BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout)
         }
         else
         {
-            L2CAP_TRACE_WARNING3 ("WARNING L2CA_SetFlushTimeout No lcb for bd_addr [...;%02x%02x%02x]",
+            L2CAP_TRACE_WARNING3 ("WARNING L2CA_SetFlushTimeout No lcb for bd_addr [...;%02x%02x%02x]", 
                                   bd_addr[3], bd_addr[4], bd_addr[5]);
             return (FALSE);
         }
@@ -1152,8 +1152,8 @@ BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout)
                 {
                     p_lcb->link_flush_tout = flush_tout;
 
-                    L2CAP_TRACE_API4 ("L2CA_SetFlushTimeout 0x%04x ms for bd_addr [...;%02x%02x%02x]",
-                                      flush_tout, p_lcb->remote_bd_addr[3],
+                    L2CAP_TRACE_API4 ("L2CA_SetFlushTimeout 0x%04x ms for bd_addr [...;%02x%02x%02x]", 
+                                      flush_tout, p_lcb->remote_bd_addr[3], 
                                       p_lcb->remote_bd_addr[4], p_lcb->remote_bd_addr[5]);
 
                     if (!btsnd_hcic_write_auto_flush_tout(p_lcb->handle, hci_flush_to))
@@ -1185,14 +1185,14 @@ BOOLEAN L2CA_GetPeerFeatures (BD_ADDR bd_addr, UINT32 *p_ext_feat, UINT8 *p_chnl
     /* We must already have a link to the remote */
     if ((p_lcb = l2cu_find_lcb_by_bd_addr (bd_addr)) == NULL)
     {
-        L2CAP_TRACE_WARNING2 ("L2CA_GetPeerFeatures() No BDA: %08x%04x",
-                              (bd_addr[0]<<24)+(bd_addr[1]<<16)+(bd_addr[2]<<8)+bd_addr[3],
+        L2CAP_TRACE_WARNING2 ("L2CA_GetPeerFeatures() No BDA: %08x%04x", 
+                              (bd_addr[0]<<24)+(bd_addr[1]<<16)+(bd_addr[2]<<8)+bd_addr[3], 
                               (bd_addr[4]<<8)+bd_addr[5]);
         return (FALSE);
     }
 
-    L2CAP_TRACE_API4 ("L2CA_GetPeerFeatures() BDA: %08x%04x  ExtFea: 0x%08x  Chnl_Mask[0]: 0x%02x",
-                      (bd_addr[0]<<24)+(bd_addr[1]<<16)+(bd_addr[2]<<8)+bd_addr[3],
+    L2CAP_TRACE_API4 ("L2CA_GetPeerFeatures() BDA: %08x%04x  ExtFea: 0x%08x  Chnl_Mask[0]: 0x%02x", 
+                      (bd_addr[0]<<24)+(bd_addr[1]<<16)+(bd_addr[2]<<8)+bd_addr[3], 
                       (bd_addr[4]<<8)+bd_addr[5], p_lcb->peer_ext_fea, p_lcb->peer_chnl_mask[0]);
 
     *p_ext_feat = p_lcb->peer_ext_fea;
@@ -1218,7 +1218,7 @@ BOOLEAN L2CA_GetBDAddrbyHandle (UINT16 handle, BD_ADDR bd_addr)
 {
     tL2C_LCB *p_lcb = NULL;
     BOOLEAN found_dev = FALSE;
-
+       
     p_lcb = l2cu_find_lcb_by_handle (handle);
     if (p_lcb)
     {
@@ -1299,7 +1299,7 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
     UINT16          reason;
 #endif
 
-    L2CAP_TRACE_API3  ("L2CA_ConnectFixedChnl()  CID: 0x%04x  BDA: %08x%04x", fixed_cid,
+    L2CAP_TRACE_API3  ("L2CA_ConnectFixedChnl()  CID: 0x%04x  BDA: %08x%04x", fixed_cid, 
                     (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
 
     /* Check CID is valid and registered */
@@ -1322,7 +1322,7 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
     {
         if (!(p_lcb->peer_chnl_mask[0] & (1 << fixed_cid)))
         {
-            L2CAP_TRACE_EVENT3  ("L2CA_ConnectFixedChnl()  CID: 0x%04x  BDA: %08x%04x not supported", fixed_cid,
+            L2CAP_TRACE_EVENT3  ("L2CA_ConnectFixedChnl()  CID: 0x%04x  BDA: %08x%04x not supported", fixed_cid, 
                                 (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
             return (FALSE);
         }
@@ -1368,7 +1368,7 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
 **
 **  Parameters:     Fixed CID
 **                  BD Address of remote
-**                  Pointer to buffer of type BT_HDR
+**                  Pointer to buffer of type BT_HDR 
 **
 ** Return value     L2CAP_DW_SUCCESS, if data accepted
 **                  L2CAP_DW_FAILED,  if error
@@ -1378,7 +1378,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
 {
     tL2C_LCB        *p_lcb;
 
-    L2CAP_TRACE_API3 ("L2CA_SendFixedChnlData()  CID: 0x%04x  BDA: %08x%04x", fixed_cid,
+    L2CAP_TRACE_API3 ("L2CA_SendFixedChnlData()  CID: 0x%04x  BDA: %08x%04x", fixed_cid, 
                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
 
     /* Check CID is valid and registered */
@@ -1464,7 +1464,7 @@ BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
     p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda);
     if ( ((p_lcb) == NULL) || (!p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]) )
     {
-        L2CAP_TRACE_WARNING3 ("L2CA_RemoveFixedChnl()  CID: 0x%04x  BDA: %08x%04x not connected", fixed_cid,
+        L2CAP_TRACE_WARNING3 ("L2CA_RemoveFixedChnl()  CID: 0x%04x  BDA: %08x%04x not connected", fixed_cid, 
                              (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
         return (FALSE);
     }
@@ -1489,11 +1489,11 @@ BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
 ** Description      Higher layers call this function to set the idle timeout for
 **                  a fixed channel. The "idle timeout" is the amount of time that
 **                  a connection can remain up with no L2CAP channels on it.
-**                  A timeout of zero means that the connection will be torn
-**                  down immediately when the last channel is removed.
-**                  A timeout of 0xFFFF means no timeout. Values are in seconds.
-**                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY,
-**                  then the idle timeouts for all active l2cap links will be
+**                  A timeout of zero means that the connection will be torn 
+**                  down immediately when the last channel is removed. 
+**                  A timeout of 0xFFFF means no timeout. Values are in seconds. 
+**                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY, 
+**                  then the idle timeouts for all active l2cap links will be 
 **                  changed.
 **
 ** Returns          TRUE if command succeeded, FALSE if failed
@@ -1507,7 +1507,7 @@ BOOLEAN L2CA_SetFixedChannelTout (BD_ADDR rem_bda, UINT16 fixed_cid, UINT16 idle
     p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda);
     if ( ((p_lcb) == NULL) || (!p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]) )
     {
-        L2CAP_TRACE_WARNING3 ("L2CA_SetFixedChannelTout()  CID: 0x%04x  BDA: %08x%04x not connected", fixed_cid,
+        L2CAP_TRACE_WARNING3 ("L2CA_SetFixedChannelTout()  CID: 0x%04x  BDA: %08x%04x not connected", fixed_cid, 
                              (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
         return (FALSE);
     }
@@ -1538,7 +1538,7 @@ BOOLEAN L2CA_SetFixedChannelTout (BD_ADDR rem_bda, UINT16 fixed_cid, UINT16 idle
 ** Returns      TRUE if successful
 **
 *******************************************************************************/
-BOOLEAN L2CA_GetCurrentConfig (UINT16 lcid,
+BOOLEAN L2CA_GetCurrentConfig (UINT16 lcid, 
                                tL2CAP_CFG_INFO **pp_our_cfg,  tL2CAP_CH_CFG_BITS *p_our_cfg_bits,
                                tL2CAP_CFG_INFO **pp_peer_cfg, tL2CAP_CH_CFG_BITS *p_peer_cfg_bits)
 {
@@ -1628,7 +1628,7 @@ UINT8 L2CA_DataWrite (UINT16 cid, BT_HDR *p_data)
 **
 ** Function         L2CA_SetChnlFlushability
 **
-** Description      Higher layers call this function to set a channels
+** Description      Higher layers call this function to set a channels 
 **                  flushability flags
 **
 ** Returns          TRUE if CID found, else FALSE
@@ -1673,7 +1673,7 @@ BOOLEAN L2CA_SetChnlFlushability (UINT16 cid, BOOLEAN is_flushable)
 *******************************************************************************/
 UINT8 L2CA_DataWriteEx (UINT16 cid, BT_HDR *p_data, UINT16 flags)
 {
-    L2CAP_TRACE_API3 ("L2CA_DataWriteEx()  CID: 0x%04x  Len: %d Flags:0x%04X",
+    L2CAP_TRACE_API3 ("L2CA_DataWriteEx()  CID: 0x%04x  Len: %d Flags:0x%04X", 
                        cid, p_data->len, flags);
     return l2c_data_write (cid, p_data, flags);
 }

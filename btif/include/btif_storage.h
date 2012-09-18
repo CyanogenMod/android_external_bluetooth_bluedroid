@@ -45,6 +45,14 @@
  *
  ************************************************************************************/
 
+/************************************************************************************
+ *
+ *  Filename:      btif_storage.h
+ *
+ *  Description:
+ *
+ ***********************************************************************************/
+
 #ifndef BTIF_STORAGE_H
 #define BTIF_STORAGE_H
 
@@ -53,17 +61,23 @@
 
 #include <utils/Log.h>
 
-/*******************************************************************************
+/************************************************************************************
 **  Constants & Macros
-********************************************************************************/
+************************************************************************************/
 #define BTIF_STORAGE_FILL_PROPERTY(p_prop, t, l, p_v) \
          (p_prop)->type = t;(p_prop)->len = l; (p_prop)->val = (p_v);
 
+/************************************************************************************
+**  Type definitions for callback functions
+************************************************************************************/
 
-/*******************************************************************************
+/************************************************************************************
+**  Type definitions and return values
+************************************************************************************/
+
+/************************************************************************************
 **  Functions
-********************************************************************************/
-
+************************************************************************************/
 /*******************************************************************************
 **
 ** Function         btif_storage_get_adapter_property
@@ -78,7 +92,6 @@
 **
 *******************************************************************************/
 bt_status_t btif_storage_get_adapter_property(bt_property_t *property);
-
 /*******************************************************************************
 **
 ** Function         btif_storage_set_adapter_property
@@ -91,7 +104,6 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property);
 **
 *******************************************************************************/
 bt_status_t btif_storage_set_adapter_property(bt_property_t *property);
-
 /*******************************************************************************
 **
 ** Function         btif_storage_get_remote_device_property
@@ -107,7 +119,6 @@ bt_status_t btif_storage_set_adapter_property(bt_property_t *property);
 *******************************************************************************/
 bt_status_t btif_storage_get_remote_device_property(bt_bdaddr_t *remote_bd_addr,
                                                     bt_property_t *property);
-
 /*******************************************************************************
 **
 ** Function         btif_storage_set_remote_device_property
@@ -121,7 +132,6 @@ bt_status_t btif_storage_get_remote_device_property(bt_bdaddr_t *remote_bd_addr,
 *******************************************************************************/
 bt_status_t btif_storage_set_remote_device_property(bt_bdaddr_t *remote_bd_addr,
                                                     bt_property_t *property);
-
 /*******************************************************************************
 **
 ** Function         btif_storage_add_remote_device
@@ -137,7 +147,6 @@ bt_status_t btif_storage_set_remote_device_property(bt_bdaddr_t *remote_bd_addr,
 bt_status_t btif_storage_add_remote_device(bt_bdaddr_t *remote_bdaddr,
                                            uint32_t num_properties,
                                            bt_property_t *properties);
-
 /*******************************************************************************
 **
 ** Function         btif_storage_add_bonded_device
@@ -153,7 +162,6 @@ bt_status_t btif_storage_add_bonded_device(bt_bdaddr_t *remote_bd_addr,
                                            LINK_KEY link_key,
                                            uint8_t key_type,
                                            uint8_t pin_length);
-
 /*******************************************************************************
 **
 ** Function         btif_storage_remove_bonded_device
@@ -165,7 +173,6 @@ bt_status_t btif_storage_add_bonded_device(bt_bdaddr_t *remote_bd_addr,
 **
 *******************************************************************************/
 bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t *remote_bd_addr);
-
 /*******************************************************************************
 **
 ** Function         btif_storage_remove_bonded_device
@@ -177,7 +184,6 @@ bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t *remote_bd_addr);
 **
 *******************************************************************************/
 bt_status_t btif_storage_load_bonded_devices(void);
-
 /*******************************************************************************
 **
 ** Function         btif_storage_read_hl_apps_cb
@@ -201,7 +207,6 @@ bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size);
 **
 *******************************************************************************/
 bt_status_t btif_storage_write_hl_apps_cb(char *value, int value_size);
-
 /*******************************************************************************
 **
 ** Function         btif_storage_read_hl_apps_cb
@@ -213,7 +218,6 @@ bt_status_t btif_storage_write_hl_apps_cb(char *value, int value_size);
 **
 *******************************************************************************/
 bt_status_t btif_storage_read_hl_app_data(UINT8 app_idx, char *value, int value_size);
-
 /*******************************************************************************
 **
 ** Function         btif_storage_write_hl_app_data
@@ -225,7 +229,6 @@ bt_status_t btif_storage_read_hl_app_data(UINT8 app_idx, char *value, int value_
 **
 *******************************************************************************/
 bt_status_t btif_storage_write_hl_app_data(UINT8 app_idx, char *value, int value_size);
-
 /*******************************************************************************
 **
 ** Function         btif_storage_read_hl_mdl_data
@@ -237,7 +240,6 @@ bt_status_t btif_storage_write_hl_app_data(UINT8 app_idx, char *value, int value
 **
 *******************************************************************************/
 bt_status_t btif_storage_read_hl_mdl_data(UINT8 app_idx, char *value, int value_size);
-
 /*******************************************************************************
 **
 ** Function         btif_storage_write_hl_mdl_data
@@ -260,19 +262,19 @@ bt_status_t btif_storage_write_hl_mdl_data(UINT8 app_idx, char *value, int value
 **                  BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
+
 bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
                                                     UINT16 attr_mask, UINT8 sub_class,
                                                     UINT8 app_id, UINT16 vendor_id,
                                                     UINT16 product_id, UINT16 version,
-                                                    UINT8 ctry_code, UINT16 dl_len,
-                                                    UINT8 *dsc_list);
+                                                    UINT8 ctry_code, UINT16 dl_len, UINT8 *dsc_list);
 
 /*******************************************************************************
 **
 ** Function         btif_storage_load_bonded_hid_info
 **
-** Description      BTIF storage API - Loads hid info for all the bonded devices
-**                  from NVRAM and adds those devices  to the BTA_HH.
+** Description      BTIF storage API - Loads hid info for all the bonded devices from NVRAM
+**                  and adds those devices  to the BTA_HH.
 **
 ** Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
 **
@@ -289,6 +291,7 @@ bt_status_t btif_storage_load_bonded_hid_info(void);
 **                  BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
+
 bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr);
 
 /*******************************************************************************
@@ -313,6 +316,7 @@ bt_status_t btif_storage_load_autopair_device_list();
 **                  FALSE otherwise
 **
 *******************************************************************************/
+
 BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_addr);
 
 /*******************************************************************************
@@ -325,6 +329,7 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_add
 **                  BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
+
 bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_dev_addr);
 
 /*******************************************************************************
@@ -339,4 +344,7 @@ bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_de
 *******************************************************************************/
 BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_dev_addr);
 
+
+
 #endif /* BTIF_STORAGE_H */
+

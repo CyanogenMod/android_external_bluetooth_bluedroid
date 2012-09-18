@@ -50,7 +50,7 @@ void ptim_timer_update(tPTIM_CB *p_cb)
     UINT32 new_ticks_count;
     INT32  period_in_ticks;
 
-    /* To handle the case when the function is called less frequently than the period
+    /* To handle the case when the function is called less frequently than the period 
        we must convert determine the number of ticks since the last update, then
        convert back to milliseconds before updating timer list */
     new_ticks_count = GKI_get_tick_count();

@@ -37,7 +37,7 @@ const tBTA_DM_ACTION bta_dm_action[] =
 
     /* device manager local device API events */
     bta_dm_enable,            /* 0  BTA_DM_API_ENABLE_EVT */
-    bta_dm_disable,           /* 1  BTA_DM_API_DISABLE_EVT */
+    bta_dm_disable,           /* 1  BTA_DM_API_DISABLE_EVT */       
     bta_dm_set_dev_name,      /* 2  BTA_DM_API_SET_NAME_EVT */
     bta_dm_set_visibility,    /* 3  BTA_DM_API_SET_VISIBILITY_EVT */
     bta_dm_set_afhchannels,   /* 4  BTA_DM_API_SET_AFH_CHANNELS_EVT */
@@ -103,7 +103,7 @@ const tBTA_DM_ACTION bta_dm_action[] =
 enum
 {
     BTA_DM_API_SEARCH,                  /* 0 bta_dm_search_start */
-    BTA_DM_API_SEARCH_CANCEL,           /* 1 bta_dm_search_cancel */
+    BTA_DM_API_SEARCH_CANCEL,           /* 1 bta_dm_search_cancel */ 
     BTA_DM_API_DISCOVER,                /* 2 bta_dm_discover */
     BTA_DM_INQUIRY_CMPL,                /* 3 bta_dm_inq_cmpl */
     BTA_DM_REMT_NAME,                   /* 4 bta_dm_rmt_name */
@@ -129,7 +129,7 @@ const tBTA_DM_ACTION bta_dm_search_action[] =
 {
 
   bta_dm_search_start,              /* 0 BTA_DM_API_SEARCH */
-  bta_dm_search_cancel,             /* 1 BTA_DM_API_SEARCH_CANCEL */
+  bta_dm_search_cancel,             /* 1 BTA_DM_API_SEARCH_CANCEL */       
   bta_dm_discover,                  /* 2 BTA_DM_API_DISCOVER */
   bta_dm_inq_cmpl,                  /* 3 BTA_DM_INQUIRY_CMPL */
   bta_dm_rmt_name,                  /* 4 BTA_DM_REMT_NAME */
@@ -238,7 +238,7 @@ const tBTA_DM_ST_TBL bta_dm_search_st_tbl[] = {
 ** Function         bta_dm_sm_disable
 **
 ** Description     unregister BTA DM
-**
+**                  
 **
 ** Returns          void
 **
@@ -254,7 +254,7 @@ void bta_dm_sm_disable( )
 ** Function         bta_dm_sm_execute
 **
 ** Description      State machine event handling function for DM
-**
+**                  
 **
 ** Returns          void
 **
@@ -270,7 +270,7 @@ BOOLEAN bta_dm_sm_execute(BT_HDR *p_msg)
     {
         (*bta_dm_action[event])( (tBTA_DM_MSG*) p_msg);
     }
-
+        
     return TRUE;
 }
 
@@ -279,7 +279,7 @@ BOOLEAN bta_dm_sm_execute(BT_HDR *p_msg)
 ** Function         bta_dm_sm_search_disable
 **
 ** Description     unregister BTA SEARCH DM
-**
+**                  
 **
 ** Returns          void
 **
@@ -287,7 +287,7 @@ BOOLEAN bta_dm_sm_execute(BT_HDR *p_msg)
 void bta_dm_search_sm_disable( )
 {
     bta_sys_deregister( BTA_ID_DM_SEARCH );
-
+   
 }
 
 
@@ -296,7 +296,7 @@ void bta_dm_search_sm_disable( )
 ** Function         bta_dm_search_sm_execute
 **
 ** Description      State machine event handling function for DM
-**
+**                  
 **
 ** Returns          void
 **
@@ -307,7 +307,7 @@ BOOLEAN bta_dm_search_sm_execute(BT_HDR *p_msg)
     UINT8               action;
     int                 i;
 
-    APPL_TRACE_EVENT2("bta_dm_search_sm_execute state:%d, event:0x%x",
+    APPL_TRACE_EVENT2("bta_dm_search_sm_execute state:%d, event:0x%x", 
         bta_dm_search_cb.state, p_msg->event);
 
     /* look up the state table for the current state */

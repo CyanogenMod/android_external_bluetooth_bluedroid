@@ -372,7 +372,7 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, UINT16 len, BOOLEAN offset)
     UINT8           * p_temp;
     UINT8           type;
     UINT32          delta_len = 0;
-
+    
 #if (SDP_DEBUG_RAW == TRUE)
     UINT8 num_array[SDP_MAX_LIST_BYTE_COUNT];
     UINT32 i;
@@ -395,7 +395,7 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, UINT16 len, BOOLEAN offset)
             type = *p++;
             p = sdpu_get_len_from_type (p, type, &list_len);
         }
-        if(list_len && list_len < cpy_len )
+        if(list_len && list_len < cpy_len ) 
         {
             cpy_len = list_len;
         }
@@ -1003,7 +1003,7 @@ static UINT8 *add_attr (UINT8 *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
             else
             {
                  /* coverity[overrun-local] */
-                 /*
+                 /*   
                     Event overrun-local: Overrun of static array "p_attr->attr_value.v.array" of size 4 at position 15 with index variable "ijk"
                     False-positive: SDP uses scratch buffer to hold the attribute value.
                     The actual size of tSDP_DISC_ATVAL does not matter.

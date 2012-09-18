@@ -164,7 +164,7 @@
 #define UUID_PROTOCOL_MCAP_CTRL              0x001E
 #define UUID_PROTOCOL_MCAP_DATA              0x001F
 #define UUID_PROTOCOL_L2CAP                  0x0100
-#define UUID_PROTOCOL_ATT                    0x0007
+#define UUID_PROTOCOL_ATT                    0x0007     
 
 /* Define common 16-bit service class UUIDs
 */
@@ -240,8 +240,8 @@
 #define UUID_SERVCLASS_MESSAGE_ACCESS           0X1132  /* Message Access Service UUID */
 #define UUID_SERVCLASS_MESSAGE_NOTIFICATION     0X1133  /* Message Notification Service UUID */
 
-#define UUID_SERVCLASS_GAP_SERVER               0x1800
-#define UUID_SERVCLASS_GATT_SERVER              0x1801
+#define UUID_SERVCLASS_GAP_SERVER               0x1800  
+#define UUID_SERVCLASS_GATT_SERVER              0x1801  
 #define UUID_SERVCLASS_IMMEDIATE_ALERT          0x1802      /* immediate alert */
 #define UUID_SERVCLASS_LINKLOSS                 0x1803      /* Link Loss Alert */
 #define UUID_SERVCLASS_TX_POWER                 0x1804      /* TX power */

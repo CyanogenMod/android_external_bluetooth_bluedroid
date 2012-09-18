@@ -138,7 +138,7 @@ const tAVDT_MSG_BLD avdt_msg_bld_cmd[] = {
     avdt_msg_bld_single,          /* abort */
     avdt_msg_bld_security_cmd,    /* security control */
     avdt_msg_bld_single,          /* get all capabilities */
-    avdt_msg_bld_delay_rpt        /* delay report */
+    avdt_msg_bld_delay_rpt        /* delay report */  
 };
 
 /* function table for building response messages */
@@ -249,7 +249,7 @@ const UINT8 avdt_msg_rej_2_evt[] = {
 **
 ** Description      This function builds the configuration parameters contained
 **                  in a command or response message.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -280,22 +280,22 @@ static void avdt_msg_bld_cfg(UINT8 **p, tAVDT_CFG *p_cfg)
     if (p_cfg->num_codec != 0)
     {
         *(*p)++ = AVDT_CAT_CODEC;
-        len = p_cfg->codec_info[0] + 1;
-        if( len > AVDT_CODEC_SIZE )
+        len = p_cfg->codec_info[0] + 1;     
+        if( len > AVDT_CODEC_SIZE ) 
             len = AVDT_CODEC_SIZE;
 
         memcpy(*p, p_cfg->codec_info, len);
         *p += len;
     }
-
+    
     /* content protection */
     if (p_cfg->num_protect != 0)
-    {
+    { 
         *(*p)++ = AVDT_CAT_PROTECT;
-        len = p_cfg->protect_info[0] + 1;
+        len = p_cfg->protect_info[0] + 1;     
         if( len > AVDT_PROTECT_SIZE )
             len = AVDT_PROTECT_SIZE;
-
+        
         memcpy(*p, p_cfg->protect_info, len);
         *p += len;
     }
@@ -354,7 +354,7 @@ static void avdt_msg_bld_cfg(UINT8 **p, tAVDT_CFG *p_cfg)
 ** Function         avdt_msg_bld_none
 **
 ** Description      This message building function builds an empty message.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -370,7 +370,7 @@ static void avdt_msg_bld_none(UINT8 **p, tAVDT_MSG *p_msg)
 **
 ** Description      This message building function builds a message containing
 **                  a single SEID.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -386,7 +386,7 @@ static void avdt_msg_bld_single(UINT8 **p, tAVDT_MSG *p_msg)
 **
 ** Description      This message building function builds a set configuration
 **                  command message.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -404,7 +404,7 @@ static void avdt_msg_bld_setconfig_cmd(UINT8 **p, tAVDT_MSG *p_msg)
 **
 ** Description      This message building function builds a reconfiguration
 **                  command message.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -424,7 +424,7 @@ static void avdt_msg_bld_reconfig_cmd(UINT8 **p, tAVDT_MSG *p_msg)
 **
 ** Description      This message building function builds a message containing
 **                  multiple SEID's.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -445,7 +445,7 @@ static void avdt_msg_bld_multi(UINT8 **p, tAVDT_MSG *p_msg)
 **
 ** Description      This message building function builds a security
 **                  command message.
-**
+**                  
 ** Returns          void.
 **
 *******************************************************************************/
@@ -478,7 +478,7 @@ static void avdt_msg_bld_delay_rpt(UINT8 **p, tAVDT_MSG *p_msg)
 **
 ** Description      This message building function builds a discover
 **                  response message.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -503,7 +503,7 @@ static void avdt_msg_bld_discover_rsp(UINT8 **p, tAVDT_MSG *p_msg)
 **
 ** Description      This message building function builds a message containing
 **                  service capabilities parameters.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -524,7 +524,7 @@ static void avdt_msg_bld_svccap(UINT8 **p, tAVDT_MSG *p_msg)
 **
 ** Description      This message building function builds a message containing
 **                  service capabilities parameters.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -540,7 +540,7 @@ static void avdt_msg_bld_all_svccap(UINT8 **p, tAVDT_MSG *p_msg)
 **
 ** Description      This message building function builds a security
 **                  response message.
-**
+**                  
 **
 ** Returns          void.
 **
@@ -557,9 +557,9 @@ static void avdt_msg_bld_security_rsp(UINT8 **p, tAVDT_MSG *p_msg)
 **
 ** Description      This message parsing function parses the configuration
 **                  parameters field of a message.
+**                  
 **
-**
-** Returns          Error code or zero if no error, and element that failed
+** Returns          Error code or zero if no error, and element that failed 
 **                  in p_elem.
 **
 *******************************************************************************/
@@ -622,7 +622,7 @@ static UINT8 avdt_msg_prs_cfg(tAVDT_CFG *p_cfg, UINT8 *p, UINT16 len, UINT8* p_e
                 continue;
             }
         }
-
+        
         if ((elem_len > avdt_msg_ie_len_max[elem]) ||
             (elem_len < avdt_msg_ie_len_min[elem]))
         {
@@ -675,8 +675,8 @@ static UINT8 avdt_msg_prs_cfg(tAVDT_CFG *p_cfg, UINT8 *p, UINT16 len, UINT8* p_e
             case AVDT_CAT_MUX:
                 /* verify length */
                 AVDT_TRACE_WARNING2("psc_mask=0x%x elem_len=%d", p_cfg->psc_mask, elem_len);
-                if( ((0 == (p_cfg->psc_mask & (AVDT_PSC_RECOV|AVDT_PSC_REPORT))) && (elem_len != 3))
-                    || ((p_cfg->psc_mask & AVDT_PSC_RECOV) && (elem_len != 7))
+                if( ((0 == (p_cfg->psc_mask & (AVDT_PSC_RECOV|AVDT_PSC_REPORT))) && (elem_len != 3)) 
+                    || ((p_cfg->psc_mask & AVDT_PSC_RECOV) && (elem_len != 7)) 
                     || ((p_cfg->psc_mask & AVDT_PSC_REPORT) && (elem_len != 5)) )
                 {
                     err = AVDT_ERR_MUX_FMT;
@@ -752,7 +752,7 @@ static UINT8 avdt_msg_prs_cfg(tAVDT_CFG *p_cfg, UINT8 *p, UINT16 len, UINT8* p_e
 **
 ** Description      This message parsing function parses a message with no parameters.
 
-**
+**                  
 **
 ** Returns          Error code or zero if no error.
 **
@@ -768,7 +768,7 @@ static UINT8 avdt_msg_prs_none(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 **
 ** Description      This message parsing function parses a message with a
 **                  single SEID.
-**
+**                  
 **
 ** Returns          Error code or zero if no error.
 **
@@ -800,7 +800,7 @@ static UINT8 avdt_msg_prs_single(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 **
 ** Description      This message parsing function parses a set configuration
 **                  command message.
-**
+**                  
 **
 ** Returns          Error code or zero if no error.
 **
@@ -808,7 +808,7 @@ static UINT8 avdt_msg_prs_single(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 static UINT8 avdt_msg_prs_setconfig_cmd(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 {
     UINT8       err = 0;
-
+    
     p_msg->hdr.err_param = 0;
 
     /* verify len */
@@ -817,7 +817,7 @@ static UINT8 avdt_msg_prs_setconfig_cmd(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
         err = AVDT_ERR_LENGTH;
     }
     else
-    {
+    {        
         /* get seids */
         AVDT_MSG_PRS_SEID(p, p_msg->config_cmd.hdr.seid);
         if (avdt_scb_by_hdl(p_msg->config_cmd.hdr.seid) == NULL)
@@ -859,7 +859,7 @@ static UINT8 avdt_msg_prs_setconfig_cmd(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 **
 ** Description      This message parsing function parses a reconfiguration
 **                  command message.
-**
+**                  
 **
 ** Returns          Error code or zero if no error.
 **
@@ -867,7 +867,7 @@ static UINT8 avdt_msg_prs_setconfig_cmd(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 static UINT8 avdt_msg_prs_reconfig_cmd(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 {
     UINT8       err = 0;
-
+    
     p_msg->hdr.err_param = 0;
 
     /* verify len */
@@ -876,7 +876,7 @@ static UINT8 avdt_msg_prs_reconfig_cmd(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
         err = AVDT_ERR_LENGTH;
     }
     else
-    {
+    {        
         /* get seid */
         AVDT_MSG_PRS_SEID(p, p_msg->reconfig_cmd.hdr.seid);
         if (avdt_scb_by_hdl(p_msg->reconfig_cmd.hdr.seid) == NULL)
@@ -910,7 +910,7 @@ static UINT8 avdt_msg_prs_reconfig_cmd(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 **
 ** Description      This message parsing function parses a message containing
 **                  multiple SEID's.
-**
+**                  
 **
 ** Returns          Error code or zero if no error.
 **
@@ -952,7 +952,7 @@ static UINT8 avdt_msg_prs_multi(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 **
 ** Description      This message parsing function parses a security
 **                  command message.
-**
+**                  
 **
 ** Returns          Error code or zero if no error.
 **
@@ -989,7 +989,7 @@ static UINT8 avdt_msg_prs_security_cmd(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 **
 ** Description      This message parsing function parses a discover
 **                  response message.
-**
+**                  
 **
 ** Returns          Error code or zero if no error.
 **
@@ -1034,7 +1034,7 @@ static UINT8 avdt_msg_prs_discover_rsp(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 **
 ** Description      This message parsing function parses a message containing
 **                  service capabilities parameters.
-**
+**                  
 **
 ** Returns          Error code or zero if no error.
 **
@@ -1057,7 +1057,7 @@ static UINT8 avdt_msg_prs_svccap(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 **
 ** Description      This message parsing function parses a message containing
 **                  service capabilities parameters.
-**
+**                  
 **
 ** Returns          Error code or zero if no error.
 **
@@ -1078,7 +1078,7 @@ static UINT8 avdt_msg_prs_all_svccap(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 **
 ** Description      This message parsing function parsing a security
 **                  response message.
-**
+**                  
 **
 ** Returns          Error code or zero if no error.
 **
@@ -1095,8 +1095,8 @@ static UINT8 avdt_msg_prs_security_rsp(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 **
 ** Function         avdt_msg_prs_rej
 **
-** Description
-**
+** Description      
+**                  
 **
 ** Returns          Error code or zero if no error.
 **
@@ -1117,7 +1117,7 @@ static UINT8 avdt_msg_prs_rej(tAVDT_MSG *p_msg, UINT8 *p, UINT8 sig)
     {
         p_msg->hdr.err_code = *p;
     }
-
+    
     return 0;
 }
 
@@ -1127,7 +1127,7 @@ static UINT8 avdt_msg_prs_rej(tAVDT_MSG *p_msg, UINT8 *p, UINT8 sig)
 **
 ** Description      This message parsing function parses a security
 **                  command message.
-**
+**                  
 **
 ** Returns          Error code or zero if no error.
 **
@@ -1166,7 +1166,7 @@ static UINT8 avdt_msg_prs_delay_rpt (tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
 ** Function         avdt_msg_send
 **
 ** Description      Send, and if necessary fragment the next message.
-**
+**                  
 **
 ** Returns          Congested state; TRUE if CCB congested, FALSE if not.
 **
@@ -1183,7 +1183,7 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
     UINT8           msg;
     UINT8           sig;
     UINT8           nosp = 0;       /* number of subsequent packets */
-
+        
     /* look up transport channel table entry to get peer mtu */
     p_tbl = avdt_ad_tc_tbl_by_type(AVDT_CHAN_SIG, p_ccb, NULL);
 
@@ -1325,7 +1325,7 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
 ** Function         avdt_msg_asmbl
 **
 ** Description      Reassemble incoming message.
-**
+**                  
 **
 ** Returns          Pointer to reassembled message;  NULL if no message
 **                  available.
@@ -1447,7 +1447,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
 **                  from the AVDTP command pool, executes the message building
 **                  function for this message type.  It then queues the message
 **                  in the command queue for this CCB.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -1516,7 +1516,7 @@ void avdt_msg_send_cmd(tAVDT_CCB *p_ccb, void *p_scb, UINT8 sig_id, tAVDT_MSG *p
 **                  from the AVDTP command pool, executes the message building
 **                  function for this message type.  It then queues the message
 **                  in the response queue for this CCB.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -1561,7 +1561,7 @@ void avdt_msg_send_rsp(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
 **                  message based on the message type and the error code.
 **                  It then queues the message in the response queue for
 **                  this CCB.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -1579,7 +1579,7 @@ void avdt_msg_send_rej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     /* set up gki buf pointer and offset */
     p_buf->offset = AVDT_MSG_OFFSET;
     p_start = p = (UINT8 *)(p_buf + 1) + p_buf->offset;
-
+    
     /* if sig id included, build into message */
     if (sig_id != AVDT_SIG_NONE)
     {
@@ -1622,7 +1622,7 @@ void avdt_msg_send_rej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
 **                  message based on the message type and the error code.
 **                  It then queues the message in the response queue for
 **                  this CCB.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -1640,7 +1640,7 @@ void avdt_msg_send_grej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     /* set up gki buf pointer and offset */
     p_buf->offset = AVDT_MSG_OFFSET;
     p_start = p = (UINT8 *)(p_buf + 1) + p_buf->offset;
-
+    
     /* calculate length */
     p_buf->len = (UINT16) (p - p_start);
 
@@ -1664,7 +1664,7 @@ void avdt_msg_send_grej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
 **                  incoming message is received on the signaling channel.
 **                  It parses the message and sends an event to the appropriate
 **                  SCB or CCB for the message.
-**
+**                  
 **
 ** Returns          Nothing.
 **
@@ -1750,7 +1750,7 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
             msg.discover_rsp.p_sep_info = (tAVDT_SEP_INFO *) p_ccb->p_proc_data;
             msg.discover_rsp.num_seps = p_ccb->proc_param;
         }
-        else if ((msg_type == AVDT_MSG_TYPE_RSP) &&
+        else if ((msg_type == AVDT_MSG_TYPE_RSP) && 
             ((sig == AVDT_SIG_GETCAP) || (sig == AVDT_SIG_GET_ALLCAP)))
         {
             /* parse discover rsp message to struct supplied by app */
@@ -1764,7 +1764,7 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         else if ((msg_type == AVDT_MSG_TYPE_CMD) && (sig == AVDT_SIG_SETCONFIG))
         {
             /* parse config cmd message to struct allocated locally */
-            msg.config_cmd.p_cfg = &cfg;
+            msg.config_cmd.p_cfg = &cfg;            
         }
         else if ((msg_type == AVDT_MSG_TYPE_CMD) && (sig == AVDT_SIG_RECONFIG))
         {
@@ -1833,7 +1833,7 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
             }
         }
     }
-
+    
     if (ok)
     {
         /* if it's a ccb event send to ccb */
@@ -1844,7 +1844,7 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         /* if it's a scb event */
         else
         {
-            /* Scb events always have a single seid.  For cmd, get seid from
+            /* Scb events always have a single seid.  For cmd, get seid from 
             ** message.  For rej and rsp, get seid from p_curr_cmd.
             */
             if (msg_type == AVDT_MSG_TYPE_CMD)

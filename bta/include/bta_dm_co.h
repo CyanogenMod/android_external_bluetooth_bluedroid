@@ -32,8 +32,8 @@ typedef struct
     tBTA_SCO_CODEC_TYPE   codec_type;
 }tBTA_CODEC_INFO;
 
-#define BTA_DM_SCO_ROUTE_PCM	BTM_SCO_ROUTE_PCM
-#define BTA_DM_SCO_ROUTE_HCI	BTM_SCO_ROUTE_HCI
+#define BTA_DM_SCO_ROUTE_PCM	BTM_SCO_ROUTE_PCM    
+#define BTA_DM_SCO_ROUTE_HCI	BTM_SCO_ROUTE_HCI    
 
 typedef tBTM_SCO_ROUTE_TYPE tBTA_DM_SCO_ROUTE_TYPE;
 
@@ -52,13 +52,13 @@ typedef tBTM_SCO_ROUTE_TYPE tBTA_DM_SCO_ROUTE_TYPE;
 ** Parameters       bd_addr  - The peer device
 **                  *p_io_cap - The local Input/Output capabilities
 **                  *p_oob_data - TRUE, if OOB data is available for the peer device.
-**                  *p_auth_req - TRUE, if MITM protection is required.
+**                  *p_auth_req - TRUE, if MITM protection is required. 
 **
 ** Returns          void.
 **
 *******************************************************************************/
 BTA_API extern void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap,
-                                     tBTA_OOB_DATA *p_oob_data, tBTA_AUTH_REQ *p_auth_req,
+                                     tBTA_OOB_DATA *p_oob_data, tBTA_AUTH_REQ *p_auth_req, 
                                      BOOLEAN is_orig);
 
 /*******************************************************************************
@@ -71,7 +71,7 @@ BTA_API extern void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap,
 ** Parameters       bd_addr  - The peer device
 **                  io_cap - The remote Input/Output capabilities
 **                  oob_data - TRUE, if OOB data is available for the peer device.
-**                  auth_req - TRUE, if MITM protection is required.
+**                  auth_req - TRUE, if MITM protection is required. 
 **
 ** Returns          void.
 **
@@ -87,7 +87,7 @@ BTA_API extern void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
 **                  platform wants allow link key upgrade
 **
 ** Parameters       bd_addr  - The peer device
-**                  *p_upgrade - TRUE, if link key upgrade is desired.
+**                  *p_upgrade - TRUE, if link key upgrade is desired. 
 **
 ** Returns          void.
 **
@@ -131,10 +131,10 @@ BTA_API extern void bta_dm_co_rmt_oob(BD_ADDR bd_addr);
 **
 ** Function         bta_dm_sco_co_init
 **
-** Description      This function can be used by the phone to initialize audio
+** Description      This function can be used by the phone to initialize audio 
 **                  codec or for other initialization purposes before SCO connection
-**                  is opened.
-**
+**                  is opened.  
+**                  
 **
 ** Returns          Void.
 **
@@ -148,7 +148,7 @@ BTA_API extern tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx
 ** Function         bta_dm_sco_co_open
 **
 ** Description      This function is executed when a SCO connection is open.
-**
+**                  
 **
 ** Returns          void
 **
@@ -160,7 +160,7 @@ BTA_API extern void bta_dm_sco_co_open(UINT16 handle, UINT8 pkt_size, UINT16 eve
 ** Function         bta_dm_sco_co_close
 **
 ** Description      This function is called when a SCO connection is closed
-**
+**                  
 **
 ** Returns          void
 **
@@ -171,7 +171,7 @@ BTA_API extern void bta_dm_sco_co_close(void);
 **
 ** Function         bta_dm_sco_co_out_data
 **
-** Description      This function is called to send SCO data over HCI.
+** Description      This function is called to send SCO data over HCI.                 
 **
 ** Returns          void
 **
@@ -182,7 +182,7 @@ BTA_API extern void bta_dm_sco_co_out_data(BT_HDR  **p_buf);
 **
 ** Function         bta_dm_sco_co_in_data
 **
-** Description      This function is called to send incoming SCO data to application.
+** Description      This function is called to send incoming SCO data to application.                 
 **
 ** Returns          void
 **
@@ -201,19 +201,19 @@ BTA_API extern void bta_dm_sco_co_in_data(BT_HDR  *p_buf, tBTM_SCO_DATA_FLAG sta
 ** Parameters       bd_addr  - The peer device
 **                  *p_io_cap - The local Input/Output capabilities
 **                  *p_oob_data - TRUE, if OOB data is available for the peer device.
-**                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)
+**                  *p_auth_req -  Auth request setting (Bonding and MITM required or not) 
 **                  *p_max_key_size - max key size local device supported.
 **                  *p_init_key - initiator keys.
-**                  *p_resp_key - responder keys.
+**                  *p_resp_key - responder keys. 
 **
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
+BTA_API extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap, 
                                         tBTA_OOB_DATA *p_oob_data,
                                         tBTA_LE_AUTH_REQ *p_auth_req,
-                                        UINT8 *p_max_key_size,
-                                        tBTA_LE_KEY_TYPE *p_init_key,
+                                        UINT8 *p_max_key_size, 
+                                        tBTA_LE_KEY_TYPE *p_init_key, 
                                         tBTA_LE_KEY_TYPE  *p_resp_key );
 
 
@@ -224,12 +224,12 @@ BTA_API extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap
 ** Description      This callout function is to load the local BLE keys if available
 **                  on the device.
 **
-** Parameters       none
+** Parameters       none 
 **
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_co_ble_load_local_keys (tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mask, BT_OCTET16 er,
+BTA_API extern void bta_dm_co_ble_load_local_keys (tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mask, BT_OCTET16 er,                             
                                                    tBTA_BLE_LOCAL_ID_KEYS *p_id_keys);
 
 // btla-specific ++
@@ -243,19 +243,19 @@ BTA_API extern void bta_dm_co_ble_load_local_keys (tBTA_DM_BLE_LOCAL_KEY_MASK *p
 ** Parameters       bd_addr  - The peer device
 **                  *p_io_cap - The local Input/Output capabilities
 **                  *p_oob_data - TRUE, if OOB data is available for the peer device.
-**                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)
+**                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)  
 **                  *p_max_key_size - max key size local device supported.
 **                  *p_init_key - initiator keys.
-**                  *p_resp_key - responder keys.
+**                  *p_resp_key - responder keys. 
 **
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
+BTA_API extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap, 
                          tBTA_OOB_DATA *p_oob_data,
                          tBTA_LE_AUTH_REQ *p_auth_req,
-                         UINT8 *p_max_key_size,
-                         tBTA_LE_KEY_TYPE *p_init_key,
+                         UINT8 *p_max_key_size, 
+                         tBTA_LE_KEY_TYPE *p_init_key, 
                          tBTA_LE_KEY_TYPE  *p_resp_key );
 // btla-specific --
 

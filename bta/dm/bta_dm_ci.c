@@ -28,15 +28,15 @@
 **                  bta_dm_co_io_req(), if *p_oob_data to BTA_OOB_UNKNOWN
 **                  by bta_dm_co_io_req().
 **
-** Returns          void
+** Returns          void                  
 **
 *******************************************************************************/
 void bta_dm_ci_io_req(BD_ADDR bd_addr, tBTA_IO_CAP io_cap, tBTA_OOB_DATA oob_data,
                                      tBTA_AUTH_REQ auth_req)
 
 {
-    tBTA_DM_CI_IO_REQ    *p_msg;
-
+    tBTA_DM_CI_IO_REQ    *p_msg;        
+    
     if ((p_msg = (tBTA_DM_CI_IO_REQ *) GKI_getbuf(sizeof(tBTA_DM_CI_IO_REQ))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_CI_IO_REQ_EVT;
@@ -56,13 +56,13 @@ void bta_dm_ci_io_req(BD_ADDR bd_addr, tBTA_IO_CAP io_cap, tBTA_OOB_DATA oob_dat
 **                  bta_dm_co_rmt_oob() to provide the OOB data associated
 **                  with the remote device.
 **
-** Returns          void
+** Returns          void                  
 **
 *******************************************************************************/
 void bta_dm_ci_rmt_oob(BOOLEAN accept, BD_ADDR bd_addr, BT_OCTET16 c, BT_OCTET16 r)
 {
-    tBTA_DM_CI_RMT_OOB    *p_msg;
-
+    tBTA_DM_CI_RMT_OOB    *p_msg;        
+    
     if ((p_msg = (tBTA_DM_CI_RMT_OOB *) GKI_getbuf(sizeof(tBTA_DM_CI_RMT_OOB))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_CI_RMT_OOB_EVT;
@@ -80,15 +80,15 @@ void bta_dm_ci_rmt_oob(BOOLEAN accept, BD_ADDR bd_addr, BT_OCTET16 c, BT_OCTET16
 **
 ** Function         bta_dm_sco_ci_data_ready
 **
-** Description      This function sends an event to indicating that the phone
-**                  has SCO data ready.
+** Description      This function sends an event to indicating that the phone 
+**                  has SCO data ready. 
 **
 ** Parameters       event: is obtained from bta_dm_sco_co_open() function, which
 **                          is the BTA event we want to send back to BTA module
 **                          when there is encoded data ready.
-**                  sco_handle: is the BTA sco handle which indicate a specific
+**                  sco_handle: is the BTA sco handle which indicate a specific 
 **                           SCO connection.
-** Returns          void
+** Returns          void                  
 **
 *******************************************************************************/
 void bta_dm_sco_ci_data_ready(UINT16 event, UINT16 sco_handle)

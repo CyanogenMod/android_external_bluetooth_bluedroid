@@ -148,7 +148,7 @@ BOOLEAN btsnd_hcic_ble_set_random_addr (BD_ADDR random_bda)
     return (TRUE);
 }
 
-BOOLEAN btsnd_hcic_ble_write_adv_params (UINT16 adv_int_min, UINT16 adv_int_max,
+BOOLEAN btsnd_hcic_ble_write_adv_params (UINT16 adv_int_min, UINT16 adv_int_max, 
                                        UINT8 adv_type, UINT8 addr_type_own,
                                        UINT8 addr_type_dir, BD_ADDR direct_bda,
                                        UINT8 channel_map, UINT8 adv_filter_policy)
@@ -252,7 +252,7 @@ BOOLEAN btsnd_hcic_ble_set_scan_rsp_data (UINT8 data_len, UINT8 *p_scan_rsp)
     if (p_scan_rsp != NULL && data_len > 0)
     {
 
-        if (data_len > HCIC_PARAM_SIZE_BLE_WRITE_SCAN_RSP )
+        if (data_len > HCIC_PARAM_SIZE_BLE_WRITE_SCAN_RSP ) 
             data_len = HCIC_PARAM_SIZE_BLE_WRITE_SCAN_RSP;
 
         UINT8_TO_STREAM (pp, data_len);
@@ -286,8 +286,8 @@ BOOLEAN btsnd_hcic_ble_set_adv_enable (UINT8 adv_enable)
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
     return (TRUE);
 }
-BOOLEAN btsnd_hcic_ble_set_scan_params (UINT8 scan_type,
-                                          UINT16 scan_int, UINT16 scan_win,
+BOOLEAN btsnd_hcic_ble_set_scan_params (UINT8 scan_type, 
+                                          UINT16 scan_int, UINT16 scan_win, 
                                           UINT8 addr_type_own, UINT8 scan_filter_policy)
 {
     BT_HDR *p;
@@ -338,11 +338,11 @@ BOOLEAN btsnd_hcic_ble_set_scan_enable (UINT8 scan_enable, UINT8 duplicate)
 }
 
 /* link layer connection management commands */
-BOOLEAN btsnd_hcic_ble_create_ll_conn (UINT16 scan_int, UINT16 scan_win,
-                                       UINT8 init_filter_policy,
-                                       UINT8 addr_type_peer, BD_ADDR bda_peer,
+BOOLEAN btsnd_hcic_ble_create_ll_conn (UINT16 scan_int, UINT16 scan_win, 
+                                       UINT8 init_filter_policy, 
+                                       UINT8 addr_type_peer, BD_ADDR bda_peer, 
                                        UINT8 addr_type_own,
-                                       UINT16 conn_int_min, UINT16 conn_int_max,
+                                       UINT16 conn_int_min, UINT16 conn_int_max, 
                                        UINT16 conn_latency, UINT16 conn_timeout,
                                        UINT16 min_ce_len, UINT16 max_ce_len)
 {
@@ -486,7 +486,7 @@ BOOLEAN btsnd_hcic_ble_remove_from_white_list (UINT8 addr_type, BD_ADDR bda)
     return (TRUE);
 }
 
-BOOLEAN btsnd_hcic_ble_upd_ll_conn_params (UINT16 handle,
+BOOLEAN btsnd_hcic_ble_upd_ll_conn_params (UINT16 handle, 
                                            UINT16 conn_int_min, UINT16 conn_int_max,
                                            UINT16 conn_latency, UINT16 conn_timeout,
                                            UINT16 min_ce_len, UINT16 max_ce_len)
@@ -585,14 +585,14 @@ BOOLEAN btsnd_hcic_ble_read_remote_feat (UINT16 handle)
 }
 
 /* security management commands */
-BOOLEAN btsnd_hcic_ble_encrypt (UINT8 *key, UINT8 key_len,
-                                UINT8 *plain_text, UINT8 pt_len,
+BOOLEAN btsnd_hcic_ble_encrypt (UINT8 *key, UINT8 key_len, 
+                                UINT8 *plain_text, UINT8 pt_len, 
                                 void *p_cmd_cplt_cback)
 {
     BT_HDR *p;
     UINT8 *pp;
 
-    if ((p = HCI_GET_CMD_BUF(sizeof(BT_HDR) + sizeof (void *) +
+    if ((p = HCI_GET_CMD_BUF(sizeof(BT_HDR) + sizeof (void *) + 
                             HCIC_PARAM_SIZE_BLE_ENCRYPT)) == NULL)
         return (FALSE);
 
@@ -603,7 +603,7 @@ BOOLEAN btsnd_hcic_ble_encrypt (UINT8 *key, UINT8 key_len,
 
     *((void **)pp) = p_cmd_cplt_cback;  /* Store command complete callback in buffer */
     pp += sizeof(void *);               /* Skip over callback pointer */
-
+    
 
     UINT16_TO_STREAM (pp, HCI_BLE_ENCRYPT);
     UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_BLE_ENCRYPT);
@@ -612,7 +612,7 @@ BOOLEAN btsnd_hcic_ble_encrypt (UINT8 *key, UINT8 key_len,
 
     if (key_len > HCIC_BLE_ENCRYT_KEY_SIZE) key_len = HCIC_BLE_ENCRYT_KEY_SIZE;
     if (pt_len > HCIC_BLE_ENCRYT_KEY_SIZE) pt_len = HCIC_BLE_ENCRYT_KEY_SIZE;
-
+    
     ARRAY_TO_STREAM (pp, key, key_len);
     pp += (HCIC_BLE_ENCRYT_KEY_SIZE - key_len);
     ARRAY_TO_STREAM (pp, plain_text, pt_len);
@@ -626,7 +626,7 @@ BOOLEAN btsnd_hcic_ble_rand (void *p_cmd_cplt_cback)
     BT_HDR *p;
     UINT8 *pp;
 
-    if ((p = HCI_GET_CMD_BUF(sizeof(BT_HDR) + sizeof (void *) +
+    if ((p = HCI_GET_CMD_BUF(sizeof(BT_HDR) + sizeof (void *) + 
                         HCIC_PARAM_SIZE_BLE_RAND)) == NULL)
         return (FALSE);
 

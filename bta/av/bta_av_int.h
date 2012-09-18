@@ -48,17 +48,17 @@ enum
     BTA_AV_SRC_DATA_READY_EVT,
     BTA_AV_CI_SETCONFIG_OK_EVT,
     BTA_AV_CI_SETCONFIG_FAIL_EVT,
-    BTA_AV_SDP_DISC_OK_EVT,
+    BTA_AV_SDP_DISC_OK_EVT,  
     BTA_AV_SDP_DISC_FAIL_EVT,
-    BTA_AV_STR_DISC_OK_EVT,
+    BTA_AV_STR_DISC_OK_EVT,  
     BTA_AV_STR_DISC_FAIL_EVT,
     BTA_AV_STR_GETCAP_OK_EVT,
     BTA_AV_STR_GETCAP_FAIL_EVT,
-    BTA_AV_STR_OPEN_OK_EVT,
+    BTA_AV_STR_OPEN_OK_EVT,  
     BTA_AV_STR_OPEN_FAIL_EVT,
     BTA_AV_STR_START_OK_EVT,
     BTA_AV_STR_START_FAIL_EVT,
-    BTA_AV_STR_CLOSE_EVT,
+    BTA_AV_STR_CLOSE_EVT,    
     BTA_AV_STR_CONFIG_IND_EVT,
     BTA_AV_STR_SECURITY_IND_EVT,
     BTA_AV_STR_SECURITY_CFM_EVT,
@@ -66,7 +66,7 @@ enum
     BTA_AV_STR_SUSPEND_CFM_EVT,
     BTA_AV_STR_RECONFIG_CFM_EVT,
     BTA_AV_AVRC_TIMER_EVT,
-    BTA_AV_AVDT_CONNECT_EVT,
+    BTA_AV_AVDT_CONNECT_EVT, 
     BTA_AV_AVDT_DISCONNECT_EVT,
     BTA_AV_ROLE_CHANGE_EVT,
     BTA_AV_AVDT_DELAY_RPT_EVT,
@@ -85,7 +85,7 @@ enum
     BTA_AV_CONN_CHG_EVT,
     BTA_AV_DEREG_COMP_EVT,
 #if (AVDT_REPORTING == TRUE)
-    BTA_AV_AVDT_RPT_CONN_EVT,
+    BTA_AV_AVDT_RPT_CONN_EVT, 
 #endif
     BTA_AV_API_START_EVT,       /* the following 2 events must be in the same order as the *AP_*EVT */
     BTA_AV_API_STOP_EVT
@@ -154,8 +154,8 @@ typedef UINT8 (*tBTA_AV_CO_GETCFG) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
 typedef void (*tBTA_AV_CO_SETCFG) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
                                     UINT8 *p_codec_info, UINT8 seid, BD_ADDR addr,
                                     UINT8 num_protect, UINT8 *p_protect_info);
-typedef void (*tBTA_AV_CO_OPEN) (tBTA_AV_HNDL hndl,
-                                 tBTA_AV_CODEC codec_type, UINT8 *p_codec_info,
+typedef void (*tBTA_AV_CO_OPEN) (tBTA_AV_HNDL hndl, 
+                                 tBTA_AV_CODEC codec_type, UINT8 *p_codec_info, 
                                    UINT16 mtu);
 typedef void (*tBTA_AV_CO_CLOSE) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, UINT16 mtu);
 typedef void (*tBTA_AV_CO_START) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type);

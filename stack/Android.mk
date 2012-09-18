@@ -34,7 +34,7 @@ LOCAL_CFLAGS += $(bdroid_CFLAGS)
 
 ifeq ($(BOARD_HAVE_BLUETOOTH_BCM),true)
 LOCAL_CFLAGS += \
-	-DBOARD_HAVE_BLUETOOTH_BCM
+	-DBOARD_HAVE_BLUETOOTH_BCM 
 endif
 
 LOCAL_PRELINK_MODULE:=false
@@ -130,7 +130,7 @@ LOCAL_SRC_FILES:= \
     ./l2cap/l2c_link.c \
     ./l2cap/l2c_ble.c
 
-LOCAL_MODULE := libbt-brcm_stack
+LOCAL_MODULE := libbt-brcm_stack 
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_SHARED_LIBRARIES := libcutils libc

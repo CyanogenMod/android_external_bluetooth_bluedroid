@@ -158,8 +158,8 @@ void rfc_mx_sm_state_idle (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 **
 ** Function         rfc_mx_sm_state_wait_conn_cnf
 **
-** Description      This function handles events when the multiplexer is
-**                  waiting for Connection Confirm from L2CAP.
+** Description      This function handles events when the multiplexer is 
+**                  waiting for Connection Confirm from L2CAP. 
 **
 ** Returns          void
 **
@@ -276,7 +276,7 @@ void rfc_mx_sm_state_configure (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         p_mcb->state = RFC_MX_STATE_IDLE;
         L2CA_DisconnectReq (p_mcb->lcid);
 
-        PORT_StartCnf (p_mcb, RFCOMM_ERROR);
+        PORT_StartCnf (p_mcb, RFCOMM_ERROR);  
         return;
     }
     RFCOMM_TRACE_EVENT2 ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
@@ -287,7 +287,7 @@ void rfc_mx_sm_state_configure (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 **
 ** Function         rfc_mx_sm_sabme_wait_ua
 **
-** Description      This function handles events when the multiplexer sent
+** Description      This function handles events when the multiplexer sent 
 **                  SABME and is waiting for UA reply.
 **
 ** Returns          void
@@ -338,7 +338,7 @@ void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         p_mcb->state = RFC_MX_STATE_IDLE;
         L2CA_DisconnectReq (p_mcb->lcid);
 
-        PORT_StartCnf (p_mcb, RFCOMM_ERROR);
+        PORT_StartCnf (p_mcb, RFCOMM_ERROR);  
         return;
     }
     RFCOMM_TRACE_EVENT2 ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
@@ -348,7 +348,7 @@ void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 **
 ** Function         rfc_mx_sm_state_wait_sabme
 **
-** Description      This function handles events when the multiplexer is
+** Description      This function handles events when the multiplexer is 
 **                  waiting for SABME on the acceptor side after configuration
 **
 ** Returns          void
@@ -382,7 +382,7 @@ void rfc_mx_sm_state_wait_sabme (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         else
         {
             rfc_timer_stop (p_mcb);
-            PORT_StartInd (p_mcb);
+            PORT_StartInd (p_mcb); 
         }
         return;
 
@@ -415,7 +415,7 @@ void rfc_mx_sm_state_wait_sabme (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 **
 ** Function         rfc_mx_sm_state_connected
 **
-** Description      This function handles events when the multiplexer is
+** Description      This function handles events when the multiplexer is 
 **                  in the CONNECTED state
 **
 ** Returns          void
@@ -459,7 +459,7 @@ void rfc_mx_sm_state_connected (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 **
 ** Function         rfc_mx_sm_state_disc_wait_ua
 **
-** Description      This function handles events when the multiplexer sent
+** Description      This function handles events when the multiplexer sent 
 **                  DISC and is waiting for UA reply.
 **
 ** Returns          void
@@ -537,8 +537,8 @@ void rfc_mx_sm_state_disc_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 **
 ** Function         rfc_mx_send_config_req
 **
-** Description      This function handles L2CA_ConnectInd message from the
-**                  L2CAP.  Accept connection.
+** Description      This function handles L2CA_ConnectInd message from the 
+**                  L2CAP.  Accept connection.  
 **
 *******************************************************************************/
 static void rfc_mx_send_config_req (tRFC_MCB *p_mcb)
@@ -568,8 +568,8 @@ static void rfc_mx_send_config_req (tRFC_MCB *p_mcb)
 **
 ** Function         rfc_mx_conf_cnf
 **
-** Description      This function handles L2CA_ConfigCnf message from the
-**                  L2CAP.  If result is not success tell upper layer that
+** Description      This function handles L2CA_ConfigCnf message from the 
+**                  L2CAP.  If result is not success tell upper layer that 
 **                  start has not been accepted.  If initiator send SABME
 **                  on DLCI 0.  T1 is still running.
 **
@@ -611,7 +611,7 @@ static void rfc_mx_conf_cnf (tRFC_MCB *p_mcb, tL2CAP_CFG_INFO *p_cfg)
 **
 ** Function         rfc_mx_conf_ind
 **
-** Description      This function handles L2CA_ConfigInd message from the
+** Description      This function handles L2CA_ConfigInd message from the 
 **                  L2CAP.  Send the L2CA_ConfigRsp message.
 **
 *******************************************************************************/

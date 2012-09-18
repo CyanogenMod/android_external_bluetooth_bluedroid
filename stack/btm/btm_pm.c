@@ -83,7 +83,7 @@ static tBTM_STATUS btm_pm_snd_md_req( UINT8 pm_id, int link_ind, tBTM_PM_PWR_MD 
 */
 
 #if BTM_PM_DEBUG == TRUE
-const char * btm_pm_state_str[] =
+const char * btm_pm_state_str[] = 
 {
     "pm_active_state",
     "pm_hold_state",
@@ -92,7 +92,7 @@ const char * btm_pm_state_str[] =
     "pm_pend_state"
 };
 
-const char * btm_pm_event_str[] =
+const char * btm_pm_event_str[] = 
 {
     "pm_set_mode_event",
     "pm_hci_sts_event",
@@ -100,7 +100,7 @@ const char * btm_pm_event_str[] =
     "pm_update_event"
 };
 
-const char * btm_pm_action_str[] =
+const char * btm_pm_action_str[] = 
 {
     "pm_set_mode_action",
     "pm_update_db_action",
@@ -222,7 +222,7 @@ tBTM_STATUS BTM_SetPowerMode (UINT8 pm_id, BD_ADDR remote_bda, tBTM_PM_PWR_MD *p
         temp_pm_id = BTM_MAX_PM_RECORDS;
 
     /* update mode database */
-    if( ((pm_id != BTM_PM_SET_ONLY_ID) &&
+    if( ((pm_id != BTM_PM_SET_ONLY_ID) && 
          (btm_cb.pm_reg_db[pm_id].mask & BTM_PM_REG_SET))
        || ((pm_id == BTM_PM_SET_ONLY_ID) && (btm_cb.pm_pend_link != MAX_L2CAP_LINKS)) )
     {
@@ -252,7 +252,7 @@ tBTM_STATUS BTM_SetPowerMode (UINT8 pm_id, BD_ADDR remote_bda, tBTM_PM_PWR_MD *p
         return BTM_CMD_STORED;
     }
 
-
+    
 
     return btm_pm_snd_md_req(pm_id, acl_ind, p_mode);
 }
@@ -560,7 +560,7 @@ static tBTM_PM_MODE btm_pm_get_set_mode(UINT8 pm_id, tBTM_PM_MCB *p_cb, tBTM_PM_
 ** Function     btm_pm_snd_md_req
 ** Description  get the resulting mode and send the resuest to host controller
 ** Returns      tBTM_STATUS
-**, BOOLEAN *p_chg_ind
+**, BOOLEAN *p_chg_ind 
 *******************************************************************************/
 static tBTM_STATUS btm_pm_snd_md_req(UINT8 pm_id, int link_ind, tBTM_PM_PWR_MD *p_mode)
 {
@@ -635,7 +635,7 @@ static tBTM_STATUS btm_pm_snd_md_req(UINT8 pm_id, int link_ind, tBTM_PM_PWR_MD *
         break;
 
     case BTM_PM_MD_HOLD:
-        if (btsnd_hcic_hold_mode (btm_cb.acl_db[link_ind].hci_handle,
+        if (btsnd_hcic_hold_mode (btm_cb.acl_db[link_ind].hci_handle, 
                                   md_res.max, md_res.min))
         {
             btm_cb.pm_pend_link = link_ind;
@@ -643,7 +643,7 @@ static tBTM_STATUS btm_pm_snd_md_req(UINT8 pm_id, int link_ind, tBTM_PM_PWR_MD *
         break;
 
     case BTM_PM_MD_SNIFF:
-        if (btsnd_hcic_sniff_mode (btm_cb.acl_db[link_ind].hci_handle,
+        if (btsnd_hcic_sniff_mode (btm_cb.acl_db[link_ind].hci_handle, 
                                    md_res.max, md_res.min, md_res.attempt,
                                    md_res.timeout))
         {
@@ -652,7 +652,7 @@ static tBTM_STATUS btm_pm_snd_md_req(UINT8 pm_id, int link_ind, tBTM_PM_PWR_MD *
         break;
 
     case BTM_PM_MD_PARK:
-        if (btsnd_hcic_park_mode (btm_cb.acl_db[link_ind].hci_handle,
+        if (btsnd_hcic_park_mode (btm_cb.acl_db[link_ind].hci_handle, 
                                   md_res.max, md_res.min))
         {
             btm_cb.pm_pend_link = link_ind;
@@ -810,7 +810,7 @@ void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, U
             /* Mode changed from Sniff to Active while SCO is open. */
             /* Packet types of active mode, not sniff mode, should be used for ACL when SCO is closed. */
             p->restore_pkt_types = btm_cb.btm_acl_pkt_types_supported;
-
+            
             /* Exclude packet types not supported by the peer */
             btm_acl_chk_peer_pkt_type_support (p, &p->restore_pkt_types);
         }

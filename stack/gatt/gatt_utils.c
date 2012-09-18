@@ -28,39 +28,39 @@
 
 const char * const op_code_name[] =
 {
-    "UNKNOWN",
-    "ATT_RSP_ERROR",
-    "ATT_REQ_MTU",
-    "ATT_RSP_MTU",
-    "ATT_REQ_READ_INFO",
-    "ATT_RSP_READ_INFO",
-    "ATT_REQ_FIND_TYPE_VALUE",
-    "ATT_RSP_FIND_TYPE_VALUE",
-    "ATT_REQ_READ_BY_TYPE",
-    "ATT_RSP_READ_BY_TYPE",
-    "ATT_REQ_READ",
-    "ATT_RSP_READ",
-    "ATT_REQ_READ_BLOB",
-    "ATT_RSP_READ_BLOB",
-    "GATT_REQ_READ_MULTI",
-    "GATT_RSP_READ_MULTI",
+    "UNKNOWN",                      
+    "ATT_RSP_ERROR",            
+    "ATT_REQ_MTU",              
+    "ATT_RSP_MTU",              
+    "ATT_REQ_READ_INFO",        
+    "ATT_RSP_READ_INFO",        
+    "ATT_REQ_FIND_TYPE_VALUE",  
+    "ATT_RSP_FIND_TYPE_VALUE",  
+    "ATT_REQ_READ_BY_TYPE",     
+    "ATT_RSP_READ_BY_TYPE",     
+    "ATT_REQ_READ",             
+    "ATT_RSP_READ",             
+    "ATT_REQ_READ_BLOB",        
+    "ATT_RSP_READ_BLOB",        
+    "GATT_REQ_READ_MULTI",      
+    "GATT_RSP_READ_MULTI",  
     "GATT_REQ_READ_BY_GRP_TYPE",
     "GATT_RSP_READ_BY_GRP_TYPE",
-    "ATT_REQ_WRITE",
-    "ATT_RSP_WRITE",
-    "ATT_CMD_WRITE",
-    "ATT_SIGN_CMD_WRITE",
-    "ATT_REQ_PREPARE_WRITE",
-    "ATT_RSP_PREPARE_WRITE",
-    "ATT_REQ_EXEC_WRITE",
-    "ATT_RSP_EXEC_WRITE",
-    "Reserved",
-    "ATT_HANDLE_VALUE_NOTIF",
-    "Reserved",
-    "ATT_HANDLE_VALUE_IND",
-    "ATT_HANDLE_VALUE_CONF",
-    "ATT_OP_CODE_MAX"
-};
+    "ATT_REQ_WRITE",            
+    "ATT_RSP_WRITE",            
+    "ATT_CMD_WRITE",            
+    "ATT_SIGN_CMD_WRITE",                 
+    "ATT_REQ_PREPARE_WRITE",    
+    "ATT_RSP_PREPARE_WRITE",    
+    "ATT_REQ_EXEC_WRITE",       
+    "ATT_RSP_EXEC_WRITE",       
+    "Reserved",                 
+    "ATT_HANDLE_VALUE_NOTIF",   
+    "Reserved",                 
+    "ATT_HANDLE_VALUE_IND",     
+    "ATT_HANDLE_VALUE_CONF",    
+    "ATT_OP_CODE_MAX"           
+};         
 
 static const UINT8  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00, 0x00, 0x80,
     0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -70,9 +70,9 @@ static const UINT8  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0
 **
 ** Function         gatt_free_pending_ind
 **
-** Description    Free all pending indications
+** Description    Free all pending indications   
 **
-** Returns       None
+** Returns       None 
 **
 *******************************************************************************/
 void gatt_free_pending_ind(tGATT_TCB *p_tcb)
@@ -87,9 +87,9 @@ void gatt_free_pending_ind(tGATT_TCB *p_tcb)
 **
 ** Function         gatt_delete_dev_from_srv_chg_clt_list
 **
-** Description    Delete a device from the service changed client lit
+** Description    Delete a device from the service changed client lit  
 **
-** Returns       None
+** Returns       None 
 **
 *******************************************************************************/
 void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr)
@@ -97,7 +97,7 @@ void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr)
     tGATTS_SRV_CHG     *p_buf;
     tGATTS_SRV_CHG_REQ  req;
 
-    GATT_TRACE_DEBUG0 ("gatt_delete_dev_from_srv_chg_clt_list");
+    GATT_TRACE_DEBUG0 ("gatt_delete_dev_from_srv_chg_clt_list"); 
     if ((p_buf = gatt_is_bda_in_the_srv_chg_clt_list(bd_addr)) != NULL)
     {
         if (gatt_cb.cb_info.p_srv_chg_callback)
@@ -115,9 +115,9 @@ void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr)
 **
 ** Function         gatt_set_srv_chg
 **
-** Description      Set the service changed flag to TRUE
+** Description      Set the service changed flag to TRUE 
 **
-** Returns        None
+** Returns        None  
 **
 *******************************************************************************/
 void gatt_set_srv_chg(void)
@@ -125,13 +125,13 @@ void gatt_set_srv_chg(void)
     tGATTS_SRV_CHG *p_buf = (tGATTS_SRV_CHG *)GKI_getfirst(&gatt_cb.srv_chg_clt_q);
     tGATTS_SRV_CHG_REQ req;
 
-    GATT_TRACE_DEBUG0 ("gatt_set_srv_chg");
+    GATT_TRACE_DEBUG0 ("gatt_set_srv_chg"); 
     while (p_buf)
     {
-        GATT_TRACE_DEBUG0 ("found a srv_chg clt");
+        GATT_TRACE_DEBUG0 ("found a srv_chg clt"); 
         if (!p_buf->srv_changed)
         {
-            GATT_TRACE_DEBUG0 ("set srv_changed to TRUE");
+            GATT_TRACE_DEBUG0 ("set srv_changed to TRUE"); 
             p_buf->srv_changed= TRUE;
             memcpy(&req.srv_chg, p_buf, sizeof(tGATTS_SRV_CHG));
             if (gatt_cb.cb_info.p_srv_chg_callback)
@@ -145,9 +145,9 @@ void gatt_set_srv_chg(void)
 **
 ** Function         gatt_sr_is_new_srv_chg
 **
-** Description     Find the app id in on the new service changed list
+** Description     Find the app id in on the new service changed list 
 **
-** Returns     Pointer to the found new service changed item othwerwise NULL
+** Returns     Pointer to the found new service changed item othwerwise NULL     
 **
 *******************************************************************************/
 tGATTS_PENDING_NEW_SRV_START *gatt_sr_is_new_srv_chg(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid, UINT16 svc_inst)
@@ -166,28 +166,28 @@ tGATTS_PENDING_NEW_SRV_START *gatt_sr_is_new_srv_chg(tBT_UUID *p_app_uuid128, tB
             break;
         }
         p_buf = (tGATTS_PENDING_NEW_SRV_START *)GKI_getnext(p_buf);
-    }
+    }    
 
-    return p_buf;
+    return p_buf;  
 }
 
 
 /*******************************************************************************
 **
-** Function     gatt_add_pending_ind
+** Function     gatt_add_pending_ind    
 **
 ** Description  Add a pending indication
-**
-** Returns    Pointer to the current pending indication buffer, NULL no buffer available
+** 
+** Returns    Pointer to the current pending indication buffer, NULL no buffer available       
 **
 *******************************************************************************/
 tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind)
 {
     tGATT_VALUE   *p_buf;
-    GATT_TRACE_DEBUG0 ("gatt_add_pending_ind");
+    GATT_TRACE_DEBUG0 ("gatt_add_pending_ind"); 
     if ((p_buf = (tGATT_VALUE *)GKI_getbuf((UINT16)sizeof(tGATT_VALUE))) != NULL)
     {
-        GATT_TRACE_DEBUG0 ("enqueue a pending indication");
+        GATT_TRACE_DEBUG0 ("enqueue a pending indication"); 
         memcpy(p_buf, p_ind, sizeof(tGATT_VALUE));
         GKI_enqueue (&p_tcb->pending_ind_q, p_buf);
     }
@@ -197,22 +197,22 @@ tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind)
 
 /*******************************************************************************
 **
-** Function     gatt_add_pending_new_srv_start
+** Function     gatt_add_pending_new_srv_start     
 **
 ** Description  Add a pending new srv start to the new service start queue
-**
-** Returns    Pointer to the new service start buffer, NULL no buffer available
+** 
+** Returns    Pointer to the new service start buffer, NULL no buffer available       
 **
 *******************************************************************************/
 tGATTS_PENDING_NEW_SRV_START *gatt_add_pending_new_srv_start(tGATTS_HNDL_RANGE *p_new_srv_start)
 {
     tGATTS_PENDING_NEW_SRV_START   *p_buf;
 
-    GATT_TRACE_DEBUG0 ("gatt_add_pending_new_srv_start");
+    GATT_TRACE_DEBUG0 ("gatt_add_pending_new_srv_start"); 
     if ((p_buf = (tGATTS_PENDING_NEW_SRV_START *)GKI_getbuf((UINT16)sizeof(tGATTS_PENDING_NEW_SRV_START))) != NULL)
     {
-        GATT_TRACE_DEBUG0 ("enqueue a new pending new srv start");
-        p_buf->p_new_srv_start = p_new_srv_start;
+        GATT_TRACE_DEBUG0 ("enqueue a new pending new srv start"); 
+        p_buf->p_new_srv_start = p_new_srv_start; 
         GKI_enqueue (&gatt_cb.pending_new_srv_start_q, p_buf);
     }
     return p_buf;
@@ -221,20 +221,20 @@ tGATTS_PENDING_NEW_SRV_START *gatt_add_pending_new_srv_start(tGATTS_HNDL_RANGE *
 
 /*******************************************************************************
 **
-** Function     gatt_add_srv_chg_clt
+** Function     gatt_add_srv_chg_clt     
 **
 ** Description  Add a service chnage client to the service change client queue
-**
-** Returns    Pointer to the service change client buffer; Null no buffer available
+** 
+** Returns    Pointer to the service change client buffer; Null no buffer available     
 **
 *******************************************************************************/
 tGATTS_SRV_CHG *gatt_add_srv_chg_clt(tGATTS_SRV_CHG *p_srv_chg)
 {
     tGATTS_SRV_CHG *p_buf;
-    GATT_TRACE_DEBUG0 ("gatt_add_srv_chg_clt");
+    GATT_TRACE_DEBUG0 ("gatt_add_srv_chg_clt"); 
     if ((p_buf = (tGATTS_SRV_CHG *)GKI_getbuf((UINT16)sizeof(tGATTS_SRV_CHG))) != NULL)
     {
-        GATT_TRACE_DEBUG0 ("enqueue a srv chg client");
+        GATT_TRACE_DEBUG0 ("enqueue a srv chg client"); 
         memcpy(p_buf, p_srv_chg, sizeof(tGATTS_SRV_CHG));
         GKI_enqueue (&gatt_cb.srv_chg_clt_q, p_buf);
     }
@@ -245,11 +245,11 @@ tGATTS_SRV_CHG *gatt_add_srv_chg_clt(tGATTS_SRV_CHG *p_srv_chg)
 
 /*******************************************************************************
 **
-** Function     gatt_alloc_hdl_buffer
+** Function     gatt_alloc_hdl_buffer     
 **
 ** Description  Allocate a handle buufer
-**
-** Returns    Pointer to the allocated buffer, NULL no buffer available
+** 
+** Returns    Pointer to the allocated buffer, NULL no buffer available       
 **
 *******************************************************************************/
 tGATT_HDL_LIST_ELEM *gatt_alloc_hdl_buffer(void)
@@ -273,11 +273,11 @@ tGATT_HDL_LIST_ELEM *gatt_alloc_hdl_buffer(void)
 
 /*******************************************************************************
 **
-** Function     gatt_find_hdl_buffer_by_handle
+** Function     gatt_find_hdl_buffer_by_handle     
 **
 ** Description  Find handle range buffer by service handle.
-**
-** Returns    Pointer to the buffer, NULL no buffer available
+** 
+** Returns    Pointer to the buffer, NULL no buffer available       
 **
 *******************************************************************************/
 tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_handle(UINT16 handle)
@@ -299,14 +299,14 @@ tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_handle(UINT16 handle)
 }
 /*******************************************************************************
 **
-** Function     gatt_find_hdl_buffer_by_app_id
+** Function     gatt_find_hdl_buffer_by_app_id     
 **
 ** Description  Find handle range buffer by app ID, service and service instance ID.
-**
-** Returns    Pointer to the buffer, NULL no buffer available
+** 
+** Returns    Pointer to the buffer, NULL no buffer available       
 **
 *******************************************************************************/
-tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_app_id (tBT_UUID *p_app_uuid128,
+tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_app_id (tBT_UUID *p_app_uuid128, 
                                                      tBT_UUID *p_svc_uuid,
                                                      UINT16 svc_inst)
 {
@@ -321,7 +321,7 @@ tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_app_id (tBT_UUID *p_app_uuid128,
              &&  gatt_uuid_compare (*p_svc_uuid,    p_list->asgn_range.svc_uuid)
              &&  (svc_inst == p_list->asgn_range.svc_inst) )
         {
-            GATT_TRACE_DEBUG0 ("Already allocated handles for this service before!!");
+            GATT_TRACE_DEBUG0 ("Already allocated handles for this service before!!"); 
             return(p_list);
         }
         p_list = p_list->p_next;
@@ -330,11 +330,11 @@ tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_app_id (tBT_UUID *p_app_uuid128,
 }
 /*******************************************************************************
 **
-** Function         gatt_free_hdl_buffer
+** Function         gatt_free_hdl_buffer 
 **
 ** Description     free a handle buffer
-**
-** Returns       None
+** 
+** Returns       None    
 **
 *******************************************************************************/
 void gatt_free_hdl_buffer(tGATT_HDL_LIST_ELEM *p)
@@ -349,12 +349,12 @@ void gatt_free_hdl_buffer(tGATT_HDL_LIST_ELEM *p)
 }
 /*******************************************************************************
 **
-** Function         gatt_free_srvc_db_buffer_app_id
+** Function         gatt_free_srvc_db_buffer_app_id 
 **
 ** Description      free the service attribute database buffers by the owner of the
 **                  service app ID.
-**
-** Returns       None
+** 
+** Returns       None    
 **
 *******************************************************************************/
 void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id)
@@ -376,11 +376,11 @@ void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id)
 }
 /*******************************************************************************
 **
-** Function         gatt_is_last_attribute
+** Function         gatt_is_last_attribute 
 **
 ** Description     Check this is the last attribute of the specified value or not
-**
-** Returns       TRUE - yes this is the last attribute
+** 
+** Returns       TRUE - yes this is the last attribute    
 **
 *******************************************************************************/
 BOOLEAN gatt_is_last_attribute(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_start, tBT_UUID value)
@@ -413,11 +413,11 @@ BOOLEAN gatt_is_last_attribute(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM 
 
 /*******************************************************************************
 **
-** Function         gatt_update_last_pri_srv_info
+** Function         gatt_update_last_pri_srv_info 
 **
 ** Description     Update the the last primary info for the service list info
-**
-** Returns       None
+** 
+** Returns       None    
 **
 *******************************************************************************/
 void gatt_update_last_pri_srv_info(tGATT_SRV_LIST_INFO *p_list)
@@ -438,11 +438,11 @@ void gatt_update_last_pri_srv_info(tGATT_SRV_LIST_INFO *p_list)
 }
 /*******************************************************************************
 **
-** Function         gatts_update_srv_list_elem
+** Function         gatts_update_srv_list_elem        
 **
 ** Description      update an element in the service list.
 **
-** Returns          None.
+** Returns          None.   
 **
 *******************************************************************************/
 void gatts_update_srv_list_elem(UINT8 i_sreg, UINT16 handle, BOOLEAN is_primary)
@@ -456,12 +456,12 @@ void gatts_update_srv_list_elem(UINT8 i_sreg, UINT16 handle, BOOLEAN is_primary)
 }
 /*******************************************************************************
 **
-** Function  gatt_add_a_srv_to_list
+** Function  gatt_add_a_srv_to_list        
 **
-** Description  add an service to the list in ascending
+** Description  add an service to the list in ascending 
 **              order of the start handle
 **
-** Returns   BOOLEAN TRUE-if add is successful
+** Returns   BOOLEAN TRUE-if add is successful   
 **
 *******************************************************************************/
 BOOLEAN gatt_add_a_srv_to_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_new)
@@ -478,7 +478,7 @@ BOOLEAN gatt_add_a_srv_to_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM 
     {
         /* this is an empty list */
         p_list->p_first =
-        p_list->p_last  = p_new;
+        p_list->p_last  = p_new; 
         p_new->p_next   =
         p_new->p_prev   = NULL;
     }
@@ -507,7 +507,7 @@ BOOLEAN gatt_add_a_srv_to_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM 
 
                     p_new->p_prev           = p_old->p_prev;
                     p_new->p_next           = p_old;
-                    p_old->p_prev           = p_new;
+                    p_old->p_prev           = p_new;   
                     break;
                 }
             }
@@ -523,11 +523,11 @@ BOOLEAN gatt_add_a_srv_to_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM 
 
 /*******************************************************************************
 **
-** Function  gatt_remove_a_srv_from_list
+** Function  gatt_remove_a_srv_from_list        
 **
-** Description  Remove a service from the list
+** Description  Remove a service from the list 
 **
-** Returns   BOOLEAN TRUE-if remove is successful
+** Returns   BOOLEAN TRUE-if remove is successful      
 **
 *******************************************************************************/
 BOOLEAN gatt_remove_a_srv_from_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_remove)
@@ -547,7 +547,7 @@ BOOLEAN gatt_remove_a_srv_from_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_
     else if (p_remove->p_next == NULL)
     {
         p_list->p_last              = p_remove->p_prev;
-        p_remove->p_prev->p_next    = NULL;
+        p_remove->p_prev->p_next    = NULL;           
     }
     else
     {
@@ -562,12 +562,12 @@ BOOLEAN gatt_remove_a_srv_from_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_
 
 /*******************************************************************************
 **
-** Function  gatt_add_an_item_to_list
+** Function  gatt_add_an_item_to_list        
 **
-** Description  add an service handle range to the list in decending
+** Description  add an service handle range to the list in decending 
 **              order of the start handle
 **
-** Returns   BOOLEAN TRUE-if add is successful
+** Returns   BOOLEAN TRUE-if add is successful   
 **
 *******************************************************************************/
 BOOLEAN gatt_add_an_item_to_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELEM *p_new)
@@ -583,7 +583,7 @@ BOOLEAN gatt_add_an_item_to_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELE
     {
         /* this is an empty list */
         p_list->p_first =
-        p_list->p_last  = p_new;
+        p_list->p_last  = p_new; 
         p_new->p_next   =
         p_new->p_prev   = NULL;
     }
@@ -613,7 +613,7 @@ BOOLEAN gatt_add_an_item_to_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELE
                     p_new->p_next    = p_old;
 
 
-                    p_old->p_prev    = p_new;
+                    p_old->p_prev    = p_new;   
                     break;
                 }
             }
@@ -627,11 +627,11 @@ BOOLEAN gatt_add_an_item_to_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELE
 
 /*******************************************************************************
 **
-** Function  gatt_remove_an_item_from_list
+** Function  gatt_remove_an_item_from_list        
 **
-** Description  Remove an service handle range from the list
+** Description  Remove an service handle range from the list 
 **
-** Returns   BOOLEAN TRUE-if remove is successful
+** Returns   BOOLEAN TRUE-if remove is successful      
 **
 *******************************************************************************/
 BOOLEAN gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELEM *p_remove)
@@ -651,7 +651,7 @@ BOOLEAN gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIS
     else if (p_remove->p_next == NULL)
     {
         p_list->p_last              = p_remove->p_prev;
-        p_remove->p_prev->p_next    = NULL;
+        p_remove->p_prev->p_next    = NULL;           
     }
     else
     {
@@ -667,7 +667,7 @@ BOOLEAN gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIS
 **
 ** Function         gatt_find_the_connected_bda
 **
-** Description      This function find the connected bda
+** Description      This function find the connected bda  
 **
 ** Returns           TRUE if found
 **
@@ -691,7 +691,7 @@ BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *p_found
         }
     }
     GATT_TRACE_DEBUG2("gatt_find_the_connected_bda found=%d found_idx=%d", found, i);
-    return found;
+    return found;    
 }
 
 
@@ -731,7 +731,7 @@ BOOLEAN gatt_is_srv_chg_ind_pending (tGATT_TCB *p_tcb)
     }
 
     GATT_TRACE_DEBUG1("srv_chg_ind_pending = %d", srv_chg_ind_pending);
-    return srv_chg_ind_pending;
+    return srv_chg_ind_pending;    
 }
 
 
@@ -759,9 +759,9 @@ tGATTS_SRV_CHG *gatt_is_bda_in_the_srv_chg_clt_list (BD_ADDR bda)
             break;
         }
         p_buf = (tGATTS_SRV_CHG *)GKI_getnext(p_buf);
-    }
+    }    
 
-    return p_buf;
+    return p_buf;  
 }
 
 
@@ -769,7 +769,7 @@ tGATTS_SRV_CHG *gatt_is_bda_in_the_srv_chg_clt_list (BD_ADDR bda)
 **
 ** Function         gatt_is_bda_connected
 **
-** Description
+** Description       
 **
 ** Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
 **
@@ -788,7 +788,7 @@ BOOLEAN gatt_is_bda_connected(BD_ADDR bda)
             break;
         }
     }
-    return connected;
+    return connected;    
 }
 
 /*******************************************************************************
@@ -812,7 +812,7 @@ UINT8 gatt_find_i_tcb_by_addr(BD_ADDR bda)
             break;
         }
     }
-    return j;
+    return j;    
 }
 
 
@@ -832,7 +832,7 @@ tGATT_TCB * gatt_get_tcb_by_idx(UINT8 tcb_idx)
     if ( (tcb_idx < GATT_MAX_PHY_CHANNEL) && gatt_cb.tcb[tcb_idx].in_use)
         p_tcb = &gatt_cb.tcb[tcb_idx];
 
-    return p_tcb;
+    return p_tcb;    
 }
 
 /*******************************************************************************
@@ -852,7 +852,7 @@ tGATT_TCB * gatt_find_tcb_by_addr(BD_ADDR bda)
     if ((i = gatt_find_i_tcb_by_addr(bda)) != GATT_INDEX_INVALID)
         p_tcb = &gatt_cb.tcb[i];
 
-    return p_tcb;
+    return p_tcb;    
 }
 /*******************************************************************************
 **
@@ -875,7 +875,7 @@ UINT8 gatt_find_i_tcb_free(void)
             break;
         }
     }
-    return j;
+    return j;    
 }
 /*******************************************************************************
 **
@@ -888,7 +888,7 @@ UINT8 gatt_find_i_tcb_free(void)
 *******************************************************************************/
 tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda)
 {
-    UINT8 i = 0;
+    UINT8 i = 0; 
     BOOLEAN allocated = FALSE;
     tGATT_TCB    *p_tcb = NULL;
 
@@ -1087,8 +1087,8 @@ BOOLEAN gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, UINT16 uuid_size, UINT8 *
 void gatt_start_rsp_timer(tGATT_TCB    *p_tcb)
 {
     p_tcb->rsp_timer_ent.param  = (TIMER_PARAM_TYPE)p_tcb;
-    btu_start_timer (&p_tcb->rsp_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_RSP,
-                     GATT_WAIT_FOR_RSP_TOUT);
+    btu_start_timer (&p_tcb->rsp_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_RSP, 
+                     GATT_WAIT_FOR_RSP_TOUT);   
 }
 /*******************************************************************************
 **
@@ -1102,8 +1102,8 @@ void gatt_start_rsp_timer(tGATT_TCB    *p_tcb)
 void gatt_start_conf_timer(tGATT_TCB    *p_tcb)
 {
     p_tcb->conf_timer_ent.param  = (TIMER_PARAM_TYPE)p_tcb;
-    btu_start_timer (&p_tcb->conf_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_RSP,
-                     GATT_WAIT_FOR_RSP_TOUT);
+    btu_start_timer (&p_tcb->conf_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_RSP, 
+                     GATT_WAIT_FOR_RSP_TOUT);   
 }
 /*******************************************************************************
 **
@@ -1118,7 +1118,7 @@ void gatt_start_ind_ack_timer(tGATT_TCB *p_tcb)
 {
     p_tcb->ind_ack_timer_ent.param  = (TIMER_PARAM_TYPE)p_tcb;
     /* start notification cache timer */
-    btu_start_timer (&p_tcb->ind_ack_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_IND_ACK,
+    btu_start_timer (&p_tcb->ind_ack_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_IND_ACK, 
                      GATT_WAIT_FOR_RSP_TOUT);
 
 }
@@ -1204,12 +1204,12 @@ UINT8 gatt_sr_find_i_rcb_by_app_id(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid
             p_this_uuid = gatts_get_service_uuid (p_sreg->p_db);
 
             if (p_this_uuid &&
-                gatt_uuid_compare (*p_app_uuid128, p_sreg->app_uuid ) &&
-                gatt_uuid_compare (*p_svc_uuid, *p_this_uuid) &&
+                gatt_uuid_compare (*p_app_uuid128, p_sreg->app_uuid ) && 
+                gatt_uuid_compare (*p_svc_uuid, *p_this_uuid) && 
                 (svc_inst == p_sreg->service_instance))
             {
                 GATT_TRACE_ERROR0 ("Active Service Found ");
-                gatt_dbg_display_uuid(*p_svc_uuid);
+                gatt_dbg_display_uuid(*p_svc_uuid); 
 
                 break;
             }
@@ -1242,7 +1242,7 @@ UINT8 gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
             memcpy (&p_sreg->app_uuid, &p_list->asgn_range.app_uuid128, sizeof(tBT_UUID));
 
             p_sreg->service_instance    = p_list->asgn_range.svc_inst;
-            p_sreg->type                = p_list->asgn_range.is_primary ? GATT_UUID_PRI_SERVICE: GATT_UUID_SEC_SERVICE;
+            p_sreg->type                = p_list->asgn_range.is_primary ? GATT_UUID_PRI_SERVICE: GATT_UUID_SEC_SERVICE; 
             p_sreg->s_hdl               = p_list->asgn_range.s_handle;
             p_sreg->e_hdl               = p_list->asgn_range.e_handle;
             //p_sreg->sr_cb               = *p_cback;
@@ -1261,7 +1261,7 @@ UINT8 gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
 **
 ** Description      Get the security flag and key size information for the peer
 **                  device.
-**
+**                  
 ** Returns          void
 **
 *******************************************************************************/
@@ -1280,14 +1280,14 @@ void gatt_sr_get_sec_info(BD_ADDR rem_bda, BOOLEAN le_conn, UINT8 *p_sec_flag, U
 **
 ** Function         gatt_sr_send_req_callback
 **
-** Description
-**
+** Description      
+**                  
 **
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_sr_send_req_callback(UINT16 conn_id,
-                               UINT32 trans_id,
+void gatt_sr_send_req_callback(UINT16 conn_id,  
+                               UINT32 trans_id, 
                                tGATTS_REQ_TYPE type, tGATTS_DATA *p_data)
 {
     tGATT_IF        gatt_if = GATT_GET_GATT_IF(conn_id);
@@ -1299,10 +1299,10 @@ void gatt_sr_send_req_callback(UINT16 conn_id,
         return;
     }
 
-    if ( p_reg->in_use &&
+    if ( p_reg->in_use && 
          p_reg->app_cb.p_req_cb)
     {
-        (*p_reg->app_cb.p_req_cb)(conn_id, trans_id, type, p_data);
+        (*p_reg->app_cb.p_req_cb)(conn_id, trans_id, type, p_data);                        
     }
     else
     {
@@ -1320,14 +1320,14 @@ void gatt_sr_send_req_callback(UINT16 conn_id,
 ** Returns          void
 **
 *******************************************************************************/
-tGATT_STATUS gatt_send_error_rsp (tGATT_TCB *p_tcb, UINT8 err_code, UINT8 op_code,
+tGATT_STATUS gatt_send_error_rsp (tGATT_TCB *p_tcb, UINT8 err_code, UINT8 op_code, 
                                   UINT16 handle, BOOLEAN deq)
 {
     tGATT_ERROR      error;
     tGATT_STATUS     status;
     BT_HDR           *p_buf;
 
-    error.cmd_code = op_code;
+    error.cmd_code = op_code; 
     error.reason = err_code;
     error.handle =handle;
 
@@ -1390,7 +1390,7 @@ UINT32 gatt_add_sdp_record (tBT_UUID *p_uuid, UINT16 start_hdl, UINT16 end_hdl)
     proto_elem_list[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
     proto_elem_list[0].num_params    = 1;
     proto_elem_list[0].params[0]     = BT_PSM_ATT;
-    proto_elem_list[1].protocol_uuid = UUID_PROTOCOL_ATT;
+    proto_elem_list[1].protocol_uuid = UUID_PROTOCOL_ATT; 
     proto_elem_list[1].num_params    = 2;
     proto_elem_list[1].params[0]     = start_hdl;
     proto_elem_list[1].params[1]     = end_hdl;
@@ -1455,7 +1455,7 @@ tGATT_REG *gatt_get_regcb (tGATT_IF gatt_if)
 **
 ** Function         gatt_is_clcb_allocated
 **
-** Description      The function check clcb for conn_id is allocated or not
+** Description      The function check clcb for conn_id is allocated or not  
 **
 ** Returns           True already allocated
 **
@@ -1471,7 +1471,7 @@ BOOLEAN gatt_is_clcb_allocated (UINT16 conn_id)
         if (gatt_cb.clcb[i].in_use && (gatt_cb.clcb[i].conn_id == conn_id))
         {
             is_allocated = TRUE;
-            break;
+            break;  
         }
     }
 
@@ -1536,7 +1536,7 @@ void gatt_clcb_dealloc (tGATT_CLCB *p_clcb)
 **
 ** Function         gatt_find_tcb_by_cid
 **
-** Description      The function searches for an empty entry
+** Description      The function searches for an empty entry 
 **                   in registration info table for GATT client
 **
 ** Returns           NULL if not found. Otherwise pointer to the rcb.
@@ -1743,7 +1743,7 @@ void gatt_sr_reset_prep_cnt(tGATT_TCB *p_tcb )
 **
 ** Function         gatt_sr_update_cback_cnt
 **
-** Description    Update the teh applicaiton callback count
+** Description    Update the teh applicaiton callback count   
 **
 ** Returns           None
 **
@@ -1778,9 +1778,9 @@ void gatt_sr_update_cback_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, BOOLEAN is_inc
 **
 ** Function         gatt_sr_update_prep_cnt
 **
-** Description    Update the teh prepare write request count
+** Description    Update the teh prepare write request count   
 **
-** Returns           None
+** Returns           None     
 **
 *******************************************************************************/
 void gatt_sr_update_prep_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, BOOLEAN is_inc, BOOLEAN is_reset_first)
@@ -1788,7 +1788,7 @@ void gatt_sr_update_prep_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, BOOLEAN is_inc,
     UINT8 idx = ((UINT8) gatt_if) - 1 ;
 
     GATT_TRACE_DEBUG4("gatt_sr_update_prep_cnt tcb idx=%d gatt_if=%d is_inc=%d is_reset_first=%d",
-                      p_tcb->tcb_idx, gatt_if, is_inc, is_reset_first);
+                      p_tcb->tcb_idx, gatt_if, is_inc, is_reset_first); 
 
     if (p_tcb)
     {
@@ -1936,8 +1936,8 @@ tGATT_CLCB * gatt_cmd_dequeue(tGATT_TCB *p_tcb, UINT8 *p_op_code)
 ** Returns          status code
 **
 *******************************************************************************/
-UINT8 gatt_send_write_msg (tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 op_code,
-                           UINT16 handle, UINT16 len,
+UINT8 gatt_send_write_msg (tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 op_code, 
+                           UINT16 handle, UINT16 len, 
                            UINT16 offset, UINT8 *p_data)
 {
     tGATT_CL_MSG     msg;
@@ -1962,7 +1962,7 @@ UINT8 gatt_send_write_msg (tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 op_code,
 ** Returns          status code
 **
 *******************************************************************************/
-UINT8 gatt_act_send_browse(tGATT_TCB *p_tcb, UINT16 index, UINT8 op, UINT16 s_handle,
+UINT8 gatt_act_send_browse(tGATT_TCB *p_tcb, UINT16 index, UINT8 op, UINT16 s_handle,  
                            UINT16 e_handle, tBT_UUID uuid)
 {
     tGATT_CL_MSG     msg;
@@ -1994,7 +1994,7 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
     UINT16              conn_id;
     UINT8               operation;
 
-    GATT_TRACE_DEBUG3 ("gatt_end_operation status=%d op=%d subtype=%d",
+    GATT_TRACE_DEBUG3 ("gatt_end_operation status=%d op=%d subtype=%d", 
                        status, p_clcb->operation, p_clcb->op_subtype);
 
     if (p_cmpl_cb != NULL && p_clcb->operation != 0)
@@ -2050,7 +2050,7 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
     else if (p_cmpl_cb && op)
         (*p_cmpl_cb)(conn_id, op, status, &cb_data);
     else
-        GATT_TRACE_WARNING3 ("gatt_end_operation not sent out op=%d p_disc_cmpl_cb:%p p_cmpl_cb:%p",
+        GATT_TRACE_WARNING3 ("gatt_end_operation not sent out op=%d p_disc_cmpl_cb:%p p_cmpl_cb:%p", 
                              operation, p_disc_cmpl_cb, p_cmpl_cb);
 }
 
@@ -2102,7 +2102,7 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason)
             p_reg = &gatt_cb.cl_rcb[i];
             if (p_reg->in_use && p_reg->app_cb.p_conn_cb)
             {
-                conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_reg->gatt_if);
+                conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_reg->gatt_if); 
                 GATT_TRACE_DEBUG3 ("found p_reg tcb_idx=%d gatt_if=%d  conn_id=0x%x", p_tcb->tcb_idx, p_reg->gatt_if, conn_id);
                 (*p_reg->app_cb.p_conn_cb)(p_reg->gatt_if,  bda, conn_id, FALSE, reason);
             }
@@ -2162,12 +2162,12 @@ void gatt_dbg_display_uuid(tBT_UUID bt_uuid)
     }
     else if (bt_uuid.len == LEN_UUID_128)
     {
-        x += sprintf(&str_buf[x], "0x%02x%02x%02x%02x%02x%02x%02x%02x",
+        x += sprintf(&str_buf[x], "0x%02x%02x%02x%02x%02x%02x%02x%02x",  
                      bt_uuid.uu.uuid128[15], bt_uuid.uu.uuid128[14],
                      bt_uuid.uu.uuid128[13], bt_uuid.uu.uuid128[12],
                      bt_uuid.uu.uuid128[11], bt_uuid.uu.uuid128[10],
                      bt_uuid.uu.uuid128[9], bt_uuid.uu.uuid128[8]);
-        sprintf(&str_buf[x], "%02x%02x%02x%02x%02x%02x%02x%02x",
+        sprintf(&str_buf[x], "%02x%02x%02x%02x%02x%02x%02x%02x",  
                 bt_uuid.uu.uuid128[7], bt_uuid.uu.uuid128[6],
                 bt_uuid.uu.uuid128[5], bt_uuid.uu.uuid128[4],
                 bt_uuid.uu.uuid128[3], bt_uuid.uu.uuid128[2],
@@ -2403,8 +2403,8 @@ BOOLEAN gatt_remove_bg_dev_from_list(tGATT_IF gatt_if, BD_ADDR bd_addr)
             p_dev->gatt_if[i] = 0;
 
             for (j = i + 1; j < GATT_MAX_APPS; j ++)
-                p_dev->gatt_if[j - 1] = p_dev->gatt_if[j];
-
+                p_dev->gatt_if[j - 1] = p_dev->gatt_if[j]; 
+            
             if (p_dev->gatt_if[0] == 0)
             {
                 ret = BTM_BleUpdateBgConnDev(FALSE, p_dev->remote_bda);
@@ -2444,7 +2444,7 @@ void gatt_deregister_bgdev_list(tGATT_IF gatt_if)
                 else if (p_dev_list->gatt_if[j] == gatt_if)
                 {
                     for (k = j + 1; k < GATT_MAX_APPS; k ++)
-                        p_dev_list->gatt_if[k - 1] = p_dev_list->gatt_if[k];
+                        p_dev_list->gatt_if[k - 1] = p_dev_list->gatt_if[k]; 
 
                     if (p_dev_list->gatt_if[0] == 0)
                     {
@@ -2477,7 +2477,7 @@ void gatt_reset_bgdev_list(void)
 **
 ** Function         gatt_update_auto_connect_dev
 **
-** Description      This function add or remove a device for background connection
+** Description      This function add or remove a device for background connection 
 **                  procedure.
 **
 ** Parameters       gatt_if: Application ID.

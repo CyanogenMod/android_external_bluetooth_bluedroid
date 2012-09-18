@@ -154,13 +154,13 @@ static void l2c_csm_closed (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 
     case L2CEVT_LP_CONNECT_CFM:                         /* Link came up         */
         p_ccb->chnl_state = CST_ORIG_W4_SEC_COMP;
-        btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
+        btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm, 
                                   p_ccb->p_lcb->handle, TRUE, &l2c_link_sec_comp, p_ccb);
         break;
 
     case L2CEVT_LP_CONNECT_CFM_NEG:                     /* Link failed          */
         /* Disconnect unless ACL collision and upper layer wants to handle it */
-        if (p_ci->status != HCI_ERR_CONNECTION_EXISTS
+        if (p_ci->status != HCI_ERR_CONNECTION_EXISTS 
             || !btm_acl_notif_conn_collision(p_ccb->p_lcb->remote_bd_addr))
         {
             L2CAP_TRACE_API2 ("L2CAP - Calling ConnectCfm_Cb(), CID: 0x%04x  Status: %d", p_ccb->local_cid, p_ci->status);
@@ -182,9 +182,9 @@ static void l2c_csm_closed (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 Event uninit_use_in_call: Using uninitialized value "settings" (field "settings".timeout uninitialized) in call to function "BTM_SetPowerMode" [details]
 Event uninit_use_in_call: Using uninitialized value "settings.max" in call to function "BTM_SetPowerMode" [details]
 Event uninit_use_in_call: Using uninitialized value "settings.min" in call to function "BTM_SetPowerMode"
-// FALSE-POSITIVE error from Coverity test-tool. Please do NOT remove following comment.
-// coverity[uninit_use_in_call] False-positive: setting the mode to BTM_PM_MD_ACTIVE only uses settings.mode the other data members of tBTM_PM_PWR_MD are ignored
-*/
+// FALSE-POSITIVE error from Coverity test-tool. Please do NOT remove following comment.                    
+// coverity[uninit_use_in_call] False-positive: setting the mode to BTM_PM_MD_ACTIVE only uses settings.mode the other data members of tBTM_PM_PWR_MD are ignored        
+*/              
             BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
         }
 #else
@@ -192,7 +192,7 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
 #endif
 
         /* If sec access does not result in started SEC_COM or COMP_NEG are already processed */
-        if (btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
+        if (btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm, 
                                       p_ccb->p_lcb->handle, TRUE, &l2c_link_sec_comp, p_ccb) == BTM_CMD_STARTED)
             p_ccb->chnl_state = CST_ORIG_W4_SEC_COMP;
         break;
@@ -239,9 +239,9 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
 Event uninit_use_in_call: Using uninitialized value "settings" (field "settings".timeout uninitialized) in call to function "BTM_SetPowerMode" [details]
 Event uninit_use_in_call: Using uninitialized value "settings.max" in call to function "BTM_SetPowerMode" [details]
 Event uninit_use_in_call: Using uninitialized value "settings.min" in call to function "BTM_SetPowerMode"
-// FALSE-POSITIVE error from Coverity test-tool. Please do NOT remove following comment.
-// coverity[uninit_use_in_call] False-positive: setting the mode to BTM_PM_MD_ACTIVE only uses settings.mode the other data members of tBTM_PM_PWR_MD are ignored
-*/
+// FALSE-POSITIVE error from Coverity test-tool. Please do NOT remove following comment.                    
+// coverity[uninit_use_in_call] False-positive: setting the mode to BTM_PM_MD_ACTIVE only uses settings.mode the other data members of tBTM_PM_PWR_MD are ignored        
+*/                    
             BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
         }
 #else
@@ -249,7 +249,7 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
 #endif
 
         p_ccb->chnl_state = CST_TERM_W4_SEC_COMP;
-        if (btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
+        if (btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm, 
                                   p_ccb->p_lcb->handle, FALSE, &l2c_link_sec_comp, p_ccb) == BTM_CMD_STARTED)
         {
             /* started the security process, tell the peer to set a longer timer */
@@ -319,7 +319,7 @@ static void l2c_csm_orig_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
 
     case L2CEVT_SEC_RE_SEND_CMD:                    /* BTM has enough info to proceed */
     case L2CEVT_LP_CONNECT_CFM:                     /* Link came up         */
-        btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
+        btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm, 
                                   p_ccb->p_lcb->handle, TRUE, &l2c_link_sec_comp, p_ccb);
         break;
 
@@ -426,11 +426,11 @@ static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
         else
         {
             /*
-            ** L2CAP Connect Response will be sent out by 3 sec timer expiration
-            ** because Bluesoleil doesn't respond to L2CAP Information Request.
-            ** Bluesoleil seems to disconnect ACL link as failure case, because
-            ** it takes too long (4~7secs) to get response.
-            ** product version : Bluesoleil 2.1.1.0 EDR Release 060123
+            ** L2CAP Connect Response will be sent out by 3 sec timer expiration 
+            ** because Bluesoleil doesn't respond to L2CAP Information Request.  
+            ** Bluesoleil seems to disconnect ACL link as failure case, because  
+            ** it takes too long (4~7secs) to get response.                      
+            ** product version : Bluesoleil 2.1.1.0 EDR Release 060123           
             ** stack version   : 05.04.11.20060119
             */
 
@@ -480,7 +480,7 @@ static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
         break;
 
     case L2CEVT_SEC_RE_SEND_CMD:                    /* BTM has enough info to proceed */
-        btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
+        btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm, 
                                   p_ccb->p_lcb->handle, FALSE, &l2c_link_sec_comp, p_ccb);
         break;
     }
@@ -736,7 +736,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
          if (p_cfg->result != L2CAP_CFG_PENDING)
          {
              /* TBD: When config options grow beyong minimum MTU (48 bytes)
-              *      logic needs to be added to handle responses with
+              *      logic needs to be added to handle responses with 
               *      continuation bit set in flags field.
               *       1. Send additional config request out until C-bit is cleared in response
               */
@@ -1007,7 +1007,7 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         BTM_CancelSniffMode (p_ccb->p_lcb->remote_bd_addr);
 #endif
 // btla-specific --
-
+		
         p_ccb->chnl_state = CST_W4_L2CA_DISCONNECT_RSP;
         btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_DISCONNECT_TOUT);
         L2CAP_TRACE_API1 ("L2CAP - Calling Disconnect_Ind_Cb(), CID: 0x%04x  Conf Needed", p_ccb->local_cid);

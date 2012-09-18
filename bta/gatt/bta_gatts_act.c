@@ -2,7 +2,7 @@
 **
 **  Name:           bta_gatts_act.c
 **
-**  Description:    This file contains the GATT Server action
+**  Description:    This file contains the GATT Server action 
 **                  functions for the state machine.
 **
 **  Copyright (c) 2003-2011, Broadcom Corp., All Rights Reserved.
@@ -28,9 +28,9 @@ static BOOLEAN bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd, tGATTS_SRV_CHG
 
 static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected, tGATT_DISCONN_REASON reason);
 static void bta_gatts_send_request_cback (UINT16 conn_id,
-                                          UINT32 trans_id,
+                                          UINT32 trans_id, 
                                           tGATTS_REQ_TYPE req_type, tGATTS_DATA *p_data);
-static tGATT_CBACK bta_gatts_cback =
+static tGATT_CBACK bta_gatts_cback = 
 {
     bta_gatts_conn_cback,
     NULL,
@@ -73,8 +73,8 @@ static void bta_gatts_nv_save_cback(BOOLEAN is_add, tGATTS_HNDL_RANGE *p_hndl_ra
 *******************************************************************************/
 static BOOLEAN bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd, tGATTS_SRV_CHG_REQ *p_req, tGATTS_SRV_CHG_RSP *p_rsp)
 {
-    return bta_gatts_co_srv_chg((tBTA_GATTS_SRV_CHG_CMD) cmd,
-                                (tBTA_GATTS_SRV_CHG_REQ *) p_req,
+    return bta_gatts_co_srv_chg((tBTA_GATTS_SRV_CHG_CMD) cmd, 
+                                (tBTA_GATTS_SRV_CHG_REQ *) p_req, 
                                 (tBTA_GATTS_SRV_CHG_RSP *) p_rsp);
 }
 
@@ -165,8 +165,8 @@ void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
             p_cb->rcb[first_unuse].in_use = TRUE;
             p_cb->rcb[first_unuse].p_cback = p_msg->api_reg.p_cback;
             memcpy(&p_cb->rcb[first_unuse].app_uuid, &p_msg->api_reg.app_uuid, sizeof(tBT_UUID));
-            cb_data.reg_oper.server_if      =
-            p_cb->rcb[first_unuse].gatt_if  = GATT_Register(&p_msg->api_reg.app_uuid, &bta_gatts_cback);
+            cb_data.reg_oper.server_if      =        
+            p_cb->rcb[first_unuse].gatt_if  = GATT_Register(&p_msg->api_reg.app_uuid, &bta_gatts_cback); 
             if ( !p_cb->rcb[first_unuse].gatt_if)
             {
                 status = BTA_GATT_NO_RESOURCES;
@@ -236,7 +236,7 @@ void bta_gatts_deregister(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
     tBTA_GATTS          cb_data;
 
     cb_data.reg_oper.server_if = p_msg->api_dereg.server_if;
-    cb_data.reg_oper.status = status;
+    cb_data.reg_oper.status = status; 
 
     for (i = 0; i < BTA_GATTS_MAX_APP_NUM; i ++)
     {
@@ -244,13 +244,13 @@ void bta_gatts_deregister(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
         {
             p_cback = p_cb->rcb[i].p_cback;
             status = BTA_GATT_OK;
-
+            
             /* deregister the app */
             GATT_Deregister(p_cb->rcb[i].gatt_if);
 
             /* reset cb */
             memset(&p_cb->rcb[i], 0, sizeof(tBTA_GATTS_RCB));
-            cb_data.reg_oper.status = status;
+            cb_data.reg_oper.status = status; 
             break;
         }
     }
@@ -275,7 +275,7 @@ void bta_gatts_deregister(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
 *******************************************************************************/
 void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 {
-    UINT8               rcb_idx;
+    UINT8               rcb_idx;  
     tBTA_GATTS          cb_data;
     UINT8               srvc_idx;
     UINT16              service_id = 0;
@@ -292,10 +292,10 @@ void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
         if ((srvc_idx = bta_gatts_alloc_srvc_cb(p_cb, rcb_idx)) != BTA_GATTS_INVALID_APP)
         {
             /* create the service now */
-            service_id = GATTS_CreateService (p_cb->rcb[rcb_idx].gatt_if,
-                                              &p_msg->api_create_svc.service_uuid,
+            service_id = GATTS_CreateService (p_cb->rcb[rcb_idx].gatt_if, 
+                                              &p_msg->api_create_svc.service_uuid, 
                                               p_msg->api_create_svc.inst,
-                                              p_msg->api_create_svc.num_handle,
+                                              p_msg->api_create_svc.num_handle, 
                                               p_msg->api_create_svc.is_pri);
 
             if (service_id != 0)
@@ -310,7 +310,7 @@ void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 // btla-specific ++
                 cb_data.create.is_primary  = p_msg->api_create_svc.is_pri;
 // btla-specific --
-                cb_data.create.server_if   = p_cb->rcb[rcb_idx].gatt_if;
+                cb_data.create.server_if   = p_cb->rcb[rcb_idx].gatt_if; 
             }
             else
             {
@@ -342,7 +342,7 @@ void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 *******************************************************************************/
 void bta_gatts_add_include_srvc(tBTA_GATTS_SRVC_CB *p_srvc_cb,tBTA_GATTS_DATA * p_msg)
 {
-    tBTA_GATTS_RCB  *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
+    tBTA_GATTS_RCB  *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];   
     UINT16          attr_id = 0;
     tBTA_GATTS      cb_data;
 
@@ -376,8 +376,8 @@ void bta_gatts_add_include_srvc(tBTA_GATTS_SRVC_CB *p_srvc_cb,tBTA_GATTS_DATA * 
 *******************************************************************************/
 void bta_gatts_add_char(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
 {
-    tBTA_GATTS_RCB  *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
-    UINT16          attr_id = 0;
+    tBTA_GATTS_RCB  *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];  
+    UINT16          attr_id = 0;    
     tBTA_GATTS      cb_data;
 
     attr_id = GATTS_AddCharacteristic(p_msg->api_add_char.hdr.layer_specific,
@@ -414,12 +414,12 @@ void bta_gatts_add_char(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
 *******************************************************************************/
 void bta_gatts_add_char_descr(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
 {
-    tBTA_GATTS_RCB  *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
-    UINT16          attr_id = 0;
+    tBTA_GATTS_RCB  *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];   
+    UINT16          attr_id = 0;    
     tBTA_GATTS      cb_data;
 
     attr_id = GATTS_AddCharDescriptor(p_msg->api_add_char_descr.hdr.layer_specific,
-                                       p_msg->api_add_char_descr.perm,
+                                       p_msg->api_add_char_descr.perm,                                 
                                        &p_msg->api_add_char_descr.descr_uuid);
 
     cb_data.add_result.server_if = p_rcb->gatt_if;
@@ -453,13 +453,13 @@ void bta_gatts_add_char_descr(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p
 *******************************************************************************/
 void bta_gatts_delete_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
 {
-    tBTA_GATTS_RCB *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
+    tBTA_GATTS_RCB *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];    
     tBTA_GATTS      cb_data;
 
     cb_data.srvc_oper.server_if = p_rcb->gatt_if;
     cb_data.srvc_oper.service_id = p_msg->api_add_incl_srvc.hdr.layer_specific;
 
-    if (GATTS_DeleteService(p_rcb->gatt_if,
+    if (GATTS_DeleteService(p_rcb->gatt_if, 
                             &p_srvc_cb->service_uuid,
                             p_srvc_cb->inst_num))
     {
@@ -486,7 +486,7 @@ void bta_gatts_delete_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p
 *******************************************************************************/
 void bta_gatts_start_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
 {
-    tBTA_GATTS_RCB *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
+    tBTA_GATTS_RCB *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];    
     tBTA_GATTS      cb_data;
 
     cb_data.srvc_oper.server_if = p_rcb->gatt_if;
@@ -519,7 +519,7 @@ void bta_gatts_start_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_
 *******************************************************************************/
 void bta_gatts_stop_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
 {
-    tBTA_GATTS_RCB *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
+    tBTA_GATTS_RCB *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];    
     tBTA_GATTS      cb_data;
 
     GATTS_StopService(p_srvc_cb->service_id);
@@ -544,14 +544,14 @@ void bta_gatts_stop_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_m
 void bta_gatts_send_rsp (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 {
 
-    if (GATTS_SendRsp (p_msg->api_rsp.hdr.layer_specific,
-                        p_msg->api_rsp.trans_id,
-                        p_msg->api_rsp.status,
+    if (GATTS_SendRsp (p_msg->api_rsp.hdr.layer_specific, 
+                        p_msg->api_rsp.trans_id, 
+                        p_msg->api_rsp.status, 
                         (tGATTS_RSP *)p_msg->api_rsp.p_rsp) != GATT_SUCCESS)
     {
         APPL_TRACE_ERROR0("Sending response failed");
     }
-
+ 
 }
 /*******************************************************************************
 **
@@ -574,17 +574,17 @@ void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
     {
         if (p_msg->api_indicate.need_confirm)
 
-            status = GATTS_HandleValueIndication (p_msg->api_indicate.hdr.layer_specific,
-                                                  p_msg->api_indicate.attr_id,
-                                                  p_msg->api_indicate.len,
+            status = GATTS_HandleValueIndication (p_msg->api_indicate.hdr.layer_specific, 
+                                                  p_msg->api_indicate.attr_id, 
+                                                  p_msg->api_indicate.len, 
                                                   p_msg->api_indicate.value);
         else
-            status = GATTS_HandleValueNotification (p_msg->api_indicate.hdr.layer_specific,
-                                                    p_msg->api_indicate.attr_id,
-                                                    p_msg->api_indicate.len,
+            status = GATTS_HandleValueNotification (p_msg->api_indicate.hdr.layer_specific, 
+                                                    p_msg->api_indicate.attr_id, 
+                                                    p_msg->api_indicate.len, 
                                                     p_msg->api_indicate.value);
 
-        if (status != GATT_SUCCESS &&
+        if (status != GATT_SUCCESS && 
             p_msg->api_indicate.need_confirm &&
             p_cb->rcb[p_srvc_cb->rcb_idx].p_cback)
         {
@@ -602,7 +602,7 @@ void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 **
 ** Function         bta_gatts_open
 **
-** Description
+** Description      
 **
 ** Returns          none.
 **
@@ -633,7 +633,7 @@ void bta_gatts_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 **
 ** Function         bta_gatts_cancel_open
 **
-** Description
+** Description     
 **
 ** Returns          none.
 **
@@ -666,7 +666,7 @@ void bta_gatts_cancel_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 **
 ** Function         bta_gatts_close
 **
-** Description
+** Description       
 **
 ** Returns          none.
 **
@@ -698,7 +698,7 @@ void bta_gatts_close (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
     {
         APPL_TRACE_ERROR1("Unknown connection ID: %d", p_msg->hdr.layer_specific);
     }
-
+    
 }
 
 
@@ -712,7 +712,7 @@ void bta_gatts_close (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 **
 *******************************************************************************/
 static void bta_gatts_send_request_cback (UINT16 conn_id,
-                                          UINT32 trans_id,
+                                          UINT32 trans_id, 
                                           tGATTS_REQ_TYPE req_type, tGATTS_DATA *p_data)
 {
     tBTA_GATTS          cb_data;
@@ -725,7 +725,7 @@ static void bta_gatts_send_request_cback (UINT16 conn_id,
     {
         p_rcb = bta_gatts_find_app_rcb_by_app_if(gatt_if);
 
-        APPL_TRACE_DEBUG3 ("bta_gatts_send_request_cback conn_id=%d trans_id=%d req_type=%d", conn_id, trans_id, req_type);
+        APPL_TRACE_DEBUG3 ("bta_gatts_send_request_cback conn_id=%d trans_id=%d req_type=%d", conn_id, trans_id, req_type); 
 
         if (p_rcb && p_rcb->p_cback)
         {
@@ -755,15 +755,15 @@ static void bta_gatts_send_request_cback (UINT16 conn_id,
 ** Returns          none.
 **
 *******************************************************************************/
-static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
+static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, 
                                   BOOLEAN connected, tGATT_DISCONN_REASON reason)
 {
     tBTA_GATTS      cb_data;
-    UINT8           evt = connected ? BTA_GATTS_CONNECT_EVT: BTA_GATTS_DISCONNECT_EVT;
+    UINT8           evt = connected ? BTA_GATTS_CONNECT_EVT: BTA_GATTS_DISCONNECT_EVT; 
     tBTA_GATTS_RCB  *p_reg;
 
-    APPL_TRACE_DEBUG4 ("bta_gatts_conn_cback gatt_if=%d conn_id=%d connected=%d reason = 0x%04d",
-                        gatt_if, conn_id, connected, reason);
+    APPL_TRACE_DEBUG4 ("bta_gatts_conn_cback gatt_if=%d conn_id=%d connected=%d reason = 0x%04d", 
+                        gatt_if, conn_id, connected, reason);  
     APPL_TRACE_DEBUG6("bta_gatts_conn_cback  bda :%02x-%02x-%02x-%02x-%02x-%02x ",
                       bda[0],  bda[1], bda[2],  bda[3], bda[4],  bda[5]);
 

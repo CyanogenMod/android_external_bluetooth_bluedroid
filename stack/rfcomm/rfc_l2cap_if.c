@@ -20,7 +20,7 @@
 #include "rfc_int.h"
 
 
-/*
+/* 
 ** Define Callback functions to be called by L2CAP
 */
 static void RFCOMM_ConnectInd (BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id);
@@ -66,7 +66,7 @@ void rfcomm_l2cap_if_init (void)
 **
 ** Function         RFCOMM_ConnectInd
 **
-** Description      This is a callback function called by L2CAP when
+** Description      This is a callback function called by L2CAP when 
 **                  L2CA_ConnectInd received.  Allocate multiplexer control block
 **                  and dispatch the event to it.
 **
@@ -120,7 +120,7 @@ void RFCOMM_ConnectInd (BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
 **
 ** Function         RFCOMM_ConnectCnf
 **
-** Description      This is a callback function called by L2CAP when
+** Description      This is a callback function called by L2CAP when 
 **                  L2CA_ConnectCnf received.  Save L2CAP handle and dispatch
 **                  event to the FSM.
 **
@@ -192,7 +192,7 @@ void RFCOMM_ConnectCnf (UINT16 lcid, UINT16 result)
 **
 ** Function         RFCOMM_ConfigInd
 **
-** Description      This is a callback function called by L2CAP when
+** Description      This is a callback function called by L2CAP when 
 **                  L2CA_ConfigInd received.  Save parameters in the control
 **                  block and dispatch event to the FSM.
 **
@@ -215,7 +215,7 @@ void RFCOMM_ConfigInd (UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 **
 ** Function         RFCOMM_ConfigCnf
 **
-** Description      This is a callback function called by L2CAP when
+** Description      This is a callback function called by L2CAP when 
 **                  L2CA_ConfigCnf received.  Save L2CAP handle and dispatch
 **                  event to the FSM.
 **
@@ -238,7 +238,7 @@ void RFCOMM_ConfigCnf (UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 **
 ** Function         RFCOMM_QoSViolationInd
 **
-** Description      This is a callback function called by L2CAP when
+** Description      This is a callback function called by L2CAP when 
 **                  L2CA_QoSViolationIndInd received.  Dispatch event to the FSM.
 **
 *******************************************************************************/
@@ -251,7 +251,7 @@ void RFCOMM_QoSViolationInd (BD_ADDR bd_addr)
 **
 ** Function         RFCOMM_DisconnectInd
 **
-** Description      This is a callback function called by L2CAP when
+** Description      This is a callback function called by L2CAP when 
 **                  L2CA_DisconnectInd received.  Dispatch event to the FSM.
 **
 *******************************************************************************/
@@ -278,8 +278,8 @@ void RFCOMM_DisconnectInd (UINT16 lcid, BOOLEAN is_conf_needed)
 **
 ** Function         RFCOMM_BufDataInd
 **
-** Description      This is a callback function called by L2CAP when
-**                  data RFCOMM frame is received.  Parse the frames, check
+** Description      This is a callback function called by L2CAP when 
+**                  data RFCOMM frame is received.  Parse the frames, check 
 **                  the checksum and dispatch event to multiplexer or port
 **                  state machine depending on the frame destination.
 **
@@ -352,7 +352,7 @@ void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
             rfc_port_sm_execute (p_port, event, p_buf);
         else
             GKI_freebuf (p_buf);
-
+            
         if (rfc_cb.rfc.rx_frame.credit != 0)
             rfc_inc_credit (p_port, rfc_cb.rfc.rx_frame.credit);
 
@@ -366,7 +366,7 @@ void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
 **
 ** Function         RFCOMM_CongestionStatusInd
 **
-** Description      This is a callback function called by L2CAP when
+** Description      This is a callback function called by L2CAP when 
 **                  data RFCOMM L2CAP congestion status changes
 **
 *******************************************************************************/

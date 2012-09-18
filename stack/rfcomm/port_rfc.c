@@ -20,7 +20,7 @@
 #include "port_int.h"
 #include "rfc_int.h"
 
-/*
+/* 
 ** Local function definitions
 */
 UINT32 port_rfc_send_tx_data (tPORT *p_port);
@@ -85,7 +85,7 @@ int port_open_continue (tPORT *p_port)
 **
 ** Function         port_start_control
 **
-** Description      This function is called in the BTU_TASK context to
+** Description      This function is called in the BTU_TASK context to 
 **                  send control information
 **
 ** Returns          void
@@ -106,7 +106,7 @@ void port_start_control (tPORT *p_port)
 **
 ** Function         port_start_par_neg
 **
-** Description      This function is called in the BTU_TASK context to
+** Description      This function is called in the BTU_TASK context to 
 **                  send configuration information
 **
 ** Returns          void
@@ -127,7 +127,7 @@ void port_start_par_neg (tPORT *p_port)
 **
 ** Function         port_start_close
 **
-** Description      This function is called in the BTU_TASK context to
+** Description      This function is called in the BTU_TASK context to 
 **                  release DLC
 **
 ** Returns          void
@@ -240,7 +240,7 @@ void PORT_StartCnf (tRFC_MCB *p_mcb, UINT16 result)
 ** Function         PORT_StartInd
 **
 ** Description      This function is called from the RFCOMM layer when
-**                  some peer device wants to establish a multiplexer
+**                  some peer device wants to establish a multiplexer 
 **                  connection.  Check if there are any ports open with this
 **                  or not assigned multiplexer.
 **
@@ -292,9 +292,9 @@ void PORT_ParNegInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k)
         {
             /* If the port cannot be opened, send a DM.  Per Errata 1205 */
             rfc_send_dm(p_mcb, dlci, FALSE);
-            /* check if this is the last port open, some headsets have
+            /* check if this is the last port open, some headsets have 
             problem, they don't disconnect if we send DM */
-            rfc_check_mcb_active( p_mcb );
+            rfc_check_mcb_active( p_mcb ); 
             RFCOMM_TRACE_EVENT0( "PORT_ParNegInd: port not found" );
             return;
         }
@@ -315,7 +315,7 @@ void PORT_ParNegInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k)
     /* use that.  Otherwise both must want credit based, so use that. If flow is */
     /* already defined for this mux, we respond with that value. */
     if (p_mcb->flow == PORT_FC_UNDEFINED)
-    {
+    {  
         if ((PORT_FC_DEFAULT == PORT_FC_TS710) || (cl == RFCOMM_PN_CONV_LAYER_TYPE_1))
         {
             p_mcb->flow = PORT_FC_TS710;
@@ -376,11 +376,11 @@ void PORT_ParNegCnf (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k)
     if (!p_port)
         return;
 
-    /* Flow control mechanism not set yet.  Negotiate flow control mechanism. */
+    /* Flow control mechanism not set yet.  Negotiate flow control mechanism. */ 
     if (p_mcb->flow == PORT_FC_UNDEFINED)
     {
         /* Our stack is configured for TS07.10 and they responded with credit-based. */
-        /* This is illegal-- negotiation fails. */
+        /* This is illegal-- negotiation fails. */         
         if ((PORT_FC_DEFAULT == PORT_FC_TS710) && (cl == RFCOMM_PN_CONV_LAYER_CBFC_R))
         {
             rfc_send_disc (p_mcb, p_port->dlci);
@@ -420,10 +420,10 @@ void PORT_ParNegCnf (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k)
 ** Function         PORT_DlcEstablishInd
 **
 ** Description      This function is called from the RFCOMM layer when peer
-**                  device wants to establish a new DLC.  If this is not the
-**                  first message in the establishment procedure port_handle
+**                  device wants to establish a new DLC.  If this is not the 
+**                  first message in the establishment procedure port_handle 
 **                  has a handle to the port control block otherwise the control
-**                  block should be found based on the muliplexer channel and
+**                  block should be found based on the muliplexer channel and 
 **                  dlci.  The block should be allocated allocated before
 **                  meaning that application already made open.
 **
@@ -473,7 +473,7 @@ void PORT_DlcEstablishInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu)
 **
 ** Description      This function is called from the RFCOMM layer when peer
 **                  acknowledges establish procedure (SABME/UA).  Send reply
-**                  to the user and set state to OPENED if result was
+**                  to the user and set state to OPENED if result was 
 **                  successfull.
 **
 *******************************************************************************/
@@ -509,7 +509,7 @@ void PORT_DlcEstablishCnf (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT16 resul
     p_port->state = PORT_STATE_OPENED;
 
     /* RPN is required only if we want to tell DTE how the port should be opened */
-    if ((p_port->uuid == UUID_SERVCLASS_DIALUP_NETWORKING)
+    if ((p_port->uuid == UUID_SERVCLASS_DIALUP_NETWORKING) 
      || (p_port->uuid == UUID_SERVCLASS_FAX))
         RFCOMM_PortNegReq (p_port->rfc.p_mcb, p_port->dlci, NULL);
     else
@@ -523,8 +523,8 @@ void PORT_DlcEstablishCnf (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT16 resul
 **
 ** Description      This function is called from the RFCOMM layer when peer
 **                  device wants to set parameters of the port.  As per the spec
-**                  this message has to be sent before the first data packet
-**                  and can be sent before establish.  The block should be
+**                  this message has to be sent before the first data packet 
+**                  and can be sent before establish.  The block should be 
 **                  allocated before meaning that application already made open.
 **
 *******************************************************************************/
@@ -763,7 +763,7 @@ void PORT_CloseInd (tRFC_MCB *p_mcb)
     p_port = &rfc_cb.port.port[0];
     for (i = 0; i < MAX_RFC_PORTS; i++, p_port++)
     {
-        if (p_port->rfc.p_mcb == p_mcb)
+        if (p_port->rfc.p_mcb == p_mcb) 
         {
             port_rfc_closed (p_port, PORT_PEER_CONNECTION_FAILED);
         }
@@ -775,7 +775,7 @@ void PORT_CloseInd (tRFC_MCB *p_mcb)
 **
 ** Function         Port_TimeOutCloseMux
 **
-** Description      This function is called when RFCOMM timesout on a command
+** Description      This function is called when RFCOMM timesout on a command 
 **                  as a result multiplexer connection is closed.
 **
 *******************************************************************************/
@@ -789,7 +789,7 @@ void Port_TimeOutCloseMux (tRFC_MCB *p_mcb)
     p_port = &rfc_cb.port.port[0];
     for (i = 0; i < MAX_RFC_PORTS; i++, p_port++)
     {
-        if (p_port->rfc.p_mcb == p_mcb)
+        if (p_port->rfc.p_mcb == p_mcb) 
         {
             port_rfc_closed (p_port, PORT_PEER_TIMEOUT);
         }
@@ -802,7 +802,7 @@ void Port_TimeOutCloseMux (tRFC_MCB *p_mcb)
 ** Function         PORT_DataInd
 **
 ** Description      This function is called from the RFCOMM layer when data
-**                  buffer is received from the peer.
+**                  buffer is received from the peer.  
 **
 *******************************************************************************/
 void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
@@ -901,7 +901,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
 **
 ** Function         PORT_FlowInd
 **
-** Description      This function is called from the RFCOMM layer on the flow
+** Description      This function is called from the RFCOMM layer on the flow 
 **                  control signal change.  Propagate change to the user.
 **
 *******************************************************************************/
@@ -931,13 +931,13 @@ void PORT_FlowInd (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN enable_data)
         if (dlci == 0)
         {
             p_port = &rfc_cb.port.port[i];
-            if (!p_port->in_use
+            if (!p_port->in_use 
              || (p_port->rfc.p_mcb != p_mcb)
              || (p_port->rfc.state != RFC_STATE_OPENED))
                 continue;
         }
         events = 0;
-
+        
         /* Check if flow of data is still enabled */
         events |= port_flow_control_user (p_port);
 
@@ -988,14 +988,14 @@ UINT32 port_rfc_send_tx_data (tPORT *p_port)
                 RFCOMM_TRACE_DEBUG1 ("Sending RFCOMM_DataReq tx.queue_size=%d", p_port->tx.queue_size);
 
                 RFCOMM_DataReq (p_port->rfc.p_mcb, p_port->dlci, p_buf);
-
+            
                 events |= PORT_EV_TXCHAR;
 
                 if (p_port->tx.queue_size == 0)
                 {
                     events |= PORT_EV_TXEMPTY;
                     break;
-                }
+                }  
             }
             /* queue is empty-- all data sent */
             else
@@ -1083,9 +1083,9 @@ void port_rfc_closed (tPORT *p_port, UINT8 res)
 ** Function         port_get_credits
 **
 ** Description      Set initial values for credits.
-**                  Adjust max number of rx credits based on negotiated MTU.
-**                  Check max allowed num of bytes, max allowed num buffers,
-**                  should be less then 255
+**                  Adjust max number of rx credits based on negotiated MTU.  
+**                  Check max allowed num of bytes, max allowed num buffers, 
+**                  should be less then 255 
 **
 *******************************************************************************/
 void port_get_credits (tPORT *p_port, UINT8 k)
