@@ -117,14 +117,17 @@ enum {
 #endif
 
 /* Media task tick in milliseconds */
-#define BTIF_MEDIA_TIME_TICK                     (40 * BTIF_MEDIA_NUM_TICK)
+#define BTIF_MEDIA_TIME_TICK                     (20 * BTIF_MEDIA_NUM_TICK)
 
 /* Number of frames per media task tick */
-#define BTIF_MEDIA_FR_PER_TICKS_48               (15 * BTIF_MEDIA_NUM_TICK)
-#define BTIF_MEDIA_FR_PER_TICKS_44_1_H           (14 * BTIF_MEDIA_NUM_TICK)
-#define BTIF_MEDIA_FR_PER_TICKS_44_1_L           (13 * BTIF_MEDIA_NUM_TICK)
-#define BTIF_MEDIA_FR_PER_TICKS_32               (10 * BTIF_MEDIA_NUM_TICK)
-#define BTIF_MEDIA_FR_PER_TICKS_16               ( 5 * BTIF_MEDIA_NUM_TICK)
+/* 7.5 frames/tick @ 20 ms tick */
+#define BTIF_MEDIA_FR_PER_TICKS_48               (7 * BTIF_MEDIA_NUM_TICK)
+/* 6.89 frames/tick  @ 20 ms tick */
+#define BTIF_MEDIA_FR_PER_TICKS_44_1             (7 * BTIF_MEDIA_NUM_TICK)
+/* 5.0 frames/tick  @ 20 ms tick */
+#define BTIF_MEDIA_FR_PER_TICKS_32               (5 * BTIF_MEDIA_NUM_TICK)
+/* 2.5 frames/tick  @ 20 ms tick */
+#define BTIF_MEDIA_FR_PER_TICKS_16               (3 * BTIF_MEDIA_NUM_TICK)
 
 
 /* buffer pool */
@@ -143,7 +146,8 @@ enum {
 #define BTIF_MEDIA_BITRATE_STEP 5
 #endif
 
-#define DEFAULT_SBC_BITRATE 220
+/* Middle quality quality setting @ 44.1 khz */
+#define DEFAULT_SBC_BITRATE 229
 
 #ifndef A2DP_MEDIA_TASK_STACK_SIZE
 #define A2DP_MEDIA_TASK_STACK_SIZE       0x2000         /* In bytes */
@@ -234,11 +238,6 @@ typedef struct
     UINT8 a2dp_cmd_pending; /* we can have max one command pending */
     BOOLEAN tx_flush; /* discards any outgoing data when true */
     tBTIF_MEDIA_RA ra; /* tx rate adjustment logic */
-
-#if ((defined(BTIF_MEDIA_OVERFEED_INCLUDED) && (BTIF_MEDIA_OVERFEED_INCLUDED == TRUE)) || \
-     (defined(BTIF_MEDIA_UNDERFEED_INCLUDED) && (BTIF_MEDIA_UNDERFEED_INCLUDED == TRUE)))
-    UINT8 tx_counter;
-#endif
 #endif
 
 } tBTIF_MEDIA_CB;
@@ -1034,13 +1033,15 @@ static void ra_update(UINT32 bytes_processed)
     /* converts adjusted frame count to adjusted pcmtime equivalent */
     btif_media_cb.ra.ra_adjust_pcmtime += (btif_media_cb.ra.ra_adjust_cnt)*pcmtime_equivalent;
 
-    VERBOSE("ra adjust %d %d", btif_media_cb.ra.ra_adjust_cnt, btif_media_cb.ra.ra_adjust_pcmtime);
+    //VERBOSE("ra update %d %d %d", btif_media_cb.ra.ra_adjust_cnt,
+    //                       btif_media_cb.ra.ra_adjust_pcmtime, ra_stats_update);
 
     /* check pcmtime adjustments every stats interval */
     if (ra_stats_update > (RA_STATS_INTERVAL*1000000L))
     {
-        APPL_TRACE_EVENT2("ra estimate : %d us (%d ppm)", btif_media_cb.ra.ra_adjust_pcmtime,
-                           btif_media_cb.ra.ra_adjust_pcmtime/RA_STATS_INTERVAL);
+        APPL_TRACE_DEBUG3("ra estimate : %d us for %d secs (%d ppm)",
+                       btif_media_cb.ra.ra_adjust_pcmtime, RA_STATS_INTERVAL,
+                       btif_media_cb.ra.ra_adjust_pcmtime/RA_STATS_INTERVAL);
         btif_media_cb.ra.ra_adjust_pcmtime = 0;
         ra_stats_update = 0;
 
@@ -1076,11 +1077,8 @@ static int ra_adjust(void)
 
     clock_gettime(CLOCK_MONOTONIC, &now);
 
-    time_elapsed_us = ((unsigned long long)(now.tv_sec - btif_media_cb.ra.time_start.tv_sec)) * USEC_PER_SEC + \
-                      (now.tv_nsec - btif_media_cb.ra.time_start.tv_nsec)/1000;
-
-    VERBOSE("tx_pcmtime_us : %llu us, elapsed : %llu us", btif_media_cb.ra.tx_pcmtime_us,
-                       time_elapsed_us);
+    time_elapsed_us = ((unsigned long long)(now.tv_sec - btif_media_cb.ra.time_start.tv_sec))\
+                       * USEC_PER_SEC + (now.tv_nsec - btif_media_cb.ra.time_start.tv_nsec)/1000;
 
     /* compare elapsed time vs read pcm time */
     if (btif_media_cb.ra.tx_pcmtime_us > time_elapsed_us)
@@ -1250,7 +1248,7 @@ int btif_media_task(void *p)
             /* make sure no channels are restarted while shutting down */
             media_task_running = MEDIA_TASK_STATE_SHUTTING_DOWN;
 
-			/* this calls blocks until uipc is fully closed */
+            /* this calls blocks until uipc is fully closed */
             UIPC_Close(UIPC_CH_ID_ALL);
             break;
         }
@@ -1559,14 +1557,17 @@ static void btif_media_task_enc_init(BT_HDR *p_msg)
     btif_media_cb.encoder.u16BitRate = DEFAULT_SBC_BITRATE;
     /* Default transcoding is PCM to SBC, modified by feeding configuration */
     btif_media_cb.TxTranscoding = BTIF_MEDIA_TRSCD_PCM_2_SBC;
-    btif_media_cb.TxAaMtuSize = ((BTIF_MEDIA_AA_BUF_SIZE - BTIF_MEDIA_AA_SBC_OFFSET - sizeof(BT_HDR))
+    btif_media_cb.TxAaMtuSize = ((BTIF_MEDIA_AA_BUF_SIZE-BTIF_MEDIA_AA_SBC_OFFSET-sizeof(BT_HDR))
             < pInitAudio->MtuSize) ? (BTIF_MEDIA_AA_BUF_SIZE - BTIF_MEDIA_AA_SBC_OFFSET
             - sizeof(BT_HDR)) : pInitAudio->MtuSize;
 
-    APPL_TRACE_DEBUG3("btif_media_task_enc_init busy %d, mtu %d, peer mtu %d", btif_media_cb.busy_level, btif_media_cb.TxAaMtuSize, pInitAudio->MtuSize);
-    APPL_TRACE_DEBUG6("btif_media_task_enc_init ch mode %d, nbsubd %d, nb blk %d, alloc method %d, bit rate %d, Smp freq %d",
-            btif_media_cb.encoder.s16ChannelMode, btif_media_cb.encoder.s16NumOfSubBands, btif_media_cb.encoder.s16NumOfBlocks,
-            btif_media_cb.encoder.s16AllocationMethod, btif_media_cb.encoder.u16BitRate, btif_media_cb.encoder.s16SamplingFreq);
+    APPL_TRACE_EVENT3("btif_media_task_enc_init busy %d, mtu %d, peer mtu %d",
+                     btif_media_cb.busy_level, btif_media_cb.TxAaMtuSize, pInitAudio->MtuSize);
+    APPL_TRACE_EVENT6("      ch mode %d, subnd %d, nb blk %d, alloc %d, rate %d, freq %d",
+            btif_media_cb.encoder.s16ChannelMode, btif_media_cb.encoder.s16NumOfSubBands,
+            btif_media_cb.encoder.s16NumOfBlocks,
+            btif_media_cb.encoder.s16AllocationMethod, btif_media_cb.encoder.u16BitRate,
+            btif_media_cb.encoder.s16SamplingFreq);
 
     /* Reset entirely the SBC encoder */
     SBC_Encoder_Init(&(btif_media_cb.encoder));
@@ -1885,11 +1886,6 @@ static void btif_media_task_aa_start_tx(void)
 
     btif_media_cb.is_tx_timer = TRUE;
 
-#if ((defined(BTIF_MEDIA_OVERFEED_INCLUDED) && (BTIF_MEDIA_OVERFEED_INCLUDED == TRUE)) || \
-     (defined(BTIF_MEDIA_UNDERFEED_INCLUDED) && (BTIF_MEDIA_UNDERFEED_INCLUDED == TRUE)))
-    btif_media_cb.tx_counter = 0;
-#endif
-
     /* Reset the media feeding state */
     btif_media_task_feeding_state_reset();
 
@@ -1951,35 +1947,26 @@ static UINT8 btif_get_num_aa_frame(void)
                 result = BTIF_MEDIA_FR_PER_TICKS_48;
                 break;
             case SBC_sf44100:
-                if ((btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 32) < 7)
-                {
-                    result = BTIF_MEDIA_FR_PER_TICKS_44_1_L;
-                }
-                else
-                {
-                    result = BTIF_MEDIA_FR_PER_TICKS_44_1_H;
-                }
+                result = BTIF_MEDIA_FR_PER_TICKS_44_1;
                 break;
             }
+
+            /* Frames per tick should be selected to come as close as possible
+               to the ideal framecount. Any residue compared to ideal framecount
+               is compensated here.
+
+               Although we can estimate the frames per tick using modula
+               counters using the rate adapter logic smoothes out the compensation
+               over time and tracks transmitted time vs elapsed time counted from the first
+               frame sent out. Hence regardless of the reason for the drift (gki timer
+               inaccuracies or media tick frame residues) the rate
+               adaptor will compensate as soon as we drift outside the configued
+               threshold
+             */
 
             result += ra_adjust();
 
             VERBOSE("WRITE %d FRAMES", result);
-
-#if ((defined(BTIF_MEDIA_OVERFEED_INCLUDED) && (BTIF_MEDIA_OVERFEED_INCLUDED == TRUE)) || \
-     (defined(BTIF_MEDIA_UNDERFEED_INCLUDED) && (BTIF_MEDIA_UNDERFEED_INCLUDED == TRUE)))
-            btif_media_cb.tx_counter++;
-            if (btif_media_cb.tx_counter == 10)
-            {
-                btif_media_cb.tx_counter = 0;
-#if defined(BTIF_MEDIA_OVERFEED_INCLUDED) && (BTIF_MEDIA_OVERFEED_INCLUDED == TRUE)
-                result++;
-#endif
-#if defined(BTIF_MEDIA_UNDERFEED_INCLUDED) && (BTIF_MEDIA_UNDERFEED_INCLUDED == TRUE)
-                result--;
-#endif
-            }
-#endif
             break;
 
         default:
