@@ -89,6 +89,9 @@ static int                  shutdown_timer = 0;
 #define GKI_SHUTDOWN_EVT    APPL_EVT_7
 #endif
 
+#define  __likely(cond)    __builtin_expect(!!(cond), 1)
+#define  __unlikely(cond)  __builtin_expect(!!(cond), 0)
+
 /*****************************************************************************
 **  Local type definitions
 ******************************************************************************/
@@ -538,7 +541,7 @@ void GKI_shutdown(void)
 void gki_system_tick_start_stop_cback(BOOLEAN start)
 {
     tGKI_OS         *p_os = &gki_cb.os;
-    volatile int    *p_run_cond = &p_os->no_timer_suspend;
+    int    *p_run_cond = &p_os->no_timer_suspend;
     static int wake_lock_count;
     if ( FALSE == start )
     {
@@ -584,24 +587,104 @@ void gki_system_tick_start_stop_cback(BOOLEAN start)
 **                  one step, If your OS does it in one step, this function
 **                  should be empty.
 *********************************************************************************/
-
 #ifdef NO_GKI_RUN_RETURN
 void* timer_thread(void *arg)
 {
-    struct timespec delay;
+    int timeout_ns=0;
+    struct timespec timeout;
+    struct timespec previous = {0,0};
+    struct timespec current;
     int err;
+    int delta_ns;
+    int restart;
+    tGKI_OS         *p_os = &gki_cb.os;
+    int  *p_run_cond = &p_os->no_timer_suspend;
+
+    /* Indicate that tick is just starting */
+    restart = 1;
 
     while(!shutdown_timer)
     {
-        delay.tv_sec = LINUX_SEC / 1000;
-        delay.tv_nsec = 1000 * 1000 * (LINUX_SEC%1000);
+        /* If the timer has been stopped (no SW timer running) */
+        if (*p_run_cond == GKI_TIMER_TICK_STOP_COND)
+        {
+            /*
+             * We will lock/wait on GKI_timer_mutex.
+             * This mutex will be unlocked when timer is re-started
+             */
+            GKI_TRACE("GKI_run lock mutex");
+            pthread_mutex_lock(&p_os->gki_timer_mutex);
 
-        /* [u]sleep can't be used because it uses SIGALRM */
+            /* We are here because the mutex has been released by timer cback */
+            /* Let's release it for future use */
+            GKI_TRACE("GKI_run unlock mutex");
+            pthread_mutex_unlock(&p_os->gki_timer_mutex);
 
-        do {
-           err = nanosleep(&delay, &delay);
-        } while (err < 0 && errno ==EINTR);
+            /* Indicate that tick is just starting */
+            restart = 1;
+        }
 
+        /* Get time */
+        clock_gettime(CLOCK_MONOTONIC, &current);
+
+        /* Check if tick was just restarted, indicating to the compiler that this is
+         * unlikely to happen (to help branch prediction) */
+        if (__unlikely(restart))
+        {
+            /* Clear the restart indication */
+            restart = 0;
+
+            timeout_ns = (GKI_TICKS_TO_MS(1) * 1000000);
+        }
+        else
+        {
+            /* Compute time elapsed since last sleep start */
+            delta_ns = current.tv_nsec - previous.tv_nsec;
+            delta_ns += (current.tv_sec - previous.tv_sec) * 1000000000;
+
+            /* Compute next timeout:
+             *    timeout = (next theoretical expiration) - current time
+             *    timeout = (previous time + timeout + delay) - current time
+             *    timeout = timeout + delay - (current time - previous time)
+             *    timeout += delay - delta */
+            timeout_ns += (GKI_TICKS_TO_MS(1) * 1000000) - delta_ns;
+        }
+        /* Save the current time for next iteration */
+        previous = current;
+
+        timeout.tv_sec = 0;
+
+        /* Sleep until next theoretical tick time.  In case of excessive
+           elapsed time since last theoretical tick expiration, it is
+           possible that the timeout value is negative.  To protect
+           against this error, we set minimum sleep time to 10% of the
+           tick period.  We indicate to compiler that this is unlikely to
+           happen (to help branch prediction) */
+
+        if (__unlikely(timeout_ns < ((GKI_TICKS_TO_MS(1) * 1000000) * 0.1)))
+        {
+            timeout.tv_nsec = (GKI_TICKS_TO_MS(1) * 1000000) * 0.1;
+
+            /* Print error message if tick really got delayed
+               (more than 5 ticks) */
+            if (timeout_ns < GKI_TICKS_TO_MS(-5) * 1000000)
+            {
+                GKI_ERROR_LOG("tick delayed > 5 slots (%d,%d) -- cpu overload ? ",
+                        timeout_ns, GKI_TICKS_TO_MS(-5) * 1000000);
+            }
+        }
+        else
+        {
+            timeout.tv_nsec = timeout_ns;
+        }
+
+        do
+        {
+            /* [u]sleep can't be used because it uses SIGALRM */
+            err = nanosleep(&timeout, &timeout);
+        } while (err < 0 && errno == EINTR);
+
+        /* Increment the GKI time value by one tick and update internal timers */
         GKI_timer_update(1);
     }
     GKI_TRACE("gki_ulinux: Exiting timer_thread");
