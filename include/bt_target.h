@@ -1031,9 +1031,16 @@ and USER_HW_DISABLE_API macros */
 #define BTM_AFTER_RESET_TIMEOUT     0
 #endif
 
-/* The default class of device. */
-#ifndef BTM_INIT_CLASS_OF_DEVICE
-#define BTM_INIT_CLASS_OF_DEVICE    "\x00\x1F\x00"
+/* Default class of device
+* {SERVICE_CLASS, MAJOR_CLASS, MINOR_CLASS}
+*
+* SERVICE_CLASS:0x5A (Bit17 -Networking,Bit19 - Capturing,Bit20 -Object Transfer,Bit22 -Telephony)
+* MAJOR_CLASS:0x02 - PHONE
+* MINOR_CLASS:0x0C - SMART_PHONE
+*
+*/
+#ifndef BTA_DM_COD
+#define BTA_DM_COD {0x5A, 0x02, 0x0C}
 #endif
 
 /* The number of SCO links. */

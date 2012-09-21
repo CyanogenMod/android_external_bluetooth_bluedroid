@@ -28,19 +28,6 @@
 #include "bta_api.h"
 #include "bta_dm_int.h"
 
-#ifndef BTA_DM_COD
-
-/*
-  * major : COD_MAJOR_PHONE
-  * minor : COD_MINOR_SMART_PHONE
-  * svc   : None, will be set as each profile registers
-  *
-  */
-
-#define BTA_DM_COD {0x52, BTM_COD_MAJOR_PHONE, BTM_COD_MINOR_SMART_PHONE}
-#endif
-
-
 #ifndef BTA_DM_LINK_POLICY_SETTINGS
 #define BTA_DM_LINK_POLICY_SETTINGS    (HCI_ENABLE_MASTER_SLAVE_SWITCH | HCI_ENABLE_HOLD_MODE | HCI_ENABLE_SNIFF_MODE | HCI_ENABLE_PARK_MODE)
 #endif

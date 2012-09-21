@@ -63,6 +63,11 @@ extern BOOLEAN BTA_PRM_CHECK_FW_VER(UINT8 *p);
 /*                 L O C A L    D A T A    D E F I N I T I O N S                */
 /********************************************************************************/
 
+/* The default class of device. */
+#ifndef BTM_INIT_CLASS_OF_DEVICE
+#define BTM_INIT_CLASS_OF_DEVICE    "\x00\x1F\x00"
+#endif
+
 #ifndef BTM_DEV_RESET_TIMEOUT
 #define BTM_DEV_RESET_TIMEOUT   4
 #endif
