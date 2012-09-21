@@ -271,6 +271,10 @@
 #define BTA_GATT_INCLUDED FALSE
 #endif
 
+#ifndef BTA_DISABLE_DELAY
+#define BTA_DISABLE_DELAY 200 /* in milliseconds */
+#endif
+
 #ifndef RPC_TRACE_ONLY
 #define RPC_TRACE_ONLY  FALSE
 #endif

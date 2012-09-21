@@ -454,9 +454,18 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
 
     if(BTM_GetNumAclLinks()==0)
     {
-       /* Earlier there used to be a 1-second timer to fire this callback.
-        * Doesn't look like it is needed. */
+#if (defined(BTA_DISABLE_DELAY) && BTA_DISABLE_DELAY > 0)
+        /* If BTA_DISABLE_DELAY is defined and greater than zero, then delay the shutdown by
+         * BTA_DISABLE_DELAY milliseconds
+         */
+        APPL_TRACE_WARNING2("%s BTA_DISABLE_DELAY set to %d ms",
+                            __FUNCTION__, BTA_DISABLE_DELAY);
+        bta_sys_stop_timer(&bta_dm_cb.disable_timer);
+        bta_dm_cb.disable_timer.p_cback = (TIMER_CBACK*)&bta_dm_disable_conn_down_timer_cback;
+        bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, BTA_DISABLE_DELAY);
+#else
         bta_dm_disable_conn_down_timer_cback(NULL);
+#endif
     }
     else
     {
