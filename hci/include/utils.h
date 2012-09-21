@@ -111,6 +111,17 @@ void *utils_dequeue (BUFFER_Q *p_q);
 
 /*******************************************************************************
 **
+** Function        utils_dequeue_unlocked
+**
+** Description     Dequeues a buffer from the head of the given queue without lock
+**
+** Returns         NULL if queue is empty, else buffer
+**
+*******************************************************************************/
+void *utils_dequeue_unlocked (BUFFER_Q *p_q);
+
+/*******************************************************************************
+**
 ** Function        utils_getnext
 **
 ** Description     Return a pointer to the next buffer linked to the given buffer
@@ -131,6 +142,18 @@ void *utils_getnext (void *p_buf);
 **
 *******************************************************************************/
 void *utils_remove_from_queue (BUFFER_Q *p_q, void *p_buf);
+
+/*******************************************************************************
+**
+** Function        utils_remove_from_queue_unlocked
+**
+** Description     Dequeue the given buffer from the middle of the given queue without lock
+**
+** Returns         NULL if the given queue is empty, else the given buffer
+**
+*******************************************************************************/
+void *utils_remove_from_queue_unlocked (BUFFER_Q *p_q, void *p_buf);
+
 
 /*******************************************************************************
 **

@@ -116,7 +116,6 @@ void utils_enqueue (BUFFER_Q *p_q, void *p_buf)
 
     pthread_mutex_unlock(&utils_mutex);
 }
-
 /*******************************************************************************
 **
 ** Function        utils_dequeue
@@ -128,13 +127,28 @@ void utils_enqueue (BUFFER_Q *p_q, void *p_buf)
 *******************************************************************************/
 void *utils_dequeue (BUFFER_Q *p_q)
 {
+    pthread_mutex_lock(&utils_mutex);
+    void* p_buf =  utils_dequeue_unlocked(p_q);
+    pthread_mutex_unlock(&utils_mutex);
+    return p_buf;
+}
+
+/*******************************************************************************
+**
+** Function        utils_dequeue_unlocked
+**
+** Description     Dequeues a buffer from the head of the given queue without lock
+**
+** Returns         NULL if queue is empty, else buffer
+**
+*******************************************************************************/
+void *utils_dequeue_unlocked (BUFFER_Q *p_q)
+{
     HC_BUFFER_HDR_T    *p_hdr;
 
-    pthread_mutex_lock(&utils_mutex);
 
     if (!p_q || !p_q->count)
     {
-        pthread_mutex_unlock(&utils_mutex);
         return (NULL);
     }
 
@@ -151,9 +165,6 @@ void *utils_dequeue (BUFFER_Q *p_q)
     p_q->count--;
 
     p_hdr->p_next = NULL;
-
-    pthread_mutex_unlock(&utils_mutex);
-
     return ((uint8_t *)p_hdr + BT_HC_BUFFER_HDR_SIZE);
 }
 
@@ -191,15 +202,29 @@ void *utils_getnext (void *p_buf)
 *******************************************************************************/
 void *utils_remove_from_queue (BUFFER_Q *p_q, void *p_buf)
 {
+    pthread_mutex_lock(&utils_mutex);
+    p_buf = utils_remove_from_queue_unlocked(p_q, p_buf);
+    pthread_mutex_unlock(&utils_mutex);
+    return p_buf;
+}
+/*******************************************************************************
+**
+** Function        utils_remove_from_queue_unlocked
+**
+** Description     Dequeue the given buffer from the middle of the given queue
+**
+** Returns         NULL if the given queue is empty, else the given buffer
+**
+*******************************************************************************/
+void *utils_remove_from_queue_unlocked (BUFFER_Q *p_q, void *p_buf)
+{
     HC_BUFFER_HDR_T    *p_prev;
     HC_BUFFER_HDR_T    *p_buf_hdr;
 
-    pthread_mutex_lock(&utils_mutex);
 
     if (p_buf == p_q->p_first)
     {
-        pthread_mutex_unlock(&utils_mutex);
-        return (utils_dequeue (p_q));
+        return (utils_dequeue_unlocked (p_q));
     }
 
     p_buf_hdr = (HC_BUFFER_HDR_T *)((uint8_t *)p_buf - BT_HC_BUFFER_HDR_SIZE);
@@ -222,12 +247,9 @@ void *utils_remove_from_queue (BUFFER_Q *p_q, void *p_buf)
             /* The buffer is now unlinked */
             p_buf_hdr->p_next = NULL;
 
-            pthread_mutex_unlock(&utils_mutex);
             return (p_buf);
         }
     }
-
-    pthread_mutex_unlock(&utils_mutex);
     return (NULL);
 }
 
