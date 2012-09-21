@@ -410,9 +410,12 @@ static void *bt_hc_worker_thread(void *arg)
              *  Fine to clear tx_cmd_pkts_pending.
              */
             tx_cmd_pkts_pending = FALSE;
-
+            HC_BT_HDR * sending_msg_que[64];
+            int sending_msg_count = 0;
+            utils_lock();
             p_next_msg = tx_q.p_first;
-            while (p_next_msg)
+            while (p_next_msg && sending_msg_count <
+                            (int)sizeof(sending_msg_que)/sizeof(sending_msg_que[0]))
             {
                 if ((p_next_msg->event & MSG_EVT_MASK)==MSG_STACK_TO_HC_HCI_CMD)
                 {
@@ -434,10 +437,13 @@ static void *bt_hc_worker_thread(void *arg)
 
                 p_msg = p_next_msg;
                 p_next_msg = utils_getnext(p_msg);
-                utils_remove_from_queue(&tx_q, p_msg);
-                p_hci_if->send(p_msg);
+                utils_remove_from_queue_unlocked(&tx_q, p_msg);
+                sending_msg_que[sending_msg_count++] = p_msg;
             }
-
+            utils_unlock();
+            int i;
+            for(i = 0; i < sending_msg_count; i++)
+                p_hci_if->send(sending_msg_que[i]);
             if (tx_cmd_pkts_pending == TRUE)
                 BTHCDBG("Used up Tx Cmd credits");
 
