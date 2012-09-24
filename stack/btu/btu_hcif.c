@@ -974,7 +974,6 @@ static void btu_hcif_esco_connection_chg_evt (UINT8 *p, UINT16 evt_len)
 #endif
 }
 
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_hdl_command_complete

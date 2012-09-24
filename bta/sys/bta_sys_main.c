@@ -298,42 +298,24 @@ void bta_sys_hw_error(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 
     UINT8 module_index;
 
+    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+
     for (module_index = 0; module_index < BTA_SYS_MAX_HW_MODULES; module_index++)
     {
-        if( bta_sys_cb.sys_hw_module_active &  ((UINT32)1 << module_index ))
+        if( bta_sys_cb.sys_hw_module_active &  ((UINT32)1 << module_index )) {
             switch( module_index)
                 {
-
                 case BTA_SYS_HW_BLUETOOTH:
-                    BTA_DisableBluetooth();
+                   /* Send BTA_SYS_HW_ERROR_EVT to DM */
+                   if (bta_sys_cb.sys_hw_cback[module_index] != NULL)
+                       bta_sys_cb.sys_hw_cback[module_index] (BTA_SYS_HW_ERROR_EVT);
                     break;
                 default:
                     /* not yet supported */
                     break;
                 }
         }
-
-    /* turn everything OFF, then re-start the modules that were ON. Let the state machine handle all this... */
-
-    for (module_index = 0; module_index < BTA_SYS_MAX_HW_MODULES; module_index++)
-    {
-        if( bta_sys_cb.sys_hw_module_active &  ((UINT32)1 << module_index ))
-            switch( module_index)
-                {
-
-                case BTA_SYS_HW_BLUETOOTH:
-                    BTA_EnableBluetooth(NULL);
-                    break;
-                default:
-                    /* not yet supported */
-                    break;
-                }
-        }
-
-
-
-
-
+    }
 }
 
 

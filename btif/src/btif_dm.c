@@ -40,6 +40,7 @@
 #include "btif_util.h"
 #include "btif_storage.h"
 #include "btif_hh.h"
+#include "btif_config.h"
 
 /******************************************************************************
 **  Constants & Macros
@@ -1225,6 +1226,15 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             BTIF_TRACE_DEBUG0("BTA_DM_LINK_DOWN_EVT. Sending BT_ACL_STATE_DISCONNECTED");
             HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
                       &bd_addr, BT_ACL_STATE_DISCONNECTED);
+            break;
+
+        case BTA_DM_HW_ERROR_EVT:
+            BTIF_TRACE_ERROR0("Received H/W Error. ");
+            /* Flush storage data */
+            btif_config_flush();
+            usleep(100000); /* 100milliseconds */
+            /* Killing the process to force a restart as part of fault tolerance */
+            kill(getpid(), SIGKILL);
             break;
 
         case BTA_DM_AUTHORIZE_EVT:

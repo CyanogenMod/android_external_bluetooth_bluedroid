@@ -319,6 +319,12 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
 #endif
     APPL_TRACE_DEBUG1(" bta_dm_sys_hw_cback with event: %i" , status );
 
+    /* On H/W error evt, report to the registered DM application callback */
+    if (status == BTA_SYS_HW_ERROR_EVT) {
+          if( bta_dm_cb.p_sec_cback != NULL )
+                bta_dm_cb.p_sec_cback(BTA_DM_HW_ERROR_EVT, NULL);
+          return;
+    }
     if( status == BTA_SYS_HW_OFF_EVT )
     {
         if( bta_dm_cb.p_sec_cback != NULL )
@@ -335,8 +341,9 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
     else
     if( status == BTA_SYS_HW_ON_EVT )
     {
-        /* make sure we unregister, so that we don't motified again if another module starts */
-        bta_sys_hw_unregister( BTA_SYS_HW_BLUETOOTH);
+        /* FIXME: We should not unregister as the SYS shall invoke this callback on a H/W error.
+        * We need to revisit when this platform has more than one BLuetooth H/W chip */
+        //bta_sys_hw_unregister( BTA_SYS_HW_BLUETOOTH);
 
         /* save security callback */
         temp_cback = bta_dm_cb.p_sec_cback;

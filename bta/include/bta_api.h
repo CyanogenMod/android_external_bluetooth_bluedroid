@@ -416,7 +416,7 @@ typedef UINT8 tBTA_SIG_STRENGTH_MASK;
 #define BTA_DM_BLE_AUTH_CMPL_EVT        22      /* BLE Auth complete */
 // btla-specific --
 #define BTA_DM_DEV_UNPAIRED_EVT         23
-
+#define BTA_DM_HW_ERROR_EVT             24      /* BT Chip H/W error */
 typedef UINT8 tBTA_DM_SEC_EVT;
 
 /* Structure associated with BTA_DM_ENABLE_EVT */
