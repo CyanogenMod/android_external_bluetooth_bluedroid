@@ -342,16 +342,8 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
 {
     char val[256];
     uint8_t valid_bda = FALSE;
+    int val_size = 0;
     const uint8_t null_bdaddr[BD_ADDR_LEN] = {0,0,0,0,0,0};
-
-    BTIF_TRACE_DEBUG1("Look for bdaddr storage path in prop %s", PROPERTY_BT_BDADDR_PATH);
-    int val_size = sizeof(val);
-    if(btif_config_get_str("Local", "Adapter", "Address", val, &val_size))
-    {
-        str2bd(val, local_addr);
-        BTIF_TRACE_DEBUG1("local bdaddr from bt_config.xml is  %s", val);
-        return;
-    }
 
     /* Get local bdaddr storage path from property */
     if (property_get(PROPERTY_BT_BDADDR_PATH, val, NULL))
@@ -377,6 +369,18 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
             close(addr_fd);
         }
     }
+
+    if(!valid_bda)
+    {
+        val_size = sizeof(val);
+        BTIF_TRACE_DEBUG1("Look for bdaddr storage path in prop %s", PROPERTY_BT_BDADDR_PATH);
+        if(btif_config_get_str("Local", "Adapter", "Address", val, &val_size))
+        {
+            str2bd(val, local_addr);
+             BTIF_TRACE_DEBUG1("local bdaddr from bt_config.xml is  %s", val);
+            return;
+        }
+     }
 
     /* No factory BDADDR found. Look for previously generated random BDA */
     if ((!valid_bda) && \
@@ -416,6 +420,15 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     //save the bd address to config file
     bdstr_t bdstr;
     bd2str(local_addr, &bdstr);
+    val_size = sizeof(val);
+    if (btif_config_get_str("Local", "Adapter", "Address", val, &val_size))
+    {
+        if (strcmp(bdstr, val) ==0)
+        {
+            // BDA is already present in the config file.
+            return;
+        }
+    }
     btif_config_set_str("Local", "Adapter", "Address", bdstr);
     btif_config_save();
 }
