@@ -494,7 +494,7 @@ static uint32_t out_get_sample_rate(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    INFO("rate %d", out->cfg.rate);
+    DEBUG("rate %d", out->cfg.rate);
 
     return out->cfg.rate;
 }
@@ -503,7 +503,7 @@ static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    INFO("out_set_sample_rate : %d", rate);
+    DEBUG("out_set_sample_rate : %d", rate);
 
     if (rate != AUDIO_STREAM_DEFAULT_RATE)
     {
@@ -520,7 +520,7 @@ static size_t out_get_buffer_size(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    INFO("buffer_size : %d", out->buffer_sz);
+    DEBUG("buffer_size : %d", out->buffer_sz);
 
     return out->buffer_sz;
 }
@@ -529,7 +529,7 @@ static uint32_t out_get_channels(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    INFO("channels 0x%x", out->cfg.channel_flags);
+    DEBUG("channels 0x%x", out->cfg.channel_flags);
 
     return out->cfg.channel_flags;
 }
@@ -537,14 +537,14 @@ static uint32_t out_get_channels(const struct audio_stream *stream)
 static audio_format_t out_get_format(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-    INFO("format 0x%x", out->cfg.format);
+    DEBUG("format 0x%x", out->cfg.format);
     return out->cfg.format;
 }
 
 static int out_set_format(struct audio_stream *stream, audio_format_t format)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-    ALOGW("setting format not yet supported (0x%x)", format);
+    DEBUG("setting format not yet supported (0x%x)", format);
     return -ENOSYS;
 }
 
