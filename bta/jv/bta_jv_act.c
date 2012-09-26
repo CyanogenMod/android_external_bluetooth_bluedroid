@@ -1891,26 +1891,34 @@ void bta_jv_rfcomm_connect(tBTA_JV_MSG *p_data)
     if (evt_data.status == BTA_JV_SUCCESS)
     {
         p_cb = bta_jv_alloc_rfc_cb(handle, &p_pcb);
-        p_cb->p_cback = cc->p_cback;
-        p_cb->sec_id = sec_id;
-        p_cb->scn = 0;
-        p_pcb->state = BTA_JV_ST_CL_OPENING;
-        p_pcb->user_data = cc->user_data;
-        evt_data.use_co = TRUE;
+        if(p_cb)
+        {
+            p_cb->p_cback = cc->p_cback;
+            p_cb->sec_id = sec_id;
+            p_cb->scn = 0;
+            p_pcb->state = BTA_JV_ST_CL_OPENING;
+            p_pcb->user_data = cc->user_data;
+            evt_data.use_co = TRUE;
 
-        PORT_SetEventCallback(handle, bta_jv_port_event_cl_cback);
-        PORT_SetEventMask(handle, event_mask);
-        PORT_SetDataCOCallback (handle, bta_jv_port_data_co_cback);
+            PORT_SetEventCallback(handle, bta_jv_port_event_cl_cback);
+            PORT_SetEventMask(handle, event_mask);
+            PORT_SetDataCOCallback (handle, bta_jv_port_data_co_cback);
 
-        PORT_GetState(handle, &port_state);
+            PORT_GetState(handle, &port_state);
 
-        port_state.fc_type = (PORT_FC_CTS_ON_INPUT | PORT_FC_CTS_ON_OUTPUT);
+            port_state.fc_type = (PORT_FC_CTS_ON_INPUT | PORT_FC_CTS_ON_OUTPUT);
 
-/* coverity[uninit_use_in_call]
-FALSE-POSITIVE: port_state is initialized at PORT_GetState() */
-        PORT_SetState(handle, &port_state);
+            /* coverity[uninit_use_in_call]
+               FALSE-POSITIVE: port_state is initialized at PORT_GetState() */
+            PORT_SetState(handle, &port_state);
 
-        evt_data.handle = p_cb->handle;
+            evt_data.handle = p_cb->handle;
+        }
+        else
+        {
+            evt_data.status = BTA_JV_FAILURE;
+            APPL_TRACE_ERROR0("run out of rfc control block");
+        }
     }
     cc->p_cback(BTA_JV_RFCOMM_CL_INIT_EVT, (tBTA_JV *)&evt_data, cc->user_data);
  }
@@ -2210,6 +2218,12 @@ void bta_jv_rfcomm_start_server(tBTA_JV_MSG *p_data)
         }
 
         p_cb = bta_jv_alloc_rfc_cb(handle, &p_pcb);
+        if(!p_cb)
+        {
+            APPL_TRACE_ERROR0("run out of rfc control block");
+            break;
+        }
+
         p_cb->max_sess = rs->max_session;
         p_cb->p_cback = rs->p_cback;
         p_cb->sec_id = sec_id;
