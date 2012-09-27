@@ -484,8 +484,14 @@ static bt_status_t init( bthf_callbacks_t* callbacks )
     bt_hf_callbacks = callbacks;
 
     /* Invoke the enable service API to the core to set the appropriate service_id
-     * Internally, the HSP_SERVICE_ID shall also be enabled */
+     * Internally, the HSP_SERVICE_ID shall also be enabled if HFP is enabled (phone)
+     * othwerwise only HSP is enabled (tablet)
+    */
+#if (defined(BTIF_HF_SERVICES) && (BTIF_HF_SERVICES & BTA_HFP_SERVICE_MASK))
     btif_enable_service(BTA_HFP_SERVICE_ID);
+#else
+    btif_enable_service(BTA_HSP_SERVICE_ID);
+#endif
 
     memset(&btif_hf_cb, 0, sizeof(btif_hf_cb_t));
     clear_phone_state();

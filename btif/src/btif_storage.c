@@ -554,6 +554,10 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
                             uuid16_to_uuid128(UUID_SERVCLASS_AG_HANDSFREE,
                                               p_uuid+num_uuids);
                             num_uuids++;
+                        }
+                    /* intentional fall through: Send both BFP & HSP UUIDs if HFP is enabled */
+                    case BTA_HSP_SERVICE_ID:
+                        {
                             uuid16_to_uuid128(UUID_SERVCLASS_HEADSET_AUDIO_GATEWAY,
                                               p_uuid+num_uuids);
                             num_uuids++;

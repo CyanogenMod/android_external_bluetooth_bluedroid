@@ -119,6 +119,7 @@ bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
     switch (service_id)
     {
          case BTA_HFP_SERVICE_ID:
+         case BTA_HSP_SERVICE_ID:
          {
               btif_hf_execute_service(b_enable);
          }break;
