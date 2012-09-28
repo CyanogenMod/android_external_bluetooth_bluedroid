@@ -199,7 +199,9 @@ void GKI_init(void)
      * this works too even if GKI_NO_TICK_STOP is defined in btld.txt */
     p_os->no_timer_suspend = GKI_TIMER_TICK_RUN_COND;
     pthread_mutex_init(&p_os->gki_timer_mutex, NULL);
+#ifndef NO_GKI_RUN_RETURN
     pthread_cond_init(&p_os->gki_timer_cond, NULL);
+#endif
 }
 
 
@@ -543,19 +545,28 @@ void gki_system_tick_start_stop_cback(BOOLEAN start)
     tGKI_OS         *p_os = &gki_cb.os;
     int    *p_run_cond = &p_os->no_timer_suspend;
     static int wake_lock_count;
+
     if ( FALSE == start )
     {
-        /* this can lead to a race condition. however as we only read this variable in the timer loop
-         * we should be fine with this approach. otherwise uncomment below mutexes.
-         */
-        /* GKI_disable(); */
-        *p_run_cond = GKI_TIMER_TICK_STOP_COND;
-        /* GKI_enable(); */
+        /* gki_system_tick_start_stop_cback() maybe called even so it was already stopped! */
+        if (GKI_TIMER_TICK_RUN_COND == *p_run_cond)
+        {
+#ifdef NO_GKI_RUN_RETURN
+            /* take free mutex to block timer thread */
+            pthread_mutex_lock(&p_os->gki_timer_mutex);
+#endif
+            /* this can lead to a race condition. however as we only read this variable in the
+             * timer loop we should be fine with this approach. otherwise uncomment below mutexes.
+             */
+            /* GKI_disable(); */
+            *p_run_cond = GKI_TIMER_TICK_STOP_COND;
+            /* GKI_enable(); */
 
-        GKI_TIMER_TRACE(">>> STOP GKI_timer_update(), wake_lock_count:%d", --wake_lock_count);
+            GKI_TIMER_TRACE(">>> STOP GKI_timer_update(), wake_lock_count:%d", --wake_lock_count);
 
-        release_wake_lock(WAKE_LOCK_ID);
-        g_GkiTimerWakeLockOn = 0;
+            release_wake_lock(WAKE_LOCK_ID);
+            g_GkiTimerWakeLockOn = 0;
+        }
     }
     else
     {
@@ -565,9 +576,13 @@ void gki_system_tick_start_stop_cback(BOOLEAN start)
         g_GkiTimerWakeLockOn = 1;
         *p_run_cond = GKI_TIMER_TICK_RUN_COND;
 
+#ifdef NO_GKI_RUN_RETURN
+        pthread_mutex_unlock( &p_os->gki_timer_mutex );
+#else
         pthread_mutex_lock( &p_os->gki_timer_mutex );
         pthread_cond_signal( &p_os->gki_timer_cond );
         pthread_mutex_unlock( &p_os->gki_timer_mutex );
+#endif
 
         GKI_TIMER_TRACE(">>> START GKI_timer_update(), wake_lock_count:%d", ++wake_lock_count );
     }
