@@ -666,10 +666,11 @@ void hci_mct_send_msg(HC_BT_HDR *p_msg)
     }
 
     p = ((uint8_t *)(p_msg + 1)) + p_msg->offset;
-    userial_write(event, (uint8_t *) p, p_msg->len);
 
     if (event == MSG_STACK_TO_HC_HCI_CMD)
     {
+        uint8_t *p_tmp = p;
+
         utils_lock();
         num_hci_cmd_pkts--;
         utils_unlock();
@@ -678,9 +679,12 @@ void hci_mct_send_msg(HC_BT_HDR *p_msg)
          * have stored with the opcode of HCI command.
          * Retrieve the opcode from the Cmd packet.
          */
-         p++;
-        STREAM_TO_UINT16(lay_spec, p);
+        p_tmp++;
+        STREAM_TO_UINT16(lay_spec, p_tmp);
     }
+
+    userial_write(event, (uint8_t *) p, p_msg->len);
+
 
     /* generate snoop trace message */
     btsnoop_capture(p_msg, FALSE);
