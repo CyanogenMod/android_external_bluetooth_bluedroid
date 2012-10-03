@@ -760,6 +760,7 @@ void GKI_freeze()
 {
 #ifdef NO_GKI_RUN_RETURN
    shutdown_timer = 1;
+   pthread_mutex_unlock( &gki_cb.os.gki_timer_mutex );
    /* Ensure that the timer thread exits */
    pthread_join(timer_thread_id, NULL);
 #endif
