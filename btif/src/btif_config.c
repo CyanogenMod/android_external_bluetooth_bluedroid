@@ -39,7 +39,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <stdlib.h>
-
+#include <private/android_filesystem_config.h>
 
 #define LOG_TAG "btif_config.c"
 
@@ -125,7 +125,9 @@ int btif_config_init()
     if(!initialized)
     {
         initialized = 1;
-        create_dir(CFG_PATH);
+        struct stat st;
+        if(stat(CFG_PATH, &st) != 0)
+            error("%s does not exist, need provision", CFG_PATH);
         btsock_thread_init();
         init_slot_lock(&slot_lock);
         lock_slot(&slot_lock);
@@ -585,6 +587,8 @@ static int save_cfg()
    if(btif_config_save_file(file_name_new))
     {
         cached_change = 0;
+        chown(file_name_new, -1, AID_NET_BT_STACK);
+        chmod(file_name_new, 0660);
         rename(file_name, file_name_old);
         rename(file_name_new, file_name);
         ret = TRUE;
@@ -593,6 +597,7 @@ static int save_cfg()
     debug("out");
     return ret;
 }
+
 static int load_bluez_cfg()
 {
     char adapter_path[256];
@@ -634,83 +639,6 @@ static void cfg_cmd_callback(int cmd_fd, int type, int size, uint32_t user_id)
             unlock_slot(&slot_lock);
             break;
     }
-}
-#define DIR_MODE 0740
-#define FILE_MODE 0644
-static int mk_dir(const char *path)
-{
-    struct stat st;
-
-    if (stat(path, &st) == 0)
-    {
-        if (!S_ISDIR(st.st_mode))
-        {
-            /* path is not a directory */
-            error("directory path %s is not a directory (%s)", path, strerror(errno));
-            return -1;
-        }
-
-        /* already exist */
-        return 0;
-    }
-
-    /* no existing dir path, try creating it */
-    if (mkdir(path, DIR_MODE) != 0)
-    {
-        error("failed to create dir [%s] (%s)", path, strerror(errno));
-        return -1;
-    }
-    return 0;
-}
-static int create_dir(const char *path)
-{
-    int status = 0;
-    char tmpbuf[128];
-    char *p_copy;
-    char *p;
-
-    //debug("path: %s", path);
-
-
-    /* assumes absolute paths */
-    if (strncmp(path, "./", 2) == 0)
-    {
-        error("%s not an absolute path", path);
-        return -1;
-    }
-
-    /* try creating dir directly */
-    if (mk_dir(path) == 0)
-        return 0;
-
-    /* directory does not exit, create it */
-
-    /* first make sure we won't overflow the path buffer */
-    if ((strlen(path)+1) > sizeof(tmpbuf))
-        return -1;
-
-    /* setup scratch buffer, make sure path is ended with / */
-    sprintf(tmpbuf, "%s/", path);
-
-    p_copy = tmpbuf;
-
-    p = strchr(p_copy+1, '/'); /* skip root */
-
-    while ((status == 0) && p)
-    {
-        /*
-         * temporarily null terminate to allow creating
-         * directories up to this point
-         */
-        *p= '\0';
-        status = mk_dir(p_copy);
-        *p= '/';
-
-        /* find next */
-        p = strchr(++p, '/');
-    }
-
-    return status;
 }
 #ifdef UNIT_TEST
 static void cfg_test_load()
