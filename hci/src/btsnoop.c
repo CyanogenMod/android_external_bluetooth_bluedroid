@@ -447,7 +447,7 @@ static int ext_parser_fd = -1;
 
 static void ext_parser_detached(void);
 
-int ext_parser_accept(int port)
+static int ext_parser_accept(int port)
 {
     socklen_t           clilen;
     struct sockaddr_in  cliaddr, servaddr;
@@ -582,12 +582,14 @@ void btsnoop_stop_listener(void)
 
 void btsnoop_init(void)
 {
+#if defined(BTSNOOP_EXT_PARSER_INCLUDED) && (BTSNOOP_EXT_PARSER_INCLUDED == TRUE)
     ALOGD("btsnoop_init");
 
     /* always setup ext listener port */
     if (pthread_create(&thread_id, NULL,
                        (void*)ext_parser_thread,NULL)!=0)
       perror("pthread_create");
+#endif
 }
 
 void btsnoop_open(char *p_path)
@@ -608,10 +610,12 @@ void btsnoop_close(void)
 
 void btsnoop_cleanup (void)
 {
+#if defined(BTSNOOP_EXT_PARSER_INCLUDED) && (BTSNOOP_EXT_PARSER_INCLUDED == TRUE)
     ALOGD("btsnoop_cleanup");
     pthread_kill(thread_id, SIGUSR2);
     pthread_join(thread_id, NULL);
     ext_parser_detached();
+#endif
 }
 
 
@@ -627,6 +631,7 @@ void btsnoop_capture(HC_BT_HDR *p_buf, uint8_t is_rcvd)
     SNOOPDBG("btsnoop_capture: fd = %d, type %x, rcvd %d, ext %d", \
              hci_btsnoop_fd, p_buf->event, is_rcvd, ext_parser_fd);
 
+#if defined(BTSNOOP_EXT_PARSER_INCLUDED) && (BTSNOOP_EXT_PARSER_INCLUDED == TRUE)
     if (ext_parser_fd > 0)
     {
         uint8_t tmp = *p;
@@ -656,6 +661,7 @@ void btsnoop_capture(HC_BT_HDR *p_buf, uint8_t is_rcvd)
         *(++p) = tmp;
         return;
     }
+#endif
 
 #if defined(BTSNOOPDISP_INCLUDED) && (BTSNOOPDISP_INCLUDED == TRUE)
     if (hci_btsnoop_fd == -1)

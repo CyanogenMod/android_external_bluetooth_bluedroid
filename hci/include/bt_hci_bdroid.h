@@ -70,6 +70,11 @@
 #define BTSNOOPDISP_INCLUDED TRUE
 #endif
 
+/* Disable external parser for production */
+#ifndef BTSNOOP_EXT_PARSER_INCLUDED
+#define BTSNOOP_EXT_PARSER_INCLUDED FALSE
+#endif
+
 /* Host/Controller lib internal event ID */
 #define HC_EVENT_PRELOAD               0x0001
 #define HC_EVENT_POSTLOAD              0x0002
