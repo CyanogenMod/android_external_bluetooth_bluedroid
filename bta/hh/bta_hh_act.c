@@ -184,8 +184,7 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
 {
     tBTA_HH_DEV_CB     *p_cb = bta_hh_cb.p_cur;
     UINT8              hdl;
-    tHID_STATUS         status = HID_ERR_SDP_BUSY;
-
+    tBTA_HH_STATUS    status = BTA_HH_ERR_SDP;
 
     if (result == SDP_SUCCESS)
     {
@@ -206,13 +205,16 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
             if (p_cb->hid_handle == BTA_HH_INVALID_HANDLE)
             {
                 /*  add device/update attr_mask information */
-                if((status = HID_HostAddDev (p_cb->addr, attr_mask, &hdl)) == HID_SUCCESS)
+                if(HID_HostAddDev (p_cb->addr, attr_mask, &hdl) == HID_SUCCESS)
                 {
+                    status = BTA_HH_OK;
                     /* update cb_index[] map */
                     bta_hh_cb.cb_index[hdl] = p_cb->index;
                 }
                 else
+                {
                     p_cb->app_id = 0;
+                }
             }
             /* else : incoming connection after SDP should update the SDP information as well */
 
@@ -228,12 +230,12 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
 
                 p_cb->dscp_info.ctry_code = sdp_rec->ctry_code;
 
-                status = HID_SUCCESS;
+                status = BTA_HH_OK;
             }
 
         }
         else /* type of device is not supported */
-            status = HID_ERR_INVALID;
+            status = BTA_HH_ERR_TOD_UNSPT;
     }
 
     /* free disc_db when SDP is completed */
@@ -257,40 +259,52 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
 static void bta_hh_di_sdp_cback(UINT16 result)
 {
     tBTA_HH_DEV_CB     *p_cb = bta_hh_cb.p_cur;
-    tHID_STATUS         status = HID_ERR_SDP_BUSY;
+    tBTA_HH_STATUS         status = BTA_HH_ERR_SDP;
     tSDP_DI_GET_RECORD  di_rec;
-
-    if (result == SDP_SUCCESS)
-    {
+    tHID_STATUS ret;
 #if BTA_HH_DEBUG
-        APPL_TRACE_EVENT2("bta_hh_di_sdp_cback: p_cb: %d result 0x%02x", \
-                            p_cb, result);
+    APPL_TRACE_EVENT2("bta_hh_di_sdp_cback: p_cb: %d result 0x%02x", p_cb, result);
 #endif
-        if (SDP_GetNumDiRecords(bta_hh_cb.p_disc_db) != 0)
+    /* if DI record does not exist on remote device, vendor_id in tBTA_HH_DEV_DSCP_INFO will be
+         * set to 0xffff and we will allow the connection to go through. Spec mandates that DI
+         * record be set, but many HID devices do not set this. So for IOP purposes, we allow the
+         * connection to go through and update the DI record to invalid DI entry.*/
+    if ((result == SDP_SUCCESS) || (result == SDP_NO_RECS_MATCH))
+    {
+        if(result == SDP_SUCCESS && SDP_GetNumDiRecords(bta_hh_cb.p_disc_db) != 0)
         {
             /* always update information with primary DI record */
             if (SDP_GetDiRecord(1, &di_rec, bta_hh_cb.p_disc_db) == SDP_SUCCESS)
             {
                 bta_hh_update_di_info(p_cb, di_rec.rec.vendor, di_rec.rec.product, di_rec.rec.version);
             }
+
         }
-        if ((status = HID_HostGetSDPRecord(p_cb->addr,
-                                           bta_hh_cb.p_disc_db,
-                                           p_bta_hh_cfg->sdp_db_size,
-                                           bta_hh_sdp_cback)) != HID_SUCCESS)
+        else /* no DI recrod available */
+        {
+            bta_hh_update_di_info(p_cb, BTA_HH_VENDOR_ID_INVALID, 0, 0);
+        }
+
+        if ((ret = HID_HostGetSDPRecord(p_cb->addr,
+                                 bta_hh_cb.p_disc_db,
+                                 p_bta_hh_cfg->sdp_db_size,
+                                 bta_hh_sdp_cback)) == HID_SUCCESS)
+        {
+            status = BTA_HH_OK;
+        }
+        else
         {
 #if BTA_HH_DEBUG
-            APPL_TRACE_DEBUG1 ("bta_hh_di_sdp_cback:  HID_HostGetSDPRecord failed: \
-                        Status 0x%2X",status);
+            APPL_TRACE_DEBUG1 ("bta_hh_di_sdp_cback:  HID_HostGetSDPRecord failed: Status 0x%2x",
+                               ret);
 #endif
-            status = BTA_HH_ERR_SDP;
-            utl_freebuf((void **)&bta_hh_cb.p_disc_db);
         }
     }
 
 
-    if (status != HID_SUCCESS)
+    if (status != BTA_HH_OK)
     {
+        utl_freebuf((void **)&bta_hh_cb.p_disc_db);
         /* send SDP_CMPL_EVT into state machine */
         bta_hh_sm_execute(p_cb, BTA_HH_SDP_CMPL_EVT, (tBTA_HH_DATA *)&status);
     }
@@ -313,7 +327,7 @@ static void bta_hh_di_sdp_cback(UINT16 result)
 *******************************************************************************/
 void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
-    tHID_STATUS             status = HID_ERR_SDP_BUSY;
+    tBTA_HH_STATUS          status = BTA_HH_ERR_SDP;
     UINT8                   hdl;
 
     p_cb->sec_mask  = p_data->api_conn.sec_mask;
@@ -322,13 +336,13 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     /* if previously virtually cabled device, skip SDP */
     if (p_cb->app_id)
     {
-        status = HID_SUCCESS;
+        status = BTA_HH_OK;
 #if BTA_HH_DEBUG
         APPL_TRACE_DEBUG0("bta_hh_start_sdp:: skip SDP for known devices");
 #endif
         if (p_cb->hid_handle == BTA_HH_INVALID_HANDLE)
         {
-            if ((status = HID_HostAddDev (p_cb->addr, p_cb->attr_mask, &hdl)) \
+            if ((HID_HostAddDev (p_cb->addr, p_cb->attr_mask, &hdl)) \
                 == HID_SUCCESS)
             {
                 /* update device CB with newly register device handle */
@@ -339,6 +353,10 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                                           p_cb->app_id);
                 /* update cb_index[] map */
                 bta_hh_cb.cb_index[hdl] = p_cb->index;
+            }
+            else
+            {
+                status = BTA_HH_ERR_SDP;
             }
         }
         bta_hh_sm_execute(p_cb, BTA_HH_SDP_CMPL_EVT, (tBTA_HH_DATA *)&status);
@@ -371,11 +389,11 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                 utl_freebuf((void **)&bta_hh_cb.p_disc_db);
             }
             else
-                status = HID_SUCCESS;
+                status = BTA_HH_OK;
         }
     }
 
-    if (status != HID_SUCCESS)
+    if (status != BTA_HH_OK)
         bta_hh_sm_execute(p_cb, BTA_HH_SDP_CMPL_EVT, (tBTA_HH_DATA *)&status);
 
     return;
@@ -395,7 +413,7 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CONN            conn_dat;
-    tHID_STATUS             status;
+    tBTA_HH_STATUS          status = p_data->status;
 
 #if BTA_HH_DEBUG
     APPL_TRACE_DEBUG1 ("bta_hh_sdp_cmpl:  status 0x%2X",p_data->status);
@@ -407,24 +425,29 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     bdcpy(conn_dat.bda, p_cb->addr);
 
     /* if SDP compl success */
-    if ( (status = p_data->status) == HID_SUCCESS)
+    if ( status == BTA_HH_OK)
     {
         /* not incoming connection doing SDP, initiate a HID connection */
         if (!p_cb->incoming_conn)
         {
+            tHID_STATUS ret;
             /* set security level */
             HID_HostSetSecurityLevel("", p_cb->sec_mask);
 
             /* open HID connection */
-            if ((status = HID_HostOpenDev (p_cb->hid_handle)) != HID_SUCCESS)
+            if ((ret = HID_HostOpenDev (p_cb->hid_handle)) != HID_SUCCESS)
             {
 #if BTA_HH_DEBUG
                 APPL_TRACE_DEBUG1 ("bta_hh_sdp_cmpl:  HID_HostOpenDev failed: \
-                    Status 0x%2X",status);
+                    Status 0x%2X",ret);
 #endif
                 /* open fail, remove device from management device list */
                 HID_HostRemoveDev( p_cb->hid_handle);
-
+                status = BTA_HH_ERR;
+            }
+            else
+            {
+                status = BTA_HH_OK;
             }
         }
         else /* incoming connection SDP finish */
@@ -433,13 +456,9 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         }
     }
 
-    if (status != HID_SUCCESS)
+    if (status != BTA_HH_OK)
     {
-        /* receive SDP error */
-        if (p_data->status == HID_ERR_INVALID)
-            conn_dat.status = BTA_HH_ERR_TOD_UNSPT;
-        else
-            conn_dat.status = BTA_HH_ERR_SDP;
+        conn_dat.status = status;
 
         (* bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn_dat);
 
@@ -522,17 +541,20 @@ void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     /* set protocol mode when not default report mode */
     if (p_cb->mode != BTA_HH_PROTO_RPT_MODE)
     {
-        if ((conn.status = HID_HostWriteDev(dev_handle,
-                                HID_TRANS_SET_PROTOCOL, HID_PAR_PROTOCOL_BOOT_MODE,
-                                0,
-                                0, NULL)) != HID_SUCCESS)
+        if ((HID_HostWriteDev(dev_handle,
+                              HID_TRANS_SET_PROTOCOL, HID_PAR_PROTOCOL_BOOT_MODE,
+                              0,
+                              0, NULL)) != HID_SUCCESS)
         {
             /* HID connection is up, while SET_PROTO fail */
             conn.status = BTA_HH_ERR_PROTO;
             (* bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn);
         }
         else
+        {
+            conn.status = BTA_HH_OK;
             p_cb->w4_evt = BTA_HH_OPEN_EVT;
+        }
     }
     else
         (* bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn);

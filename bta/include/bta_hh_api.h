@@ -162,6 +162,10 @@ typedef UINT8 tBTA_HH_TRANS_CTRL_TYPE;
 
 typedef tHID_DEV_DSCP_INFO tBTA_HH_DEV_DESCR;
 
+/* id DI is not existing in remote device, vendor_id in tBTA_HH_DEV_DSCP_INFO will be set to 0xffff */
+#define BTA_HH_VENDOR_ID_INVALID       0xffff
+
+
 /* report descriptor information */
 typedef struct
 {
