@@ -18,11 +18,17 @@
 
 #ifndef BTIF_SOCK_SDP_H
 #define BTIF_SOCK_SDP_H
+static const UINT8  UUID_OBEX_OBJECT_PUSH[] = {0x00, 0x00, 0x11, 0x05, 0x00, 0x00, 0x10, 0x00,
+                                               0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
+static const UINT8  UUID_PBAP_PSE[]         = {0x00, 0x00, 0x11, 0x2F, 0x00, 0x00, 0x10, 0x00,
+                                               0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
+static const UINT8  UUID_SPP[]              = {0x00, 0x00, 0x11, 0x01, 0x00, 0x00, 0x10, 0x00,
+                                               0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 
 static inline BOOLEAN is_uuid_empty(const uint8_t* uuid)
 {
    static  uint8_t empty_uuid[16];
-   return memcmp(uuid, empty_uuid, sizeof(empty_uuid)) == 0;
+   return uuid == NULL || memcmp(uuid, empty_uuid, sizeof(empty_uuid)) == 0;
 }
 
 int add_rfc_sdp_rec(const char* name, const uint8_t* uuid, int scn);

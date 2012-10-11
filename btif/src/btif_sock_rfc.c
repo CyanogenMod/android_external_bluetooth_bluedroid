@@ -110,7 +110,8 @@ static void cleanup_rfc_slot(rfc_slot_t* rs);
 static inline void close_rfc_connection(int rfc_handle, int server);
 static bt_status_t dm_get_remote_service_record(bt_bdaddr_t *remote_addr,
                                                     bt_uuid_t *uuid);
-
+static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data);
+static inline BOOLEAN send_app_scn(rfc_slot_t* rs);
 static pthread_mutex_t slot_lock;
 #define is_init_done() (pth != -1)
 static inline void clear_slot_flag(flags_t* f)
@@ -271,6 +272,7 @@ static rfc_slot_t* alloc_rfc_slot(const bt_bdaddr_t *addr, const char* name, con
         rs->scn = channel;
         if(uuid)
             memcpy(rs->service_uuid, uuid, sizeof(rs->service_uuid));
+        else memset(rs->service_uuid, 0, sizeof(rs->service_uuid));
         if(name && *name)
             strncpy(rs->service_name, name, sizeof(rs->service_name) -1);
         if(addr)
@@ -310,7 +312,7 @@ static inline rfc_slot_t* create_srv_accept_rfc_slot(rfc_slot_t* srv_rs, const b
 bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_uuid, int channel,
                             int* sock_fd, int flags)
 {
-    if(sock_fd == NULL || (service_uuid == NULL && !is_reserved_rfc_channel(channel)))
+    if(sock_fd == NULL || (service_uuid == NULL && (channel < 1 || channel > 30)))
     {
         error("invalid rfc channel:%d or sock_fd:%p, uuid:%p", channel, sock_fd, service_uuid);
         return BT_STATUS_PARM_INVALID;
@@ -318,13 +320,17 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
     *sock_fd = -1;
     if(!is_init_done())
         return BT_STATUS_NOT_READY;
-   //Check the service_uuid. If it uses a reserved channel number, use it
-    int reserved_channel = get_reserved_rfc_channel(service_uuid);
-    if(reserved_channel >0)
+    if(is_uuid_empty(service_uuid))
+        service_uuid = UUID_SPP; //use serial port profile to listen to specified channel
+    else
     {
-        channel = reserved_channel;
+        //Check the service_uuid. overwrite the channel # if reserved
+        int reserved_channel = get_reserved_rfc_channel(service_uuid);
+        if(reserved_channel > 0)
+        {
+            channel = reserved_channel;
+        }
     }
-
     int status = BT_STATUS_FAIL;
     lock_slot(&slot_lock);
     rfc_slot_t* rs = alloc_rfc_slot(NULL, service_name, service_uuid, channel, flags, TRUE);
@@ -344,7 +350,7 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
 bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t* service_uuid,
         int channel, int* sock_fd, int flags)
 {
-    if(sock_fd == NULL || (service_uuid == NULL && !is_reserved_rfc_channel(channel)))
+    if(sock_fd == NULL || (service_uuid == NULL && (channel < 1 || channel > 30)))
     {
         error("invalid rfc channel:%d or sock_fd:%p, uuid:%p", channel, sock_fd, service_uuid);
         return BT_STATUS_PARM_INVALID;
@@ -357,31 +363,49 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t* servic
     rfc_slot_t* rs = alloc_rfc_slot(bd_addr, NULL, service_uuid, channel, flags, FALSE);
     if(rs)
     {
-
-        //BTA_API extern tBTA_JV_STATUS BTA_JvStartDiscovery(BD_ADDR bd_addr, UINT16 num_uuid,
-        //                   tSDP_UUID *p_uuid_list, void* user_data);
-        tSDP_UUID sdp_uuid;
-        sdp_uuid.len = 16;
-        memcpy(sdp_uuid.uu.uuid128, service_uuid, sizeof(sdp_uuid.uu.uuid128));
-        debug("start service channel discovery, slot id:%d, fd:%d, app_fd:%d, security:0x%x, scn:%d",
-                rs->id, rs->fd, rs->app_fd, rs->security, rs->scn);
-        logu("service_uuid", service_uuid);
-        *sock_fd = rs->app_fd;
-        rs->app_fd = -1; //the fd ownership is transferred to app
-        status = BT_STATUS_SUCCESS;
-        rfc_slot_t* rs_doing_sdp = find_rfc_slot_requesting_sdp();
-        if(rs_doing_sdp == NULL)
+        if(is_uuid_empty(service_uuid))
         {
-            BTA_JvStartDiscovery((UINT8*)bd_addr->address, 1, &sdp_uuid, (void*)rs->id);
-            rs->f.pending_sdp_request = FALSE;
-            rs->f.doing_sdp_request = TRUE;
+            debug("connecting to rfcomm channel:%d without service discovery", channel);
+            if(BTA_JvRfcommConnect(rs->security, rs->role, rs->scn, rs->addr.address,
+                        rfcomm_cback, (void*)rs->id) == BTA_JV_SUCCESS)
+            {
+                if(send_app_scn(rs))
+                {
+                    btsock_thread_add_fd(pth, rs->fd, BTSOCK_RFCOMM,
+                                                        SOCK_THREAD_FD_RD, rs->id);
+                    *sock_fd = rs->app_fd;
+                    rs->app_fd = -1; //the fd ownership is transferred to app
+                    status = BT_STATUS_SUCCESS;
+                }
+                else cleanup_rfc_slot(rs);
+            }
+            else cleanup_rfc_slot(rs);
         }
         else
         {
-            rs->f.pending_sdp_request = TRUE;
-            rs->f.doing_sdp_request = FALSE;
+            tSDP_UUID sdp_uuid;
+            sdp_uuid.len = 16;
+            memcpy(sdp_uuid.uu.uuid128, service_uuid, sizeof(sdp_uuid.uu.uuid128));
+            debug("start service channel discovery, slot id:%d, fd:%d, app_fd:%d, security:0x%x, scn:%d",
+                    rs->id, rs->fd, rs->app_fd, rs->security, rs->scn);
+            logu("service_uuid", service_uuid);
+            *sock_fd = rs->app_fd;
+            rs->app_fd = -1; //the fd ownership is transferred to app
+            status = BT_STATUS_SUCCESS;
+            rfc_slot_t* rs_doing_sdp = find_rfc_slot_requesting_sdp();
+            if(rs_doing_sdp == NULL)
+            {
+                BTA_JvStartDiscovery((UINT8*)bd_addr->address, 1, &sdp_uuid, (void*)rs->id);
+                rs->f.pending_sdp_request = FALSE;
+                rs->f.doing_sdp_request = TRUE;
+            }
+            else
+            {
+                rs->f.pending_sdp_request = TRUE;
+                rs->f.doing_sdp_request = FALSE;
+            }
+            btsock_thread_add_fd(pth, rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_RD, rs->id);
         }
-        btsock_thread_add_fd(pth, rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_RD, rs->id);
     }
     unlock_slot(&slot_lock);
     return status;

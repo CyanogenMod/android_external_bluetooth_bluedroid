@@ -64,12 +64,6 @@
 #define RESERVED_SCN_OPS 12
 
 #define UUID_MAX_LENGTH 16
-static const UINT8  UUID_OBEX_OBJECT_PUSH[] = {0x00, 0x00, 0x11, 0x05, 0x00, 0x00, 0x10, 0x00,
-                                               0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
-
-static const UINT8  UUID_PBAP_PSE[] =          {0x00, 0x00, 0x11, 0x2F, 0x00, 0x00, 0x10, 0x00,
-                                               0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
-
 
 
 #define IS_UUID(u1,u2)  !memcmp(u1,u2,UUID_MAX_LENGTH)
@@ -317,6 +311,45 @@ static int add_ops_sdp(const char *p_service_name,int scn)
 
     return sdp_handle;
 }
+#define SPP_NUM_PROTO_ELEMS 2
+static int add_spp_sdp(const char *service_name, int scn)
+{
+    UINT16 serviceclassid = UUID_SERVCLASS_SERIAL_PORT;
+    tSDP_PROTOCOL_ELEM  proto_elem_list[SPP_NUM_PROTO_ELEMS];
+    int              sdp_handle;
+
+    info("scn %d, service name %s", scn, service_name);
+
+    /* register the service */
+    if ((sdp_handle = SDP_CreateRecord()) != FALSE)
+    {
+        /*** Fill out the protocol element sequence for SDP ***/
+        proto_elem_list[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
+        proto_elem_list[0].num_params = 0;
+        proto_elem_list[1].protocol_uuid = UUID_PROTOCOL_RFCOMM;
+        proto_elem_list[1].num_params = 1;
+
+        proto_elem_list[1].params[0] = scn;
+
+        if (SDP_AddProtocolList(sdp_handle, SPP_NUM_PROTO_ELEMS, proto_elem_list))
+        {
+            if (SDP_AddServiceClassIdList(sdp_handle, 1, &serviceclassid))
+            {
+                if ((SDP_AddAttribute(sdp_handle, ATTR_ID_SERVICE_NAME,
+                                TEXT_STR_DESC_TYPE, (UINT32)(strlen(service_name)+1),
+                                (UINT8 *)service_name)))
+                {
+                    UINT16  list[1];
+                    /* Make the service browseable */
+                    list[0] = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+                    SDP_AddUuidSequence (sdp_handle,  ATTR_ID_BROWSE_GROUP_LIST,
+                                    1, list);
+                }
+            }
+        }
+    }
+    return sdp_handle;
+}
 
 
 
@@ -350,6 +383,10 @@ static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
     else if (IS_UUID(UUID_PBAP_PSE,uuid))
     {
         handle = add_pbap_sdp(name, final_scn); //PBAP Server is always 19
+    }
+    else if (IS_UUID(UUID_SPP, uuid))
+    {
+        handle = add_spp_sdp(name, final_scn);
     }
     else
     {
@@ -391,17 +428,17 @@ int add_rfc_sdp_rec(const char* name, const uint8_t* uuid, int scn)
         switch(scn)
         {
             case RESERVED_SCN_PBS: // PBAP Reserved port
-                add_pbap_sdp(name, scn);
+                uuid = UUID_PBAP_PSE;
                 break;
              case RESERVED_SCN_OPS:
-                add_ops_sdp(name,scn);
+                uuid = UUID_OBEX_OBJECT_PUSH;
                 break;
             default:
+                uuid = UUID_SPP;
                 break;
         }
     }
-    else
-        sdp_handle = add_rfc_sdp_by_uuid(name, uuid, scn);
+    sdp_handle = add_rfc_sdp_by_uuid(name, uuid, scn);
     return sdp_handle;
 }
 
