@@ -1964,7 +1964,8 @@ static UINT8 btif_get_num_aa_frame(void)
                threshold
              */
 
-            result += ra_adjust();
+            // TODO(BT) ra_adjust causes problem, need correction
+            // result += ra_adjust();
 
             VERBOSE("WRITE %d FRAMES", result);
             break;
