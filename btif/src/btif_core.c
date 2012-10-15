@@ -373,11 +373,10 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     if(!valid_bda)
     {
         val_size = sizeof(val);
-        BTIF_TRACE_DEBUG1("Look for bdaddr storage path in prop %s", PROPERTY_BT_BDADDR_PATH);
         if(btif_config_get_str("Local", "Adapter", "Address", val, &val_size))
         {
             str2bd(val, local_addr);
-             BTIF_TRACE_DEBUG1("local bdaddr from bt_config.xml is  %s", val);
+            BTIF_TRACE_DEBUG1("local bdaddr from bt_config.xml is  %s", val);
             return;
         }
      }
@@ -417,6 +416,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
         if (property_set(PERSIST_BDADDR_PROPERTY, (char*)bdstr) < 0)
             BTIF_TRACE_ERROR1("Failed to set random BDA in prop %s",PERSIST_BDADDR_PROPERTY);
     }
+
     //save the bd address to config file
     bdstr_t bdstr;
     bd2str(local_addr, &bdstr);
@@ -538,6 +538,43 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
     bdcpy(bd_addr.address, local_bd);
     BTIF_TRACE_DEBUG3("%s: status %d, local bd [%s]", __FUNCTION__, status,
                                                      bd2str(&bd_addr, &bdstr));
+
+    if (bdcmp(btif_local_bd_addr.address,local_bd))
+    {
+        bdstr_t buf;
+        bt_property_t prop;
+
+        /**
+         * The Controller's BDADDR does not match to the BTIF's initial BDADDR!
+         * This could be because the factory BDADDR was stored separatley in
+         * the Controller's non-volatile memory rather than in device's file
+         * system.
+         **/
+        BTIF_TRACE_WARNING0("***********************************************");
+        BTIF_TRACE_WARNING6("BTIF init BDA was %02X:%02X:%02X:%02X:%02X:%02X",
+            btif_local_bd_addr.address[0], btif_local_bd_addr.address[1],
+            btif_local_bd_addr.address[2], btif_local_bd_addr.address[3],
+            btif_local_bd_addr.address[4], btif_local_bd_addr.address[5]);
+        BTIF_TRACE_WARNING6("Controller BDA is %02X:%02X:%02X:%02X:%02X:%02X",
+            local_bd[0], local_bd[1], local_bd[2],
+            local_bd[3], local_bd[4], local_bd[5]);
+        BTIF_TRACE_WARNING0("***********************************************");
+
+        bdcpy(btif_local_bd_addr.address, local_bd);
+
+        //save the bd address to config file
+        bd2str(&btif_local_bd_addr, &buf);
+        btif_config_set_str("Local", "Adapter", "Address", buf);
+        btif_config_save();
+
+        //fire HAL callback for property change
+        memcpy(buf, &btif_local_bd_addr, sizeof(bt_bdaddr_t));
+        prop.type = BT_PROPERTY_BDADDR;
+        prop.val = (void*)buf;
+        prop.len = sizeof(bt_bdaddr_t);
+        HAL_CBACK(bt_hal_cbacks, adapter_properties_cb, BT_STATUS_SUCCESS, 1, &prop);
+    }
+
     bte_main_postload_cfg();
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
     bte_main_enable_lpm(TRUE);
