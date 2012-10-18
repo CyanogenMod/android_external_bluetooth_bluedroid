@@ -88,6 +88,7 @@ LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../brcm/include \
 	$(LOCAL_PATH)/../embdrv/sbc/encoder/include \
 	$(LOCAL_PATH)/../audio_a2dp_hw \
+	$(LOCAL_PATH)/../utils/include \
 	$(bdroid_C_INCLUDES) \
 	external/tinyxml2
 
@@ -113,7 +114,8 @@ endif
 LOCAL_SHARED_LIBRARIES := \
     libcutils \
     libpower \
-    libbt-hci
+    libbt-hci \
+    libbt-utils
 
 #LOCAL_WHOLE_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_stack libbt-brcm_bta
 LOCAL_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_bta libbt-brcm_stack libtinyxml2

@@ -33,6 +33,7 @@
 #include <pthread.h>  /* must be 1st header defined  */
 #include <time.h>
 #include "gki_int.h"
+#include "bt_utils.h"
 
 #define LOG_TAG "GKI_LINUX"
 
@@ -618,6 +619,10 @@ void* timer_thread(void *arg)
     /* Indicate that tick is just starting */
     restart = 1;
 
+    prctl(PR_SET_NAME, (unsigned long)"gki timer", 0, 0, 0);
+
+    raise_priority_a2dp(TASK_HIGH_GKI_TIMER);
+
     while(!shutdown_timer)
     {
         /* If the timer has been stopped (no SW timer running) */
@@ -806,8 +811,6 @@ void GKI_run (void *p_task_id)
         GKI_ERROR_LOG("pthread_create failed to create timer_thread!\n\r");
         return;
     }
-
-    prctl(PR_SET_NAME, (unsigned long)"gki timer", 0, 0, 0);
 
 #else
     GKI_TRACE("GKI_run ");

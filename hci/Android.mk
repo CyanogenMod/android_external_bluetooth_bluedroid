@@ -26,11 +26,13 @@ LOCAL_SRC_FILES += \
 endif
 
 LOCAL_C_INCLUDES += \
-        $(LOCAL_PATH)/include
+        $(LOCAL_PATH)/include \
+        $(LOCAL_PATH)/../utils/include
 
 LOCAL_SHARED_LIBRARIES := \
         libcutils \
-        libdl
+        libdl \
+        libbt-utils
 
 LOCAL_MODULE := libbt-hci
 LOCAL_MODULE_TAGS := optional
