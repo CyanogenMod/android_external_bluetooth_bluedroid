@@ -681,6 +681,10 @@ void btif_disable_bluetooth_evt(void)
 {
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
 
+#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
+    bte_main_enable_lpm(FALSE);
+#endif
+
     bte_main_disable();
 
     /* update local state */
