@@ -992,7 +992,7 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
                     case BTHF_CALL_STATE_ALERTING:
                         if (num_active > btif_hf_cb.num_active)
                         {
-                            ag_res.audio_handle = btif_hf_cb.handle;
+                            ag_res.audio_handle = BTA_AG_HANDLE_SCO_NO_CHANGE;
                             res = BTA_AG_OUT_CALL_CONN_RES;
                         }
                         else

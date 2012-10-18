@@ -68,6 +68,12 @@ typedef UINT8 tBTA_AG_STATUS;
 /* handle values used with BTA_AgResult */
 #define BTA_AG_HANDLE_NONE      0
 #define BTA_AG_HANDLE_ALL       0xFFFF
+/* It is safe to use the same value as BTA_AG_HANDLE_ALL
+ * HANDLE_ALL is used for delivering indication
+ * SCO_NO_CHANGE is used for changing sco behavior
+ * They donot interfere with each other
+ */
+#define BTA_AG_HANDLE_SCO_NO_CHANGE 0xFFFF
 
 /* AG result codes used with BTA_AgResult */
 #define BTA_AG_SPK_RES              0   /* Update speaker volume */
