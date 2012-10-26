@@ -8,6 +8,7 @@ LOCAL_C_INCLUDES:= $(LOCAL_PATH)/common \
                    $(LOCAL_PATH)/ulinux \
                    $(LOCAL_PATH)/../include \
                    $(LOCAL_PATH)/../stack/include \
+                   $(LOCAL_PATH)/../utils/include \
                    $(bdroid_C_INCLUDES) \
 
 LOCAL_CFLAGS += -Werror $(bdroid_CFLAGS)

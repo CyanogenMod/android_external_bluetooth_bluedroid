@@ -40,6 +40,7 @@
 #define LOG_TAG "bluedroid"
 
 #include "btif_api.h"
+#include "bt_utils.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -113,6 +114,8 @@ static int init(bt_callbacks_t* callbacks )
 
     /* add checks for individual callbacks ? */
 
+    bt_utils_init();
+
     /* init btif */
     btif_init_bluetooth();
 
@@ -146,6 +149,7 @@ static void cleanup( void )
         return;
 
     btif_shutdown_bluetooth();
+    bt_utils_cleanup();
 
     /* hal callbacks reset upon shutdown complete callback */
 

@@ -67,6 +67,7 @@
 #include "btif_av.h"
 #include "btif_sm.h"
 #include "btif_util.h"
+#include "bt_utils.h"
 
 /*****************************************************************************
  **  Constants
@@ -1208,6 +1209,8 @@ int btif_media_task(void *p)
     btif_media_task_init();
 
     media_task_running = MEDIA_TASK_STATE_ON;
+
+    raise_priority_a2dp(TASK_HIGH_MEDIA);
 
     while (1)
     {
