@@ -120,14 +120,20 @@ enum {
 /* Media task tick in milliseconds */
 #define BTIF_MEDIA_TIME_TICK                     (20 * BTIF_MEDIA_NUM_TICK)
 
-/* Number of frames per media task tick */
-/* 7.5 frames/tick @ 20 ms tick */
-#define BTIF_MEDIA_FR_PER_TICKS_48               (7 * BTIF_MEDIA_NUM_TICK)
-/* 6.89 frames/tick  @ 20 ms tick */
+/* Number of frames per media task tick.
+   Configure value rounded up to closest integer and
+   adjust any deltas in btif_get_num_aa_frame */
+
+/* 7.5 frames/tick @ 20 ms tick (every 2nd frame send one less) */
+#define BTIF_MEDIA_FR_PER_TICKS_48               (8 * BTIF_MEDIA_NUM_TICK)
+
+/* 6.89 frames/tick  @ 20 ms tick (7 out of 64 frames send one less */
 #define BTIF_MEDIA_FR_PER_TICKS_44_1             (7 * BTIF_MEDIA_NUM_TICK)
+
 /* 5.0 frames/tick  @ 20 ms tick */
 #define BTIF_MEDIA_FR_PER_TICKS_32               (5 * BTIF_MEDIA_NUM_TICK)
-/* 2.5 frames/tick  @ 20 ms tick */
+
+/* 2.5 frames/tick  @ 20 ms tick (every 2nd frame send one less) */
 #define BTIF_MEDIA_FR_PER_TICKS_16               (3 * BTIF_MEDIA_NUM_TICK)
 
 
@@ -179,9 +185,6 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 /* fixme -- tune optimal value. For now set a large buffer capacity */
 #define MAX_OUTPUT_BUFFER_QUEUE_SZ 12
 
-/* trigger rate adjustment if deviation is more than threshold */
-#define BTIF_RA_OFFSET_TRIGGER_US 3000
-
 //#define BTIF_MEDIA_VERBOSE_ENABLED
 
 #ifdef BTIF_MEDIA_VERBOSE_ENABLED
@@ -209,19 +212,6 @@ typedef union
     tBTIF_AV_MEDIA_FEEDINGS_PCM_STATE pcm;
 } tBTIF_AV_MEDIA_FEEDINGS_STATE;
 
-
-/* pcm rate adjustment */
-typedef struct {
-    struct timespec time_start;        /* offset used to calculate time elapsed */
-    unsigned long long tx_pcmtime_us;  /* track pcm time transmitted since stream start */
-
-    /* stats */
-    int ra_adjust_cnt;                 /* tracks nbr of frame intervals adjusted */
-    int ra_adjust_pcmtime;             /* pcmtime adjusted each stats interval */
-
-    /* add latency tracker */
-} tBTIF_MEDIA_RA;
-
 typedef struct
 {
 #if (BTA_AV_INCLUDED == TRUE)
@@ -238,7 +228,7 @@ typedef struct
     void* av_sm_hdl;
     UINT8 a2dp_cmd_pending; /* we can have max one command pending */
     BOOLEAN tx_flush; /* discards any outgoing data when true */
-    tBTIF_MEDIA_RA ra; /* tx rate adjustment logic */
+    BOOLEAN scaling_disabled;
 #endif
 
 } tBTIF_MEDIA_CB;
@@ -984,132 +974,6 @@ static int btif_calc_pcmtime(UINT32 bytes_processed)
     }
 
     return pcm_time_us;
-}
-
-/*****************************************************************************
-**
-** Function        ra_reset
-**
-** Description     Media task tx rate adjustment
-**
-** Returns         void
-**
-*******************************************************************************/
-
-static void ra_reset(void)
-{
-    /* initialize start time of test interval */
-    btif_media_cb.ra.time_start.tv_nsec = 0;
-    btif_media_cb.ra.time_start.tv_sec = 0;
-    btif_media_cb.ra.tx_pcmtime_us= 0;
-    btif_media_cb.ra.ra_adjust_cnt = 0;
-    btif_media_cb.ra.ra_adjust_pcmtime = 0;
-}
-
-/*****************************************************************************
-**
-** Function        ra_update
-**
-** Description     Updates RA with amount of UIPC channel data processed
-**
-** Returns         void
-**
-*******************************************************************************/
-
-static void ra_update(UINT32 bytes_processed)
-{
-#define RA_STATS_INTERVAL 3
-    static unsigned long ra_stats_update = 0;
-    int pcmtime_equivalent;
-
-    /* if this is the first frame we will initialize tx start time */
-    if ( (btif_media_cb.ra.time_start.tv_sec == 0) && (btif_media_cb.ra.time_start.tv_nsec == 0) )
-        clock_gettime(CLOCK_MONOTONIC, &btif_media_cb.ra.time_start);
-
-    pcmtime_equivalent = btif_calc_pcmtime(bytes_processed);
-    btif_media_cb.ra.tx_pcmtime_us += pcmtime_equivalent;
-
-    ra_stats_update += pcmtime_equivalent;
-
-    /* converts adjusted frame count to adjusted pcmtime equivalent */
-    btif_media_cb.ra.ra_adjust_pcmtime += (btif_media_cb.ra.ra_adjust_cnt)*pcmtime_equivalent;
-
-    //VERBOSE("ra update %d %d %d", btif_media_cb.ra.ra_adjust_cnt,
-    //                       btif_media_cb.ra.ra_adjust_pcmtime, ra_stats_update);
-
-    /* check pcmtime adjustments every stats interval */
-    if (ra_stats_update > (RA_STATS_INTERVAL*1000000L))
-    {
-        APPL_TRACE_DEBUG3("ra estimate : %d us for %d secs (%d ppm)",
-                       btif_media_cb.ra.ra_adjust_pcmtime, RA_STATS_INTERVAL,
-                       btif_media_cb.ra.ra_adjust_pcmtime/RA_STATS_INTERVAL);
-        btif_media_cb.ra.ra_adjust_pcmtime = 0;
-        ra_stats_update = 0;
-
-    }
-
-    /* reset count for next conversion */
-    btif_media_cb.ra.ra_adjust_cnt = 0;
-}
-
-/*****************************************************************************
-**
-** Function        ra_adjust
-**
-** Description     Calculates deviation between PCM time processed across
-**                 UIPC audio channel and PCM time transmitted across the
-**                 A2DP stream. Is checked every time slice (media timer
-**                 tick).
-**
-** Returns         Returns a frame count offset used to compensate for
-**                 any drift versus the ideal clockrate
-**
-*******************************************************************************/
-
-static int ra_adjust(void)
-{
-    unsigned long long time_elapsed_us;
-    struct timespec now;
-    int adjust = 0;
-
-    /* don't start adjusting until we have read any pcm data */
-    if (btif_media_cb.ra.tx_pcmtime_us == 0)
-        return 0;
-
-    clock_gettime(CLOCK_MONOTONIC, &now);
-
-    time_elapsed_us = ((unsigned long long)(now.tv_sec - btif_media_cb.ra.time_start.tv_sec))\
-                       * USEC_PER_SEC + (now.tv_nsec - btif_media_cb.ra.time_start.tv_nsec)/1000;
-
-    /* compare elapsed time vs read pcm time */
-    if (btif_media_cb.ra.tx_pcmtime_us > time_elapsed_us)
-    {
-        //VERBOSE("TOO FAST : %06d us", btif_media_cb.ra.tx_pcmtime_us - time_elapsed_us);
-
-        if ((btif_media_cb.ra.tx_pcmtime_us - time_elapsed_us) > BTIF_RA_OFFSET_TRIGGER_US)
-        {
-            VERBOSE("RA : -1 FRAME (%06d us)", btif_media_cb.ra.tx_pcmtime_us - time_elapsed_us);
-
-            /* adjust by sending one frame less this time slice */
-            adjust--;
-            btif_media_cb.ra.ra_adjust_cnt--;
-        }
-    }
-    else if (btif_media_cb.ra.tx_pcmtime_us < time_elapsed_us)
-    {
-        //VERBOSE("TOO SLOW : %06d us", time_elapsed_us - btif_media_cb.ra.tx_pcmtime_us);
-
-        if ((time_elapsed_us - btif_media_cb.ra.tx_pcmtime_us) > BTIF_RA_OFFSET_TRIGGER_US)
-        {
-            VERBOSE("RA : +1 FRAME (%06d us)", time_elapsed_us - btif_media_cb.ra.tx_pcmtime_us);
-
-            /* adjust by sending one frame more this time slice */
-            adjust++;
-            btif_media_cb.ra.ra_adjust_cnt++;
-        }
-    }
-
-    return adjust;
 }
 
 
@@ -1863,11 +1727,6 @@ static void btif_media_task_feeding_state_reset(void)
 {
     /* By default, just clear the entire state */
     memset(&btif_media_cb.media_feeding_state, 0, sizeof(btif_media_cb.media_feeding_state));
-
-    /* reset pcm time tracker */
-    ra_reset();
-
-
 }
 /*******************************************************************************
  **
@@ -1931,6 +1790,8 @@ static void btif_media_task_aa_stop_tx(void)
  ** Returns          The number of media frames in this time slice
  **
  *******************************************************************************/
+
+
 static UINT8 btif_get_num_aa_frame(void)
 {
     UINT8 result=0;
@@ -1941,34 +1802,45 @@ static UINT8 btif_get_num_aa_frame(void)
             switch (btif_media_cb.encoder.s16SamplingFreq)
             {
             case SBC_sf16000:
-                result = BTIF_MEDIA_FR_PER_TICKS_16;
+                if (!btif_media_cb.scaling_disabled &&
+                    (btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 2) == 0)
+                {
+                    result = BTIF_MEDIA_FR_PER_TICKS_16-1;
+                }
+                else
+                {
+                    result = BTIF_MEDIA_FR_PER_TICKS_16;
+                }
                 break;
+
             case SBC_sf32000:
                 result = BTIF_MEDIA_FR_PER_TICKS_32;
                 break;
+
             case SBC_sf48000:
-                result = BTIF_MEDIA_FR_PER_TICKS_48;
+                if (!btif_media_cb.scaling_disabled &&
+                    (btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 2) == 0)
+                {
+                    result = BTIF_MEDIA_FR_PER_TICKS_48-1;
+                }
+                else
+                {
+                    result = BTIF_MEDIA_FR_PER_TICKS_48;
+                }
                 break;
+
             case SBC_sf44100:
-                result = BTIF_MEDIA_FR_PER_TICKS_44_1;
+                if (!btif_media_cb.scaling_disabled &&
+                    (btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 64) < 7)
+                {
+                    result = BTIF_MEDIA_FR_PER_TICKS_44_1-1;
+                }
+                else
+                {
+                    result = BTIF_MEDIA_FR_PER_TICKS_44_1;
+                }
                 break;
             }
-
-            /* Frames per tick should be selected to come as close as possible
-               to the ideal framecount. Any residue compared to ideal framecount
-               is compensated here.
-
-               Although we can estimate the frames per tick using modula
-               counters using the rate adapter logic smoothes out the compensation
-               over time and tracks transmitted time vs elapsed time counted from the first
-               frame sent out. Hence regardless of the reason for the drift (gki timer
-               inaccuracies or media tick frame residues) the rate
-               adaptor will compensate as soon as we drift outside the configued
-               threshold
-             */
-
-            // TODO(BT) ra_adjust causes problem, need correction
-            // result += ra_adjust();
 
             VERBOSE("WRITE %d FRAMES", result);
             break;
@@ -2095,9 +1967,6 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
 
     /* Read Data from UIPC channel */
     nb_byte_read = UIPC_Read(channel_id, &event, (UINT8 *)read_buffer, read_size);
-
-    /* update read 'pcmtime' */
-    ra_update(nb_byte_read);
 
     //tput_mon(TRUE, nb_byte_read, FALSE);
 
@@ -2312,6 +2181,33 @@ static void btif_media_send_aa_frame(void)
     VERBOSE("btif_media_send_aa_frame : send %d frames", nb_frame_2_send);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
 }
+
+/*******************************************************************************
+ **
+ ** Function         btif_media_check_iop_exceptions
+ **
+ ** Description    Perform any device specific iop changes
+ **
+ ** Returns          void
+ **
+ *******************************************************************************/
+
+void btif_media_check_iop_exceptions(char *peer_bda)
+{
+    /* disable rate scaling for pcm carkit */
+    if ((peer_bda[0] == 0x00) &&
+        (peer_bda[1] == 0x0E) &&
+        (peer_bda[2] == 0x9F))
+    {
+        BTIF_TRACE_WARNING0("detected pcm carkit, disable rate scaling");
+        btif_media_cb.scaling_disabled = TRUE;
+    }
+    else
+    {
+        btif_media_cb.scaling_disabled = FALSE;
+    }
+}
+
 
 #endif /* BTA_AV_INCLUDED == TRUE */
 
