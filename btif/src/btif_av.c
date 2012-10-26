@@ -463,7 +463,7 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
     switch (event)
     {
         case BTIF_SM_ENTER_EVT:
-            btif_media_check_iop_exceptions((char *)btif_av_cb.peer_bda.address);
+            btif_media_check_iop_exceptions(btif_av_cb.peer_bda.address);
             break;
 
         case BTIF_SM_EXIT_EVT:

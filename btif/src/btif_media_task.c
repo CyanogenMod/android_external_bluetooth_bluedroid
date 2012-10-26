@@ -2192,7 +2192,7 @@ static void btif_media_send_aa_frame(void)
  **
  *******************************************************************************/
 
-void btif_media_check_iop_exceptions(char *peer_bda)
+void btif_media_check_iop_exceptions(UINT8 *peer_bda)
 {
     /* disable rate scaling for pcm carkit */
     if ((peer_bda[0] == 0x00) &&
