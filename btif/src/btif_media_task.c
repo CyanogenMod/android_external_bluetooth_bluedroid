@@ -183,7 +183,7 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 
 /* fixme -- define this in pcm time instead of buffer count */
 /* fixme -- tune optimal value. For now set a large buffer capacity */
-#define MAX_OUTPUT_BUFFER_QUEUE_SZ 12
+#define MAX_OUTPUT_BUFFER_QUEUE_SZ 24
 
 //#define BTIF_MEDIA_VERBOSE_ENABLED
 
