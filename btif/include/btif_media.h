@@ -243,4 +243,6 @@ void btif_a2dp_on_suspend(void);
 void btif_a2dp_on_suspended(tBTA_AV_SUSPEND *p_av);
 void btif_a2dp_set_tx_flush(BOOLEAN enable);
 
+void btif_media_check_iop_exceptions(char *peer_bda);
+
 #endif
