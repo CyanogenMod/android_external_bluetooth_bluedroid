@@ -52,13 +52,6 @@
 #include "../bta/pb/bta_pbs_int.h"
 #include "../include/bta_op_api.h"
 #include <cutils/log.h>
-#define info(fmt, ...)  ALOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define debug(fmt, ...) ALOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) ALOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define asrt(s) if(!(s)) ALOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
-
-
-
 
 #define RESERVED_SCN_PBS 19
 #define RESERVED_SCN_OPS 12
@@ -149,11 +142,11 @@ static int add_pbap_sdp(const char* p_service_name, int scn)
     UINT32              sdp_handle = 0;
     tBTA_PBS_CFG *p_bta_pbs_cfg = (tBTA_PBS_CFG *)&bta_pbs_cfg;
 
-    info("scn %d, service name %s", scn, p_service_name);
+    APPL_TRACE_DEBUG2("scn %d, service name %s", scn, p_service_name);
 
     if ((sdp_handle = SDP_CreateRecord()) == 0)
     {
-        error("PBS SDP: Unable to register PBS Service");
+        APPL_TRACE_ERROR0("PBS SDP: Unable to register PBS Service");
         return sdp_handle;
     }
 
@@ -255,7 +248,7 @@ static int add_ops_sdp(const char *p_service_name,int scn)
     UINT32 sdp_handle;
     tBTA_OP_FMT_MASK    formats = BTUI_OPS_FORMATS;
 
-    info("scn %d, service name %s", scn, p_service_name);
+    APPL_TRACE_DEBUG2("scn %d, service name %s", scn, p_service_name);
 
     sdp_handle = SDP_CreateRecord();
 
@@ -318,7 +311,7 @@ static int add_spp_sdp(const char *service_name, int scn)
     tSDP_PROTOCOL_ELEM  proto_elem_list[SPP_NUM_PROTO_ELEMS];
     int              sdp_handle;
 
-    info("scn %d, service name %s", scn, service_name);
+    APPL_TRACE_DEBUG2("scn %d, service name %s", scn, service_name);
 
     /* register the service */
     if ((sdp_handle = SDP_CreateRecord()) != FALSE)
@@ -357,7 +350,7 @@ static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
 {
     int handle = 0;
 
-    info("name:%s, scn:%d", name, scn);
+    APPL_TRACE_DEBUG2("name:%s, scn:%d", name, scn);
 
     /*
         Bluetooth Socket API relies on having preregistered bluez sdp records for HSAG, HFAG, OPP & PBAP
