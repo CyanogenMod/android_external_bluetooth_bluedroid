@@ -103,7 +103,7 @@ void bta_dm_disable_pm(void)
     {
         if(bta_dm_cb.pm_timer[i].in_use)
         {
-            APPL_TRACE_WARNING1("stop dm_pm_timer:%d", i);
+            APPL_TRACE_DEBUG1("stop dm_pm_timer:%d", i);
             bta_sys_stop_timer(&bta_dm_cb.pm_timer[i].timer);
             bta_dm_cb.pm_timer[i].in_use = FALSE;
         }
@@ -129,7 +129,7 @@ static void bta_dm_pm_stop_timer(BD_ADDR peer_addr)
 
         if(bta_dm_cb.pm_timer[i].in_use && !bdcmp(bta_dm_cb.pm_timer[i].peer_bdaddr, peer_addr))
         {
-            APPL_TRACE_WARNING1("stop dm_pm_timer:%d", i);
+            APPL_TRACE_DEBUG1("stop dm_pm_timer:%d", i);
             bta_sys_stop_timer(&bta_dm_cb.pm_timer[i].timer);
             bta_dm_cb.pm_timer[i].in_use = FALSE;
             break;
@@ -424,7 +424,7 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
                 bdcpy(bta_dm_cb.pm_timer[i].peer_bdaddr, peer_addr);
                 bta_dm_cb.pm_timer[i].timer.p_cback = bta_dm_pm_timer_cback;
                 bta_sys_start_timer(&bta_dm_cb.pm_timer[i].timer, 0, timeout);
-                APPL_TRACE_WARNING2("start dm_pm_timer:%d, %d", i, timeout);
+                APPL_TRACE_DEBUG2("start dm_pm_timer:%d, %d", i, timeout);
                 return;
 
             }

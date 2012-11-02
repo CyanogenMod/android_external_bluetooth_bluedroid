@@ -349,7 +349,6 @@ static btif_hh_device_t *btif_hh_find_dev_by_handle(UINT8 handle)
 btif_hh_device_t *btif_hh_find_connected_dev_by_handle(UINT8 handle)
 {
     UINT32 i;
-    BTIF_TRACE_WARNING2("%s: handle = %d", __FUNCTION__, handle);
     for (i = 0; i < BTIF_HH_MAX_HID; i++) {
         if (btif_hh_cb.devices[i].dev_status == BTHH_CONN_STATE_CONNECTED &&
             btif_hh_cb.devices[i].dev_handle == handle)
@@ -371,7 +370,6 @@ btif_hh_device_t *btif_hh_find_connected_dev_by_handle(UINT8 handle)
 static btif_hh_device_t *btif_hh_find_dev_by_bda(bt_bdaddr_t *bd_addr)
 {
     UINT32 i;
-    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
     for (i = 0; i < BTIF_HH_MAX_HID; i++) {
         if (btif_hh_cb.devices[i].dev_status != BTHH_CONN_STATE_UNKNOWN &&
             memcmp(&(btif_hh_cb.devices[i].bd_addr), bd_addr, BD_ADDR_LEN) == 0)
@@ -393,7 +391,6 @@ static btif_hh_device_t *btif_hh_find_dev_by_bda(bt_bdaddr_t *bd_addr)
 static btif_hh_device_t *btif_hh_find_connected_dev_by_bda(bt_bdaddr_t *bd_addr)
 {
     UINT32 i;
-    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
     for (i = 0; i < BTIF_HH_MAX_HID; i++) {
         if (btif_hh_cb.devices[i].dev_status == BTHH_CONN_STATE_CONNECTED &&
             memcmp(&(btif_hh_cb.devices[i].bd_addr), bd_addr, BD_ADDR_LEN) == 0)
