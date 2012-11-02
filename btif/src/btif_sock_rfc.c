@@ -16,13 +16,11 @@
  *
  ******************************************************************************/
 
-
 /************************************************************************************
  *
  *  Filename:      btif_sock_rfc.c
  *
  *  Description:   Handsfree Profile Bluetooth Interface
- *
  *
  ***********************************************************************************/
 #include <hardware/bluetooth.h>
@@ -56,12 +54,7 @@
 
 #include <cutils/log.h>
 #include <hardware/bluetooth.h>
-#define info(fmt, ...)  ALOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define debug(fmt, ...) ALOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define warn(fmt, ...) ALOGW ("## WARNING : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) ALOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define asrt(s) if(!(s)) ALOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
-
+#define asrt(s) if(!(s)) APPL_TRACE_ERROR3("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
 extern void uuid_to_string(bt_uuid_t *p_uuid, char *str);
 static inline void logu(const char* title, const uint8_t * p_uuid)
@@ -193,7 +186,7 @@ static inline rfc_slot_t* find_rfc_slot_by_id(uint32_t id)
             }
         }
     }
-    warn("invalid rfc slot id: %d", id);
+    APPL_TRACE_WARNING1("invalid rfc slot id: %d", id);
     return NULL;
 }
 static inline rfc_slot_t* find_rfc_slot_by_pending_sdp()
@@ -224,7 +217,7 @@ static inline rfc_slot_t* find_rfc_slot_requesting_sdp()
         if(rfc_slots[i].id && rfc_slots[i].f.doing_sdp_request)
                 return &rfc_slots[i];
     }
-    debug("can not find any slot is requesting sdp");
+    APPL_TRACE_DEBUG0("can not find any slot is requesting sdp");
     return NULL;
 }
 
@@ -241,7 +234,7 @@ static inline rfc_slot_t* find_rfc_slot_by_fd(int fd)
                     return &rfc_slots[i];
                 else
                 {
-                    error("invalid rfc slot id, cannot be 0");
+                    APPL_TRACE_ERROR0("invalid rfc slot id, cannot be 0");
                     break;
                 }
             }
@@ -263,7 +256,7 @@ static rfc_slot_t* alloc_rfc_slot(const bt_bdaddr_t *addr, const char* name, con
         int fds[2] = {-1, -1};
         if(socketpair(AF_LOCAL, SOCK_STREAM, 0, fds))
         {
-            error("socketpair failed, errno:%d", errno);
+            APPL_TRACE_ERROR1("socketpair failed, errno:%d", errno);
             return NULL;
         }
         rs->fd = fds[0];
@@ -314,7 +307,7 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
 {
     if(sock_fd == NULL || (service_uuid == NULL && (channel < 1 || channel > 30)))
     {
-        error("invalid rfc channel:%d or sock_fd:%p, uuid:%p", channel, sock_fd, service_uuid);
+        APPL_TRACE_ERROR3("invalid rfc channel:%d or sock_fd:%p, uuid:%p", channel, sock_fd, service_uuid);
         return BT_STATUS_PARM_INVALID;
     }
     *sock_fd = -1;
@@ -336,8 +329,6 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
     rfc_slot_t* rs = alloc_rfc_slot(NULL, service_name, service_uuid, channel, flags, TRUE);
     if(rs)
     {
-        debug("call BTA_JvCreateRecordByUser, slot id:%d, server fd:%d, app_fd:%d, security:0x%x, scn:%d",
-                        rs->id, rs->fd, rs->app_fd, rs->security, rs->scn);
         BTA_JvCreateRecordByUser((void *)rs->id);
         *sock_fd = rs->app_fd;
         rs->app_fd = -1; //the fd ownership is transferred to app
@@ -352,7 +343,8 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t* servic
 {
     if(sock_fd == NULL || (service_uuid == NULL && (channel < 1 || channel > 30)))
     {
-        error("invalid rfc channel:%d or sock_fd:%p, uuid:%p", channel, sock_fd, service_uuid);
+        APPL_TRACE_ERROR3("invalid rfc channel:%d or sock_fd:%p, uuid:%p", channel, sock_fd,
+                          service_uuid);
         return BT_STATUS_PARM_INVALID;
     }
     *sock_fd = -1;
@@ -365,7 +357,7 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t* servic
     {
         if(is_uuid_empty(service_uuid))
         {
-            debug("connecting to rfcomm channel:%d without service discovery", channel);
+            APPL_TRACE_DEBUG1("connecting to rfcomm channel:%d without service discovery", channel);
             if(BTA_JvRfcommConnect(rs->security, rs->role, rs->scn, rs->addr.address,
                         rfcomm_cback, (void*)rs->id) == BTA_JV_SUCCESS)
             {
@@ -386,8 +378,6 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t* servic
             tSDP_UUID sdp_uuid;
             sdp_uuid.len = 16;
             memcpy(sdp_uuid.uu.uuid128, service_uuid, sizeof(sdp_uuid.uu.uuid128));
-            debug("start service channel discovery, slot id:%d, fd:%d, app_fd:%d, security:0x%x, scn:%d",
-                    rs->id, rs->fd, rs->app_fd, rs->security, rs->scn);
             logu("service_uuid", service_uuid);
             *sock_fd = rs->app_fd;
             rs->app_fd = -1; //the fd ownership is transferred to app
@@ -418,13 +408,13 @@ static int create_server_sdp_record(rfc_slot_t* rs)
     {
         if(BTM_TryAllocateSCN(rs->scn) == FALSE)
         {
-            error("rfc channel:%d already in use", scn);
+            APPL_TRACE_ERROR1("rfc channel:%d already in use", scn);
             return FALSE;
         }
     }
     else if((rs->scn = BTM_AllocateSCN()) == 0)
     {
-        error("run out of rfc channels");
+        APPL_TRACE_ERROR0("run out of rfc channels");
         return FALSE;
     }
     if((rs->sdp_handle = add_rfc_sdp_rec(rs->service_name, rs->service_uuid, rs->scn)) <= 0)
@@ -487,7 +477,7 @@ static inline void free_rfc_slot_scn(rfc_slot_t* rs)
 }
 static void cleanup_rfc_slot(rfc_slot_t* rs)
 {
-    debug("cleanup slot:%d, fd:%d, scn:%d", rs->id, rs->fd, rs->scn);
+    APPL_TRACE_DEBUG3("cleanup slot:%d, fd:%d, scn:%d", rs->id, rs->fd, rs->scn);
     if(rs->fd != -1)
     {
         shutdown(rs->fd, 2);
@@ -506,7 +496,7 @@ static void cleanup_rfc_slot(rfc_slot_t* rs)
     }
     if(rs->rfc_handle && !rs->f.closing && !rs->f.server)
     {
-        debug("closing rfcomm connection, rfc_handle:%d", rs->rfc_handle);
+        APPL_TRACE_DEBUG1("closing rfcomm connection, rfc_handle:%d", rs->rfc_handle);
         BTA_JvRfcommClose(rs->rfc_handle);
         rs->rfc_handle = 0;
     }
@@ -546,7 +536,7 @@ static BOOLEAN send_app_connect_signal(int fd, const bt_bdaddr_t* addr, int chan
     {
         if(sock_send_fd(fd, (const uint8_t*)&cs, sizeof(cs), send_fd) == sizeof(cs))
             return TRUE;
-        else error("sock_send_fd failed, fd:%d, send_fd:%d", fd, send_fd);
+        else APPL_TRACE_ERROR2("sock_send_fd failed, fd:%d, send_fd:%d", fd, send_fd);
     }
     else if(sock_send_all(fd, (const uint8_t*)&cs, sizeof(cs)) == sizeof(cs))
     {
@@ -565,7 +555,6 @@ static void on_cl_rfc_init(tBTA_JV_RFCOMM_CL_INIT *p_init, uint32_t id)
         else
         {
             rs->rfc_handle = p_init->handle;
-            debug("on_cl_rfc_init, slot id:%d, fd:%d, rfc scn:%d, server:%d", rs->id, rs->fd, rs->scn, rs->f.server);
         }
     }
     unlock_slot(&slot_lock);
@@ -581,11 +570,11 @@ static void  on_srv_rfc_listen_started(tBTA_JV_RFCOMM_START *p_start, uint32_t i
         else
         {
             rs->rfc_handle = p_start->handle;
-            debug("call send_app_scn, slot id:%d, fd:%d, rfc scn:%d, server:%d", rs->id, rs->fd, rs->scn, rs->f.server);
+
             if(!send_app_scn(rs))
             {
                 //closed
-                debug("send_app_scn() failed, close rs->id:%d", rs->id);
+                APPL_TRACE_DEBUG1("send_app_scn() failed, close rs->id:%d", rs->id);
                 cleanup_rfc_slot(rs);
             }
         }
@@ -606,8 +595,9 @@ static uint32_t on_srv_rfc_connect(tBTA_JV_RFCOMM_SRV_OPEN *p_open, uint32_t id)
             //start monitor the socket
             btsock_thread_add_fd(pth, srv_rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_EXCEPTION, srv_rs->id);
             btsock_thread_add_fd(pth, accept_rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_RD, accept_rs->id);
-            debug("sending connect signal & app fd:%dto app server to accept() the connection", accept_rs->app_fd);
-            debug("server fd:%d, scn:%d", srv_rs->fd, srv_rs->scn);
+            APPL_TRACE_DEBUG1("sending connect signal & app fd:%dto app server to accept() the connection",
+                             accept_rs->app_fd);
+            APPL_TRACE_DEBUG2("server fd:%d, scn:%d", srv_rs->fd, srv_rs->scn);
             send_app_connect_signal(srv_rs->fd, &accept_rs->addr, srv_rs->scn, 0, accept_rs->app_fd);
             accept_rs->app_fd = -1; //the fd is closed after sent to app
             new_listen_slot_id = srv_rs->id;
@@ -625,14 +615,16 @@ static void on_cli_rfc_connect(tBTA_JV_RFCOMM_OPEN *p_open, uint32_t id)
         rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(p_open->handle);
         bd_copy(rs->addr.address, p_open->rem_bda, 0);
         //notify app rfc is connected
-        debug("call send_app_connect_signal, slot id:%d, fd:%d, rfc scn:%d, server:%d", rs->id, rs->fd, rs->scn, rs->f.server);
+        APPL_TRACE_DEBUG4("call send_app_connect_signal, slot id:%d, fd:%d, rfc scn:%d, server:%d",
+                         rs->id, rs->fd, rs->scn, rs->f.server);
         if(send_app_connect_signal(rs->fd, &rs->addr, rs->scn, 0, -1))
         {
             //start monitoring the socketpair to get call back when app writing data
-            debug("on_rfc_connect_ind, connect signal sent, slot id:%d, rfc scn:%d, server:%d", rs->id, rs->scn, rs->f.server);
+            APPL_TRACE_DEBUG3("on_rfc_connect_ind, connect signal sent, slot id:%d, rfc scn:%d, server:%d",
+                             rs->id, rs->scn, rs->f.server);
             rs->f.connected = TRUE;
         }
-        else error("send_app_connect_signal failed");
+        else APPL_TRACE_ERROR0("send_app_connect_signal failed");
     }
     else if(rs)
         cleanup_rfc_slot(rs);
@@ -644,7 +636,8 @@ static void on_rfc_close(tBTA_JV_RFCOMM_CLOSE * p_close, uint32_t id)
     rfc_slot_t* rs = find_rfc_slot_by_id(id);
     if(rs)
     {
-        debug("on_rfc_close, slot id:%d, fd:%d, rfc scn:%d, server:%d", rs->id, rs->fd, rs->scn, rs->f.server);
+        APPL_TRACE_DEBUG4("on_rfc_close, slot id:%d, fd:%d, rfc scn:%d, server:%d",
+                         rs->id, rs->fd, rs->scn, rs->f.server);
         free_rfc_slot_scn(rs);
         //rfc_handle already closed when receiving rfcomm close event from stack.
         rs->rfc_handle = 0;
@@ -682,54 +675,47 @@ static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
 {
     int rc;
     void* new_user_data = NULL;
-    debug("event=%s", jv_evt[event]);
+    APPL_TRACE_DEBUG1("event=%s", jv_evt[event]);
 
     switch (event)
     {
     case BTA_JV_RFCOMM_START_EVT:
-        debug("BTA_JV_RFCOMM_START_EVT");
         on_srv_rfc_listen_started(&p_data->rfc_start, (uint32_t)user_data);
         break;
 
     case BTA_JV_RFCOMM_CL_INIT_EVT:
-        debug("BTA_JV_RFCOMM_CL_INIT_EVT");
         on_cl_rfc_init(&p_data->rfc_cl_init, (uint32_t)user_data);
         break;
 
     case BTA_JV_RFCOMM_OPEN_EVT:
-        debug("BTA_JV_RFCOMM_OPEN_EVT");
         on_cli_rfc_connect(&p_data->rfc_open, (uint32_t)user_data);
         break;
     case BTA_JV_RFCOMM_SRV_OPEN_EVT:
-        debug("BTA_JV_RFCOMM_SRV_OPEN_EVT");
         new_user_data = (void*)on_srv_rfc_connect(&p_data->rfc_srv_open, (uint32_t)user_data);
         break;
 
     case BTA_JV_RFCOMM_CLOSE_EVT:
-        debug("BTA_JV_RFCOMM_CLOSE_EVT");
         on_rfc_close(&p_data->rfc_close, (uint32_t)user_data);
         break;
 
     case BTA_JV_RFCOMM_READ_EVT:
-        debug("BTA_JV_RFCOMM_READ_EVT not used");
+        APPL_TRACE_DEBUG0("BTA_JV_RFCOMM_READ_EVT not used");
         break;
 
     case BTA_JV_RFCOMM_WRITE_EVT:
-        debug("BTA_JV_RFCOMM_WRITE_EVT");
         on_rfc_write_done(&p_data->rfc_write, (uint32_t)user_data);
         break;
 
     case BTA_JV_RFCOMM_DATA_IND_EVT:
-        debug("BTA_JV_RFCOMM_DATA_IND_EVT not used");
+        APPL_TRACE_DEBUG0("BTA_JV_RFCOMM_DATA_IND_EVT not used");
         break;
 
     case BTA_JV_RFCOMM_CONG_EVT:
         //on_rfc_cong(&p_data->rfc_cong);
-        debug("BTA_JV_RFCOMM_CONG_EVT");
         on_rfc_outgoing_congest(&p_data->rfc_cong, (uint32_t)user_data);
         break;
     default:
-        error("unhandled event %d, slot id:%d", event, (uint32_t)user_data);
+        APPL_TRACE_ERROR2("unhandled event %d, slot id:%d", event, (uint32_t)user_data);
         break;
     }
     return new_user_data;
@@ -738,7 +724,7 @@ static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
 static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
 {
     uint32_t id = (uint32_t)user_data;
-    debug("event:%d, slot id:%d", event, id);
+    APPL_TRACE_DEBUG2("event:%d, slot id:%d", event, id);
     switch(event)
     {
         case BTA_JV_CREATE_RECORD_EVT:
@@ -748,9 +734,8 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
                 if(rs && create_server_sdp_record(rs))
                 {
                     //now start the rfcomm server after sdp & channel # assigned
-                    debug("BTA_JvCreateRecordByUser callback BTA_JV_CREATE_RECORD_EVT, slot id:%d, fd:%d, security:0x%x, scn:%d",
-                                    rs->id, rs->fd, rs->security, rs->scn);
-                    BTA_JvRfcommStartServer(rs->security, rs->role, rs->scn, MAX_RFC_SESSION, rfcomm_cback, (void*)rs->id);
+                    BTA_JvRfcommStartServer(rs->security, rs->role, rs->scn, MAX_RFC_SESSION, rfcomm_cback,
+                                            (void*)rs->id);
                 }
                 unlock_slot(&slot_lock);
                 break;
@@ -761,8 +746,8 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
                 lock_slot(&slot_lock);
                 if(p_data->disc_comp.status == BTA_JV_SUCCESS && p_data->disc_comp.scn)
                 {
-                    error("BTA_JV_DISCOVERY_COMP_EVT, slot id:%d, found channle #, status:%d, scn:%d", id, p_data->disc_comp.status,
-                            p_data->disc_comp.scn);
+                    APPL_TRACE_DEBUG3("BTA_JV_DISCOVERY_COMP_EVT, slot id:%d, status:%d, scn:%d",
+                                      id, p_data->disc_comp.status, p_data->disc_comp.scn);
 
                     rs = find_rfc_slot_by_id(id);
                     if(rs && rs->f.doing_sdp_request)
@@ -779,15 +764,16 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
                     }
                     else if(rs)
                     {
-                        error("BTA_JV_DISCOVERY_COMP_EVT rfc can not find pending sdp request, slot id:%d, \
+                        APPL_TRACE_ERROR3("DISCOVERY_COMP_EVT no pending sdp request, slot id:%d, \
                                 flag sdp pending:%d, flag sdp doing:%d",
                                 id, rs->f.pending_sdp_request, rs->f.doing_sdp_request);
                     }
                 }
                 else
                 {
-                    error("BTA_JV_DISCOVERY_COMP_EVT slot id:%d, failed to find channle #, status:%d, scn:%d", id, p_data->disc_comp.status,
-                            p_data->disc_comp.scn);
+                    APPL_TRACE_ERROR3("DISCOVERY_COMP_EVT slot id:%d, failed to find channle, \
+                                      status:%d, scn:%d", id, p_data->disc_comp.status,
+                                      p_data->disc_comp.scn);
                     rs = find_rfc_slot_by_id(id);
                     if(rs)
                         cleanup_rfc_slot(rs);
@@ -795,7 +781,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
                 rs = find_rfc_slot_by_pending_sdp();
                 if(rs)
                 {
-                    debug("BTA_JV_DISCOVERY_COMP_EVT, start another pending scn sdp request");
+                    APPL_TRACE_DEBUG0("BTA_JV_DISCOVERY_COMP_EVT, start another pending scn sdp request");
                     tSDP_UUID sdp_uuid;
                     sdp_uuid.len = 16;
                     memcpy(sdp_uuid.uu.uuid128, rs->service_uuid, sizeof(sdp_uuid.uu.uuid128));
@@ -807,7 +793,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
                 break;
             }
         default:
-            debug("unhandled event:%d, slot id:%d", event, id);
+            APPL_TRACE_DEBUG2("unhandled event:%d, slot id:%d", event, id);
             break;
     }
 
@@ -827,7 +813,7 @@ static int send_data_to_app(int fd, BT_HDR *p_buf)
     if(sent > 0 && sent < p_buf->len)
     {
         //sent partial
-        error("send partial, sent:%d, p_buf->len:%d", sent, p_buf->len);
+        APPL_TRACE_ERROR2("send partial, sent:%d, p_buf->len:%d", sent, p_buf->len);
         p_buf->offset += sent;
         p_buf->len -= sent;
         return SENT_PARTIAL;
@@ -836,10 +822,10 @@ static int send_data_to_app(int fd, BT_HDR *p_buf)
     if(sent < 0 &&
         (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR))
     {
-        error("send none, EAGAIN or EWOULDBLOCK, errno:%d", errno);
+        APPL_TRACE_ERROR1("send none, EAGAIN or EWOULDBLOCK, errno:%d", errno);
         return SENT_NONE;
     }
-    error("unknown send() error, sent:%d, p_buf->len:%d,  errno:%d", sent, p_buf->len, errno);
+    APPL_TRACE_ERROR3("unknown send() error, sent:%d, p_buf->len:%d,  errno:%d", sent, p_buf->len, errno);
     return SENT_FAILED;
 }
 static BOOLEAN flush_incoming_que_on_wr_signal(rfc_slot_t* rs)
@@ -873,12 +859,11 @@ static BOOLEAN flush_incoming_que_on_wr_signal(rfc_slot_t* rs)
 }
 void btsock_rfc_signaled(int fd, int flags, uint32_t user_id)
 {
-    debug("fd:%d, flags:%x", fd, flags);
     lock_slot(&slot_lock);
     rfc_slot_t* rs = find_rfc_slot_by_id(user_id);
     if(rs)
     {
-        debug("rfc slot id:%d, fd:%d, flags:%x", rs->id, fd, flags);
+        APPL_TRACE_DEBUG3("rfc slot id:%d, fd:%d, flags:%x", rs->id, fd, flags);
         BOOLEAN need_close = FALSE;
         if(flags & SOCK_THREAD_FD_RD)
         {
@@ -889,7 +874,8 @@ void btsock_rfc_signaled(int fd, int flags, uint32_t user_id)
                     BTA_JvRfcommWrite(rs->rfc_handle, (UINT32)rs->id);
                 else
                 {
-                    error("SOCK_THREAD_FD_RD signaled when rfc is not connected, slot id:%d, channel:%d", rs->id, rs->scn);
+                    APPL_TRACE_ERROR2("SOCK_THREAD_FD_RD signaled when rfc is not connected, \
+                                      slot id:%d, channel:%d", rs->id, rs->scn);
                     need_close = TRUE;
                 }
             }
@@ -900,13 +886,14 @@ void btsock_rfc_signaled(int fd, int flags, uint32_t user_id)
             if(!rs->f.connected || !flush_incoming_que_on_wr_signal(rs))
             {
                 need_close = TRUE;
-                error("SOCK_THREAD_FD_WR signaled when rfc is not connected or app closed fd, slot id:%d, channel:%d", rs->id, rs->scn);
+                APPL_TRACE_ERROR2("SOCK_THREAD_FD_WR signaled when rfc is not connected \
+                                  or app closed fd, slot id:%d, channel:%d", rs->id, rs->scn);
             }
 
         }
         if(need_close || (flags & SOCK_THREAD_FD_EXCEPTION))
         {
-            debug("SOCK_THREAD_FD_EXCEPTION, flags:%x", flags);
+            APPL_TRACE_DEBUG1("SOCK_THREAD_FD_EXCEPTION, flags:%x", flags);
             rs->f.closing = TRUE;
             if(rs->f.server)
                BTA_JvRfcommStopServer(rs->rfc_handle);
@@ -961,12 +948,12 @@ int bta_co_rfc_data_outgoing_size(void *user_data, int *size)
     {
         if(ioctl(rs->fd, FIONREAD, size) == 0)
         {
-            debug("ioctl read avaiable size:%d, fd:%d", *size, rs->fd);
+            APPL_TRACE_DEBUG2("ioctl read avaiable size:%d, fd:%d", *size, rs->fd);
             ret = TRUE;
         }
         else
         {
-            error("ioctl FIONREAD error, errno:%d, fd:%d", errno, rs->fd);
+            APPL_TRACE_ERROR2("ioctl FIONREAD error, errno:%d, fd:%d", errno, rs->fd);
             cleanup_rfc_slot(rs);
         }
     }
@@ -986,7 +973,8 @@ int bta_co_rfc_data_outgoing(void *user_data, UINT8* buf, UINT16 size)
             ret = TRUE;
         else
         {
-            error("recv error, errno:%d, fd:%d, size:%d, received:%d", errno, rs->fd, size, received);
+            APPL_TRACE_ERROR4("recv error, errno:%d, fd:%d, size:%d, received:%d",
+                             errno, rs->fd, size, received);
             cleanup_rfc_slot(rs);
         }
     }
