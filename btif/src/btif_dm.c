@@ -64,6 +64,11 @@
 #define BTIF_DM_DEFAULT_INQ_MAX_DURATION    10
 #define BTIF_DM_MAX_SDP_ATTEMPTS_AFTER_PAIRING 2
 
+#define PROPERTY_PRODUCT_MODEL "ro.product.model"
+#define DEFAULT_LOCAL_NAME_MAX  15
+#if (DEFAULT_LOCAL_NAME_MAX > BTM_MAX_LOC_BD_NAME_LEN)
+    #error "default btif local name size exceeds stack supported length"
+#endif
 
 typedef struct
 {
@@ -115,6 +120,11 @@ typedef struct
 /* This flag will be true if HCI_Inquiry is in progress */
 static BOOLEAN btif_dm_inquiry_in_progress = FALSE;
 
+/************************************************************************************
+**  Static variables
+************************************************************************************/
+static char btif_default_local_name[DEFAULT_LOCAL_NAME_MAX+1] = {'\0'};
+
 /******************************************************************************
 **  Static functions
 ******************************************************************************/
@@ -131,6 +141,7 @@ static void btif_dm_ble_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif);
 static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl);
 static void btif_dm_ble_passkey_req_evt(tBTA_DM_PIN_REQ *p_pin_req);
 #endif
+static char* btif_get_default_local_name();
 /******************************************************************************
 **  Externs
 ******************************************************************************/
@@ -1276,18 +1287,17 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
              prop.val = (void*)bdname;
 
              status = btif_storage_get_adapter_property(&prop);
-             /* Storage does not have a name yet.
-             ** Use the default name and write it to the chip
-             */
-             if (status != BT_STATUS_SUCCESS)
-             {
-                 BTA_DmSetDeviceName((char *)BTM_DEF_LOCAL_NAME);
-                 /* Hmmm...Should we store this too??? */
-             }
-             else
+             if (status == BT_STATUS_SUCCESS)
              {
                  /* A name exists in the storage. Make this the device name */
                  BTA_DmSetDeviceName((char*)prop.val);
+             }
+             else
+             {
+                 /* Storage does not have a name yet.
+                  * Use the default name and write it to the chip
+                  */
+                 BTA_DmSetDeviceName(btif_get_default_local_name());
              }
 
              /* for each of the enabled services in the mask, trigger the profile
@@ -2033,7 +2043,7 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t *prop)
         case BT_PROPERTY_BDNAME:
         {
             bt_bdname_t *bd_name = (bt_bdname_t*)prop->val;
-            strcpy((char *)bd_name->name, (char *)BTM_DEF_LOCAL_NAME);
+            strcpy((char *)bd_name->name, btif_get_default_local_name());
             prop->len = strlen((char *)bd_name->name);
         }
         break;
@@ -2581,4 +2591,23 @@ void btif_dm_on_disable()
         bdcpy(bd_addr.address, pairing_cb.bd_addr);
         btif_dm_cancel_bond(&bd_addr);
     }
+}
+
+static char* btif_get_default_local_name() {
+    if (btif_default_local_name[0] == '\0')
+    {
+        int max_len = sizeof(btif_default_local_name) - 1;
+        if (BTM_DEF_LOCAL_NAME[0] != '\0')
+        {
+            strncpy(btif_default_local_name, BTM_DEF_LOCAL_NAME, max_len);
+        }
+        else
+        {
+            char prop_model[PROPERTY_VALUE_MAX];
+            property_get(PROPERTY_PRODUCT_MODEL, prop_model, "");
+            strncpy(btif_default_local_name, prop_model, max_len);
+        }
+        btif_default_local_name[max_len] = '\0';
+    }
+    return btif_default_local_name;
 }
