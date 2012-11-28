@@ -601,6 +601,7 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
             return BT_STATUS_FAIL;
         }
     }
+
     if (added_dev == NULL ||
         (added_dev->attr_mask & HID_NORMALLY_CONNECTABLE) != 0 ||
         (added_dev->attr_mask & HID_RECONN_INIT) == 0)
@@ -610,20 +611,14 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
         BD_ADDR *bda = (BD_ADDR*)bd_addr;
         BTA_HhOpen(*bda, BTA_HH_PROTO_RPT_MODE, sec_mask);
     }
-    else {
+    else 
+    {
         // This device shall be connected from the host side.
         BTIF_TRACE_ERROR2("%s: Error, device %s can only be reconnected from device side",
              __FUNCTION__, bda_str);
-        //TODO
-       /* if ((remote_class & BT_DEV_CLASS_MASK) == BT_DEV_CLASS_HID_POINTING) {
-            //SIG_HH_CONNECTION, *bda, HH_CONN_STATUS_FAILED_MOUSE_FROM_HOST);
-        }
-        else {
-           // SIG_HH_CONNECTION, *bda, HH_CONN_STATUS_FAILED_KBD_FROM_HOST);
-        }*/
         return BT_STATUS_FAIL;
-
     }
+
     HAL_CBACK(bt_hh_callbacks, connection_state_cb, bd_addr, BTHH_CONN_STATE_CONNECTING);
     return BT_STATUS_SUCCESS;
 }

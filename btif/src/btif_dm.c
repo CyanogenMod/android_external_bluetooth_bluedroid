@@ -47,14 +47,15 @@
 ******************************************************************************/
 
 #define COD_UNCLASSIFIED ((0x1F) << 8)
-#define COD_HID_KEYBOARD       0x0540
-#define COD_HID_POINTING       0x0580
-#define COD_HID_COMBO          0x05C0
-#define COD_AV_HEADSETS        0x0404
-#define COD_AV_HANDSFREE       0x0408
-#define COD_AV_HEADPHONES      0x0418
-#define COD_AV_PORTABLE_AUDIO  0x041C
-#define COD_AV_HIFI_AUDIO      0x0428
+#define COD_HID_KEYBOARD                    0x0540
+#define COD_HID_POINTING                    0x0580
+#define COD_HID_COMBO                       0x05C0
+#define COD_HID_MAJOR                       0x0500
+#define COD_AV_HEADSETS                     0x0404
+#define COD_AV_HANDSFREE                    0x0408
+#define COD_AV_HEADPHONES                   0x0418
+#define COD_AV_PORTABLE_AUDIO               0x041C
+#define COD_AV_HIFI_AUDIO                   0x0428
 
 
 #define BTIF_DM_DEFAULT_INQ_MAX_RESULTS     0
@@ -238,6 +239,24 @@ BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod)
     return FALSE;
 }
 
+BOOLEAN check_cod_hid(const bt_bdaddr_t *remote_bdaddr, uint32_t cod)
+{
+    uint32_t    remote_cod;
+    bt_property_t prop_name;
+
+    /* check if we already have it in our btif_storage cache */
+    BTIF_STORAGE_FILL_PROPERTY(&prop_name, BT_PROPERTY_CLASS_OF_DEVICE,
+                               sizeof(uint32_t), &remote_cod);
+    if (btif_storage_get_remote_device_property((bt_bdaddr_t *)remote_bdaddr,
+                                &prop_name) == BT_STATUS_SUCCESS)
+    {
+        if ((remote_cod & 0x700) == cod)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
 static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond_state_t state)
 {
     /* Send bonding state only once - based on outgoing/incoming we may receive duplicates */
@@ -408,9 +427,7 @@ void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr)
 {
      bdstr_t bdstr;
      /*special handling for HID devices */
-     if (check_cod(bd_addr, COD_HID_POINTING) ||
-        check_cod(bd_addr, COD_HID_KEYBOARD) ||
-        check_cod(bd_addr, COD_HID_COMBO))
+     if (check_cod_hid(bd_addr, COD_HID_MAJOR))
     {
         #if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
         if(remove_hid_bond(bd_addr) != BTA_SUCCESS)
@@ -1182,7 +1199,8 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 
             /*special handling for HID devices */
             #if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
-            if (check_cod(&bd_addr, COD_HID_KEYBOARD )|| check_cod(&bd_addr, COD_HID_COMBO) || check_cod(&bd_addr, COD_HID_POINTING)) {
+            if (check_cod_hid(&bd_addr, COD_HID_MAJOR))
+            {
                 btif_hh_remove_device(bd_addr);
             }
             #endif
