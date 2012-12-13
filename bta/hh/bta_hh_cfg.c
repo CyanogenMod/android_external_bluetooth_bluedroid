@@ -27,7 +27,7 @@
 #include "bta_hh_api.h"
 
 /* max number of device types supported by BTA */
-#define BTA_HH_MAX_DEVT_SPT         7
+#define BTA_HH_MAX_DEVT_SPT         9
 
 /* size of database for service discovery */
 #ifndef BTA_HH_DISC_BUF_SIZE
@@ -39,6 +39,8 @@
 #define BTA_HH_APP_ID_KB            2
 #define BTA_HH_APP_ID_RMC           3
 #define BTA_HH_APP_ID_3DSG          4
+#define BTA_HH_APP_ID_JOY           5
+#define BTA_HH_APP_ID_GPAD          6
 
 
 /* The type of devices supported by BTA HH and corresponding application ID */
@@ -50,6 +52,8 @@ tBTA_HH_SPT_TOD p_devt_list[BTA_HH_MAX_DEVT_SPT] =
     {BTA_HH_DEVT_RMC, BTA_HH_APP_ID_RMC},
     {BTA_HH_DEVT_RMC | BTA_HH_DEVT_KBD, BTA_HH_APP_ID_RMC},
     {BTA_HH_DEVT_MIC | BTA_HH_DEVT_DGT, BTA_HH_APP_ID_MI},
+    {BTA_HH_DEVT_JOS, BTA_HH_APP_ID_JOY},
+    {BTA_HH_DEVT_GPD, BTA_HH_APP_ID_GPAD},
     {BTA_HH_DEVT_UNKNOWN, BTA_HH_APP_ID_3DSG}
 };
 
