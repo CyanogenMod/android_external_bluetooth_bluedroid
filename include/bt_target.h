@@ -110,14 +110,6 @@
 #define SBC_NO_PCM_CPY_OPTION FALSE
 #endif
 
-#ifndef SBC_IPAQ_OPT
-#define SBC_IPAQ_OPT FALSE
-#endif
-
-#ifndef SBC_IS_64_MULT_IN_QUANTIZER
-#define SBC_IS_64_MULT_IN_QUANTIZER FALSE
-#endif
-
 #ifndef BTA_INCLUDED
 #define BTA_INCLUDED TRUE
 #endif
