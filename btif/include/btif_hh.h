@@ -62,6 +62,8 @@ typedef struct
     UINT8                         app_id;
     int                           fd;
     BT_HDR                        *p_buf;
+    UINT32                        hh_poll_thread_id;
+    UINT8                         hh_keep_polling;
 } btif_hh_device_t;
 
 /* Control block to maintain properties of devices */
@@ -96,6 +98,8 @@ extern btif_hh_device_t *btif_hh_find_connected_dev_by_handle(UINT8 handle);
 extern void btif_hh_remove_device(bt_bdaddr_t bd_addr);
 extern bt_status_t btif_hh_virtual_unplug(bt_bdaddr_t *bd_addr);
 extern void btif_hh_disconnect(bt_bdaddr_t *bd_addr);
+extern void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type,
+                    UINT16 size, UINT8* report);
 
 BOOLEAN btif_hh_add_added_dev(bt_bdaddr_t bd_addr, tBTA_HH_ATTR_MASK attr_mask);
 

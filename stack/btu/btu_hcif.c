@@ -54,6 +54,9 @@
 #endif
 // btla-specific --
 
+//Counter to track number of HCI command timeout
+static int num_hci_cmds_timed_out;
+
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
@@ -418,6 +421,8 @@ void btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_msg)
                 btm_vendor_specific_evt (p, hci_evt_len);
             break;
     }
+    // reset the  num_hci_cmds_timed_out upon receving any event from controller.
+    num_hci_cmds_timed_out = 0;
 }
 
 
@@ -1591,9 +1596,26 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
     /* free stored command */
     GKI_freebuf(p_cmd);
 
-    /* If anyone wants device status notifications, give him one */
-    btm_report_device_status (BTM_DEV_STATUS_CMD_TOUT);
+    num_hci_cmds_timed_out++;
+    /* When we receive consecutive HCI cmd timeouts for >=BTM_MAX_HCI_CMD_TOUT_BEFORE_RESTART
+     times, Bluetooth process will be killed and restarted */
+    if (num_hci_cmds_timed_out >= BTM_MAX_HCI_CMD_TOUT_BEFORE_RESTART)
+    {
+        BT_TRACE_1(TRACE_LAYER_HCI, TRACE_TYPE_ERROR,
+                  "Num consecutive HCI Cmd tout =%d Restarting BT process",num_hci_cmds_timed_out);
 
+        usleep(10000); /* 10 milliseconds */
+        /* Killing the process to force a restart as part of fault tolerance */
+        kill(getpid(), SIGKILL);
+    }
+    else
+    {
+        BT_TRACE_1 (TRACE_LAYER_HCI, TRACE_TYPE_WARNING, "HCI Cmd timeout counter %d",
+                    num_hci_cmds_timed_out);
+
+        /* If anyone wants device status notifications, give him one */
+        btm_report_device_status (BTM_DEV_STATUS_CMD_TOUT);
+    }
     /* See if we can forward any more commands */
     btu_hcif_send_cmd (controller_id, NULL);
 }

@@ -391,9 +391,9 @@ static int read_file_line(const char* map, int start_pos, int size, int* line_si
     int i;
     for(i = start_pos; i < size; i++)
     {
-         ++*line_size;
         if(map[i] == '\r' || map[i] == '\n')
             break;
+         ++*line_size;
     }
     //debug("out, ret:%d, start pos:%d, size:%d, line_size:%d", i, start_pos, size, *line_size);
     return i + 1;

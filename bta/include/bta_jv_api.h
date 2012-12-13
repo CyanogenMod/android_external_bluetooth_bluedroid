@@ -58,7 +58,7 @@ typedef UINT8 tBTA_JV_STATUS;
 
 /* */
 #ifndef BTA_JV_MAX_RFC_SR_SESSION
-#define BTA_JV_MAX_RFC_SR_SESSION   3
+#define BTA_JV_MAX_RFC_SR_SESSION   MAX_BD_CONNECTIONS
 #endif
 
 /* BTA_JV_MAX_RFC_SR_SESSION can not be bigger than MAX_BD_CONNECTIONS */

@@ -311,6 +311,14 @@ BT_API UINT8 BTAPP_SetTraceLevel( UINT8 new_level )
     return (appl_trace_level);
 }
 
+BT_API UINT8 BTIF_SetTraceLevel( UINT8 new_level )
+{
+    if (new_level != 0xFF)
+        btif_trace_level = new_level;
+
+    return (btif_trace_level);
+}
+
 BTU_API UINT8 BTU_SetTraceLevel( UINT8 new_level )
 {
     if (new_level != 0xFF)
@@ -469,6 +477,10 @@ tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
      * BTL_GLOBAL_PROP_TRC_FLAG serves as flag in conf.
      */
     {BTTRC_ID_BTA_ACC, BTTRC_ID_BTAPP, BTAPP_SetTraceLevel, BTL_GLOBAL_PROP_TRC_FLAG, DEFAULT_CONF_TRACE_LEVEL},
+#endif
+
+#if (BT_TRACE_BTIF == TRUE)
+    {BTTRC_ID_BTA_ACC, BTTRC_ID_BTAPP, BTIF_SetTraceLevel, "TRC_BTIF", DEFAULT_CONF_TRACE_LEVEL},
 #endif
 
     {0, 0, NULL, NULL, DEFAULT_CONF_TRACE_LEVEL}

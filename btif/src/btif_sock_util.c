@@ -66,12 +66,7 @@
 #include "bta_jv_co.h"
 #include "port_api.h"
 
-#include <cutils/log.h>
-
-#define info(fmt, ...)  ALOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define debug(fmt, ...) ALOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) ALOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define asrt(s) if(!(s)) ALOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define asrt(s) if(!(s)) BTIF_TRACE_ERROR3("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
 
 int sock_send_all(int sock_fd, const uint8_t* buf, int len)
@@ -84,7 +79,7 @@ int sock_send_all(int sock_fd, const uint8_t* buf, int len)
         while(ret < 0 && errno == EINTR);
         if(ret <= 0)
         {
-            error("sock fd:%d send errno:%d, ret:%d", sock_fd, errno, ret);
+            BTIF_TRACE_ERROR3("sock fd:%d send errno:%d, ret:%d", sock_fd, errno, ret);
             return -1;
         }
         buf += ret;
@@ -102,7 +97,7 @@ int sock_recv_all(int sock_fd, uint8_t* buf, int len)
         while(ret < 0 && errno == EINTR);
         if(ret <= 0)
         {
-            error("sock fd:%d recv errno:%d, ret:%d", sock_fd, errno, ret);
+            BTIF_TRACE_ERROR3("sock fd:%d recv errno:%d, ret:%d", sock_fd, errno, ret);
             return -1;
         }
         buf += ret;
@@ -150,8 +145,8 @@ int sock_send_fd(int sock_fd, const uint8_t* buf, int len, int send_fd)
         } while (ret < 0 && errno == EINTR);
 
         if (ret < 0) {
-            error("fd:%d, send_fd:%d, sendmsg ret:%d, errno:%d, %s",
-                     sock_fd, send_fd, (int)ret, errno, strerror(errno));
+            BTIF_TRACE_ERROR5("fd:%d, send_fd:%d, sendmsg ret:%d, errno:%d, %s",
+                              sock_fd, send_fd, (int)ret, errno, strerror(errno));
             ret_len = -1;
             break;
         }
@@ -162,7 +157,7 @@ int sock_send_fd(int sock_fd, const uint8_t* buf, int len, int send_fd)
         // Wipes out any msg_control too
         memset(&msg, 0, sizeof(msg));
     }
-    debug("close fd:%d after sent", send_fd);
+    BTIF_TRACE_DEBUG1("close fd:%d after sent", send_fd);
     close(send_fd);
     return ret_len;
 }

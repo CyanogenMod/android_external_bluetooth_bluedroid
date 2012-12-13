@@ -69,16 +69,7 @@
 #define BTPAN_LOCAL_ROLE (BTPAN_ROLE_PANU | BTPAN_ROLE_PANNAP)
 #endif
 
-
-
-#include <cutils/log.h>
-#define info(fmt, ...)  ALOGI ("btif_pan: %s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define debug(fmt, ...) ALOGD ("btif_pan: %s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define warn(fmt, ...) ALOGW ("btif_pan: ## WARNING : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define error(fmt, ...) ALOGE ("btif_pan: ## ERROR : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define asrt(s) if(!(s)) ALOGE ("btif_pan: ## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
-
-
+#define asrt(s) if(!(s)) BTIF_TRACE_ERROR3("btif_pan: ## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
 btpan_cb_t btpan_cb;
 
@@ -118,11 +109,11 @@ btpan_interface_t *btif_pan_get_interface()
 }
 void btif_pan_init()
 {
-    debug("jni_initialized = %d, btpan_cb.enabled:%d", jni_initialized, btpan_cb.enabled);
+    BTIF_TRACE_DEBUG2("jni_initialized = %d, btpan_cb.enabled:%d", jni_initialized, btpan_cb.enabled);
     stack_initialized = TRUE;
     if (jni_initialized && !btpan_cb.enabled)
     {
-        debug("Enabling PAN....");
+        BTIF_TRACE_DEBUG0("Enabling PAN....");
         memset(&btpan_cb, 0, sizeof(btpan_cb));
         btpan_cb.tap_fd = -1;
         int i;
@@ -132,7 +123,6 @@ void btif_pan_init()
         btpan_cb.enabled = 1;
         btpan_enable(BTPAN_LOCAL_ROLE);
     }
-    debug("leaving");
 }
 static void pan_disable()
 {
@@ -157,7 +147,6 @@ void btif_pan_cleanup()
         for(i = 0; i < MAX_PAN_CONNS; i++)
             btpan_cleanup_conn(&btpan_cb.conns[i]);
         pan_disable();
-        debug("leaving");
     }
     stack_initialized = FALSE;
 }
@@ -165,12 +154,11 @@ void btif_pan_cleanup()
 static btpan_callbacks_t callback;
 static bt_status_t btpan_jni_init(const btpan_callbacks_t* callbacks)
 {
-    debug("stack_initialized = %d, btpan_cb.enabled:%d", stack_initialized, btpan_cb.enabled);
+    BTIF_TRACE_DEBUG2("stack_initialized = %d, btpan_cb.enabled:%d", stack_initialized, btpan_cb.enabled);
     jni_initialized = TRUE;
     if(stack_initialized && !btpan_cb.enabled)
         btif_pan_init();
     callback = *callbacks;
-    debug(" leaving");
     return BT_STATUS_SUCCESS;
 }
 
@@ -178,20 +166,17 @@ static void btpan_jni_cleanup()
 {
     pan_disable();
     jni_initialized = FALSE;
-    debug("leaving");
 }
 static inline int bta_role_to_btpan(int bta_pan_role)
 {
     int btpan_role = 0;
-    debug("bta_pan_role:0x%x", bta_pan_role);
+    BTIF_TRACE_DEBUG1("bta_pan_role:0x%x", bta_pan_role);
     if(bta_pan_role & PAN_ROLE_NAP_SERVER)
     {
-        debug("BTPAN_ROLE_PANNAP");
         btpan_role |= BTPAN_ROLE_PANNAP;
     }
     if(bta_pan_role & PAN_ROLE_CLIENT)
     {
-        debug("BTPAN_ROLE_PANU");
         btpan_role |= BTPAN_ROLE_PANU;
     }
     return btpan_role;
@@ -199,15 +184,13 @@ static inline int bta_role_to_btpan(int bta_pan_role)
 static inline int btpan_role_to_bta(int btpan_role)
 {
     int bta_pan_role = PAN_ROLE_INACTIVE;
-    debug("btpan_role:0x%x", btpan_role);
+    BTIF_TRACE_DEBUG1("btpan_role:0x%x", btpan_role);
     if(btpan_role & BTPAN_ROLE_PANNAP)
     {
-        debug("BTPAN_ROLE_PANNAP");
         bta_pan_role |= PAN_ROLE_NAP_SERVER;
     }
     if(btpan_role & BTPAN_ROLE_PANU)
     {
-        debug("BTPAN_ROLE_CLIENT");
         bta_pan_role |= PAN_ROLE_CLIENT;
     }
     return bta_pan_role;
@@ -219,7 +202,7 @@ static tBTA_PAN_ROLE_INFO bta_pan_nap_info = {PAN_NAP_SERVICE_NAME, 0, PAN_SECUR
 static bt_status_t btpan_enable(int local_role)
 {
     int bta_pan_role;
-    debug("local_role:%d", local_role);
+    BTIF_TRACE_DEBUG1("local_role:%d", local_role);
     bta_pan_role = btpan_role_to_bta(local_role);
     BTA_PanSetRole(bta_pan_role, &bta_panu_info, NULL, &bta_pan_nap_info);
     btpan_dev_local_role = local_role;
@@ -227,12 +210,12 @@ static bt_status_t btpan_enable(int local_role)
 }
 static int btpan_get_local_role()
 {
-    debug("btpan_dev_local_role:%d", btpan_dev_local_role);
+    BTIF_TRACE_DEBUG1("btpan_dev_local_role:%d", btpan_dev_local_role);
     return btpan_dev_local_role;
 }
 static bt_status_t btpan_connect(const bt_bdaddr_t *bd_addr, int local_role, int remote_role)
 {
-    debug("local_role:%d, remote_role:%d", local_role, remote_role);
+    BTIF_TRACE_DEBUG2("local_role:%d, remote_role:%d", local_role, remote_role);
     int bta_local_role = btpan_role_to_bta(local_role);
     int bta_remote_role = btpan_role_to_bta(remote_role);
     btpan_new_conn(-1, bd_addr->address, bta_local_role, bta_remote_role);
@@ -266,7 +249,6 @@ static void btif_in_pan_generic_evt(UINT16 event, char *p_param)
 }
 static bt_status_t btpan_disconnect(const bt_bdaddr_t *bd_addr)
 {
-    debug("in");
     btpan_conn_t* conn = btpan_find_conn_addr(bd_addr->address);
     if(conn && conn->handle >= 0)
     {
@@ -281,7 +263,6 @@ static bt_status_t btpan_disconnect(const bt_bdaddr_t *bd_addr)
 static int pth = -1;
 void create_tap_read_thread(int tap_fd)
 {
-    debug("in");
     if(pth < 0)
     {
         pth = btsock_thread_create(btpan_tap_fd_signaled, NULL);
@@ -310,23 +291,23 @@ static int tap_if_up(const char *devname, BD_ADDR addr)
     err = ioctl(sk, SIOCGIFHWADDR, &ifr);
     if(err < 0)
     {
-        error("Could not get network hardware for interface:%s, errno:%s", devname, strerror(errno));
+        BTIF_TRACE_ERROR2("Could not get network hardware for interface:%s, errno:%s", devname, strerror(errno));
         close(sk);
         return -1;
     }
-    debug("found mac address for interface:%s = %02x:%02x:%02x:%02x:%02x:%02x", devname,
-            ifr.ifr_hwaddr.sa_data[0], ifr.ifr_hwaddr.sa_data[1], ifr.ifr_hwaddr.sa_data[2],
-            ifr.ifr_hwaddr.sa_data[3], ifr.ifr_hwaddr.sa_data[4], ifr.ifr_hwaddr.sa_data[5]);
+    /* debug("found mac address for interface:%s = %02x:%02x:%02x:%02x:%02x:%02x", devname, */
+    /*         ifr.ifr_hwaddr.sa_data[0], ifr.ifr_hwaddr.sa_data[1], ifr.ifr_hwaddr.sa_data[2], */
+    /*         ifr.ifr_hwaddr.sa_data[3], ifr.ifr_hwaddr.sa_data[4], ifr.ifr_hwaddr.sa_data[5]); */
     strncpy(ifr.ifr_name, devname, IFNAMSIZ - 1);
     memcpy(ifr.ifr_hwaddr.sa_data, addr, 6);
-    debug("setting bt address for interface:%s = %02x:%02x:%02x:%02x:%02x:%02x", devname,
-            ifr.ifr_hwaddr.sa_data[0], ifr.ifr_hwaddr.sa_data[1], ifr.ifr_hwaddr.sa_data[2],
-            ifr.ifr_hwaddr.sa_data[3], ifr.ifr_hwaddr.sa_data[4], ifr.ifr_hwaddr.sa_data[5]);
+    /* debug("setting bt address for interface:%s = %02x:%02x:%02x:%02x:%02x:%02x", devname, */
+    /*         ifr.ifr_hwaddr.sa_data[0], ifr.ifr_hwaddr.sa_data[1], ifr.ifr_hwaddr.sa_data[2], */
+    /*         ifr.ifr_hwaddr.sa_data[3], ifr.ifr_hwaddr.sa_data[4], ifr.ifr_hwaddr.sa_data[5]); */
 
     err = ioctl(sk, SIOCSIFHWADDR, (caddr_t)&ifr);
 
     if (err < 0) {
-        error("Could not set bt address for interface:%s, errno:%s", devname, strerror(errno));
+        BTIF_TRACE_ERROR2("Could not set bt address for interface:%s, errno:%s", devname, strerror(errno));
         close(sk);
         return -1;
     }
@@ -342,12 +323,12 @@ static int tap_if_up(const char *devname, BD_ADDR addr)
 
 
     if (err < 0) {
-        error("Could not bring up network interface:%s, errno:%d", devname, errno);
+        BTIF_TRACE_ERROR2("Could not bring up network interface:%s, errno:%d", devname, errno);
         close(sk);
         return -1;
     }
     close(sk);
-    debug("network interface: %s is up", devname);
+    BTIF_TRACE_DEBUG1("network interface: %s is up", devname);
     return 0;
 }
 
@@ -371,7 +352,6 @@ static int tap_if_down(const char *devname)
 }
 int btpan_tap_open()
 {
-    debug("in");
     struct ifreq ifr;
     int fd, err;
     const char *clonedev = "/dev/tun";
@@ -381,7 +361,7 @@ int btpan_tap_open()
     //system("insmod /system/lib/modules/tun.ko");
     if( (fd = open(clonedev, O_RDWR)) < 0 ) {
 
-        debug("could not open %s, err:%d", clonedev, errno);
+        BTIF_TRACE_DEBUG2("could not open %s, err:%d", clonedev, errno);
         return fd;
     }
 
@@ -393,7 +373,7 @@ int btpan_tap_open()
     /* try to create the device */
     if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 )//|| tap_setup_ip(TAP_IF_NAME) == FALSE)
     {
-        debug("ioctl error:%d, errno:%s", err, strerror(errno));
+        BTIF_TRACE_DEBUG2("ioctl error:%d, errno:%s", err, strerror(errno));
         close(fd);
         return err;
     }
@@ -402,25 +382,13 @@ int btpan_tap_open()
     {
         return fd;
     }
-    error("can not bring up tap interface:%s", TAP_IF_NAME);
+    BTIF_TRACE_ERROR1("can not bring up tap interface:%s", TAP_IF_NAME);
     close(fd);
     return -1;
 }
 int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 proto, const char* buf,
                     UINT16 len, BOOLEAN ext, BOOLEAN forward)
 {
-    debug("in");
-    debug("SRC ADDR = %02x:%02x:%02x:%02x:%02x:%02x",
-            src[0], src[1], src[2], src[3],
-            src[4], src[5]);
-    debug("DST ADDR = %02x:%02x:%02x:%02x:%02x:%02x",
-            dst[0], dst[1], dst[2], dst[3],
-            dst[4], dst[5]);
-
-    debug("Protocol = 0x%x", proto);
-    debug("Ext = 0x%x", ext);
-    debug("Forward = 0x%x", forward);
-    debug("Len = %d", len);
     if(tap_fd != -1)
     {
         tETH_HDR eth_hdr;
@@ -443,7 +411,7 @@ int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 prot
         //btnet_send(btpan_cb.conn[i].sock.sock, &buffer, (len + sizeof(tETH_HDR)));
         //dump_bin("packet to network", packet, len + sizeof(tETH_HDR));
         int ret = write(tap_fd, packet, len + sizeof(tETH_HDR));
-        debug("ret:%d", ret);
+        BTIF_TRACE_DEBUG1("ret:%d", ret);
         return ret;
     }
     return -1;
@@ -451,7 +419,6 @@ int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 prot
 }
 int btpan_tap_close(int fd)
 {
-    debug("in");
     tap_if_down(TAP_IF_NAME);
     close(fd);
     return 0;
@@ -486,13 +453,12 @@ static void btpan_cleanup_conn(btpan_conn_t* conn)
 btpan_conn_t* btpan_new_conn(int handle, const BD_ADDR addr, int local_role, int remote_role )
 {
     int i;
-    debug("in");
     for(i = 0; i < MAX_PAN_CONNS; i++)
     {
-        debug("conns[%d]:%d", i, btpan_cb.conns[i].handle);
+        BTIF_TRACE_DEBUG2("conns[%d]:%d", i, btpan_cb.conns[i].handle);
         if(btpan_cb.conns[i].handle == -1)
         {
-            debug("handle:%d, local_role:%d, remote_role:%d", handle, local_role, remote_role);
+            BTIF_TRACE_DEBUG3("handle:%d, local_role:%d, remote_role:%d", handle, local_role, remote_role);
 
             btpan_cb.conns[i].handle = handle;
             bdcpy(btpan_cb.conns[i].peer, addr);
@@ -501,13 +467,13 @@ btpan_conn_t* btpan_new_conn(int handle, const BD_ADDR addr, int local_role, int
             return &btpan_cb.conns[i];
         }
     }
-    debug("MAX_PAN_CONNS:%d exceeded, return NULL as failed", MAX_PAN_CONNS);
+    BTIF_TRACE_DEBUG1("MAX_PAN_CONNS:%d exceeded, return NULL as failed", MAX_PAN_CONNS);
     return NULL;
 }
 
 void btpan_close_handle(btpan_conn_t *p)
 {
-    debug("btpan_close_handle : close handle %d", p->handle);
+    BTIF_TRACE_DEBUG1("btpan_close_handle : close handle %d", p->handle);
     p->handle = -1;
     p->local_role = -1;
     p->remote_role = -1;
@@ -517,7 +483,7 @@ static inline int should_forward(tETH_HDR* hdr)
 {
     if(ntohs(hdr->h_proto) == ETH_P_IP || ntohs(hdr->h_proto) == ETH_P_ARP)
         return TRUE;
-    debug("unknown proto:%x", ntohs(hdr->h_proto));
+    BTIF_TRACE_DEBUG1("unknown proto:%x", ntohs(hdr->h_proto));
     return FALSE;
 }
 extern void bta_pan_ci_rx_write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol,
@@ -533,7 +499,7 @@ static void forward_bnep(tETH_HDR* eth_hdr, char * packet, int size)
                 (broadcast || memcmp(btpan_cb.conns[i].eth_addr, eth_hdr->h_dest, sizeof(BD_ADDR)) == 0
                  || memcmp(btpan_cb.conns[i].peer, eth_hdr->h_dest, sizeof(BD_ADDR)) == 0))
         {
-            debug("calling bta_pan_ci_rx_write, handle:%d", handle);
+            BTIF_TRACE_DEBUG1("calling bta_pan_ci_rx_write, handle:%d", handle);
             bta_pan_ci_rx_write(handle, eth_hdr->h_dest, eth_hdr->h_src,
                     ntohs(eth_hdr->h_proto), (UINT8*)packet, size, 0);
             break;
@@ -547,7 +513,7 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
     switch(event)
     {
         case BTA_PAN_ENABLE_EVT:
-            debug("BTA_PAN_ENABLE_EVT");
+            BTIF_TRACE_DEBUG0("BTA_PAN_ENABLE_EVT");
             break;
         case BTA_PAN_SET_ROLE_EVT:
             {
@@ -562,7 +528,7 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
                 btpan_conn_t* conn;
                 bdstr_t bds;
                 bd2str((bt_bdaddr_t*)p_data->opening.bd_addr, &bds);
-                debug("BTA_PAN_OPENING_EVT handle %d, addr: %s", p_data->opening.handle, bds);
+                BTIF_TRACE_DEBUG2("BTA_PAN_OPENING_EVT handle %d, addr: %s", p_data->opening.handle, bds);
                 conn = btpan_find_conn_addr(p_data->opening.bd_addr);
 
                 asrt(conn != NULL);
@@ -575,15 +541,15 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
                             (const bt_bdaddr_t*)p_data->opening.bd_addr, btpan_conn_local_role, btpan_remote_role);
                 }
                 else
-                    error("connection not found");
+                    BTIF_TRACE_ERROR0("connection not found");
                 break;
             }
         case BTA_PAN_OPEN_EVT:
             {
-                debug("BTA_PAN_OPEN_EVT, open status:%d, bd_addr = [%02X:%02X:%02X:%02X:%02X:%02X]",
-                        p_data->open.status,
-                        p_data->open.bd_addr[0], p_data->open.bd_addr[1], p_data->open.bd_addr[2],
-                        p_data->open.bd_addr[3], p_data->open.bd_addr[4], p_data->open.bd_addr[5]);
+                /* debug("BTA_PAN_OPEN_EVT, open status:%d, bd_addr = [%02X:%02X:%02X:%02X:%02X:%02X]", */
+                /*         p_data->open.status, */
+                /*         p_data->open.bd_addr[0], p_data->open.bd_addr[1], p_data->open.bd_addr[2], */
+                /*         p_data->open.bd_addr[3], p_data->open.bd_addr[4], p_data->open.bd_addr[5]); */
                 btpan_connection_state_t state;
                 bt_status_t status;
                 if(p_data->open.status == BTA_PAN_SUCCESS)
@@ -597,10 +563,10 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
                     status = BT_STATUS_FAIL;
                 }
                 btpan_conn_t* conn = btpan_find_conn_handle(p_data->open.handle);
-                debug("BTA_PAN_OPEN_EVT handle:%d, conn:%p",  p_data->open.handle, conn);
-                debug("conn bta local_role:%d, bta remote role:%d", conn->local_role, conn->remote_role);
+                /* debug("BTA_PAN_OPEN_EVT handle:%d, conn:%p",  p_data->open.handle, conn); */
+                /* debug("conn bta local_role:%d, bta remote role:%d", conn->local_role, conn->remote_role); */
                 int btpan_conn_local_role = bta_role_to_btpan(p_data->open.local_role);
-                debug("bta local_role:%d, bta remote role:%d", p_data->open.local_role, p_data->open.peer_role);
+                /* debug("bta local_role:%d, bta remote role:%d", p_data->open.local_role, p_data->open.peer_role); */
                 int btpan_remote_role = bta_role_to_btpan(p_data->open.peer_role);
                 callback.connection_state_cb(state, status, (const bt_bdaddr_t*)p_data->open.bd_addr,
                         btpan_conn_local_role, btpan_remote_role);
@@ -614,7 +580,7 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
 
                 if(conn && conn->handle >= 0)
                 {
-                    debug("BTA_PAN_CLOSE_EVT, conn local_role:%d, remote_role:%d", conn->local_role, conn->remote_role);
+                    /* debug("BTA_PAN_CLOSE_EVT, conn local_role:%d, remote_role:%d", conn->local_role, conn->remote_role); */
                     int btpan_conn_local_role = bta_role_to_btpan(conn->local_role);
                     int btpan_remote_role = bta_role_to_btpan(conn->remote_role);
                     callback.connection_state_cb(BTPAN_STATE_DISCONNECTED, 0, (const bt_bdaddr_t*)conn->peer,
@@ -622,11 +588,11 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
                     btpan_cleanup_conn(conn);
                 }
                 else
-                    error("pan handle not found (%d)", p_data->close.handle);
+                    BTIF_TRACE_ERROR1("pan handle not found (%d)", p_data->close.handle);
                 break;
             }
         default:
-            debug("Unknown pan event %d", event);
+            BTIF_TRACE_WARNING1("Unknown pan event %d", event);
             break;
     }
 }
@@ -642,20 +608,20 @@ static void btpan_tap_fd_signaled(int fd, int type, int flags, uint32_t user_id)
     tETH_HDR eth_hdr;
     if(flags & SOCK_THREAD_FD_EXCEPTION)
     {
-        error("pan tap fd:%d exception", fd);
+        BTIF_TRACE_ERROR1("pan tap fd:%d exception", fd);
     }
     else if(flags & SOCK_THREAD_FD_RD)
     {
-        debug("tab fd read trigged,  data");
+        /* debug("tab fd read trigged,  data"); */
         int size = read(fd, packet, MAX_PACKET_SIZE);
-        debug("tap fd read trigged, read size:%d", size);
+        /* debug("tap fd read trigged, read size:%d", size); */
         memcpy(&eth_hdr, &packet, sizeof(tETH_HDR));
-        debug("eth src = %02x:%02x:%02x:%02x:%02x:%02x",
-                eth_hdr.h_src[0],  eth_hdr.h_src[1], eth_hdr.h_src[2], eth_hdr.h_src[3],
-                eth_hdr.h_src[4], eth_hdr.h_src[5]);
-        debug("eth dest = %02x:%02x:%02x:%02x:%02x:%02x",
-                eth_hdr.h_dest[0], eth_hdr.h_dest[1], eth_hdr.h_dest[2], eth_hdr.h_dest[3],
-                eth_hdr.h_dest[4], eth_hdr.h_dest[5]);
+        /* debug("eth src = %02x:%02x:%02x:%02x:%02x:%02x", */
+        /*         eth_hdr.h_src[0],  eth_hdr.h_src[1], eth_hdr.h_src[2], eth_hdr.h_src[3], */
+        /*         eth_hdr.h_src[4], eth_hdr.h_src[5]); */
+        /* debug("eth dest = %02x:%02x:%02x:%02x:%02x:%02x", */
+        /*         eth_hdr.h_dest[0], eth_hdr.h_dest[1], eth_hdr.h_dest[2], eth_hdr.h_dest[3], */
+        /*         eth_hdr.h_dest[4], eth_hdr.h_dest[5]); */
         //dump_bin("eth packet received", packet, size);
         if(should_forward(&eth_hdr))
         {

@@ -101,7 +101,6 @@ LOCAL_SRC_FILES:= \
     ./smp/smp_act.c \
     ./smp/smp_keys.c \
     ./smp/smp_api.c \
-    ./smp/aes.c \
     ./avdt/avdt_ccb.c \
     ./avdt/avdt_scb_act.c \
     ./avdt/avdt_msg.c \

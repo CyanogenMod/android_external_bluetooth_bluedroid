@@ -46,11 +46,6 @@
 #include "btif_hh.h"
 
 #include <cutils/log.h>
-#define info(fmt, ...)  ALOGI ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define debug(fmt, ...) ALOGD ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define warn(fmt, ...) ALOGW ("## WARNING : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define error(fmt, ...) ALOGE ("## ERROR : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define asrt(s) if(!(s)) ALOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
 /************************************************************************************
 **  Constants & Macros
@@ -236,11 +231,11 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
     bdstr_t bdstr = {0};
     if(remote_bd_addr)
         bd2str(remote_bd_addr, &bdstr);
-    debug("in, bd addr:%s, prop type:%d, len:%d", bdstr, prop->type, prop->len);
+    BTIF_TRACE_DEBUG3("in, bd addr:%s, prop type:%d, len:%d", bdstr, prop->type, prop->len);
     char value[1024];
     if(prop->len <= 0 || prop->len > (int)sizeof(value) - 1)
     {
-        error("property type:%d, len:%d is invalid", prop->type, prop->len);
+        BTIF_TRACE_ERROR2("property type:%d, len:%d is invalid", prop->type, prop->len);
         return FALSE;
     }
     switch(prop->type)
@@ -298,7 +293,7 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
             break;
         }
         default:
-             error("Unknow prop type:%d", prop->type);
+             BTIF_TRACE_ERROR1("Unknow prop type:%d", prop->type);
              return FALSE;
     }
     return TRUE;
@@ -308,10 +303,10 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
     bdstr_t bdstr = {0};
     if(remote_bd_addr)
         bd2str(remote_bd_addr, &bdstr);
-    debug("in, bd addr:%s, prop type:%d, len:%d", bdstr, prop->type, prop->len);
+    BTIF_TRACE_DEBUG3("in, bd addr:%s, prop type:%d, len:%d", bdstr, prop->type, prop->len);
     if(prop->len <= 0)
     {
-        error("property type:%d, len:%d is invalid", prop->type, prop->len);
+        BTIF_TRACE_ERROR2("property type:%d, len:%d is invalid", prop->type, prop->len);
         return FALSE;
     }
     int ret = FALSE;
@@ -389,7 +384,7 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
             break;
         }
         default:
-            error("Unknow prop type:%d", prop->type);
+            BTIF_TRACE_ERROR1("Unknow prop type:%d", prop->type);
             return FALSE;
     }
     return ret;
@@ -408,7 +403,7 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
 *******************************************************************************/
 static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_devices, int add)
 {
-    debug("in add:%d", add);
+    BTIF_TRACE_DEBUG1("in add:%d", add);
     memset(p_bonded_devices, 0, sizeof(btif_bonded_devices_t));
 
     char kname[128], vname[128];
@@ -420,7 +415,7 @@ static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_
     do
     {
         kpos = btif_config_next_key(kpos, "Remote", kname, &kname_size);
-        debug("Remote device:%s, size:%d", kname, kname_size);
+        BTIF_TRACE_DEBUG2("Remote device:%s, size:%d", kname, kname_size);
         int type = BTIF_CFG_TYPE_BIN;
         LINK_KEY link_key;
         int size = sizeof(link_key);
@@ -443,13 +438,12 @@ static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_
                 }
                 memcpy(&p_bonded_devices->devices[p_bonded_devices->num_devices++], &bd_addr, sizeof(bt_bdaddr_t));
             }
-            else error("bounded device:%s, LinkKeyType or PinLength is invalid", kname);
+            else BTIF_TRACE_ERROR1("bounded device:%s, LinkKeyType or PinLength is invalid", kname);
         }
-        else debug("Remote device:%s, no link key", kname);
+        else BTIF_TRACE_DEBUG1("Remote device:%s, no link key", kname);
         kname_size = sizeof(kname);
         kname[0] = 0;
     } while(kpos != -1);
-    debug("out");
     return BT_STATUS_SUCCESS;
 }
 
@@ -717,7 +711,7 @@ bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t *remote_bd_addr)
 {
     bdstr_t bdstr;
     bd2str(remote_bd_addr, &bdstr);
-    debug("in bd addr:%s", bdstr);
+    BTIF_TRACE_DEBUG1("in bd addr:%s", bdstr);
     int ret = btif_config_remove("Remote", bdstr, "LinkKeyType");
     ret &= btif_config_remove("Remote", bdstr, "PinLength");
     ret &= btif_config_remove("Remote", bdstr, "LinkKey");
@@ -895,7 +889,6 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
 *******************************************************************************/
 bt_status_t btif_storage_load_bonded_hid_info(void)
 {
-    debug("in");
     bt_bdaddr_t bd_addr;
     tBTA_HH_DEV_DSCP_INFO dscp_info;
     uint32_t i;
@@ -913,7 +906,7 @@ bt_status_t btif_storage_load_bonded_hid_info(void)
     do
     {
         kpos = btif_config_next_key(kpos, "Remote", kname, &kname_size);
-        debug("Remote device:%s, size:%d", kname, kname_size);
+        BTIF_TRACE_DEBUG2("Remote device:%s, size:%d", kname, kname_size);
         int value;
         if(btif_config_get_int("Remote", kname, "HidAttrMask", &value))
         {

@@ -300,7 +300,7 @@ UINT32 SDP_CreateRecord (void)
         p_db->record[p_db->num_records].record_handle = handle;
 
         p_db->num_records++;
-
+        SDP_TRACE_DEBUG1("SDP_CreateRecord ok, num_records:%d", p_db->num_records);
         /* Add the first attribute (the handle) automatically */
         UINT32_TO_BE_FIELD (buf, handle);
         SDP_AddAttribute (handle, ATTR_ID_SERVICE_RECORD_HDL, UINT_DESC_TYPE,
@@ -308,6 +308,7 @@ UINT32 SDP_CreateRecord (void)
 
         return (p_db->record[p_db->num_records - 1].record_handle);
     }
+    else SDP_TRACE_ERROR1("SDP_CreateRecord fail, exceed maximum records:%d", SDP_MAX_RECORDS);
 #endif
         return (0);
 }
@@ -362,6 +363,7 @@ BOOLEAN SDP_DeleteRecord (UINT32 handle)
 
                 sdp_cb.server_db.num_records--;
 
+                SDP_TRACE_DEBUG1("SDP_DeleteRecord ok, num_records:%d", sdp_cb.server_db.num_records);
                 /* if we're deleting the primary DI record, clear the */
                 /* value in the control block */
                 if( sdp_cb.server_db.di_primary_handle == handle )

@@ -41,20 +41,16 @@
 #include <stdlib.h>
 #include <private/android_filesystem_config.h>
 
-#define LOG_TAG "btif_config.c"
+#define LOG_TAG "btif_config"
 
 #include <hardware/bluetooth.h>
+#include "btif_api.h"
 #include "btif_config.h"
 #include "btif_config_util.h"
 #include "btif_sock_thread.h"
 #include "btif_sock_util.h"
 
-#include <cutils/log.h>
-#define info(fmt, ...)  ALOGI ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define debug(fmt, ...) ALOGD ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define warn(fmt, ...) ALOGW ("## WARNING : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define error(fmt, ...) ALOGE ("## ERROR : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define asrt(s) if(!(s)) ALOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define asrt(s) if(!(s)) BTIF_TRACE_ERROR3 ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 //#define UNIT_TEST
 #define CFG_PATH "/data/misc/bluedroid/"
 #define CFG_FILE_NAME "bt_config"
@@ -112,22 +108,24 @@ static void cfg_test_read();
 #endif
 static inline void dump_node(const char* title, const cfg_node* p)
 {
-    if(p)
-        debug("%s, p->name:%s, child/value:%p, bytes:%d, p->used:%d, type:%x, p->flag:%d",
-            title, p->name, p->child, p->bytes, p->used, p->type, p->flag);
-    else debug("%s is NULL", title);
+    if(p) {
+        BTIF_TRACE_DEBUG4("%s, p->name:%s, child/value:%p, bytes:%d",
+                          title, p->name, p->child, p->bytes);
+        BTIF_TRACE_DEBUG3("p->used:%d, type:%x, p->flag:%d",
+                          p->used, p->type, p->flag);
+    } else BTIF_TRACE_DEBUG1("%s is NULL", title);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int btif_config_init()
 {
     static int initialized;
-    debug("in initialized:%d", initialized);
+    BTIF_TRACE_DEBUG1("in initialized:%d", initialized);
     if(!initialized)
     {
         initialized = 1;
         struct stat st;
         if(stat(CFG_PATH, &st) != 0)
-            error("%s does not exist, need provision", CFG_PATH);
+            BTIF_TRACE_ERROR1("%s does not exist, need provision", CFG_PATH);
         btsock_thread_init();
         init_slot_lock(&slot_lock);
         lock_slot(&slot_lock);
@@ -180,8 +178,6 @@ int btif_config_exist(const char* section, const char* key, const char* name)
 }
 int btif_config_get(const char* section, const char* key, const char* name, char* value, int* bytes, int* type)
 {
-    //debug("in");
-
     int ret = FALSE;
     asrt(section && *section && key && *key && name && *name && bytes && type);
     //debug("section:%s, key:%s, name:%s, value:%p, bytes:%d, type:%d",
@@ -204,9 +200,11 @@ int btif_config_get(const char* section, const char* key, const char* name, char
             if(ret != TRUE)
             {
                 if(*type != node->type)
-                    error("value:%s, wrong type:%d, need to be type: %d", name, *type, node->type);
+                    BTIF_TRACE_ERROR3("value:%s, wrong type:%d, need to be type: %d",
+                                      name, *type, node->type);
                 if(value && *bytes < node->used)
-                    error("value:%s, not enough size: %d bytes, need %d bytes", name, node->used, *bytes);
+                    BTIF_TRACE_ERROR3("value:%s, not enough size: %d bytes, need %d bytes",
+                                      name, node->used, *bytes);
             }
         }
         unlock_slot(&slot_lock);
@@ -354,7 +352,7 @@ static inline short alloc_node(cfg_node* p, short grow)
             //debug("out");
             return old_bytes;//return the previous size
         }
-        else error("realloc failed, old_bytes:%d, grow:%d, total:%d", p->bytes, grow,  p->bytes + grow);
+        else BTIF_TRACE_ERROR3("realloc failed, old_bytes:%d, grow:%d, total:%d", p->bytes, grow,  p->bytes + grow);
     }
     //debug("out, alloc failed");
     return -1;
@@ -462,7 +460,7 @@ static int set_node(const char* section, const char* key, const char* name,
                         value_node->bytes = bytes;
                     else
                     {
-                        error("not enough memory!");
+                        BTIF_TRACE_ERROR0("not enough memory!");
                         value_node->bytes = 0;
                         return FALSE;
                     }
@@ -575,7 +573,6 @@ static int remove_node(const char* section, const char* key, const char* name)
 }
 static int save_cfg()
 {
-    debug("in");
     const char* file_name = CFG_PATH CFG_FILE_NAME CFG_FILE_EXT;
     const char* file_name_new = CFG_PATH CFG_FILE_NAME CFG_FILE_EXT_NEW;
     const char* file_name_old = CFG_PATH CFG_FILE_NAME CFG_FILE_EXT_OLD;
@@ -593,8 +590,7 @@ static int save_cfg()
         rename(file_name_new, file_name);
         ret = TRUE;
     }
-    else error("btif_config_save_file failed");
-    debug("out");
+    else BTIF_TRACE_ERROR0("btif_config_save_file failed");
     return ret;
 }
 
@@ -612,6 +608,45 @@ static void remove_bluez_cfg()
 {
     rename(BLUEZ_PATH, BLUEZ_PATH_BAK);
 }
+static void clean_newline_char()
+{
+    char kname[128], vname[128];
+    short kpos = 0;
+    int kname_size, vname_size;
+    vname[0] = 0;
+    vname_size = sizeof(vname);
+    //BTIF_TRACE_DEBUG0("removing newline at the end of the adapter and device name");
+    if(btif_config_get_str("Local", "Adapter", "Name", vname, &vname_size) &&
+        vname_size > 2)
+    {
+        if(vname[vname_size - 2] == '\n')
+        {
+            BTIF_TRACE_DEBUG1("remove newline at the end of the adapter name:%s", vname);
+            vname[vname_size - 2] = 0;
+            btif_config_set_str("Local", "Adapter", "Name", vname);
+        }
+    }
+    do
+    {
+        kname_size = sizeof(kname);
+        kname[0] = 0;
+        kpos = btif_config_next_key(kpos, "Remote", kname, &kname_size);
+        //BTIF_TRACE_DEBUG2("Remote device:%s, size:%d", kname, kname_size);
+        vname_size = sizeof(vname);
+        vname[0] = 0;
+        if(btif_config_get_str("Remote", kname, "Name", vname, &vname_size) &&
+            vname_size > 2)
+        {
+            BTIF_TRACE_DEBUG1("remote device name:%s", vname);
+            if(vname[vname_size - 2] == '\n')
+            {
+                BTIF_TRACE_DEBUG1("remove newline at the end of the device name:%s", vname);
+                vname[vname_size - 2] = 0;
+                btif_config_set_str("Remote", kname, "Name", vname);
+            }
+        }
+     } while(kpos != -1);
+}
 static void load_cfg()
 {
     const char* file_name = CFG_PATH CFG_FILE_NAME CFG_FILE_EXT;
@@ -627,10 +662,19 @@ static void load_cfg()
                 remove_bluez_cfg();
         }
     }
+    int bluez_migration_done = 0;
+    btif_config_get_int("Local", "Adapter", "BluezMigrationDone", &bluez_migration_done);
+    if(!bluez_migration_done)
+    {
+        //clean the new line char at the end of the device name. Caused by bluez config import bug
+        clean_newline_char();
+        btif_config_set_int("Local", "Adapter", "BluezMigrationDone", 1);
+        btif_config_save();
+    }
 }
 static void cfg_cmd_callback(int cmd_fd, int type, int size, uint32_t user_id)
 {
-    debug("cmd type:%d, size:%d", type, size);
+  //BTIF_TRACE_DEBUG2("cmd type:%d, size:%d", type, size);
     switch(type)
     {
         case CFG_CMD_SAVE:
@@ -647,15 +691,14 @@ static void cfg_test_load()
     char kname[128], vname[128];
     short kpos, vpos;
     int kname_size, vname_size;
-    debug("in");
-    debug("list all remote devices values:");
+    BTIF_TRACE_DEBUG0("list all remote devices values:");
     kname_size = sizeof(kname);
     kname[0] = 0;
     kpos = 0;
     do
     {
         kpos = btif_config_next_key(kpos, "Remote Devices", kname, &kname_size);
-        debug("Remote devices:%s, size:%d", kname, kname_size);
+        BTIF_TRACE_DEBUG2("Remote devices:%s, size:%d", kname, kname_size);
         vpos = 0;
         vname[0] = 0;
         vname_size = sizeof(vname);
@@ -665,8 +708,8 @@ static void cfg_test_load()
             int vtype = BTIF_CFG_TYPE_STR;
             int vsize = sizeof(v);
             int ret = btif_config_get("Remote Devices", kname, vname, v, &vsize, &vtype);
-            debug("btif_config_get return:%d, Remote devices:%s, value name:%s, value:%s, value size:%d, type:0x%x",
-                    ret, kname, vname, v, vsize, vtype);
+            BTIF_TRACE_DEBUG6("btif_config_get return:%d, Remote devices:%s, value name:%s, value:%s, value size:%d, type:0x%x",
+                              ret, kname, vname, v, vsize, vtype);
 
             vname[0] = 0;
             vname_size = sizeof(vname);
@@ -674,11 +717,9 @@ static void cfg_test_load()
         kname[0] = 0;
         kname_size = sizeof(kname);
     } while(kpos != -1);
-    debug("out");
 }
 static void cfg_test_write()
 {
-    debug("in");
     int i;
 
     char key[128];
@@ -696,11 +737,10 @@ static void cfg_test_write()
         btif_config_set_int(section, key, "connect time out", i);
     }
     btif_config_save();
-    debug("out");
 }
 static void cfg_test_read()
 {
-    debug("in");
+    //debug("in");
     char class[128] = {0};
     char link_key[128] = {0};
     int size, type;
@@ -713,32 +753,32 @@ static void cfg_test_read()
         section = "Remote Devices";
         size = sizeof(class);
         ret = btif_config_get_str(section, key, "class", class, &size);
-        debug("btif_config_get_str return:%d, Remote devices:%s, class:%s", ret, key, class);
+        BTIF_TRACE_DEBUG3("btif_config_get_str return:%d, Remote devices:%s, class:%s", ret, key, class);
 
         size = sizeof(link_key);
         type = BTIF_CFG_TYPE_BIN;
         ret = btif_config_get(section, key, "link keys", link_key, &size, &type);
-        debug("btif_config_get return:%d, Remote devices:%s, link key:%x, %x",
-                    ret, key, *(int *)link_key, *((int *)link_key + 1));
+        //debug("btif_config_get return:%d, Remote devices:%s, link key:%x, %x",
+        //            ret, key, *(int *)link_key, *((int *)link_key + 1));
 
         int timeout;
         ret = btif_config_get_int(section, key, "connect time out", &timeout);
-        debug("btif_config_get_int return:%d, Remote devices:%s, connect time out:%d", ret, key, timeout);
+        //debug("btif_config_get_int return:%d, Remote devices:%s, connect time out:%d", ret, key, timeout);
     }
 
-    debug("testing btif_config_remove");
+    // debug("testing btif_config_remove");
     size = sizeof(class);
     type = BTIF_CFG_TYPE_STR;
     btif_config_set("Remote Devices", "00:22:5F:97:56:04", "Class Delete", class, strlen(class) + 1, BTIF_CFG_TYPE_STR);
 
     btif_config_get("Remote Devices", "00:22:5F:97:56:04", "Class Delete", class, &size, &type);
-    debug("Remote devices, 00:22:5F:97:56:04 Class Delete:%s", class);
+    // debug("Remote devices, 00:22:5F:97:56:04 Class Delete:%s", class);
     btif_config_remove("Remote Devices", "00:22:5F:97:56:04", "Class Delete");
 
     size = sizeof(class);
     type = BTIF_CFG_TYPE_STR;
     ret = btif_config_get("Remote Devices", "00:22:5F:97:56:04", "Class Delete", class, &size, &type);
-    debug("after removed, btif_config_get ret:%d, Remote devices, 00:22:5F:97:56:04 Class Delete:%s", ret, class);
-    debug("out");
+    // debug("after removed, btif_config_get ret:%d, Remote devices, 00:22:5F:97:56:04 Class Delete:%s", ret, class);
+    // debug("out");
 }
 #endif

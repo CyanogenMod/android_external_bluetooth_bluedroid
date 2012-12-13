@@ -487,6 +487,9 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
         GKI_freebuf(p_dev->p_buf);
         p_dev->p_buf = NULL;
     }
+
+    p_dev->hh_keep_polling = 0;
+    p_dev->hh_poll_thread_id = -1;
     BTIF_TRACE_DEBUG2("%s: uhid fd = %d", __FUNCTION__, p_dev->fd);
     if (p_dev->fd >= 0) {
         bta_hh_co_destroy(p_dev->fd);
@@ -648,6 +651,47 @@ void btif_hh_disconnect(bt_bdaddr_t *bd_addr)
         BTIF_TRACE_DEBUG1("%s-- Error: device not connected:",__FUNCTION__);
 }
 
+
+/*******************************************************************************
+**
+** Function         btif_btif_hh_setreport
+**
+** Description      setreport initiated from the BTIF thread context
+**
+** Returns          void
+**
+*******************************************************************************/
+
+void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type, UINT16 size,
+                            UINT8* report)
+{
+    UINT8  hexbuf[20];
+    UINT16 len = size;
+    int i = 0;
+    if (p_dev->p_buf != NULL) {
+        GKI_freebuf(p_dev->p_buf);
+    }
+    p_dev->p_buf = GKI_getbuf((UINT16) (len + BTA_HH_MIN_OFFSET + sizeof(BT_HDR)));
+    if (p_dev->p_buf == NULL) {
+        APPL_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, len = %d", __FUNCTION__, len);
+        return;
+    }
+
+    p_dev->p_buf->len = len;
+    p_dev->p_buf->offset = BTA_HH_MIN_OFFSET;
+
+    //Build a SetReport data buffer
+    memset(hexbuf, 0, 20);
+    for(i=0; i<len; i++)
+        hexbuf[i] = report[i];
+
+    UINT8* pbuf_data;
+    pbuf_data = (UINT8*) (p_dev->p_buf + 1) + p_dev->p_buf->offset;
+    memcpy(pbuf_data, hexbuf, len);
+    BTA_HhSetReport(p_dev->dev_handle, r_type, p_dev->p_buf);
+
+}
+
 /*****************************************************************************
 **   Section name (Group of functions)
 *****************************************************************************/
@@ -731,7 +775,10 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                     BTIF_TRACE_WARNING1("BTA_HH_OPEN_EVT: Found device...Getting dscp info for handle ... %d",p_data->conn.handle);
                     memcpy(&(p_dev->bd_addr), p_data->conn.bda, BD_ADDR_LEN);
                     btif_hh_cb.status = BTIF_HH_DEV_CONNECTED;
-                    BTA_HhSetIdle(p_data->conn.handle, 0);
+                    // Send set_idle if the peer_device is a keyboard
+                    if (check_cod((bt_bdaddr_t*)p_data->conn.bda, COD_HID_KEYBOARD )||
+                                check_cod((bt_bdaddr_t*)p_data->conn.bda, COD_HID_COMBO))
+                        BTA_HhSetIdle(p_data->conn.handle, 0);
                     btif_hh_cb.p_curr_dev = btif_hh_find_connected_dev_by_handle(p_data->conn.handle);
                     BTA_HhGetDscpInfo(p_data->conn.handle);
                     p_dev->dev_status = BTHH_CONN_STATE_CONNECTED;
@@ -1563,6 +1610,8 @@ static void  cleanup( void )
              BTIF_TRACE_DEBUG2("%s: Closing uhid fd = %d", __FUNCTION__, p_dev->fd);
              bta_hh_co_destroy(p_dev->fd);
              p_dev->fd = -1;
+             p_dev->hh_keep_polling = 0;
+             p_dev->hh_poll_thread_id = -1;
          }
      }
 

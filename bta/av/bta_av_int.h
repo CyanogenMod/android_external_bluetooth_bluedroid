@@ -136,7 +136,7 @@ enum
 #define BTA_AV_SECURITY_MAX_LEN     400
 
 /* check number of buffers queued at L2CAP when this amount of buffers are queued to L2CAP */
-#define BTA_AV_QUEUE_DATA_CHK_NUM   5
+#define BTA_AV_QUEUE_DATA_CHK_NUM   L2CAP_HIGH_PRI_MIN_XMIT_QUOTA
 
 /* the number of ACL links with AVDT */
 #define BTA_AV_NUM_LINKS            AVDT_NUM_LINKS
