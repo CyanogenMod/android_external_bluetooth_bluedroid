@@ -1025,7 +1025,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvRfcommConnect(tBTA_SEC sec_mask,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvRfcommClose(UINT32 handle);
+BTA_API extern tBTA_JV_STATUS BTA_JvRfcommClose(UINT32 handle, void* user_data);
 
 /*******************************************************************************
 **
@@ -1057,7 +1057,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvRfcommStartServer(tBTA_SEC sec_mask,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvRfcommStopServer(UINT32 handle);
+BTA_API extern tBTA_JV_STATUS BTA_JvRfcommStopServer(UINT32 handle, void* user_data);
 
 /*******************************************************************************
 **

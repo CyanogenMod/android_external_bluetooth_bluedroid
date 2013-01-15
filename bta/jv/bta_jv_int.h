@@ -196,6 +196,7 @@ typedef struct
     UINT8               handle;     /* index: the handle reported to java app */
     UINT8               scn;        /* the scn of the server */
     UINT8               max_sess;   /* max sessions */
+    int                 curr_sess;   /* current sessions count*/
 } tBTA_JV_RFC_CB;
 
 /* data type for BTA_JV_API_L2CAP_CONNECT_EVT */
@@ -307,6 +308,7 @@ typedef struct
     UINT16          handle;
     tBTA_JV_RFC_CB  *p_cb;
     tBTA_JV_PCB     *p_pcb;
+    void        *user_data;
 } tBTA_JV_API_RFCOMM_CLOSE;
 
 /* data type for BTA_JV_API_CREATE_RECORD_EVT */

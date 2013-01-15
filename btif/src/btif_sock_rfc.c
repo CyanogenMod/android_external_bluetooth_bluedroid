@@ -291,12 +291,11 @@ static inline rfc_slot_t* create_srv_accept_rfc_slot(rfc_slot_t* srv_rs, const b
     accept_rs->role = srv_rs->role;
     accept_rs->rfc_handle = open_handle;
     accept_rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(open_handle);
-    asrt(accept_rs->rfc_handle == srv_rs->rfc_handle);
-    asrt(accept_rs->rfc_port_handle == srv_rs->rfc_port_handle);
-    //now update listen handle of server slot
+     //now update listen handle of server slot
     srv_rs->rfc_handle = new_listen_handle;
-    srv_rs->rfc_port_handle =  BTA_JvRfcommGetPortHdl(new_listen_handle);
-    //now swap the slot id
+    srv_rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(new_listen_handle);
+    asrt(accept_rs->rfc_port_handle != srv_rs->rfc_port_handle);
+  //now swap the slot id
     uint32_t new_listen_id = accept_rs->id;
     accept_rs->id = srv_rs->id;
     srv_rs->id = new_listen_id;
@@ -471,7 +470,7 @@ static inline void free_rfc_slot_scn(rfc_slot_t* rs)
     {
         if(rs->f.server && !rs->f.closing && rs->rfc_handle)
         {
-            BTA_JvRfcommStopServer(rs->rfc_handle);
+            BTA_JvRfcommStopServer(rs->rfc_handle, (void*)rs->id);
             rs->rfc_handle = 0;
         }
         if(rs->f.server)
@@ -501,7 +500,7 @@ static void cleanup_rfc_slot(rfc_slot_t* rs)
     if(rs->rfc_handle && !rs->f.closing && !rs->f.server)
     {
         APPL_TRACE_DEBUG1("closing rfcomm connection, rfc_handle:%d", rs->rfc_handle);
-        BTA_JvRfcommClose(rs->rfc_handle);
+        BTA_JvRfcommClose(rs->rfc_handle, (void*)rs->id);
         rs->rfc_handle = 0;
     }
     free_rfc_slot_scn(rs);
@@ -644,7 +643,6 @@ static void on_rfc_close(tBTA_JV_RFCOMM_CLOSE * p_close, uint32_t id)
                          rs->id, rs->fd, rs->scn, rs->f.server);
         free_rfc_slot_scn(rs);
         //rfc_handle already closed when receiving rfcomm close event from stack.
-        rs->rfc_handle = 0;
         rs->f.connected = FALSE;
         cleanup_rfc_slot(rs);
     }
@@ -881,7 +879,13 @@ void btsock_rfc_signaled(int fd, int flags, uint32_t user_id)
             if(!rs->f.server)
             {
                 if(rs->f.connected)
-                    BTA_JvRfcommWrite(rs->rfc_handle, (UINT32)rs->id);
+                {
+                    int size = 0;
+                    //make sure there's data pending in case the peer closed the socket
+                    if(!(flags & SOCK_THREAD_FD_EXCEPTION) ||
+                                (ioctl(rs->fd, FIONREAD, &size) == 0 && size))
+                        BTA_JvRfcommWrite(rs->rfc_handle, (UINT32)rs->id);
+                }
                 else
                 {
                     APPL_TRACE_ERROR2("SOCK_THREAD_FD_RD signaled when rfc is not connected, \
@@ -903,12 +907,17 @@ void btsock_rfc_signaled(int fd, int flags, uint32_t user_id)
         }
         if(need_close || (flags & SOCK_THREAD_FD_EXCEPTION))
         {
-            APPL_TRACE_DEBUG1("SOCK_THREAD_FD_EXCEPTION, flags:%x", flags);
-            rs->f.closing = TRUE;
-            if(rs->f.server)
-                BTA_JvRfcommStopServer(rs->rfc_handle);
+            int size = 0;
+            if(need_close || ioctl(rs->fd, FIONREAD, &size) != 0 || size == 0 )
+            {
+                //cleanup when no data pending
+                APPL_TRACE_DEBUG3("SOCK_THREAD_FD_EXCEPTION, cleanup, flags:%x, need_close:%d, pending size:%d",
+                                flags, need_close, size);
+                cleanup_rfc_slot(rs);
+            }
             else
-                BTA_JvRfcommClose(rs->rfc_handle);
+                APPL_TRACE_DEBUG3("SOCK_THREAD_FD_EXCEPTION, cleanup pending, flags:%x, need_close:%d, pending size:%d",
+                                flags, need_close, size);
         }
     }
     unlock_slot(&slot_lock);
@@ -967,6 +976,7 @@ int bta_co_rfc_data_outgoing_size(void *user_data, int *size)
             cleanup_rfc_slot(rs);
         }
     }
+    else APPL_TRACE_ERROR1("bta_co_rfc_data_outgoing_size, invalid slot id:%d", id);
     unlock_slot(&slot_lock);
     return ret;
 }
@@ -988,6 +998,7 @@ int bta_co_rfc_data_outgoing(void *user_data, UINT8* buf, UINT16 size)
             cleanup_rfc_slot(rs);
         }
     }
+    else APPL_TRACE_ERROR1("bta_co_rfc_data_outgoing, invalid slot id:%d", id);
     unlock_slot(&slot_lock);
     return ret;
 }

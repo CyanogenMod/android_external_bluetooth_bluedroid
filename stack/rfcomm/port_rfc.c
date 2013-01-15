@@ -55,7 +55,7 @@ int port_open_continue (tPORT *p_port)
 {
     tRFC_MCB *p_mcb;
 
-    RFCOMM_TRACE_EVENT0 ("port_open_continue");
+    RFCOMM_TRACE_EVENT1 ("port_open_continue, p_port:%p", p_port);
 
     /* Check if multiplexer channel has already been established */
     if ((p_mcb = rfc_alloc_multiplexer_channel (p_port->bd_addr, TRUE)) == NULL)
@@ -271,6 +271,7 @@ void PORT_StartInd (tRFC_MCB *p_mcb)
         if ((p_port->rfc.p_mcb == NULL)
          || (p_port->rfc.p_mcb == p_mcb))
         {
+            RFCOMM_TRACE_DEBUG1("PORT_StartInd, RFCOMM_StartRsp RFCOMM_SUCCESS: p_mcb:%p", p_mcb);
             RFCOMM_StartRsp (p_mcb, RFCOMM_SUCCESS);
             return;
         }
@@ -445,7 +446,10 @@ void PORT_DlcEstablishInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
-    RFCOMM_TRACE_EVENT2 ("PORT_DlcEstablishInd dlci:%d mtu:%d", dlci, mtu);
+    RFCOMM_TRACE_DEBUG4 ("PORT_DlcEstablishInd p_mcb:%p, dlci:%d mtu:%di, p_port:%p", p_mcb, dlci, mtu, p_port);
+    RFCOMM_TRACE_DEBUG6 ("PORT_DlcEstablishInd p_mcb addr:%02x:%02x:%02x:%02x:%02x:%02x",
+                         p_mcb->bd_addr[0], p_mcb->bd_addr[1], p_mcb->bd_addr[2],
+                         p_mcb->bd_addr[3], p_mcb->bd_addr[4], p_mcb->bd_addr[5]);
 
     if (!p_port)
     {
@@ -826,7 +830,8 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
     UINT8  *p;
     int    i;
 
-    RFCOMM_TRACE_EVENT1 ("PORT_DataInd with data length %d", p_buf->len);
+    RFCOMM_TRACE_EVENT4("PORT_DataInd with data length %d, p_mcb:%p,p_port:%p,dlci:%d",
+                        p_buf->len, p_mcb, p_port, dlci);
     if (!p_port)
     {
         GKI_freebuf (p_buf);
@@ -843,7 +848,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
         //GKI_freebuf (p_buf);
         return;
     }
-
+    else RFCOMM_TRACE_ERROR1("PORT_DataInd, p_port:%p, p_data_co_callback is null", p_port);
     /* If client registered callback we can just deliver receive data */
     if (p_port->p_data_callback)
     {

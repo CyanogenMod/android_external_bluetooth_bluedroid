@@ -85,7 +85,9 @@ tPORT *port_allocate_port (UINT8 dlci, BD_ADDR bd_addr)
             port_set_defaults (p_port);
 
             rfc_cb.rfc.last_port = yy;
-            RFCOMM_TRACE_DEBUG2("rfc_cb.port.port[%d] allocated, last_port:%d", yy, rfc_cb.rfc.last_port);
+            RFCOMM_TRACE_DEBUG3("rfc_cb.port.port[%d]:%p allocated, last_port:%d", yy, p_port, rfc_cb.rfc.last_port);
+            RFCOMM_TRACE_DEBUG6("port_allocate_port:bd_addr:%02x:%02x:%02x:%02x:%02x:%02x",
+                                bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4], bd_addr[5]);
             return (p_port);
         }
     }
@@ -236,7 +238,7 @@ void port_release_port (tPORT *p_port)
             rfc_check_mcb_active (p_port->rfc.p_mcb);
         }
         rfc_port_timer_stop (p_port);
-
+        RFCOMM_TRACE_DEBUG1 ("port_release_port:p_port->keep_port_handle:%d", p_port->keep_port_handle);
         if( p_port->keep_port_handle )
         {
             RFCOMM_TRACE_DEBUG1 ("port_release_port:Initialize handle:%d", p_port->inx);
@@ -287,9 +289,15 @@ tRFC_MCB *port_find_mcb (BD_ADDR bd_addr)
          && !memcmp (rfc_cb.port.rfc_mcb[i].bd_addr, bd_addr, BD_ADDR_LEN))
         {
             /* Multiplexer channel found do not change anything */
+            RFCOMM_TRACE_DEBUG6("port_find_mcb: found  bd_addr:%02x:%02x:%02x:%02x:%02x:%02x",
+                                bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4], bd_addr[5]);
+            RFCOMM_TRACE_DEBUG3("port_find_mcb: rfc_cb.port.rfc_mcb:index:%d, %p, lcid:%d",
+                                i, &rfc_cb.port.rfc_mcb[i], rfc_cb.port.rfc_mcb[i].lcid);
             return (&rfc_cb.port.rfc_mcb[i]);
         }
     }
+    RFCOMM_TRACE_DEBUG6("port_find_mcb: not found, bd_addr:%02x:%02x:%02x:%02x:%02x:%02x",
+                         bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4], bd_addr[5]);
     return (NULL);
 }
 
@@ -318,7 +326,10 @@ tPORT *port_find_mcb_dlci_port (tRFC_MCB *p_mcb, UINT8 dlci)
 
     inx = p_mcb->port_inx[dlci];
     if (inx == 0)
+    {
+        RFCOMM_TRACE_DEBUG2("port_find_mcb_dlci_port: p_mcb:%p, port_inx[dlci:%d] is 0", p_mcb, dlci);
         return (NULL);
+    }
     else
         return (&rfc_cb.port.port[inx - 1]);
 }
@@ -341,6 +352,7 @@ tPORT *port_find_dlci_port (UINT8 dlci)
     for (i = 0; i < MAX_RFC_PORTS; i++)
     {
         p_port = &rfc_cb.port.port[i];
+
         if (p_port->in_use && (p_port->rfc.p_mcb == NULL))
         {
             if (p_port->dlci == dlci)
