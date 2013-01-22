@@ -2,6 +2,12 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
+ifeq ($(BOARD_USES_ALSA_AUDIO),true)
+ifeq ($(TARGET_QCOM_AUDIO_VARIANT),caf)
+	LOCAL_CFLAGS += -DSAMPLE_RATE_48K
+endif
+endif
+
 LOCAL_SRC_FILES:= \
 	audio_a2dp_hw.c
 
