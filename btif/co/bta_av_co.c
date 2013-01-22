@@ -1,6 +1,7 @@
 /******************************************************************************
  *
  *  Copyright (C) 2004-2012 Broadcom Corporation
+ *  Copyright (c) 2013, Linux Foundation. All rights reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -70,7 +71,11 @@ const UINT8 bta_av_co_cp_scmst[BTA_AV_CP_INFO_LEN] = "\x02\x02\x00";
 /* SBC SRC codec capabilities */
 const tA2D_SBC_CIE bta_av_co_sbc_caps =
 {
+#ifdef SAMPLE_RATE_48K
+    (A2D_SBC_IE_SAMP_FREQ_48), /* samp_freq */
+#else
     (A2D_SBC_IE_SAMP_FREQ_44), /* samp_freq */
+#endif
     (A2D_SBC_IE_CH_MD_MONO | A2D_SBC_IE_CH_MD_STEREO | A2D_SBC_IE_CH_MD_JOINT | A2D_SBC_IE_CH_MD_DUAL), /* ch_mode */
     (A2D_SBC_IE_BLOCKS_16 | A2D_SBC_IE_BLOCKS_12 | A2D_SBC_IE_BLOCKS_8 | A2D_SBC_IE_BLOCKS_4), /* block_len */
     (A2D_SBC_IE_SUBBAND_4 | A2D_SBC_IE_SUBBAND_8), /* num_subbands */
@@ -92,7 +97,11 @@ const tA2D_SBC_CIE bta_av_co_sbc_sink_caps =
 };
 
 #if !defined(BTIF_AV_SBC_DEFAULT_SAMP_FREQ)
+#ifdef SAMPLE_RATE_48K
+#define BTIF_AV_SBC_DEFAULT_SAMP_FREQ A2D_SBC_IE_SAMP_FREQ_48
+#else
 #define BTIF_AV_SBC_DEFAULT_SAMP_FREQ A2D_SBC_IE_SAMP_FREQ_44
+#endif
 #endif
 
 /* Default SBC codec configuration */
