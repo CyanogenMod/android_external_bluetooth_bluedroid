@@ -1121,7 +1121,7 @@ void bta_dm_search_start (tBTA_DM_MSG *p_data)
     if (bta_dm_cfg.avoid_scatter &&
         (p_data->search.rs_res == BTA_DM_RS_NONE) && bta_dm_check_av(BTA_DM_API_SEARCH_EVT))
     {
-        memcpy(&bta_dm_cb.search_msg, &p_data->search, sizeof(tBTA_DM_API_SEARCH));
+        memmove(&bta_dm_cb.search_msg, &p_data->search, sizeof(tBTA_DM_API_SEARCH));
         return;
     }
 
