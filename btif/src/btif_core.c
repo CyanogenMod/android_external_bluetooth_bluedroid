@@ -290,6 +290,9 @@ static void btif_task(UINT32 params)
         if (event == BT_EVT_TRIGGER_STACK_INIT)
         {
             BTIF_TRACE_DEBUG0("btif_task: received trigger stack init event");
+            #if (BLE_INCLUDED == TRUE)
+            btif_dm_load_ble_local_keys();
+            #endif
             BTA_EnableBluetooth(bte_dm_evt);
         }
 
@@ -830,6 +833,7 @@ bt_status_t btif_dut_mode_send(uint16_t opcode, uint8_t *buf, uint8_t len)
     BTM_VendorSpecificCommand(opcode, len, buf, btif_dut_mode_cback);
     return BT_STATUS_SUCCESS;
 }
+
 /*****************************************************************************
 **
 **   btif api adapter property functions

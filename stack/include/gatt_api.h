@@ -137,6 +137,9 @@ typedef UINT16 tGATT_DISCONN_REASON;
     #define GATT_MAX_SCCB       10
 #endif
 
+#ifndef GATTP_TRANSPORT_SUPPORTED
+#define GATTP_TRANSPORT_SUPPORTED        GATT_TRANSPORT_LE_BR_EDR
+#endif
 
 
 /* GATT notification caching timer, default to be three seconds
@@ -164,7 +167,7 @@ typedef UINT16 tGATT_PERM;
 #define GATT_ENCRYPT_KEY_SIZE_MASK  (0xF000) /* the MS nibble of tGATT_PERM; key size 7=0; size 16=9 */
 
 #define GATT_READ_ALLOWED           (GATT_PERM_READ | GATT_PERM_READ_ENCRYPTED | GATT_PERM_READ_ENC_MITM)
-#define GATT_READ_AUTH_REQUIRED     (GATT_PERM_READ_ENC_MITM)
+#define GATT_READ_AUTH_REQUIRED     (GATT_PERM_READ_ENCRYPTED)
 #define GATT_READ_MITM_REQUIRED     (GATT_PERM_READ_ENC_MITM)
 #define GATT_READ_ENCRYPTED_REQUIRED   (GATT_PERM_READ_ENCRYPTED | GATT_PERM_READ_ENC_MITM)
 
@@ -1119,6 +1122,25 @@ extern "C"
 **
 *******************************************************************************/
     GATT_API extern BOOLEAN GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, UINT16 *p_conn_id);
+
+
+/*******************************************************************************
+**
+** Function         GATT_Listen
+**
+** Description      This function start or stop LE advertisement and listen for
+**                  connection.
+**
+** Parameters       gatt_if: applicaiton interface
+**                  p_bd_addr: listen for specific address connection, or NULL for
+**                             listen to all device connection.
+**                  start: is a direct conenection or a background auto connection
+**
+** Returns          TRUE if advertisement is started; FALSE if adv start failure.
+**
+*******************************************************************************/
+    GATT_API extern BOOLEAN GATT_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr);
+
 
 #ifdef __cplusplus
 

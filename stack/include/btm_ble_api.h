@@ -30,6 +30,16 @@
 #define CHNL_MAP_LEN    5
 typedef UINT8 tBTM_BLE_CHNL_MAP[CHNL_MAP_LEN];
 
+#define BTM_BLE_CONNECT_EVT     0x00
+#define BTM_BLE_CONNECT_DIR_EVT 0x01
+#define BTM_BLE_DISCOVER_EVT    0x02
+#define BTM_BLE_NON_CONNECT_EVT 0x03
+#define BTM_BLE_SCAN_RSP_EVT    0x04
+#define BTM_BLE_SCAN_REQ_EVT    0x06
+#define BTM_BLE_UNKNOWN_EVT     0xff
+
+#define BTM_BLE_UNKNOWN_EVT     0xff
+
 #define BTM_BLE_SCAN_MODE_PASS      0
 #define BTM_BLE_SCAN_MODE_ACTI      1
 #define BTM_BLE_SCAN_MODE_NONE      0xff
@@ -72,7 +82,7 @@ typedef UINT8   tBTM_BLE_SFP;
 #define BTM_BLE_ADV_INT_MIN            0x0020
 #define BTM_BLE_ADV_INT_MAX            0x4000
 
-/* connection parameter boundary value */
+/* connection parameter boundary values */
 #define BTM_BLE_SCAN_INT_MIN            0x0004
 #define BTM_BLE_SCAN_INT_MAX            0x4000
 #define BTM_BLE_SCAN_WIN_MIN            0x0004
@@ -83,32 +93,41 @@ typedef UINT8   tBTM_BLE_SFP;
 #define BTM_BLE_CONN_SUP_TOUT_MIN       0x000A
 #define BTM_BLE_CONN_SUP_TOUT_MAX       0x0C80
 #define BTM_BLE_CONN_PARAM_UNDEF        0xffff      /* use this value when a specific value not to be overwritten */
+#define BTM_BLE_CONN_SUP_TOUT_DEF       700
 
 /* default connection parameters if not configured, use GAP recommend value for auto/selective connection */
 /* default scan interval */
-#ifndef BTM_BLE_CONN_EST_SCAN_INT
-#define BTM_BLE_CONN_EST_SCAN_INT    96    /* 312.5 ms   = 500 *0.625 */
+#ifndef BTM_BLE_SCAN_FAST_INT
+#define BTM_BLE_SCAN_FAST_INT    96    /* 30 ~ 60 ms (use 60)  = 96 *0.625 */
 #endif
 /* default scan window for background connection, applicable for auto connection or selective conenction */
-#ifndef BTM_BLE_CONN_EST_SCAN_WIND
-#define BTM_BLE_CONN_EST_SCAN_WIND   48      /* 187.5 ms = 400 *0.625 */
+#ifndef BTM_BLE_SCAN_FAST_WIN
+#define BTM_BLE_SCAN_FAST_WIN   48      /* 30 ms = 48 *0.625 */
 #endif
 
-/* default scan paramter used in reduced power cycle */
-#ifndef BTM_BLE_CONN_EST_SCAN_INT_LO
-#define BTM_BLE_CONN_EST_SCAN_INT_LO    2048    /* 1.28 s   = 500 *0.625 */
+/* default scan paramter used in reduced power cycle (background scanning) */
+#ifndef BTM_BLE_SCAN_SLOW_INT_1
+#define BTM_BLE_SCAN_SLOW_INT_1    2048    /* 1.28 s   = 2048 *0.625 */
 #endif
-#ifndef BTM_BLE_CONN_EST_SCAN_WIND_LO
-#define BTM_BLE_CONN_EST_SCAN_WIND_LO   18      /* 11.25 ms = 400 *0.625 */
+#ifndef BTM_BLE_SCAN_SLOW_WIN_1
+#define BTM_BLE_SCAN_SLOW_WIN_1   18      /* 11.25 ms = 18 *0.625 */
+#endif
+
+/* default scan paramter used in reduced power cycle (background scanning) */
+#ifndef BTM_BLE_SCAN_SLOW_INT_2
+#define BTM_BLE_SCAN_SLOW_INT_2    4096    /* 2.56 s   = 4096 *0.625 */
+#endif
+#ifndef BTM_BLE_SCAN_SLOW_WIN_2
+#define BTM_BLE_SCAN_SLOW_WIN_2   36      /* 22.5 ms = 36 *0.625 */
 #endif
 
 /* default connection interval min */
 #ifndef BTM_BLE_CONN_INT_MIN_DEF
-#define BTM_BLE_CONN_INT_MIN_DEF     40      /* 50ms = 400 * 1.25 */
+#define BTM_BLE_CONN_INT_MIN_DEF     24      /* recommended min: 30ms  = 24 * 1.25 */
 #endif
 /* default connectino interval max */
 #ifndef BTM_BLE_CONN_INT_MAX_DEF
-#define BTM_BLE_CONN_INT_MAX_DEF     56      /* 70ms = 56 * 1.25 */
+#define BTM_BLE_CONN_INT_MAX_DEF     40      /* recommended max: 50 ms = 56 * 1.25 */
 #endif
 /* default slave latency */
 #ifndef BTM_BLE_CONN_SLAVE_LATENCY_DEF
@@ -119,9 +138,24 @@ typedef UINT8   tBTM_BLE_SFP;
 #define BTM_BLE_CONN_TIMEOUT_DEF    2000
 #endif
 
+#define BTM_BLE_DIR_CONN_FALLBACK_UNDIR         1
+#define BTM_BLE_DIR_CONN_FALLBACK_NO_ADV        2
+
+#ifndef BTM_BLE_DIR_CONN_FALLBACK
+#define BTM_BLE_DIR_CONN_FALLBACK   BTM_BLE_DIR_CONN_FALLBACK_UNDIR
+#endif
+
 #define BTM_CMAC_TLEN_SIZE          8                   /* 64 bits */
 #define BTM_BLE_AUTH_SIGN_LEN       12                   /* BLE data signature length 8 Bytes + 4 bytes counter*/
 typedef UINT8 BLE_SIGNATURE[BTM_BLE_AUTH_SIGN_LEN];         /* Device address */
+
+#ifndef BTM_BLE_HOST_SUPPORT
+#define BTM_BLE_HOST_SUPPORT		0x01
+#endif
+
+#ifndef BTM_BLE_SIMULTANEOUS_HOST
+#define BTM_BLE_SIMULTANEOUS_HOST	0x01
+#endif
 
 /* Structure returned with Rand/Encrypt complete callback */
 typedef struct
@@ -165,27 +199,41 @@ typedef struct
 #define BTM_BLE_AD_BIT_FLAGS           (0x0001 << 1)
 #define BTM_BLE_AD_BIT_MANU            (0x0001 << 2)
 #define BTM_BLE_AD_BIT_TX_PWR          (0x0001 << 3)
-#define BTM_BLE_AD_BIT_ATTR            (0x0001 << 4)
 #define BTM_BLE_AD_BIT_INT_RANGE       (0x0001 << 5)
 #define BTM_BLE_AD_BIT_SERVICE         (0x0001 << 6)
 #define BTM_BLE_AD_BIT_SERVICE_SOL     (0x0001 << 7)
 #define BTM_BLE_AD_BIT_SERVICE_DATA    (0x0001 << 8)
 #define BTM_BLE_AD_BIT_SIGN_DATA       (0x0001 << 9)
+#define BTM_BLE_AD_BIT_SERVICE_128SOL  (0x0001 << 10)
+#define BTM_BLE_AD_BIT_APPEARANCE      (0x0001 << 11)
+#define BTM_BLE_AD_BIT_PUBLIC_ADDR      (0x0001 << 12)
+#define BTM_BLE_AD_BIT_RANDOM_ADDR      (0x0001 << 13)
+
 #define BTM_BLE_AD_BIT_PROPRIETARY     (0x0001 << 15)
 
 typedef  UINT16  tBTM_BLE_AD_MASK;
 
-#define BTM_BLE_AD_TYPE_FLAG            0x01
-#define BTM_BLE_AD_TYPE_SRV_PART        0x02
-#define BTM_BLE_AD_TYPE_SRV_CMPL        0x03
-#define BTM_BLE_AD_TYPE_NAME_SHORT      0x08
-#define BTM_BLE_AD_TYPE_NAME_CMPL       0x09
-#define BTM_BLE_AD_TYPE_TX_PWR          0x0A
+#define BTM_BLE_AD_TYPE_FLAG            HCI_EIR_FLAGS_TYPE                  /* 0x01 */
+#define BTM_BLE_AD_TYPE_16SRV_PART      HCI_EIR_MORE_16BITS_UUID_TYPE       /* 0x02 */
+#define BTM_BLE_AD_TYPE_16SRV_CMPL      HCI_EIR_COMPLETE_16BITS_UUID_TYPE   /* 0x03 */
+#define BTM_BLE_AD_TYPE_32SRV_PART      HCI_EIR_MORE_32BITS_UUID_TYPE       /* 0x04 */
+#define BTM_BLE_AD_TYPE_32SRV_CMPL      HCI_EIR_COMPLETE_32BITS_UUID_TYPE   /* 0x05 */
+#define BTM_BLE_AD_TYPE_128SRV_PART     HCI_EIR_MORE_128BITS_UUID_TYPE       /* 0x06 */
+#define BTM_BLE_AD_TYPE_128SRV_CMPL     HCI_EIR_COMPLETE_128BITS_UUID_TYPE   /* 0x07 */
+#define BTM_BLE_AD_TYPE_NAME_SHORT      HCI_EIR_SHORTENED_LOCAL_NAME_TYPE       /* 0x08 */
+#define BTM_BLE_AD_TYPE_NAME_CMPL       HCI_EIR_COMPLETE_LOCAL_NAME_TYPE        /* 0x09 */
+#define BTM_BLE_AD_TYPE_TX_PWR          HCI_EIR_TX_POWER_LEVEL_TYPE             /* 0x0A */
 #define BTM_BLE_AD_TYPE_DEV_CLASS       0x0D
-#define BTM_BLE_AD_TYPE_ATTR            0x10
-#define BTM_BLE_AD_TYPE_MANU            0xff
+#define BTM_BLE_AD_TYPE_SM_TK           0x10
+#define BTM_BLE_AD_TYPE_SM_OOB_FLAG     0x11
 #define BTM_BLE_AD_TYPE_INT_RANGE       0x12
 #define BTM_BLE_AD_TYPE_SOL_SRV_UUID    0x14
+#define BTM_BLE_AD_TYPE_128SOL_SRV_UUID 0x15
+#define BTM_BLE_AD_TYPE_SERVICE_DATA    0x16
+#define BTM_BLE_AD_TYPE_PUBLIC_TARGET   0x17
+#define BTM_BLE_AD_TYPE_RANDOM_TARGET   0x18
+#define BTM_BLE_AD_TYPE_APPEARANCE      0x19
+#define BTM_BLE_AD_TYPE_MANU            HCI_EIR_MANUFACTURER_SPECIFIC_TYPE      /* 0xff */
 typedef UINT8   tBTM_BLE_AD_TYPE;
 
 /* slave preferred connection interval range */
@@ -203,24 +251,6 @@ typedef struct
     BOOLEAN     list_cmpl;
     UINT16      *p_uuid;
 }tBTM_BLE_SERVICE;
-
-/* attribute data */
-typedef struct
-{
-    UINT16       uuid;
-    UINT16       data_len;
-    UINT8       *p_data;
-}tBTM_BLE_ATTR;
-
-#ifndef BTM_BLE_NUM_AD_ATTR_MAX
-#define BTM_BLE_NUM_AD_ATTR_MAX         10
-#endif
-/* attribute list contained in adv data */
-typedef struct
-{
-    UINT8               num_attr;
-    tBTM_BLE_ATTR       attr_list[BTM_BLE_NUM_AD_ATTR_MAX];
-}tBTM_BLE_ATTR_DATA;
 
 typedef struct
 {
@@ -243,11 +273,11 @@ typedef struct
 
 typedef struct
 {
-    tBTM_BLE_MANU           manu;        /* manufactuer data */
+    tBTM_BLE_MANU           manu;			/* manufactuer data */
     tBTM_BLE_INT_RANGE      int_range;      /* slave prefered conn interval range */
     tBTM_BLE_SERVICE        services;       /* services */
-    tBTM_BLE_ATTR_DATA      attr;           /* attribute data */
     UINT8                   flag;
+    UINT16                  appearance;
     tBTM_BLE_PROPRIETARY    *p_proprietary;
 }tBTM_BLE_ADV_DATA;
 
@@ -262,7 +292,6 @@ typedef struct
     UINT8               tx_power_level;
     UINT8               remote_name_len;
     UINT8               *p_remote_name;
-    tBTM_BLE_ATTR_DATA  attr_data;
     tBTM_BLE_SERVICE    service;
 } tBTM_BLE_INQ_DATA;
 
@@ -283,6 +312,7 @@ typedef void (tBTM_BLE_VERIFY_CBACK)(void *p_ref_data, BOOLEAN match);
 typedef void (tBTM_BLE_RANDOM_SET_CBACK) (BD_ADDR random_bda);
 
 typedef void (tBTM_BLE_SCAN_REQ_CBACK)(BD_ADDR remote_bda, tBLE_ADDR_TYPE addr_type, UINT8 adv_evt);
+
 /*****************************************************************************
 **  EXTERNAL FUNCTION DECLARATIONS
 *****************************************************************************/
@@ -554,18 +584,6 @@ BTM_API extern BOOLEAN BTM_BleVerifySignature (BD_ADDR bd_addr, UINT8 *p_orig,
 
 /*******************************************************************************
 **
-** Function         BTM_SetRandomAddr
-**
-** Description      This function is called to set the local device random address
-**                  .
-**
-** Returns          void
-**
-*******************************************************************************/
-BTM_API extern void BTM_SetRandomAddr (tBTM_BLE_RANDOM_SET_CBACK *p_cback);
-
-/*******************************************************************************
-**
 ** Function         BTM_ReadConnectionAddr
 **
 ** Description      This function is called to set the local device random address
@@ -574,7 +592,24 @@ BTM_API extern void BTM_SetRandomAddr (tBTM_BLE_RANDOM_SET_CBACK *p_cback);
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_ReadConnectionAddr (BD_ADDR conn_addr);
+BTM_API extern void BTM_ReadConnectionAddr (BD_ADDR remote_bda, BD_ADDR local_conn_addr,
+                                            tBLE_ADDR_TYPE *p_addr_type);
+
+
+
+/*******************************************************************************
+**
+** Function         BTM_ReadRemoteConnectionAddr
+**
+** Description      This function is read the remote device address currently used
+**                  .
+**
+** Returns          void
+**
+*******************************************************************************/
+BTM_API extern BOOLEAN BTM_ReadRemoteConnectionAddr(BD_ADDR pseudo_addr,
+                                                    BD_ADDR conn_addr,
+                                                    tBLE_ADDR_TYPE *p_addr_type);
 
 /*******************************************************************************
 **
@@ -721,7 +756,113 @@ BTM_API extern tBTM_STATUS BTM_BleBroadcast(BOOLEAN start);
 *******************************************************************************/
 BTM_API extern void BTM_RegisterScanReqEvt(tBTM_BLE_SCAN_REQ_CBACK *p_scan_req_cback);
 
+/*******************************************************************************
+**
+** Function         BTM_BleConfigPrivacy
+**
+** Description      This function is called to enable or disable the privacy in
+**                  the local device.
+**
+** Parameters       enable: TRUE to enable it; FALSE to disable it.
+**
+** Returns          void
+**
+*******************************************************************************/
+BTM_API extern void BTM_BleConfigPrivacy(BOOLEAN enable);
 
+/*******************************************************************************
+**
+** Function         BTM_BleSetConnMode
+**
+** Description      This function is called to set BLE connectable mode for a
+**                  peripheral device.
+**
+** Parameters       directed: is directed connectable mode, or non-directed.
+**                  p_dir_bda: connectable direct initiator's LE device address
+**
+** Returns          void
+**
+*******************************************************************************/
+BTM_API extern tBTM_STATUS BTM_BleSetConnMode(BOOLEAN directed);
+
+/*******************************************************************************
+**
+** Function         BTM_BleTurnOnPrivacyOnRemote
+**
+** Description      This function is called to enable or disable the privacy on the
+**                  remote device.
+**
+** Parameters       bd_addr: remote device address.
+**                  privacy_on: TRUE to enable it; FALSE to disable it.
+**
+** Returns          void
+**
+*******************************************************************************/
+BTM_API extern void BTM_BleTurnOnPrivacyOnRemote(BD_ADDR bd_addr,
+                                                 BOOLEAN privacy_on);
+
+
+/*******************************************************************************
+**
+** Function         BTM_BleUpdateAdvWhitelist
+**
+** Description      Add or remove device from advertising white list
+**
+** Returns          void
+**
+*******************************************************************************/
+BTM_API extern BOOLEAN BTM_BleUpdateAdvWhitelist(BOOLEAN add_remove, BD_ADDR emote_bda);
+
+/*******************************************************************************
+**
+** Function         BTM_BleUpdateAdvFilterPolicy
+**
+** Description      This function update the filter policy of advertiser.
+**
+** Parameter        adv_policy: advertising filter policy
+**
+** Return           void
+*******************************************************************************/
+BTM_API extern void BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy);
+
+/*******************************************************************************
+**
+** Function         BTM_BleReceiverTest
+**
+** Description      This function is called to start the LE Receiver test
+**
+** Parameter       rx_freq - Frequency Range
+**               p_cmd_cmpl_cback - Command Complete callback
+**
+*******************************************************************************/
+void BTM_BleReceiverTest(UINT8 rx_freq, tBTM_CMPL_CB *p_cmd_cmpl_cback);
+
+
+/*******************************************************************************
+**
+** Function         BTM_BleTransmitterTest
+**
+** Description      This function is called to start the LE Transmitter test
+**
+** Parameter       tx_freq - Frequency Range
+**                       test_data_len - Length in bytes of payload data in each packet
+**                       packet_payload - Pattern to use in the payload
+**                       p_cmd_cmpl_cback - Command Complete callback
+**
+*******************************************************************************/
+void BTM_BleTransmitterTest(UINT8 tx_freq, UINT8 test_data_len,
+                                 UINT8 packet_payload, tBTM_CMPL_CB *p_cmd_cmpl_cback);
+
+/*******************************************************************************
+**
+** Function         BTM_BleTestEnd
+**
+** Description      This function is called to stop the in-progress TX or RX test
+**
+** Parameter       p_cmd_cmpl_cback - Command complete callback
+**
+*******************************************************************************/
+void BTM_BleTestEnd(tBTM_CMPL_CB *p_cmd_cmpl_cback);
 #ifdef __cplusplus
 }
 #endif

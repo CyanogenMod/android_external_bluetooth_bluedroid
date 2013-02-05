@@ -61,7 +61,10 @@ static int uhid_event(btif_hh_device_t *p_dev)
     ssize_t ret;
     memset(&ev, 0, sizeof(ev));
     if(!p_dev)
+    {
         APPL_TRACE_ERROR1("%s: Device not found",__FUNCTION__)
+        return -1;
+    }
     ret = read(p_dev->fd, &ev, sizeof(ev));
     if (ret == 0) {
         APPL_TRACE_ERROR2("%s: Read HUP on uhid-cdev %s", __FUNCTION__,
@@ -91,7 +94,6 @@ static int uhid_event(btif_hh_device_t *p_dev)
         APPL_TRACE_DEBUG0("UHID_CLOSE from uhid-dev\n");
         break;
     case UHID_OUTPUT:
-        APPL_TRACE_DEBUG0("UHID_OUTPUT from uhid-dev\n");
         APPL_TRACE_DEBUG2("UHID_OUTPUT: Report type = %d, report_size = %d"
                             ,ev.u.output.rtype, ev.u.output.size);
         //Send SET_REPORT with feature report if the report type in output event is FEATURE
@@ -331,8 +333,9 @@ void bta_hh_co_close(UINT8 dev_handle, UINT8 app_id)
         p_dev = &btif_hh_cb.devices[i];
         if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN && p_dev->dev_handle == dev_handle) {
             APPL_TRACE_WARNING3("%s: Found an existing device with the same handle "
-                                                                "dev_status = %d, dev_handle =%d",__FUNCTION__,
-                                                                p_dev->dev_status,p_dev->dev_handle);
+                                                        "dev_status = %d, dev_handle =%d"
+                                                        ,__FUNCTION__,p_dev->dev_status
+                                                        ,p_dev->dev_handle);
             btif_hh_close_poll_thread(p_dev);
             break;
         }

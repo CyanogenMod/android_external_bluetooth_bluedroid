@@ -88,7 +88,7 @@ void hidh_get_str_attr( tSDP_DISC_REC *p_rec, UINT16 attr_id, UINT16 max_len, ch
         else
         {
             memcpy( str, (char *) p_attr->attr_value.v.array, max_len-1 );
-            str[max_len] = '\0';
+            str[max_len-1] = '\0';
         }
     }
     else
@@ -220,7 +220,7 @@ static void hidh_search_callback (UINT16 sdp_result)
         p_nvi->ssr_min_tout = p_attr->attr_value.v.u16;
     }
     else
-        p_nvi->ssr_max_latency = HID_SSR_PARAM_INVALID;
+        p_nvi->ssr_min_tout = HID_SSR_PARAM_INVALID;
 
     hh_cb.sdp_rec.p_sdp_layer_rec = p_rec;
     hh_cb.sdp_cback(SDP_SUCCESS, attr_mask, &hh_cb.sdp_rec);
@@ -454,7 +454,7 @@ tHID_STATUS HID_HostWriteDev( UINT8 dev_handle, UINT8 t_type,
         status = HID_ERR_INVALID_PARAM;
     }
 
-    if( hh_cb.devices[dev_handle].state != HID_DEV_CONNECTED )
+    else if( hh_cb.devices[dev_handle].state != HID_DEV_CONNECTED )
     {
         HIDH_TRACE_ERROR1("HID_ERR_NO_CONNECTION dev_handle %d", dev_handle);
         status = HID_ERR_NO_CONNECTION;

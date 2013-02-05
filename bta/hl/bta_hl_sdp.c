@@ -310,7 +310,7 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
                 }
 
                 cnt++;
-                if (cnt>BTA_HL_NUM_SUP_FEATURE_ELEMS)
+                if (cnt==BTA_HL_NUM_SUP_FEATURE_ELEMS)
                 {
                     result = FALSE;
                     break;

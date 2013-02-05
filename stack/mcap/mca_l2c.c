@@ -30,19 +30,10 @@
 #include "mca_defs.h"
 #include "mca_int.h"
 
-/* callback function declarations */
-void mca_l2c_cconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id);
-void mca_l2c_dconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id);
-void mca_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result);
-void mca_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg);
-void mca_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg);
-void mca_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed);
-void mca_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result);
-void mca_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested);
-void mca_l2c_data_ind_cback(UINT16 lcid, BT_HDR *p_buf);
 
 /* L2CAP callback function structure */
-const tL2CAP_APPL_INFO mca_l2c_int_appl = {
+const tL2CAP_APPL_INFO mca_l2c_int_appl =
+{
     NULL,
     mca_l2c_connect_cfm_cback,
     NULL,
@@ -52,11 +43,13 @@ const tL2CAP_APPL_INFO mca_l2c_int_appl = {
     mca_l2c_disconnect_cfm_cback,
     NULL,
     mca_l2c_data_ind_cback,
-    mca_l2c_congestion_ind_cback
+    mca_l2c_congestion_ind_cback,
+	NULL
 };
 
 /* Control channel eL2CAP default options */
-const tL2CAP_FCR_OPTS mca_l2c_fcr_opts_def = {
+const tL2CAP_FCR_OPTS mca_l2c_fcr_opts_def =
+{
     L2CAP_FCR_ERTM_MODE,            /* Mandatory for MCAP */
     MCA_FCR_OPT_TX_WINDOW_SIZE,     /* Tx window size */
     MCA_FCR_OPT_MAX_TX_B4_DISCNT,   /* Maximum transmissions before disconnecting */

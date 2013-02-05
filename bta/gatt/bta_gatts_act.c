@@ -292,7 +292,6 @@ void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
     tBTA_GATTS          cb_data;
     UINT8               srvc_idx;
     UINT16              service_id = 0;
-    //tBTA_GATTS_HNDL_RANGE   handle_range;
 
     cb_data.create.status = BTA_GATT_ERROR;
 
@@ -713,7 +712,6 @@ void bta_gatts_close (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
     }
 
 }
-
 
 /*******************************************************************************
 **

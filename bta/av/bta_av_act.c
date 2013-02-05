@@ -363,7 +363,7 @@ UINT8 bta_av_rc_create(tBTA_AV_CB *p_cb, UINT8 role, UINT8 shdl, UINT8 lidx)
 ** Returns          BTA_AV_RSP_ACCEPT or BTA_AV_RSP_NOT_IMPL.
 **
 *******************************************************************************/
-static tBTA_AV_CODE bta_av_group_navi_supported(UINT8 len, UINT8 *p_data)
+static tBTA_AV_CODE bta_av_group_navi_supported(UINT8 len, UINT8 *p_data, BOOLEAN is_inquiry)
 {
     tBTA_AV_CODE ret=BTA_AV_RSP_NOT_IMPL;
     UINT8 *p_ptr = p_data;
@@ -377,10 +377,18 @@ static tBTA_AV_CODE bta_av_group_navi_supported(UINT8 len, UINT8 *p_data)
 
         if (u32 == AVRC_CO_METADATA)
         {
-            if (u16 <= AVRC_PDU_PREV_GROUP)
-                ret = BTA_AV_RSP_ACCEPT;
+            if (is_inquiry)
+            {
+                if (u16 <= AVRC_PDU_PREV_GROUP)
+                    ret = BTA_AV_RSP_IMPL_STBL;
+            }
             else
-                ret = BTA_AV_RSP_REJ;
+            {
+                if (u16 <= AVRC_PDU_PREV_GROUP)
+                    ret = BTA_AV_RSP_ACCEPT;
+                else
+                    ret = BTA_AV_RSP_REJ;
+            }
         }
     }
 
@@ -396,23 +404,34 @@ static tBTA_AV_CODE bta_av_group_navi_supported(UINT8 len, UINT8 *p_data)
 ** Returns          BTA_AV_RSP_ACCEPT of supported, BTA_AV_RSP_NOT_IMPL if not.
 **
 *******************************************************************************/
-static tBTA_AV_CODE bta_av_op_supported(tBTA_AV_RC rc_id)
+static tBTA_AV_CODE bta_av_op_supported(tBTA_AV_RC rc_id, BOOLEAN is_inquiry)
 {
     tBTA_AV_CODE ret_code = BTA_AV_RSP_NOT_IMPL;
 
     if (p_bta_av_rc_id)
     {
-        if (p_bta_av_rc_id[rc_id >> 4] & (1 << (rc_id & 0x0F)))
+        if (is_inquiry)
         {
-            ret_code = BTA_AV_RSP_ACCEPT;
-        }
-        else if ((p_bta_av_cfg->rc_pass_rsp == BTA_AV_RSP_INTERIM) && p_bta_av_rc_id_ac)
-        {
-            if (p_bta_av_rc_id_ac[rc_id >> 4] & (1 << (rc_id & 0x0F)))
+            if (p_bta_av_rc_id[rc_id >> 4] & (1 << (rc_id & 0x0F)))
             {
-                ret_code = BTA_AV_RSP_INTERIM;
+                ret_code = BTA_AV_RSP_IMPL_STBL;
             }
         }
+        else
+        {
+            if (p_bta_av_rc_id[rc_id >> 4] & (1 << (rc_id & 0x0F)))
+            {
+                ret_code = BTA_AV_RSP_ACCEPT;
+            }
+            else if ((p_bta_av_cfg->rc_pass_rsp == BTA_AV_RSP_INTERIM) && p_bta_av_rc_id_ac)
+            {
+                if (p_bta_av_rc_id_ac[rc_id >> 4] & (1 << (rc_id & 0x0F)))
+                {
+                    ret_code = BTA_AV_RSP_INTERIM;
+                }
+            }
+        }
+
     }
     return ret_code;
 }
@@ -824,11 +843,15 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     tBTA_AV     av;
     BT_HDR      *p_pkt = NULL;
     tAVRC_MSG_VENDOR    *p_vendor = &p_data->rc_msg.msg.vendor;
+    BOOLEAN is_inquiry = ((p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_SPEC_INQ) || p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_GEN_INQ);
 
     if (p_data->rc_msg.opcode == AVRC_OP_PASS_THRU)
     {
     /* if this is a pass thru command */
-        if (p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_CTRL)
+        if ((p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_CTRL) ||
+            (p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_SPEC_INQ) ||
+            (p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_GEN_INQ)
+            )
         {
         /* check if operation is supported */
             if (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VENDOR)
@@ -837,8 +860,10 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             }
             else
             {
-                p_data->rc_msg.msg.hdr.ctype = bta_av_op_supported(p_data->rc_msg.msg.pass.op_id);
+                p_data->rc_msg.msg.hdr.ctype = bta_av_op_supported(p_data->rc_msg.msg.pass.op_id, is_inquiry);
             }
+
+            APPL_TRACE_DEBUG1("ctype %d",p_data->rc_msg.msg.hdr.ctype)
 
             /* send response */
             if (p_data->rc_msg.msg.hdr.ctype != BTA_AV_RSP_INTERIM)
@@ -1335,17 +1360,10 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
             {
                 mask = 1 << xx;
                 APPL_TRACE_DEBUG1("conn_lcb: 0x%x", p_cb->conn_lcb);
-                if(!(mask & p_cb->conn_lcb))
-                {
-                    if (!p_cb->p_scb[xx])
-                    {
-                        /* We do not have scb for this avdt connection.     */
-                        /* Silently close the connection.                   */
-                        APPL_TRACE_ERROR0("av scb not available for avdt connection");
-                        AVDT_DisconnectReq (p_data->str_msg.bd_addr, NULL);
-                        return;
-                    }
 
+                /* look for a p_lcb with its p_scb registered */
+                if((!(mask & p_cb->conn_lcb)) && (p_cb->p_scb[xx] != NULL))
+                {
                     p_lcb = &p_cb->lcb[xx];
                     p_lcb->lidx = xx + 1;
                     bdcpy(p_lcb->addr, p_data->str_msg.bd_addr);
@@ -1381,6 +1399,16 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
                     }
                     break;
                 }
+            }
+
+            /* check if we found something */
+            if (xx == BTA_AV_NUM_LINKS)
+            {
+                /* We do not have scb for this avdt connection.     */
+                /* Silently close the connection.                   */
+                APPL_TRACE_ERROR0("av scb not available for avdt connection");
+                AVDT_DisconnectReq (p_data->str_msg.bd_addr, NULL);
+                return;
             }
         }
     }
@@ -1516,9 +1544,10 @@ static void bta_av_acp_sig_timer_cback (TIMER_LIST_ENT *p_tle)
 **
 ** Function         bta_av_check_peer_features
 **
-** Description      checks
+** Description      check supported features on the peer device from the SDP record
+**                  and return the feature mask
 **
-** Returns          void
+** Returns          tBTA_AV_FEAT peer device feature mask
 **
 *******************************************************************************/
 tBTA_AV_FEAT bta_av_check_peer_features (UINT16 service_uuid)
@@ -1624,13 +1653,9 @@ void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
     }
 
     APPL_TRACE_DEBUG1("rc_handle %d", rc_handle);
+    /* check peer version and whether support CT and TG role */
     peer_features = bta_av_check_peer_features (UUID_SERVCLASS_AV_REMOTE_CONTROL);
-    if ((p_cb->features & BTA_AV_FEAT_ADV_CTRL) && ((peer_features&BTA_AV_FEAT_ADV_CTRL) == 0))
-    {
-        /* if we support advance control and peer does not, check their support on TG role
-         * some implementation uses 1.3 on CT ans 1.4 on TG */
-        peer_features |= bta_av_check_peer_features (UUID_SERVCLASS_AV_REM_CTRL_TARGET);
-    }
+    peer_features |= bta_av_check_peer_features (UUID_SERVCLASS_AV_REM_CTRL_TARGET);
 
     p_cb->disc = 0;
     utl_freebuf((void **) &p_cb->p_disc_db);

@@ -78,39 +78,6 @@ const UINT8  bta_av_meta_caps_evt_ids[] = {
 #define BTA_AV_NUM_RC_EVT_IDS   (sizeof(bta_av_meta_caps_evt_ids) / sizeof(bta_av_meta_caps_evt_ids[0]))
 #endif /* BTA_AV_NUM_RC_EVT_IDS */
 
-
-#else /* !ANDROID_APP_INCLUDED */
-
-/* Note: if AVRC_SUPF_TG_GROUP_NAVI is set, bta_av_cfg.avrc_group should be TRUE */
-#define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1)
-
-const UINT16  bta_av_audio_flush_to[] = {
-    120, /* 1 stream  */
-    100, /* 2 streams */
-     80, /* 3 streams */
-     60, /* 4 streams */
-     40  /* 5 streams */
-};     /* AVDTP audio transport channel flush timeout */
-
-
-/*
- * If the number of event IDs is changed in this array, BTA_AV_ NUM_RC_EVT_IDS   also needs to be changed.
- */
-const UINT8  bta_av_meta_caps_evt_ids[] = {
-    AVRC_EVT_PLAY_STATUS_CHANGE,
-    AVRC_EVT_TRACK_CHANGE,
-    AVRC_EVT_TRACK_REACHED_END,
-    AVRC_EVT_TRACK_REACHED_START,
-    AVRC_EVT_PLAY_POS_CHANGED,
-    AVRC_EVT_BATTERY_STATUS_CHANGE,
-    AVRC_EVT_SYSTEM_STATUS_CHANGE,
-    AVRC_EVT_APP_SETTING_CHANGE,
-};
-
-#ifndef BTA_AV_NUM_RC_EVT_IDS
-#define BTA_AV_NUM_RC_EVT_IDS   8
-#endif
-
 #endif /* ANDROID_APP_INCLUDED */
 
 /* the MTU for the AVRCP browsing channel */

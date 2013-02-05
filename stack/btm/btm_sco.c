@@ -308,8 +308,6 @@ void  btm_route_sco_data(BT_HDR *p_msg)
 #endif
 }
 
-
-
 /*******************************************************************************
 **
 ** Function         BTM_WriteScoData
@@ -619,10 +617,7 @@ tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, BOOLEAN is_orig, UINT16 pkt_types
                     {
                         if (md == BTM_PM_MD_PARK || md == BTM_PM_MD_SNIFF)
                         {
-/* Coverity: FALSE-POSITIVE error from Coverity tool. Please do NOT remove following comment. */
-/* coverity[uninit_use_in_call] False-positive: setting the mode to BTM_PM_MD_ACTIVE only uses settings.mode
-                                the other data members of tBTM_PM_PWR_MD are ignored
-*/
+                            memset( (void*)&pm, 0, sizeof(pm));
                             pm.mode = BTM_PM_MD_ACTIVE;
                             BTM_SetPowerMode(BTM_PM_SET_ONLY_ID, remote_bda, &pm);
                             p->state = SCO_ST_PEND_UNPARK;
@@ -1447,6 +1442,8 @@ tBTM_STATUS BTM_RegForEScoEvts (UINT16 sco_inx, tBTM_ESCO_CBACK *p_esco_cback)
 tBTM_STATUS BTM_ReadEScoLinkParms (UINT16 sco_inx, tBTM_ESCO_DATA *p_parms)
 {
 #if (BTM_MAX_SCO_LINKS>0)
+    UINT8 index;
+
     BTM_TRACE_API1("BTM_ReadEScoLinkParms -> sco_inx 0x%04x", sco_inx);
 
     if (sco_inx < BTM_MAX_SCO_LINKS &&
@@ -1455,8 +1452,23 @@ tBTM_STATUS BTM_ReadEScoLinkParms (UINT16 sco_inx, tBTM_ESCO_DATA *p_parms)
         *p_parms = btm_cb.sco_cb.sco_db[sco_inx].esco.data;
         return (BTM_SUCCESS);
     }
+
+    if (sco_inx == BTM_FIRST_ACTIVE_SCO_INDEX)
+    {
+        for (index = 0; index < BTM_MAX_SCO_LINKS; index++)
+        {
+            if (btm_cb.sco_cb.sco_db[index].state >= SCO_ST_CONNECTED)
+            {
+                BTM_TRACE_API1("BTM_ReadEScoLinkParms the first active SCO index is %d",index);
+                *p_parms = btm_cb.sco_cb.sco_db[index].esco.data;
+                return (BTM_SUCCESS);
+            }
+        }
+    }
+
 #endif
 
+    BTM_TRACE_API0("BTM_ReadEScoLinkParms cannot find the SCO index!");
     memset(p_parms, 0, sizeof(tBTM_ESCO_DATA));
     return (BTM_WRONG_MODE);
 }

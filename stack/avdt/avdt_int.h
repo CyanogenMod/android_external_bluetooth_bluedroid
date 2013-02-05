@@ -459,6 +459,7 @@ typedef struct {
     UINT32      data_len;
 #endif
     UINT8       m_pt;
+    tAVDT_DATA_OPT_MASK     opt;
 } tAVDT_SCB_APIWRITE;
 
 /* type for AVDT_SCB_TC_CLOSE_EVT */

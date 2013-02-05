@@ -266,6 +266,7 @@ static void update_keyboard_lockstates(btif_hh_device_t *p_dev)
     if (p_dev->p_buf != NULL) {
         p_dev->p_buf->len = len;
         p_dev->p_buf->offset = BTA_HH_MIN_OFFSET;
+        p_dev->p_buf->layer_specific = BTA_HH_RPTT_OUTPUT;
 
         /* LED status updated by data event */
         UINT8 *pbuf_data  = (UINT8 *)(p_dev->p_buf + 1)
@@ -1571,6 +1572,7 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
             UINT8* pbuf_data;
             pbuf_data = (UINT8*) (p_dev->p_buf + 1) + p_dev->p_buf->offset;
             memcpy(pbuf_data, hexbuf, hex_bytes_filled);
+            p_dev->p_buf->layer_specific = BTA_HH_RPTT_OUTPUT;
             BTA_HhSendData(p_dev->dev_handle, *bda, p_dev->p_buf);
             return BT_STATUS_SUCCESS;
         }
@@ -1619,7 +1621,7 @@ static void  cleanup( void )
 }
 
 static const bthh_interface_t bthhInterface = {
-    sizeof(bt_interface_t),
+    sizeof(bthhInterface),
     init,
     connect,
     disconnect,
@@ -1649,7 +1651,7 @@ bt_status_t btif_hh_execute_service(BOOLEAN b_enable)
      if (b_enable)
      {
           /* Enable and register with BTA-HH */
-          BTA_HhEnable(BTA_SEC_NONE, FALSE, bte_hh_evt);
+          BTA_HhEnable(BTA_SEC_NONE, bte_hh_evt);
      }
      else {
          /* Disable HH */

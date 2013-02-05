@@ -181,7 +181,7 @@ void smp_proc_passkey(tSMP_CB *p_cb , tBTM_RAND_ENC *p)
 {
     UINT8   *tt = p_cb->tk;
     tSMP_KEY    key;
-    UINT32  passkey; //= 19655 test number; */
+    UINT32  passkey; /* 19655 test number; */
     UINT8 *pp = p->param_buf;
 
     SMP_TRACE_DEBUG0 ("smp_proc_passkey ");
@@ -445,23 +445,25 @@ void smp_concatenate_peer( tSMP_CB *p_cb, UINT8 **p_data, UINT8 op_code)
 void smp_gen_p1_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p1)
 {
     UINT8 *p = (UINT8 *)p1;
-    tBTM_SEC_DEV_REC  *p_dev_rec;
+    tBLE_ADDR_TYPE    addr_type = 0;
+    BD_ADDR           remote_bda;
 
     SMP_TRACE_DEBUG0 ("smp_gen_p1_4_confirm");
-    if ((p_dev_rec = btm_find_dev (p_cb->pairing_bda)) == NULL)
+
+    if (!BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, remote_bda, &addr_type))
     {
         SMP_TRACE_ERROR0("can not generate confirm for unknown device");
         return;
     }
 
-    BTM_ReadConnectionAddr(p_cb->local_bda);
+    BTM_ReadConnectionAddr( p_cb->pairing_bda, p_cb->local_bda, &p_cb->addr_type);
 
     if (p_cb->role == HCI_ROLE_MASTER)
     {
         /* LSB : rat': initiator's(local) address type */
-        UINT8_TO_STREAM(p, 0);
+        UINT8_TO_STREAM(p, p_cb->addr_type);
         /* LSB : iat': responder's address type */
-        UINT8_TO_STREAM(p, p_dev_rec->ble.ble_addr_type);
+        UINT8_TO_STREAM(p, addr_type);
         /* concatinate preq */
         smp_concatenate_local(p_cb, &p, SMP_OPCODE_PAIRING_REQ);
         /* concatinate pres */
@@ -470,9 +472,9 @@ void smp_gen_p1_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p1)
     else
     {
         /* LSB : iat': initiator's address type */
-        UINT8_TO_STREAM(p, p_dev_rec->ble.ble_addr_type);
+        UINT8_TO_STREAM(p, addr_type);
         /* LSB : rat': responder's(local) address type */
-        UINT8_TO_STREAM(p, 0);
+        UINT8_TO_STREAM(p, p_cb->addr_type);
         /* concatinate preq */
         smp_concatenate_peer(p_cb, &p, SMP_OPCODE_PAIRING_REQ);
         /* concatinate pres */
@@ -495,15 +497,24 @@ void smp_gen_p1_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p1)
 *******************************************************************************/
 void smp_gen_p2_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p2)
 {
-    UINT8   *p = (UINT8 *)p2;
+    UINT8       *p = (UINT8 *)p2;
+    BD_ADDR     remote_bda;
+    tBLE_ADDR_TYPE  addr_type = 0;
+
+    if (!BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, remote_bda, &addr_type))
+    {
+        SMP_TRACE_ERROR0("can not generate confirm p2 for unknown device");
+        return;
+    }
 
     SMP_TRACE_DEBUG0 ("smp_gen_p2_4_confirm");
+
     memset(p, 0, sizeof(BT_OCTET16));
 
     if (p_cb->role == HCI_ROLE_MASTER)
     {
         /* LSB ra */
-        BDADDR_TO_STREAM(p, p_cb->pairing_bda);
+        BDADDR_TO_STREAM(p, remote_bda);
         /* ia */
         BDADDR_TO_STREAM(p, p_cb->local_bda);
     }
@@ -512,7 +523,7 @@ void smp_gen_p2_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p2)
         /* LSB ra */
         BDADDR_TO_STREAM(p, p_cb->local_bda);
         /* ia */
-        BDADDR_TO_STREAM(p, p_cb->pairing_bda);
+        BDADDR_TO_STREAM(p, remote_bda);
     }
 #if SMP_DEBUG == TRUE
     SMP_TRACE_DEBUG0("p2 = padding || ia || ra");

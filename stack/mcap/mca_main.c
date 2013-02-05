@@ -563,6 +563,7 @@ void mca_rcb_dealloc(tMCA_HANDLE handle)
             if (done)
             {
                 memset (p_rcb, 0, sizeof(tMCA_RCB));
+                MCA_TRACE_DEBUG1("Reset MCA_RCB index=%d",handle);
             }
         }
     }

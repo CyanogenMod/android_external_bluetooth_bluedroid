@@ -332,6 +332,18 @@ void gatt_process_exec_write_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
     tGATT_IF gatt_if;
     UINT16  conn_id;
 
+#if GATT_CONFORMANCE_TESTING == TRUE
+    if (gatt_cb.enable_err_rsp && gatt_cb.req_op_code == op_code)
+    {
+        GATT_TRACE_DEBUG2("conf test forced err rsp for %s error status=%d",
+                           __FUNCTION__,gatt_cb.err_status);
+
+        gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, 0, FALSE);
+
+        return;
+    }
+#endif
+
     STREAM_TO_UINT8(flag, p);
 
     /* mask the flag */

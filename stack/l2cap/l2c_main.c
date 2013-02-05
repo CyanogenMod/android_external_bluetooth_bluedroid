@@ -50,7 +50,7 @@ tL2C_CB l2cb;
 /* Temporary - until l2cap implements group management */
 #if (TCS_BCST_SETUP_INCLUDED == TRUE && TCS_INCLUDED == TRUE)
 extern void tcs_proc_bcst_msg( BD_ADDR addr, BT_HDR *p_msg ) ;
-
+#endif
 /*******************************************************************************
 **
 ** Function         l2c_bcst_msg
@@ -104,7 +104,7 @@ void l2c_bcst_msg( BT_HDR *p_buf, UINT16 psm )
         HCI_ACL_DATA_TO_LOWER (p_buf);
     }
 }
-#endif
+
 
 /*******************************************************************************
 **
@@ -680,31 +680,10 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             break;
 
         case L2CAP_CMD_ECHO_REQ:
-
-#if (L2CAP_ENHANCED_FEATURES != 0)
-            if (!l2cu_check_feature_req (p_lcb, id, p, cmd_len))
-            {
-                if (cmd_len < (btu_cb.hcit_acl_pkt_size - L2CAP_PKT_OVERHEAD
-                                                        - L2CAP_CMD_OVERHEAD
-                                                        - L2CAP_ECHO_RSP_LEN
-                                                        - HCI_DATA_PREAMBLE_SIZE))
-                {
-                    l2cu_send_peer_echo_rsp (p_lcb, id, p, cmd_len);
-                }
-                else
-                {
-                    l2cu_send_peer_echo_rsp (p_lcb, id, NULL, 0);
-                }
-            }
-#else
             l2cu_send_peer_echo_rsp (p_lcb, id, NULL, 0);
-#endif
             break;
 
         case L2CAP_CMD_ECHO_RSP:
-#if (L2CAP_ENHANCED_FEATURES != 0)
-            l2cu_check_feature_rsp (p_lcb, id, p, cmd_len);
-#endif
             if (p_lcb->p_echo_rsp_cb)
             {
                 tL2CA_ECHO_RSP_CB *p_cb = p_lcb->p_echo_rsp_cb;

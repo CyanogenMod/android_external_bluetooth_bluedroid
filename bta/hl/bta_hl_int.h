@@ -485,6 +485,7 @@ typedef struct
     UINT8                   sdp_mdl_idx;
     tBTA_HL_SDP             sdp;
     UINT8                   cch_oper;
+    UINT8                   force_close_local_cch_opening;
     BOOLEAN                 intentional_close;
     BOOLEAN                 rsp_tout;
     UINT8                   timer_oper;
@@ -667,6 +668,7 @@ extern "C"
     extern void bta_hl_cch_mca_close(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
     extern void bta_hl_cch_close_cmpl(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
     extern void bta_hl_cch_mca_disconnect(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
+    extern void bta_hl_cch_mca_disc_open(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
     extern void bta_hl_cch_mca_rsp_tout(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
     extern void bta_hl_cch_mca_connect(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
 

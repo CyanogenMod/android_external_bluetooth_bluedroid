@@ -1371,6 +1371,9 @@ BOOLEAN btsnd_hcic_change_name (BD_NAME name)
     UINT16_TO_STREAM (pp, HCI_CHANGE_LOCAL_NAME);
     UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_CHANGE_NAME);
 
+    if (len > HCIC_PARAM_SIZE_CHANGE_NAME)
+        len = HCIC_PARAM_SIZE_CHANGE_NAME;
+
     ARRAY_TO_STREAM (pp, name, len);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);

@@ -390,13 +390,13 @@ BT_HDR *attp_build_sr_msg(tGATT_TCB *p_tcb, UINT8 op_code, tGATT_SR_MSG *p_msg)
     switch (op_code)
     {
     case GATT_RSP_READ_BLOB:
-        GATT_TRACE_EVENT2 ("ATT_RSP_READ_BLOB: len = %d offset = %d", p_msg->attr_value.len, p_msg->attr_value.offset);
-        offset = p_msg->attr_value.offset;
-
     case GATT_RSP_PREPARE_WRITE:
-        if (offset == 0)
-            offset = p_msg->attr_value.offset;
-
+        GATT_TRACE_EVENT2 ("ATT_RSP_READ_BLOB/GATT_RSP_PREPARE_WRITE: len = %d offset = %d",
+                    p_msg->attr_value.len, p_msg->attr_value.offset);
+        offset = p_msg->attr_value.offset;
+/* Coverity: [FALSE-POSITIVE error] intended fall through */
+/* Missing break statement between cases in switch statement */
+        /* fall through */
     case GATT_RSP_READ_BY_TYPE:
     case GATT_RSP_READ:
     case GATT_HANDLE_VALUE_NOTIF:
@@ -503,7 +503,10 @@ UINT8 attp_cl_send_cmd(tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 cmd_code, BT_HDR
                 att_ret = GATT_INTERNAL_ERROR;
         }
         else
+        {
+            att_ret = GATT_CMD_STARTED;
             gatt_cmd_enq(p_tcb, clcb_idx, TRUE, cmd_code, p_cmd);
+        }
     }
     else
         att_ret = GATT_ILLEGAL_PARAMETER;

@@ -33,6 +33,13 @@
 #include "bta_gatts_int.h"
 
 /*****************************************************************************
+**  Externs
+*****************************************************************************/
+#if BTA_DYNAMIC_MEMORY == FALSE
+extern tBTA_GATTS_CB  bta_gatts_cb;
+#endif
+
+/*****************************************************************************
 **  Constants
 *****************************************************************************/
 
@@ -41,6 +48,22 @@ static const tBTA_SYS_REG bta_gatts_reg =
     bta_gatts_hdl_event,
     NULL        /* need a disable functino to be called when BT is disabled */
 };
+
+/*******************************************************************************
+**
+** Function         BTA_GATTS_Init
+**
+** Description     This function is called to initalize GATTS module
+**
+** Parameters       None
+**
+** Returns          None
+**
+*******************************************************************************/
+void BTA_GATTS_Init()
+{
+    memset(&bta_gatts_cb, 0, sizeof(tBTA_GATTS_CB));
+}
 
 /*******************************************************************************
 **

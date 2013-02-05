@@ -336,18 +336,18 @@ static BT_HDR * smp_build_id_addr_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 {
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
-    BT_OCTET16  irk;
+    BD_ADDR     static_addr;
+
+
     SMP_TRACE_EVENT0("smp_build_id_addr_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_ID_ADDR_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
-        BTM_GetDeviceIDRoot(irk);
-
         UINT8_TO_STREAM (p, SMP_OPCODE_ID_ADDR);
         UINT8_TO_STREAM (p, 0);     /* TODO: update with local address type */
-        BTM_ReadConnectionAddr(p_cb->local_bda);
-        BDADDR_TO_STREAM (p, p_cb->local_bda);
+        BTM_GetLocalDeviceAddr(static_addr);
+        BDADDR_TO_STREAM (p, static_addr);
 
         p_buf->offset = L2CAP_MIN_OFFSET;
         p_buf->len = SMP_ID_ADDR_SIZE;
@@ -367,7 +367,7 @@ static BT_HDR * smp_build_signing_info_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 {
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
-    //BT_OCTET16  srk; remove
+
     SMP_TRACE_EVENT0("smp_build_signing_info_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_SIGN_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
@@ -666,6 +666,20 @@ void smp_remove_fixed_channel_disable (BOOLEAN disable)
 {
     SMP_TRACE_DEBUG1("smp_remove_fixed_channel_disable disable =%d", disable);
     smp_cb.remove_fixed_channel_disable = disable;
+}
+/*******************************************************************************
+**
+** Function         smp_skip_compare_check
+**
+** Description      This function is called to skip the compare value check
+**
+** Returns          void
+**
+*******************************************************************************/
+void smp_skip_compare_check(BOOLEAN enable)
+{
+    SMP_TRACE_DEBUG1("smp_skip_compare_check enable=%d", enable);
+    smp_cb.skip_test_compare_check = enable;
 }
 
 #endif

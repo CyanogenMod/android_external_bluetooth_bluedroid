@@ -262,6 +262,7 @@ extern "C" {
 #define KEY_SUSPEND     205
 #define KEY_CLOSE       206
 #define KEY_PLAY        207
+#define KEY_FAST_FORWARD  208
 
 #define KEY_UNKNOWN     220
 

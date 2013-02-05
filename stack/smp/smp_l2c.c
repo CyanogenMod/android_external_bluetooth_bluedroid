@@ -99,8 +99,6 @@ static void smp_connect_cback (BD_ADDR bd_addr, BOOLEAN connected, UINT16 reason
                 p_cb->loc_auth_req = p_cb->peer_auth_req = SMP_DEFAULT_AUTH_REQ;
                 p_cb->cb_evt = SMP_IO_CAP_REQ_EVT;
                 smp_sm_event(p_cb, SMP_L2CAP_CONN_EVT, NULL);
-
-                BTM_ReadConnectionAddr(p_cb->local_bda);
             }
         }
         else

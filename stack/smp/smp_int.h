@@ -198,6 +198,7 @@ typedef struct
 
     UINT8           rand_enc_proc;
     BOOLEAN         last_cmd;
+    UINT8           addr_type;
     BD_ADDR         local_bda;
     BOOLEAN         is_pair_cancel;
     BOOLEAN         discard_sec_req;
@@ -209,6 +210,7 @@ typedef struct
     BOOLEAN         enable_test_pair_fail;
     UINT8           pair_fail_status;
     BOOLEAN         remove_fixed_channel_disable;
+    BOOLEAN         skip_test_compare_check;
 #endif
 
 }tSMP_CB;
@@ -242,6 +244,7 @@ SMP_API extern void  smp_set_test_confirm_value (BOOLEAN enable, UINT8 *p_c_valu
 SMP_API extern void  smp_set_test_rand_value (BOOLEAN enable, UINT8 *p_c_value);
 SMP_API extern void  smp_set_test_pair_fail_status (BOOLEAN enable, UINT8 status);
 SMP_API extern void  smp_remove_fixed_channel_disable (BOOLEAN disable);
+SMP_API extern void  smp_skip_compare_check (BOOLEAN enable);
 #endif
 /* smp main */
 extern void smp_sm_event(tSMP_CB *p_cb, tSMP_EVENT event, void *p_data);

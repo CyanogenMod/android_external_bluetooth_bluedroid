@@ -29,7 +29,7 @@
 #endif
 
 #ifndef BTA_HH_SSR_MAX_LATENCY_DEF
-#define BTA_HH_SSR_MAX_LATENCY_DEF  1600
+#define BTA_HH_SSR_MAX_LATENCY_DEF  800 /* 500 ms*/
 #endif
 
 #ifndef BTA_HH_SSR_MIN_TOUT_DEF
@@ -51,15 +51,28 @@
 #define BTA_HH_ADD_DEV_EVT      11      /* Add Device callback */
 #define BTA_HH_RMV_DEV_EVT      12      /* remove device finished */
 #define BTA_HH_VC_UNPLUG_EVT    13      /* virtually unplugged */
-#define BTA_HH_UPDATE_UCD_EVT   14
-#define BTA_HH_API_ERR_EVT      15      /* API error is caught */
+#define BTA_HH_DATA_EVT         15
+#define BTA_HH_API_ERR_EVT      16      /* API error is caught */
 
 typedef UINT16 tBTA_HH_EVT;
+
+/* application ID(none-zero) for each type of device */
+#define BTA_HH_APP_ID_MI            1
+#define BTA_HH_APP_ID_KB            2
+#define BTA_HH_APP_ID_RMC           3
+#define BTA_HH_APP_ID_3DSG          4
+#define BTA_HH_APP_ID_JOY           5
+#define BTA_HH_APP_ID_GPAD          6
+#define BTA_HH_APP_ID_LE            0xff
 
 /* defined the minimum offset */
 #define BTA_HH_MIN_OFFSET       L2CAP_MIN_OFFSET+1
 
+/* HID_HOST_MAX_DEVICES can not exceed 15 for th design of BTA HH */
+#define BTA_HH_IDX_INVALID      0xff
 #define BTA_HH_MAX_KNOWN        HID_HOST_MAX_DEVICES
+#define BTA_HH_MAX_DEVICE       HID_HOST_MAX_DEVICES
+
 /* invalid device handle */
 #define BTA_HH_INVALID_HANDLE   0xff
 
@@ -107,7 +120,8 @@ enum
     BTA_HH_ERR_TOD_UNSPT,       /* type of device not supported */
     BTA_HH_ERR_NO_RES,          /* out of system resources */
     BTA_HH_ERR_AUTH_FAILED,     /* authentication fail */
-    BTA_HH_ERR_HDL
+    BTA_HH_ERR_HDL,
+    BTA_HH_ERR_SEC
 };
 typedef UINT8 tBTA_HH_STATUS;
 
@@ -162,6 +176,8 @@ typedef UINT8 tBTA_HH_TRANS_CTRL_TYPE;
 
 typedef tHID_DEV_DSCP_INFO tBTA_HH_DEV_DESCR;
 
+#define BTA_HH_SSR_PARAM_INVALID       HID_SSR_PARAM_INVALID
+
 /* id DI is not existing in remote device, vendor_id in tBTA_HH_DEV_DSCP_INFO will be set to 0xffff */
 #define BTA_HH_VENDOR_ID_INVALID       0xffff
 
@@ -172,8 +188,8 @@ typedef struct
     UINT16              vendor_id;      /* vendor ID */
     UINT16              product_id;     /* product ID */
     UINT16              version;        /* version */
-    UINT16              ssr_max_latency;    /* SSR max latency */
-    UINT16              ssr_min_tout;       /* SSR min timeout */
+    UINT16              ssr_max_latency;    /* SSR max latency, BTA_HH_SSR_PARAM_INVALID if unknown */
+    UINT16              ssr_min_tout;       /* SSR min timeout, BTA_HH_SSR_PARAM_INVALID if unknown */
     UINT8               ctry_code;      /*Country Code.*/
     tBTA_HH_DEV_DESCR   descriptor;
 }tBTA_HH_DEV_DSCP_INFO;
@@ -291,7 +307,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhEnable(tBTA_SEC sec_mask, BOOLEAN ucd_enabled, tBTA_HH_CBACK *p_cback);
+BTA_API extern void BTA_HhEnable(tBTA_SEC sec_mask, tBTA_HH_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -375,6 +391,28 @@ BTA_API extern void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
                                     UINT8 rpt_id, UINT16 buf_size);
 /*******************************************************************************
 **
+** Function         BTA_HhSetIdle
+**
+** Description      send SET_IDLE to device.
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate);
+
+/*******************************************************************************
+**
+** Function         BTA_HhGetIdle
+**
+** Description      Send a GET_IDLE to HID device.
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HhGetIdle(UINT8 dev_handle);
+
+/*******************************************************************************
+**
 ** Function         BTA_HhSendCtrl
 **
 ** Description      Send HID_CONTROL request to a HID device.
@@ -455,6 +493,7 @@ BTA_API extern void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask,
 **
 *******************************************************************************/
 BTA_API extern void BTA_HhRemoveDev(UINT8 dev_handle );
+
 /*******************************************************************************
 **
 **              Parsing Utility Functions
@@ -471,6 +510,11 @@ BTA_API extern void BTA_HhRemoveDev(UINT8 dev_handle );
 *******************************************************************************/
 BTA_API extern void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
                                        UINT16 report_len);
+
+/* test commands */
+BTA_API extern void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, UINT8 rpt_id);
+
+
 
 #ifdef __cplusplus
 }

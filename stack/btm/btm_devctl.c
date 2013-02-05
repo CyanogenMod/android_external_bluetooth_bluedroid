@@ -37,11 +37,6 @@
 #if BLE_INCLUDED == TRUE
 #include "gatt_int.h"
 
-#if GAP_INCLUDED == TRUE
-#include "gap_api.h"
-#include "gattdefs.h"
-#endif
-
 #endif /* BLE_INCLUDED */
 
 /* BTM_APP_DEV_INIT should be defined if additional controller initialization is
@@ -110,10 +105,6 @@ response message */
 /* host SCO buffer size */
 #ifndef BTM_SCO_HOST_BUF_SIZE
 #define BTM_SCO_HOST_BUF_SIZE       0xff
-#endif
-
-#ifndef BTM_GPS_UIPC_CH_NB
-#define BTM_GPS_UIPC_CH_NB UIPC_CH_ID_1
 #endif
 
 /********************************************************************************/
@@ -551,11 +542,6 @@ void btm_reset_complete (void)
 
     BTM_TRACE_EVENT0 ("btm_reset_complete");
 
-#ifdef BRCM_VS
-    btm_vs_reset_complete();
-#endif
-
-
     /* Handle if btm initiated the reset */
     if (btm_cb.devcb.state == BTM_DEV_STATE_WAIT_RESET_CMPLT)
     {
@@ -587,11 +573,11 @@ void btm_reset_complete (void)
 #endif
 
 #if (BLE_INCLUDED == TRUE)
-     btm_cb.ble_ctr_cb.bg_conn_state = BLE_BG_CONN_IDLE;
-     btm_cb.ble_ctr_cb.bg_conn_dev_num = 0;
+     btm_cb.ble_ctr_cb.conn_state = BLE_CONN_IDLE;
+     btm_cb.ble_ctr_cb.bg_dev_num = 0;
      btm_cb.ble_ctr_cb.bg_conn_type = BTM_BLE_CONN_NONE;
      btm_cb.ble_ctr_cb.p_select_cback = NULL;
-     memset(&btm_cb.ble_ctr_cb.bg_conn_dev_list, 0, (sizeof(BD_ADDR)*BTM_BLE_MAX_BG_CONN_DEV_NUM));
+     memset(&btm_cb.ble_ctr_cb.bg_dev_list, 0, (sizeof(tBTM_LE_BG_CONN_DEV)*BTM_BLE_MAX_BG_CONN_DEV_NUM));
      gatt_reset_bgdev_list();
 #endif
     }
@@ -753,12 +739,8 @@ void btm_read_ble_buf_size_complete (UINT8 *p, UINT16 evt_len)
         btm_read_local_features_complete( buf, 9 );
     }
 #else
-#ifdef BRCM_VS
-    btm_brcm_feat_init();
-#else
     /* get local feature if BRCM specific feature is not included  */
     btm_get_local_features ();
-#endif
 #endif
 
 }
@@ -781,6 +763,8 @@ void btm_read_white_list_size_complete(UINT8 *p, UINT16 evt_len)
         STREAM_TO_UINT8(btm_cb.ble_ctr_cb.max_filter_entries, p);
         btm_cb.ble_ctr_cb.num_empty_filter = btm_cb.ble_ctr_cb.max_filter_entries;
     }
+    /* write LE host support and simultaneous LE supported */
+    btsnd_hcic_ble_write_host_supported(BTM_BLE_HOST_SUPPORT, BTM_BLE_SIMULTANEOUS_HOST);
 
     btm_get_ble_buffer_size();
 }
@@ -827,20 +811,78 @@ void btm_read_local_version_complete (UINT8 *p, UINT16 evt_len)
         btm_read_local_features_complete( buf, 9 );
     }
 #else
-#ifdef BRCM_VS
-    btm_brcm_feat_init();
-#else
     /* get local feature if BRCM specific feature is not included  */
     btm_get_local_features ();
 #endif
-#endif
 }
 
+/*******************************************************************************
+**
+** Function         btm_read_local_extended_feature
+**
+** Description      Local function called to send a read local extended feature to controller
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_read_local_extended_feature (void)
+{
+    btu_start_timer (&btm_cb.devcb.reset_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_DEV_REPLY_TIMEOUT);
 
+    /* Send a Read Local extended feature message to the Controller. */
+    btsnd_hcic_read_local_ext_features (1);
+
+}
+/*******************************************************************************
+**
+** Function         btm_read_local_ext_features_complete
+**
+
+** Description      This function is called when local features read is complete.
+**                  This is the last step of the startup sequence.
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_read_local_ext_features_complete(UINT8 *p, UINT16 evt_len)
+{
+    tBTM_DEVCB     *p_devcb = &btm_cb.devcb;
+    tBTM_CMPL_CB   *p_cb = p_devcb->p_reset_cmpl_cb;
+    UINT8 last;
+    UINT8 first;
+
+    btu_stop_timer (&btm_cb.devcb.reset_timer);
+    /* If there was a callback address for reset complete, call it */
+    p_devcb->p_reset_cmpl_cb = NULL;
+
+    btm_sec_dev_reset ();
+
+    /* If 802.11 present might have to disable some channels */
+    if (btm_cb.last_disabled_channel != 0xff)
+    {
+        last  = btm_cb.last_disabled_channel;
+        first = btm_cb.first_disabled_channel;
+        btm_cb.last_disabled_channel  = 0xff;
+        btm_cb.first_disabled_channel = 0xff;
+        BTM_SetAfhChannels(first, last);
+    }
+
+    BTM_SetPageScanType (BTM_DEFAULT_SCAN_TYPE);
+    BTM_SetInquiryScanType (BTM_DEFAULT_SCAN_TYPE);
+
+    /* If anyone wants device status notifications, give him one */
+    btm_report_device_status (BTM_DEV_STATUS_UP);
+
+    /* Reset sequence is complete. If this was an application originated */
+    /* reset, tell him its done.                                         */
+    if (p_cb)
+        (*p_cb)((void *) NULL);
+}
 /*******************************************************************************
 **
 ** Function         btm_read_local_features_complete
 **
+
 ** Description      This function is called when local features read is complete.
 **                  This is the last step of the startup sequence.
 **
@@ -850,15 +892,8 @@ void btm_read_local_version_complete (UINT8 *p, UINT16 evt_len)
 void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len)
 {
     tBTM_DEVCB     *p_devcb = &btm_cb.devcb;
-    tBTM_CMPL_CB   *p_cb = p_devcb->p_reset_cmpl_cb;
     UINT8           status;
     UINT16          xx;
-    UINT8 last;
-    UINT8 first;
-
-    btu_stop_timer (&btm_cb.devcb.reset_timer);
-    /* If there was a callback address for reset complete, call it */
-    p_devcb->p_reset_cmpl_cb = NULL;
 
     STREAM_TO_UINT8  (status, p);
     if (status == HCI_SUCCESS)
@@ -1003,18 +1038,6 @@ void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len)
         else
             btm_cb.btm_def_link_policy &= ~HCI_ENABLE_PARK_MODE;
 
-        btm_sec_dev_reset ();
-
-        /* If 802.11 present might have to disable some channels */
-        if (btm_cb.last_disabled_channel != 0xff)
-        {
-            last  = btm_cb.last_disabled_channel;
-            first = btm_cb.first_disabled_channel;
-            btm_cb.last_disabled_channel  = 0xff;
-            btm_cb.first_disabled_channel = 0xff;
-            BTM_SetAfhChannels(first, last);
-        }
-
 #if ((BTM_EIR_SERVER_INCLUDED == TRUE)||(BTM_EIR_CLIENT_INCLUDED == TRUE))
         if (HCI_LMP_INQ_RSSI_SUPPORTED(p_devcb->local_features))
         {
@@ -1033,21 +1056,8 @@ void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len)
         else
             l2cu_set_non_flushable_pbf(FALSE);
 #endif
-        BTM_SetPageScanType (BTM_DEFAULT_SCAN_TYPE);
-        BTM_SetInquiryScanType (BTM_DEFAULT_SCAN_TYPE);
-
-        /* If anyone wants device status notifications, give him one */
-        btm_report_device_status (BTM_DEV_STATUS_UP);
-
-#ifdef BRCM_VS
-    btm_brcm_arc_init();
-#endif
-
-        /* Reset sequence is complete. If this was an application originated */
-        /* reset, tell him its done.                                         */
-        if (p_cb)
-            (*p_cb)((void *) NULL);
     }
+    btm_read_local_extended_feature ();
 }
 
 /*******************************************************************************
@@ -1086,9 +1096,6 @@ UINT8 btm_get_voice_coding_support( void )
 tBTM_STATUS BTM_SetLocalDeviceName (char *p_name)
 {
     UINT8    *p;
-#if BLE_INCLUDED == TRUE && GAP_INCLUDED == TRUE
-    tGAP_BLE_ATTR_VALUE     attr_value;
-#endif
 
     if (!p_name || !p_name[0] || (strlen ((char *)p_name) > BD_NAME_LEN))
         return (BTM_ILLEGAL_VALUE);
@@ -1107,11 +1114,6 @@ tBTM_STATUS BTM_SetLocalDeviceName (char *p_name)
     }
 #else
     p = (UINT8 *)p_name;
-#endif
-
-#if BLE_INCLUDED == TRUE && GAP_INCLUDED == TRUE
-    attr_value.p_dev_name = (UINT8 *)p_name;
-    GAP_BleAttrDBUpdate(GATT_UUID_GAP_DEVICE_NAME, &attr_value);
 #endif
 
     if (btsnd_hcic_change_name(p))

@@ -42,10 +42,11 @@
 /* security action for GATT write and read request */
 #define GATT_SEC_NONE              0
 #define GATT_SEC_OK                1
-#define GATT_SEC_ENCRYPT           2    /* encrypt the link with current key */
-#define GATT_SEC_ENCRYPT_NO_MITM   3    /* unauthenticated encryption or better */
-#define GATT_SEC_ENCRYPT_MITM      4    /* authenticated encryption */
-#define GATT_SEC_SIGN_DATA         5   /* compute the signature for the write cmd */
+#define GATT_SEC_SIGN_DATA         2   /* compute the signature for the write cmd */
+#define GATT_SEC_ENCRYPT           3    /* encrypt the link with current key */
+#define GATT_SEC_ENCRYPT_NO_MITM   4    /* unauthenticated encryption or better */
+#define GATT_SEC_ENCRYPT_MITM      5    /* authenticated encryption */
+#define GATT_SEC_ENC_PENDING       6   /* wait for link encryption pending */
 typedef UINT8 tGATT_SEC_ACTION;
 
 
@@ -214,7 +215,6 @@ typedef struct
 typedef struct
 {
     tGATT_SVC_DB    *p_db;      /* pointer to the service database */
-    //tGATT_SR_CBACK  sr_cb;      /* server callback functions */
     tBT_UUID        app_uuid;           /* applicatino UUID */
     UINT32          sdp_handle; /* primamry service SDP handle */
     UINT16          service_instance;   /* service instance number */
@@ -225,6 +225,8 @@ typedef struct
     BOOLEAN         in_use;
 } tGATT_SR_REG;
 
+#define GATT_LISTEN_TO_ALL  0xff
+#define GATT_LISTEN_TO_NONE 0
 
 /* Data Structure used for GATT server */
 /* An GATT registration record consists of a handle, and 1 or more attributes */
@@ -237,6 +239,7 @@ typedef struct
     tGATT_CBACK  app_cb;
     tGATT_IF     gatt_if; /* one based */
     BOOLEAN      in_use;
+    UINT8        listening; /* if adv for all has been enabled */
 } tGATT_REG;
 
 
@@ -332,7 +335,7 @@ typedef struct
 
 typedef struct
 {
-    void            *p_clcb;            /* which clcb is doing encryption */
+    BUFFER_Q        pending_enc_clcb;   /* pending encryption channel q */
     tGATT_SEC_ACTION sec_act;
     BD_ADDR         peer_bda;
     UINT32          trans_id;
@@ -366,6 +369,7 @@ typedef struct
     UINT8           tcb_idx;
 } tGATT_TCB;
 
+
 /* logic channel */
 typedef struct
 {
@@ -394,6 +398,12 @@ typedef struct
     tGATT_READ_INC_UUID128  read_uuid128;
     BOOLEAN                 in_use;
 } tGATT_CLCB;
+
+typedef struct
+{
+    tGATT_CLCB  *p_clcb;
+}tGATT_PENDING_ENC_CLCB;
+
 
 #define GATT_SIGN_WRITE             1
 #define GATT_VERIFY_SIGN_DATA       2
@@ -429,6 +439,7 @@ typedef struct
 typedef struct
 {
     tGATT_IF        gatt_if[GATT_MAX_APPS];
+    tGATT_IF        listen_gif[GATT_MAX_APPS];
     BD_ADDR         remote_bda;
     BOOLEAN         in_use;
 }tGATT_BG_CONN_DEV;
@@ -468,6 +479,7 @@ typedef struct
     BOOLEAN             enable_err_rsp;
     UINT8               req_op_code;
     UINT8               err_status;
+    UINT16              handle;
 #endif
 
     tGATT_PROFILE_CLCB  profile_clcb[GATT_MAX_APPS];
@@ -551,6 +563,7 @@ extern void gatt_ind_ack_timeout(TIMER_LIST_ENT *p_tle);
 extern void gatt_start_ind_ack_timer(tGATT_TCB *p_tcb);
 extern tGATT_STATUS gatt_send_error_rsp(tGATT_TCB *p_tcb, UINT8 err_code, UINT8 op_code, UINT16 handle, BOOLEAN deq);
 extern void gatt_dbg_display_uuid(tBT_UUID bt_uuid);
+extern tGATT_PENDING_ENC_CLCB* gatt_add_pending_enc_channel_clcb(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb );
 
 extern tGATTS_PENDING_NEW_SRV_START *gatt_sr_is_new_srv_chg(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid, UINT16 svc_inst);
 
@@ -563,6 +576,7 @@ extern void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr);
 extern tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind);
 extern tGATTS_PENDING_NEW_SRV_START *gatt_add_pending_new_srv_start( tGATTS_HNDL_RANGE *p_new_srv_start);
 extern void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id);
+extern void gatt_update_listen_mode(void);
 
 /* reserved handle list */
 extern tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_app_id (tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid, UINT16 svc_inst);
@@ -578,13 +592,11 @@ extern BOOLEAN gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_
 extern tGATTS_SRV_CHG *gatt_add_srv_chg_clt(tGATTS_SRV_CHG *p_srv_chg);
 
 /* for background connection */
-extern BOOLEAN gatt_update_auto_connect_dev (tGATT_IF gatt_if, BOOLEAN add, BD_ADDR bd_addr);
-extern BOOLEAN gatt_add_bg_dev_list(tGATT_IF gatt_if, BD_ADDR bd_addr);
+extern BOOLEAN gatt_update_auto_connect_dev (tGATT_IF gatt_if, BOOLEAN add, BD_ADDR bd_addr, BOOLEAN is_initiator);
 extern BOOLEAN gatt_is_bg_dev_for_app(tGATT_BG_CONN_DEV *p_dev, tGATT_IF gatt_if);
 extern BOOLEAN gatt_remove_bg_dev_for_app(tGATT_IF gatt_if, BD_ADDR bd_addr);
 extern UINT8 gatt_get_num_apps_for_bg_dev(BD_ADDR bd_addr);
 extern BOOLEAN gatt_find_app_for_bg_dev(BD_ADDR bd_addr, tGATT_IF *p_gatt_if);
-extern BOOLEAN gatt_remove_bg_dev_from_list(tGATT_IF gatt_if, BD_ADDR bd_addr);
 extern tGATT_BG_CONN_DEV * gatt_find_bg_dev(BD_ADDR remote_bda);
 extern void gatt_deregister_bgdev_list(tGATT_IF gatt_if);
 extern void gatt_reset_bgdev_list(void);
@@ -634,7 +646,7 @@ extern void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_
 
 extern void gatt_act_discovery(tGATT_CLCB *p_clcb);
 extern void gatt_act_read(tGATT_CLCB *p_clcb, UINT16 offset);
-extern void gatt_act_write(tGATT_CLCB *p_clcb);
+extern void gatt_act_write(tGATT_CLCB *p_clcb, UINT8 sec_act);
 extern UINT8 gatt_act_send_browse(tGATT_TCB *p_tcb, UINT16 index, UINT8 op, UINT16 s_handle, UINT16 e_handle,
                                   tBT_UUID uuid);
 extern tGATT_CLCB *gatt_cmd_dequeue(tGATT_TCB *p_tcb, UINT8 *p_opcode);
@@ -666,6 +678,7 @@ extern tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db, BOOLEAN is_lo
 extern void gatts_update_srv_list_elem(UINT8 i_sreg, UINT16 handle, BOOLEAN is_primary);
 extern tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db);
 
+extern void gatt_reset_bgdev_list(void);
 #endif
 
 #endif /* BLE_INCLUDED */

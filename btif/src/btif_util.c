@@ -89,7 +89,7 @@ int str2bd(char *str, bt_bdaddr_t *addr)
     return 0;
 }
 
-char *bd2str(bt_bdaddr_t *bdaddr, bdstr_t *bdstr)
+char *bd2str(const bt_bdaddr_t *bdaddr, bdstr_t *bdstr)
 {
     char *addr = (char *) bdaddr->address;
 
@@ -103,9 +103,11 @@ UINT32 devclass2uint(DEV_CLASS dev_class)
 {
     UINT32 cod = 0;
 
-    /* if COD is 0, irrespective of the device type set it to Unclassified device */
-    cod = (dev_class[2]) | (dev_class[1] << 8) | (dev_class[0] << 16);
-
+    if(dev_class != NULL)
+    {
+        /* if COD is 0, irrespective of the device type set it to Unclassified device */
+        cod = (dev_class[2]) | (dev_class[1] << 8) | (dev_class[0] << 16);
+    }
     return cod;
 }
 void uint2devclass(UINT32 cod, DEV_CLASS dev_class)
@@ -457,6 +459,5 @@ const char* dump_bt_status(bt_status_t status)
             return "unknown scan mode";
     }
 }
-
 
 

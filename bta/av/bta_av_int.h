@@ -170,7 +170,7 @@ typedef void (*tBTA_AV_CO_OPEN) (tBTA_AV_HNDL hndl,
                                  tBTA_AV_CODEC codec_type, UINT8 *p_codec_info,
                                    UINT16 mtu);
 typedef void (*tBTA_AV_CO_CLOSE) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, UINT16 mtu);
-typedef void (*tBTA_AV_CO_START) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type);
+typedef void (*tBTA_AV_CO_START) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,UINT8 *p_codec_info, BOOLEAN *p_no_rtp_hdr);
 typedef void (*tBTA_AV_CO_STOP) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type);
 typedef void * (*tBTA_AV_CO_DATAPATH) (tBTA_AV_CODEC codec_type,
                                        UINT32 *p_len, UINT32 *p_timestamp);
@@ -504,6 +504,7 @@ typedef struct
     tBTA_AV_API_OPEN    open_api;       /* Saved OPEN api message */
     UINT8               wait;           /* set 0x1, when getting Caps as ACP, set 0x2, when started */
     UINT8               q_tag;          /* identify the associated q_info union member */
+    BOOLEAN             no_rtp_hdr;     /* TRUE if add no RTP header*/
 } tBTA_AV_SCB;
 
 #define BTA_AV_RC_ROLE_MASK     0x10

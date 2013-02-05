@@ -57,7 +57,7 @@ static const tBTA_SYS_REG bta_hh_reg =
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhEnable(tBTA_SEC sec_mask, BOOLEAN ucd_enabled, tBTA_HH_CBACK *p_cback)
+void BTA_HhEnable(tBTA_SEC sec_mask, tBTA_HH_CBACK *p_cback)
 {
     tBTA_HH_API_ENABLE *p_buf;
 
@@ -291,12 +291,21 @@ void BTA_HhSendCtrl(UINT8 dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type)
 **
 ** Description      This function send DATA transaction to HID device.
 **
+** Parameter        dev_handle: device handle
+**                  dev_bda: remote device address
+**                  p_data: data to be sent in the DATA transaction; or
+**                          the data to be write into the Output Report of a LE HID
+**                          device. The report is identified the report ID which is
+**                          the value of the byte (UINT8 *)(p_buf + 1) + p_buf->offset.
+**                          p_data->layer_specific needs to be set to the report type,
+**                          it can be OUTPUT report, or FEATURE report.
+**
 ** Returns          void
 **
 *******************************************************************************/
 void BTA_HhSendData(UINT8 dev_handle, BD_ADDR dev_bda, BT_HDR  *p_data)
 {
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_DATA, BTA_HH_RPTT_OUTPUT, 0, 0, p_data);
+    bta_hh_snd_write_dev(dev_handle, HID_TRANS_DATA, (UINT8)p_data->layer_specific, 0, 0, p_data);
 }
 
 /*******************************************************************************

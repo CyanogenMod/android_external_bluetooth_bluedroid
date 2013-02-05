@@ -133,7 +133,10 @@ BOOLEAN l2c_link_hci_conn_req (BD_ADDR bd_addr)
     }
     else
     {
-        L2CAP_TRACE_ERROR0 ("L2CAP got conn_req while connected");
+        L2CAP_TRACE_ERROR1("L2CAP got conn_req while connected (state:%d). Reject it",
+                p_lcb->link_state);
+        /* Reject the connection with ACL Connection Already exist reason */
+        btsnd_hcic_reject_conn (bd_addr, HCI_ERR_CONNECTION_EXISTS);
     }
     return (FALSE);
 }
@@ -201,6 +204,8 @@ BOOLEAN l2c_link_hci_conn_comp (UINT8 status, UINT16 handle, BD_ADDR p_bda)
                              p_lcb->link_role, FALSE);
         else
             btm_acl_created (ci.bd_addr, NULL, NULL, handle, p_lcb->link_role, FALSE);
+
+        BTM_SetLinkSuperTout (ci.bd_addr, btm_cb.btm_def_link_super_tout);
 
         /* If dedicated bonding do not process any further */
         if (p_lcb->is_bonding)
@@ -677,7 +682,7 @@ void l2c_link_adjust_allocation (void)
     UINT16      controller_xmit_quota = l2cb.num_lm_acl_bufs;
     UINT16      high_pri_link_quota = L2CAP_HIGH_PRI_MIN_XMIT_QUOTA_A;
 
-    /* If no links active, nothing to do. */
+    /* If no links active, reset buffer quotas and controller buffers */
     if (l2cb.num_links_active == 0)
     {
         l2cb.controller_xmit_window = l2cb.num_lm_acl_bufs;
@@ -1027,7 +1032,6 @@ void l2c_pin_code_request (BD_ADDR bd_addr)
 BOOLEAN l2c_link_check_power_mode (tL2C_LCB *p_lcb)
 {
     tBTM_PM_MODE     mode;
-    tBTM_PM_PWR_MD   pm;
     tL2C_CCB    *p_ccb;
     BOOLEAN need_to_active = FALSE;
 
@@ -1054,29 +1058,10 @@ BOOLEAN l2c_link_check_power_mode (tL2C_LCB *p_lcb)
         /* check power mode */
         if (BTM_ReadPowerMode(p_lcb->remote_bd_addr, &mode) == BTM_SUCCESS)
         {
-            /*
-            if ( mode == BTM_PM_MD_PARK )
-            {
-                L2CAP_TRACE_DEBUG1 ("LCB(0x%x) is in park mode", p_lcb->handle);
-// Coverity:
-// FALSE-POSITIVE error from Coverity test tool. Please do NOT remove following comment.
-// coverity[uninit_use_in_call] False-positive: setting the mode to BTM_PM_MD_ACTIVE only uses settings.mode
-                                the other data members of tBTM_PM_PWR_MD are ignored
-
-                memset((void*)&pm, 0, sizeof(pm));
-                pm.mode = BTM_PM_MD_ACTIVE;
-                BTM_SetPowerMode(BTM_PM_SET_ONLY_ID, p_lcb->remote_bd_addr, &pm);
-                btu_start_timer (&p_lcb->timer_entry,
-                                 BTU_TTYPE_L2CAP_LINK, L2CAP_WAIT_UNPARK_TOUT);
-                return TRUE;
-            }
-            */
             if ( mode == BTM_PM_STS_PENDING )
             {
                 L2CAP_TRACE_DEBUG1 ("LCB(0x%x) is in PM pending state", p_lcb->handle);
 
-                btu_start_timer (&p_lcb->timer_entry,
-                                 BTU_TTYPE_L2CAP_LINK, L2CAP_WAIT_UNPARK_TOUT);
                 return TRUE;
             }
         }

@@ -394,6 +394,16 @@ void bta_av_proc_stream_evt(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CT
             /* copy config params to event message buffer */
             switch (event)
             {
+            case AVDT_RECONFIG_CFM_EVT:
+            APPL_TRACE_DEBUG4("reconfig cfm event codec info = 0x%06x-%06x-%06x-%02x",
+                (p_msg->msg.reconfig_cfm.p_cfg->codec_info[0]<<16)+(p_msg->msg.reconfig_cfm.p_cfg->codec_info[1]<<8)+p_msg->msg.reconfig_cfm.p_cfg->codec_info[2],
+                (p_msg->msg.reconfig_cfm.p_cfg->codec_info[3]<<16)+(p_msg->msg.reconfig_cfm.p_cfg->codec_info[4]<<8)+p_msg->msg.reconfig_cfm.p_cfg->codec_info[5],
+                (p_msg->msg.reconfig_cfm.p_cfg->codec_info[6]<<16)+(p_msg->msg.reconfig_cfm.p_cfg->codec_info[7]<<8)+p_msg->msg.reconfig_cfm.p_cfg->codec_info[8],
+                p_msg->msg.reconfig_cfm.p_cfg->codec_info[9]);
+            break;
+
+
+
             case AVDT_CONFIG_IND_EVT:
             /* We might have 2 SEP signallings(A2DP + VDP) with one peer device on one L2CAP.
              * If we already have a signalling connection with the bd_addr and the streaming
@@ -461,17 +471,16 @@ void bta_av_proc_stream_evt(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CT
         if (event == AVDT_SUSPEND_CFM_EVT)
             p_msg->initiator = TRUE;
 
-        APPL_TRACE_EVENT1("hndl:x%x", p_scb->hndl);
+        APPL_TRACE_VERBOSE1("hndl:x%x", p_scb->hndl);
         p_msg->hdr.layer_specific = p_scb->hndl;
         p_msg->handle   = handle;
         p_msg->avdt_event = event;
         bta_sys_sendmsg(p_msg);
     }
 
-/* coverity[var_deref_model]: Variable "p_data" tracked as NULL was passed to function "bta_av_conn_cback" that dereferences it.
- * false-positive: bta_av_conn_cback only processes AVDT_CONNECT_IND_EVT and AVDT_DISCONNECT_IND_EVT event
- *                 these 2 events always have associated p_data
- */
+/* coverity[var_deref_model] */
+/* false-positive: bta_av_conn_cback only processes AVDT_CONNECT_IND_EVT and AVDT_DISCONNECT_IND_EVT event
+ *                 these 2 events always have associated p_data */
     bta_av_conn_cback(handle, bd_addr, event, p_data);
 }
 
@@ -486,7 +495,7 @@ void bta_av_proc_stream_evt(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CT
 *******************************************************************************/
 static void bta_av_stream0_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p_data)
 {
-    APPL_TRACE_EVENT2("bta_av_stream0_cback avdt_handle: %d event=0x%x", handle, event);
+    APPL_TRACE_VERBOSE2("bta_av_stream0_cback avdt_handle: %d event=0x%x", handle, event);
     bta_av_proc_stream_evt(handle, bd_addr, event, p_data, 0);
 }
 
@@ -1570,10 +1579,47 @@ void bta_av_cco_close (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 *******************************************************************************/
 void bta_av_open_failed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
+
+    BOOLEAN is_av_opened = FALSE;
+    tBTA_AV_SCB * p_opened_scb = NULL;
+    UINT8 idx;
+    tBTA_AV_OPEN    open;
+
+    APPL_TRACE_DEBUG0("bta_av_open_failed");
     p_scb->open_status = BTA_AV_FAIL_STREAM;
     bta_av_cco_close(p_scb, p_data);
-    AVDT_DisconnectReq(p_scb->peer_addr, bta_av_dt_cback[p_scb->hdi]);
+
+    /* check whether there is already an opened audio or video connection with the same device */
+    for (idx = 0; (idx < BTA_AV_NUM_STRS) && (is_av_opened == FALSE); idx++ )
+    {
+        p_opened_scb = bta_av_cb.p_scb[idx];
+        if (p_opened_scb && (p_opened_scb->state == BTA_AV_OPEN_SST) && (!bdcmp(p_opened_scb->peer_addr,p_scb->peer_addr )) )
+            is_av_opened = TRUE;
+
+    }
+
+    /* if there is already an active AV connnection with the same bd_addr,
+       don't send disconnect req, just report the open event with BTA_AV_FAIL_GET_CAP status */
+    if (is_av_opened == TRUE)
+    {
+        bdcpy(open.bd_addr, p_scb->peer_addr);
+        open.chnl   = p_scb->chnl;
+        open.hndl   = p_scb->hndl;
+        open.status = BTA_AV_FAIL_GET_CAP;
+        open.starting = bta_av_chk_start(p_scb);
+        open.edr    = 0;
+        /* set the state back to initial state */
+        bta_av_set_scb_sst_init(p_scb);
+
+        (*bta_av_cb.p_cback)(BTA_AV_OPEN_EVT, (tBTA_AV *) &open);
+
+    }
+    else
+    {
+        AVDT_DisconnectReq(p_scb->peer_addr, bta_av_dt_cback[p_scb->hdi]);
+    }
 }
+
 
 /*******************************************************************************
 **
@@ -1798,7 +1844,8 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             AVDT_SuspendReq(&p_scb->avdt_handle, 1);
         }
 
-        if(sus_evt)
+        /* send SUSPEND_EVT event only if not in reconfiguring state and sus_evt is TRUE*/
+        if ((sus_evt)&&(p_scb->state != BTA_AV_RCFG_SST))
         {
             suspend_rsp.status = BTA_AV_SUCCESS;
             suspend_rsp.initiator = TRUE;
@@ -1811,7 +1858,11 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         suspend_rsp.initiator = TRUE;
         APPL_TRACE_EVENT1("bta_av_str_stopped status %d", suspend_rsp.status);
 
-        (*bta_av_cb.p_cback)(BTA_AV_STOP_EVT, (tBTA_AV *) &suspend_rsp);
+        /* send STOP_EVT event only if not in reconfiguring state */
+        if (p_scb->state != BTA_AV_RCFG_SST)
+        {
+            (*bta_av_cb.p_cback)(BTA_AV_STOP_EVT, (tBTA_AV *) &suspend_rsp);
+        }
     }
 }
 
@@ -1916,6 +1967,7 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     UINT32  timestamp;
     BOOLEAN new_buf = FALSE;
     UINT8   m_pt = 0x60 | p_scb->codec_type;
+    tAVDT_DATA_OPT_MASK     opt;
 
     if (!p_scb->cong)
     {
@@ -1958,7 +2010,15 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
                 /*
                 APPL_TRACE_ERROR1("qw: %d", p_scb->l2c_bufs);
                 */
-                AVDT_WriteReq(p_scb->avdt_handle, p_buf, timestamp, m_pt);
+
+                /* opt is a bit mask, it could have several options set */
+                opt = AVDT_DATA_OPT_NONE;
+                if (p_scb->no_rtp_hdr)
+                {
+                    opt |= AVDT_DATA_OPT_NO_RTP;
+                }
+
+                AVDT_WriteReqOpt(p_scb->avdt_handle, p_buf, timestamp, m_pt, opt);
                 p_scb->cong = TRUE;
             }
             else
@@ -2008,6 +2068,8 @@ void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     UINT16          flush_to;
     UINT8           new_role = p_scb->role;
     BT_HDR          hdr;
+    UINT8           policy = HCI_ENABLE_SNIFF_MODE;
+    UINT8           cur_role;
 
     APPL_TRACE_DEBUG2("bta_av_start_ok wait:x%x, role:x%x", p_scb->wait, p_scb->role);
 
@@ -2111,11 +2173,27 @@ void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     }
 
     {
+        /* If sink starts stream, disable sniff mode here */
+        if (!initiator)
+        {
+             /* If souce is the master role, disable role switch during streaming.
+             * Otherwise allow role switch, if source is slave.
+             * Because it would not hurt source, if the peer device wants source to be master */
+            if ((BTM_GetRole (p_scb->peer_addr, &cur_role) == BTM_SUCCESS) &&
+                (cur_role == BTM_ROLE_MASTER) )
+            {
+                policy |= HCI_ENABLE_MASTER_SLAVE_SWITCH;
+            }
+
+            bta_sys_clear_policy(BTA_ID_AV, policy, p_scb->peer_addr);
+        }
+
         p_scb->role = new_role;
         p_scb->role &= ~BTA_AV_ROLE_AD_ACP;
         p_scb->role &= ~BTA_AV_ROLE_SUSPEND_OPT;
 
-        p_scb->p_cos->start(p_scb->hndl, p_scb->codec_type);
+        p_scb->no_rtp_hdr = FALSE;
+        p_scb->p_cos->start(p_scb->hndl, p_scb->codec_type, p_scb->cfg.codec_info, &p_scb->no_rtp_hdr);
         p_scb->co_started = TRUE;
 
         APPL_TRACE_DEBUG3("bta_av_start_ok suspending: %d, role:x%x, init %d",
@@ -2269,9 +2347,13 @@ void bta_av_suspend_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         bta_av_cb.audio_open_cnt, err_code);
 
     suspend_rsp.status = BTA_AV_SUCCESS;
-    if(err_code)
+    if (err_code)
     {
-        p_scb->suspend_sup = FALSE;
+         /* Disable suspend feature only with explicit rejection(not with timeout) */
+        if (err_code != AVDT_ERR_TIMEOUT)
+        {
+            p_scb->suspend_sup = FALSE;
+        }
         suspend_rsp.status = BTA_AV_FAIL;
 
         APPL_TRACE_ERROR0 ("bta_av_suspend_cfm: suspend failed, closing connection");
@@ -2285,7 +2367,7 @@ void bta_av_suspend_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         p_scb->started = FALSE;
     }
 
-    if(p_scb->role & BTA_AV_ROLE_SUSPEND)
+    if (p_scb->role & BTA_AV_ROLE_SUSPEND)
     {
         p_scb->role &= ~BTA_AV_ROLE_SUSPEND;
         p_scb->cong = FALSE;
@@ -2460,9 +2542,9 @@ void bta_av_suspend_cont (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     p_scb->started = FALSE;
     p_scb->cong    = FALSE;
-    if(err_code)
+    if (err_code)
     {
-        if(AVDT_ERR_CONNECT == err_code)
+        if (AVDT_ERR_CONNECT == err_code)
         {
             /* report failure */
             evt.status = BTA_AV_FAIL;
@@ -2472,8 +2554,11 @@ void bta_av_suspend_cont (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         else
         {
             APPL_TRACE_ERROR0("suspend rejected, try close");
-            p_scb->suspend_sup = FALSE;
-
+             /* Disable suspend feature only with explicit rejection(not with timeout) */
+            if (err_code != AVDT_ERR_TIMEOUT)
+            {
+                p_scb->suspend_sup = FALSE;
+            }
             /* drop the buffers queued in L2CAP */
             L2CA_FlushChannel (p_scb->l2c_cid, L2CAP_FLUSH_CHANS_ALL);
 
@@ -2507,10 +2592,14 @@ void bta_av_rcfg_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     /*
     APPL_TRACE_DEBUG0("bta_av_rcfg_cfm");
     */
-    if(err_code)
+    if (err_code)
     {
         APPL_TRACE_ERROR0("reconfig rejected, try close");
-        p_scb->recfg_sup = FALSE;
+         /* Disable reconfiguration feature only with explicit rejection(not with timeout) */
+        if (err_code != AVDT_ERR_TIMEOUT)
+        {
+            p_scb->recfg_sup = FALSE;
+        }
         /* started flag is FALSE when reconfigure command is sent */
         /* drop the buffers queued in L2CAP */
         L2CA_FlushChannel (p_scb->l2c_cid, L2CAP_FLUSH_CHANS_ALL);
@@ -2518,6 +2607,8 @@ void bta_av_rcfg_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     }
     else
     {
+        /* update the codec info after rcfg cfm */
+        memcpy(p_scb->cfg.codec_info,p_data->str_msg.msg.reconfig_cfm.p_cfg->codec_info,AVDT_CODEC_SIZE);
         /* take the SSM back to OPEN state */
         bta_av_ssm_execute(p_scb, BTA_AV_STR_OPEN_OK_EVT, NULL);
     }

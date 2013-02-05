@@ -36,15 +36,6 @@
 #include "smp_api.h"
 #endif
 
-#define BTM_BLE_CONNECT_EVT     0x00
-#define BTM_BLE_CONNECT_DIR_EVT 0x01
-#define BTM_BLE_DISCOVER_EVT    0x02
-#define BTM_BLE_NON_CONNECT_EVT 0x03
-#define BTM_BLE_SCAN_RSP_EVT    0x04
-#define BTM_BLE_SCAN_REQ_EVT    0x06
-#define BTM_BLE_UNKNOWN_EVT     0xff
-
-#define BTM_BLE_UNKNOWN_EVT     0xff
 
 /* scanning enable status */
 #define BTM_BLE_SCAN_ENABLE      0x01
@@ -79,7 +70,10 @@
 #define BTM_BLE_SEC_REQ_ACT_DISCARD        3 /* discard the sec request while encryption is started but not completed */
 typedef UINT8   tBTM_BLE_SEC_REQ_ACT;
 
-
+#define BLE_STATIC_PRIVATE_MSB_MASK          0x3f
+#define BLE_RESOLVE_ADDR_MSB                 0x40   /*  most significant bit, bit7, bit6 is 01 to be resolvable random */
+#define BLE_RESOLVE_ADDR_MASK                0xc0   /* bit 6, and bit7 */
+#define BTM_BLE_IS_RESOLVE_BDA(x)           ((x[0] & BLE_RESOLVE_ADDR_MASK) == BLE_RESOLVE_ADDR_MSB)
 
 typedef struct
 {
@@ -119,13 +113,14 @@ typedef struct
     UINT8            scan_type;        /* current scan type: active or passive */
     UINT16           adv_interval_min;
     UINT16           adv_interval_max;
-    tBLE_ADDR_TYPE	 own_addr_type;
     tBTM_BLE_AFP     afp;               /* advertising filter policy */
     tBTM_BLE_SFP     sfp;               /* scanning filter policy */
 
+    tBLE_ADDR_TYPE   adv_addr_type;
     UINT8            evt_type;
     UINT8            adv_mode;
     tBLE_BD_ADDR     direct_bda;
+    BOOLEAN          directed_conn;
 
     UINT8            adv_len;
     UINT8            adv_data_cache[BTM_BLE_CACHE_ADV_DATA_MAX];
@@ -134,7 +129,6 @@ typedef struct
     UINT8               num_bd_entries;
     UINT8               max_bd_entries;
 
-    tBLE_BD_ADDR        local_bda;
 
     tBTM_BLE_LOCAL_ADV_DATA   adv_data;
     tBTM_BLE_ADV_CHNL_MAP     adv_chnl_map;
@@ -142,21 +136,25 @@ typedef struct
     TIMER_LIST_ENT   inq_timer_ent;
     BOOLEAN          scan_rsp;
     UINT8            state;             /* Current state that the inquiry process is in */
-    UINT8           tx_power;
+    INT8             tx_power;
 } tBTM_BLE_INQ_CB;
 
 
 /* random address resolving complete callback */
 typedef void (tBTM_BLE_RESOLVE_CBACK) (void * match_rec, void *p);
 
+typedef void (tBTM_BLE_ADDR_CBACK) (BD_ADDR_PTR static_random, void *p);
+
 /* random address management control block */
 typedef struct
 {
+    tBLE_ADDR_TYPE	            own_addr_type;         /* local device LE address type */
     BD_ADDR			            private_addr;
     BD_ADDR                     random_bda;
     BOOLEAN                     busy;
     UINT16                       index;
     tBTM_BLE_RESOLVE_CBACK      *p_resolve_cback;
+    tBTM_BLE_ADDR_CBACK         *p_generate_cback;
     void                        *p;
     TIMER_LIST_ENT              raddr_timer_ent;
 } tBTM_LE_RANDOM_CB;
@@ -172,6 +170,32 @@ typedef struct
 
 }tBTM_LE_CONN_PRAMS;
 
+
+typedef struct
+{
+    BD_ADDR     bd_addr;
+    UINT8       attr;
+    BOOLEAN     is_connected;
+    BOOLEAN     in_use;
+}tBTM_LE_BG_CONN_DEV;
+
+  /* white list using state as a bit mask */
+#define BTM_BLE_WL_IDLE         0
+#define BTM_BLE_WL_INIT         1
+#define BTM_BLE_WL_SCAN         2
+#define BTM_BLE_WL_ADV          4
+typedef UINT8 tBTM_BLE_WL_STATE;
+
+/* BLE connection state */
+#define BLE_CONN_IDLE    0
+#define BLE_DIR_CONN     1
+#define BLE_BG_CONN      2
+typedef UINT8 tBTM_BLE_CONN_ST;
+
+typedef struct
+{
+    void    *p_param;
+}tBTM_BLE_CONN_REQ;
 /* Define BLE Device Management control structure
 */
 typedef struct
@@ -188,28 +212,26 @@ typedef struct
     tBTM_BLE_SEL_CBACK  *p_select_cback;
     TIMER_LIST_ENT      scan_param_idle_timer;
 
-    UINT8               bg_conn_dev_num;
-    BD_ADDR             bg_conn_dev_list[BTM_BLE_MAX_BG_CONN_DEV_NUM];
+    /* white list information */
+    UINT8                   num_empty_filter;      /* Number of entries in white list */
+    UINT8                   max_filter_entries;    /* Maximum number of entries that can be stored */
+    tBTM_BLE_WL_STATE       wl_state;
+    UINT8                   bg_dev_num;
+    tBTM_LE_BG_CONN_DEV     bg_dev_list[BTM_BLE_MAX_BG_CONN_DEV_NUM];
 
-#define BLE_BG_CONN_IDLE    0
-#define BLE_BG_CONN_ACTIVE  1
-#define BLE_BG_CONN_SUSPEND 2
-
-    UINT8               bg_conn_state;
+    BUFFER_Q                conn_pending_q;
+    tBTM_BLE_CONN_ST        conn_state;
 
     /* random address management control block */
     tBTM_LE_RANDOM_CB   addr_mgnt_cb;
 
-    /* white list information */
-    UINT8            num_empty_filter;      /* Number of entries in white list */
-    UINT8            max_filter_entries;    /* Maximum number of entries that can be stored */
     BOOLEAN          enabled;
-    BOOLEAN          privacy;               /* privacy enabled or disabled */
 
 #ifdef BTM_BLE_PC_ADV_TEST_MODE
     tBTM_BLE_SCAN_REQ_CBACK *p_scan_req_cback;
 #endif
 
+    BOOLEAN         scatternet_enable;
 } tBTM_BLE_CB;
 
 #ifdef __cplusplus
@@ -225,17 +247,21 @@ extern BOOLEAN btm_ble_cancel_remote_name(BD_ADDR remote_bda);
 extern tBTM_STATUS btm_ble_set_discoverability(UINT16 combined_mode);
 extern tBTM_STATUS btm_ble_set_connectability(UINT16 combined_mode);
 extern tBTM_STATUS btm_ble_start_inquiry (UINT8 mode, UINT8   duration);
+extern void btm_ble_dir_adv_tout(void);
 
 extern void btm_ble_stop_scan(void);
 extern void btm_ble_att_db_init(void);
 extern void btm_ble_init (void);
-extern void btm_ble_connected (UINT8 *bda, UINT16 handle, UINT8 enc_mode, UINT8 role);
+extern void btm_ble_connected (UINT8 *bda, UINT16 handle, UINT8 enc_mode, UINT8 role, tBLE_ADDR_TYPE addr_type, BOOLEAN addr_matched);
 extern void btm_ble_read_remote_features_complete(UINT8 *p);
-extern void btm_ble_stop_adv(void);
 extern void btm_ble_write_adv_enable_complete(UINT8 * p);
+extern void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len);
+extern tBTM_BLE_CONN_ST btm_ble_get_conn_st(void);
+extern void btm_ble_set_conn_st(tBTM_BLE_CONN_ST new_st);
+
 
 /* LE security function from btm_sec.c */
-#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
+#if SMP_INCLUDED == TRUE
 extern void btm_ble_link_sec_check(BD_ADDR bd_addr, tBTM_LE_AUTH_REQ auth_req, tBTM_BLE_SEC_REQ_ACT *p_sec_req_act);
 extern void btm_ble_ltk_request_reply(BD_ADDR bda,  BOOLEAN use_stk, BT_OCTET16 stk);
 extern UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data);
@@ -260,35 +286,38 @@ extern void btm_ble_update_sec_key_size(BD_ADDR bd_addr, UINT8 enc_key_size);
 extern UINT8 btm_ble_read_sec_key_size(BD_ADDR bd_addr);
 
 /* white list function */
-extern BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr,tBLE_ADDR_TYPE addr_type);
-extern BOOLEAN btm_update_bg_conn_list(BOOLEAN to_add, BD_ADDR bd_addr);
+extern BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr,UINT8 wl_type);
+extern BOOLEAN btm_update_bg_conn_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 *p_attr_tag);
 extern void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy);
 extern void btm_update_adv_filter_policy(tBTM_BLE_AFP adv_policy);
 extern void btm_ble_clear_white_list (void);
-extern void btm_write_bg_conn_wl(void);
 
 /* background connection function */
 extern void btm_ble_suspend_bg_conn(void);
-extern BOOLEAN btm_ble_resume_bg_conn(tBTM_BLE_SEL_CBACK *p_sele_callback, BOOLEAN def_param);
-extern void btm_ble_update_bg_state(void);
+extern BOOLEAN btm_ble_resume_bg_conn(void);
 extern void btm_ble_initiate_select_conn(BD_ADDR bda);
 extern BOOLEAN btm_ble_start_auto_conn(BOOLEAN start);
 extern BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_cback);
-extern BOOLEAN btm_ble_find_dev_in_whitelist(BD_ADDR bd_addr);
 extern BOOLEAN btm_ble_renew_bg_conn_params(BOOLEAN add, BD_ADDR bd_addr);
-extern void btm_ble_scan_param_idle(void);
 extern UINT8 btm_ble_count_unconn_dev_in_whitelist(void);
+extern void btm_write_dir_conn_wl(BD_ADDR target_addr);
+extern void btm_ble_update_mode_operation(UINT8 link_role, BD_ADDR bda, BOOLEAN conn_ccancel);
+
+/* direct connection utility */
+extern BOOLEAN btm_send_pending_direct_conn(void);
+extern void btm_ble_enqueue_direct_conn_req(void *p_param);
 
 /* BLE address management */
-extern tBLE_ADDR_TYPE btm_ble_map_bda_to_conn_bda(BD_ADDR bda);
 extern void btm_gen_resolvable_private_addr (void);
-extern void btm_gen_non_resolvable_private_addr (void);
+extern void btm_gen_non_resolvable_private_addr (tBTM_BLE_ADDR_CBACK *p_cback, void *p);
 extern void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_cback, void *p);
+extern void btm_ble_update_reconnect_address(BD_ADDR bd_addr);
 
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE
 BT_API extern void btm_ble_set_no_disc_if_pair_fail (BOOLEAN disble_disc);
 BT_API extern void btm_ble_set_test_mac_value (BOOLEAN enable, UINT8 *p_test_mac_val);
 BT_API extern void btm_ble_set_test_local_sign_cntr_value(BOOLEAN enable, UINT32 test_local_sign_cntr);
+BT_API extern void btm_set_random_address(BD_ADDR random_bda);
 #endif
 
 

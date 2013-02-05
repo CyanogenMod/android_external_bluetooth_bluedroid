@@ -22,6 +22,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf.h>
 #include <utils/Log.h>
+#include <sys/time.h>
 
 #include "data_types.h"
 #include "bt_types.h"
@@ -60,7 +61,7 @@ const char* dump_av_conn_state(UINT16 event);
 const char* dump_av_audio_state(UINT16 event);
 
 int str2bd(char *str, bt_bdaddr_t *addr);
-char *bd2str(bt_bdaddr_t *addr, bdstr_t *bdstr);
+char *bd2str(const bt_bdaddr_t *addr, bdstr_t *bdstr);
 
 UINT32 devclass2uint(DEV_CLASS dev_class);
 void uint2devclass(UINT32 dev, DEV_CLASS dev_class);

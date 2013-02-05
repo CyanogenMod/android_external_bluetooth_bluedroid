@@ -1241,6 +1241,7 @@ HCI_API extern void btsnd_hcie_ext_inquiry_result(void *buffer, UINT8 num_resp, 
 #define HCIC_PARAM_SIZE_BLE_READ_REMOTE_FEAT    2
 #define HCIC_PARAM_SIZE_BLE_ENCRYPT             32
 #define HCIC_PARAM_SIZE_BLE_RAND                0
+#define HCIC_PARAM_SIZE_WRITE_LE_HOST_SUPPORTED	2
 
 #define HCIC_BLE_RAND_DI_SIZE                   8
 #define HCIC_BLE_ENCRYT_KEY_SIZE                16
@@ -1320,6 +1321,15 @@ HCI_API extern BOOLEAN btsnd_hcic_ble_ltk_req_neg_reply (UINT16 handle);
 
 HCI_API extern BOOLEAN btsnd_hcic_ble_read_supported_states (void);
 
+HCI_API extern BOOLEAN btsnd_hcic_ble_write_host_supported (UINT8 le_host_spt, UINT8 simul_le_host_spt);
+
+HCI_API extern BOOLEAN btsnd_hcic_ble_read_host_supported (void);
+
+HCI_API extern BOOLEAN btsnd_hcic_ble_receiver_test(UINT8 rx_freq);
+
+HCI_API extern BOOLEAN btsnd_hcic_ble_transmitter_test(UINT8 tx_freq, UINT8 test_data_len,
+                                                           UINT8 payload);
+HCI_API extern BOOLEAN btsnd_hcic_ble_test_end(void);
 
 #endif /* BLE_INCLUDED */
 

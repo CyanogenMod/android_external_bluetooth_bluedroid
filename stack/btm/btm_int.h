@@ -117,6 +117,11 @@ typedef struct
 #endif /* BTM_PWR_MGR_INCLUDED */
 #if BLE_INCLUDED == TRUE
     UINT8           is_le_link;
+    BD_ADDR         conn_addr;              /* local device address used for this connection */
+    UINT8           conn_addr_type;         /* local device address type for this connection */
+    BD_ADDR         active_remote_addr;     /* remote address used on this connection */
+    UINT8           active_remote_addr_type;         /* local device address type for this connection */
+
 #endif
 
 } tACL_CONN;
@@ -171,6 +176,10 @@ typedef struct
     TIMER_LIST_ENT       tx_power_timer;
     tBTM_CMPL_CB        *p_tx_power_cmpl_cb;   /* Callback function to be called       */
 
+#if BLE_INCLUDED == TRUE
+    tBTM_CMPL_CB        *p_le_test_cmd_cmpl_cb;   /* Callback function to be called when
+                                                  LE test mode command has been sent successfully */
+#endif
     BD_ADDR              local_addr;        /* BD_ADDR of the local device          */
     tBTM_VERSION_INFO    local_version;     /* Local Version Information            */
     BD_FEATURES          local_features;    /* Local features bit mask              */
@@ -464,8 +473,7 @@ typedef struct
 typedef struct
 {
     tBLE_ADDR_TYPE      ble_addr_type;  /* LE device type: public or random address */
-    BD_ADDR             reconn_addr;    /* reconnect address */
-    BD_ADDR             cur_rand_addr;  /* current random address */
+    tBLE_ADDR_TYPE      static_addr_type;   /* static address type */
     BD_ADDR             static_addr;    /* static address */
 
 #if SMP_INCLUDED == TRUE
@@ -491,17 +499,18 @@ typedef struct
     DEV_CLASS            dev_class;         /* DEV_CLASS of the device            */
     LINK_KEY             link_key;          /* Device link key                    */
 
-#define BTM_SEC_AUTHORIZED      BTM_SEC_FLAG_AUTHORIZED
-#define BTM_SEC_AUTHENTICATED   BTM_SEC_FLAG_AUTHENTICATED
-#define BTM_SEC_ENCRYPTED       BTM_SEC_FLAG_ENCRYPTED
+#define BTM_SEC_AUTHORIZED      BTM_SEC_FLAG_AUTHORIZED     /* 0x01 */
+#define BTM_SEC_AUTHENTICATED   BTM_SEC_FLAG_AUTHENTICATED  /* 0x02 */
+#define BTM_SEC_ENCRYPTED       BTM_SEC_FLAG_ENCRYPTED      /* 0x04 */
 #define BTM_SEC_NAME_KNOWN      0x08
-#define BTM_SEC_LINK_KEY_KNOWN  BTM_SEC_FLAG_LKEY_KNOWN
+#define BTM_SEC_LINK_KEY_KNOWN  BTM_SEC_FLAG_LKEY_KNOWN /* 0x10 */
 #define BTM_SEC_LINK_KEY_AUTHED 0x20
 #define BTM_SEC_ROLE_SWITCHED   0x40
 #define BTM_SEC_IN_USE          0x80
 
-    tBTM_BD_NAME    sec_bd_name;        /* User friendly name of the device. (may be truncated to save space in dev_rec table) */
     UINT8           sec_flags;          /* Current device security state      */
+
+    tBTM_BD_NAME    sec_bd_name;        /* User friendly name of the device. (may be truncated to save space in dev_rec table) */
     BD_FEATURES     features;           /* Features suported by the device    */
 
 #define BTM_SEC_STATE_IDLE              0
@@ -524,6 +533,8 @@ typedef struct
     BOOLEAN     link_key_not_sent;      /* link key notification has not been sent waiting for name */
     UINT8       link_key_type;          /* Type of key used in pairing   */
     BOOLEAN     link_key_changed;       /* Changed link key during current connection */
+
+#define BTM_MAX_PRE_SM4_LKEY_TYPE   BTM_LKEY_TYPE_REMOTE_UNIT /* the link key type used by legacy pairing */
 
 #define BTM_SM4_UNKNOWN     0x00
 #define BTM_SM4_KNOWN       0x10
@@ -552,6 +563,9 @@ typedef struct
     UINT8           rs_disc_pending;
 #endif
 // btla-specific --
+#define BTM_SEC_NO_LAST_SERVICE_ID      0
+    UINT8           last_author_service_id;         /* ID of last serviced authorized: Reset after each l2cap connection */
+
 } tBTM_SEC_DEV_REC;
 
 #define BTM_SEC_IS_SM4(sm) ((BOOLEAN)(BTM_SM4_TRUE == ((sm)&BTM_SM4_TRUE)))
@@ -676,6 +690,7 @@ typedef UINT8 tBTM_PAIRING_STATE;
 #define BTM_PAIR_FLAGS_PIN_REQD         0x08    /* set this bit when pin_callback is called     */
 #define BTM_PAIR_FLAGS_PRE_FETCH_PIN    0x10    /* set this bit when pre-fetch pin     */
 #define BTM_PAIR_FLAGS_REJECTED_CONNECT 0x20    /* set this bit when rejected incoming connection  */
+#define BTM_PAIR_FLAGS_WE_CANCEL_DD     0x40    /* set this bit when cancelling a bonding procedure */
 
 typedef struct
 {
@@ -1003,6 +1018,7 @@ extern void btm_reset_complete (void);
 extern void btm_read_local_version_complete (UINT8 *p, UINT16 evt_len);
 extern void btm_read_hci_buf_size_complete (UINT8 *p, UINT16 evt_len);
 extern void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len);
+extern void btm_read_local_ext_features_complete (UINT8 *p, UINT16 evt_len);
 extern void btm_read_local_name_complete (UINT8 *p, UINT16 evt_len);
 extern void btm_read_local_addr_complete (UINT8 *p, UINT16 evt_len);
 extern void btm_get_local_features (void);
@@ -1010,7 +1026,7 @@ extern void btm_get_local_features (void);
 #if (BLE_INCLUDED == TRUE)
 extern void btm_read_ble_buf_size_complete (UINT8 *p, UINT16 evt_len);
 extern void btm_read_white_list_size_complete(UINT8 *p, UINT16 evt_len);
-extern void btm_ble_add_2_white_list_complete(UINT8 *p, UINT16 evt_len);
+extern void btm_ble_add_2_white_list_complete(UINT8 status);
 extern void btm_ble_remove_from_white_list_complete(UINT8 *p, UINT16 evt_len);
 extern void btm_ble_clear_white_list_complete(UINT8 *p, UINT16 evt_len);
 #endif  /* BLE_INCLUDED */
@@ -1081,6 +1097,7 @@ extern void  btm_sec_dev_rec_cback_event (tBTM_SEC_DEV_REC *p_dev_rec, UINT8 res
 extern void  btm_sec_clear_ble_keys (tBTM_SEC_DEV_REC  *p_dev_rec);
 extern  BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_DEV_REC *p_rec);
 extern BOOLEAN btm_sec_is_a_bonded_dev (BD_ADDR bda);
+extern BOOLEAN btm_sec_is_le_capable_dev (BD_ADDR bda);
 #endif /* BLE_INCLUDED */
 
 extern tINQ_DB_ENT *btm_inq_db_new (BD_ADDR p_bda);
@@ -1098,13 +1115,7 @@ extern void  btm_acl_reset_paging (void);
 extern void  btm_acl_paging (BT_HDR *p, BD_ADDR dest);
 extern void  btm_acl_set_discing (BOOLEAN discing);
 extern UINT8 btm_sec_clr_service_by_psm (UINT16 psm);
-
-#ifdef BRCM_VS
-extern void btm_brcm_feat_init(void);
-extern void btm_vs_reset_complete (void);
-extern void btm_brcm_arc_init (void);
-
-#endif
+extern void  btm_sec_clr_temp_auth_service (BD_ADDR bda);
 
 #ifdef __cplusplus
 }

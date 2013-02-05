@@ -91,6 +91,7 @@
 
 #if (BLE_INCLUDED==TRUE)
 #include "gatt_api.h"
+#include "smp_api.h"
 #endif
 
     /* LayerIDs for BTA, currently everything maps onto appl_trace_level */
@@ -282,7 +283,6 @@ ScrLog(UINT32 trace_set_mask, const char *fmt_str, ...)
     int trace_layer = TRACE_GET_LAYER(trace_set_mask);
     if (trace_layer >= TRACE_LAYER_MAX_NUM)
         trace_layer = 0;
-
 	gettimeofday(&tv, &tz);
 	time(&t);
 	tm = localtime(&t);
@@ -467,8 +467,6 @@ tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
     {BTTRC_ID_STK_SDP, BTTRC_ID_STK_SDP, SDP_SetTraceLevel, "TRC_SDP", DEFAULT_CONF_TRACE_LEVEL},
 #if (BLE_INCLUDED==TRUE)
     {BTTRC_ID_STK_GATT, BTTRC_ID_STK_GATT, GATT_SetTraceLevel, "TRC_GATT", DEFAULT_CONF_TRACE_LEVEL},
-#endif
-#if (BLE_INCLUDED==TRUE)
     {BTTRC_ID_STK_SMP, BTTRC_ID_STK_SMP, SMP_SetTraceLevel, "TRC_SMP", DEFAULT_CONF_TRACE_LEVEL},
 #endif
 

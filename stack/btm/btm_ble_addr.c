@@ -28,11 +28,13 @@
 #include "hcimsgs.h"
 #include "btu.h"
 #include "btm_int.h"
-
+#include "btm_ble_int.h"
+#include "gap_api.h"
 
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
-    #include "smp_api.h"
-    #define BTM_BLE_PRIVATE_ADDR_INT    900             /* 15 minutes minimum for random address refreshing */
+#include "smp_api.h"
+#define BTM_BLE_PRIVATE_ADDR_INT    900           /* 15 minutes minimum for
+                                                   random address refreshing */
 
 /*******************************************************************************
 **
@@ -47,42 +49,24 @@
 static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
 {
     tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
-    tBTM_BLE_INQ_CB  *p_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
     BTM_TRACE_EVENT0 ("btm_gen_resolve_paddr_cmpl");
-    if (p && p->param_buf)
+
+    if (p)
     {
-        /* get the high bytes of the random address */
-        p_cb->private_addr[2] = p->param_buf[0];
-        p_cb->private_addr[1] = p->param_buf[1];
-        p_cb->private_addr[0] = p->param_buf[2];
-        /* mask off the 1st MSB */
-        p_cb->private_addr[0] &= 0xfe;
-        /* set the 2nd MSB to be 1 */
-        p_cb->private_addr[0] |= 0x02;
+        /* set hash to be LSB of rpAddress */
+        p_cb->private_addr[5] = p->param_buf[0];
+        p_cb->private_addr[4] = p->param_buf[1];
+        p_cb->private_addr[3] = p->param_buf[2];
         /* set it to controller */
         btsnd_hcic_ble_set_random_addr(p_cb->private_addr);
 
-        p_inq_cb->own_addr_type = BLE_ADDR_RANDOM;
+        p_cb->own_addr_type = BLE_ADDR_RANDOM;
 
         /* start a periodical timer to refresh random addr */
         btu_stop_timer(&p_cb->raddr_timer_ent);
         btu_start_timer (&p_cb->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
                          BTM_BLE_PRIVATE_ADDR_INT);
 
-        /* if adv is active, restart adv with new private addr */
-        if (p_inq_cb->adv_mode == BTM_BLE_ADV_ENABLE)
-        {
-            btsnd_hcic_ble_set_adv_enable (BTM_BLE_ADV_DISABLE);
-
-            btsnd_hcic_ble_write_adv_params (p_inq_cb->adv_interval_min,
-                                             p_inq_cb->adv_interval_max,
-                                             p_inq_cb->evt_type,
-                                             p_inq_cb->own_addr_type,
-                                             p_inq_cb->direct_bda.type,
-                                             p_inq_cb->direct_bda.bda,
-                                             p_inq_cb->adv_chnl_map,
-                                             p_inq_cb->afp);
-        }
     }
     else
     {
@@ -107,11 +91,14 @@ static void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
     tSMP_ENC    output;
 
     BTM_TRACE_EVENT0 ("btm_gen_resolve_paddr_low");
-    if (p && p->param_buf)
+    if (p)
     {
-        p_cb->private_addr[5] = p->param_buf[0];
-        p_cb->private_addr[4] = p->param_buf[1];
-        p_cb->private_addr[3] = p->param_buf[2];
+        p->param_buf[2] &= (~BLE_RESOLVE_ADDR_MASK);
+        p->param_buf[2] |= BLE_RESOLVE_ADDR_MSB;
+
+        p_cb->private_addr[2] = p->param_buf[0];
+        p_cb->private_addr[1] = p->param_buf[1];
+        p_cb->private_addr[0] = p->param_buf[2];
 
         /* encrypt with ur IRK */
         if (!SMP_Encrypt(btm_cb.devcb.id_keys.irk, BT_OCTET16_LEN, p->param_buf, 3, &output))
@@ -154,22 +141,31 @@ void btm_gen_resolvable_private_addr (void)
 static void btm_gen_non_resolve_paddr_cmpl(tBTM_RAND_ENC *p)
 {
     tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
+    tBTM_BLE_ADDR_CBACK *p_cback = p_cb->p_generate_cback;
+    void    *p_data = p_cb->p;
     UINT8   *pp;
-    BTM_TRACE_EVENT0 ("btm_gen_non_resolve_paddr_cmpl");
-    if (p && p->param_buf)
-    {
-        pp = p->param_buf;
-        STREAM_TO_BDADDR(p_cb->private_addr, pp);
-        /* mask off the 2 MSB */
-        p_cb->private_addr[0] &= 0xfc;
-        /* write to controller */
-        btsnd_hcic_ble_set_random_addr(p_cb->private_addr);
+    BD_ADDR     static_random;
 
-        btm_cb.ble_ctr_cb.inq_var.own_addr_type = BLE_ADDR_RANDOM;
+    BTM_TRACE_EVENT0 ("btm_gen_non_resolve_paddr_cmpl");
+
+    p_cb->p_generate_cback = NULL;
+    if (p)
+    {
+
+        pp = p->param_buf;
+        STREAM_TO_BDADDR(static_random, pp);
+        /* mask off the 2 MSB */
+        static_random[0] &= BLE_STATIC_PRIVATE_MSB_MASK;
+
+        /* report complete */
+        if (p_cback)
+            (* p_cback)(static_random, p_data);
     }
     else
     {
         BTM_TRACE_DEBUG0("btm_gen_non_resolvable_private_addr failed");
+        if (p_cback)
+            (* p_cback)(NULL, p_data);
     }
 }
 /*******************************************************************************
@@ -182,13 +178,22 @@ static void btm_gen_non_resolve_paddr_cmpl(tBTM_RAND_ENC *p)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_gen_non_resolvable_private_addr (void)
+void btm_gen_non_resolvable_private_addr (tBTM_BLE_ADDR_CBACK *p_cback, void *p)
 {
+    tBTM_LE_RANDOM_CB   *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
+
     BTM_TRACE_EVENT0 ("btm_gen_non_resolvable_private_addr");
+
+    if (p_mgnt_cb->p_generate_cback != NULL)
+        return;
+
+    p_mgnt_cb->p_generate_cback = p_cback;
+    p_mgnt_cb->p                = p;
     if (!btsnd_hcic_ble_rand((void *)btm_gen_non_resolve_paddr_cmpl))
     {
         btm_gen_non_resolve_paddr_cmpl(NULL);
     }
+
 }
     #if SMP_INCLUDED == TRUE
 /*******************************************************************************
@@ -209,9 +214,12 @@ static void btm_ble_resolve_address_cmpl(void)
     tBTM_LE_RANDOM_CB   *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
     tBTM_SEC_DEV_REC    *p_dev_rec = NULL;
 
-    BTM_TRACE_EVENT0 ("btm_ble_resolve_address_cmpl");
+    BTM_TRACE_EVENT1 ("btm_ble_resolve_address_cmpl p_mgnt_cb->index = %d", p_mgnt_cb->index);
+
     if (p_mgnt_cb->index < BTM_SEC_MAX_DEVICE_RECORDS)
+    {
         p_dev_rec = &btm_cb.sec_dev_rec[p_mgnt_cb->index];
+    }
 
     p_mgnt_cb->busy = FALSE;
 
@@ -237,7 +245,7 @@ static BOOLEAN btm_ble_proc_resolve_x(tSMP_ENC *p)
     comp[1] = p_mgnt_cb->random_bda[4];
     comp[2] = p_mgnt_cb->random_bda[3];
 
-    if (p && p->param_buf)
+    if (p)
     {
         if (!memcmp(p->param_buf, &comp[0], 3))
         {
@@ -329,11 +337,12 @@ void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_
         /* check for next security record */
         while (TRUE)
         {
-            if (btm_ble_match_random_bda(p_mgnt_cb->index++))
+            if (btm_ble_match_random_bda(p_mgnt_cb->index))
             {
-                // match found or went through the list
+                /* atch found or went through the list */
                 break;
             }
+	        p_mgnt_cb->index ++;
         }
     }
     else
@@ -366,18 +375,7 @@ tBLE_ADDR_TYPE btm_ble_map_bda_to_conn_bda(BD_ADDR bd_addr)
     else
         return BLE_ADDR_PUBLIC;
 }
-/*******************************************************************************
-**
-** Function         btm_ble_map_bda_to_pseudo_bda
-**
-** Description      This function map a BD address to a pseudo address when the
-**                  address given is a random address.
-**
-*******************************************************************************/
-void btm_ble_map_bda_to_pseudo_bda(BD_ADDR bd_addr)
-{
-    BTM_TRACE_EVENT0 ("btm_ble_map_bda_to_pseudo_bda");
-}
+
 #endif
 
 

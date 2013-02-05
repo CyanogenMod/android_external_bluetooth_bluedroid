@@ -322,7 +322,7 @@ void hidh_sec_check_complete_orig (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
 #endif
     UINT32 reason;
 
-    dhandle = p_dev - &(hh_cb.devices[0]) ;
+    dhandle = ((UINT32)p_dev - (UINT32)&(hh_cb.devices[0]))/ sizeof(tHID_HOST_DEV_CTB);
     if( res == BTM_SUCCESS && p_dev->conn.conn_state == HID_CONN_STATE_SECURITY )
     {
         HIDH_TRACE_EVENT0 ("HID - Originator security pass.");
@@ -975,7 +975,6 @@ tHID_STATUS hidh_conn_initiate (UINT8 dhandle)
     if ((p_dev->conn.ctrl_cid = L2CA_ConnectReq (HID_PSM_CONTROL, p_dev->addr)) == 0)
     {
         HIDH_TRACE_WARNING0 ("HID - Originate failed");
-        dhandle = (p_dev - &(hh_cb.devices[0]))/(sizeof( tHID_HOST_DEV_CTB )) ;
         hh_cb.callback( dhandle, HID_HDEV_EVT_CLOSE, HID_ERR_L2CAP_FAILED, NULL ) ;
     }
     else

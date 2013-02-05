@@ -125,7 +125,10 @@ BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
     }
 
 #if defined(BTIF_MIXED_MODE_INCLUDED) && (BTIF_MIXED_MODE_INCLUDED == TRUE)
-    p_dev_rec->sm4 = BTM_SM4_KNOWN;
+    if (key_type  < BTM_MAX_PRE_SM4_LKEY_TYPE)
+        p_dev_rec->sm4 = BTM_SM4_KNOWN;
+    else
+        p_dev_rec->sm4 = BTM_SM4_TRUE;
 #endif
 
     p_dev_rec->rmt_io_caps = io_cap;
@@ -245,7 +248,6 @@ tBTM_SEC_DEV_REC *btm_sec_alloc_dev (BD_ADDR bd_addr)
     else
     {
 #if BLE_INCLUDED == TRUE
-        p_dev_rec->device_type = BT_DEVICE_TYPE_BREDR;  /* initialize it as BR/EDR device */
         /* update conn params, use default value for background connection params */
         memset(&p_dev_rec->conn_params, 0xff, sizeof(tBTM_LE_CONN_PRAMS));
 #endif

@@ -167,10 +167,10 @@ void avdt_ccb_hdl_discover_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         if (p_scb->allocated)
         {
             /* copy sep info */
-            sep_info[i].in_use = p_scb->in_use;
-            sep_info[i].seid = i + 1;
-            sep_info[i].media_type = p_scb->cs.media_type;
-            sep_info[i].tsep = p_scb->cs.tsep;
+            sep_info[p_data->msg.discover_rsp.num_seps].in_use = p_scb->in_use;
+            sep_info[p_data->msg.discover_rsp.num_seps].seid = i + 1;
+            sep_info[p_data->msg.discover_rsp.num_seps].media_type = p_scb->cs.media_type;
+            sep_info[p_data->msg.discover_rsp.num_seps].tsep = p_scb->cs.tsep;
 
             p_data->msg.discover_rsp.num_seps++;
         }

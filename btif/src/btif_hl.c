@@ -4542,7 +4542,7 @@ static void  cleanup( void ){
 }
 
 static const bthl_interface_t bthlInterface = {
-    sizeof(bthl_interface_t),
+    sizeof(bthlInterface),
     init,
     register_application,
     unregister_application,

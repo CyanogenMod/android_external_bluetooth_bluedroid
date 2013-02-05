@@ -748,4 +748,112 @@ BOOLEAN btsnd_hcic_ble_read_supported_states (void)
     return (TRUE);
 }
 
+BOOLEAN btsnd_hcic_ble_receiver_test(UINT8 rx_freq)
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_WRITE_PARAM1)) == NULL)
+        return (FALSE);
+
+    pp = (UINT8 *)(p + 1);
+
+    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_WRITE_PARAM1;
+    p->offset = 0;
+
+    UINT16_TO_STREAM (pp, HCI_BLE_RECEIVER_TEST);
+    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_WRITE_PARAM1);
+
+    UINT8_TO_STREAM (pp, rx_freq);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
+    return (TRUE);
+}
+
+BOOLEAN btsnd_hcic_ble_transmitter_test(UINT8 tx_freq, UINT8 test_data_len, UINT8 payload)
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_WRITE_PARAM3)) == NULL)
+        return (FALSE);
+
+    pp = (UINT8 *)(p + 1);
+
+    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_WRITE_PARAM3;
+    p->offset = 0;
+
+    UINT16_TO_STREAM (pp, HCI_BLE_TRANSMITTER_TEST);
+    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_WRITE_PARAM3);
+
+    UINT8_TO_STREAM (pp, tx_freq);
+    UINT8_TO_STREAM (pp, test_data_len);
+    UINT8_TO_STREAM (pp, payload);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
+    return (TRUE);
+}
+
+BOOLEAN btsnd_hcic_ble_test_end(void)
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_READ_CMD)) == NULL)
+        return (FALSE);
+
+    pp = (UINT8 *)(p + 1);
+
+    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
+    p->offset = 0;
+
+    UINT16_TO_STREAM (pp, HCI_BLE_TEST_END);
+    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_READ_CMD);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
+    return (TRUE);
+}
+
+BOOLEAN btsnd_hcic_ble_read_host_supported (void)
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_READ_CMD)) == NULL)
+        return (FALSE);
+
+    pp = (UINT8 *)(p + 1);
+
+    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
+    p->offset = 0;
+
+    UINT16_TO_STREAM (pp, HCI_READ_LE_HOST_SUPPORTED);
+    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_READ_CMD);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
+    return (TRUE);
+}
+
+BOOLEAN btsnd_hcic_ble_write_host_supported (UINT8 le_host_spt, UINT8 simul_le_host_spt)
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_WRITE_LE_HOST_SUPPORTED)) == NULL)
+        return (FALSE);
+
+    pp = (UINT8 *)(p + 1);
+
+    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_WRITE_LE_HOST_SUPPORTED;
+    p->offset = 0;
+
+    UINT16_TO_STREAM (pp, HCI_WRITE_LE_HOST_SUPPORTED);
+    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_WRITE_LE_HOST_SUPPORTED);
+	UINT8_TO_STREAM  (pp, le_host_spt);
+	UINT8_TO_STREAM  (pp, simul_le_host_spt);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
+    return (TRUE);
+}
+
 #endif

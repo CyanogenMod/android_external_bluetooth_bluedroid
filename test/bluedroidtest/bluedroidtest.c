@@ -474,6 +474,11 @@ static void dut_mode_recv(uint16_t opcode, uint8_t *buf, uint8_t len)
     bdt_log("DUT MODE RECV : NOT IMPLEMENTED");
 }
 
+static void le_test_mode(bt_status_t status, uint16_t packet_count)
+{
+    bdt_log("LE TEST MODE END status:%s number_of_packets:%d", dump_bt_status(status), packet_count);
+}
+
 static bt_callbacks_t bt_callbacks = {
     sizeof(bt_callbacks_t),
     adapter_state_changed,
@@ -487,6 +492,8 @@ static bt_callbacks_t bt_callbacks = {
     NULL, /* acl_state_changed_cb */
     NULL, /* thread_evt_cb */
     dut_mode_recv, /*dut_mode_recv_cb */
+    NULL, /*authorize_request_cb */
+    le_test_mode /* le_test_mode_cb */
 };
 
 void bdt_init(void)
@@ -536,6 +543,58 @@ void bdt_dut_mode_configure(char *p)
     status = sBtInterface->dut_mode_configure(mode);
 
     check_return_status(status);
+}
+
+#define HCI_LE_RECEIVER_TEST_OPCODE 0x201D
+#define HCI_LE_TRANSMITTER_TEST_OPCODE 0x201E
+#define HCI_LE_END_TEST_OPCODE 0x201F
+
+void bdt_le_test_mode(char *p)
+{
+    int cmd;
+    unsigned char buf[3];
+    int arg1, arg2, arg3;
+
+    bdt_log("BT LE TEST MODE");
+    if (!bt_enabled) {
+        bdt_log("Bluetooth must be enabled for le_test to work.");
+        return;
+    }
+
+    memset(buf, 0, sizeof(buf));
+    cmd = get_int(&p, 0);
+    switch (cmd)
+    {
+        case 0x1: /* RX TEST */
+           arg1 = get_int(&p, -1);
+           if (arg1 < 0) bdt_log("%s Invalid arguments", __FUNCTION__);
+           buf[0] = arg1;
+           status = sBtInterface->le_test_mode(HCI_LE_RECEIVER_TEST_OPCODE, buf, 1);
+           break;
+        case 0x2: /* TX TEST */
+            arg1 = get_int(&p, -1);
+            arg2 = get_int(&p, -1);
+            arg3 = get_int(&p, -1);
+            if ((arg1 < 0) || (arg2 < 0) || (arg3 < 0))
+                bdt_log("%s Invalid arguments", __FUNCTION__);
+            buf[0] = arg1;
+            buf[1] = arg2;
+            buf[2] = arg3;
+            status = sBtInterface->le_test_mode(HCI_LE_TRANSMITTER_TEST_OPCODE, buf, 3);
+           break;
+        case 0x3: /* END TEST */
+            status = sBtInterface->le_test_mode(HCI_LE_END_TEST_OPCODE, buf, 0);
+           break;
+        default:
+            bdt_log("Unsupported command");
+            return;
+            break;
+    }
+    if (status != BT_STATUS_SUCCESS)
+    {
+        bdt_log("%s Test 0x%x Failed with status:0x%x", __FUNCTION__, cmd, status);
+    }
+    return;
 }
 
 void bdt_cleanup(void)
@@ -595,6 +654,11 @@ void do_dut_mode_configure(char *p)
     bdt_dut_mode_configure(p);
 }
 
+void do_le_test_mode(char *p)
+{
+    bdt_le_test_mode(p);
+}
+
 void do_cleanup(char *p)
 {
     bdt_cleanup();
@@ -623,7 +687,9 @@ const t_cmd console_cmd_list[] =
     { "enable", do_enable, ":: enables bluetooth", 0 },
     { "disable", do_disable, ":: disables bluetooth", 0 },
     { "dut_mode_configure", do_dut_mode_configure, ":: DUT mode - 1 to enter,0 to exit", 0 },
-
+    { "le_test_mode", do_le_test_mode, ":: LE Test Mode - RxTest - 1 <rx_freq>, \n\t \
+                      TxTest - 2 <tx_freq> <test_data_len> <payload_pattern>, \n\t \
+                      End Test - 3 <no_args>", 0 },
     /* add here */
 
     /* last entry */

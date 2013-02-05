@@ -34,13 +34,6 @@
 #define BTA_HH_DISC_BUF_SIZE        GKI_MAX_BUF_SIZE
 #endif
 
-/* application ID(none-zero) for each type of device */
-#define BTA_HH_APP_ID_MI            1
-#define BTA_HH_APP_ID_KB            2
-#define BTA_HH_APP_ID_RMC           3
-#define BTA_HH_APP_ID_3DSG          4
-#define BTA_HH_APP_ID_JOY           5
-#define BTA_HH_APP_ID_GPAD          6
 
 
 /* The type of devices supported by BTA HH and corresponding application ID */

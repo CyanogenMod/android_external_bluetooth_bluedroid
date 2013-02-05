@@ -52,6 +52,10 @@
 #define USERIALDBG(param, ...) {}
 #endif
 
+#ifndef ENABLE_USERIAL_TIMING_LOGS
+#define ENABLE_USERIAL_TIMING_LOGS FALSE
+#endif
+
 #define MAX_SERIAL_PORT (USERIAL_PORT_3 + 1)
 #define READ_LIMIT (BTHC_USERIAL_READ_MEM_SIZE - BT_HC_HDR_SIZE)
 
@@ -91,6 +95,29 @@ static volatile uint8_t userial_running = 0;
 **  Static functions
 ******************************************************************************/
 
+#if defined(ENABLE_USERIAL_TIMING_LOGS) && (ENABLE_USERIAL_TIMING_LOGS==TRUE)
+
+static void log_userial_tx_timing(int len)
+{
+    #define USEC_PER_SEC 1000000L
+    static struct timespec prev = {0, 0};
+    struct timespec now, diff;
+    unsigned int diff_us = 0;
+    unsigned int now_us = 0;
+
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    now_us = now.tv_sec*USEC_PER_SEC + now.tv_nsec/1000;
+    diff_us = (now.tv_sec - prev.tv_sec) * USEC_PER_SEC + (now.tv_nsec - prev.tv_nsec)/1000;
+
+    ALOGW("[userial] ts %08d diff : %08d len %d", now_us, diff_us,
+                len);
+
+    prev = now;
+}
+
+#endif
+
+
 /*****************************************************************************
 **   Socket signal functions to wake up userial_read_thread for termination
 **
@@ -124,6 +151,7 @@ static inline int is_signaled(fd_set* set)
 {
     return FD_ISSET(signal_fds[0], set);
 }
+
 
 /*******************************************************************************
 **
@@ -454,6 +482,9 @@ uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
 
     while(len != 0)
     {
+#if defined(ENABLE_USERIAL_TIMING_LOGS) && (ENABLE_USERIAL_TIMING_LOGS==TRUE)
+        log_userial_tx_timing(len);
+#endif
         ret = write(userial_cb.fd, p_data+total, len);
         total += ret;
         len -= ret;

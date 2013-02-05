@@ -105,7 +105,7 @@ bt_status_t btif_storage_set_remote_device_property(bt_bdaddr_t *remote_bd_addr,
 **                  BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
-bt_status_t btif_storage_add_remote_device(bt_bdaddr_t *remote_bdaddr,
+bt_status_t btif_storage_add_remote_device(bt_bdaddr_t *remote_bd_addr,
                                            uint32_t num_properties,
                                            bt_property_t *properties);
 
@@ -231,19 +231,19 @@ bt_status_t btif_storage_write_hl_mdl_data(UINT8 app_idx, char *value, int value
 **                  BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
+
 bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
                                                     UINT16 attr_mask, UINT8 sub_class,
                                                     UINT8 app_id, UINT16 vendor_id,
                                                     UINT16 product_id, UINT16 version,
-                                                    UINT8 ctry_code, UINT16 dl_len,
-                                                    UINT8 *dsc_list);
+                                                    UINT8 ctry_code, UINT16 dl_len, UINT8 *dsc_list);
 
 /*******************************************************************************
 **
 ** Function         btif_storage_load_bonded_hid_info
 **
-** Description      BTIF storage API - Loads hid info for all the bonded devices
-**                  from NVRAM and adds those devices  to the BTA_HH.
+** Description      BTIF storage API - Loads hid info for all the bonded devices from NVRAM
+**                  and adds those devices  to the BTA_HH.
 **
 ** Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
 **
@@ -284,7 +284,8 @@ bt_status_t btif_storage_load_autopair_device_list();
 **                  FALSE otherwise
 **
 *******************************************************************************/
-BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_addr);
+
+BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_bd_addr);
 
 /*******************************************************************************
 **
@@ -296,7 +297,8 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_dev_add
 **                  BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
-bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_dev_addr);
+
+bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_bd_addr);
 
 /*******************************************************************************
 **
@@ -308,6 +310,45 @@ bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_de
 **                  FALSE otherwise
 **
 *******************************************************************************/
-BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_dev_addr);
+BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_bd_addr);
 
+#if (BLE_INCLUDED == TRUE)
+bt_status_t btif_storage_add_ble_bonding_key( bt_bdaddr_t *remote_bd_addr,
+                                              char *key,
+                                              uint8_t key_type,
+                                              uint8_t key_length);
+bt_status_t btif_storage_get_ble_bonding_key(bt_bdaddr_t *remote_bd_addr,
+                                             UINT8 key_type,
+                                             char *key_value,
+                                             int key_length);
+
+bt_status_t btif_storage_add_ble_local_key(char *key,
+                                           uint8_t key_type,
+                                           uint8_t key_length);
+bt_status_t btif_storage_remove_ble_bonding_keys(bt_bdaddr_t *remote_bd_addr);
+bt_status_t btif_storage_remove_ble_local_keys(void);
+bt_status_t btif_storage_get_ble_local_key(UINT8 key_type,
+                                           char *key_value,
+                                           int key_len);
+
+bt_status_t btif_storage_get_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
+                                              int *addr_type);
+
+bt_status_t btif_storage_set_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
+                                              UINT8 addr_type);
+
+#endif
+/*******************************************************************************
+**
+** Function         btif_storage_get_remote_version
+**
+** Description      Fetch remote version info on cached remote device
+**
+** Returns          BT_STATUS_SUCCESS if found
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+
+bt_status_t btif_storage_get_remote_version(const bt_bdaddr_t *remote_bd_addr,
+                                  bt_remote_version_t *p_ver);
 #endif /* BTIF_STORAGE_H */

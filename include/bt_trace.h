@@ -4668,6 +4668,28 @@ extern UINT8 btif_trace_level;
                                                         (m), (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4), (UINT32)(p5));}
 #define APPL_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)  {if (appl_trace_level >= BT_TRACE_LEVEL_DEBUG) LogMsg_6(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
                                                         (m), (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4), (UINT32)(p5), (UINT32)(p6));}
+
+#define APPL_TRACE_VERBOSE0(m)                    {if (appl_trace_level >= BT_TRACE_LEVEL_VERBOSE)\
+    LogMsg_0(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, (m));}
+#define APPL_TRACE_VERBOSE1(m,p1)                 {if (appl_trace_level >= BT_TRACE_LEVEL_VERBOSE)\
+    LogMsg_1(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, (m), \
+    (UINT32)(p1));}
+#define APPL_TRACE_VERBOSE2(m,p1,p2)              {if (appl_trace_level >= BT_TRACE_LEVEL_VERBOSE)\
+    LogMsg_2(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, (m), \
+    (UINT32)(p1), (UINT32)(p2));}
+#define APPL_TRACE_VERBOSE3(m,p1,p2,p3)           {if (appl_trace_level >= BT_TRACE_LEVEL_VERBOSE)\
+    LogMsg_3(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, (m), \
+    (UINT32)(p1), (UINT32)(p2), (UINT32)(p3));}
+#define APPL_TRACE_VERBOSE4(m,p1,p2,p3,p4)        {if (appl_trace_level >= BT_TRACE_LEVEL_VERBOSE)\
+    LogMsg_4(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, (m), \
+    (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4));}
+#define APPL_TRACE_VERBOSE5(m,p1,p2,p3,p4,p5)     {if (appl_trace_level >= BT_TRACE_LEVEL_VERBOSE)\
+    LogMsg_5(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, (m), \
+    (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4), (UINT32)(p5));}
+#define APPL_TRACE_VERBOSE6(m,p1,p2,p3,p4,p5,p6)  {if (appl_trace_level >= BT_TRACE_LEVEL_VERBOSE)\
+    LogMsg_6(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, (m), \
+    (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4), (UINT32)(p5), (UINT32)(p6));}
+
 #else
 /* define traces for Application */
 
@@ -4710,6 +4732,14 @@ extern UINT8 btif_trace_level;
 #define APPL_TRACE_DEBUG4(m,p1,p2,p3,p4)
 #define APPL_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)
 #define APPL_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)
+
+#define APPL_TRACE_VERBOSE0(m)
+#define APPL_TRACE_VERBOSE1(m,p1)
+#define APPL_TRACE_VERBOSE2(m,p1,p2)
+#define APPL_TRACE_VERBOSE3(m,p1,p2,p3)
+#define APPL_TRACE_VERBOSE4(m,p1,p2,p3,p4)
+#define APPL_TRACE_VERBOSE5(m,p1,p2,p3,p4,p5)
+#define APPL_TRACE_VERBOSE6(m,p1,p2,p3,p4,p5,p6)
 
 #endif
 

@@ -520,7 +520,7 @@ BOOLEAN bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
 {
     BOOLEAN found = FALSE;
     tBTA_HL_MCL_CB      *p_mcb;
-    UINT8               app_idx, mcl_idx;
+    UINT8               app_idx = 0, mcl_idx = 0;
 
     switch (p_msg->hdr.event)
     {
@@ -567,7 +567,7 @@ BOOLEAN bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
             if (found)
             {
                 p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-                if (p_mcb->cch_oper != BTA_HL_CCH_OP_LOCAL_CLOSE)
+                if ((p_mcb->cch_oper != BTA_HL_CCH_OP_LOCAL_CLOSE) && (p_mcb->cch_oper != BTA_HL_CCH_OP_LOCAL_OPEN) )
                 {
                     p_mcb->cch_oper = BTA_HL_CCH_OP_REMOTE_CLOSE;
                 }
@@ -584,7 +584,7 @@ BOOLEAN bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
             if (found)
             {
                 p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-                if (p_mcb->cch_oper != BTA_HL_CCH_OP_REMOTE_CLOSE)
+                if ((p_mcb->cch_oper != BTA_HL_CCH_OP_REMOTE_CLOSE) && (p_mcb->cch_oper != BTA_HL_CCH_OP_LOCAL_OPEN))
                 {
                     p_mcb->cch_oper = BTA_HL_CCH_OP_LOCAL_CLOSE;
                 }
@@ -629,7 +629,7 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
 {
     BOOLEAN         found = FALSE;
     tBTA_HL_MCL_CB  *p_mcb;
-    UINT8           app_idx, mcl_idx, mdl_idx;
+    UINT8           app_idx = 0, mcl_idx = 0, mdl_idx = 0;
 
     switch (p_msg->hdr.event)
     {
@@ -1124,7 +1124,7 @@ BOOLEAN bta_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
 {
     tBTA_HL_APP_CB  *p_acb;
     BOOLEAN         found=FALSE;
-    UINT8 i,j;
+    UINT8 i = 0,j = 0;
 
     for (i=0; i<BTA_HL_NUM_APPS; i++)
     {
@@ -1959,7 +1959,7 @@ BOOLEAN bta_hl_validate_reconnect_params(UINT8 app_idx, UINT8 mcl_idx,
     BOOLEAN local_mdep_id_found =FALSE;
     BOOLEAN mdl_cfg_found =FALSE;
     BOOLEAN            status=FALSE;
-    UINT8 i, in_use_mdl_idx;
+    UINT8 i, in_use_mdl_idx = 0;
 
 #if BTA_HL_DEBUG == TRUE
     APPL_TRACE_DEBUG1("bta_hl_validate_reconnect_params  mdl_id=%d", p_reconnect->mdl_id);
@@ -2358,7 +2358,7 @@ void bta_hl_save_mdl_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx )
     tBTA_HL_MDL_CFG mdl_cfg;
     tBTA_HL_MDEP *p_mdep_cfg;
     tBTA_HL_L2CAP_CFG_INFO l2cap_cfg;
-    UINT8 time_val;
+    UINT8 time_val = 0;
     mdl_id = p_dcb->mdl_id;
     if (!bta_hl_find_mdl_cfg_idx(app_idx, mcl_idx, mdl_id, &mdl_cfg_idx))
     {
@@ -2581,12 +2581,14 @@ BOOLEAN bta_hl_validate_chan_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx)
     tBTA_HL_APP_CB *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
     tBTA_HL_MDL_CB *p_dcb  = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
     BOOLEAN success = FALSE;
-    UINT8 mdl_cfg_idx;
+    UINT8 mdl_cfg_idx = 0;
     tBTA_HL_L2CAP_CFG_INFO l2cap_cfg;
+    BOOLEAN get_l2cap_result, get_mdl_result;
 
+    get_l2cap_result = bta_hl_get_l2cap_cfg(p_dcb->mdl_handle, &l2cap_cfg);
+    get_mdl_result = bta_hl_find_mdl_cfg_idx(app_idx, mcl_idx, p_dcb->mdl_id, &mdl_cfg_idx);
 
-    if (bta_hl_get_l2cap_cfg(p_dcb->mdl_handle, &l2cap_cfg) &&
-        bta_hl_find_mdl_cfg_idx(app_idx, mcl_idx, p_dcb->mdl_id, &mdl_cfg_idx))
+    if (get_l2cap_result && get_mdl_result)
     {
         if ((p_acb->mdl_cfg[mdl_cfg_idx].mtu <= l2cap_cfg.mtu) &&
             (p_acb->mdl_cfg[mdl_cfg_idx].fcs == l2cap_cfg.fcs) &&
@@ -2632,7 +2634,7 @@ BOOLEAN  bta_hl_is_cong_on(UINT8 app_id, BD_ADDR bd_addr, tBTA_HL_MDL_ID mdl_id)
 
 {
     tBTA_HL_MDL_CB      *p_dcb;
-    UINT8   app_idx, mcl_idx, mdl_idx;
+    UINT8   app_idx = 0, mcl_idx, mdl_idx;
     BOOLEAN cong_status = TRUE;
 
     if (bta_hl_find_app_idx(app_id, &app_idx))
@@ -2766,7 +2768,10 @@ void bta_hl_check_deregistration(UINT8 app_idx, tBTA_HL_DATA *p_data )
             p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
             if (p_mcb->cch_oper != BTA_HL_CCH_OP_LOCAL_CLOSE)
             {
+                if (p_mcb->cch_state == BTA_HL_CCH_OPENING_ST)
+                    p_mcb->force_close_local_cch_opening = TRUE;
                 p_mcb->cch_oper = BTA_HL_CCH_OP_LOCAL_CLOSE;
+                APPL_TRACE_DEBUG1("p_mcb->force_close_local_cch_opening=%d", p_mcb->force_close_local_cch_opening  );
                 bta_hl_check_cch_close(app_idx,mcl_idx,p_data, TRUE);
             }
         }
