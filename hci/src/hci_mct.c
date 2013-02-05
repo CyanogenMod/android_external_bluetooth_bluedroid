@@ -732,6 +732,10 @@ uint16_t hci_mct_receive_evt_msg(void)
     uint8_t     msg_received;
     tHCI_RCV_CB  *p_cb=&mct_cb.rcv_evt;
     uint8_t     continue_fetch_looping = TRUE;
+#ifdef QCOM_WCN_SSR
+    uint8_t     dev_ssr_event[3] = { 0x10, 0x01, 0x0A };
+    uint8_t     reset;
+#endif
 
     while (continue_fetch_looping)
     {
@@ -740,15 +744,39 @@ uint16_t hci_mct_receive_evt_msg(void)
         {
             break;
         }
-
-        bytes_read++;
-        msg_received = FALSE;
-
-        switch (p_cb->rcv_state)
+#ifdef QCOM_WCN_SSR
+        reset = userial_dev_inreset();
+        if (reset)
         {
-        case MCT_RX_NEWMSG_ST:
-            /* Start of new message */
-            /* Initialize rx parameters */
+           /* Allocate a buffer for sending H/w error message */
+           if (bt_hc_cbacks)
+           {
+                len = 3 + BT_HC_HDR_SIZE;
+                p_cb->p_rcv_msg = \
+                  (HC_BT_HDR *) bt_hc_cbacks->alloc(len);
+           }
+           ALOGE("sending H/w error event to stack\n ");
+           p_cb->p_rcv_msg->offset = 0;
+           p_cb->p_rcv_msg->layer_specific = 0;
+           p_cb->p_rcv_msg->event = MSG_HC_TO_STACK_HCI_EVT;
+           p_cb->p_rcv_msg->len = 3;
+           memcpy((uint8_t *)(p_cb->p_rcv_msg + 1),&dev_ssr_event, 3);
+           msg_received = TRUE;
+           /* Next, wait for next message */
+           p_cb->rcv_state = MCT_RX_NEWMSG_ST;
+           continue_fetch_looping = FALSE;
+        }
+        else
+#endif
+        {
+          bytes_read++;
+          msg_received = FALSE;
+
+          switch (p_cb->rcv_state)
+          {
+            case MCT_RX_NEWMSG_ST:
+             /* Start of new message */
+               /* Initialize rx parameters */
             memset(p_cb->preload_buffer, 0 , 6);
             p_cb->preload_buffer[0] = byte;
             p_cb->preload_count = 1;
@@ -870,6 +898,7 @@ uint16_t hci_mct_receive_evt_msg(void)
             break;
         }
 
+       }
 
         /* If we received entire message, then send it to the task */
         if (msg_received)
