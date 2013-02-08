@@ -2098,27 +2098,33 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
         } while (((p_buf->len + btif_media_cb.encoder.u16PacketLength) < btif_media_cb.TxAaMtuSize)
                 && (p_buf->layer_specific < 0x0F) && nb_frame);
 
-        /* coverity[SIGN_EXTENSION] False-positive: Parameter are always in range avoiding sign extension*/
-        btif_media_cb.timestamp += p_buf->layer_specific * blocm_x_subband;
-
-        /* store the time stamp in the buffer to send */
-        *((UINT32 *) (p_buf + 1)) = btif_media_cb.timestamp;
-
-        VERBOSE("TX QUEUE NOW %d", btif_media_cb.TxAaQ.count);
-
-        if (btif_media_cb.tx_flush)
+        if(p_buf->len)
         {
-            APPL_TRACE_DEBUG0("### tx suspended, discarded frame ###");
+            btif_media_cb.timestamp += p_buf->layer_specific * blocm_x_subband;
 
-            if (btif_media_cb.TxAaQ.count > 0)
-                btif_media_flush_q(&(btif_media_cb.TxAaQ));
+            /* store the time stamp in the buffer to send */
+            *((UINT32 *) (p_buf + 1)) = btif_media_cb.timestamp;
 
-            GKI_freebuf(p_buf);
-            return;
+            VERBOSE("TX QUEUE NOW %d", btif_media_cb.TxAaQ.count);
+
+            if (btif_media_cb.tx_flush)
+            {
+                APPL_TRACE_DEBUG0("### tx suspended, discarded frame ###");
+
+                if (btif_media_cb.TxAaQ.count > 0)
+                    btif_media_flush_q(&(btif_media_cb.TxAaQ));
+
+                GKI_freebuf(p_buf);
+                return;
+            }
+
+            /* Enqueue the encoded SBC frame in AA Tx Queue */
+            GKI_enqueue(&(btif_media_cb.TxAaQ), p_buf);
         }
-
-        /* Enqueue the encoded SBC frame in AA Tx Queue */
-        GKI_enqueue(&(btif_media_cb.TxAaQ), p_buf);
+        else
+        {
+            GKI_freebuf(p_buf);
+        }
     }
 }
 

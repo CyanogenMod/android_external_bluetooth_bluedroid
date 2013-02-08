@@ -811,7 +811,7 @@ UDRV_API UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UI
             return 0;
         }
 
-        n = recv(fd, p_buf, len, 0);
+        n = recv(fd, p_buf+n_read, len-n_read, 0);
 
         //BTIF_TRACE_EVENT1("read %d bytes", n);
 
