@@ -25,6 +25,10 @@ LOCAL_SRC_FILES += \
 
 endif
 
+ifeq ($(strip $(BOARD_HAVE_BLUETOOTH_TI)),true)
+LOCAL_CFLAGS += -DBTHC_USERIAL_READ_MEM_SIZE=1034
+endif
+
 LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/include \
         $(LOCAL_PATH)/../utils/include
