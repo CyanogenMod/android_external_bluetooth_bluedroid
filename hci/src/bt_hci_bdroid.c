@@ -415,6 +415,7 @@ static void *bt_hc_worker_thread(void *arg)
             tx_cmd_pkts_pending = FALSE;
             HC_BT_HDR * sending_msg_que[64];
             int sending_msg_count = 0;
+            int sending_hci_cmd_pkts_count = 0;
             utils_lock();
             p_next_msg = tx_q.p_first;
             while (p_next_msg && sending_msg_count <
@@ -430,12 +431,14 @@ static void *bt_hc_worker_thread(void *arg)
                      *  gives back us credits through CommandCompleteEvent or
                      *  CommandStatusEvent.
                      */
-                    if ((tx_cmd_pkts_pending == TRUE) || (num_hci_cmd_pkts <= 0))
+                    if ((tx_cmd_pkts_pending == TRUE) ||
+                        (sending_hci_cmd_pkts_count >= num_hci_cmd_pkts))
                     {
                         tx_cmd_pkts_pending = TRUE;
                         p_next_msg = utils_getnext(p_next_msg);
                         continue;
                     }
+                    sending_hci_cmd_pkts_count++;
                 }
 
                 p_msg = p_next_msg;
