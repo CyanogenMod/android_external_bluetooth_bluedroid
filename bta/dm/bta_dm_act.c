@@ -4978,10 +4978,17 @@ static void bta_dm_gatt_disc_result(tBTA_GATT_ID service_id)
     {
         APPL_TRACE_DEBUG3("ADDING BLE SERVICE uuid=0x%x, ble_ptr = 0x%x, ble_raw_used = 0x%x", service_id.uuid.uu.uuid16,bta_dm_search_cb.p_ble_rawdata,bta_dm_search_cb.ble_raw_used);
 
-        memcpy((bta_dm_search_cb.p_ble_rawdata + bta_dm_search_cb.ble_raw_used), &service_id,
-                sizeof(service_id) );
+        if(bta_dm_search_cb.p_ble_rawdata)
+        {
+            memcpy((bta_dm_search_cb.p_ble_rawdata + bta_dm_search_cb.ble_raw_used), &service_id,
+                   sizeof(service_id) );
 
-        bta_dm_search_cb.ble_raw_used += sizeof(service_id);
+            bta_dm_search_cb.ble_raw_used += sizeof(service_id);
+        }
+        else
+        {
+            APPL_TRACE_ERROR0("p_ble_rawdata is NULL");
+        }
 
     }
     else

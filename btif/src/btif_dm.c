@@ -2256,9 +2256,8 @@ static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         /*Map the HCI fail reason  to  bt status  */
         switch (p_auth_cmpl->fail_reason)
         {
-
-            btif_dm_remove_ble_bonding_keys();
             default:
+                btif_dm_remove_ble_bonding_keys();
                 status =  BT_STATUS_FAIL;
                 break;
         }

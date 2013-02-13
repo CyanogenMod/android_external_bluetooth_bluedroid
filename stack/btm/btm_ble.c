@@ -1198,12 +1198,17 @@ BOOLEAN btm_ble_start_encrypt(BD_ADDR bda, BOOLEAN use_stk, BT_OCTET16 stk)
         if (!btsnd_hcic_ble_start_enc(p_rec->hci_handle, dummy_rand, 0, stk))
             return FALSE;
     }
-    else
+    else if (p_rec->ble.key_type & BTM_LE_KEY_PENC)
     {
         if (!btsnd_hcic_ble_start_enc(p_rec->hci_handle, p_rec->ble.keys.rand,
                                       p_rec->ble.keys.ediv, p_rec->ble.keys.ltk))
             return FALSE;
     }
+    else
+    {
+        return FALSE;
+    }
+
     return TRUE;
 }
 

@@ -4471,6 +4471,7 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev_by_handle (handle);
     UINT8             old_pairing_flags = btm_cb.pairing_flags;
     int               result = HCI_ERR_AUTH_FAILURE;
+    tBTM_SEC_CALLBACK   *p_callback = NULL;
 
     /* If page was delayed for disc complete, can do it now */
     btm_cb.discing = FALSE;
@@ -4532,7 +4533,17 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
     p_dev_rec->sec_flags &= ~(BTM_SEC_AUTHORIZED | BTM_SEC_AUTHENTICATED | BTM_SEC_ENCRYPTED | BTM_SEC_ROLE_SWITCHED);
 
     p_dev_rec->security_required = BTM_SEC_NONE;
-    p_dev_rec->p_callback = NULL; /* when the peer device time out the authentication before we do, this call back must be reset here */
+
+    p_callback = p_dev_rec->p_callback;
+
+    /* if security is pending, send callback to clean up the security state */
+    if(p_callback)
+    {
+        p_dev_rec->p_callback = NULL; /* when the peer device time out the authentication before
+                                         we do, this call back must be reset here */
+        (*p_callback) (p_dev_rec->bd_addr, p_dev_rec->p_ref_data, BTM_ERR_PROCESSING);
+    }
+
     BTM_TRACE_EVENT1("after Update sec_flags=0x%x", p_dev_rec->sec_flags);
 }
 
