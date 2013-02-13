@@ -305,6 +305,8 @@ static inline rfc_slot_t* create_srv_accept_rfc_slot(rfc_slot_t* srv_rs, const b
 bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_uuid, int channel,
                             int* sock_fd, int flags)
 {
+
+    APPL_TRACE_DEBUG1("btsock_rfc_listen, service_name:%s", service_name);
     if(sock_fd == NULL || (service_uuid == NULL && (channel < 1 || channel > 30)))
     {
         APPL_TRACE_ERROR3("invalid rfc channel:%d or sock_fd:%p, uuid:%p", channel, sock_fd, service_uuid);
@@ -329,6 +331,7 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
     rfc_slot_t* rs = alloc_rfc_slot(NULL, service_name, service_uuid, channel, flags, TRUE);
     if(rs)
     {
+        APPL_TRACE_DEBUG1("BTA_JvCreateRecordByUser:%s", service_name);
         BTA_JvCreateRecordByUser((void *)rs->id);
         *sock_fd = rs->app_fd;
         rs->app_fd = -1; //the fd ownership is transferred to app
@@ -466,18 +469,19 @@ static inline void free_rfc_slot_scn(rfc_slot_t* rs)
 {
     if(rs->scn > 0)
     {
-        if(rs->f.server && !rs->f.closing)
+        if(rs->f.server && !rs->f.closing && rs->rfc_handle)
         {
             BTA_JvRfcommStopServer(rs->rfc_handle);
             rs->rfc_handle = 0;
         }
-        BTM_FreeSCN(rs->scn);
+        if(rs->f.server)
+            BTM_FreeSCN(rs->scn);
         rs->scn = 0;
     }
 }
 static void cleanup_rfc_slot(rfc_slot_t* rs)
 {
-    APPL_TRACE_DEBUG3("cleanup slot:%d, fd:%d, scn:%d", rs->id, rs->fd, rs->scn);
+    APPL_TRACE_DEBUG4("cleanup slot:%d, fd:%d, scn:%d, sdp_handle:0x%x", rs->id, rs->fd, rs->scn, rs->sdp_handle);
     if(rs->fd != -1)
     {
         shutdown(rs->fd, 2);
@@ -695,6 +699,7 @@ static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
         break;
 
     case BTA_JV_RFCOMM_CLOSE_EVT:
+        APPL_TRACE_DEBUG1("BTA_JV_RFCOMM_CLOSE_EVT: user_data:%d", (uint32_t)user_data);
         on_rfc_close(&p_data->rfc_close, (uint32_t)user_data);
         break;
 
@@ -724,7 +729,7 @@ static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
 static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
 {
     uint32_t id = (uint32_t)user_data;
-    APPL_TRACE_DEBUG2("event:%d, slot id:%d", event, id);
+    APPL_TRACE_DEBUG2("jv_dm_cback: event:%d, slot id:%d", event, id);
     switch(event)
     {
         case BTA_JV_CREATE_RECORD_EVT:
@@ -736,6 +741,11 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
                     //now start the rfcomm server after sdp & channel # assigned
                     BTA_JvRfcommStartServer(rs->security, rs->role, rs->scn, MAX_RFC_SESSION, rfcomm_cback,
                                             (void*)rs->id);
+                }
+                else if(rs)
+                {
+                    APPL_TRACE_ERROR1("jv_dm_cback: cannot start server, slot found:%p", rs);
+                    cleanup_rfc_slot(rs);
                 }
                 unlock_slot(&slot_lock);
                 break;
@@ -896,7 +906,7 @@ void btsock_rfc_signaled(int fd, int flags, uint32_t user_id)
             APPL_TRACE_DEBUG1("SOCK_THREAD_FD_EXCEPTION, flags:%x", flags);
             rs->f.closing = TRUE;
             if(rs->f.server)
-               BTA_JvRfcommStopServer(rs->rfc_handle);
+                BTA_JvRfcommStopServer(rs->rfc_handle);
             else
                 BTA_JvRfcommClose(rs->rfc_handle);
         }

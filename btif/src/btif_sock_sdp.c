@@ -51,6 +51,7 @@
 #include "utl.h"
 #include "../bta/pb/bta_pbs_int.h"
 #include "../include/bta_op_api.h"
+#include "bta_jv_api.h"
 #include <cutils/log.h>
 
 #define RESERVED_SCN_PBS 19
@@ -113,7 +114,7 @@ static int add_sdp_by_uuid(const char *name,  const uint8_t *service_uuid, UINT1
             }
         }
     }
-
+    else APPL_TRACE_ERROR1("failed to create sdp record, service_name:%s", name);
     return 0;
 }
 
@@ -142,7 +143,7 @@ static int add_pbap_sdp(const char* p_service_name, int scn)
     UINT32              sdp_handle = 0;
     tBTA_PBS_CFG *p_bta_pbs_cfg = (tBTA_PBS_CFG *)&bta_pbs_cfg;
 
-    APPL_TRACE_DEBUG2("scn %d, service name %s", scn, p_service_name);
+    APPL_TRACE_DEBUG2("add_pbap_sdd:scn %d, service name %s", scn, p_service_name);
 
     if ((sdp_handle = SDP_CreateRecord()) == 0)
     {
@@ -437,7 +438,8 @@ int add_rfc_sdp_rec(const char* name, const uint8_t* uuid, int scn)
 
 void del_rfc_sdp_rec(int handle)
 {
+    APPL_TRACE_DEBUG1("del_rfc_sdp_rec: handle:0x%x", handle);
     if(handle != -1 && handle != 0)
-        SDP_DeleteRecord( handle );
+        BTA_JvDeleteRecord( handle );
 }
 

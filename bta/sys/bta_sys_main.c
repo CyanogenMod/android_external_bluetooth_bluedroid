@@ -57,8 +57,8 @@ tBTA_SYS_CB bta_sys_cb;
 
 /* trace level */
 /* TODO Bluedroid - Hard-coded trace levels -  Needs to be configurable */
-UINT8 appl_trace_level = BT_TRACE_LEVEL_DEBUG; //APPL_INITIAL_TRACE_LEVEL;
-UINT8 btif_trace_level = BT_TRACE_LEVEL_DEBUG;
+UINT8 appl_trace_level = BT_TRACE_LEVEL_WARNING; //APPL_INITIAL_TRACE_LEVEL;
+UINT8 btif_trace_level = BT_TRACE_LEVEL_WARNING;
 
 static const tBTA_SYS_REG bta_sys_hw_reg =
 {

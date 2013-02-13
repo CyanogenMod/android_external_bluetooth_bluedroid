@@ -33,13 +33,6 @@
 #include "btm_int.h"
 #include "btu.h"
 
-#include <cutils/log.h>
-#define info(fmt, ...)  ALOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define debug(fmt, ...) ALOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) ALOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define asrt(s) if(!(s)) ALOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
-
-
 static const tPORT_STATE default_port_pars =
 {
     PORT_BAUD_RATE_9600,
@@ -92,7 +85,7 @@ tPORT *port_allocate_port (UINT8 dlci, BD_ADDR bd_addr)
             port_set_defaults (p_port);
 
             rfc_cb.rfc.last_port = yy;
-            debug("rfc_cb.port.port[%d] allocated, last_port:%d", yy, rfc_cb.rfc.last_port);
+            RFCOMM_TRACE_DEBUG2("rfc_cb.port.port[%d] allocated, last_port:%d", yy, rfc_cb.rfc.last_port);
             return (p_port);
         }
     }
@@ -217,7 +210,7 @@ void port_release_port (tPORT *p_port)
     tPORT_STATE user_port_pars;
 
     PORT_SCHEDULE_LOCK;
-    debug("port_release_port, p_port:%p", p_port);
+    RFCOMM_TRACE_DEBUG1("port_release_port, p_port:%p", p_port);
     while ((p_buf = (BT_HDR *)GKI_dequeue (&p_port->rx.queue)) != NULL)
         GKI_freebuf (p_buf);
 

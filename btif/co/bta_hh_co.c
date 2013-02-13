@@ -20,6 +20,8 @@
 
 #include <ctype.h>
 #include <fcntl.h>
+#include <sys/poll.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -41,7 +43,7 @@ static int uhid_write(int fd, const struct uhid_event *ev)
     ret = write(fd, ev, sizeof(*ev));
     if (ret < 0){
         int rtn = -errno;
-        APPL_TRACE_ERROR2("%s: Cannot write to uhid:%s",__FUNCTION__,strerror(errno));
+        APPL_TRACE_ERROR2("%s: Cannot write to uhid:%s", __FUNCTION__, strerror(errno));
         return rtn;
     } else if (ret != sizeof(*ev)) {
         APPL_TRACE_ERROR3("%s: Wrong size written to uhid: %ld != %lu",
@@ -50,6 +52,144 @@ static int uhid_write(int fd, const struct uhid_event *ev)
     } else {
         return 0;
     }
+}
+
+/* Internal function to parse the events received from UHID driver*/
+static int uhid_event(btif_hh_device_t *p_dev)
+{
+    struct uhid_event ev;
+    ssize_t ret;
+    memset(&ev, 0, sizeof(ev));
+    if(!p_dev)
+        APPL_TRACE_ERROR1("%s: Device not found",__FUNCTION__)
+    ret = read(p_dev->fd, &ev, sizeof(ev));
+    if (ret == 0) {
+        APPL_TRACE_ERROR2("%s: Read HUP on uhid-cdev %s", __FUNCTION__,
+                                                 strerror(errno));
+        return -EFAULT;
+    } else if (ret < 0) {
+        APPL_TRACE_ERROR2("%s:Cannot read uhid-cdev: %s", __FUNCTION__,
+                                                strerror(errno));
+        return -errno;
+    } else if (ret != sizeof(ev)) {
+        APPL_TRACE_ERROR3("%s:Invalid size read from uhid-dev: %ld != %lu",
+                            __FUNCTION__, ret, sizeof(ev));
+        return -EFAULT;
+    }
+
+    switch (ev.type) {
+    case UHID_START:
+        APPL_TRACE_DEBUG0("UHID_START from uhid-dev\n");
+        break;
+    case UHID_STOP:
+        APPL_TRACE_DEBUG0("UHID_STOP from uhid-dev\n");
+        break;
+    case UHID_OPEN:
+        APPL_TRACE_DEBUG0("UHID_OPEN from uhid-dev\n");
+        break;
+    case UHID_CLOSE:
+        APPL_TRACE_DEBUG0("UHID_CLOSE from uhid-dev\n");
+        break;
+    case UHID_OUTPUT:
+        APPL_TRACE_DEBUG0("UHID_OUTPUT from uhid-dev\n");
+        APPL_TRACE_DEBUG2("UHID_OUTPUT: Report type = %d, report_size = %d"
+                            ,ev.u.output.rtype, ev.u.output.size);
+        //Send SET_REPORT with feature report if the report type in output event is FEATURE
+        if(ev.u.output.rtype == UHID_FEATURE_REPORT)
+            btif_hh_setreport(p_dev,BTHH_FEATURE_REPORT,ev.u.output.size,ev.u.output.data);
+        else if(ev.u.output.rtype == UHID_OUTPUT_REPORT)
+            btif_hh_setreport(p_dev,BTHH_OUTPUT_REPORT,ev.u.output.size,ev.u.output.data);
+        else
+            btif_hh_setreport(p_dev,BTHH_INPUT_REPORT,ev.u.output.size,ev.u.output.data);
+           break;
+    case UHID_OUTPUT_EV:
+        APPL_TRACE_DEBUG0("UHID_OUTPUT_EV from uhid-dev\n");
+        break;
+    case UHID_FEATURE:
+        APPL_TRACE_DEBUG0("UHID_FEATURE from uhid-dev\n");
+        break;
+    case UHID_FEATURE_ANSWER:
+        APPL_TRACE_DEBUG0("UHID_FEATURE_ANSWER from uhid-dev\n");
+        break;
+
+    default:
+        APPL_TRACE_DEBUG1("Invalid event from uhid-dev: %u\n", ev.type);
+    }
+
+    return 0;
+}
+
+/*******************************************************************************
+**
+** Function create_thread
+**
+** Description creat a select loop
+**
+** Returns pthread_t
+**
+*******************************************************************************/
+static inline pthread_t create_thread(void *(*start_routine)(void *), void * arg){
+    APPL_TRACE_DEBUG0("create_thread: entered");
+    pthread_attr_t thread_attr;
+
+    pthread_attr_init(&thread_attr);
+    pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
+    pthread_t thread_id = -1;
+    if ( pthread_create(&thread_id, &thread_attr, start_routine, arg)!=0 )
+    {
+        APPL_TRACE_ERROR1("pthread_create : %s", strerror(errno));
+        return -1;
+    }
+    APPL_TRACE_DEBUG0("create_thread: thread created successfully");
+    return thread_id;
+}
+
+/*******************************************************************************
+**
+** Function btif_hh_poll_event_thread
+**
+** Description the polling thread which polls for event from UHID driver
+**
+** Returns void
+**
+*******************************************************************************/
+static void *btif_hh_poll_event_thread(void *arg)
+{
+
+    btif_hh_device_t *p_dev = arg;
+    APPL_TRACE_DEBUG2("%s: Thread created fd = %d", __FUNCTION__, p_dev->fd);
+    struct pollfd pfds[1];
+    int ret;
+    pfds[0].fd = p_dev->fd;
+    pfds[0].events = POLLIN;
+
+    while(p_dev->hh_keep_polling){
+        ret = poll(pfds, 1, 500);
+        if (ret < 0) {
+            APPL_TRACE_ERROR2("%s: Cannot poll for fds: %s\n", __FUNCTION__, strerror(errno));
+            break;
+        }
+        if (pfds[0].revents & POLLIN) {
+            APPL_TRACE_DEBUG0("btif_hh_poll_event_thread: POLLIN");
+            ret = uhid_event(p_dev);
+            if (ret){
+                break;
+            }
+        }
+    }
+
+    p_dev->hh_poll_thread_id = -1;
+    return 0;
+}
+
+static inline void btif_hh_close_poll_thread(btif_hh_device_t *p_dev)
+{
+    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    p_dev->hh_keep_polling = 0;
+    if(p_dev->hh_poll_thread_id > 0)
+        pthread_join(p_dev->hh_poll_thread_id,NULL);
+
+    return;
 }
 
 void bta_hh_co_destroy(int fd)
@@ -119,7 +259,8 @@ void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class, tBTA_HH_ATTR_MASK attr_ma
                 }else
                     APPL_TRACE_DEBUG2("%s: uhid fd = %d", __FUNCTION__, p_dev->fd);
             }
-
+            p_dev->hh_keep_polling = 1;
+            p_dev->hh_poll_thread_id = create_thread(btif_hh_poll_event_thread, p_dev);
             break;
         }
         p_dev = NULL;
@@ -141,8 +282,11 @@ void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class, tBTA_HH_ATTR_MASK attr_ma
                 if (p_dev->fd < 0){
                     APPL_TRACE_ERROR2("%s: Error: failed to open uhid, err:%s",
                                                                     __FUNCTION__,strerror(errno));
-                }else
+                }else{
                     APPL_TRACE_DEBUG2("%s: uhid fd = %d", __FUNCTION__, p_dev->fd);
+                    p_dev->hh_keep_polling = 1;
+                    p_dev->hh_poll_thread_id = create_thread(btif_hh_poll_event_thread, p_dev);
+                }
 
 
                 break;
@@ -174,7 +318,26 @@ void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class, tBTA_HH_ATTR_MASK attr_ma
 *******************************************************************************/
 void bta_hh_co_close(UINT8 dev_handle, UINT8 app_id)
 {
+    UINT32 i;
+    btif_hh_device_t *p_dev = NULL;
+
     APPL_TRACE_WARNING3("%s: dev_handle = %d, app_id = %d", __FUNCTION__, dev_handle, app_id);
+    if (dev_handle == BTA_HH_INVALID_HANDLE) {
+        APPL_TRACE_WARNING2("%s: Oops, dev_handle (%d) is invalid...", __FUNCTION__, dev_handle);
+        return;
+    }
+
+    for (i = 0; i < BTIF_HH_MAX_HID; i++) {
+        p_dev = &btif_hh_cb.devices[i];
+        if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN && p_dev->dev_handle == dev_handle) {
+            APPL_TRACE_WARNING3("%s: Found an existing device with the same handle "
+                                                                "dev_status = %d, dev_handle =%d",__FUNCTION__,
+                                                                p_dev->dev_status,p_dev->dev_handle);
+            btif_hh_close_poll_thread(p_dev);
+            break;
+        }
+     }
+
 }
 
 
