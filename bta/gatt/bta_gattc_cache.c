@@ -470,8 +470,6 @@ tBTA_GATT_STATUS bta_gattc_discover_procedure(UINT16 conn_id, tBTA_GATTC_SERV *p
 
         if (param.s_handle > param.e_handle)
         {
-            APPL_TRACE_ERROR2("discover range invalid: [0x%04x ~ 0x%04x]", param.s_handle, param.e_handle);
-
             return GATT_ERROR;
         }
     }
@@ -489,8 +487,6 @@ tBTA_GATT_STATUS bta_gattc_discover_procedure(UINT16 conn_id, tBTA_GATTC_SERV *p
 *******************************************************************************/
 tBTA_GATT_STATUS bta_gattc_start_disc_include_srvc(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
-    APPL_TRACE_DEBUG0("starting discovery included service");
-
     return bta_gattc_discover_procedure(conn_id, p_srvc_cb, GATT_DISC_INC_SRVC);
 }
 /*******************************************************************************
@@ -505,8 +501,6 @@ tBTA_GATT_STATUS bta_gattc_start_disc_include_srvc(UINT16 conn_id, tBTA_GATTC_SE
 tBTA_GATT_STATUS bta_gattc_start_disc_char(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     p_srvc_cb->total_char = 0;
-
-    APPL_TRACE_DEBUG0("starting discover characteristics");
 
     return bta_gattc_discover_procedure(conn_id, p_srvc_cb, GATT_DISC_CHAR);
 }
@@ -605,8 +599,6 @@ static void bta_gattc_incl_srvc_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srv
 static void bta_gattc_char_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     tBTA_GATTC_ATTR_REC *p_rec = p_srvc_cb->p_srvc_list + p_srvc_cb->cur_char_idx;
-
-    APPL_TRACE_DEBUG1("Total %d Char found ", p_srvc_cb->total_char);
 
     /* if there are characteristic needs to be explored */
     if (p_srvc_cb->total_char > 0)
@@ -709,7 +701,7 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_list(tBTA_GATTC_SERV *p_srvc_cb,
     tBTA_GATTC_ATTR_REC *p_rec = NULL;
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
 
-    if (p_srvc_cb->next_avail_idx < BTA_GATTC_MAX_CACHE_CHAR)
+    if (p_srvc_cb->p_srvc_list && p_srvc_cb->next_avail_idx < BTA_GATTC_MAX_CACHE_CHAR)
     {
         p_rec = p_srvc_cb->p_srvc_list + p_srvc_cb->next_avail_idx;
 
@@ -731,7 +723,7 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_list(tBTA_GATTC_SERV *p_srvc_cb,
     {   /* allocate bigger buffer ?? */
         status = GATT_DB_FULL;
 
-        APPL_TRACE_ERROR0("char not added, no resources");
+        APPL_TRACE_ERROR0("service not added, no resources or wrong state");
     }
     return status;
 }
@@ -913,10 +905,11 @@ void bta_gattc_disc_res_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT_
 {
     tBTA_GATTC_SERV * p_srvc_cb = NULL;
     BOOLEAN          pri_srvc;
+    tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
 
     p_srvc_cb = bta_gattc_find_scb_by_cid(conn_id);
 
-    if (p_srvc_cb != NULL)
+    if (p_srvc_cb != NULL && p_clcb != NULL && p_clcb->state == BTA_GATTC_DISCOVER_ST)
     {
         switch (disc_type)
         {
@@ -981,7 +974,8 @@ void bta_gattc_disc_cmpl_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT
 
     if ( p_clcb && (status != GATT_SUCCESS || p_clcb->status != GATT_SUCCESS) )
     {
-        p_clcb->status = status;
+        if (p_clcb->status == GATT_SUCCESS)
+            p_clcb->status = status;
         bta_gattc_sm_execute(p_clcb, BTA_GATTC_DISCOVER_CMPL_EVT, NULL);
         return;
     }
@@ -1080,7 +1074,7 @@ UINT16 bta_gattc_id2handle(tBTA_GATTC_SERV *p_srcb, tBTA_GATT_SRVC_ID *p_service
                         if (bta_gattc_uuid_compare(descr_uuid, attr_uuid, TRUE))
                         {
 #if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
-                            APPL_TRACE_DEBUG0("found descripotor!!");
+                            APPL_TRACE_DEBUG0("found descriptor!!");
 #endif
                             handle = p_attr->attr_handle;
                             done = TRUE;
@@ -1335,7 +1329,9 @@ static tBTA_GATT_STATUS bta_gattc_find_record(tBTA_GATTC_SERV *p_srcb,
                             attr_type == p_attr->attr_type)
                         {
 
+#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
                             APPL_TRACE_DEBUG0("found char handle mapping characteristic");
+#endif
                             p_result->inst_id = p_attr->inst_id;
 
                             if (p_param != NULL)
@@ -1354,10 +1350,12 @@ static tBTA_GATT_STATUS bta_gattc_find_record(tBTA_GATTC_SERV *p_srcb,
                 }
                 p_attr = p_attr->p_next;
             }
+#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
             if (status)
             {
                 APPL_TRACE_ERROR0("In the given service, can not find matching record");
             }
+#endif
             break;
         }
 

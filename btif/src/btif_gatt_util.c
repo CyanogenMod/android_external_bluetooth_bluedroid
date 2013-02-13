@@ -55,6 +55,8 @@ static char BASE_UUID[16] = {
 
 static btif_gatt_encrypted_link_t encrypted_links[BTIF_GATT_MAX_ENC_LINK_RECORDS];
 
+extern bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr);
+
 int uuidType(unsigned char* p_uuid)
 {
     int i = 0;
@@ -330,7 +332,11 @@ static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_STATUS result)
     {
         btif_gatt_add_encrypted_link(bd_addr);
     } else {
+        bt_bdaddr_t bda;
+        bdcpy(bda.address, bd_addr);
+
         btif_gatt_remove_encrypted_link(bd_addr);
+        btif_dm_remove_bond(&bda);
     }
 }
 

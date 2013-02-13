@@ -39,6 +39,7 @@
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 
+#include "gki.h"
 #include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "bd.h"
@@ -115,6 +116,54 @@ extern const btgatt_callbacks_t *bt_gatt_callbacks;
 /************************************************************************************
 **  Static functions
 ************************************************************************************/
+
+static void btapp_gatts_copy_req_data(UINT16 event, char *p_dest, char *p_src)
+{
+    tBTA_GATTS *p_dest_data = (tBTA_GATTS*) p_dest;
+    tBTA_GATTS *p_src_data = (tBTA_GATTS*) p_src;
+
+    if (!p_src_data || !p_dest_data)
+        return;
+
+    // Copy basic structure first
+    memcpy(p_dest_data, p_src_data, sizeof(tBTA_GATTS));
+
+    // Allocate buffer for request data if necessary
+    switch (event)
+    {
+        case BTA_GATTS_READ_EVT:
+        case BTA_GATTS_WRITE_EVT:
+        case BTA_GATTS_EXEC_WRITE_EVT:
+        case BTA_GATTS_MTU_EVT:
+            p_dest_data->req_data.p_data = GKI_getbuf(sizeof(tBTA_GATTS_REQ_DATA));
+            if (p_dest_data->req_data.p_data != NULL)
+            {
+                memcpy(p_dest_data->req_data.p_data, p_src_data->req_data.p_data,
+                    sizeof(tBTA_GATTS_REQ_DATA));
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
+static void btapp_gatts_free_req_data(UINT16 event, tBTA_GATTS *p_data)
+{
+    switch (event)
+    {
+        case BTA_GATTS_READ_EVT:
+        case BTA_GATTS_WRITE_EVT:
+        case BTA_GATTS_EXEC_WRITE_EVT:
+        case BTA_GATTS_MTU_EVT:
+            if (p_data && p_data->req_data.p_data)
+                GKI_freebuf(p_data->req_data.p_data);
+            break;
+
+        default:
+            break;
+    }
+}
 
 static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
 {
@@ -284,13 +333,15 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
             ALOGE("%s: Unhandled event (%d)!", __FUNCTION__, event);
             break;
     }
+
+    btapp_gatts_free_req_data(event, p_data);
 }
 
 static void btapp_gatts_cback(tBTA_GATTS_EVT event, tBTA_GATTS *p_data)
 {
     bt_status_t status;
     status = btif_transfer_context(btapp_gatts_handle_cback, (uint16_t) event,
-        (void*)p_data, sizeof(tBTA_GATTS), NULL);
+        (void*)p_data, sizeof(tBTA_GATTS), btapp_gatts_copy_req_data);
     ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
 }
 

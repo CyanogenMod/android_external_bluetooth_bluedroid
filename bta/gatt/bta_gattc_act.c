@@ -712,10 +712,7 @@ void bta_gattc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     cb_data.close.reason    = p_clcb->reason;
     bdcpy(cb_data.close.remote_bda, p_clcb->bda);
 
-    if (p_clcb->status == BTA_GATT_OK)
-    {
-        bta_gattc_clcb_dealloc(p_clcb);
-    }
+    bta_gattc_clcb_dealloc(p_clcb);
 
     ( * p_cback)(BTA_GATTC_CLOSE_EVT,   (tBTA_GATTC *)&cb_data);
 
