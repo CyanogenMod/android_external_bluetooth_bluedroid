@@ -742,6 +742,10 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
 
         /* Trigger SDP on the device */
         pairing_cb.bonded_pending_sdp = TRUE;
+
+        if(btif_dm_inquiry_in_progress)
+            btif_dm_cancel_discovery();
+
         btif_dm_get_remote_services(&bd_addr);
         /* Do not call bond_state_changed_cb yet. Wait till fetch remote service is complete */
     }
@@ -1242,6 +1246,11 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 
         case BTA_DM_LINK_DOWN_EVT:
             bdcpy(bd_addr.address, p_data->link_down.bd_addr);
+            if ((pairing_cb.state == BT_BOND_STATE_BONDING) &&
+                (bdcmp(p_data->link_down.bd_addr, pairing_cb.bd_addr) == 0))
+            {
+                bond_state_changed(BT_STATUS_RMT_DEV_DOWN,&bd_addr, BT_BOND_STATE_NONE);
+            }
             BTIF_TRACE_DEBUG0("BTA_DM_LINK_DOWN_EVT. Sending BT_ACL_STATE_DISCONNECTED");
             HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
                       &bd_addr, BT_ACL_STATE_DISCONNECTED);
