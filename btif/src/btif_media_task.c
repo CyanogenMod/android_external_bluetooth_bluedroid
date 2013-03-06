@@ -229,7 +229,6 @@ typedef struct
     void* av_sm_hdl;
     UINT8 a2dp_cmd_pending; /* we can have max one command pending */
     BOOLEAN tx_flush; /* discards any outgoing data when true */
-    BOOLEAN scaling_disabled;
 #endif
 
 } tBTIF_MEDIA_CB;
@@ -1807,8 +1806,7 @@ static UINT8 btif_get_num_aa_frame(void)
             switch (btif_media_cb.encoder.s16SamplingFreq)
             {
             case SBC_sf16000:
-                if (!btif_media_cb.scaling_disabled &&
-                    (btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 2) == 0)
+                if ((btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 2) == 0)
                 {
                     result = BTIF_MEDIA_FR_PER_TICKS_16-1;
                 }
@@ -1823,8 +1821,7 @@ static UINT8 btif_get_num_aa_frame(void)
                 break;
 
             case SBC_sf48000:
-                if (!btif_media_cb.scaling_disabled &&
-                    (btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 2) == 0)
+                if ((btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 2) == 0)
                 {
                     result = BTIF_MEDIA_FR_PER_TICKS_48-1;
                 }
@@ -1835,8 +1832,7 @@ static UINT8 btif_get_num_aa_frame(void)
                 break;
 
             case SBC_sf44100:
-                if (!btif_media_cb.scaling_disabled &&
-                    (btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 64) < 7)
+                if ((btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 64) < 7)
                 {
                     result = BTIF_MEDIA_FR_PER_TICKS_44_1-1;
                 }
@@ -2199,18 +2195,6 @@ static void btif_media_send_aa_frame(void)
 
 void btif_media_check_iop_exceptions(UINT8 *peer_bda)
 {
-    /* disable rate scaling for pcm carkit */
-    if ((peer_bda[0] == 0x00) &&
-        (peer_bda[1] == 0x0E) &&
-        (peer_bda[2] == 0x9F))
-    {
-        BTIF_TRACE_WARNING0("detected pcm carkit, disable rate scaling");
-        btif_media_cb.scaling_disabled = TRUE;
-    }
-    else
-    {
-        btif_media_cb.scaling_disabled = FALSE;
-    }
 }
 
 
