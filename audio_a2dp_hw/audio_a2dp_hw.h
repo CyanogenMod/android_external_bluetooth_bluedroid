@@ -28,6 +28,11 @@
 #ifndef AUDIO_A2DP_HW_H
 #define AUDIO_A2DP_HW_H
 
+#ifdef HAS_BDROID_BUILDCFG
+#include "bdroid_buildcfg.h"
+#endif
+
+
 /*****************************************************************************
 **  Constants & Macros
 ******************************************************************************/
