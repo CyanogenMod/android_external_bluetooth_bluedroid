@@ -11,7 +11,10 @@ endif
 LOCAL_SRC_FILES:= \
 	audio_a2dp_hw.c
 
-LOCAL_C_INCLUDES+= .
+LOCAL_CFLAGS += $(bdroid_CFLAGS)
+
+LOCAL_C_INCLUDES+= . \
+	$(bdroid_C_INCLUDES)
 
 LOCAL_SHARED_LIBRARIES := \
 	libcutils
