@@ -142,6 +142,34 @@ static const char* dump_a2dp_ctrl_event(char event)
     }
 }
 
+#ifdef A2DP_HW_SYSFS_TUNER
+/* If kernel supports some kind of A2DP related tuning,
+   this function should be used to switch tuning on/off.
+   Specify in BLUEDROID BUILDCFG the following values:
+   A2DP_HW_SYSFS_TUNER "/sysfs/path/to/tuner/or/scaling_min_freq"
+   A2DP_HW_SYSFS_TUNER_OFF "0"   # value to switch tuning off,
+                                 # "0" or a Min Freq off value
+                                 # like "0"
+   A2DP_HW_SYSFS_TUNER_ON "1"    # value to switch tuning on
+                                 # "1", or Min Freq boost value
+                                 # like "205000"
+*/
+static void a2dp_hw_sysfs_tuning(int state)
+{
+    int fd = open( A2DP_HW_SYSFS_TUNER, O_WRONLY);
+    if(fd > 0) {
+        char *val = A2DP_HW_SYSFS_TUNER_OFF;
+        if (state)
+        {
+            val = A2DP_HW_SYSFS_TUNER_ON;
+        }
+        write(fd, val, strlen(val));
+        INFO("a2dp tuning set to %s", val);
+        close(fd);
+    }
+}
+#endif
+
 /* logs timestamp with microsec precision
    pprev is optional in case a dedicated diff is required */
 static void ts_log(char *tag, int val, struct timespec *pprev_opt)
@@ -356,6 +384,9 @@ static int start_audio_datapath(struct a2dp_stream_out *out)
         out->state = AUDIO_A2DP_STATE_STARTED;
     }
 
+#ifdef A2DP_HW_SYSFS_TUNER
+    a2dp_hw_sysfs_tuning(1);
+#endif
     return 0;
 }
 
@@ -365,6 +396,11 @@ static int stop_audio_datapath(struct a2dp_stream_out *out)
     int oldstate = out->state;
 
     INFO("state %d", out->state);
+
+#ifdef A2DP_HW_SYSFS_TUNER
+    /* disable a2dp tuning  ASAP */
+    a2dp_hw_sysfs_tuning(0);
+#endif
 
     if (out->ctrl_fd == AUDIO_SKT_DISCONNECTED)
          return -1;
@@ -392,6 +428,11 @@ static int stop_audio_datapath(struct a2dp_stream_out *out)
 static int suspend_audio_datapath(struct a2dp_stream_out *out, bool standby)
 {
     INFO("state %d", out->state);
+
+#ifdef A2DP_HW_SYSFS_TUNER
+    /* disable a2dp tuning ASAP */
+    a2dp_hw_sysfs_tuning(0);
+#endif
 
     if (out->ctrl_fd == AUDIO_SKT_DISCONNECTED)
          return -1;
