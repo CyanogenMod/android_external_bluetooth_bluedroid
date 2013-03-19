@@ -17,12 +17,23 @@ LOCAL_SRC_FILES += \
         src/hci_mct.c \
         src/hci_h4.c
 
+ifeq ($(BLUETOOTH_HCI_USE_USB),true)
+LOCAL_SRC_FILES += \
+        src/usb.c
+
+LOCAL_C_INCLUDES += \
+        external/libusb
+
+LOCAL_SHARED_LIBRARIES := \
+        libusb
+endif
+
 LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/include \
         $(LOCAL_PATH)/../utils/include \
         $(bdroid_C_INCLUDES)
 
-LOCAL_SHARED_LIBRARIES := \
+LOCAL_SHARED_LIBRARIES += \
         libcutils \
         liblog \
         libdl \
