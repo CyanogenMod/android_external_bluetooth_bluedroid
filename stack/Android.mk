@@ -45,6 +45,9 @@ LOCAL_SRC_FILES:= \
     ./avrc/avrc_api.c \
     ./avrc/avrc_sdp.c \
     ./avrc/avrc_opt.c \
+    ./avrc/avrc_bld_tg.c \
+    ./avrc/avrc_pars_tg.c \
+    ./avrc/avrc_utils.c \
     ./hid/hidh_api.c \
     ./hid/hidh_conn.c \
     ./bnep/bnep_main.c \

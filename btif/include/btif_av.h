@@ -113,4 +113,16 @@ void btif_dispatch_sm_event(btif_av_sm_event_t event, void *p_data, int len);
 
 bt_status_t btif_av_init(void);
 
+/*******************************************************************************
+**
+** Function         btif_av_is_connected
+**
+** Description      Checks if av has a connected sink
+**
+** Returns          BOOLEAN
+**
+*******************************************************************************/
+
+BOOLEAN btif_av_is_connected(void);
+
 #endif /* BTIF_AV_H */
