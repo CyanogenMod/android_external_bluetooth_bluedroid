@@ -760,6 +760,8 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
     UINT16      u16;
     tAVRC_MSG_VENDOR    *p_vendor = &p_msg->msg.vendor;
 
+#if (AVRC_METADATA_INCLUDED == TRUE)
+
     pdu = *(p_vendor->p_vendor_data);
     p_rc_rsp->pdu = pdu;
     *p_ctype = AVRC_RSP_REJ;
@@ -771,6 +773,13 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
         evt=0;
         p_vendor->hdr.ctype = BTA_AV_RSP_NOT_IMPL;
         AVRC_VendorRsp(p_msg->handle, p_msg->label, &p_msg->msg.vendor);
+    }
+    else if (!AVRC_IsValidAvcType(pdu, p_vendor->hdr.ctype) )
+    {
+        APPL_TRACE_DEBUG2("Invalid pdu/ctype: 0x%x, %d", pdu, p_vendor->hdr.ctype);
+        /* reject invalid message without reporting to app */
+        evt = 0;
+        p_rc_rsp->rsp.status = AVRC_STS_BAD_CMD;
     }
     else
     {
@@ -823,6 +832,12 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
 
         }
     }
+#else
+    APPL_TRACE_DEBUG0("AVRCP 1.3 Metadata not supporteed. Reject command.");
+    /* reject invalid message without reporting to app */
+    evt = 0;
+    p_rc_rsp->rsp.status = AVRC_STS_BAD_CMD;
+#endif
 
     return evt;
 }
@@ -844,6 +859,13 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     BT_HDR      *p_pkt = NULL;
     tAVRC_MSG_VENDOR    *p_vendor = &p_data->rc_msg.msg.vendor;
     BOOLEAN is_inquiry = ((p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_SPEC_INQ) || p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_GEN_INQ);
+#if (AVRC_METADATA_INCLUDED == TRUE)
+    tAVRC_STS   res;
+    UINT8       ctype;
+    tAVRC_RESPONSE  rc_rsp;
+
+    rc_rsp.rsp.status = BTA_AV_STS_NO_RSP;
+#endif
 
     if (p_data->rc_msg.opcode == AVRC_OP_PASS_THRU)
     {
@@ -857,6 +879,12 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             if (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VENDOR)
             {
                 p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_NOT_IMPL;
+#if (AVRC_METADATA_INCLUDED == TRUE)
+                if (p_cb->features & BTA_AV_FEAT_METADATA)
+                    p_data->rc_msg.msg.hdr.ctype =
+                        bta_av_group_navi_supported(p_data->rc_msg.msg.pass.pass_len,
+                        p_data->rc_msg.msg.pass.p_pass_data, is_inquiry);
+#endif
             }
             else
             {
@@ -912,12 +940,30 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         if ((p_cb->features & BTA_AV_FEAT_VENDOR)  &&
             p_data->rc_msg.msg.hdr.ctype <= AVRC_CMD_GEN_INQ)
         {
+#if (AVRC_METADATA_INCLUDED == TRUE)
+            if ((p_cb->features & BTA_AV_FEAT_METADATA) &&
+               (p_vendor->company_id == AVRC_CO_METADATA))
+            {
+                av.meta_msg.p_msg = &p_data->rc_msg.msg;
+                evt = bta_av_proc_meta_cmd (&rc_rsp, &p_data->rc_msg, &ctype);
+            }
+            else
+#endif
                 evt = BTA_AV_VENDOR_CMD_EVT;
         }
         /* else if configured to support vendor specific and it's a response */
         else if ((p_cb->features & BTA_AV_FEAT_VENDOR) &&
                  p_data->rc_msg.msg.hdr.ctype >= AVRC_RSP_ACCEPT)
         {
+#if (AVRC_METADATA_INCLUDED == TRUE)
+            if ((p_cb->features & BTA_AV_FEAT_METADATA) &&
+               (p_vendor->company_id == AVRC_CO_METADATA))
+            {
+                av.meta_msg.p_msg = &p_data->rc_msg.msg;
+                evt = BTA_AV_META_MSG_EVT;
+            }
+            else
+#endif
                 evt = BTA_AV_VENDOR_RSP_EVT;
 
         }
@@ -936,6 +982,18 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
            AVRC_VendorRsp(p_data->rc_msg.handle, p_data->rc_msg.label, &p_data->rc_msg.msg.vendor);
         }
     }
+#if (AVRC_METADATA_INCLUDED == TRUE)
+    if (evt == 0 && rc_rsp.rsp.status != BTA_AV_STS_NO_RSP)
+    {
+        if (!p_pkt)
+        {
+            rc_rsp.rsp.opcode = p_data->rc_msg.opcode;
+            res = AVRC_BldResponse (0, &rc_rsp, &p_pkt);
+        }
+        if (p_pkt)
+            AVRC_MsgReq (p_data->rc_msg.handle, p_data->rc_msg.label, ctype, p_pkt);
+    }
+#endif
 
     /* call callback */
     if (evt != 0)
@@ -1655,7 +1713,12 @@ void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
     APPL_TRACE_DEBUG1("rc_handle %d", rc_handle);
     /* check peer version and whether support CT and TG role */
     peer_features = bta_av_check_peer_features (UUID_SERVCLASS_AV_REMOTE_CONTROL);
-    peer_features |= bta_av_check_peer_features (UUID_SERVCLASS_AV_REM_CTRL_TARGET);
+    if ((p_cb->features & BTA_AV_FEAT_ADV_CTRL) && ((peer_features&BTA_AV_FEAT_ADV_CTRL) == 0))
+    {
+        /* if we support advance control and peer does not, check their support on TG role
+         * some implementation uses 1.3 on CT ans 1.4 on TG */
+        peer_features |= bta_av_check_peer_features (UUID_SERVCLASS_AV_REM_CTRL_TARGET);
+    }
 
     p_cb->disc = 0;
     utl_freebuf((void **) &p_cb->p_disc_db);

@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2003-2012 Broadcom Corporation
+ *  Copyright (C) 2003-2013 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -38,7 +38,11 @@ tAVRC_CB avrc_cb;
 const tSDP_PROTOCOL_ELEM  avrc_proto_list [] =
 {
     {UUID_PROTOCOL_L2CAP, 1, {AVCT_PSM, 0} },
+#if AVRC_METADATA_INCLUDED == TRUE
+    {UUID_PROTOCOL_AVCTP, 1, {AVCT_REV_1_2, 0}  }
+#else
     {UUID_PROTOCOL_AVCTP, 1, {AVCT_REV_1_0, 0}  }
+#endif
 };
 
 
@@ -212,7 +216,12 @@ UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
     result &= SDP_AddProtocolList(sdp_handle, AVRC_NUM_PROTO_ELEMS, (tSDP_PROTOCOL_ELEM *)avrc_proto_list);
 
     /* add profile descriptor list   */
+#if AVRC_METADATA_INCLUDED == TRUE
+    result &= SDP_AddProfileDescriptorList(sdp_handle, UUID_SERVCLASS_AV_REMOTE_CONTROL, AVRC_REV_1_3);
+#else
     result &= SDP_AddProfileDescriptorList(sdp_handle, UUID_SERVCLASS_AV_REMOTE_CONTROL, AVRC_REV_1_0);
+#endif
+
 
     /* add supported categories */
     p = temp;

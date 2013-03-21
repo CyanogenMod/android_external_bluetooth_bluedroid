@@ -123,7 +123,6 @@ static const btif_sm_handler_t btif_av_state_handlers[] =
 /*************************************************************************
 ** Extern functions
 *************************************************************************/
-extern void btif_rc_init(void);
 extern void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data);
 extern BOOLEAN btif_rc_get_connected_peer(BD_ADDR peer_addr);
 extern void btif_rc_check_handle_pending_play (BD_ADDR peer_addr, BOOLEAN bSendToApp);
@@ -698,9 +697,6 @@ bt_status_t btif_av_init(void)
 
         btif_enable_service(BTA_A2DP_SERVICE_ID);
 
-        /* Initialize the AVRC CB */
-        btif_rc_init();
-
         /* Also initialize the AV state machine */
         btif_av_cb.sm_handle = btif_sm_init((const btif_sm_handler_t*)btif_av_state_handlers, BTIF_AV_STATE_IDLE);
 
@@ -928,8 +924,14 @@ bt_status_t btif_av_execute_service(BOOLEAN b_enable)
          /* Added BTA_AV_FEAT_NO_SCO_SSPD - this ensures that the BTA does not
           * auto-suspend av streaming on AG events(SCO or Call). The suspend shall
           * be initiated by the app/audioflinger layers */
+#if (AVRC_METADATA_INCLUDED == TRUE)
+         BTA_AvEnable(BTA_SEC_AUTHENTICATE,
+             BTA_AV_FEAT_RCTG|BTA_AV_FEAT_METADATA|BTA_AV_FEAT_VENDOR|BTA_AV_FEAT_NO_SCO_SSPD,
+             bte_av_callback);
+#else
          BTA_AvEnable(BTA_SEC_AUTHENTICATE, (BTA_AV_FEAT_RCTG | BTA_AV_FEAT_NO_SCO_SSPD),
                       bte_av_callback);
+#endif
          BTA_AvRegister(BTA_AV_CHNL_AUDIO, BTIF_AV_SERVICE_NAME, 0);
      }
      else {
