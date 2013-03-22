@@ -91,11 +91,10 @@ const tBTA_AV_CFG bta_av_cfg =
     AVRC_CO_BROADCOM,       /* AVRCP Company ID */
 #if AVRC_METADATA_INCLUDED == TRUE
     512,                    /* AVRCP MTU at L2CAP for control channel */
-    BTA_AV_MAX_RC_BR_MTU,   /* AVRCP MTU at L2CAP for browsing channel */
 #else
     48,                     /* AVRCP MTU at L2CAP for control channel */
-    BTA_AV_MAX_RC_BR_MTU,   /* AVRCP MTU at L2CAP for browsing channel */
 #endif
+    BTA_AV_MAX_RC_BR_MTU,   /* AVRCP MTU at L2CAP for browsing channel */
     BTA_AV_RC_SUPF_CT,      /* AVRCP controller categories */
     BTA_AV_RC_SUPF_TG,      /* AVRCP target categories */
     672,                    /* AVDTP signaling channel MTU at L2CAP */
