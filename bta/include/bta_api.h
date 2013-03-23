@@ -434,6 +434,7 @@ typedef UINT8 tBTA_DM_BLE_SCAN_COND_OP;
 #define BTA_DM_BLE_PF_MANU_DATA            BTM_BLE_PF_MANU_DATA
 #define BTA_DM_BLE_PF_SRVC_DATA            BTM_BLE_PF_SRVC_DATA
 #define BTA_DM_BLE_PF_TYPE_MAX             BTM_BLE_PF_TYPE_MAX
+#define BTA_DM_BLE_PF_TYPE_ALL             BTM_BLE_PF_TYPE_ALL
 typedef UINT8   tBTA_DM_BLE_PF_COND_TYPE;
 
 typedef struct
@@ -996,6 +997,10 @@ typedef tSDP_DISCOVERY_DB       tBTA_DISCOVERY_DB;
 #define         BTA_DI_NUM_MAX       3
 #endif
 
+/* Device features mask definitions */
+#define BTA_FEATURE_BYTES_PER_PAGE  BTM_FEATURE_BYTES_PER_PAGE
+#define BTA_EXT_FEATURES_PAGE_MAX   BTM_EXT_FEATURES_PAGE_MAX
+
 /*****************************************************************************
 **  External Function Declarations
 *****************************************************************************/
@@ -1354,9 +1359,13 @@ BTA_API extern void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class,
 **
 ** Returns          void
 **
+** Note:            features points to the remote device features array.
+**                  The array size is
+**                  BTA_FEATURE_BYTES_PER_PAGE * (BTA_EXT_FEATURES_PAGE_MAX + 1)
+**
 *******************************************************************************/
 BTA_API extern void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                      BD_NAME bd_name, BD_FEATURES features,
+                                      BD_NAME bd_name, UINT8 *features,
                                       LINK_KEY link_key, tBTA_SERVICE_MASK trusted_mask,
                                       BOOLEAN is_trusted, UINT8 key_type, tBTA_IO_CAP io_cap);
 

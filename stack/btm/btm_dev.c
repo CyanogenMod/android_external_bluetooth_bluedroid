@@ -48,7 +48,7 @@ static tBTM_SEC_DEV_REC *btm_find_oldest_dev (void);
 ** Parameters:      bd_addr          - BD address of the peer
 **                  dev_class        - Device Class
 **                  bd_name          - Name of the peer device.  NULL if unknown.
-**                  features         - Remote device's supported features. NULL if not known
+**                  features         - Remote device's features (up to 3 pages). NULL if not known
 **                  trusted_mask     - Bitwise OR of services that do not
 **                                     require authorization. (array of UINT32)
 **                  link_key         - Connection link key. NULL if unknown.
@@ -57,11 +57,12 @@ static tBTM_SEC_DEV_REC *btm_find_oldest_dev (void);
 **
 *******************************************************************************/
 BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
-                          BD_FEATURES features, UINT32 trusted_mask[],
+                          UINT8 *features, UINT32 trusted_mask[],
                           LINK_KEY link_key, UINT8 key_type, tBTM_IO_CAP io_cap)
 {
     tBTM_SEC_DEV_REC  *p_dev_rec;
-    int               i;
+    int               i, j;
+    BOOLEAN           found = FALSE;
 
     p_dev_rec = btm_find_dev (bd_addr);
     if (!p_dev_rec)
@@ -107,10 +108,29 @@ BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
             (char *)bd_name, BTM_MAX_REM_BD_NAME_LEN);
     }
 
+    p_dev_rec->num_read_pages = 0;
     if (features)
-        memcpy (p_dev_rec->features, features, sizeof (BD_FEATURES));
+    {
+        memcpy (p_dev_rec->features, features, sizeof (p_dev_rec->features));
+        for (i = HCI_EXT_FEATURES_PAGE_MAX; i >= 0; i--)
+        {
+            for (j = 0; j < HCI_FEATURE_BYTES_PER_PAGE; j++)
+            {
+                if (p_dev_rec->features[i][j] != 0)
+                {
+                    found = TRUE;
+                    break;
+                }
+            }
+            if (found)
+            {
+                p_dev_rec->num_read_pages = i + 1;
+                break;
+            }
+        }
+    }
     else
-        memset (p_dev_rec->features, 0, sizeof (BD_FEATURES));
+        memset (p_dev_rec->features, 0, sizeof (p_dev_rec->features));
 
     BTM_SEC_COPY_TRUSTED_DEVICE(trusted_mask, p_dev_rec->trusted_mask);
 
@@ -197,7 +217,7 @@ char *BTM_SecReadDevName (BD_ADDR bd_addr)
 ** Description      Look for the record in the device database for the record
 **                  with specified handle
 **
-** Returns          Pointer to the record or NULL
+** Returns          Pointer to the record
 **
 *******************************************************************************/
 tBTM_SEC_DEV_REC *btm_sec_alloc_dev (BD_ADDR bd_addr)
@@ -308,9 +328,9 @@ BOOLEAN btm_dev_support_switch (BD_ADDR bd_addr)
         return(FALSE);
 #endif
     p_dev_rec = btm_find_dev (bd_addr);
-    if (p_dev_rec && HCI_SWITCH_SUPPORTED(btm_cb.devcb.local_features))
+    if (p_dev_rec && HCI_SWITCH_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
     {
-        if (HCI_SWITCH_SUPPORTED(p_dev_rec->features))
+        if (HCI_SWITCH_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_0]))
         {
             BTM_TRACE_DEBUG0("btm_dev_support_switch return TRUE (feature found)");
             return (TRUE);
@@ -319,7 +339,7 @@ BOOLEAN btm_dev_support_switch (BD_ADDR bd_addr)
         /* If the feature field is all zero, we never received them */
         for (xx = 0 ; xx < BD_FEATURES_LEN ; xx++)
         {
-            if (p_dev_rec->features[xx] != 0x00)
+            if (p_dev_rec->features[HCI_EXT_FEATURES_PAGE_0][xx] != 0x00)
             {
                 feature_empty = FALSE; /* at least one is != 0 */
                 break;
@@ -420,7 +440,7 @@ tBTM_SEC_DEV_REC *btm_find_or_alloc_dev (BD_ADDR bd_addr)
 **                  the oldest non-paired device.  If all devices are paired it
 **                  deletes the oldest paired device.
 **
-** Returns          Pointer to the record or NULL
+** Returns          Pointer to the record
 **
 *******************************************************************************/
 tBTM_SEC_DEV_REC *btm_find_oldest_dev (void)

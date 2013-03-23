@@ -2086,6 +2086,9 @@ BOOLEAN l2cu_create_conn (tL2C_LCB *p_lcb)
 
     if (dev_type == BT_DEVICE_TYPE_BLE)
     {
+        if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+            return FALSE;
+
         p_lcb->ble_addr_type = addr_type;
         p_lcb->is_ble_link   = TRUE;
 
@@ -2118,7 +2121,7 @@ BOOLEAN l2cu_create_conn (tL2C_LCB *p_lcb)
                 continue; /* No Master Slave switch not allowed when SCO Active */
 #endif
 
-            if (HCI_SWITCH_SUPPORTED(btm_cb.devcb.local_features))
+            if (HCI_SWITCH_SUPPORTED(BTM_ReadLocalFeatures()))
             {
                 /* mark this lcb waiting for switch to be completed and
                    start switch on the other one */

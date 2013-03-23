@@ -1079,6 +1079,14 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             btm_read_linq_tx_power_complete (p);
             break;
 
+        case HCI_WRITE_SIMPLE_PAIRING_MODE:
+            btm_write_simple_paring_mode_complete (p);
+            break;
+
+        case HCI_WRITE_LE_HOST_SUPPORTED:
+            btm_write_le_host_supported_complete (p);
+            break;
+
 #if (BLE_INCLUDED == TRUE)
 /* BLE Commands */
         case HCI_BLE_READ_WHITE_LIST_SIZE :
@@ -1104,6 +1112,10 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             break;
         case HCI_BLE_READ_BUFFER_SIZE:
             btm_read_ble_buf_size_complete(p, evt_len);
+            break;
+
+        case HCI_BLE_READ_LOCAL_SPT_FEAT:
+            btm_read_ble_local_supported_features_complete(p, evt_len);
             break;
 
         case HCI_BLE_READ_ADV_CHNL_TX_POWER:
@@ -1330,9 +1342,7 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
                         break;
 
                     case HCI_READ_RMT_EXT_FEATURES_COMP_EVT:
-// btla-specific ++
-		                btu_hcif_read_rmt_ext_features_comp_evt (p_cmd - 3, 0);
-// btla-specific --
+                        btm_read_remote_ext_features_failed(status);
                         break;
 
                     case HCI_AUTHENTICATION_REQUESTED:

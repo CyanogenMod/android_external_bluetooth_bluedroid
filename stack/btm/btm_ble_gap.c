@@ -107,6 +107,9 @@ void BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy)
 
     BTM_TRACE_EVENT0 ("BTM_BleUpdateAdvFilterPolicy");
 
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return;
+
     if (p_cb->afp != adv_policy)
     {
         p_cb->afp = adv_policy;
@@ -151,6 +154,9 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
     tBTM_STATUS     status = BTM_NO_RESOURCES;
 
     BTM_TRACE_EVENT0 ("BTM_BleObserve ");
+
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return BTM_ILLEGAL_VALUE;
 
     if (start)
     {
@@ -210,6 +216,9 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
     tBTM_LE_RANDOM_CB *p_addr_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
     UINT8 evt_type = p_cb->scan_rsp ? BTM_BLE_DISCOVER_EVT: BTM_BLE_NON_CONNECT_EVT;
+
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return BTM_ILLEGAL_VALUE;
 
 #ifdef  BTM_BLE_PC_ADV_TEST_MODE
     if (BTM_BLE_PC_ADV_TEST_MODE)
@@ -293,6 +302,8 @@ BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   bg_conn_type,
     BOOLEAN started = TRUE;
 
     BTM_TRACE_EVENT0 ("BTM_BleSetBgConnType ");
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return FALSE;
 
     if (btm_cb.ble_ctr_cb.bg_conn_type != bg_conn_type)
     {
@@ -374,6 +385,8 @@ tBTM_STATUS BTM_BleSetConnMode(BOOLEAN is_directed)
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
     BTM_TRACE_EVENT1 ("BTM_BleSetConnMode is_directed = %d ", is_directed);
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return BTM_ILLEGAL_VALUE;
 
     p_cb->directed_conn = is_directed;
     return btm_ble_set_connectability( p_cb->connectable_mode);
@@ -442,6 +455,9 @@ tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max,
 
     BTM_TRACE_EVENT0 ("BTM_BleSetAdvParams");
 
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return BTM_ILLEGAL_VALUE;
+
     if (!BTM_BLE_VALID_PRAM(adv_int_min, BTM_BLE_ADV_INT_MIN, BTM_BLE_ADV_INT_MAX) ||
         !BTM_BLE_VALID_PRAM(adv_int_max, BTM_BLE_ADV_INT_MIN, BTM_BLE_ADV_INT_MAX))
     {
@@ -500,6 +516,8 @@ void BTM_BleReadAdvParams (UINT16 *adv_int_min, UINT16 *adv_int_max,
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
     BTM_TRACE_EVENT0 ("BTM_BleReadAdvParams ");
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return ;
 
     *adv_int_min = p_cb->adv_interval_min;
     *adv_int_max = p_cb->adv_interval_max;
@@ -531,6 +549,8 @@ void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_window, tBTM_BLE_SCA
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
     BTM_TRACE_EVENT0 (" BTM_BleSetScanParams");
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return ;
 
     if (BTM_BLE_VALID_PRAM(scan_interval, BTM_BLE_SCAN_INT_MIN, BTM_BLE_SCAN_INT_MAX) &&
         BTM_BLE_VALID_PRAM(scan_window, BTM_BLE_SCAN_WIN_MIN, BTM_BLE_SCAN_WIN_MAX) &&
@@ -570,6 +590,10 @@ tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
             *p = rsp_data;
 
     BTM_TRACE_EVENT0 (" BTM_BleWriteScanRsp");
+
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return BTM_ILLEGAL_VALUE;
+
     memset(rsp_data, 0, BTM_BLE_AD_DATA_LEN);
     btm_ble_build_adv_data(&data_mask, &p, p_data);
 
@@ -605,11 +629,15 @@ tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
     UINT8  *p;
     UINT16   mask = data_mask;
 
+    BTM_TRACE_EVENT0 ("BTM_BleWriteAdvData ");
+
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return BTM_ILLEGAL_VALUE;
+
     memset(p_cb_data, 0, sizeof(tBTM_BLE_LOCAL_ADV_DATA));
     p = p_cb_data->ad_data;
     p_cb_data->data_mask = data_mask;
 
-    BTM_TRACE_EVENT0 ("BTM_BleWriteAdvData ");
     p_cb_data->p_flags = btm_ble_build_adv_data(&mask, &p, p_data);
 
     p_cb_data->p_pad = p;
@@ -1136,6 +1164,9 @@ void btm_ble_read_remote_name_cmpl(BOOLEAN status, BD_ADDR bda, UINT16 length, c
 tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur, tBTM_CMPL_CB *p_cb)
 {
     tBTM_INQUIRY_VAR_ST      *p_inq = &btm_cb.btm_inq_vars;
+
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return BTM_ERR_PROCESSING;
 
     if (p_cur &&
         p_cur->results.ble_evt_type != BTM_BLE_EVT_CONN_ADV &&
@@ -1854,8 +1885,6 @@ static tBTM_STATUS btm_ble_stop_adv(void)
 *******************************************************************************/
 void btm_ble_timeout(TIMER_LIST_ENT *p_tle)
 {
-    BTM_TRACE_EVENT0 ("btm_ble_timeout");
-
     switch (p_tle->event)
     {
         case BTU_TTYPE_BLE_INQUIRY:
@@ -1895,32 +1924,21 @@ void btm_ble_timeout(TIMER_LIST_ENT *p_tle)
 void btm_ble_read_remote_features_complete(UINT8 *p)
 {
     tACL_CONN        *p_acl_cb = &btm_cb.acl_db[0];
-    UINT8             size;
+    UINT8             status;
     UINT16            handle;
-    int               xx, yy;
-    tBTM_SEC_DEV_REC *p_dev_rec;
+    int               xx;
 
     BTM_TRACE_EVENT0 ("btm_ble_read_remote_features_complete ");
 
-    STREAM_TO_UINT16  (handle, p);
-    STREAM_TO_UINT8  (size, p);
+    STREAM_TO_UINT8  (status, p);
+    STREAM_TO_UINT16 (handle, p);
 
     /* Look up the connection by handle and copy features */
     for (xx = 0; xx < MAX_L2CAP_LINKS; xx++, p_acl_cb++)
     {
         if ((p_acl_cb->in_use) && (p_acl_cb->hci_handle == handle))
         {
-            for (yy = 0; yy < BD_FEATURES_LEN; yy++)
-                STREAM_TO_UINT8 (p_acl_cb->features[yy], p);
-
-            p_dev_rec = btm_find_dev_by_handle (handle);
-            if (!p_dev_rec)
-            {
-                /* Get a new device; might be doing dedicated bonding */
-                p_dev_rec = btm_find_or_alloc_dev (p_acl_cb->remote_addr);
-            }
-
-            memcpy (p_dev_rec->features, p_acl_cb->features, BD_FEATURES_LEN);
+            STREAM_TO_ARRAY(p_acl_cb->peer_le_features, p, BD_FEATURES_LEN);
             break;
         }
     }

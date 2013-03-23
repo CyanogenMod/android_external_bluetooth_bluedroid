@@ -185,11 +185,14 @@ tBTM_STATUS BTM_SetDiscoverability (UINT16 inq_mode, UINT16 window, UINT16 inter
 
     BTM_TRACE_API0 ("BTM_SetDiscoverability");
 #if (BLE_INCLUDED == TRUE && BLE_INCLUDED == TRUE)
-    if (btm_ble_set_discoverability((UINT16)(inq_mode))
-                        == BTM_SUCCESS)
+    if (HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
     {
-        btm_cb.btm_inq_vars.discoverable_mode &= (~BTM_BLE_DISCOVERABLE_MASK);
-        btm_cb.btm_inq_vars.discoverable_mode |= (inq_mode & BTM_BLE_CONNECTABLE_MASK);
+        if (btm_ble_set_discoverability((UINT16)(inq_mode))
+                            == BTM_SUCCESS)
+        {
+            btm_cb.btm_inq_vars.discoverable_mode &= (~BTM_BLE_DISCOVERABLE_MASK);
+            btm_cb.btm_inq_vars.discoverable_mode |= (inq_mode & BTM_BLE_CONNECTABLE_MASK);
+        }
     }
     inq_mode &= ~BTM_BLE_DISCOVERABLE_MASK;
 #endif
@@ -313,7 +316,7 @@ tBTM_STATUS BTM_SetInquiryScanType (UINT16 scan_type)
         return (BTM_ILLEGAL_VALUE);
 
     /* whatever app wants if device is not 1.2 scan type should be STANDARD */
-    if (!HCI_LMP_INTERLACED_INQ_SCAN_SUPPORTED(btm_cb.devcb.local_features))
+    if (!HCI_LMP_INTERLACED_INQ_SCAN_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
      return (BTM_MODE_UNSUPPORTED);
 
     /* Check for scan type if configuration has been changed */
@@ -350,7 +353,7 @@ tBTM_STATUS BTM_SetPageScanType (UINT16 scan_type)
         return (BTM_ILLEGAL_VALUE);
 
     /* whatever app wants if device is not 1.2 scan type should be STANDARD */
-    if (!HCI_LMP_INTERLACED_PAGE_SCAN_SUPPORTED(btm_cb.devcb.local_features))
+    if (!HCI_LMP_INTERLACED_PAGE_SCAN_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
      return (BTM_MODE_UNSUPPORTED);
 
     /* Check for scan type if configuration has been changed */
@@ -393,13 +396,13 @@ tBTM_STATUS BTM_SetInquiryMode (UINT8 mode)
     }
     else if (mode == BTM_INQ_RESULT_WITH_RSSI)
     {
-    if (!HCI_LMP_INQ_RSSI_SUPPORTED(btm_cb.devcb.local_features))
+    if (!HCI_LMP_INQ_RSSI_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
         return (BTM_MODE_UNSUPPORTED);
     }
 #if (( BTM_EIR_CLIENT_INCLUDED == TRUE )||( BTM_EIR_SERVER_INCLUDED == TRUE ))
     else if (mode == BTM_INQ_RESULT_EXTENDED)
     {
-        if (!HCI_EXT_INQ_RSP_SUPPORTED(btm_cb.devcb.local_features))
+        if (!HCI_EXT_INQ_RSP_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
             return (BTM_MODE_UNSUPPORTED);
     }
 #endif
@@ -619,12 +622,15 @@ tBTM_STATUS BTM_SetConnectability (UINT16 page_mode, UINT16 window, UINT16 inter
     BTM_TRACE_API0 ("BTM_SetConnectability");
 
 #if (BLE_INCLUDED == TRUE && BLE_INCLUDED == TRUE)
-    if (btm_ble_set_connectability(page_mode) != BTM_SUCCESS)
+    if (HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
     {
-        return BTM_NO_RESOURCES;
+        if (btm_ble_set_connectability(page_mode) != BTM_SUCCESS)
+        {
+            return BTM_NO_RESOURCES;
+        }
+        p_inq->connectable_mode &= (~BTM_BLE_CONNECTABLE_MASK);
+        p_inq->connectable_mode |= (page_mode & BTM_BLE_CONNECTABLE_MASK);
     }
-    p_inq->connectable_mode &= (~BTM_BLE_CONNECTABLE_MASK);
-    p_inq->connectable_mode |= (page_mode & BTM_BLE_CONNECTABLE_MASK);
     page_mode &= ~BTM_BLE_CONNECTABLE_MASK;
 #endif
 
@@ -875,9 +881,14 @@ tBTM_STATUS BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms, tBTM_INQ_RESULTS_CB *p
 #if BLE_INCLUDED == TRUE
     if (p_inqparms->mode & BTM_BLE_INQUIRY_MASK)
     {
+        if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        {
+            p_inq->inqparms.mode &= ~ BTM_BLE_INQUIRY_MASK;
+            status = BTM_ILLEGAL_VALUE;
+        }
         /* BLE for now does not support filter condition for inquiry */
-        if ((status = btm_ble_start_inquiry((UINT8)(p_inqparms->mode & BTM_BLE_INQUIRY_MASK),
-                        p_inq->inqparms.duration)) != BTM_CMD_STARTED)
+        else if ((status = btm_ble_start_inquiry((UINT8)(p_inqparms->mode & BTM_BLE_INQUIRY_MASK),
+                                            p_inqparms->duration)) != BTM_CMD_STARTED)
         {
             BTM_TRACE_ERROR0("Err Starting LE Inquiry.");
             p_inq->inqparms.mode &= ~ BTM_BLE_INQUIRY_MASK;
@@ -2334,7 +2345,8 @@ void btm_process_inq_complete (UINT8 status, UINT8 mode)
 
             btm_clr_inq_result_flt();
 
-            if((p_inq->inq_cmpl_info.status == BTM_SUCCESS) && HCI_LMP_INQ_RSSI_SUPPORTED(btm_cb.devcb.local_features))
+            if((p_inq->inq_cmpl_info.status == BTM_SUCCESS) &&
+                HCI_LMP_INQ_RSSI_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
             {
                 btm_sort_inq_result();
             }
@@ -2764,7 +2776,7 @@ void btm_read_linq_tx_power_complete(UINT8 *p)
 tBTM_STATUS BTM_WriteEIR( BT_HDR *p_buff )
 {
 #if (BTM_EIR_SERVER_INCLUDED == TRUE)
-    if (HCI_EXT_INQ_RSP_SUPPORTED(btm_cb.devcb.local_features))
+    if (HCI_EXT_INQ_RSP_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
     {
         BTM_TRACE_API0("Write Extended Inquiry Response to controller");
         btsnd_hcic_write_ext_inquiry_response (p_buff, BTM_EIR_DEFAULT_FEC_REQUIRED);

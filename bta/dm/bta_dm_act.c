@@ -56,7 +56,7 @@ static BOOLEAN bta_dm_check_av(UINT16 event);
 #if (BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
 static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data);
 #else
-static void bta_dm_acl_change_cback (BD_ADDR p_bda, DEV_CLASS p_dc, BD_NAME p_bdn, BD_FEATURES features, BOOLEAN is_new);
+static void bta_dm_acl_change_cback (BD_ADDR p_bda, DEV_CLASS p_dc, BD_NAME p_bdn, UINT8 *features, BOOLEAN is_new);
 #endif
 static void bta_dm_policy_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
 
@@ -3230,7 +3230,7 @@ static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data)
 **
 *******************************************************************************/
 static void bta_dm_acl_change_cback (BD_ADDR p_bda, DEV_CLASS p_dc, BD_NAME p_bdn,
-                                     BD_FEATURES features, BOOLEAN is_new)
+                                     UINT8 *features, BOOLEAN is_new)
 {
 
     tBTA_DM_ACL_CHANGE * p_msg;
@@ -4072,8 +4072,12 @@ static void bta_dm_set_eir (char *local_name)
 
     UINT8_TO_STREAM(p, local_name_len + 1);
     UINT8_TO_STREAM(p, data_type);
-    memcpy(p, local_name, local_name_len);
-    p += local_name_len;
+
+    if (local_name != NULL)
+    {
+        memcpy(p, local_name, local_name_len);
+        p += local_name_len;
+    }
     free_eir_length -= local_name_len + 2;
 
 #if (BTA_EIR_CANNED_UUID_LIST == TRUE)
