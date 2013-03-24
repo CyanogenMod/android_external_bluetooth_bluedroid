@@ -27,6 +27,7 @@
 #include "bta_sys.h"
 #include "bta_api.h"
 #include "bta_dm_int.h"
+#include "bta_jv_api.h"
 
 #ifndef BTA_DM_LINK_POLICY_SETTINGS
 #define BTA_DM_LINK_POLICY_SETTINGS    (HCI_ENABLE_MASTER_SLAVE_SWITCH | HCI_ENABLE_HOLD_MODE | HCI_ENABLE_SNIFF_MODE | HCI_ENABLE_PARK_MODE)
@@ -124,8 +125,8 @@ tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_CFG bta_dm_pm_cfg[] =
   {BTA_ID_OPC, BTA_ALL_APP_ID,      6},  /* reuse ftc spec table */
   {BTA_ID_OPS, BTA_ALL_APP_ID,      7},  /* reuse fts spec table */
   {BTA_ID_MSE, BTA_ALL_APP_ID,      7},  /* reuse fts spec table */
-  {BTA_ID_JV1, BTA_ALL_APP_ID,      7},  /* reuse fts spec table */
-  {BTA_ID_JV2, BTA_ALL_APP_ID,      7},  /* reuse fts spec table */
+  {BTA_ID_JV,  BTA_JV_PM_ID_1,      6},  /* app BTA_JV_PM_ID_1, reuse ftc spec table */
+  {BTA_ID_JV,  BTA_ALL_APP_ID,      7},  /* reuse fts spec table */
   {BTA_ID_HL,  BTA_ALL_APP_ID,      8}   /* reuse fts spec table */
 };
 
