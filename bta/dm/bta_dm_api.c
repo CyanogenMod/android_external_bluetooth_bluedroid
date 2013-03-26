@@ -350,11 +350,20 @@ tBTA_STATUS BTA_DmVendorSpecificCommand (UINT16 opcode, UINT8 param_len,
         {
             p_msg->hdr.event = BTA_DM_API_VENDOR_SPECIFIC_COMMAND_EVT;
             p_msg->opcode = opcode;
-            p_msg->param_len = param_len;
             p_msg->p_param_buf = (UINT8 *)(p_msg + 1);
             p_msg->p_cback = p_cback;
 
-            memcpy (p_msg->p_param_buf, p_param_buf, param_len);
+            if (p_param_buf && param_len)
+            {
+                memcpy (p_msg->p_param_buf, p_param_buf, param_len);
+                p_msg->param_len = param_len;
+            }
+            else
+            {
+                p_msg->param_len = 0;
+                p_msg->p_param_buf = NULL;
+
+            }
 
             bta_sys_sendmsg(p_msg);
         }
@@ -726,7 +735,7 @@ void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
         }
 
         memset (p_msg->bd_name, 0, BD_NAME_LEN);
-        memset (p_msg->features, 0, BD_FEATURES_LEN);
+        memset (p_msg->features, 0, sizeof (p_msg->features));
 
         bta_sys_sendmsg(p_msg);
     }
@@ -776,7 +785,7 @@ tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr)
 **
 *******************************************************************************/
 void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                      BD_NAME bd_name, BD_FEATURES features,
+                                      BD_NAME bd_name, UINT8 *features,
                                       LINK_KEY link_key, tBTA_SERVICE_MASK trusted_mask,
                                       BOOLEAN is_trusted, UINT8 key_type, tBTA_IO_CAP io_cap)
 {
@@ -810,7 +819,7 @@ void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
             memcpy(p_msg->bd_name, bd_name, BD_NAME_LEN);
 
         if (features)
-            memcpy(p_msg->features, features, BD_FEATURES_LEN);
+            memcpy(p_msg->features, features, sizeof(p_msg->features));
 
         bta_sys_sendmsg(p_msg);
     }

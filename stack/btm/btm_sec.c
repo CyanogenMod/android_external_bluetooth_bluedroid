@@ -312,7 +312,7 @@ void BTM_SetSecurityMode (UINT8 security_mode)
     }
     btm_cb.security_mode = security_mode;
 
-    if (HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_features))
+    if (HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
     {
         /* Lisbon devices and only use BTM_SEC_MODE_SP */
         btm_cb.security_mode = BTM_SEC_MODE_SP;
@@ -1049,6 +1049,8 @@ tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, UINT8 pin_len, UINT8 *p_pin, UINT32 tr
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
     tBTM_STATUS      status;
+    UINT8            *p_features;
+    UINT8            ii;
 #if SMP_INCLUDED == TRUE
     tACL_CONN   *p=NULL;
     BOOLEAN     is_le_slave_role=FALSE;
@@ -1164,7 +1166,7 @@ tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, UINT8 pin_len, UINT8 *p_pin, UINT32 tr
 #endif
 
     BTM_TRACE_DEBUG1 ("after update sec_flags=0x%x", p_dev_rec->sec_flags);
-    if (!HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_features))
+    if (!HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
     {
         /* The special case when we authenticate keyboard.  Set pin type to fixed */
         /* It would be probably better to do it from the application, but it is */
@@ -1178,12 +1180,17 @@ tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, UINT8 pin_len, UINT8 *p_pin, UINT32 tr
         }
     }
 
-    BTM_TRACE_EVENT1("BTM_SecBond: Local device supports SSP=%d", HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_features));
+    BTM_TRACE_EVENT1("BTM_SecBond: Local device supports SSP=%d",
+            HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]));
 
-    BTM_TRACE_EVENT4("  remote_features=%02x-%02x-%02x-%02x",
-                     p_dev_rec->features[0], p_dev_rec->features[1], p_dev_rec->features[2], p_dev_rec->features[3]);
-    BTM_TRACE_EVENT4("                  %02x-%02x-%02x-%02x",
-                     p_dev_rec->features[4], p_dev_rec->features[5], p_dev_rec->features[6], p_dev_rec->features[7]);
+    for (ii = 0; ii <= HCI_EXT_FEATURES_PAGE_MAX; ii++)
+    {
+        p_features = p_dev_rec->features[ii];
+        BTM_TRACE_EVENT5("  remote_features page[%1d] = %02x-%02x-%02x-%02x",
+                         ii, p_features[0], p_features[1], p_features[2], p_features[3]);
+        BTM_TRACE_EVENT4("                              %02x-%02x-%02x-%02x",
+                             p_features[4], p_features[5], p_features[6], p_features[7]);
+    }
 
     BTM_TRACE_EVENT2 ("BTM_SecBond: Remote sm4: 0x%x  HCI Handle: 0x%04x", p_dev_rec->sm4, p_dev_rec->hci_handle);
 
@@ -1205,7 +1212,7 @@ tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, UINT8 pin_len, UINT8 *p_pin, UINT32 tr
     }
 
     BTM_TRACE_DEBUG2 ("sec mode: %d sm4:x%x", btm_cb.security_mode, p_dev_rec->sm4);
-    if (!HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_features)
+    if (!HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0])
         || (p_dev_rec->sm4 == BTM_SM4_KNOWN))
     {
         if ( btm_sec_check_prefetch_pin (p_dev_rec) )
@@ -2778,11 +2785,10 @@ void btm_sec_dev_reset (void)
 #if (BTM_PRE_LISBON_INCLUDED == TRUE)
     else
 #endif
-        /* this function is only called from btm_read_local_features_complete()
+        /* btm_sec_dev_reset() is only called from btm_decode_ext_features_page(...)
          * right now. */
-        if (HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_features))
+        if (HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
     {
-        btsnd_hcic_write_simple_pairing_mode(HCI_SP_MODE_ENABLED);
 #if BLE_INCLUDED == TRUE
         btsnd_hcic_set_event_mask(LOCAL_BR_EDR_CONTROLLER_ID,
                                   (UINT8 *)HCI_DUMO_EVENT_MASK_EXT);
@@ -3165,7 +3171,7 @@ void btm_sec_rmt_host_support_feat_evt (UINT8 *p)
     if (BTM_SEC_IS_SM4_UNKNOWN(p_dev_rec->sm4))
     {
         p_dev_rec->sm4 = BTM_SM4_KNOWN;
-        STREAM_TO_ARRAY(features, p, BD_FEATURES_LEN);
+        STREAM_TO_ARRAY(features, p, HCI_FEATURE_BYTES_PER_PAGE);
         if (HCI_SSP_HOST_SUPPORTED(features))
         {
             p_dev_rec->sm4 = BTM_SM4_TRUE;

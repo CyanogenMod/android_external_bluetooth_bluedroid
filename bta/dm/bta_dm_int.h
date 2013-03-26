@@ -398,7 +398,7 @@ typedef struct
     BOOLEAN             link_key_known;
     BOOLEAN             dc_known;
     BD_NAME             bd_name;
-    BD_FEATURES         features;
+    UINT8               features[BTA_FEATURE_BYTES_PER_PAGE * (BTA_EXT_FEATURES_PAGE_MAX + 1)];
 } tBTA_DM_API_ADD_DEVICE;
 
 /* data type for BTA_DM_API_REMOVE_ACL_EVT */

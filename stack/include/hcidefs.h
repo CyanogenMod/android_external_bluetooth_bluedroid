@@ -608,6 +608,18 @@
     0x0000000000002000 AMP Status Change Event
 */
 
+/* the event mask page 2 (CLB + CSA4) for BR/EDR controller */
+#define HCI_PAGE_2_EVENT_MASK                  "\x00\x00\x00\x00\x00\x7F\xC0\x00"
+/*  0x0000000000004000 Triggered Clock Capture Event
+    0x0000000000008000 Sync Train Complete Event
+    0x0000000000010000 Sync Train Received Event
+    0x0000000000020000 Connectionless Broadcast Receive Event
+    0x0000000000040000 Connectionless Broadcast Timeout Event
+    0x0000000000080000 Truncated Page Complete Event
+    0x0000000000100000 Salve Page Response Timeout Event
+    0x0000000000200000 Connectionless Broadcast Channel Map Change Event
+    0x0000000000400000 Inquiry Response Notification Event
+*/
 
 /*
 ** Definitions for packet type masks (BT1.2 and BT2.0 definitions)
@@ -1293,12 +1305,19 @@ typedef struct
 #define HCI_EDR3_DH3_PACKET_SIZE    552
 #define HCI_EDR3_DH5_PACKET_SIZE    1021
 
-/*
-**   Features encoding - page 0
-*/
-#define HCI_NUM_FEATURE_BYTES           8
+/* Feature Pages */
+#define HCI_EXT_FEATURES_PAGE_0     0       /* Extended Feature Page 0 (regular features) */
+#define HCI_EXT_FEATURES_PAGE_1     1       /* Extended Feature Page 1 */
+#define HCI_EXT_FEATURES_PAGE_2     2       /* Extended Feature Page 2 */
+#define HCI_EXT_FEATURES_PAGE_MAX   HCI_EXT_FEATURES_PAGE_2
+
+#define HCI_FEATURE_BYTES_PER_PAGE      8
+
 #define HCI_FEATURES_KNOWN(x) ((x[0] | x[1] | x[2] | x[3] | x[4] | x[5] | x[6] | x[7]) != 0)
 
+/*
+**   LMP features encoding - page 0
+*/
 #define HCI_FEATURE_3_SLOT_PACKETS_MASK 0x01
 #define HCI_FEATURE_3_SLOT_PACKETS_OFF  0
 #define HCI_3_SLOT_PACKETS_SUPPORTED(x) ((x)[HCI_FEATURE_3_SLOT_PACKETS_OFF] & HCI_FEATURE_3_SLOT_PACKETS_MASK)
@@ -1550,7 +1569,7 @@ typedef struct
 #define HCI_LMP_EXTENDED_SUPPORTED(x)   ((x)[HCI_FEATURE_EXTENDED_OFF] & HCI_FEATURE_EXTENDED_MASK)
 
 /*
-**   Features encoding - page 1
+**   LMP features encoding - page 1
 */
 #define HCI_EXT_FEATURE_SSP_HOST_MASK 0x01
 #define HCI_EXT_FEATURE_SSP_HOST_OFF  0
@@ -1563,6 +1582,37 @@ typedef struct
 #define HCI_EXT_FEATURE_SIMUL_DUMO_HOST_MASK 0x04
 #define HCI_EXT_FEATURE_SIMUL_DUMO_HOST_OFF  0
 #define HCI_SIMUL_DUMO_HOST_SUPPORTED(x) ((x)[HCI_EXT_FEATURE_SIMUL_DUMO_HOST_OFF] & HCI_EXT_FEATURE_SIMUL_DUMO_HOST_MASK)
+
+/*
+**   LMP features encoding - page 2
+*/
+#define HCI_EXT_FEATURE_CSB_MASTER_MASK         0x01
+#define HCI_EXT_FEATURE_CSB_MASTER_OFF          0
+#define HCI_CSB_MASTER_SUPPORTED(x) ((x)[HCI_EXT_FEATURE_CSB_MASTER_OFF] & HCI_EXT_FEATURE_CSB_MASTER_MASK)
+
+#define HCI_EXT_FEATURE_CSB_SLAVE_MASK          0x02
+#define HCI_EXT_FEATURE_CSB_SLAVE_OFF           0
+#define HCI_CSB_SLAVE_SUPPORTED(x) ((x)[HCI_EXT_FEATURE_CSB_SLAVE_OFF] & HCI_EXT_FEATURE_CSB_SLAVE_MASK)
+
+#define HCI_EXT_FEATURE_SYNC_TRAIN_MASTER_MASK  0x04
+#define HCI_EXT_FEATURE_SYNC_TRAIN_MASTER_OFF   0
+#define HCI_SYNC_TRAIN_MASTER_SUPPORTED(x) ((x)[HCI_EXT_FEATURE_SYNC_TRAIN_MASTER_OFF] & HCI_EXT_FEATURE_SYNC_TRAIN_MASTER_MASK)
+
+#define HCI_EXT_FEATURE_SYNC_SCAN_SLAVE_MASK    0x08
+#define HCI_EXT_FEATURE_SYNC_SCAN_SLAVE_OFF     0
+#define HCI_SYNC_SCAN_SLAVE_SUPPORTED(x) ((x)[HCI_EXT_FEATURE_SYNC_SCAN_SLAVE_OFF] & HCI_EXT_FEATURE_SYNC_SCAN_SLAVE_MASK)
+
+#define HCI_EXT_FEATURE_INQ_RESP_NOTIF_MASK     0x10
+#define HCI_EXT_FEATURE_INQ_RESP_NOTIF_OFF      0
+#define HCI_INQ_RESP_NOTIF_SUPPORTED(x) ((x)[HCI_EXT_FEATURE_INQ_RESP_NOTIF_OFF] & HCI_EXT_FEATURE_INQ_RESP_NOTIF_MASK)
+
+/*
+**   LE features encoding - page 0 (the only page for now)
+*/
+#define HCI_LE_FEATURE_LE_ENCRYPTION_MASK       0x01
+#define HCI_LE_FEATURE_LE_ENCRYPTION_OFF        0
+#define HCI_LE_ENCRYPTION_SUPPORTED(x) ((x)[HCI_LE_FEATURE_LE_ENCRYPTION_OFF] & HCI_LE_FEATURE_LE_ENCRYPTION_MASK)
+
 
 /*
 **   Local Supported Commands encoding
@@ -2294,6 +2344,12 @@ typedef struct
 #define HCI_SUPP_COMMANDS_SET_MWS_PATTERN_CONF_MASK      0x10
 #define HCI_SUPP_COMMANDS_SET_MWS_PATTERN_CONF_OFF       30
 #define HCI_SET_MWS_PATTERN_CONFIGURATION_SUPPORTED(x)   ((x)[HCI_SUPP_COMMANDS_SET_MWS_PATTERN_CONF_OFF] & HCI_SUPP_COMMANDS_SET_MWS_PATTERN_CONF_MASK)
+
+/* Supported Commands (Byte 30 bit 5) */
+#define HCI_SUPP_COMMANDS_SET_TRIG_CLK_CAP_MASK         0x20
+#define HCI_SUPP_COMMANDS_SET_TRIG_CLK_CAP_OFF          30
+#define HCI_SET_TRIG_CLK_CAP_SUPPORTED(x)               ((x)[HCI_SUPP_COMMANDS_SET_TRIG_CLK_CAP_OFF] & HCI_SUPP_COMMANDS_SET_TRIG_CLK_CAP_MASK)
+
 
 /* Supported Commands (Byte 30 bit 6-7) */
 #define HCI_SUPP_COMMANDS_TRUNCATED_PAGE             0x06
