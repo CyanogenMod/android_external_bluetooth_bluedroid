@@ -1354,6 +1354,7 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
                                                     UINT8 ctry_code, UINT16 dl_len, UINT8 *dsc_list)
 {
     bdstr_t bdstr;
+    BTIF_TRACE_DEBUG0("btif_storage_add_hid_device_info:");
     bd2str(remote_bd_addr, &bdstr);
     btif_config_set_int("Remote", bdstr, "HidAttrMask", attr_mask);
     btif_config_set_int("Remote", bdstr, "HidSubClass", sub_class);
@@ -1363,7 +1364,9 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
     btif_config_set_int("Remote", bdstr, "HidVersion", version);
     btif_config_set_int("Remote", bdstr, "HidCountryCode", ctry_code);
     if(dl_len > 0)
-        btif_config_set("Remote", bdstr, "HidDescriptor", (const char*)dsc_list, dl_len, BTIF_CFG_TYPE_BIN);
+        btif_config_set("Remote", bdstr, "HidDescriptor", (const char*)dsc_list, dl_len,
+                        BTIF_CFG_TYPE_BIN);
+    btif_config_save();
     return BT_STATUS_SUCCESS;
 }
 
@@ -1467,6 +1470,7 @@ bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr)
     btif_config_remove("Remote", bdstr, "HidVersion");
     btif_config_remove("Remote", bdstr, "HidCountryCode");
     btif_config_remove("Remote", bdstr, "HidDescriptor");
+    btif_config_save();
     return BT_STATUS_SUCCESS;
 }
 
