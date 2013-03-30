@@ -831,6 +831,7 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
         case AVRC_PDU_GET_PLAYER_APP_VALUE_TEXT:
         {
             /* TODO: Add support for Application Settings */
+            send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_CMD);
         }
         break;
         case AVRC_PDU_GET_ELEMENT_ATTR:
