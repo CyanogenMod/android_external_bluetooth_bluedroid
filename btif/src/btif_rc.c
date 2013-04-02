@@ -958,8 +958,7 @@ static bt_status_t get_play_status_rsp(btrc_play_status_t play_status, uint32_t 
 
     avrc_rsp.get_play_status.pdu = AVRC_PDU_GET_PLAY_STATUS;
     avrc_rsp.get_play_status.opcode = opcode_from_pdu(AVRC_PDU_GET_PLAY_STATUS);
-    avrc_rsp.get_play_status.status = ((play_status !=BTRC_PLAYSTATE_ERROR)?
-        AVRC_STS_NO_ERROR:AVRC_STS_BAD_PARAM);
+    avrc_rsp.get_play_status.status = AVRC_STS_NO_ERROR;
     /* Send the response */
     SEND_METAMSG_RSP(IDX_GET_PLAY_STATUS_RSP, &avrc_rsp);
     return BT_STATUS_SUCCESS;
@@ -1037,6 +1036,9 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
             break;
         case BTRC_EVT_TRACK_CHANGE:
             memcpy(&(avrc_rsp.reg_notif.param.track), &(p_param->track), sizeof(btrc_uid_t));
+            break;
+        case BTRC_EVT_PLAY_POS_CHANGED:
+            avrc_rsp.reg_notif.param.play_pos = p_param->song_pos;
             break;
         default:
             BTIF_TRACE_WARNING2("%s : Unhandled event ID : 0x%x", __FUNCTION__, event_id);
