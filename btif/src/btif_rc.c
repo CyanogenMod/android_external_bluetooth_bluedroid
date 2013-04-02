@@ -838,21 +838,23 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
         {
             btrc_media_attr_t element_attrs[BTRC_MAX_ELEM_ATTR_SIZE];
             UINT8 num_attr;
-             memset(&element_attrs, 0, sizeof(btrc_media_attr_t)*(BTRC_MAX_ELEM_ATTR_SIZE-1));
+             memset(&element_attrs, 0, sizeof(element_attrs));
             if (pavrc_cmd->get_elem_attrs.num_attr == 0)
             {
                 /* CT requests for all attributes */
                 int attr_cnt;
-                num_attr = (BTRC_MAX_ELEM_ATTR_SIZE - 1);
-                 for (attr_cnt = 1; attr_cnt < BTRC_MAX_ELEM_ATTR_SIZE; attr_cnt++)
+                num_attr = BTRC_MAX_ELEM_ATTR_SIZE;
+                for (attr_cnt = 0; attr_cnt < BTRC_MAX_ELEM_ATTR_SIZE; attr_cnt++)
                 {
-                    element_attrs[attr_cnt-1] = attr_cnt;
+                    element_attrs[attr_cnt] = attr_cnt + 1;
                 }
             }
             else if (pavrc_cmd->get_elem_attrs.num_attr == 0xFF)
             {
-                /* 0xff indicates, no attributes requested */
-                num_attr = 0;
+                /* 0xff indicates, no attributes requested - reject */
+                send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu,
+                    AVRC_STS_BAD_PARAM);
+                return;
             }
             else
             {
