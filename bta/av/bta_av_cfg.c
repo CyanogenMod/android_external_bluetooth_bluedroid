@@ -71,9 +71,10 @@ const UINT16  bta_av_audio_flush_to[] = {
 const UINT8  bta_av_meta_caps_evt_ids[] = {
     AVRC_EVT_PLAY_STATUS_CHANGE,
     AVRC_EVT_TRACK_CHANGE,
-    /* TODO: Add support for these events */
-    /* AVRC_EVT_PLAY_POS_CHANGED,
-    AVRC_EVT_APP_SETTING_CHANGE, */
+    AVRC_EVT_PLAY_POS_CHANGED,
+    /* TODO: Add support for these events
+    AVRC_EVT_APP_SETTING_CHANGE,
+    */
 };
 #ifndef BTA_AV_NUM_RC_EVT_IDS
 #define BTA_AV_NUM_RC_EVT_IDS   (sizeof(bta_av_meta_caps_evt_ids) / sizeof(bta_av_meta_caps_evt_ids[0]))
