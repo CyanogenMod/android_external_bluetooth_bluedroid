@@ -2654,6 +2654,10 @@ static void bta_dm_service_search_remname_cback (BD_ADDR bd_addr, DEV_CLASS dc, 
 static void bta_dm_remname_cback (tBTM_REMOTE_DEV_NAME *p_remote_name)
 {
     tBTA_DM_REM_NAME * p_msg;
+#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
+    tBT_DEVICE_TYPE dev_type;
+    tBLE_ADDR_TYPE  addr_type;
+#endif
 
     APPL_TRACE_DEBUG2("bta_dm_remname_cback len = %d name=<%s>", p_remote_name->length,
                       p_remote_name->remote_bd_name);
@@ -2665,7 +2669,9 @@ static void bta_dm_remname_cback (tBTM_REMOTE_DEV_NAME *p_remote_name)
 
     BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
 #if BLE_INCLUDED == TRUE
-    GAP_BleReadPeerPrefConnParams (bta_dm_search_cb.peer_bdaddr);
+    BTM_ReadDevInfo(p_remote_name->remote_bd_name, &dev_type, &addr_type);
+    if (dev_type == BT_DEVICE_TYPE_BLE)
+        GAP_BleReadPeerPrefConnParams (bta_dm_search_cb.peer_bdaddr);
 #endif
     if ((p_msg = (tBTA_DM_REM_NAME *) GKI_getbuf(sizeof(tBTA_DM_REM_NAME))) != NULL)
     {
