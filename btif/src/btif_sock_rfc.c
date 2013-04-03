@@ -304,6 +304,7 @@ static inline rfc_slot_t* create_srv_accept_rfc_slot(rfc_slot_t* srv_rs, const b
     srv_rs->id = new_listen_id;
     return accept_rs;
 }
+
 bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_uuid, int channel,
                             int* sock_fd, int flags)
 {
@@ -321,11 +322,20 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
         service_uuid = UUID_SPP; //use serial port profile to listen to specified channel
     else
     {
-        //Check the service_uuid. overwrite the channel # if reserved
-        int reserved_channel = get_reserved_rfc_channel(service_uuid);
-        if(reserved_channel > 0)
-        {
-            channel = reserved_channel;
+        APPL_TRACE_DEBUG1("service name to register: %s", service_name);
+        if (!strncmp(service_name, "SMS/MMS Message Access", strlen("SMS/MMS Message Access"))) {
+            channel = RESERVED_SCN_MAS0;
+            APPL_TRACE_DEBUG1("Registering MAP SDP for: %s", service_name);
+        } else if (!strncmp(service_name, "Email Message Access", strlen("Email Message Access"))) {
+            channel = RESERVED_SCN_MAS1;
+            APPL_TRACE_DEBUG1("Registering MAP SDP for: %s", service_name);
+        } else {
+            //Check the service_uuid. overwrite the channel # if reserved
+            int reserved_channel = get_reserved_rfc_channel(service_uuid);
+            if(reserved_channel > 0)
+            {
+                channel = reserved_channel;
+            }
         }
     }
     int status = BT_STATUS_FAIL;
@@ -343,6 +353,7 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
     unlock_slot(&slot_lock);
     return status;
 }
+
 bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t* service_uuid,
         int channel, int* sock_fd, int flags)
 {
