@@ -784,6 +784,9 @@ void btm_read_ble_buf_size_complete (UINT8 *p, UINT16 evt_len)
         STREAM_TO_UINT16 (btu_cb.hcit_ble_acl_data_size, p);
         STREAM_TO_UINT8 (lm_num_le_bufs,   p);
 
+        if (btu_cb.hcit_ble_acl_data_size == 0)
+            btu_cb.hcit_ble_acl_data_size = btu_cb.hcit_acl_data_size;
+
         btu_cb.hcit_ble_acl_pkt_size = btu_cb.hcit_ble_acl_data_size + HCI_DATA_PREAMBLE_SIZE;
 
         l2c_link_processs_ble_num_bufs (lm_num_le_bufs);

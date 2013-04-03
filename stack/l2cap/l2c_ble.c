@@ -622,6 +622,8 @@ BOOLEAN l2cble_create_conn (tL2C_LCB *p_lcb)
 *******************************************************************************/
 void l2c_link_processs_ble_num_bufs (UINT16 num_lm_ble_bufs)
 {
+    if (num_lm_ble_bufs == 0)
+        num_lm_ble_bufs = l2cb.num_lm_acl_bufs;
     l2cb.num_lm_ble_bufs = l2cb.controller_le_xmit_window = num_lm_ble_bufs;
 }
 
