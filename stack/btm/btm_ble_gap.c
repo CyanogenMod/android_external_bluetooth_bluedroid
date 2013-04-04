@@ -363,6 +363,14 @@ BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   bg_conn_type,
 BOOLEAN BTM_BleUpdateBgConnDev(BOOLEAN add_remove, BD_ADDR   remote_bda)
 {
     BOOLEAN ret = TRUE;
+    UINT8   dev_wl_type = BTM_BLE_WL_INIT;
+
+    BTM_TRACE_EVENT0 (" BTM_BleUpdateBgConnDev");
+
+    /* update white list */
+    ret = btm_update_bg_conn_list(add_remove, remote_bda, &dev_wl_type);
+
+    btm_update_dev_to_white_list(add_remove, remote_bda, dev_wl_type);
 
     return ret;
 }
