@@ -116,25 +116,10 @@ enum {
 #define BTIF_MEDIA_NUM_TICK      1
 #endif
 
-/* Media task tick in milliseconds */
+/* Media task tick in milliseconds, must be set to multiple of
+   (1000/TICKS_PER_SEC) (10) */
+
 #define BTIF_MEDIA_TIME_TICK                     (20 * BTIF_MEDIA_NUM_TICK)
-
-/* Number of frames per media task tick.
-   Configure value rounded up to closest integer and
-   adjust any deltas in btif_get_num_aa_frame */
-
-/* 7.5 frames/tick @ 20 ms tick (every 2nd frame send one less) */
-#define BTIF_MEDIA_FR_PER_TICKS_48               (8 * BTIF_MEDIA_NUM_TICK)
-
-/* 6.89 frames/tick  @ 20 ms tick (7 out of 64 frames send one less */
-#define BTIF_MEDIA_FR_PER_TICKS_44_1             (7 * BTIF_MEDIA_NUM_TICK)
-
-/* 5.0 frames/tick  @ 20 ms tick */
-#define BTIF_MEDIA_FR_PER_TICKS_32               (5 * BTIF_MEDIA_NUM_TICK)
-
-/* 2.5 frames/tick  @ 20 ms tick (every 2nd frame send one less) */
-#define BTIF_MEDIA_FR_PER_TICKS_16               (3 * BTIF_MEDIA_NUM_TICK)
-
 
 /* buffer pool */
 #define BTIF_MEDIA_AA_POOL_ID GKI_POOL_ID_3
@@ -153,7 +138,11 @@ enum {
 #endif
 
 /* Middle quality quality setting @ 44.1 khz */
-#define DEFAULT_SBC_BITRATE 229
+#define DEFAULT_SBC_BITRATE 328
+
+#ifndef BTIF_A2DP_NON_EDR_MAX_RATE
+#define BTIF_A2DP_NON_EDR_MAX_RATE 229
+#endif
 
 #ifndef A2DP_MEDIA_TASK_STACK_SIZE
 #define A2DP_MEDIA_TASK_STACK_SIZE       0x2000         /* In bytes */
@@ -181,8 +170,13 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
  */
 
 /* fixme -- define this in pcm time instead of buffer count */
-/* fixme -- tune optimal value. For now set a large buffer capacity */
-#define MAX_OUTPUT_BUFFER_QUEUE_SZ 24
+
+/* The typical runlevel of the tx queue size is ~1 buffer
+   but due to link flow control or thread preemption in lower
+   layers we might need to temporarily buffer up data */
+
+/* 24 frames is equivalent to 6.89*24*2.9 ~= 480 ms @ 44.1 khz, 20 ms mediatick */
+#define MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ 24
 
 //#define BTIF_MEDIA_VERBOSE_ENABLED
 
@@ -203,6 +197,8 @@ typedef struct
     UINT32 aa_frame_counter;
     INT32  aa_feed_counter;
     INT32  aa_feed_residue;
+    UINT32 counter;
+    UINT32 bytes_per_tick;  /* pcm bytes read each media task tick */
 } tBTIF_AV_MEDIA_FEEDINGS_PCM_STATE;
 
 
@@ -227,7 +223,6 @@ typedef struct
     void* av_sm_hdl;
     UINT8 a2dp_cmd_pending; /* we can have max one command pending */
     BOOLEAN tx_flush; /* discards any outgoing data when true */
-    BOOLEAN scaling_disabled;
 #endif
 
 } tBTIF_MEDIA_CB;
@@ -584,6 +579,20 @@ static void btif_a2dp_data_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
  **  BTIF ADAPTATION
  *****************************************************************************/
 
+static UINT16 btif_media_task_get_sbc_rate(void)
+{
+    UINT16 rate = DEFAULT_SBC_BITRATE;
+
+    /* restrict bitrate if a2dp link is non-edr */
+    if (!btif_av_is_peer_edr())
+    {
+        rate = BTIF_A2DP_NON_EDR_MAX_RATE;
+        APPL_TRACE_DEBUG1("non-edr a2dp sink detected, restrict rate to %d", rate);
+    }
+
+    return rate;
+}
+
 static void btif_a2dp_encoder_init(void)
 {
     UINT16 minmtu;
@@ -763,7 +772,7 @@ void btif_a2dp_setup_codec(void)
 
     GKI_disable();
 
-    /* for now hardcode 44.1 khz 16 bit stereo */
+    /* for now hardcode 44.1 khz 16 bit stereo PCM format */
     media_feeding.cfg.pcm.sampling_freq = 44100;
     media_feeding.cfg.pcm.bit_per_sample = 16;
     media_feeding.cfg.pcm.num_channel = 2;
@@ -1416,6 +1425,9 @@ static void btif_media_task_aa_tx_flush(BT_HDR *p_msg)
     /* Flush all enqueued GKI music buffers (encoded) */
     APPL_TRACE_DEBUG0("btif_media_task_aa_tx_flush");
 
+    btif_media_cb.media_feeding_state.pcm.counter = 0;
+    btif_media_cb.media_feeding_state.pcm.aa_feed_residue = 0;
+
     btif_media_flush_q(&(btif_media_cb.TxAaQ));
 
     UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_REQ_RX_FLUSH, NULL);
@@ -1445,7 +1457,8 @@ static void btif_media_task_enc_init(BT_HDR *p_msg)
     btif_media_cb.encoder.s16AllocationMethod = pInitAudio->AllocationMethod;
     btif_media_cb.encoder.s16SamplingFreq = pInitAudio->SamplingFreq;
 
-    btif_media_cb.encoder.u16BitRate = DEFAULT_SBC_BITRATE;
+    btif_media_cb.encoder.u16BitRate = btif_media_task_get_sbc_rate();
+
     /* Default transcoding is PCM to SBC, modified by feeding configuration */
     btif_media_cb.TxTranscoding = BTIF_MEDIA_TRSCD_PCM_2_SBC;
     btif_media_cb.TxAaMtuSize = ((BTIF_MEDIA_AA_BUF_SIZE-BTIF_MEDIA_AA_SBC_OFFSET-sizeof(BT_HDR))
@@ -1497,7 +1510,7 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
                 - sizeof(BT_HDR)) : pUpdateAudio->MinMtuSize;
 
         /* Set the initial target bit rate */
-        pstrEncParams->u16BitRate = DEFAULT_SBC_BITRATE;
+        pstrEncParams->u16BitRate = btif_media_task_get_sbc_rate();
 
         if (pstrEncParams->s16SamplingFreq == SBC_sf16000)
             s16SamplingFreq = 16000;
@@ -1755,6 +1768,18 @@ static void btif_media_task_feeding_state_reset(void)
 {
     /* By default, just clear the entire state */
     memset(&btif_media_cb.media_feeding_state, 0, sizeof(btif_media_cb.media_feeding_state));
+
+    if (btif_media_cb.TxTranscoding == BTIF_MEDIA_TRSCD_PCM_2_SBC)
+    {
+        btif_media_cb.media_feeding_state.pcm.bytes_per_tick =
+                (btif_media_cb.media_feeding.cfg.pcm.sampling_freq *
+                 btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8 *
+                 btif_media_cb.media_feeding.cfg.pcm.num_channel *
+                 BTIF_MEDIA_TIME_TICK)/1000;
+
+        APPL_TRACE_WARNING1("pcm bytes per tick %d",
+                            (int)btif_media_cb.media_feeding_state.pcm.bytes_per_tick);
+    }
 }
 /*******************************************************************************
  **
@@ -1826,51 +1851,22 @@ static UINT8 btif_get_num_aa_frame(void)
     switch (btif_media_cb.TxTranscoding)
     {
         case BTIF_MEDIA_TRSCD_PCM_2_SBC:
-            switch (btif_media_cb.encoder.s16SamplingFreq)
-            {
-            case SBC_sf16000:
-                if (!btif_media_cb.scaling_disabled &&
-                    (btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 2) == 0)
-                {
-                    result = BTIF_MEDIA_FR_PER_TICKS_16-1;
-                }
-                else
-                {
-                    result = BTIF_MEDIA_FR_PER_TICKS_16;
-                }
-                break;
+           {
+            UINT32 pcm_bytes_per_frame = btif_media_cb.encoder.s16NumOfSubBands *
+                             btif_media_cb.encoder.s16NumOfBlocks *
+                             btif_media_cb.media_feeding.cfg.pcm.num_channel *
+                             btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
 
-            case SBC_sf32000:
-                result = BTIF_MEDIA_FR_PER_TICKS_32;
-                break;
+            btif_media_cb.media_feeding_state.pcm.counter +=
+                                btif_media_cb.media_feeding_state.pcm.bytes_per_tick;
 
-            case SBC_sf48000:
-                if (!btif_media_cb.scaling_disabled &&
-                    (btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 2) == 0)
-                {
-                    result = BTIF_MEDIA_FR_PER_TICKS_48-1;
-                }
-                else
-                {
-                    result = BTIF_MEDIA_FR_PER_TICKS_48;
-                }
-                break;
-
-            case SBC_sf44100:
-                if (!btif_media_cb.scaling_disabled &&
-                    (btif_media_cb.media_feeding_state.pcm.aa_frame_counter++ % 64) < 7)
-                {
-                    result = BTIF_MEDIA_FR_PER_TICKS_44_1-1;
-                }
-                else
-                {
-                    result = BTIF_MEDIA_FR_PER_TICKS_44_1;
-                }
-                break;
-            }
+            /* calculate nbr of frames pending for this media tick */
+            result = btif_media_cb.media_feeding_state.pcm.counter/pcm_bytes_per_frame;
+            btif_media_cb.media_feeding_state.pcm.counter -= result*pcm_bytes_per_frame;
 
             VERBOSE("WRITE %d FRAMES", result);
-            break;
+        }
+        break;
 
         default:
             APPL_TRACE_ERROR1("ERROR btif_get_num_aa_frame Unsupported transcoding format 0x%x",
@@ -1919,7 +1915,7 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
     UINT16 sbc_sampling = 48000;
     UINT32 src_samples;
     UINT16 bytes_needed = blocm_x_subband * btif_media_cb.encoder.s16NumOfChannels * \
-                          sizeof(SINT16);
+                          btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
     static UINT16 up_sampled_buffer[SBC_MAX_NUM_FRAME * SBC_MAX_NUM_OF_BLOCKS
             * SBC_MAX_NUM_OF_CHANNELS * SBC_MAX_NUM_OF_SUBBANDS * 2];
     static UINT16 read_buffer[SBC_MAX_NUM_FRAME * SBC_MAX_NUM_OF_BLOCKS
@@ -1946,6 +1942,23 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
     case SBC_sf16000:
         sbc_sampling = 16000;
         break;
+    }
+
+    if (sbc_sampling == btif_media_cb.media_feeding.cfg.pcm.sampling_freq) {
+        read_size = bytes_needed - btif_media_cb.media_feeding_state.pcm.aa_feed_residue;
+        nb_byte_read = UIPC_Read(channel_id, &event,
+                  ((UINT8 *)btif_media_cb.encoder.as16PcmBuffer) +
+                  btif_media_cb.media_feeding_state.pcm.aa_feed_residue,
+                  read_size);
+        if (nb_byte_read == read_size) {
+            btif_media_cb.media_feeding_state.pcm.aa_feed_residue = 0;
+            return TRUE;
+        } else {
+            APPL_TRACE_WARNING2("### UNDERFLOW :: ONLY READ %d BYTES OUT OF %d ###",
+                nb_byte_read, read_size);
+            btif_media_cb.media_feeding_state.pcm.aa_feed_residue += nb_byte_read;
+            return FALSE;
+        }
     }
 
     /* Some Feeding PCM frequencies require to split the number of sample */
@@ -2117,6 +2130,13 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
             }
             else
             {
+                APPL_TRACE_WARNING2("btif_media_aa_prep_sbc_2_send underflow %d, %d",
+                    nb_frame, btif_media_cb.media_feeding_state.pcm.aa_feed_residue);
+                btif_media_cb.media_feeding_state.pcm.counter += nb_frame *
+                     btif_media_cb.encoder.s16NumOfSubBands *
+                     btif_media_cb.encoder.s16NumOfBlocks *
+                     btif_media_cb.media_feeding.cfg.pcm.num_channel *
+                     btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
                 /* no more pcm to read */
                 nb_frame = 0;
 
@@ -2175,10 +2195,10 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame)
     VERBOSE("btif_media_aa_prep_2_send : %d frames (queue %d)", nb_frame,
                        btif_media_cb.TxAaQ.count);
 
-    /* Remove all the buffers not sent until there are only 4 in the queue */
-    while (btif_media_cb.TxAaQ.count >= MAX_OUTPUT_BUFFER_QUEUE_SZ)
+    while (btif_media_cb.TxAaQ.count >= MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ)
     {
-        APPL_TRACE_WARNING1("btif_media_aa_prep_2_send congestion buf count %d",btif_media_cb.TxAaQ.count);
+        APPL_TRACE_WARNING1("btif_media_aa_prep_2_send congestion buf count %d",
+                             btif_media_cb.TxAaQ.count);
         GKI_freebuf(GKI_dequeue(&(btif_media_cb.TxAaQ)));
     }
 
@@ -2218,33 +2238,6 @@ static void btif_media_send_aa_frame(void)
     VERBOSE("btif_media_send_aa_frame : send %d frames", nb_frame_2_send);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
 }
-
-/*******************************************************************************
- **
- ** Function         btif_media_check_iop_exceptions
- **
- ** Description    Perform any device specific iop changes
- **
- ** Returns          void
- **
- *******************************************************************************/
-
-void btif_media_check_iop_exceptions(UINT8 *peer_bda)
-{
-    /* disable rate scaling for pcm carkit */
-    if ((peer_bda[0] == 0x00) &&
-        (peer_bda[1] == 0x0E) &&
-        (peer_bda[2] == 0x9F))
-    {
-        BTIF_TRACE_WARNING0("detected pcm carkit, disable rate scaling");
-        btif_media_cb.scaling_disabled = TRUE;
-    }
-    else
-    {
-        btif_media_cb.scaling_disabled = FALSE;
-    }
-}
-
 
 #endif /* BTA_AV_INCLUDED == TRUE */
 
@@ -2321,4 +2314,3 @@ void dump_codec_info(unsigned char *p_codec)
     APPL_TRACE_DEBUG2("\tBit pool Min:%d Max:%d", sbc_cie.min_bitpool, sbc_cie.max_bitpool);
 
 }
-
