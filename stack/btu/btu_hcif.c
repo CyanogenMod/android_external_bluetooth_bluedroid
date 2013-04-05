@@ -1409,8 +1409,8 @@ static void btu_hcif_command_status_evt (UINT8 controller_id, UINT8 *p, UINT16 e
     tHCI_CMD_CB * p_hci_cmd_cb = &(btu_cb.hci_cmd_cb[controller_id]);
     UINT8       status;
     UINT16      opcode;
-    BT_HDR      *p_cmd = NULL;
     UINT16      cmd_opcode;
+    BT_HDR      *p_cmd = NULL;
     UINT8       *p_data = NULL;
     void        *p_vsc_status_cback = NULL;
 
@@ -1428,23 +1428,30 @@ static void btu_hcif_command_status_evt (UINT8 controller_id, UINT8 *p, UINT16 e
     if ((opcode != HCI_RESET) && (opcode != HCI_HOST_NUM_PACKETS_DONE) &&
         (opcode != HCI_COMMAND_NONE))
     {
-        /* dequeue stored command */
-        if ((p_cmd = (BT_HDR *) GKI_dequeue (&(p_hci_cmd_cb->cmd_cmpl_q))) != NULL)
+        /*look for corresponding command in cmd_queue*/
+        p_cmd = (BT_HDR *) GKI_getfirst(&(p_hci_cmd_cb->cmd_cmpl_q));
+        while (p_cmd)
         {
-            /* verify event opcode matches command opcode */
             p_data = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
             STREAM_TO_UINT16 (cmd_opcode, p_data);
 
+            /* Make sure this  command is for the command_status received */
             if (cmd_opcode != opcode)
             {
-                p_data = NULL;
-                BT_TRACE_2 (TRACE_LAYER_HCI, TRACE_TYPE_WARNING,
-                            "Event mismatch opcode=%X cmd opcode=%X", opcode, cmd_opcode);
+                /* opcode does not match, check next command in the queue */
+                p_cmd = (BT_HDR *) GKI_getnext(p_cmd);
+                continue;
             }
-            /* If command was a VSC, then extract command_status callback */
-            else if ((cmd_opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC)
+            else
             {
-                p_vsc_status_cback = *((void **)(p_cmd + 1));
+                GKI_remove_from_queue(&p_hci_cmd_cb->cmd_cmpl_q, p_cmd);
+
+                /* If command was a VSC, then extract command_status callback */
+                 if ((cmd_opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC)
+                {
+                    p_vsc_status_cback = *((void **)(p_cmd + 1));
+                }
+                break;
             }
         }
 
@@ -1474,6 +1481,11 @@ static void btu_hcif_command_status_evt (UINT8 controller_id, UINT8 *p, UINT16 e
     if (p_cmd != NULL)
     {
         GKI_freebuf (p_cmd);
+    }
+    else
+    {
+        BT_TRACE_1 (TRACE_LAYER_HCI, TRACE_TYPE_WARNING,
+                    "No command in queue matching opcode %d", opcode);
     }
 
     /* See if we can forward any more commands */
