@@ -22,7 +22,6 @@
  *  Technology (JABWT) as specified by the JSR82 specificiation
  *
  ******************************************************************************/
-
 #include "bta_api.h"
 #include "bd.h"
 #include "bta_sys.h"
@@ -61,11 +60,17 @@ tBTA_JV_STATUS BTA_JvEnable(tBTA_JV_DM_CBACK *p_cback)
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_ENABLE  *p_buf;
+    int i;
 
     APPL_TRACE_API0( "BTA_JvEnable");
     if(p_cback && FALSE == bta_sys_is_register(BTA_ID_JV))
     {
         memset(&bta_jv_cb, 0, sizeof(tBTA_JV_CB));
+        /* set handle to invalid value by default */
+        for (i=0; i<BTA_JV_PM_MAX_NUM; i++)
+        {
+            bta_jv_cb.pm_cb[i].handle = BTA_JV_PM_HANDLE_CLEAR;
+        }
 
         /* register with BTA system manager */
         GKI_sched_lock();
@@ -80,6 +85,10 @@ tBTA_JV_STATUS BTA_JvEnable(tBTA_JV_DM_CBACK *p_cback)
             status = BTA_JV_SUCCESS;
         }
     }
+    else
+      {
+         APPL_TRACE_ERROR0("JVenable fails");
+      }
     return(status);
 }
 
@@ -1362,7 +1371,7 @@ tBTA_JV_STATUS BTA_JvRfcommClose(UINT32 handle, void *user_data)
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_RFCOMM_CLOSE *p_msg;
-    UINT32  hi = (handle & BTA_JV_RFC_HDL_MASK) - 1;
+    UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK)&~BTA_JV_RFCOMM_MASK) - 1;
     UINT32  si = BTA_JV_RFC_HDL_TO_SIDX(handle);
 
     APPL_TRACE_API0( "BTA_JvRfcommClose");
@@ -1448,7 +1457,7 @@ tBTA_JV_STATUS BTA_JvRfcommStopServer(UINT32 handle, void * user_data)
     if ((p_msg = (tBTA_JV_API_RFCOMM_SERVER *)GKI_getbuf(sizeof(tBTA_JV_API_RFCOMM_SERVER))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_RFCOMM_STOP_SERVER_EVT;
-        p_msg->rfc_handle = handle;
+        p_msg->handle = handle;
         p_msg->user_data = user_data; //caller's private data
         bta_sys_sendmsg(p_msg);
         status = BTA_JV_SUCCESS;
@@ -1472,7 +1481,7 @@ tBTA_JV_STATUS BTA_JvRfcommRead(UINT32 handle, UINT32 req_id, UINT8 *p_data, UIN
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_RFCOMM_READ *p_msg;
-    UINT32  hi = (handle & BTA_JV_RFC_HDL_MASK) - 1;
+    UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK)&~BTA_JV_RFCOMM_MASK) - 1;
     UINT32  si = BTA_JV_RFC_HDL_TO_SIDX(handle);
 
     APPL_TRACE_API0( "BTA_JvRfcommRead");
@@ -1506,7 +1515,7 @@ tBTA_JV_STATUS BTA_JvRfcommRead(UINT32 handle, UINT32 req_id, UINT8 *p_data, UIN
 *******************************************************************************/
 UINT16 BTA_JvRfcommGetPortHdl(UINT32 handle)
 {
-    UINT32  hi = (handle & BTA_JV_RFC_HDL_MASK) - 1;
+    UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK) & BTA_JV_RFCOMM_MASK) - 1;
     UINT32  si = BTA_JV_RFC_HDL_TO_SIDX(handle);
 
     if (hi < BTA_JV_MAX_RFC_CONN &&
@@ -1532,7 +1541,7 @@ tBTA_JV_STATUS BTA_JvRfcommReady(UINT32 handle, UINT32 *p_data_size)
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     UINT16          size = 0;
-    UINT32  hi = (handle & BTA_JV_RFC_HDL_MASK) - 1;
+    UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK)&~BTA_JV_RFCOMM_MASK) - 1;
     UINT32  si = BTA_JV_RFC_HDL_TO_SIDX(handle);
 
     APPL_TRACE_API0( "BTA_JvRfcommReady");
@@ -1562,7 +1571,7 @@ tBTA_JV_STATUS BTA_JvRfcommWrite(UINT32 handle, UINT32 req_id)
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_RFCOMM_WRITE *p_msg;
-    UINT32  hi = (handle & BTA_JV_RFC_HDL_MASK) - 1;
+    UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK)&~BTA_JV_RFCOMM_MASK) - 1;
     UINT32  si = BTA_JV_RFC_HDL_TO_SIDX(handle);
 
     APPL_TRACE_API0( "BTA_JvRfcommWrite");
@@ -1584,3 +1593,42 @@ tBTA_JV_STATUS BTA_JvRfcommWrite(UINT32 handle, UINT32 req_id)
     return(status);
 }
 
+
+/*******************************************************************************
+ **
+ ** Function    BTA_JVSetPmProfile
+ **
+ ** Description This function set or free power mode profile for different JV application
+ **
+ ** Parameters:  handle,  JV handle from RFCOMM or L2CAP
+ **              app_id:  app specific pm ID, can be BTA_JV_PM_ALL, see bta_dm_cfg.c for details
+ **              BTA_JV_PM_ID_CLEAR: removes pm management on the handle. init_st is ignored and
+ **              BTA_JV_CONN_CLOSE is called implicitely
+ **              init_st:  state after calling this API. typically it should be BTA_JV_CONN_OPEN
+ **
+ ** Returns      BTA_JV_SUCCESS, if the request is being processed.
+ **              BTA_JV_FAILURE, otherwise.
+ **
+ ** NOTE:        BTA_JV_PM_ID_CLEAR: In general no need to be called as jv pm calls automatically
+ **              BTA_JV_CONN_CLOSE to remove in case of connection close!
+ **
+ *******************************************************************************/
+tBTA_JV_STATUS BTA_JvSetPmProfile(UINT32 handle, tBTA_JV_PM_ID app_id, tBTA_JV_CONN_STATE init_st)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_SET_PM_PROFILE *p_msg;
+
+    APPL_TRACE_API2("BTA_JVSetPmProfile handle:0x%x, app_id:%d", handle, app_id);
+    if ((p_msg = (tBTA_JV_API_SET_PM_PROFILE *)GKI_getbuf(sizeof(tBTA_JV_API_SET_PM_PROFILE)))
+        != NULL)
+    {
+        p_msg->hdr.event = BTA_JV_API_SET_PM_PROFILE_EVT;
+        p_msg->handle = handle;
+        p_msg->app_id = app_id;
+        p_msg->init_st = init_st;
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
+    return (status);
+}

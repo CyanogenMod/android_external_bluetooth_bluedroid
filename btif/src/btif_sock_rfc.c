@@ -291,9 +291,12 @@ static inline rfc_slot_t* create_srv_accept_rfc_slot(rfc_slot_t* srv_rs, const b
     accept_rs->role = srv_rs->role;
     accept_rs->rfc_handle = open_handle;
     accept_rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(open_handle);
-     //now update listen handle of server slot
+     //now update listen rfc_handle of server slot
     srv_rs->rfc_handle = new_listen_handle;
     srv_rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(new_listen_handle);
+    BTIF_TRACE_DEBUG4("create_srv_accept__rfc_slot(open_handle: 0x%x, new_listen_handle:"
+            "0x%x) accept_rs->rfc_handle:0x%x, srv_rs_listen->rfc_handle:0x%x"
+      ,open_handle, new_listen_handle, accept_rs->rfc_port_handle, srv_rs->rfc_port_handle);
     asrt(accept_rs->rfc_port_handle != srv_rs->rfc_port_handle);
   //now swap the slot id
     uint32_t new_listen_id = accept_rs->id;
@@ -499,7 +502,7 @@ static void cleanup_rfc_slot(rfc_slot_t* rs)
     }
     if(rs->rfc_handle && !rs->f.closing && !rs->f.server)
     {
-        APPL_TRACE_DEBUG1("closing rfcomm connection, rfc_handle:%d", rs->rfc_handle);
+        APPL_TRACE_DEBUG1("closing rfcomm connection, rfc_handle:0x%x", rs->rfc_handle);
         BTA_JvRfcommClose(rs->rfc_handle, (void*)rs->id);
         rs->rfc_handle = 0;
     }
@@ -642,7 +645,7 @@ static void on_rfc_close(tBTA_JV_RFCOMM_CLOSE * p_close, uint32_t id)
         APPL_TRACE_DEBUG4("on_rfc_close, slot id:%d, fd:%d, rfc scn:%d, server:%d",
                          rs->id, rs->fd, rs->scn, rs->f.server);
         free_rfc_slot_scn(rs);
-        //rfc_handle already closed when receiving rfcomm close event from stack.
+        // rfc_handle already closed when receiving rfcomm close event from stack.
         rs->f.connected = FALSE;
         cleanup_rfc_slot(rs);
     }
@@ -690,9 +693,11 @@ static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
         break;
 
     case BTA_JV_RFCOMM_OPEN_EVT:
+        BTA_JvSetPmProfile(p_data->rfc_open.handle,BTA_JV_PM_ID_1,BTA_JV_CONN_OPEN);
         on_cli_rfc_connect(&p_data->rfc_open, (uint32_t)user_data);
         break;
     case BTA_JV_RFCOMM_SRV_OPEN_EVT:
+        BTA_JvSetPmProfile(p_data->rfc_srv_open.handle,BTA_JV_PM_ALL,BTA_JV_CONN_OPEN);
         new_user_data = (void*)on_srv_rfc_connect(&p_data->rfc_srv_open, (uint32_t)user_data);
         break;
 
@@ -922,8 +927,7 @@ void btsock_rfc_signaled(int fd, int flags, uint32_t user_id)
     }
     unlock_slot(&slot_lock);
 }
-//stack rfcomm callout functions
-//[
+
 int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf)
 {
     uint32_t id = (uint32_t)user_data;
@@ -1002,5 +1006,4 @@ int bta_co_rfc_data_outgoing(void *user_data, UINT8* buf, UINT16 size)
     unlock_slot(&slot_lock);
     return ret;
 }
-//]
 
