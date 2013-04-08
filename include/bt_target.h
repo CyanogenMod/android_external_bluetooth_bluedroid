@@ -1389,7 +1389,7 @@ and USER_HW_DISABLE_API macros */
 **
 ******************************************************************************/
 
-#ifndef _cac
+#ifndef BLE_INCLUDED
 #define BLE_INCLUDED            TRUE
 #endif
 
