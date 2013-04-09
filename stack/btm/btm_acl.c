@@ -259,7 +259,7 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
             else
 #endif
             {
-                btsnd_hcic_rmt_features_req (p->hci_handle);
+                btm_read_remote_features (p->hci_handle);
             }
 
             /* read page 1 - on rmt feature event for buffer reasons */
