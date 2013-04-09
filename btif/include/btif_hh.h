@@ -23,6 +23,8 @@
 #include <hardware/bt_hh.h>
 #include <stdint.h>
 #include "bta_hh_api.h"
+#include "btu.h"
+
 
 /*******************************************************************************
 **  Constants & Macros
@@ -64,6 +66,8 @@ typedef struct
     BT_HDR                        *p_buf;
     UINT32                        hh_poll_thread_id;
     UINT8                         hh_keep_polling;
+    BOOLEAN                       vup_timer_active;
+    TIMER_LIST_ENT                vup_timer;
 } btif_hh_device_t;
 
 /* Control block to maintain properties of devices */
