@@ -31,6 +31,7 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_SHARED_LIBRARIES := \
         libcutils \
+        liblog \
         libdl \
         libbt-utils
 

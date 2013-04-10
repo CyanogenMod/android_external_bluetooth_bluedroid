@@ -120,6 +120,7 @@ endif
 
 LOCAL_SHARED_LIBRARIES := \
     libcutils \
+    liblog \
     libpower \
     libbt-hci \
     libbt-utils
