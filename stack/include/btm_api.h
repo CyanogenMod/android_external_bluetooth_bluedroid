@@ -2681,7 +2681,7 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 **
 ** Function         BTM_ReadRemoteFeatures
 **
-** Description      This function is called to read a remote device's 
+** Description      This function is called to read a remote device's
 **                  supported features mask (features mask located at page 0)
 **
 **                  Note: The size of device features mask page is

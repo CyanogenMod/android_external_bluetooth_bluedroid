@@ -1406,7 +1406,19 @@ void btm_read_remote_features_complete (UINT8 *p)
     STREAM_TO_ARRAY(p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0], p,
                     HCI_FEATURE_BYTES_PER_PAGE);
 
-    /* Process this features page */
+    if ((HCI_LMP_EXTENDED_SUPPORTED(p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0])) &&
+        (HCI_READ_REMOTE_EXT_FEATURES_SUPPORTED(btm_cb.devcb.supported_cmds)))
+    {
+        /* if the remote controller has extended features and local controller supports
+        ** HCI_Read_Remote_Extended_Features command then start reading these feature starting
+        ** with extended features page 1 */
+        BTM_TRACE_DEBUG0 ("Start reading remote extended features");
+        btm_read_remote_ext_features(handle, HCI_EXT_FEATURES_PAGE_1);
+        return;
+    }
+
+    /* Remote controller has no extended features. Process remote controller supported features
+       (features page HCI_EXT_FEATURES_PAGE_0). */
     btm_process_remote_ext_features (p_acl_cb, 1);
 
     /* Continue with HCI connection establishment */
@@ -1433,14 +1445,6 @@ void btm_read_remote_ext_features_complete (UINT8 *p)
     BTM_TRACE_DEBUG0 ("btm_read_remote_ext_features_complete");
 
     STREAM_TO_UINT8  (status, p);
-
-    if (status != HCI_SUCCESS)
-    {
-        btm_read_remote_ext_features_failed (status);
-        return;
-    }
-
-    /* Extract parameters */
     STREAM_TO_UINT16 (handle, p);
     STREAM_TO_UINT8  (page_num, p);
     STREAM_TO_UINT8  (max_page, p);
@@ -1493,9 +1497,27 @@ void btm_read_remote_ext_features_complete (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_read_remote_ext_features_failed (UINT8 status)
+void btm_read_remote_ext_features_failed (UINT8 status, UINT16 handle)
 {
-    BTM_TRACE_ERROR1 ("btm_read_remote_ext_features_failed (status 0x%02x)", status);
+    tACL_CONN   *p_acl_cb;
+    UINT8       acl_idx;
+
+    BTM_TRACE_WARNING2 ("btm_read_remote_ext_features_failed (status 0x%02x) for handle %d",
+                         status, handle);
+
+    if ((acl_idx = btm_handle_to_acl_index(handle)) >= MAX_L2CAP_LINKS)
+    {
+        BTM_TRACE_ERROR1("btm_read_remote_ext_features_failed handle=%d invalid", handle);
+        return;
+    }
+
+    p_acl_cb = &btm_cb.acl_db[acl_idx];
+
+    /* Process supported features only */
+    btm_process_remote_ext_features (p_acl_cb, 1);
+
+    /* Continue HCI connection establishment */
+    btm_establish_continue (p_acl_cb);
 }
 
 /*******************************************************************************

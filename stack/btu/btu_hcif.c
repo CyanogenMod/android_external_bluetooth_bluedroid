@@ -870,11 +870,19 @@ static void btu_hcif_read_rmt_features_comp_evt (UINT8 *p, UINT16 evt_len)
 *******************************************************************************/
 static void btu_hcif_read_rmt_ext_features_comp_evt (UINT8 *p, UINT16 evt_len)
 {
-    /* Status is in first byte of stream */
-    if (*p == HCI_SUCCESS)
+    UINT8 *p_cur = p;
+    UINT8 status;
+    UINT16 handle;
+
+    STREAM_TO_UINT8 (status, p_cur);
+
+    if (status == HCI_SUCCESS)
         btm_read_remote_ext_features_complete(p);
     else
-        btm_read_remote_ext_features_failed(*p);
+    {
+        STREAM_TO_UINT16 (handle, p_cur);
+        btm_read_remote_ext_features_failed(status, handle);
+    }
 }
 
 /*******************************************************************************
@@ -1034,6 +1042,10 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
 
         case HCI_READ_BUFFER_SIZE:
             btm_read_hci_buf_size_complete (p, evt_len);
+            break;
+
+        case HCI_READ_LOCAL_SUPPORTED_CMDS:
+            btm_read_local_supported_cmds_complete (p);
             break;
 
         case HCI_READ_LOCAL_FEATURES:
@@ -1341,8 +1353,16 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
                         }
                         break;
 
-                    case HCI_READ_RMT_EXT_FEATURES_COMP_EVT:
-                        btm_read_remote_ext_features_failed(status);
+                    case HCI_READ_RMT_EXT_FEATURES:
+                        if (p_cmd != NULL)
+                        {
+                            p_cmd++; /* skip command length */
+                            STREAM_TO_UINT16 (handle, p_cmd);
+                        }
+                        else
+                            handle = HCI_INVALID_HANDLE;
+
+                        btm_read_remote_ext_features_failed(status, handle);
                         break;
 
                     case HCI_AUTHENTICATION_REQUESTED:
@@ -1594,7 +1614,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
         case HCI_CREATE_CONNECTION:
         case HCI_CHANGE_CONN_LINK_KEY:
         case HCI_SWITCH_ROLE:
-        case HCI_READ_RMT_EXT_FEATURES_COMP_EVT:
+        case HCI_READ_RMT_EXT_FEATURES:
         case HCI_AUTHENTICATION_REQUESTED:
         case HCI_SET_CONN_ENCRYPTION:
 #if BTM_SCO_INCLUDED == TRUE
