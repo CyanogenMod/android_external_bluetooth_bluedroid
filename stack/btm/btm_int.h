@@ -220,6 +220,7 @@ typedef struct
 #define BTM_HOST_MAY_SUPP_LE            0x04
 #define BTM_HOST_MAY_SUPP_SIMULT_BR_LE  0x08
     UINT8               lmp_features_host_may_support;  /* The flags of LMP features host may support via BR/EDR ctrlr + BTM_RE_READ_1ST_PAGE */
+    UINT8               supported_cmds[HCI_NUM_SUPP_COMMANDS_BYTES]; /* Supported Commands bit field */
 
 } tBTM_DEVCB;
 
@@ -967,7 +968,7 @@ BTM_API extern UINT16       btm_get_acl_disc_reason_code (void);
 BTM_API extern tBTM_STATUS  btm_remove_acl (BD_ADDR bd_addr);
 extern void         btm_read_remote_features_complete (UINT8 *p);
 extern void         btm_read_remote_ext_features_complete (UINT8 *p);
-extern void         btm_read_remote_ext_features_failed (UINT8 status);
+extern void         btm_read_remote_ext_features_failed (UINT8 status, UINT16 handle);
 extern void         btm_read_remote_version_complete (UINT8 *p);
 // btla-specific ++
 extern void         btm_acl_chk_peer_pkt_type_support (tACL_CONN *p, UINT16 *p_pkt_type);
@@ -1030,6 +1031,7 @@ extern void btm_dev_timeout (TIMER_LIST_ENT *p_tle);
 extern void btm_reset_complete (void);
 extern void btm_read_local_version_complete (UINT8 *p, UINT16 evt_len);
 extern void btm_read_hci_buf_size_complete (UINT8 *p, UINT16 evt_len);
+extern void btm_read_local_supported_cmds_complete (UINT8 *p);
 extern void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len);
 extern void btm_read_local_ext_features_complete (UINT8 *p, UINT16 evt_len);
 extern void btm_read_local_name_complete (UINT8 *p, UINT16 evt_len);
