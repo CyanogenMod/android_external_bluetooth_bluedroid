@@ -73,6 +73,8 @@ static int btif_hh_keylockstates=0; //The current key state of each key
 #define BTIF_HH_ID_1        0
 #define BTIF_HH_DEV_DISCONNECTED 3
 
+#define BTIF_TIMEOUT_VUP_SECS   3
+
 
 #ifndef BTUI_HH_SECURITY
 #define BTUI_HH_SECURITY (BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT)
@@ -163,6 +165,7 @@ static void set_keylockstate(int keymask, BOOLEAN isSet);
 static void toggle_os_keylockstates(int fd, int changedkeystates);
 static void sync_lockstate_on_connect(btif_hh_device_t *p_dev);
 //static void hh_update_keyboard_lockstates(btif_hh_device_t *p_dev);
+void btif_hh_tmr_hdlr(TIMER_LIST_ENT *tle);
 
 
 /************************************************************************************
@@ -404,6 +407,58 @@ static btif_hh_device_t *btif_hh_find_connected_dev_by_bda(bt_bdaddr_t *bd_addr)
 
 /*******************************************************************************
 **
+** Function      btif_hh_stop_vup_timer
+**
+** Description  stop vitual unplug timer
+**
+** Returns      void
+*******************************************************************************/
+void btif_hh_stop_vup_timer(bt_bdaddr_t *bd_addr)
+{
+    btif_hh_device_t *p_dev  = btif_hh_find_connected_dev_by_bda(bd_addr);
+    if(p_dev != NULL)
+    {
+        if (p_dev->vup_timer_active)
+        {
+            BTIF_TRACE_DEBUG0("stop VUP timer ");
+            btu_stop_timer(&p_dev->vup_timer);
+        }
+        p_dev->vup_timer_active = FALSE;
+    }
+}
+/*******************************************************************************
+**
+** Function      btif_hh_start_vup_timer
+**
+** Description  start virtual unplug timer
+**
+** Returns      void
+*******************************************************************************/
+void btif_hh_start_vup_timer(bt_bdaddr_t *bd_addr)
+{
+    btif_hh_device_t *p_dev  = btif_hh_find_connected_dev_by_bda(bd_addr);
+
+    if (p_dev->vup_timer_active == FALSE)
+    {
+        BTIF_TRACE_DEBUG0("Start VUP timer ");
+        memset(&p_dev->vup_timer, 0, sizeof(TIMER_LIST_ENT));
+        p_dev->vup_timer.param = (UINT32)btif_hh_tmr_hdlr;
+        btu_start_timer(&p_dev->vup_timer, BTU_TTYPE_USER_FUNC,
+                        BTIF_TIMEOUT_VUP_SECS);
+    }
+    else
+    {
+        BTIF_TRACE_DEBUG0("Restart VUP timer ");
+        btu_stop_timer(&p_dev->vup_timer);
+        btu_start_timer(&p_dev->vup_timer, BTU_TTYPE_USER_FUNC,
+                        BTIF_TIMEOUT_VUP_SECS);
+    }
+        p_dev->vup_timer_active = TRUE;
+
+}
+
+/*******************************************************************************
+**
 ** Function         btif_hh_add_added_dev
 **
 ** Description      Add a new device to the added device list.
@@ -545,6 +600,8 @@ bt_status_t btif_hh_virtual_unplug(bt_bdaddr_t *bd_addr)
         && (p_dev->attr_mask & HID_VIRTUAL_CABLE))
     {
         BTIF_TRACE_DEBUG1("%s Sending BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG", __FUNCTION__);
+        /* start the timer */
+        btif_hh_start_vup_timer(bd_addr);
         BTA_HhSendCtrl(p_dev->dev_handle, BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG);
         return BT_STATUS_SUCCESS;
     }
@@ -612,7 +669,7 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
         BD_ADDR *bda = (BD_ADDR*)bd_addr;
         BTA_HhOpen(*bda, BTA_HH_PROTO_RPT_MODE, sec_mask);
     }
-    else 
+    else
     {
         // This device shall be connected from the host side.
         BTIF_TRACE_ERROR2("%s: Error, device %s can only be reconnected from device side",
@@ -646,7 +703,6 @@ void btif_hh_disconnect(bt_bdaddr_t *bd_addr)
     else
         BTIF_TRACE_DEBUG1("%s-- Error: device not connected:",__FUNCTION__);
 }
-
 
 /*******************************************************************************
 **
@@ -799,6 +855,10 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                     hidreport[0]=1;
                     bta_hh_co_write(p_dev->fd , hidreport, sizeof(hidreport));
                 }
+                if(p_dev->vup_timer_active)
+                {
+                    btif_hh_stop_vup_timer(&(p_dev->bd_addr));
+                }
                 btif_hh_cb.status = BTIF_HH_DEV_DISCONNECTED;
                 p_dev->dev_status = BTHH_CONN_STATE_DISCONNECTED;
                 HAL_CBACK(bt_hh_callbacks, connection_state_cb,&(p_dev->bd_addr), p_dev->dev_status);
@@ -890,8 +950,9 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                     bdcpy(bda, p_dev->bd_addr.address);
                     btif_hh_copy_hid_info(&dscp_info, &p_data->dscp_info);
                     BTIF_TRACE_DEBUG6("BTA_HH_GET_DSCP_EVT:bda = %02x:%02x:%02x:%02x:%02x:%02x",
-                              p_dev->bd_addr.address[0], p_dev->bd_addr.address[1], p_dev->bd_addr.address[2],
-                              p_dev->bd_addr.address[3], p_dev->bd_addr.address[4], p_dev->bd_addr.address[5]);
+                              p_dev->bd_addr.address[0], p_dev->bd_addr.address[1],
+                              p_dev->bd_addr.address[2],p_dev->bd_addr.address[3],
+                              p_dev->bd_addr.address[4], p_dev->bd_addr.address[5]);
                     BTA_HhAddDev(bda, p_dev->attr_mask,p_dev->sub_class,p_dev->app_id, dscp_info);
                     // write hid info to nvram
                     ret = btif_storage_add_hid_device_info(&(p_dev->bd_addr), p_dev->attr_mask,p_dev->sub_class,p_dev->app_id,
@@ -971,14 +1032,21 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 btif_hh_cb.status = BTIF_HH_DEV_DISCONNECTED;
                 if (p_dev != NULL) {
                     BTIF_TRACE_DEBUG6("BTA_HH_VC_UNPLUG_EVT:bda = %02x:%02x:%02x:%02x:%02x:%02x",
-                         p_dev->bd_addr.address[0], p_dev->bd_addr.address[1], p_dev->bd_addr.address[2],
-                         p_dev->bd_addr.address[3], p_dev->bd_addr.address[4], p_dev->bd_addr.address[5]);
+                         p_dev->bd_addr.address[0], p_dev->bd_addr.address[1],
+                         p_dev->bd_addr.address[2],p_dev->bd_addr.address[3],
+                         p_dev->bd_addr.address[4], p_dev->bd_addr.address[5]);
+                    /* Stop the VUP timer */
+                    if(p_dev->vup_timer_active)
+                    {
+                        btif_hh_stop_vup_timer(&(p_dev->bd_addr));
+                    }
                     p_dev->dev_status = BTHH_CONN_STATE_DISCONNECTED;
                     BTIF_TRACE_DEBUG1("%s---Sending connection state change", __FUNCTION__);
                     HAL_CBACK(bt_hh_callbacks, connection_state_cb,&(p_dev->bd_addr), p_dev->dev_status);
-                    BTIF_TRACE_DEBUG1("%s---Removing HID mouse bond", __FUNCTION__);
+                    BTIF_TRACE_DEBUG1("%s---Removing HID bond", __FUNCTION__);
                     BTA_DmRemoveDevice((UINT8 *)p_dev->bd_addr.address);
-                    HAL_CBACK(bt_hh_callbacks, virtual_unplug_cb,&(p_dev->bd_addr),p_data->dev_status.status);
+                    HAL_CBACK(bt_hh_callbacks, virtual_unplug_cb,&(p_dev->bd_addr),
+                                    p_data->dev_status.status);
                 }
                 break;
 
@@ -1086,6 +1154,46 @@ static void btif_hh_handle_evt(UINT16 event, char *p_param)
     }
 }
 
+/*******************************************************************************
+**
+** Function      btif_hh_tmr_hdlr
+**
+** Description   Process timer timeout
+**
+** Returns      void
+*******************************************************************************/
+void btif_hh_tmr_hdlr(TIMER_LIST_ENT *tle)
+{
+    btif_hh_device_t *p_dev;
+    UINT8               i,j;
+    tBTA_HH_EVT event;
+    tBTA_HH p_data;
+    int param_len = 0;
+    memset(&p_data, 0, sizeof(tBTA_HH));
+
+    BTIF_TRACE_DEBUG2("%s timer_in_use=%d",  __FUNCTION__, tle->in_use );
+
+    for (i = 0; i < BTIF_HH_MAX_HID; i++) {
+        if (btif_hh_cb.devices[i].dev_status == BTHH_CONN_STATE_CONNECTED)
+        {
+
+            p_dev = &btif_hh_cb.devices[i];
+
+            if (p_dev->vup_timer_active)
+            {
+                p_dev->vup_timer_active = FALSE;
+                event = BTA_HH_VC_UNPLUG_EVT;
+                p_data.dev_status.status = BTHH_ERR;
+                p_data.dev_status.handle = p_dev->dev_handle;
+                param_len = sizeof(tBTA_HH_CBDATA);
+
+                /* switch context to btif task context */
+                btif_transfer_context(btif_hh_upstreams_evt, (uint16_t)event, (void*)&p_data,
+                            param_len, NULL);
+            }
+        }
+    }
+}
 
 /*******************************************************************************
 **
