@@ -30,6 +30,7 @@ void bta_to_btif_srvc_id(btgatt_srvc_id_t *p_dest, tBTA_GATT_SRVC_ID *p_src);
 void bta_to_btif_char_id(btgatt_char_id_t *p_dest, tBTA_GATT_ID *p_src);
 
 uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src);
+uint16_t get_uuid16(tBT_UUID *p_uuid);
 
 void btif_gatt_check_encrypted_link(BD_ADDR bd_addr);
 void btif_gatt_remove_encrypted_link(BD_ADDR bd_addr);

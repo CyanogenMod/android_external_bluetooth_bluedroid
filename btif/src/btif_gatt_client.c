@@ -39,6 +39,7 @@
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 
+#include "gki.h"
 #include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "bd.h"
@@ -144,6 +145,72 @@ static uint8_t rssi_request_client_if;
 /*******************************************************************************
 **  Static functions
 ********************************************************************************/
+
+static void btapp_gattc_req_data(UINT16 event, char *p_dest, char *p_src)
+{
+    tBTA_GATTC *p_dest_data = (tBTA_GATTC*)p_dest;
+    tBTA_GATTC *p_src_data = (tBTA_GATTC*)p_src;
+
+    if (!p_src_data || !p_dest_data)
+       return;
+
+    // Copy basic structure first
+    memcpy(p_dest_data, p_src_data, sizeof(tBTA_GATTC));
+
+    // Allocate buffer for request data if necessary
+    switch (event)
+    {
+        case BTA_GATTC_READ_CHAR_EVT:
+        case BTA_GATTC_READ_DESCR_EVT:
+            p_dest_data->read.p_value = GKI_getbuf(sizeof(tBTA_GATT_READ_VAL));
+
+            if (p_dest_data->read.p_value != NULL)
+            {
+                memcpy(p_dest_data->read.p_value, p_src_data->read.p_value,
+                    sizeof(tBTA_GATT_READ_VAL));
+
+                // Allocate buffer for att value if necessary
+                if (get_uuid16(&p_src_data->read.descr_type) != GATT_UUID_CHAR_AGG_FORMAT
+                  && p_src_data->read.p_value->unformat.p_value != NULL)
+                {
+                    p_dest_data->read.p_value->unformat.p_value =
+                                   GKI_getbuf(p_src_data->read.p_value->unformat.len);
+                    if (p_dest_data->read.p_value->unformat.p_value != NULL)
+                    {
+                        memcpy(p_dest_data->read.p_value->unformat.p_value,
+                               p_src_data->read.p_value->unformat.p_value,
+                               p_src_data->read.p_value->unformat.len);
+                    }
+                }
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
+static void btapp_gattc_free_req_data(UINT16 event, tBTA_GATTC *p_data)
+{
+    switch (event)
+    {
+        case BTA_GATTC_READ_CHAR_EVT:
+        case BTA_GATTC_READ_DESCR_EVT:
+            if (p_data != NULL && p_data->read.p_value != NULL)
+            {
+                if (get_uuid16 (&p_data->read.descr_type) != GATT_UUID_CHAR_AGG_FORMAT
+                  && p_data->read.p_value->unformat.p_value != NULL)
+                {
+                    GKI_freebuf(p_data->read.p_value->unformat.p_value);
+                }
+                GKI_freebuf(p_data->read.p_value);
+            }
+            break;
+
+        default:
+            break;
+    }
+}
 
 static void btif_gattc_init_dev_cb(void)
 {
@@ -395,12 +462,14 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             ALOGE("%s: Unhandled event (%d)!", __FUNCTION__, event);
             break;
     }
+
+    btapp_gattc_free_req_data(event, p_data);
 }
 
 static void bte_gattc_cback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 {
     bt_status_t status = btif_transfer_context(btif_gattc_upstreams_evt,
-                    (uint16_t) event, (void*)p_data, sizeof(tBTA_GATTC), NULL);
+                    (uint16_t) event, (void*)p_data, sizeof(tBTA_GATTC), btapp_gattc_req_data);
     ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
 }
 
