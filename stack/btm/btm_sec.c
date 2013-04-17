@@ -4774,6 +4774,10 @@ void btm_sec_pin_code_request (UINT8 *p_bda)
     tBTM_SEC_DEV_REC *p_dev_rec;
     tBTM_CB          *p_cb = &btm_cb;
 
+#ifdef PORCHE_PAIRING_CONFLICT
+    UINT8 default_pin_code_len = 4;
+    PIN_CODE default_pin_code = {0x30, 0x30, 0x30, 0x30};
+#endif
     BTM_TRACE_EVENT3 ("btm_sec_pin_code_request()  State: %s, BDA:%04x%08x",
                       btm_pair_state_descr(btm_cb.pairing_state),
                       (p_bda[0]<<8)+p_bda[1], (p_bda[2]<<24)+(p_bda[3]<<16)+(p_bda[4]<<8)+p_bda[5] );
@@ -4807,7 +4811,8 @@ void btm_sec_pin_code_request (UINT8 *p_bda)
             BTM_TRACE_EVENT0 ("btm_sec_pin_code_request from remote dev. for local initiated pairing");
             if(! btm_cb.pin_code_len_saved)
             {
-                btsnd_hcic_pin_code_neg_reply (p_bda);
+                btm_sec_change_pairing_state (BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
+                btsnd_hcic_pin_code_req_reply (p_bda, default_pin_code_len, default_pin_code);
             }
             else
             {
