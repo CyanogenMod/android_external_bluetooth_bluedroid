@@ -1336,16 +1336,9 @@ void btm_read_remote_features (UINT16 handle)
     p_acl_cb->num_read_pages = 0;
     memset (p_acl_cb->peer_lmp_features, 0, sizeof(p_acl_cb->peer_lmp_features));
 
-    /* If this BT controller supports Read Extended Feature */
-    if (btm_cb.devcb.local_version.hci_version >= HCI_PROTO_VERSION_2_0)
-    {
-        btm_read_remote_ext_features(handle, HCI_EXT_FEATURES_PAGE_0);
-    }
-    /* else, if this is a very old BT controller */
-    else
-    {
-        btsnd_hcic_rmt_features_req (handle);
-    }
+    /* first send read remote supported features HCI command */
+    /* because we don't know whether the remote support extended feature command */
+    btsnd_hcic_rmt_features_req (handle);
 }
 
 
