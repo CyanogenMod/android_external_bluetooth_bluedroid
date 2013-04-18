@@ -1394,19 +1394,19 @@ void l2c_link_process_num_completed_pkts (UINT8 *p)
             (*p_lcb->p_nocp_cb)(p_lcb->remote_bd_addr);
         }
 
-#if (BLE_INCLUDED == TRUE)
-        if (p_lcb && p_lcb->is_ble_link)
-            l2cb.controller_le_xmit_window += num_sent;
-        else
-#endif
-        {
-
-            /* Maintain the total window to the controller */
-            l2cb.controller_xmit_window += num_sent;
-        }
-
         if (p_lcb)
         {
+#if (BLE_INCLUDED == TRUE)
+            if (p_lcb->is_ble_link)
+            {
+                l2cb.controller_le_xmit_window += num_sent;
+            }
+            else
+#endif
+            {
+                /* Maintain the total window to the controller */
+                l2cb.controller_xmit_window += num_sent;
+            }
             /* If doing round-robin, adjust communal counts */
             if (p_lcb->link_xmit_quota == 0)
             {
