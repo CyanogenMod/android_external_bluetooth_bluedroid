@@ -183,6 +183,15 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     if (l2cb.num_links_active >= 1)
         l2cb.num_links_active--;
 
+    if (p_lcb->sent_not_acked > 0)
+    {
+        l2cb.controller_xmit_window += p_lcb->sent_not_acked;
+        if (l2cb.controller_xmit_window > l2cb.num_lm_acl_bufs)
+        {
+            l2cb.controller_xmit_window = l2cb.num_lm_acl_bufs;
+        }
+    }
+
     l2c_link_adjust_allocation();
 
     /* Check for ping outstanding */
