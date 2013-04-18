@@ -195,7 +195,7 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
             btif_gatt_check_encrypted_link(p_data->conn.remote_bda);
 
             HAL_CBACK(bt_gatt_callbacks, server->connection_cb,
-                      p_data->conn.conn_id, TRUE, &bda);
+                      p_data->conn.conn_id, p_data->conn.server_if, TRUE, &bda);
             break;
         }
 
@@ -205,7 +205,7 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
             bdcpy(bda.address, p_data->conn.remote_bda);
 
             HAL_CBACK(bt_gatt_callbacks, server->connection_cb,
-                      p_data->conn.conn_id, FALSE, &bda);
+                      p_data->conn.conn_id, p_data->conn.server_if, FALSE, &bda);
 
             btif_gatt_remove_encrypted_link(p_data->conn.remote_bda);
             break;
