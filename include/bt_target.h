@@ -3498,7 +3498,7 @@ Range: Minimum 12000 (12 secs) when supporting PBF.
 
 /* The maximum number of registered MCAP instances. */
 #ifndef MCA_NUM_REGS
-#define MCA_NUM_REGS    3
+#define MCA_NUM_REGS    12
 #endif
 
 /* The maximum number of control channels (to difference devices) per registered MCAP instances. */
@@ -3508,7 +3508,7 @@ Range: Minimum 12000 (12 secs) when supporting PBF.
 
 /* The maximum number of MDEP (including HDP echo) per registered MCAP instances. */
 #ifndef MCA_NUM_DEPS
-#define MCA_NUM_DEPS    3
+#define MCA_NUM_DEPS    13
 #endif
 
 /* The maximum number of MDL link per control channel. */

@@ -1508,6 +1508,7 @@ void bta_hl_dch_mca_create_ind(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
         evt_data.dch_create_ind.local_mdep_id = p_dcb->local_mdep_id;
         evt_data.dch_create_ind.mdl_id = p_dcb->mdl_id;
         evt_data.dch_create_ind.cfg = p_dcb->remote_cfg;
+        bdcpy(evt_data.dch_create_ind.bd_addr, p_mcb->bd_addr);
         p_acb->p_cback(BTA_HL_DCH_CREATE_IND_EVT,(tBTA_HL *) &evt_data );
     }
     else
@@ -1783,6 +1784,7 @@ static void bta_hl_sdp_cback(UINT8 sdp_oper, UINT8 app_idx, UINT8 mcl_idx,
                 if (bta_hl_fill_sup_feature_list (p_attr, &sup_feature))
                 {
                     p_hdp_rec->num_mdeps = (UINT8) sup_feature.num_elems;
+                    APPL_TRACE_WARNING1("bta_hl_sdp_cback num_mdeps %d",sup_feature.num_elems);
                     for (i=0; i<sup_feature.num_elems; i++)
                     {
                         p_hdp_rec->mdep_cfg[i].data_type = sup_feature.list_elem[i].data_type;
@@ -2261,6 +2263,7 @@ void bta_hl_cch_sdp_init(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data)
 #endif
     if ( p_cb->sdp_oper == BTA_HL_SDP_OP_NONE)
     {
+        p_cb->app_id = p_data->api_cch_open.app_id;
         p_cb->sdp_oper = BTA_HL_SDP_OP_CCH_INIT;
 
         if (bta_hl_init_sdp( p_cb->sdp_oper, app_idx, mcl_idx, 0xFF) != BTA_HL_STATUS_OK)
@@ -2383,7 +2386,7 @@ void bta_hl_cch_close_cmpl(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data)
     switch (p_mcb->cch_oper)
     {
         case BTA_HL_CCH_OP_LOCAL_OPEN:
-            bta_hl_build_cch_open_cfm(&evt_data, p_acb->app_handle,
+            bta_hl_build_cch_open_cfm(&evt_data,p_mcb->app_id,p_acb->app_handle,
                                       p_mcb->mcl_handle,
                                       p_mcb->bd_addr,
                                       BTA_HL_STATUS_FAIL);
@@ -2531,7 +2534,7 @@ void bta_hl_cch_mca_connect(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data)
     switch (p_mcb->cch_oper)
     {
         case BTA_HL_CCH_OP_LOCAL_OPEN:
-            bta_hl_build_cch_open_cfm(&evt_data, p_acb->app_handle,
+            bta_hl_build_cch_open_cfm(&evt_data, p_mcb->app_id,p_acb->app_handle,
                                       p_mcb->mcl_handle,
                                       p_mcb->bd_addr,
                                       BTA_HL_STATUS_OK);
