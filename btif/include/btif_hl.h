@@ -34,7 +34,6 @@
 #define BTIF_HL_CCH_NUM_FILTER_ELEMS            3
 #define BTIF_HL_APPLICATION_NAME_LEN          512
 
-#define BTIF_HL_NV_MAX_APPS   16
 
 
 /*******************************************************************************
@@ -117,44 +116,9 @@ typedef struct
 
 typedef struct
 {
-    btif_hl_mdl_cfg_t       mdl_cfg[BTA_HL_NUM_MDL_CFGS];
-} btif_hl_nv_mdl_data_t;
-
-typedef struct
-{
-    tBTA_HL_SUP_FEATURE     sup_feature;
-    tBTA_HL_DCH_CFG         channel_type[BTA_HL_NUM_MDEPS];
-    char                    srv_name[BTA_SERVICE_NAME_LEN +1];
-    char                    srv_desp[BTA_SERVICE_DESP_LEN +1];
-    char                    provider_name[BTA_PROVIDER_NAME_LEN +1];
-    char                    application_name[BTIF_HL_APPLICATION_NAME_LEN +1];
-} btif_hl_nv_app_data_t;
-
-typedef struct
-{
-    BOOLEAN in_use;
-    UINT16  use_freq;
-} btif_hl_nv_app_t;
-
-typedef struct
-{
-    btif_hl_nv_app_t   app[BTIF_HL_NV_MAX_APPS];
-} btif_hl_nv_app_cb_t;
-
-typedef struct
-{
-    UINT8 app_nv_idx;
     BOOLEAN active;
     UINT8 app_idx;
-    btif_hl_nv_app_data_t   app_data;
 } btif_hl_app_data_t;
-
-typedef struct
-{
-    BOOLEAN                 is_app_read;
-    btif_hl_nv_app_cb_t     app_cb;
-    BUFFER_Q                app_queue;
-} btif_hl_nv_cb_t;
 
 typedef struct
 {
@@ -260,8 +224,6 @@ typedef struct
     btif_hl_mcl_cb_t        mcb[BTA_HL_NUM_MCLS]; /* application Control Blocks */
     BOOLEAN                 in_use;              /* this CB is in use*/
     BOOLEAN                 reg_pending;
-    BOOLEAN                 is_new_app;
-    UINT8                   app_nv_idx;
     UINT8                   app_id;
 
     tBTA_HL_SUP_FEATURE     sup_feature;
@@ -296,7 +258,6 @@ typedef struct
     UINT8                   next_app_id;
     UINT16                  next_channel_id;
     btif_hl_state_t         state;
-    btif_hl_nv_cb_t         ncb;
 } btif_hl_cb_t;
 
 typedef UINT8 btif_hl_evt_t;
@@ -343,7 +304,6 @@ typedef union
 
 extern btif_hl_cb_t  btif_hl_cb;
 extern btif_hl_cb_t *p_btif_hl_cb;
-extern btif_hl_nv_cb_t *p_ncb;
 
 extern BOOLEAN btif_hl_find_mcl_idx(UINT8 app_idx, BD_ADDR p_bd_addr, UINT8 *p_mcl_idx);
 extern BOOLEAN btif_hl_find_app_idx(UINT8 app_id, UINT8 *p_app_idx);

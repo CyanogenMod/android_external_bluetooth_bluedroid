@@ -592,6 +592,85 @@ static void bta_hl_api_disable(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 
 /*******************************************************************************
 **
+** Function         bta_hl_api_update
+**
+** Description      Process the API registration request to register an HDP applciation
+**
+** Returns          void
+**
+*******************************************************************************/
+static void bta_hl_api_update(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
+{
+    tBTA_HL         evt_data;
+    tBTA_HL_APP_CB  *p_acb = BTA_HL_GET_APP_CB_PTR(0);
+    tBTA_HL_STATUS  status = BTA_HL_STATUS_FAIL;
+
+
+    APPL_TRACE_DEBUG0("bta_hl_api_update");
+    if (p_cb->enable)
+    {
+
+        status = bta_hl_app_update(p_data->api_update.app_id, p_data->api_update.is_register);
+        if (!p_data->api_update.is_register)
+        {
+            APPL_TRACE_DEBUG0("Deregister");
+            memset(&evt_data, 0, sizeof(tBTA_HL));
+            evt_data.dereg_cfm.status = status;
+            evt_data.dereg_cfm.app_id = p_data->api_update.app_id;
+            if (status == BTA_HL_STATUS_OK)
+                evt_data.dereg_cfm.app_handle = p_acb->app_handle;
+            if (p_acb->p_cback)
+            {
+                p_acb->p_cback(BTA_HL_DEREGISTER_CFM_EVT, (tBTA_HL *) &evt_data);
+            }
+            return ;
+        }
+
+    }
+
+    if (status != BTA_HL_STATUS_OK)
+    {
+        if ((status != BTA_HL_STATUS_DUPLICATE_APP_ID) &&
+            (status != BTA_HL_STATUS_NO_RESOURCE))
+        {
+            if (p_acb)
+                memset(p_acb, 0, sizeof(tBTA_HL_APP_CB));
+        }
+    }
+#if BTA_HL_DEBUG == TRUE
+    if (status != BTA_HL_STATUS_OK)
+    {
+        APPL_TRACE_DEBUG1("bta_hl_api_register status =%s", bta_hl_status_code(status));
+    }
+#endif
+
+    memset(&evt_data, 0, sizeof(tBTA_HL));
+    evt_data.reg_cfm.status = status;
+    evt_data.reg_cfm.app_id = p_data->api_update.app_id;
+    if (status == BTA_HL_STATUS_OK)
+        evt_data.reg_cfm.app_handle = p_acb->app_handle;
+    if (p_data->api_reg.p_cback)
+    {
+        p_data->api_reg.p_cback(BTA_HL_REGISTER_CFM_EVT, (tBTA_HL *) &evt_data);
+    }
+
+    if (status == BTA_HL_STATUS_OK)
+    {
+        evt_data.sdp_info_ind.app_handle = p_acb->app_handle;
+        evt_data.sdp_info_ind.ctrl_psm = p_acb->ctrl_psm;
+        evt_data.sdp_info_ind.data_psm = p_acb->data_psm;
+        evt_data.sdp_info_ind.data_x_spec = BTA_HL_SDP_IEEE_11073_20601;
+        evt_data.sdp_info_ind.mcap_sup_procs = BTA_HL_MCAP_SUP_PROC_MASK ;
+
+        if (p_data->api_reg.p_cback)
+        {
+            p_data->api_reg.p_cback(BTA_HL_SDP_INFO_IND_EVT, (tBTA_HL *) &evt_data);
+        }
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         bta_hl_api_register
 **
 ** Description      Process the API registration request to register an HDP applciation
@@ -746,7 +825,24 @@ static void bta_hl_api_cch_open(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
         else
         {
             /* Only one MCL per BD_ADDR */
-            status = BTA_HL_STATUS_FAIL;
+            status = BTA_HL_STATUS_DUPLICATE_CCH_OPEN;
+            APPL_TRACE_DEBUG1("bta_hl_api_cch_open: CCH already open: status =%d",status)
+            p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
+            p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
+            if (p_acb->p_cback)
+            {
+                bta_hl_build_cch_open_cfm(&evt_data, p_data->api_cch_open.app_id,
+                                          p_data->api_cch_open.app_handle,
+                                          p_mcb->mcl_handle,
+                                          p_data->api_cch_open.bd_addr,
+                                          status);
+                p_acb->p_cback(BTA_HL_CCH_OPEN_CFM_EVT,(tBTA_HL *) &evt_data );
+            }
+            else
+            {
+                APPL_TRACE_ERROR0("bta_hl_api_cch_open Null Callback");
+            }
+            return;
         }
     }
     else
@@ -770,7 +866,8 @@ static void bta_hl_api_cch_open(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
             p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
             if (p_acb->p_cback)
             {
-                bta_hl_build_cch_open_cfm(&evt_data, p_data->api_cch_open.app_handle,
+                bta_hl_build_cch_open_cfm(&evt_data, p_data->api_cch_open.app_id,
+                                          p_data->api_cch_open.app_handle,
                                           0,
                                           p_data->api_cch_open.bd_addr,
                                           status);
@@ -874,6 +971,7 @@ static void bta_hl_api_dch_open(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
         p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
         p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
 
+        APPL_TRACE_DEBUG4("bta_hl_api_dch_open: app_ix=%d, mcl_idx=%d, cch_state=%d, mcl_handle=%d",app_idx,mcl_idx,p_mcb->cch_state,p_data->api_dch_open.mcl_handle);
         if (p_mcb->cch_state == BTA_HL_CCH_OPEN_ST)
         {
             if (bta_hl_find_avail_mdl_idx(app_idx, mcl_idx, &mdl_idx))
@@ -1370,6 +1468,8 @@ static void bta_hl_api_sdp_query(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
                 p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
                 p_mcb->in_use = TRUE;
                 bdcpy(p_mcb->bd_addr, p_data->api_sdp_query.bd_addr);
+                APPL_TRACE_DEBUG3("bta_hl_api_sdp_query p_mcb->app_id %d app_idx %d mcl_idx %d", p_mcb->app_id, app_idx, mcl_idx);
+                p_mcb->app_id = p_data->api_sdp_query.app_id;
                 p_mcb->sdp_oper  = BTA_HL_SDP_OP_SDP_QUERY_NEW ;
             }
             else
@@ -1380,6 +1480,7 @@ static void bta_hl_api_sdp_query(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
         else
         {
             p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
+            p_mcb->app_id = p_data->api_sdp_query.app_id;
             if (p_mcb->sdp_oper != BTA_HL_SDP_OP_NONE)
             {
                 status = BTA_HL_STATUS_SDP_NO_RESOURCE;
@@ -1419,6 +1520,7 @@ static void bta_hl_api_sdp_query(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
             if (p_acb->p_cback)
             {
                 bta_hl_build_sdp_query_cfm(&evt_data,
+                                           p_data->api_sdp_query.app_id,
                                            p_data->api_sdp_query.app_handle,
                                            p_data->api_sdp_query.bd_addr,
                                            NULL,
@@ -1490,7 +1592,8 @@ static void bta_hl_sdp_query_results(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     }
 #endif
 
-    bta_hl_build_sdp_query_cfm(&evt_data,p_acb->app_handle,
+    APPL_TRACE_DEBUG3("bta_hl_sdp_query_results p_mcb->app_id %d app_idx %d mcl_idx %d", p_mcb->app_id, app_idx, mcl_idx);
+    bta_hl_build_sdp_query_cfm(&evt_data,p_mcb->app_id, p_acb->app_handle,
                                p_mcb->bd_addr,p_sdp,status);
     p_acb->p_cback(BTA_HL_SDP_QUERY_CFM_EVT,(tBTA_HL *) &evt_data );
 
@@ -1860,6 +1963,9 @@ BOOLEAN bta_hl_hdl_event(BT_HDR *p_msg)
             break;
         case BTA_HL_API_DISABLE_EVT:
             bta_hl_api_disable(&bta_hl_cb, (tBTA_HL_DATA *) p_msg);
+            break;
+        case BTA_HL_API_UPDATE_EVT:
+            bta_hl_api_update(&bta_hl_cb, (tBTA_HL_DATA *) p_msg);
             break;
         case BTA_HL_API_REGISTER_EVT:
             bta_hl_api_register(&bta_hl_cb, (tBTA_HL_DATA *) p_msg);
