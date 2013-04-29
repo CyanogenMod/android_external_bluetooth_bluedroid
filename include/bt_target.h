@@ -550,6 +550,12 @@
 #define L2CAP_FCR_RX_POOL_ID        HCI_ACL_POOL_ID
 #endif
 
+/* Number of ACL buffers to assign to LE
+   if the HCI buffer pool is shared with BR/EDR */
+#ifndef L2C_DEF_NUM_BLE_BUF_SHARED
+#define L2C_DEF_NUM_BLE_BUF_SHARED      1
+#endif
+
 /* Used by BTM when it sends HCI commands to the controller. */
 #ifndef BTM_CMD_POOL_ID
 #define BTM_CMD_POOL_ID             GKI_POOL_ID_2
