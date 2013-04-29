@@ -1431,6 +1431,12 @@ bt_status_t btif_storage_load_bonded_hid_info(void)
             btif_config_get_int("Remote", kname, "ssrmintout", &value);
             dscp_info.ssr_min_tout = (uint8_t) value;
 
+            btif_config_get_int("Remote", kname, "ssrmaxlat", &value);
+            dscp_info.ssr_max_latency = (uint8_t) value;
+
+            btif_config_get_int("Remote", kname, "ssrmintout", &value);
+            dscp_info.ssr_min_tout = (uint8_t) value;
+
             int len = 0;
             int type;
             btif_config_get("Remote", kname, "HidDescriptor", NULL, &len, &type);
