@@ -149,6 +149,14 @@ void smp_send_pair_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev (p_cb->pairing_bda);
     SMP_TRACE_DEBUG0 ("smp_send_pair_req  ");
 
+#if BLE_INCLUDED == TRUE
+    /* Disable L2CAP connection parameter updates while bonding since
+       some peripherals are not able to revert to fast connection parameters
+       during the start of service discovery. Connection paramter updates
+       get enabled again once service discovery completes. */
+    L2CA_EnableUpdateBleConnParams(p_cb->pairing_bda, FALSE);
+#endif
+
     /* erase all keys when master sends pairing req*/
     if (p_dev_rec)
         btm_sec_clear_ble_keys(p_dev_rec);
