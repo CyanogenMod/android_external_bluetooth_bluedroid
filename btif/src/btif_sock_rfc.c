@@ -1,4 +1,6 @@
 /******************************************************************************
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
@@ -318,7 +320,11 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
     *sock_fd = -1;
     if(!is_init_done())
         return BT_STATUS_NOT_READY;
-    if(is_uuid_empty(service_uuid))
+    if(channel == RESERVED_SCN_FTP)
+    {
+        service_uuid = UUID_FTP;
+    }
+    else if(is_uuid_empty(service_uuid))
         service_uuid = UUID_SPP; //use serial port profile to listen to specified channel
     else
     {
@@ -329,6 +335,9 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
         } else if (!strncmp(service_name, "Email Message Access", strlen("Email Message Access"))) {
             channel = RESERVED_SCN_MAS1;
             APPL_TRACE_DEBUG1("Registering MAP SDP for: %s", service_name);
+        } else if (!strncmp(service_name, "OBEX File Transfer", strlen("OBEX File Transfer"))) {
+            channel = RESERVED_SCN_FTP;
+            APPL_TRACE_DEBUG1("Registering FTP SDP for: %s", service_name);
         } else {
             //Check the service_uuid. overwrite the channel # if reserved
             int reserved_channel = get_reserved_rfc_channel(service_uuid);

@@ -1,4 +1,6 @@
 /******************************************************************************
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
@@ -28,8 +30,12 @@ static const UINT8  UUID_MAP_MAS[]          = {0x00, 0x00, 0x11, 0x32, 0x00, 0x0
                                                0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 static const UINT8  UUID_MAP_MNS[]          = {0x00, 0x00, 0x11, 0x33, 0x00, 0x00, 0x10, 0x00,
                                                0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
+static const UINT8  UUID_FTP[]              = {0x00, 0x00, 0x11, 0x06, 0x00, 0x00, 0x10, 0x00,
+                                               0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
+
 #define RESERVED_SCN_MAS0 16
 #define RESERVED_SCN_MAS1 17
+#define RESERVED_SCN_FTP 20
 
 static inline BOOLEAN is_uuid_empty(const uint8_t* uuid)
 {
