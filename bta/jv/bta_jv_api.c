@@ -1515,7 +1515,7 @@ tBTA_JV_STATUS BTA_JvRfcommRead(UINT32 handle, UINT32 req_id, UINT8 *p_data, UIN
 *******************************************************************************/
 UINT16 BTA_JvRfcommGetPortHdl(UINT32 handle)
 {
-    UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK) & BTA_JV_RFCOMM_MASK) - 1;
+    UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK) & ~BTA_JV_RFCOMM_MASK) - 1;
     UINT32  si = BTA_JV_RFC_HDL_TO_SIDX(handle);
 
     if (hi < BTA_JV_MAX_RFC_CONN &&
