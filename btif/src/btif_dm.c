@@ -479,6 +479,7 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr)
     }
     else
     {
+#if BLE_INCLUDED == TRUE
         int device_type;
         int addr_type;
         bdstr_t bdstr;
@@ -489,6 +490,7 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr)
         {
             BTA_DmAddBleDevice(bd_addr->address, addr_type, BT_DEVICE_TYPE_BLE);
         }
+#endif
         BTA_DmBond ((UINT8 *)bd_addr->address);
     }
     /*  Track  originator of bond creation  */

@@ -27,9 +27,9 @@
 #endif
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
 #include "bte_appl.h"
-#endif
 
 tBTE_APPL_CFG bte_appl_cfg = { 0x5, 0x4, 0x7, 0x7, 0x10 };
+#endif
 
 /*******************************************************************************
 **
