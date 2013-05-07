@@ -16,7 +16,6 @@
  *
  ******************************************************************************/
 
-
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>
 #include <stdio.h>
@@ -36,6 +35,8 @@
 #include "btif_util.h"
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
+
+#if BTA_GATT_INCLUDED == TRUE
 
 #define GATTC_READ_VALUE_TYPE_VALUE          0x0000  /* Attribute value itself */
 #define GATTC_READ_VALUE_TYPE_AGG_FORMAT     0x2905  /* Characteristic Aggregate Format*/
@@ -355,3 +356,5 @@ void btif_gatt_check_encrypted_link (BD_ADDR bd_addr)
                             &btif_gatt_set_encryption_cb, BTM_BLE_SEC_ENCRYPT);
     }
 }
+
+#endif
