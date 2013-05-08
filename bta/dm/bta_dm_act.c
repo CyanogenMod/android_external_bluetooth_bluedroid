@@ -3661,7 +3661,11 @@ static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
         }
         APPL_TRACE_WARNING2("bta_dm_rm_cback:%d, status:%d", bta_dm_cb.cur_av_count, status);
     }
-
+    else if ((status == BTA_SYS_CONN_BUSY) || (status == BTA_SYS_CONN_IDLE))
+    {
+        /* Do not do role switch management for non-AV profiles when data flow starts/stops */
+        return;
+    }
 
     bta_dm_adjust_roles(FALSE);
 
