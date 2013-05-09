@@ -326,8 +326,10 @@ static const void* get_profile_interface (const char *profile_id)
     if (is_profile(profile_id, BT_PROFILE_HEALTH_ID))
         return btif_hl_get_interface();
 
+#if BTA_GATT_INCLUDED == TRUE
     if (is_profile(profile_id, BT_PROFILE_GATT_ID))
         return btif_gatt_get_interface();
+#endif
 
     if (is_profile(profile_id, BT_PROFILE_AV_RC_ID))
         return btif_rc_get_interface();
@@ -356,6 +358,8 @@ int dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len)
 
     return btif_dut_mode_send(opcode, buf, len);
 }
+
+#if BLE_INCLUDED == TRUE
 int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len)
 {
     ALOGI("le_test_mode");
@@ -366,7 +370,7 @@ int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len)
 
     return btif_le_test_mode(opcode, buf, len);
 }
-
+#endif
 
 static const bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
@@ -392,7 +396,11 @@ static const bt_interface_t bluetoothInterface = {
     get_profile_interface,
     dut_mode_configure,
     dut_mode_send,
+#if BLE_INCLUDED == TRUE
     le_test_mode
+#else
+    NULL
+#endif
 };
 
 const bt_interface_t* bluetooth__get_bluetooth_interface ()

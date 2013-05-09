@@ -1862,6 +1862,8 @@ BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
 **
 *******************************************************************************/
 BTA_API extern void BTA_DmSetAfhChannelAssessment (BOOLEAN enable_or_disable);
+
+#if BLE_INCLUDE == TRUE
 // btla-specific --
 /*******************************************************************************
 **
@@ -1904,6 +1906,7 @@ BTA_API extern void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, BOOLEAN privac
 *******************************************************************************/
 BTA_API extern void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask,
                                            tBTA_BLE_ADV_DATA *p_adv_cfg);
+#endif
 
 #ifdef __cplusplus
 }

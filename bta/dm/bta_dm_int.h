@@ -510,13 +510,6 @@ typedef struct
     tBTA_DM_SEARCH_CBACK * p_cback;
 }tBTA_DM_API_BLE_OBSERVE;
 
-typedef struct
-{
-    BT_HDR                  hdr;
-    BOOLEAN                 enable_or_disable;
-}tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT;
-
-
 /* set adv parameter for BLE advertising */
 typedef struct
 {
@@ -534,6 +527,12 @@ typedef struct
 }tBTA_DM_API_SET_ADV_CONFIG;
 
 #endif
+
+typedef struct
+{
+    BT_HDR                  hdr;
+    BOOLEAN                 enable_or_disable;
+}tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT;
 
 #if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
 /* data type for BTA_DM_API_UPDATE_EIR_UUID_EVT */

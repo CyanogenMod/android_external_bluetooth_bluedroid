@@ -1227,13 +1227,13 @@ static void btm_issue_host_support_for_lmp_features (void)
         {
             btm_read_ble_wl_size();
         }
+        else
 #elif BTM_INTERNAL_BB == TRUE
         {
             UINT8 buf[9] = BTM_INTERNAL_LOCAL_FEA;
             btm_read_local_features_complete( buf, 9 );
         }
 #endif
-        else
         {
             btm_reset_ctrlr_complete();
         }

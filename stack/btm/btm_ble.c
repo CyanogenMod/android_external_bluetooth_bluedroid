@@ -586,6 +586,8 @@ void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type, tBLE_ADDR
     return;
 }
 
+#if BLE_INCLUDED == TRUE
+
 /*******************************************************************************
 **
 ** Function         BTM_BleReceiverTest
@@ -646,6 +648,8 @@ void BTM_BleTestEnd(tBTM_CMPL_CB *p_cmd_cmpl_cback)
           BTM_TRACE_ERROR1("%s: Unable to End the LE TX/RX test", __FUNCTION__);
      }
 }
+
+#endif
 
 /*******************************************************************************
 ** Internal Functions
