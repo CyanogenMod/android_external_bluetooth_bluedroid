@@ -162,6 +162,22 @@ static uint8_t xmit_cb(uint16_t opcode, void *p_buf, tINT_CMD_CBACK p_cback)
     return p_hci_if->send_int_cmd(opcode, (HC_BT_HDR *)p_buf, p_cback);
 }
 
+/******************************************************************************
+**
+** Function         epilog_cb
+**
+** Description      HOST/CONTROLLER VENDOR LIB CALLBACK API - This function is
+**                  called back from the libbt-vendor to indicate the result of
+**                  previous epilog call.
+**
+** Returns          None
+**
+******************************************************************************/
+static void epilog_cb(bt_vendor_op_result_t result)
+{
+    bthc_signal_event(HC_EVENT_EXIT);
+}
+
 /*****************************************************************************
 **   The libbt-vendor Callback Functions Table
 *****************************************************************************/
@@ -172,7 +188,8 @@ static const bt_vendor_callbacks_t vnd_callbacks = {
     lpm_vnd_cb,
     alloc,
     dealloc,
-    xmit_cb
+    xmit_cb,
+    epilog_cb
 };
 
 /******************************************************************************
