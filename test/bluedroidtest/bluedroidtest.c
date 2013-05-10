@@ -492,8 +492,12 @@ static bt_callbacks_t bt_callbacks = {
     NULL, /* acl_state_changed_cb */
     NULL, /* thread_evt_cb */
     dut_mode_recv, /*dut_mode_recv_cb */
-    NULL, /*authorize_request_cb */
+//    NULL, /*authorize_request_cb */
+#if BLE_INCLUDED == TRUE
     le_test_mode /* le_test_mode_cb */
+#else
+    NULL
+#endif
 };
 
 void bdt_init(void)

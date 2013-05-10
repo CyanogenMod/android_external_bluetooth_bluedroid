@@ -496,11 +496,13 @@ static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_
                         uint2devclass((UINT32)cod, dev_class);
                     BTA_DmAddDevice(bd_addr.address, dev_class, link_key, 0, 0, (UINT8)linkkey_type, 0);
 
+#if BLE_INCLUDED == TRUE
                     if (btif_config_get_int("Remote", kname, "DevType", &device_type) &&
                        (device_type == BT_DEVICE_TYPE_DUMO) )
                     {
                         btif_gatts_add_bonded_dev_from_nv(bd_addr.address);
                     }
+#endif
                 }
                 bt_linkkey_file_found = TRUE;
                 memcpy(&p_bonded_devices->devices[p_bonded_devices->num_devices++], &bd_addr, sizeof(bt_bdaddr_t));
