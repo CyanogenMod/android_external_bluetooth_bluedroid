@@ -169,11 +169,35 @@ BTU_API UINT32 btu_task (UINT32 param)
 
 #if (defined(HCISU_H4_INCLUDED) && HCISU_H4_INCLUDED == TRUE)
     /* wait an event that HCISU is ready */
-    event = GKI_wait (0xFFFF, 0);
-    if (event & EVENT_MASK(GKI_SHUTDOWN_EVT))
-        /* indicates BT ENABLE abort */
-        return (0);
+    BT_TRACE_0(TRACE_LAYER_BTU, TRACE_TYPE_API,
+                "btu_task pending for preload complete event");
+
+    for (;;)
+    {
+        event = GKI_wait (0xFFFF, 0);
+        if (event & EVENT_MASK(GKI_SHUTDOWN_EVT))
+        {
+            /* indicates BT ENABLE abort */
+            BT_TRACE_0(TRACE_LAYER_BTU, TRACE_TYPE_WARNING,
+                        "btu_task start abort!");
+            return (0);
+        }
+        else if (event & BT_EVT_PRELOAD_CMPL)
+        {
+            break;
+        }
+        else
+        {
+            BT_TRACE_1(TRACE_LAYER_BTU, TRACE_TYPE_WARNING,
+                "btu_task ignore evt %04x while pending for preload complete",
+                event);
+        }
+    }
+
+    BT_TRACE_0(TRACE_LAYER_BTU, TRACE_TYPE_API,
+                "btu_task received preload complete event");
 #endif
+
     /* Initialize the mandatory core stack control blocks
        (BTU, BTM, L2CAP, and SDP)
      */

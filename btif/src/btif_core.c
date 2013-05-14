@@ -130,7 +130,7 @@ extern void bte_load_did_conf(const char *p_path);
 
 /** TODO: Move these to _common.h */
 void bte_main_boot_entry(void);
-void bte_main_enable(uint8_t *local_addr);
+void bte_main_enable();
 void bte_main_disable(void);
 void bte_main_shutdown(void);
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
@@ -294,6 +294,23 @@ static void btif_task(UINT32 params)
             btif_dm_load_ble_local_keys();
             #endif
             BTA_EnableBluetooth(bte_dm_evt);
+        }
+
+        /*
+         * Failed to initialize controller hardware, reset state and bring
+         * down all threads
+         */
+        if (event == BT_EVT_HARDWARE_INIT_FAIL)
+        {
+            BTIF_TRACE_DEBUG0("btif_task: hardware init failed");
+            bte_main_disable();
+            btif_queue_release();
+            GKI_task_self_cleanup(BTIF_TASK);
+            bte_main_shutdown();
+            btif_dut_mode = 0;
+            btif_core_state = BTIF_CORE_STATE_DISABLED;
+            HAL_CBACK(bt_hal_cbacks,adapter_state_changed_cb,BT_STATE_OFF);
+            break;
         }
 
         if (event & EVENT_MASK(GKI_SHUTDOWN_EVT))
@@ -516,7 +533,7 @@ bt_status_t btif_enable_bluetooth(void)
     btif_core_state = BTIF_CORE_STATE_ENABLING;
 
     /* Create the GKI tasks and run them */
-    bte_main_enable(btif_local_bd_addr.address);
+    bte_main_enable();
 
     return BT_STATUS_SUCCESS;
 }
@@ -730,6 +747,16 @@ bt_status_t btif_shutdown_bluetooth(void)
     }
 
     btif_shutdown_pending = 0;
+
+    if (btif_core_state == BTIF_CORE_STATE_ENABLING)
+    {
+        // Java layer abort BT ENABLING, could be due to ENABLE TIMEOUT
+        // Direct call from cleanup()@bluetooth.c
+        // bring down HCI/Vendor lib
+        bte_main_disable();
+        btif_core_state = BTIF_CORE_STATE_DISABLED;
+        HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
+    }
 
     GKI_destroy_task(BTIF_TASK);
     btif_queue_release();

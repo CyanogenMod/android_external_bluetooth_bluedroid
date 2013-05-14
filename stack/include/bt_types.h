@@ -191,7 +191,9 @@
 #define BT_EVT_CONTEXT_SWITCH_EVT  (0x0001 | BT_EVT_BTIF)
 
 #define BT_EVT_TRIGGER_STACK_INIT   EVENT_MASK(APPL_EVT_0)
+#define BT_EVT_HARDWARE_INIT_FAIL   EVENT_MASK(APPL_EVT_1)
 
+#define BT_EVT_PRELOAD_CMPL         EVENT_MASK(APPL_EVT_6)
 
 /* Define the header of each buffer used in the Bluetooth stack.
 */
