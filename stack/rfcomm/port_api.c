@@ -1437,6 +1437,8 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
         RFCOMM_TRACE_ERROR1("p_data_co_callback DATA_CO_CALLBACK_TYPE_INCOMING_SIZE failed, available:%d", available);
         return (PORT_UNKNOWN_ERROR);
     }
+    if(available == 0)
+        return PORT_SUCCESS;
     /* Length for each buffer is the smaller of GKI buffer, peer MTU, or max_len */
     length = RFCOMM_DATA_POOL_BUF_SIZE -
             (UINT16)(sizeof(BT_HDR) + L2CAP_MIN_OFFSET + RFCOMM_DATA_OVERHEAD);
@@ -1455,6 +1457,7 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
 
         {
             error("p_data_co_callback DATA_CO_CALLBACK_TYPE_OUTGOING failed, available:%d", available);
+            PORT_SCHEDULE_UNLOCK;
             return (PORT_UNKNOWN_ERROR);
         }
         //memcpy ((UINT8 *)(p_buf + 1) + p_buf->offset + p_buf->len, p_data, max_len);
