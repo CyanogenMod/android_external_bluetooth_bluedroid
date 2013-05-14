@@ -75,6 +75,7 @@ void btsnoop_close(void);
 bt_hc_callbacks_t *bt_hc_cbacks = NULL;
 BUFFER_Q tx_q;
 tHCI_IF *p_hci_if;
+volatile uint8_t fwcfg_acked;
 
 /******************************************************************************
 **  Local type definitions
@@ -191,6 +192,7 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
     }
 
     hc_cb.epilog_timer_created = 0;
+    fwcfg_acked = FALSE;
 
     /* store reference to user callbacks */
     bt_hc_cbacks = (bt_hc_callbacks_t *) p_cb;
@@ -361,9 +363,16 @@ static void cleanup( void )
 
     if (lib_running)
     {
-        epilog_wait_timer();
+        if (fwcfg_acked == TRUE)
+        {
+            epilog_wait_timer();
+            bthc_signal_event(HC_EVENT_EPILOG);
+        }
+        else
+        {
+            bthc_signal_event(HC_EVENT_EXIT);
+        }
 
-        bthc_signal_event(HC_EVENT_EPILOG);
         pthread_join(hc_cb.worker_thread, NULL);
 
         if (hc_cb.epilog_timer_created == 1)
@@ -384,6 +393,7 @@ static void cleanup( void )
     if (bt_vnd_if)
         bt_vnd_if->cleanup();
 
+    fwcfg_acked = FALSE;
     bt_hc_cbacks = NULL;
 }
 
