@@ -97,7 +97,7 @@ void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data)
     UINT8                    i;
     tBT_UUID                 *p_app_uuid = &p_data->api_reg.app_uuid;
     tBTA_GATTC_INT_START_IF  *p_buf;
-
+    tBTA_GATT_STATUS         status = BTA_GATT_NO_RESOURCES;
 
     /* todo need to check duplicate uuid */
     for (i = 0; i < BTA_GATTC_CL_MAX; i ++)
@@ -107,10 +107,9 @@ void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data)
             if ((p_app_uuid == NULL) || (p_cb->cl_rcb[i].client_if = GATT_Register(p_app_uuid, &bta_gattc_cl_cback)) == 0)
             {
                 APPL_TRACE_ERROR0("Register with GATT stack failed.");
-                cb_data.reg_oper.status = BTA_GATT_ERROR;
+                status = BTA_GATT_ERROR;
             }
             else
-
             {
                 p_cb->cl_rcb[i].in_use = TRUE;
                 p_cb->cl_rcb[i].p_cback = p_data->api_reg.p_cback;
@@ -122,27 +121,27 @@ void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data)
                 memcpy(&(cb_data.reg_oper.app_uuid),p_app_uuid,sizeof(tBT_UUID));
 // btla-specific --
 
-                cb_data.reg_oper.status = BTA_GATT_OK;
-
                 if ((p_buf = (tBTA_GATTC_INT_START_IF *) GKI_getbuf(sizeof(tBTA_GATTC_INT_START_IF))) != NULL)
                 {
                     p_buf->hdr.event    = BTA_GATTC_INT_START_IF_EVT;
                     p_buf->client_if    = p_cb->cl_rcb[i].client_if;
 
                     bta_sys_sendmsg(p_buf);
+                    status = BTA_GATT_OK;
                 }
                 else
                 {
-                    cb_data.reg_oper.status = BTA_GATT_NO_RESOURCES;
                     memset( &p_cb->cl_rcb[i], 0 , sizeof(tBTA_GATTC_RCB));
                 }
                 break;
             }
         }
     }
+
     /* callback with register event */
     if (p_data->api_reg.p_cback)
     {
+        cb_data.reg_oper.status = status;
         (*p_data->api_reg.p_cback)(BTA_GATTC_REG_EVT,  (tBTA_GATTC *)&cb_data);
     }
 }
