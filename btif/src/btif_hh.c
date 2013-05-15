@@ -665,23 +665,12 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
         }
     }
 
-    if (added_dev == NULL ||
-        (added_dev->attr_mask & HID_NORMALLY_CONNECTABLE) != 0 ||
-        (added_dev->attr_mask & HID_RECONN_INIT) == 0)
-    {
-        tBTA_SEC sec_mask = BTUI_HH_SECURITY;
-        btif_hh_cb.status = BTIF_HH_DEV_CONNECTING;
-        BD_ADDR *bda = (BD_ADDR*)bd_addr;
-        BTA_HhOpen(*bda, BTA_HH_PROTO_RPT_MODE, sec_mask);
-    }
-    else
-    {
-        // This device shall be connected from the host side.
-        BTIF_TRACE_ERROR2("%s: Error, device %s can only be reconnected from device side",
-             __FUNCTION__, bda_str);
-        return BT_STATUS_FAIL;
-    }
-
+    /* Not checking the NORMALLY_Connectible flags from sdp record, and anyways sending this
+    request from host, for subsequent user initiated connection. If the remote is not in
+    pagescan mode, we will do 2 retries to connect before giving up */
+    tBTA_SEC sec_mask = BTUI_HH_SECURITY;
+    btif_hh_cb.status = BTIF_HH_DEV_CONNECTING;
+    BTA_HhOpen(*bda, BTA_HH_PROTO_RPT_MODE, sec_mask);
     HAL_CBACK(bt_hh_callbacks, connection_state_cb, bd_addr, BTHH_CONN_STATE_CONNECTING);
     return BT_STATUS_SUCCESS;
 }
