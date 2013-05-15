@@ -68,7 +68,7 @@ enum
     BTA_GATTC_INT_START_IF_EVT,
     BTA_GATTC_API_REG_EVT,
     BTA_GATTC_API_DEREG_EVT,
-    BTA_GATTC_INT_DEREG_EVT
+    BTA_GATTC_API_DISABLE_EVT
 
 };
 typedef UINT16 tBTA_GATTC_INT_EVT;
@@ -90,6 +90,7 @@ typedef UINT16 tBTA_GATTC_INT_EVT;
 #endif
 
 #define BTA_GATTC_WRITE_PREPARE          GATT_WRITE_PREPARE
+
 
 /* internal strucutre for GATTC register API  */
 typedef struct
@@ -363,8 +364,18 @@ typedef struct
     BD_ADDR             remote_bda;
 }tBTA_GATTC_CONN;
 
+enum
+{
+   BTA_GATTC_STATE_DISABLED,
+   BTA_GATTC_STATE_ENABLING,
+   BTA_GATTC_STATE_ENABLED,
+   BTA_GATTC_STATE_DISABLING
+};
+
 typedef struct
 {
+    UINT8             state;
+
     tBTA_GATTC_CONN     conn_track[BTA_GATTC_CONN_MAX];
     tBTA_GATTC_BG_TCK   bg_track[BTA_GATTC_KNOWN_SR_MAX];
     tBTA_GATTC_RCB      cl_rcb[BTA_GATTC_CL_MAX];
@@ -395,12 +406,12 @@ extern BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg);
 extern void bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_DATA *p_data);
 
 /* function processed outside SM */
+extern void bta_gattc_disable(tBTA_GATTC_CB *p_cb);
 extern void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data);
 extern void bta_gattc_start_if(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data);
 extern void bta_gattc_process_api_open (tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
 extern void bta_gattc_process_api_open_cancel (tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
-extern void bta_gattc_deregister(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data);
-extern void bta_gattc_int_deregister(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data);
+extern void bta_gattc_deregister(tBTA_GATTC_CB *p_cb, tBTA_GATTC_RCB  *p_clreg);
 
 /* function within state machine */
 extern void bta_gattc_open(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data);

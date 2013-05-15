@@ -102,6 +102,7 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
     #endif
 static void bta_dm_ble_id_key_cback (UINT8 key_type, tBTM_BLE_LOCAL_KEYS *p_key);
     #if ((defined BTA_GATT_INCLUDED) &&  (BTA_GATT_INCLUDED == TRUE))
+static void bta_dm_gattc_register(void);
 static void btm_dm_start_gatt_discovery ( BD_ADDR bd_addr);
 static void bta_dm_cancel_gatt_discovery(BD_ADDR bd_addr);
 static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data);
@@ -381,10 +382,6 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
         {
             BTM_BleLoadLocalKeys(BTA_BLE_LOCAL_KEY_TYPE_ID, (tBTM_BLE_LOCAL_KEYS *)&id_key);
         }
-#if ((defined BTA_GATT_INCLUDED) &&  (BTA_GATT_INCLUDED == TRUE))
-        memset (&app_uuid.uu.uuid128, 0x87, LEN_UUID_128);
-        BTA_GATTC_AppRegister(&app_uuid, bta_dm_gattc_callback);
-#endif
 #endif
 
         BTM_SecRegister((tBTM_APPL_INFO*)&bta_security);
@@ -433,6 +430,11 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
             WBT_ExtAddPinCode();
 #endif
 #endif
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+        memset (&app_uuid.uu.uuid128, 0x87, LEN_UUID_128);
+        bta_dm_gattc_register();
+#endif
+
     }
     else
         APPL_TRACE_DEBUG0(" --- ignored event");
@@ -1178,7 +1180,7 @@ void bta_dm_search_start (tBTA_DM_MSG *p_data)
 {
     tBTM_INQUIRY_CMPL result;
 
-#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
     UINT16 len = (UINT16)(sizeof(tBT_UUID) * p_data->search.num_uuid);
 #endif
 
@@ -4947,6 +4949,27 @@ void bta_dm_ble_observe (tBTA_DM_MSG *p_data)
 }
 
 #if ((defined BTA_GATT_INCLUDED) &&  (BTA_GATT_INCLUDED == TRUE))
+
+/*******************************************************************************
+**
+** Function         bta_dm_gattc_register
+**
+** Description      Register with GATTC in DM if BLE is needed.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+static void bta_dm_gattc_register(void)
+{
+    tBT_UUID                app_uuid = {LEN_UUID_128,{0}};
+
+    if (bta_dm_search_cb.client_if == BTA_GATTS_INVALID_IF)
+    {
+        memset (&app_uuid.uu.uuid128, 0x87, LEN_UUID_128);
+        BTA_GATTC_AppRegister(&app_uuid, bta_dm_gattc_callback);
+    }
+}
 
 /*******************************************************************************
 **

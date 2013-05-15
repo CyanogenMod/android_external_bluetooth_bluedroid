@@ -364,6 +364,9 @@ typedef union
     BD_ADDR                 remote_bda;     /* service change event */
 } tBTA_GATTC;
 
+/* GATTC enable callback function */
+typedef void (tBTA_GATTC_ENB_CBACK)(tBTA_GATT_STATUS status);
+
 /* Client callback function */
 typedef void (tBTA_GATTC_CBACK)(tBTA_GATTC_EVT event, tBTA_GATTC *p_data);
 
@@ -547,9 +550,12 @@ typedef union
 
 }tBTA_GATTS;
 
+/* GATTS enable callback function */
+typedef void (tBTA_GATTS_ENB_CBACK)(tBTA_GATT_STATUS status);
 
 /* Server callback function */
 typedef void (tBTA_GATTS_CBACK)(tBTA_GATTS_EVT event,  tBTA_GATTS *p_data);
+
 /*****************************************************************************
 **  External Function Declarations
 *****************************************************************************/
@@ -565,16 +571,16 @@ extern "C"
 
 /*******************************************************************************
 **
-** Function         BTA_GATTC_Init
+** Function         BTA_GATTC_Disable
 **
-** Description      This function is called to initalize GATTC module
+** Description      This function is called to disable the GATTC module
 **
-** Parameters       None
+** Parameters       None.
 **
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_Init();
+BTA_API extern void BTA_GATTC_Disable(void);
 
 /*******************************************************************************
 **
@@ -1014,6 +1020,19 @@ BTA_API extern void BTA_GATTC_Refresh(BD_ADDR remote_bda);
 **
 *******************************************************************************/
     BTA_API extern void BTA_GATTS_Init();
+
+/*******************************************************************************
+**
+** Function         BTA_GATTS_Disable
+**
+** Description      This function is called to disable GATTS module
+**
+** Parameters       None.
+**
+** Returns          None
+**
+*******************************************************************************/
+    BTA_API extern void BTA_GATTS_Disable(void);
 
 /*******************************************************************************
 **

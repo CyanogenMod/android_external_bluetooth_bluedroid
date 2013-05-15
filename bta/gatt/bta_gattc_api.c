@@ -32,38 +32,44 @@
 #include "bta_gatt_api.h"
 #include "bta_gattc_int.h"
 
-
-/*****************************************************************************
-**  Externs
-*****************************************************************************/
-#if BTA_DYNAMIC_MEMORY == FALSE
-extern tBTA_GATTC_CB  bta_gattc_cb;
-#endif
-
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
 
-static const tBTA_SYS_REG bta_gatt_reg =
+static const tBTA_SYS_REG bta_gattc_reg =
 {
     bta_gattc_hdl_event,
-    NULL        /* need a disable functino to be called when BT is disabled */
+    BTA_GATTC_Disable
 };
+
 
 /*******************************************************************************
 **
-** Function         BTA_GATTC_Init
+** Function         BTA_GATTC_Disable
 **
-** Description     This function is called to initalize GATTC module
+** Description      This function is called to disable GATTC module
 **
-** Parameters       None
+** Parameters       None.
 **
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_Init()
+void BTA_GATTC_Disable(void)
 {
-    memset(&bta_gattc_cb, 0, sizeof(tBTA_GATTC_CB));
+    BT_HDR  *p_buf;
+
+    if (bta_sys_is_register(BTA_ID_GATTC) == FALSE)
+    {
+        APPL_TRACE_WARNING0("GATTC Module not enabled/already disabled");
+        return;
+    }
+    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    {
+        p_buf->event = BTA_GATTC_API_DISABLE_EVT;
+        bta_sys_sendmsg(p_buf);
+    }
+    bta_sys_deregister(BTA_ID_GATTC);
+
 }
 
 /*******************************************************************************
@@ -83,10 +89,12 @@ void BTA_GATTC_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTC_CBACK *p_client_cb)
 {
     tBTA_GATTC_API_REG  *p_buf;
 
-    /* register with BTA system manager */
-    GKI_sched_lock();
-    bta_sys_register(BTA_ID_GATTC, &bta_gatt_reg);
-    GKI_sched_unlock();
+    if (bta_sys_is_register(BTA_ID_GATTC) == FALSE)
+    {
+        GKI_sched_lock();
+        bta_sys_register(BTA_ID_GATTC, &bta_gattc_reg);
+        GKI_sched_unlock();
+    }
 
     if ((p_buf = (tBTA_GATTC_API_REG *) GKI_getbuf(sizeof(tBTA_GATTC_API_REG))) != NULL)
     {

@@ -58,15 +58,12 @@ extern btgatt_server_interface_t btgattServerInterface;
 **
 ** Description      Initializes the GATT interface
 **
-** Returns    s      bt_status_t
+** Returns          bt_status_t
 **
 *******************************************************************************/
 static bt_status_t btif_gatt_init( const btgatt_callbacks_t* callbacks )
 {
     bt_gatt_callbacks = callbacks;
-
-    BTA_GATTC_Init();
-    BTA_GATTS_Init();
 
     return BT_STATUS_SUCCESS;
 }
@@ -84,6 +81,9 @@ static void  btif_gatt_cleanup( void )
 {
     if (bt_gatt_callbacks)
         bt_gatt_callbacks = NULL;
+
+    BTA_GATTC_Disable();
+    BTA_GATTS_Disable();
 }
 
 static const btgatt_interface_t btgattInterface = {

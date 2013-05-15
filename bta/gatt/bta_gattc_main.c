@@ -346,12 +346,16 @@ BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
 {
     tBTA_GATTC_CB *p_cb = &bta_gattc_cb;
     tBTA_GATTC_CLCB *p_clcb = NULL;
-
+    tBTA_GATTC_RCB      *p_clreg;
 #if BTA_GATT_DEBUG == TRUE
     APPL_TRACE_DEBUG1("bta_gattc_hdl_event: Event [%s]", gattc_evt_code(p_msg->event));
 #endif
     switch (p_msg->event)
     {
+        case BTA_GATTC_API_DISABLE_EVT:
+            bta_gattc_disable(p_cb);
+            break;
+
         case BTA_GATTC_API_REG_EVT:
             bta_gattc_register(p_cb, (tBTA_GATTC_DATA *) p_msg);
             break;
@@ -361,11 +365,8 @@ BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
             break;
 
         case BTA_GATTC_API_DEREG_EVT:
-            bta_gattc_deregister(p_cb, (tBTA_GATTC_DATA *) p_msg);
-            break;
-
-        case BTA_GATTC_INT_DEREG_EVT:
-            bta_gattc_int_deregister(p_cb, (tBTA_GATTC_DATA *) p_msg);
+            p_clreg = bta_gattc_cl_get_regcb(((tBTA_GATTC_DATA *)p_msg)->api_dereg.client_if);
+            bta_gattc_deregister(p_cb, p_clreg);
             break;
 
         case BTA_GATTC_API_OPEN_EVT:
@@ -465,6 +466,10 @@ static char *gattc_evt_code(tBTA_GATTC_INT_EVT evt_code)
             return "BTA_GATTC_API_DEREG_EVT";
         case BTA_GATTC_API_REFRESH_EVT:
             return "BTA_GATTC_API_REFRESH_EVT";
+        case BTA_GATTC_API_DISABLE_EVT:
+            return "BTA_GATTC_API_DISABLE_EVT";
+        case BTA_GATTC_API_ENABLE_EVT:
+            return "BTA_GATTC_API_ENABLE_EVT";
         default:
             return "unknown GATTC event code";
     }

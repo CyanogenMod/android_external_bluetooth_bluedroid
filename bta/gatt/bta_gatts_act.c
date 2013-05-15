@@ -105,24 +105,66 @@ void bta_gatts_enable(tBTA_GATTS_CB *p_cb)
 {
     UINT8 index=0;
     tBTA_GATTS_HNDL_RANGE handle_range;
+    tBTA_GATT_STATUS    status = BTA_GATT_OK;
 
-    p_cb->enabled = TRUE;
-
-    APPL_TRACE_DEBUG0("bta_gatts_enable");
-    while ( bta_gatts_co_load_handle_range(index, &handle_range))
+    if (p_cb->enabled)
     {
-        GATTS_AddHandleRange((tGATTS_HNDL_RANGE *)&handle_range);
-        memset(&handle_range, 0, sizeof(tGATTS_HNDL_RANGE));
-        index++;
+        APPL_TRACE_DEBUG0("GATTS already enabled.");
     }
-
-    APPL_TRACE_DEBUG1("bta_gatts_enable: num of handle range added=%d", index);
-
-    if (!GATTS_NVRegister(&bta_gatts_nv_cback))
+    else
     {
-        APPL_TRACE_ERROR0("BTA GATTS NV register failed.");
+        memset(p_cb, 0, sizeof(tBTA_GATTS_CB));
+
+        p_cb->enabled = TRUE;
+
+        while ( bta_gatts_co_load_handle_range(index, &handle_range))
+        {
+            GATTS_AddHandleRange((tGATTS_HNDL_RANGE *)&handle_range);
+            memset(&handle_range, 0, sizeof(tGATTS_HNDL_RANGE));
+            index++;
+        }
+
+        APPL_TRACE_DEBUG1("bta_gatts_enable: num of handle range added=%d", index);
+
+        if (!GATTS_NVRegister(&bta_gatts_nv_cback))
+        {
+            APPL_TRACE_ERROR0("BTA GATTS NV register failed.");
+            status = BTA_GATT_ERROR;
+        }
     }
 }
+
+/*******************************************************************************
+**
+** Function         bta_gatts_api_disable
+**
+** Description      disable BTA GATTS module.
+**
+** Returns          none.
+**
+*******************************************************************************/
+void bta_gatts_api_disable(tBTA_GATTS_CB *p_cb)
+{
+    UINT8 i;
+    tBTA_GATT_STATUS    status = BTA_GATT_OK;
+
+    if (p_cb->enabled)
+    {
+        for (i = 0; i < BTA_GATTS_MAX_APP_NUM; i ++)
+        {
+            if (p_cb->rcb[i].in_use)
+            {
+                GATT_Deregister(p_cb->rcb[i].gatt_if);
+            }
+        }
+        memset(p_cb, 0, sizeof(tBTA_GATTS_CB));
+    }
+    else
+    {
+        APPL_TRACE_ERROR0("GATTS not enabled");
+    }
+}
+
 /*******************************************************************************
 **
 ** Function         bta_gatts_register
@@ -139,9 +181,10 @@ void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
     tBTA_GATT_STATUS         status = BTA_GATT_OK;
     UINT8                    i, first_unuse = 0xff;
 
-    if (!p_cb->enabled)
+    if (p_cb->enabled == FALSE)
+    {
         bta_gatts_enable(p_cb);
-
+    }
 
     for (i = 0; i < BTA_GATTS_MAX_APP_NUM; i ++)
     {

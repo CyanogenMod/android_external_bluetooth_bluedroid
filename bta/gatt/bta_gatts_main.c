@@ -67,6 +67,10 @@ BOOLEAN bta_gatts_hdl_event(BT_HDR *p_msg)
 
     switch (p_msg->event)
     {
+        case BTA_GATTS_API_DISABLE_EVT:
+            bta_gatts_api_disable(p_cb);
+            break;
+
         case BTA_GATTS_API_REG_EVT:
             bta_gatts_register(p_cb, (tBTA_GATTS_DATA *) p_msg);
             break;

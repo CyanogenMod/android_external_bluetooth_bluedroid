@@ -1293,6 +1293,9 @@ void GATT_Deregister (tGATT_IF gatt_if)
     }
 
     gatt_deregister_bgdev_list(gatt_if);
+    /* update the listen mode */
+    GATT_Listen(gatt_if, FALSE, NULL);
+
     memset (p_reg, 0, sizeof(tGATT_REG));
 }
 
@@ -1564,7 +1567,7 @@ BOOLEAN GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, UINT16 *p_c
 ** Parameters       gatt_if: applicaiton interface
 **                  p_bd_addr: listen for specific address connection, or NULL for
 **                             listen to all device connection.
-**                  start: is a direct conenection or a background auto connection
+**                  start: start or stop listening.
 **
 ** Returns          TRUE if advertisement is started; FALSE if adv start failure.
 **

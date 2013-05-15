@@ -2322,6 +2322,8 @@ BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_init
                     p_dev->gatt_if[i] = gatt_if;
                     if (i == 0)
                         ret = BTM_BleUpdateBgConnDev(TRUE, bd_addr);
+                    else
+                        ret = TRUE;
                     break;
                 }
             }
@@ -2342,6 +2344,8 @@ BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_init
 
                     if (i == 0)
                         ret = BTM_BleUpdateAdvWhitelist(TRUE, bd_addr);
+                    else
+                        ret = TRUE;
                     break;
                 }
             }
@@ -2515,26 +2519,38 @@ void gatt_deregister_bgdev_list(tGATT_IF gatt_if)
 {
     tGATT_BG_CONN_DEV    *p_dev_list = &gatt_cb.bgconn_dev[0];
     UINT8 i , j, k;
+    tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
 
+    /* update the BG conn device list */
     for (i = 0 ; i <GATT_MAX_BG_CONN_DEV; i ++, p_dev_list ++ )
     {
         if (p_dev_list->in_use)
         {
             for (j = 0; j < GATT_MAX_APPS; j ++)
             {
-                if (p_dev_list->gatt_if[j] == 0)
+                if (p_dev_list->gatt_if[j] == 0 && p_dev_list->listen_gif[j] == 0)
                     break;
-                else if (p_dev_list->gatt_if[j] == gatt_if)
+
+                if (p_dev_list->gatt_if[j] == gatt_if)
                 {
                     for (k = j + 1; k < GATT_MAX_APPS; k ++)
                         p_dev_list->gatt_if[k - 1] = p_dev_list->gatt_if[k];
 
                     if (p_dev_list->gatt_if[0] == 0)
-                    {
                         BTM_BleUpdateBgConnDev(FALSE, p_dev_list->remote_bda);
-                        memset(p_dev_list, 0, sizeof(tGATT_BG_CONN_DEV));
-                        break;
-                    }
+                }
+
+                if (p_dev_list->listen_gif[j] == gatt_if)
+                {
+                    p_dev_list->listen_gif[j] = 0;
+                    p_reg->listening --;
+
+                    /* move all element behind one forward */
+                    for (k = j + 1; k < GATT_MAX_APPS; k ++)
+                        p_dev_list->listen_gif[k - 1] = p_dev_list->listen_gif[k];
+
+                    if (p_dev_list->listen_gif[0] == 0)
+                        BTM_BleUpdateAdvWhitelist(FALSE, p_dev_list->remote_bda);
                 }
             }
         }
