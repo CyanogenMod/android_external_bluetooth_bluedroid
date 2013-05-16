@@ -277,6 +277,7 @@ void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class, tBTA_HH_ATTR_MASK attr_ma
                 p_dev->attr_mask  = attr_mask;
                 p_dev->sub_class  = sub_class;
                 p_dev->app_id     = app_id;
+                p_dev->local_vup  = FALSE;
 
                 btif_hh_cb.device_num++;
                 // This is a new device,open the uhid driver now.

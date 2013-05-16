@@ -443,16 +443,6 @@ static void btif_dm_cb_hid_remote_name(tBTM_REMOTE_DEV_NAME *p_remote_name)
     }
 }
 
-int remove_hid_bond(bt_bdaddr_t *bd_addr)
-{
-    /* For HID device, inorder to avoid the HID device from re-connecting again after unpairing,
-         * we need to do virtual unplug
-         */
-    bdstr_t bdstr;
-    BTIF_TRACE_DEBUG2("%s---Removing HID bond--%s", __FUNCTION__,bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
-    return btif_hh_virtual_unplug(bd_addr);
-
-}
 /*******************************************************************************
 **
 ** Function         btif_dm_cb_create_bond
@@ -512,23 +502,13 @@ void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr)
 {
      bdstr_t bdstr;
      /*special handling for HID devices */
-     if (check_cod_hid(bd_addr, COD_HID_MAJOR))
+     /*  VUP needs to be sent if its a HID Device. The HID HOST module will check if there
+     is a valid hid connection with this bd_addr. If yes VUP will be issued.*/
+#if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
+    if (btif_hh_virtual_unplug(bd_addr) != BT_STATUS_SUCCESS)
+#endif
     {
-        #if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
-        if(remove_hid_bond(bd_addr) != BTA_SUCCESS)
-            BTA_DmRemoveDevice((UINT8 *)bd_addr->address);
-        #endif
-    }
-    else
-    {
-        if (BTA_DmRemoveDevice((UINT8 *)bd_addr->address) == BTA_SUCCESS)
-        {
-            BTIF_TRACE_DEBUG1("Successfully removed bonding with device: %s",
-                                            bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
-        }
-        else
-            BTIF_TRACE_DEBUG1("Removed bonding with device failed: %s",
-                                            bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
+         BTA_DmRemoveDevice((UINT8 *)bd_addr->address);
     }
 }
 
@@ -1297,10 +1277,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 
             /*special handling for HID devices */
             #if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
-            if (check_cod_hid(&bd_addr, COD_HID_MAJOR))
-            {
-                btif_hh_remove_device(bd_addr);
-            }
+            btif_hh_remove_device(bd_addr);
             #endif
             btif_storage_remove_bonded_device(&bd_addr);
             bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_NONE);

@@ -48,9 +48,10 @@
 #define BTIF_HH_APP_ID_MI       0x01
 #define BTIF_HH_APP_ID_KB       0x02
 
-#define COD_HID_KEYBOARD  0x0540
-#define COD_HID_POINTING  0x0580
-#define COD_HID_COMBO     0x05C0
+#define COD_HID_KEYBOARD        0x0540
+#define COD_HID_POINTING        0x0580
+#define COD_HID_COMBO           0x05C0
+#define COD_HID_MAJOR           0x0500
 
 #define KEYSTATE_FILEPATH "/data/misc/bluedroid/bt_hh_ks" //keep this in sync with HID host jni
 
@@ -156,6 +157,7 @@ extern void bta_hh_co_send_hid_info(btif_hh_device_t *p_dev, char *dev_name, UIN
                                     int dscp_len, UINT8 *p_dscp);
 extern BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
 extern void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr);
+extern BOOLEAN check_cod_hid(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
 extern int  scru_ascii_2_hex(char *p_ascii, int len, UINT8 *p_hex);
 
 /*****************************************************************************
@@ -602,6 +604,7 @@ bt_status_t btif_hh_virtual_unplug(bt_bdaddr_t *bd_addr)
         BTIF_TRACE_DEBUG1("%s Sending BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG", __FUNCTION__);
         /* start the timer */
         btif_hh_start_vup_timer(bd_addr);
+        p_dev->local_vup = TRUE;
         BTA_HhSendCtrl(p_dev->dev_handle, BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG);
         return BT_STATUS_SUCCESS;
     }
@@ -1044,7 +1047,15 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                     BTIF_TRACE_DEBUG1("%s---Sending connection state change", __FUNCTION__);
                     HAL_CBACK(bt_hh_callbacks, connection_state_cb,&(p_dev->bd_addr), p_dev->dev_status);
                     BTIF_TRACE_DEBUG1("%s---Removing HID bond", __FUNCTION__);
-                    BTA_DmRemoveDevice((UINT8 *)p_dev->bd_addr.address);
+                    /* If it is locally initiated VUP or remote device has its major COD as
+                    Peripheral removed the bond.*/
+                    if (p_dev->local_vup  || check_cod_hid(&(p_dev->bd_addr), COD_HID_MAJOR))
+                    {
+                        p_dev->local_vup = FALSE;
+                        BTA_DmRemoveDevice((UINT8 *)p_dev->bd_addr.address);
+                    }
+                    else
+                        btif_hh_remove_device(p_dev->bd_addr);
                     HAL_CBACK(bt_hh_callbacks, virtual_unplug_cb,&(p_dev->bd_addr),
                                     p_data->dev_status.status);
                 }
