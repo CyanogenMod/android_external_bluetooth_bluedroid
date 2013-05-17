@@ -240,7 +240,7 @@ uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src)
             break;
 
         default:
-            if ( p_src->status == BTA_GATT_OK )
+            if (( p_src->status == BTA_GATT_OK ) &&(p_src->p_value != NULL))
             {
                 ALOGI("%s unformat.len = %d ", __FUNCTION__, p_src->p_value->unformat.len);
                 p_dest->value.len = p_src->p_value->unformat.len;

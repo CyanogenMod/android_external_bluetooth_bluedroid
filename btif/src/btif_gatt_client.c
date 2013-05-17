@@ -162,26 +162,37 @@ static void btapp_gattc_req_data(UINT16 event, char *p_dest, char *p_src)
     {
         case BTA_GATTC_READ_CHAR_EVT:
         case BTA_GATTC_READ_DESCR_EVT:
-            p_dest_data->read.p_value = GKI_getbuf(sizeof(tBTA_GATT_READ_VAL));
 
-            if (p_dest_data->read.p_value != NULL)
+            if (p_src_data->read.p_value != NULL)
             {
-                memcpy(p_dest_data->read.p_value, p_src_data->read.p_value,
-                    sizeof(tBTA_GATT_READ_VAL));
+                p_dest_data->read.p_value = GKI_getbuf(sizeof(tBTA_GATT_READ_VAL));
 
-                // Allocate buffer for att value if necessary
-                if (get_uuid16(&p_src_data->read.descr_type) != GATT_UUID_CHAR_AGG_FORMAT
-                  && p_src_data->read.p_value->unformat.p_value != NULL)
+                if (p_dest_data->read.p_value != NULL)
                 {
-                    p_dest_data->read.p_value->unformat.p_value =
-                                   GKI_getbuf(p_src_data->read.p_value->unformat.len);
-                    if (p_dest_data->read.p_value->unformat.p_value != NULL)
+                    memcpy(p_dest_data->read.p_value, p_src_data->read.p_value,
+                        sizeof(tBTA_GATT_READ_VAL));
+
+                    // Allocate buffer for att value if necessary
+                    if (get_uuid16(&p_src_data->read.descr_type) != GATT_UUID_CHAR_AGG_FORMAT
+                      && p_src_data->read.p_value->unformat.p_value != NULL)
                     {
-                        memcpy(p_dest_data->read.p_value->unformat.p_value,
-                               p_src_data->read.p_value->unformat.p_value,
-                               p_src_data->read.p_value->unformat.len);
+                        p_dest_data->read.p_value->unformat.p_value =
+                                       GKI_getbuf(p_src_data->read.p_value->unformat.len);
+                        if (p_dest_data->read.p_value->unformat.p_value != NULL)
+                        {
+                            memcpy(p_dest_data->read.p_value->unformat.p_value,
+                                   p_src_data->read.p_value->unformat.p_value,
+                                   p_src_data->read.p_value->unformat.len);
+                        }
                     }
                 }
+            }
+            else
+            {
+                BTIF_TRACE_WARNING2("%s :Src read.p_value ptr is NULL for event  0x%x",
+                                    __FUNCTION__, event);
+                p_dest_data->read.p_value = NULL;
+
             }
             break;
 
