@@ -231,24 +231,16 @@ void btc_process_client_command(char *hci_cmd, int len)
         } else {
             return;
         }
- #if 0 /* We are not supporting this commands now. Will check Bludroid behavior on this commands and will add this support later */
     } else if (hci_cmd[CMD_OGF_OFFSET] == OGF_LINK_CTL) {
-        if ((hci_cmd[CMD_OCF_OFFSET] == OCF_READ_REMOTE_FEATURES)) {
-            ALOGV(" BTC OCF_READ_REMOTE_FEATURES OGF  %x %x %x %x %x %x ",
+        if ((hci_cmd[CMD_OCF_OFFSET] == OCF_READ_REMOTE_VERSION)) {
+            ALOGV(" BTC OCF_READ_REMOTE_VERSION OGF  %x %x %x %x %x %x ",
                 hci_cmd[0], hci_cmd[1], hci_cmd[2],
                 hci_cmd[3], hci_cmd[4], hci_cmd[5]);
-            BTA_DmHciRawCommand (HCI_READ_RMT_FEATURES, hci_cmd[3],
+            BTA_DmHciRawCommand (HCI_READ_RMT_VERSION_INFO, hci_cmd[3],
                                 (UINT8 *)&hci_cmd[4], NULL);
-        } else if (hci_cmd[1] == OCF_READ_REMOTE_VERSION) {
-             ALOGV(" BTC HCI_READ_RMT_VERSION_INFO OGF  %x %x %x %x %x %x",
-                hci_cmd[0], hci_cmd[1], hci_cmd[2],
-                hci_cmd[3], hci_cmd[4], hci_cmd[5]);
-             BTA_DmHciRawCommand (HCI_READ_RMT_VERSION_INFO, hci_cmd[3],
-                (UINT8 *)&hci_cmd[4], NULL);
         } else {
             return;
         }
-#endif
     } else if (hci_cmd[CMD_OGF_OFFSET] == OGF_LINK_POLICY) {
         if (hci_cmd[CMD_OCF_OFFSET] == OCF_ROLE_DISCOVERY) {
             ALOGV("HCI OCF_ROLE_DISCOVERY Command  %x", hci_cmd[2]);
