@@ -2346,8 +2346,18 @@ void bta_av_suspend_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     APPL_TRACE_DEBUG2 ("bta_av_suspend_cfm:audio_open_cnt = %d, err_code = %d",
         bta_av_cb.audio_open_cnt, err_code);
 
+    if (p_scb->started == FALSE)
+    {
+        /* handle the condition where there is a collision of SUSPEND req from either side
+        ** Second SUSPEND req could be rejected. Do not treat this as a failure
+        */
+        APPL_TRACE_WARNING1("bta_av_suspend_cfm: already suspended, ignore, err_code %d",
+                            err_code);
+        return;
+    }
+
     suspend_rsp.status = BTA_AV_SUCCESS;
-    if (err_code)
+    if (err_code && (err_code != AVDT_ERR_BAD_STATE))
     {
          /* Disable suspend feature only with explicit rejection(not with timeout) */
         if (err_code != AVDT_ERR_TIMEOUT)
