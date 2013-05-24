@@ -117,9 +117,6 @@ void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data)
 
                 /* BTA use the same client interface as BTE GATT statck */
                 cb_data.reg_oper.client_if = p_cb->cl_rcb[i].client_if;
-// btla-specific ++
-                memcpy(&(cb_data.reg_oper.app_uuid),p_app_uuid,sizeof(tBT_UUID));
-// btla-specific --
 
                 if ((p_buf = (tBTA_GATTC_INT_START_IF *) GKI_getbuf(sizeof(tBTA_GATTC_INT_START_IF))) != NULL)
                 {
@@ -141,6 +138,9 @@ void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data)
     /* callback with register event */
     if (p_data->api_reg.p_cback)
     {
+        if (p_app_uuid != NULL)
+            memcpy(&(cb_data.reg_oper.app_uuid),p_app_uuid,sizeof(tBT_UUID));
+
         cb_data.reg_oper.status = status;
         (*p_data->api_reg.p_cback)(BTA_GATTC_REG_EVT,  (tBTA_GATTC *)&cb_data);
     }
