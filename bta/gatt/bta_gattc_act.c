@@ -166,7 +166,10 @@ void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data)
     tBTA_GATTC_INT_START_IF  *p_buf;
     tBTA_GATT_STATUS         status = BTA_GATT_NO_RESOURCES;
 
-     APPL_TRACE_DEBUG1("bta_gattc_register state %d",p_cb->state);
+
+    APPL_TRACE_DEBUG1("bta_gattc_register state %d",p_cb->state);
+    memset(&cb_data, 0, sizeof(cb_data));
+    cb_data.reg_oper.status = BTA_GATT_NO_RESOURCES;
 
      /* check if  GATTC module is already enabled . Else enable */
      if (p_cb->state == BTA_GATTC_STATE_DISABLED)
@@ -656,6 +659,9 @@ void bta_gattc_conn(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 
         if (p_clcb->p_rcb)
         {
+            /* there is no RM for GATT */
+            if (!BTM_IsBleLink(p_clcb->bda))
+                bta_sys_conn_open(BTA_ID_GATTC, BTA_ALL_APP_ID, p_clcb->bda);
             bta_gattc_send_open_cback(p_clcb->p_rcb,
                                       BTA_GATT_OK,
                                       p_clcb->bda,
@@ -712,7 +718,13 @@ void bta_gattc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     cb_data.close.status    = p_clcb->status;
     bdcpy(cb_data.close.remote_bda, p_clcb->bda);
 
-    bta_gattc_clcb_dealloc(p_clcb);
+    if (!BTM_IsBleLink(p_clcb->bda))
+        bta_sys_conn_close( BTA_ID_GATTC ,BTA_ALL_APP_ID, p_clcb->bda);
+
+    if (p_clcb->status == BTA_GATT_OK)
+    {
+        bta_gattc_clcb_dealloc(p_clcb);
+    }
 
     if (p_data->hdr.event == BTA_GATTC_API_CLOSE_EVT)
         cb_data.close.status = GATT_Disconnect(p_data->hdr.layer_specific);
@@ -1143,6 +1155,13 @@ void bta_gattc_confirm(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         {
             APPL_TRACE_ERROR1("bta_gattc_confirm to handle [0x%04x] failed", handle);
         }
+        /* if over BR_EDR, inform PM for mode change */
+        else if (!BTM_IsBleLink(p_clcb->bda))
+        {
+            bta_sys_busy(BTA_ID_GATTC, BTA_ALL_APP_ID, p_clcb->bda);
+            bta_sys_idle(BTA_ID_GATTC, BTA_ALL_APP_ID, p_clcb->bda);
+        }
+
     }
 }
 /*******************************************************************************
@@ -1914,6 +1933,14 @@ static void  bta_gattc_cmpl_cback(UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
     {
         APPL_TRACE_ERROR1("bta_gattc_cmpl_cback unknown conn_id =  %d, ignore data", conn_id);
         return;
+    }
+
+
+/* if over BR_EDR, inform PM for mode change */
+    if (!BTM_IsBleLink(p_clcb->bda))
+    {
+        bta_sys_busy(BTA_ID_GATTC, BTA_ALL_APP_ID, p_clcb->bda);
+        bta_sys_idle(BTA_ID_GATTC, BTA_ALL_APP_ID, p_clcb->bda);
     }
 
     if ((p_buf = (tBTA_GATTC_OP_CMPL *) GKI_getbuf(len)) != NULL)

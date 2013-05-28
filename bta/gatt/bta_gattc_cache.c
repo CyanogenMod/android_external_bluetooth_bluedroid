@@ -427,7 +427,6 @@ void bta_gattc_get_disc_range(tBTA_GATTC_SERV *p_srvc_cb, UINT16 *p_s_hdl, UINT1
 *******************************************************************************/
 tBTA_GATT_STATUS bta_gattc_discover_pri_service(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb, UINT8 disc_type)
 {
-#if (BLE_INCLUDED == TRUE && (defined BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE))
     tBT_DEVICE_TYPE dev_type;
     tBLE_ADDR_TYPE  addr_type;
 
@@ -436,7 +435,6 @@ tBTA_GATT_STATUS bta_gattc_discover_pri_service(UINT16 conn_id, tBTA_GATTC_SERV 
         return bta_gattc_discover_procedure(conn_id, p_server_cb, disc_type);
     else
         return bta_gattc_sdp_service_disc(conn_id, p_server_cb);
-#endif
     return BTA_GATT_ERROR;
 
 }

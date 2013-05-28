@@ -277,7 +277,6 @@ extern void btm_ble_reset_id( void );
 /* security related functions */
 extern void btm_ble_increment_sign_ctr(BD_ADDR bd_addr, BOOLEAN is_local );
 extern BOOLEAN btm_get_local_div (BD_ADDR bd_addr, UINT16 *p_div);
-extern BOOLEAN btm_ble_check_link_type (BD_ADDR bd_addr);
 extern BOOLEAN btm_ble_get_enc_key_type(BD_ADDR bd_addr, UINT8 *p_key_types);
 
 extern void btm_ble_rand_enc_complete (UINT8 *p, UINT16 op_code, tBTM_RAND_ENC_CB *p_enc_cplt_cback);

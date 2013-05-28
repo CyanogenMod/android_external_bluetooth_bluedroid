@@ -671,20 +671,22 @@ void btm_ble_test_command_complete(UINT8 *p)
 
 /*******************************************************************************
 **
-** Function         btm_ble_check_link_type
+** Function         BTM_IsBleLink
 **
 ** Description      This function is to check the link type is BLE or BR/EDR.
 **
 ** Returns          TRUE if BLE link; FALSE if BR/EDR.
 **
 *******************************************************************************/
-BOOLEAN btm_ble_check_link_type (BD_ADDR bd_addr)
+BOOLEAN BTM_IsBleLink (BD_ADDR bd_addr)
 {
+#if (BLE_INCLUDED == TRUE)
     tACL_CONN         *p;
-    BTM_TRACE_DEBUG0 ("btm_ble_check_link_type");
+    BTM_TRACE_DEBUG0 ("BTM_IsBleLink");
     if ((p = btm_bda_to_acl(bd_addr)) != NULL)
         return p->is_le_link;
     else
+#endif
         return FALSE;
 }
 

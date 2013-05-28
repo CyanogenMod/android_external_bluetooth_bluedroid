@@ -316,7 +316,7 @@ tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
     if (auth_req == GATT_AUTH_REQ_NONE )
         return act;
 
-    is_le_link = btm_ble_check_link_type(p_tcb->peer_bda);
+    is_le_link = BTM_IsBleLink(p_tcb->peer_bda);
     BTM_GetSecurityFlags(p_tcb->peer_bda, &sec_flag);
     btm_ble_link_sec_check(p_tcb->peer_bda, auth_req, &sec_act);
 

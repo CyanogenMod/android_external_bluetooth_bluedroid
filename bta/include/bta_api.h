@@ -177,6 +177,7 @@ typedef UINT8 tBTA_SEC;
 
 #define BTA_DM_IGNORE           0xFF
 
+#define BTA_ALL_APP_ID          0xFF
 
 /* Discoverable Modes */
 #define BTA_DM_NON_DISC         BTM_NON_DISCOVERABLE        /* Device is not discoverable. */
