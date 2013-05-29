@@ -723,10 +723,10 @@ void bta_av_role_res (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     {
         if (p_scb->wait & BTA_AV_WAIT_ROLE_SW_STARTED)
         {
-            p_scb->role &= ~BTA_AV_ROLE_START_INT;
             p_scb->wait &= ~BTA_AV_WAIT_ROLE_SW_BITS;
             if (p_data->role_res.hci_status != HCI_SUCCESS)
             {
+                p_scb->role &= ~BTA_AV_ROLE_START_INT;
                 bta_sys_idle(BTA_ID_AV, bta_av_cb.audio_open_cnt, p_scb->peer_addr);
                 /* start failed because of role switch. */
                 start.chnl   = p_scb->chnl;
@@ -1779,9 +1779,11 @@ void bta_av_do_start (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
         AVDT_StartReq(&p_scb->avdt_handle, 1);
     }
-    else
+    else if (p_scb->started)
     {
-        bta_av_start_ok(p_scb, NULL);
+        p_scb->role |= BTA_AV_ROLE_START_INT;
+        if ( p_scb->wait == 0 )
+           bta_av_start_ok(p_scb, NULL);
     }
     APPL_TRACE_DEBUG2("started %d role:x%x", p_scb->started, p_scb->role);
 }

@@ -485,10 +485,10 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             BTIF_TRACE_EVENT3("BTA_AV_START_EVT status %d, suspending %d, init %d",
                 p_av->start.status, p_av->start.suspending, p_av->start.initiator);
 
-            btif_av_cb.flags &= ~BTIF_AV_FLAG_PENDING_START;
             if ((p_av->start.status == BTA_SUCCESS) && (p_av->start.suspending == TRUE))
                 return TRUE;
 
+            btif_av_cb.flags &= ~BTIF_AV_FLAG_PENDING_START;
             btif_a2dp_on_started(&p_av->start);
 
             /* remain in open state if status failed */
