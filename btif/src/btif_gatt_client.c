@@ -174,6 +174,7 @@ static void btapp_gattc_req_data(UINT16 event, char *p_dest, char *p_src)
 
                     // Allocate buffer for att value if necessary
                     if (get_uuid16(&p_src_data->read.descr_type) != GATT_UUID_CHAR_AGG_FORMAT
+                      && p_src_data->read.p_value->unformat.len > 0
                       && p_src_data->read.p_value->unformat.p_value != NULL)
                     {
                         p_dest_data->read.p_value->unformat.p_value =
@@ -210,6 +211,7 @@ static void btapp_gattc_free_req_data(UINT16 event, tBTA_GATTC *p_data)
             if (p_data != NULL && p_data->read.p_value != NULL)
             {
                 if (get_uuid16 (&p_data->read.descr_type) != GATT_UUID_CHAR_AGG_FORMAT
+                  && p_data->read.p_value->unformat.len > 0
                   && p_data->read.p_value->unformat.p_value != NULL)
                 {
                     GKI_freebuf(p_data->read.p_value->unformat.p_value);
