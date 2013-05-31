@@ -50,10 +50,13 @@
 #include "btif_sock_sdp.h"
 #include "utl.h"
 #include "../bta/pb/bta_pbs_int.h"
+#include "../bta/ma/bta_mas_int.h"
 #include "../include/bta_op_api.h"
 #include "bta_jv_api.h"
 #include <cutils/log.h>
 
+#define RESERVED_SCN_MAS_SMS 16
+#define RESERVED_SCN_MAS_EMAIL 17
 #define RESERVED_SCN_PBS 19
 #define RESERVED_SCN_OPS 12
 
@@ -211,6 +214,98 @@ static int add_pbap_sdp(const char* p_service_name, int scn)
     return sdp_handle;
 }
 
+static int add_map_sdp(const char* p_service_name, int scn, UINT16 service_class)
+{
+
+    tSDP_PROTOCOL_ELEM  protoList [3];
+    UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    BOOLEAN             status = FALSE;
+    UINT32              sdp_handle = 0;
+
+    APPL_TRACE_DEBUG3("add_map_sdd:scn %d, service name %s, class 0x%04x",
+            scn, p_service_name, service_class);
+
+    if ((sdp_handle = SDP_CreateRecord()) == 0)
+    {
+        APPL_TRACE_ERROR0("MAS SDP: Unable to register MAS Service");
+        return sdp_handle;
+    }
+
+    /* add service class */
+    if (SDP_AddServiceClassIdList(sdp_handle, 1, &service_class))
+    {
+        memset( protoList, 0 , 3*sizeof(tSDP_PROTOCOL_ELEM) );
+        /* add protocol list, including RFCOMM scn */
+        protoList[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
+        protoList[0].num_params = 0;
+        protoList[1].protocol_uuid = UUID_PROTOCOL_RFCOMM;
+        protoList[1].num_params = 1;
+        protoList[1].params[0] = scn;
+        protoList[2].protocol_uuid = UUID_PROTOCOL_OBEX;
+        protoList[2].num_params = 0;
+
+        if (SDP_AddProtocolList(sdp_handle, 3, protoList))
+        {
+            status = TRUE;  /* All mandatory fields were successful */
+
+            /* optional:  if name is not "", add a name entry */
+            if (*p_service_name != '\0')
+                SDP_AddAttribute(sdp_handle,
+                                 (UINT16)ATTR_ID_SERVICE_NAME,
+                                 (UINT8)TEXT_STR_DESC_TYPE,
+                                 (UINT32)(strlen(p_service_name) + 1),
+                                 (UINT8 *)p_service_name);
+
+            /* Add in the Bluetooth Profile Descriptor List */
+            SDP_AddProfileDescriptorList(sdp_handle,
+                    UUID_SERVCLASS_MAP_PROFILE, BTA_MAS_DEFAULT_VERSION);
+
+        } /* end of setting mandatory protocol list */
+    } /* end of setting mandatory service class */
+
+    if (!status)
+    {
+        SDP_DeleteRecord(sdp_handle);
+        APPL_TRACE_ERROR0("bta_mas_sdp_register FAILED");
+        return 0;
+    }
+
+    if (service_class == UUID_SERVCLASS_MESSAGE_ACCESS)
+    {
+        UINT8 supported_types = 0;
+        UINT8 instance_id;
+
+        if (scn == RESERVED_SCN_MAS_SMS)
+        {
+            instance_id = 0;
+            supported_types = BTA_MAS_MSG_TYPE_SMS_GSM
+                    | BTA_MAS_MSG_TYPE_SMS_CDMA
+                    | BTA_MAS_MSG_TYPE_MMS;
+        }
+        else if (scn == RESERVED_SCN_MAS_EMAIL)
+        {
+            instance_id = 1;
+            supported_types = BTA_MAS_MSG_TYPE_EMAIL;
+        }
+        if (supported_types != 0)
+        {
+            SDP_AddAttribute(sdp_handle, ATTR_ID_MAS_INSTANCE_ID, UINT_DESC_TYPE,
+                      (UINT32)1, (UINT8*)&instance_id);
+            SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_MSG_TYPE, UINT_DESC_TYPE,
+                      (UINT32)1, (UINT8*)&supported_types);
+        }
+    }
+
+    /* Make the service browseable */
+    SDP_AddUuidSequence (sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, &browse);
+    bta_sys_add_uuid(service_class);
+
+    APPL_TRACE_DEBUG2("MAS:  SDP for service 0x%04x registered (handle 0x%08x)",
+            service_class, sdp_handle);
+
+    return sdp_handle;
+}
+
 
 /* object format lookup table */
 static const tBTA_OP_FMT bta_ops_obj_fmt[] =
@@ -354,16 +449,16 @@ static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
     APPL_TRACE_DEBUG2("name:%s, scn:%d", name, scn);
 
     /*
-        Bluetooth Socket API relies on having preregistered bluez sdp records for HSAG, HFAG, OPP & PBAP
-        that are mapped to rc chan 10, 11,12 & 19. Today HSAG and HFAG is routed to BRCM AG and are not
-        using BT socket API so for now we will need to support OPP and PBAP to enable 3rd party developer
+        Bluetooth Socket API relies on having preregistered bluez sdp records for HSAG, HFAG, OPP, MAP & PBAP
+        that are mapped to rc chan 10, 11, 12, 16, 17 & 19. Today HSAG and HFAG is routed to BRCM AG and are not
+        using BT socket API so for now we will need to support OPP, MAP and PBAP to enable 3rd party developer
         apps running on BRCM Android.
 
         To do this we will check the UUID for the requested service and mimic the SDP records of bluez
         upon reception.  See functions add_opush() and add_pbap() in sdptool.c for actual records
     */
 
-    /* special handling for preregistered bluez services (OPP, PBAP) that we need to mimic */
+    /* special handling for preregistered bluez services (OPP, MAP, PBAP) that we need to mimic */
 
     int final_scn = get_reserved_rfc_channel(uuid);
     if (final_scn == -1)
@@ -377,6 +472,14 @@ static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
     else if (IS_UUID(UUID_PBAP_PSE,uuid))
     {
         handle = add_pbap_sdp(name, final_scn); //PBAP Server is always 19
+    }
+    else if (IS_UUID(UUID_MESSAGE_ACCESS,uuid))
+    {
+        handle = add_map_sdp(name, final_scn, UUID_SERVCLASS_MESSAGE_ACCESS);
+    }
+    else if (IS_UUID(UUID_MESSAGE_NOTIF,uuid))
+    {
+        handle = add_map_sdp(name, final_scn, UUID_SERVCLASS_MESSAGE_NOTIFICATION);
     }
     else if (IS_UUID(UUID_SPP, uuid))
     {
