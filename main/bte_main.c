@@ -76,6 +76,7 @@ typedef struct
 **  Variables
 ******************************************************************************/
 BOOLEAN hci_logging_enabled = FALSE;    /* by default, turn hci log off */
+BOOLEAN hci_logging_config = FALSE;    /* configured from bluetooth framework */
 char hci_logfile[256] = HCI_LOGGING_FILENAME;
 
 
@@ -227,6 +228,35 @@ void bte_main_disable(void)
 
 /******************************************************************************
 **
+** Function         bte_main_config_hci_logging
+**
+** Description      enable or disable HIC snoop logging
+**
+** Returns          None
+**
+******************************************************************************/
+void bte_main_config_hci_logging(BOOLEAN enable, BOOLEAN bt_disabled)
+{
+    int old = (hci_logging_enabled == TRUE) || (hci_logging_config == TRUE);
+    int new;
+
+    if (enable) {
+        hci_logging_config = TRUE;
+    } else {
+        hci_logging_config = FALSE;
+    }
+
+    new = (hci_logging_enabled == TRUE) || (hci_logging_config == TRUE);
+
+    if ((old == new) || bt_disabled || (bt_hc_if == NULL)) {
+        return;
+    }
+
+    bt_hc_if->logging(new ? BT_HC_LOGGING_ON : BT_HC_LOGGING_OFF, hci_logfile);
+}
+
+/******************************************************************************
+**
 ** Function         bte_hci_enable
 **
 ** Description      Enable HCI & Vendor modules
@@ -247,7 +277,7 @@ static void bte_hci_enable(void)
 
         assert(result == BT_HC_STATUS_SUCCESS);
 
-        if (hci_logging_enabled == TRUE)
+        if (hci_logging_enabled == TRUE || hci_logging_config == TRUE)
             bt_hc_if->logging(BT_HC_LOGGING_ON, hci_logfile);
 
 #if (defined (BT_CLEAN_TURN_ON_DISABLED) && BT_CLEAN_TURN_ON_DISABLED == TRUE)
@@ -291,7 +321,7 @@ static void bte_hci_disable(void)
     {
         bt_hc_if->cleanup();
         bt_hc_if->set_power(BT_HC_CHIP_PWR_OFF);
-        if (hci_logging_enabled == TRUE)
+        if (hci_logging_enabled == TRUE ||  hci_logging_config == TRUE)
             bt_hc_if->logging(BT_HC_LOGGING_OFF, hci_logfile);
     }
 }

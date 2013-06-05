@@ -335,4 +335,15 @@ bt_status_t btif_dut_mode_send(uint16_t opcode, uint8_t *buf, uint8_t len);
 **
 *******************************************************************************/
 bt_status_t btif_le_test_mode(uint16_t opcode, uint8_t *buf, uint8_t len);
+
+/*******************************************************************************
+**
+** Function         btif_config_hci_snoop_log
+**
+** Description     enable or disable HCI snoop log
+**
+** Returns          BT_STATUS_SUCCESS on success
+**
+*******************************************************************************/
+bt_status_t btif_config_hci_snoop_log(uint8_t enable);
 #endif /* BTIF_API_H */
