@@ -266,6 +266,7 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
 
         case BTA_AG_REGISTER_EVT:
             btif_hf_cb.handle = p_data->reg.hdr.handle;
+            btif_queue_pending_retry();
             break;
 
         case BTA_AG_OPEN_EVT:
@@ -535,6 +536,7 @@ static bt_status_t init_features(int features)
 *******************************************************************************/
 static bt_status_t connect_int( bt_bdaddr_t *bd_addr )
 {
+    CHECK_BTHF_INIT();
     if (!is_connected(bd_addr))
     {
         btif_hf_cb.state = BTHF_CONNECTION_STATE_CONNECTING;
@@ -551,7 +553,10 @@ static bt_status_t connect_int( bt_bdaddr_t *bd_addr )
 static bt_status_t connect( bt_bdaddr_t *bd_addr )
 {
     CHECK_BTHF_INIT();
-    return btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int);
+   if(btif_hf_cb.handle)
+       return btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int, BTIF_QUEUE_CONNECT_EVT);
+    else
+       return btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int, BTIF_QUEUE_PENDING_CONECT_EVT);
 }
 
 /*******************************************************************************
