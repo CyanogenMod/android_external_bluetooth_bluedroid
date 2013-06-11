@@ -2767,43 +2767,43 @@ static void bta_dm_pinname_cback (void *p_data)
 
     if (BTA_DM_SP_CFM_REQ_EVT == event)
     {
-	    /* Retrieved saved device class and bd_addr */
-	    bdcpy(sec_event.cfm_req.bd_addr, bta_dm_cb.pin_bd_addr);
-	    BTA_COPY_DEVICE_CLASS(sec_event.cfm_req.dev_class, bta_dm_cb.pin_dev_class);
+        /* Retrieved saved device class and bd_addr */
+        bdcpy(sec_event.cfm_req.bd_addr, bta_dm_cb.pin_bd_addr);
+        BTA_COPY_DEVICE_CLASS(sec_event.cfm_req.dev_class, bta_dm_cb.pin_dev_class);
 
-	    if (p_result && p_result->status == BTM_SUCCESS)
-	    {
-	        bytes_to_copy = (p_result->length < (BD_NAME_LEN-1))
+        if (p_result && p_result->status == BTM_SUCCESS)
+        {
+            bytes_to_copy = (p_result->length < (BD_NAME_LEN-1))
             ? p_result->length : (BD_NAME_LEN-1);
-	        memcpy(sec_event.cfm_req.bd_name, p_result->remote_bd_name, bytes_to_copy);
-	        sec_event.pin_req.bd_name[BD_NAME_LEN-1] = 0;
-	    }
-	    else    /* No name found */
-	        sec_event.cfm_req.bd_name[0] = 0;
+            memcpy(sec_event.cfm_req.bd_name, p_result->remote_bd_name, bytes_to_copy);
+            sec_event.pin_req.bd_name[BD_NAME_LEN-1] = 0;
+        }
+        else    /* No name found */
+            sec_event.cfm_req.bd_name[0] = 0;
 
-	    sec_event.key_notif.passkey    = bta_dm_cb.num_val; /* get PIN code numeric number */
+        sec_event.key_notif.passkey    = bta_dm_cb.num_val; /* get PIN code numeric number */
 
         /* 1 additional event data fields for this event */
         sec_event.cfm_req.just_works = bta_dm_cb.just_works;
     }
     else
     {
-	    /* Retrieved saved device class and bd_addr */
-	    bdcpy(sec_event.pin_req.bd_addr, bta_dm_cb.pin_bd_addr);
-	    BTA_COPY_DEVICE_CLASS(sec_event.pin_req.dev_class, bta_dm_cb.pin_dev_class);
+        /* Retrieved saved device class and bd_addr */
+        bdcpy(sec_event.pin_req.bd_addr, bta_dm_cb.pin_bd_addr);
+        BTA_COPY_DEVICE_CLASS(sec_event.pin_req.dev_class, bta_dm_cb.pin_dev_class);
 
-	    if (p_result && p_result->status == BTM_SUCCESS)
-	    {
-	        bytes_to_copy = (p_result->length < (BD_NAME_LEN-1))
+        if (p_result && p_result->status == BTM_SUCCESS)
+        {
+            bytes_to_copy = (p_result->length < (BD_NAME_LEN-1))
             ? p_result->length : (BD_NAME_LEN-1);
-	        memcpy(sec_event.pin_req.bd_name, p_result->remote_bd_name, bytes_to_copy);
-	        sec_event.pin_req.bd_name[BD_NAME_LEN-1] = 0;
-	    }
-	    else    /* No name found */
-	        sec_event.pin_req.bd_name[0] = 0;
+            memcpy(sec_event.pin_req.bd_name, p_result->remote_bd_name, bytes_to_copy);
+            sec_event.pin_req.bd_name[BD_NAME_LEN-1] = 0;
+        }
+        else    /* No name found */
+            sec_event.pin_req.bd_name[0] = 0;
 
-	    event = bta_dm_cb.pin_evt;
-	    sec_event.key_notif.passkey    = bta_dm_cb.num_val; /* get PIN code numeric number */
+        event = bta_dm_cb.pin_evt;
+        sec_event.key_notif.passkey    = bta_dm_cb.num_val; /* get PIN code numeric number */
     }
 
     if( bta_dm_cb.p_sec_cback )
@@ -4631,6 +4631,7 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
 {
     tBTM_STATUS status = BTM_SUCCESS;
     tBTA_DM_SEC sec_event;
+    char* p_name = NULL;
     UINT8 i;
 
     APPL_TRACE_DEBUG0("bta_dm_ble_smp_cback");
@@ -4661,18 +4662,34 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
 
         case BTM_LE_SEC_REQUEST_EVT:
             bdcpy(sec_event.ble_req.bd_addr, bda);
-            BCM_STRNCPY_S((char*)sec_event.ble_req.bd_name, sizeof(BD_NAME), bta_dm_get_remname(), (BD_NAME_LEN));
-            sec_event.ble_req.bd_name[BD_NAME_LEN] = 0;
+            p_name = BTM_SecReadDevName(bda);
+            if (p_name != NULL)
+            {
+                BCM_STRNCPY_S((char*)sec_event.ble_req.bd_name,
+                               sizeof(BD_NAME), p_name, (BD_NAME_LEN));
+            }
+            else
+            {
+                sec_event.ble_req.bd_name[0] = 0;
+            }
             bta_dm_cb.p_sec_cback(BTA_DM_BLE_SEC_REQ_EVT, &sec_event);
             break;
 
         case BTM_LE_KEY_NOTIF_EVT:
             bdcpy(sec_event.key_notif.bd_addr, bda);
-            BCM_STRNCPY_S((char*)sec_event.key_notif.bd_name, sizeof(BD_NAME), bta_dm_get_remname(), (BD_NAME_LEN));
-            sec_event.ble_req.bd_name[BD_NAME_LEN] = 0;
-            sec_event.key_notif.passkey = p_data->key_notif;
-            bta_dm_cb.p_sec_cback(BTA_DM_BLE_PASSKEY_NOTIF_EVT, &sec_event);
-            break;
+            p_name = BTM_SecReadDevName(bda);
+            if (p_name != NULL)
+            {
+                BCM_STRNCPY_S((char*)sec_event.key_notif.bd_name,
+                               sizeof(BD_NAME), p_name, (BD_NAME_LEN));
+            }
+            else
+            {
+                sec_event.key_notif.bd_name[0] = 0;
+            }
+           sec_event.key_notif.passkey = p_data->key_notif;
+           bta_dm_cb.p_sec_cback(BTA_DM_BLE_PASSKEY_NOTIF_EVT, &sec_event);
+           break;
 
         case BTM_LE_KEY_REQ_EVT:
             bdcpy(sec_event.ble_req.bd_addr, bda);
@@ -4709,8 +4726,16 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
 
         case BTM_LE_COMPLT_EVT:
             bdcpy(sec_event.auth_cmpl.bd_addr, bda);
-            BCM_STRNCPY_S((char*)sec_event.auth_cmpl.bd_name, sizeof(BD_NAME), bta_dm_get_remname(), (BD_NAME_LEN));
-
+            p_name = BTM_SecReadDevName(bda);
+            if (p_name != NULL)
+            {
+                BCM_STRNCPY_S((char*)sec_event.auth_cmpl.bd_name,
+                               sizeof(BD_NAME), p_name, (BD_NAME_LEN));
+            }
+            else
+            {
+                sec_event.auth_cmpl.bd_name[0] = 0;
+            }
             if (p_data->complt.reason != 0)
             {
                 sec_event.auth_cmpl.fail_reason = BTA_DM_AUTH_CONVERT_SMP_CODE(((UINT8)p_data->complt.reason));
