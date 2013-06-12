@@ -94,6 +94,7 @@ static bt_preload_retry_cb_t preload_retry_cb;
 static void bte_main_in_hw_init(void);
 static void bte_hci_enable(void);
 static void bte_hci_disable(void);
+static void bte_send_preload_req(void);
 static void preload_start_wait_timer(void);
 static void preload_stop_wait_timer(void);
 
@@ -204,6 +205,7 @@ void bte_main_enable()
                     sizeof(bte_btu_stack));
 
     GKI_run(0);
+    bte_send_preload_req();
 }
 
 /******************************************************************************
@@ -226,6 +228,27 @@ void bte_main_disable(void)
     GKI_freeze();
 }
 
+/******************************************************************************
+**
+** Function         bte_send_preload_req
+**
+** Description      Request for firmware & transport intialization
+**
+** Returns          None
+**
+******************************************************************************/
+static void bte_send_preload_req(void)
+{
+    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    /* Since btu_task waits to recieve event for preload result(Success or failure) while
+     starting. So btu_task must be started before the firmware & transport is intialized.
+     Otherwise btu_task might miss the event for preload result(success or failure). which
+     could lead a failure while turning on bluetooth. */
+    if (bt_hc_if)
+    {
+       bt_hc_if->preload(NULL);
+    }
+}
 /******************************************************************************
 **
 ** Function         bte_main_config_hci_logging
@@ -300,7 +323,6 @@ static void bte_hci_enable(void)
 #endif
         bt_hc_if->set_power(BT_HC_CHIP_PWR_ON);
 
-        bt_hc_if->preload(NULL);
     }
 }
 
@@ -346,6 +368,7 @@ static void preload_wait_timeout(union sigval arg)
         bte_hci_disable();
         GKI_delay(100);
         bte_hci_enable();
+        bte_send_preload_req();
     }
     else
     {
