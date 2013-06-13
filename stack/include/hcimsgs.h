@@ -922,6 +922,8 @@ HCI_API extern void btsnd_hcic_data (BT_HDR *p_buf, UINT16 len, UINT16 handle, U
                                                                 /*  Send HCI Data */
 
 #define HCID_GET_SCO_LEN(p)  (*((UINT8 *)((p) + 1) + p->offset + 2))
+HCI_API extern void btsnd_hcic_raw_cmd (void *buffer, UINT16 opcode, UINT8 len,
+                                 UINT8 *p_data, void *p_cmd_cplt_cback);
 
 HCI_API extern void btsnd_hcic_vendor_spec_cmd (
                                                 void *buffer, UINT16 opcode,
