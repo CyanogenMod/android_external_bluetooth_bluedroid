@@ -1,4 +1,6 @@
 /******************************************************************************
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
@@ -83,6 +85,7 @@
 **  Static variables
 ************************************************************************************/
 static bthf_callbacks_t *bt_hf_callbacks = NULL;
+static UINT32 btif_features = 0;
 
 #define CHECK_BTHF_INIT() if (bt_hf_callbacks == NULL)\
     {\
@@ -496,6 +499,24 @@ static bt_status_t init( bthf_callbacks_t* callbacks )
     memset(&btif_hf_cb, 0, sizeof(btif_hf_cb_t));
     clear_phone_state();
 
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         init_features
+**
+** Description     Initiazes the BRSF feature bitmask.
+**
+** Returns         bt_status_t
+**
+*******************************************************************************/
+static bt_status_t init_features(int features)
+{
+    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
+    /* Safe Typecasting of input param features to UINT32 as bits
+    8 to 31 are zero for the HFP BRSF feature bitmask given from the app*/
+    btif_features = (UINT32)features;
     return BT_STATUS_SUCCESS;
 }
 
@@ -1139,6 +1160,7 @@ static void  cleanup( void )
 static const bthf_interface_t bthfInterface = {
     sizeof(bthfInterface),
     init,
+    init_features,
     connect,
     disconnect,
     connect_audio,
@@ -1172,8 +1194,12 @@ bt_status_t btif_hf_execute_service(BOOLEAN b_enable)
      {
           /* Enable and register with BTA-AG */
           BTA_AgEnable (BTA_AG_PARSE, bte_hf_evt);
-          BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY, BTIF_HF_FEATURES,
-                         p_service_names, BTIF_HF_ID_1);
+          if (btif_features)
+              BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY, btif_features,
+                             p_service_names, BTIF_HF_ID_1);
+          else
+              BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY, BTIF_HF_FEATURES,
+                             p_service_names, BTIF_HF_ID_1);
      }
      else {
          /* De-register AG */
