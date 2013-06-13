@@ -479,12 +479,25 @@ static void le_test_mode(bt_status_t status, uint16_t packet_count)
     bdt_log("LE TEST MODE END status:%s number_of_packets:%d", dump_bt_status(status), packet_count);
 }
 
+static void device_found_cb(int num_properties, bt_property_t *properties)
+{
+    int i;
+    for (i = 0; i < num_properties; i++)
+    {
+        if (properties[i].type == BT_PROPERTY_BDNAME)
+        {
+            bdt_log("AP name is : %s\n",
+                    (char*)properties[i].val);
+        }
+    }
+}
+
 static bt_callbacks_t bt_callbacks = {
     sizeof(bt_callbacks_t),
     adapter_state_changed,
     NULL, /*adapter_properties_cb */
     NULL, /* remote_device_properties_cb */
-    NULL, /* device_found_cb */
+    device_found_cb, /* device_found_cb */
     NULL, /* discovery_state_changed_cb */
     NULL, /* pin_request_cb  */
     NULL, /* ssp_request_cb  */
@@ -737,6 +750,7 @@ int main (int argc, char * argv[])
     char cmd[128];
     int args_processed = 0;
     int pid = -1;
+    int enable_wait_count = 0;
 
     config_permissions();
     bdt_log("\n:::::::::::::::::::::::::::::::::::::::::::::::::::");
@@ -752,7 +766,37 @@ int main (int argc, char * argv[])
 
     /* Automatically perform the init */
     bdt_init();
-
+    if (argc > 1)
+    {
+        bdt_log("Command line mode\n");
+        if (strncmp(argv[1],"get_ap_list",11))
+            bdt_log("Unrecognised command");
+        else {
+            bdt_log("Enabling BT for 45 seconds\n");
+            bdt_enable();
+            do {
+                if (bt_enabled)
+                    break;
+                bdt_log("Waiting for bt_enabled to become true\n");
+                sleep(2);
+            } while(enable_wait_count++ < 10);
+            if (bt_enabled) {
+                bdt_log("Starting discovery\n");
+                sBtInterface->start_discovery();
+                sleep(20);
+                bdt_log("Cancelling discovery\n");
+                sBtInterface->cancel_discovery();
+            }
+            else
+            {
+                bdt_log("Failed to enable BT\n");
+                goto cleanup;
+            }
+            bdt_log("Disabling BT\n");
+            bdt_disable();
+            goto cleanup;
+        }
+    }
     while(!main_done)
     {
         char line[128];
@@ -775,7 +819,7 @@ int main (int argc, char * argv[])
 
     /* FIXME: Commenting this out as for some reason, the application does not exit otherwise*/
     //bdt_cleanup();
-
+cleanup:
     HAL_unload();
 
     bdt_log(":: Bluedroid test app terminating");
