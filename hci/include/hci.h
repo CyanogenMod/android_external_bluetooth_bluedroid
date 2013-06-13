@@ -69,12 +69,9 @@ typedef struct {
     tHCI_SEND send;
     tHCI_SEND_INT send_int_cmd;
     tHCI_ACL_DATA_LEN_HDLR get_acl_max_len;
-#ifdef HCI_USE_MCT
     tHCI_RCV evt_rcv;
     tHCI_RCV acl_rcv;
-#else
     tHCI_RCV rcv;
-#endif
 } tHCI_IF;
 
 /******************************************************************************
