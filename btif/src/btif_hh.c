@@ -958,6 +958,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                     ret = btif_storage_add_hid_device_info(&(p_dev->bd_addr), p_dev->attr_mask,p_dev->sub_class,p_dev->app_id,
                                                         p_data->dscp_info.vendor_id, p_data->dscp_info.product_id,
                                                         p_data->dscp_info.version,   p_data->dscp_info.ctry_code,
+                                                        p_data->dscp_info.ssr_max_latency,p_data->dscp_info.ssr_min_tout,
                                                         len, p_data->dscp_info.descriptor.dsc_list);
 
                     ASSERTC(ret == BT_STATUS_SUCCESS, "storing hid info failed", ret);
