@@ -75,6 +75,7 @@ LOCAL_SRC_FILES+= \
 
 LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../bta/include \
+	$(LOCAL_PATH)/../btc/include \
 	$(LOCAL_PATH)/../bta/sys \
 	$(LOCAL_PATH)/../bta/dm \
 	$(LOCAL_PATH)/../gki/common \
@@ -126,7 +127,7 @@ LOCAL_SHARED_LIBRARIES := \
     libbt-utils
 
 #LOCAL_WHOLE_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_stack libbt-brcm_bta
-LOCAL_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_bta libbt-brcm_stack libtinyxml2
+LOCAL_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_bta libbt-brcm_stack libbt-btc libtinyxml2
 
 LOCAL_MODULE := bluetooth.default
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw

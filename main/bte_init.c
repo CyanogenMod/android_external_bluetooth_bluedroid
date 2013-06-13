@@ -25,7 +25,7 @@
 
 #include "bt_target.h"
 #include <string.h>
-
+#include "btc_common.h"
 #ifndef BTA_INCLUDED
 #define BTA_INCLUDED FALSE
 #endif
@@ -273,6 +273,7 @@ tBTA_JV_CB *bta_jv_cb_ptr = NULL;
 #endif /* BTA_INCLUDED */
 // btla-specific --
 
+
 /*****************************************************************************
 **                          F U N C T I O N S                                *
 ******************************************************************************/
@@ -296,11 +297,16 @@ BT_API void BTE_InitStack(void)
 {
 /* Initialize the optional stack components */
 
+
 /****************************
 ** RFCOMM and its profiles **
 *****************************/
 #if (defined(RFCOMM_INCLUDED) && RFCOMM_INCLUDED == TRUE)
     RFCOMM_Init();
+
+#if (defined(BTC_INCLUDED) && BTC_INCLUDED == TRUE)
+    btc_init ();
+#endif  /* BTC */
 
 #if (defined(SPP_INCLUDED) && SPP_INCLUDED == TRUE)
     SPP_Init();

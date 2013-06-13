@@ -47,6 +47,7 @@
 #include "btif_util.h"
 #include "btif_sock.h"
 #include "btif_pan.h"
+#include "btc_common.h"
 #include "btif_profile_queue.h"
 #include "btif_config.h"
 /************************************************************************************
@@ -668,7 +669,9 @@ bt_status_t btif_disable_bluetooth(void)
     btif_sock_cleanup();
 
     btif_pan_cleanup();
-
+#if (defined(BTC_INCLUDED) && BTC_INCLUDED == TRUE)
+    btc_deinit();
+#endif /*BTC*/
     status = BTA_DisableBluetooth();
 
     btif_config_flush();
