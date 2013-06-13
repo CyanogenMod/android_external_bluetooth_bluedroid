@@ -805,6 +805,9 @@ typedef union
 /* Security callback */
 typedef void (tBTA_DM_SEC_CBACK)(tBTA_DM_SEC_EVT event, tBTA_DM_SEC *p_data);
 
+/* HCI RAW Command Callback */
+typedef tBTM_RAW_CMPL_CB        tBTA_RAW_CMPL_CBACK;
+
 /* Vendor Specific Command Callback */
 typedef tBTM_VSC_CMPL_CB        tBTA_VENDOR_CMPL_CBACK;
 
@@ -1135,6 +1138,18 @@ BTA_API extern void BTA_DmSetScanParam (UINT16 page_scan_interval, UINT16 page_s
 *******************************************************************************/
 BTA_API extern void BTA_DmSetAfhChannels(UINT8 first, UINT8 last);
 
+/*******************************************************************************
+**
+** Function         BTA_DmHciRawCommand
+**
+** Description      This function sends the HCI RAW command
+**                  to the controller
+**
+**
+** Returns          tBTA_STATUS
+**
+*******************************************************************************/
+BTA_API extern tBTA_STATUS BTA_DmHciRawCommand (UINT16 opcode, UINT8 param_len,UINT8 *p_param_buf, tBTA_RAW_CMPL_CBACK *p_cback);
 
 /*******************************************************************************
 **

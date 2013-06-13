@@ -619,7 +619,23 @@ void bta_dm_set_afhchannels (tBTA_DM_MSG *p_data)
     BTM_SetAfhChannels(p_data->set_afhchannels.first,p_data->set_afhchannels.last);
 
 }
+/*******************************************************************************
+**
+** Function         bta_dm_hci_raw_command
+**
+** Description      Send a HCI RAW command to the controller
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_dm_hci_raw_command (tBTA_DM_MSG *p_data)
+{
+    tBTM_STATUS status;
+    APPL_TRACE_API0("bta_dm_hci_raw_command");
+    status = BTM_Hci_Raw_Command(p_data->btc_command.opcode,p_data->btc_command.param_len,p_data->btc_command.p_param_buf, p_data->btc_command.p_cback);
 
+}
 
 /*******************************************************************************
 **
