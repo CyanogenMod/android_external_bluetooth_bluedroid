@@ -117,6 +117,10 @@ do {                                                                            
 #define BTSNOOP_EPOCH_HI 0x00dcddb3U
 #define BTSNOOP_EPOCH_LO 0x0f2f8000U
 
+typedef void (*t_HciPacketCallback)(HC_BT_HDR *p_buf);
+void btsnoop_reg(t_HciPacketCallback p_callback);
+t_HciPacketCallback p_HciPacketCallback;
+
 /*******************************************************************************
  **
  ** Function         tv_to_btsnoop_ts
@@ -148,6 +152,12 @@ static void tv_to_btsnoop_ts(uint32_t *out_lo, uint32_t *out_hi, struct timeval 
     /* add the epoch */
     HCIDISP_ADD_64(BTSNOOP_EPOCH_LO, BTSNOOP_EPOCH_HI, *out_lo, *out_hi);
 }
+
+void btsnoop_reg(t_HciPacketCallback p_callback)
+{
+      p_HciPacketCallback = p_callback;
+}
+
 
 /*******************************************************************************
  **
@@ -631,6 +641,10 @@ void btsnoop_capture(HC_BT_HDR *p_buf, uint8_t is_rcvd)
     SNOOPDBG("btsnoop_capture: fd = %d, type %x, rcvd %d, ext %d", \
              hci_btsnoop_fd, p_buf->event, is_rcvd, ext_parser_fd);
 
+    if (p_HciPacketCallback) {
+        p_HciPacketCallback(p_buf);
+    }
+
 #if defined(BTSNOOP_EXT_PARSER_INCLUDED) && (BTSNOOP_EXT_PARSER_INCLUDED == TRUE)
     if (ext_parser_fd > 0)
     {
@@ -690,5 +704,4 @@ void btsnoop_capture(HC_BT_HDR *p_buf, uint8_t is_rcvd)
     }
 #endif // BTSNOOPDISP_INCLUDED
 }
-
 
