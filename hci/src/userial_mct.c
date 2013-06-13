@@ -1,5 +1,8 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
+ *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -226,7 +229,7 @@ static void *userial_read_thread(void *arg)
 ** Returns         TRUE/FALSE
 **
 *******************************************************************************/
-uint8_t userial_init(void)
+uint8_t userial_mct_init(void)
 {
     int idx;
 
@@ -248,7 +251,7 @@ uint8_t userial_init(void)
 ** Returns         TRUE/FALSE
 **
 *******************************************************************************/
-uint8_t userial_open(uint8_t port)
+uint8_t userial_mct_open(uint8_t port)
 {
     struct sched_param param;
     int policy, result;
@@ -342,7 +345,7 @@ uint8_t userial_open(uint8_t port)
 **                 copied into p_data.  This may be less than len.
 **
 *******************************************************************************/
-uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
+uint16_t  userial_mct_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
 {
     int ret = -1;
     int ch_idx = (msg_id == MSG_HC_TO_STACK_HCI_EVT) ? CH_EVT : CH_ACL_IN;
@@ -364,7 +367,7 @@ uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
 **                 may be less than len.
 **
 *******************************************************************************/
-uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
+uint16_t userial_mct_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
 {
     int ret, total = 0;
     int ch_idx = (msg_id == MSG_STACK_TO_HC_HCI_CMD) ? CH_CMD : CH_ACL_OUT;
@@ -388,7 +391,7 @@ uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
 ** Returns         None
 **
 *******************************************************************************/
-void userial_close(void)
+void userial_mct_close(void)
 {
     int idx, result;
 
@@ -417,7 +420,7 @@ void userial_close(void)
 ** Returns         None
 **
 *******************************************************************************/
-void userial_ioctl(userial_ioctl_op_t op, void *p_data)
+void userial_mct_ioctl(userial_ioctl_op_t op, void *p_data)
 {
     switch(op)
     {
@@ -436,4 +439,14 @@ void userial_ioctl(userial_ioctl_op_t op, void *p_data)
             break;
     }
 }
+
+const tUSERIAL_IF userial_mct_func_table =
+{
+    userial_mct_init,
+    userial_mct_open,
+    userial_mct_read,
+    userial_mct_write,
+    userial_mct_close,
+    userial_mct_ioctl
+};
 

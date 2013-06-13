@@ -1,5 +1,8 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
+ *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -558,4 +561,14 @@ void userial_ioctl(userial_ioctl_op_t op, void *p_data)
             break;
     }
 }
+
+const tUSERIAL_IF userial_h4_func_table =
+{
+    userial_init,
+    userial_open,
+    userial_read,
+    userial_write,
+    userial_close,
+    userial_ioctl
+};
 
