@@ -911,10 +911,12 @@ static void gatts_process_mtu_req (tGATT_TCB *p_tcb, UINT16 len, UINT8 *p_data)
     else
     {
         /* mtu must be greater than default MTU which is 23/48 */
-        if (mtu <= GATT_MAX_MTU_SIZE)
-            p_tcb->payload_size = mtu;
-        else
+        if (mtu < GATT_DEF_BLE_MTU_SIZE)
+            p_tcb->payload_size = GATT_DEF_BLE_MTU_SIZE;
+        else if (mtu > GATT_MAX_MTU_SIZE)
             p_tcb->payload_size = GATT_MAX_MTU_SIZE;
+        else
+            p_tcb->payload_size = mtu;
 
         if ((p_buf = attp_build_sr_msg(p_tcb, GATT_RSP_MTU, (tGATT_SR_MSG *) &p_tcb->payload_size)) != NULL)
         {
