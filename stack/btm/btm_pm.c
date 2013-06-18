@@ -769,7 +769,7 @@ void btm_pm_proc_cmd_status(UINT8 status)
 
 /*******************************************************************************
 **
-** Function         btm_process_mode_change
+** Function         btm_pm_proc_mode_change
 **
 ** Description      This function is called when an HCI mode change event occurs.
 **
@@ -790,8 +790,15 @@ void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, U
     tL2C_LCB        *p_lcb;
 
     /* get the index to acl_db */
-    if ((xx = btm_handle_to_acl_index(hci_handle)) >= MAX_L2CAP_LINKS)
+    /* If Power mode change is not successful for particular ACL due to connection timeout.
+     it means that LMP link for this particular ACL is no more exist. So another power mode change
+     command should not be sent to controller on this particular ACL as it does not exist anymore */
+    if ((xx = btm_handle_to_acl_index(hci_handle)) >= MAX_L2CAP_LINKS
+       || hci_status == HCI_ERR_CONNECTION_TOUT)
+    {
+        BTM_TRACE_DEBUG2("btm_pm_proc_mode_change: xx: %d  hci_status: 0x%x", xx, hci_status);
         return;
+    }
 
     p = &btm_cb.acl_db[xx];
 
