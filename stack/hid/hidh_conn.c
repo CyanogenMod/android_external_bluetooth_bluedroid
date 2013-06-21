@@ -214,7 +214,24 @@ static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 p
 
     if (i >= HID_HOST_MAX_DEVICES)
     {
-        L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_SECURITY_BLOCK, 0);
+        if (btm_sec_is_a_bonded_dev(bd_addr) && psm == HID_PSM_CONTROL &&
+            hh_cb.unknown_dev_sdp_in_prog == FALSE) {
+            L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_PENDING, L2CAP_CONN_OK);
+            /* device is bonded, and we dont have device in hid database. This can exist
+             * when remote device has initaited pairing and is now trying to create hid control
+             * l2cap channel. Try to initiate sdp and add device in hid database.
+             */
+            hh_cb.incoming_conn_info = (tHID_HOST_INCMNG_CON_INFO *)GKI_getbuf(sizeof(tHID_HOST_INCMNG_CON_INFO));
+            memcpy(hh_cb.incoming_conn_info->bd_addr, bd_addr, BD_ADDR_LEN);
+            hh_cb.incoming_conn_info->l2cap_cid = l2cap_cid;
+            hh_cb.incoming_conn_info->l2cap_id = l2cap_id;
+            hh_cb.unknown_dev_sdp_in_prog = TRUE;
+            HIDH_TRACE_DEBUG0 ("hidh_l2cif_connect_ind: sending message to intiate SDP to this device");
+            hh_cb.callback( 0, HID_HDEV_EVT_PERFORM_SDP, 0, (BT_HDR *)bd_addr ) ;
+        }
+        else
+            /* Send Security Block */
+            L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_SECURITY_BLOCK, 0);
         return;
     }
 
@@ -619,6 +636,17 @@ static void hidh_l2cif_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
     {
         hh_cb.devices[dhandle].state = HID_DEV_NO_CONN;
         p_hcon->conn_state = HID_CONN_STATE_UNUSED;
+        if (hh_cb.incoming_conn_info &&
+            memcmp(hh_cb.incoming_conn_info->bd_addr, hh_cb.devices[dhandle].addr,
+            BD_ADDR_LEN) == 0)
+        {
+            /* Reset the status for SDP of unknown device if in progress */
+            hh_cb.unknown_dev_sdp_in_prog = FALSE;
+            HIDH_TRACE_ERROR0 ("hidh_l2cif_disconnect_ind: freeing hh_cb.incoming_conn_info");
+            /* Free the buffer */
+            GKI_freebuf(hh_cb.incoming_conn_info);
+            hh_cb.incoming_conn_info = NULL;
+        }
 
         if( !ack_needed )
             disc_res = btm_get_acl_disc_reason_code();
@@ -693,6 +721,17 @@ static void hidh_l2cif_disconnect_cfm (UINT16 l2cap_cid, UINT16 result)
         hh_cb.devices[dhandle].state = HID_DEV_NO_CONN;
         p_hcon->conn_state = HID_CONN_STATE_UNUSED;
         hh_cb.callback( dhandle, HID_HDEV_EVT_CLOSE, p_hcon->disc_reason, NULL ) ;
+        if (hh_cb.incoming_conn_info &&
+            memcmp(hh_cb.incoming_conn_info->bd_addr, hh_cb.devices[dhandle].addr,
+            BD_ADDR_LEN) == 0)
+        {
+            HIDH_TRACE_ERROR0 ("hidh_l2cif_disconnect_cfm: freeing hh_cb.incoming_conn_info");
+            /* Reset the status for SDP of unknown device if in progress */
+            hh_cb.unknown_dev_sdp_in_prog = FALSE;
+            /* Free the buffer */
+            GKI_freebuf(hh_cb.incoming_conn_info);
+            hh_cb.incoming_conn_info = NULL;
+        }
     }
 }
 
@@ -1029,6 +1068,91 @@ void hidh_conn_dereg( void )
 {
     L2CA_Deregister (HID_PSM_CONTROL);
     L2CA_Deregister (HID_PSM_INTERRUPT);
+}
+
+void hidh_send_l2cap_connect_rsp( UINT8 status )
+{
+    tHID_CONN    *p_hcon;
+    BOOLEAN      bAccept = TRUE;
+    int i;
+    tHID_HOST_DEV_CTB *p_dev;
+
+    if (hh_cb.incoming_conn_info == NULL)
+        return;
+
+    if (status)
+    {
+        HIDH_TRACE_ERROR1 ("sdp query failed with reason %d, sending security block", status);
+        L2CA_ConnectRsp (hh_cb.incoming_conn_info->bd_addr, hh_cb.incoming_conn_info->l2cap_id,
+                    hh_cb.incoming_conn_info->l2cap_cid, L2CAP_CONN_SECURITY_BLOCK, 0);
+        /* Free the buffer */
+        GKI_freebuf(hh_cb.incoming_conn_info);
+        hh_cb.incoming_conn_info = NULL;
+        hh_cb.unknown_dev_sdp_in_prog = FALSE;
+        return;
+    }
+
+    for( i=0; i < HID_HOST_MAX_DEVICES; i++ )
+    {
+        if( hh_cb.devices[i].in_use && (!memcmp(hh_cb.incoming_conn_info->bd_addr,
+                hh_cb.devices[i].addr, sizeof(BD_ADDR))) )
+            break;
+    }
+
+    if (i >= HID_HOST_MAX_DEVICES)
+    {
+        HIDH_TRACE_ERROR2 ("device still not added in database after sdp, "
+            "sending security block", i, HID_HOST_MAX_DEVICES);
+        /* Send Security Block */
+        L2CA_ConnectRsp (hh_cb.incoming_conn_info->bd_addr, hh_cb.incoming_conn_info->l2cap_id,
+            hh_cb.incoming_conn_info->l2cap_cid, L2CAP_CONN_SECURITY_BLOCK, 0);
+        /* Free the buffer */
+        GKI_freebuf(hh_cb.incoming_conn_info);
+        hh_cb.incoming_conn_info = NULL;
+        hh_cb.unknown_dev_sdp_in_prog = FALSE;
+        return;
+    }
+
+    p_hcon = &hh_cb.devices[i].conn;
+    p_dev  = &hh_cb.devices[i];
+
+#if defined(HID_HOST_ACPT_NEW_CONN) && (HID_HOST_ACPT_NEW_CONN == TRUE)
+    p_hcon->ctrl_cid = p_hcon->intr_cid = 0;
+    p_hcon->conn_state = HID_CONN_STATE_UNUSED;
+#else
+    if (p_hcon->conn_state != HID_CONN_STATE_UNUSED)
+    {
+        HIDH_TRACE_WARNING1 ("HID - Rcvd CTL L2CAP conn ind, wrong state: %d", p_hcon->conn_state);
+        bAccept = FALSE;
+    }
+#endif
+
+    if (!bAccept)
+    {
+        L2CA_ConnectRsp (hh_cb.incoming_conn_info->bd_addr, hh_cb.incoming_conn_info->l2cap_id,
+            hh_cb.incoming_conn_info->l2cap_cid, L2CAP_CONN_NO_RESOURCES, 0);
+        /* Free the buffer */
+        GKI_freebuf(hh_cb.incoming_conn_info);
+        hh_cb.incoming_conn_info = NULL;
+        hh_cb.unknown_dev_sdp_in_prog = FALSE;
+        return;
+    }
+
+    p_hcon->conn_flags = 0;
+    p_hcon->ctrl_cid   = hh_cb.incoming_conn_info->l2cap_cid;
+    p_hcon->ctrl_id    = hh_cb.incoming_conn_info->l2cap_id;
+    p_hcon->disc_reason = HID_L2CAP_CONN_FAIL;  /* In case disconnection occurs before security is completed, then set CLOSE_EVT reason code to 'connection failure' */
+
+    p_hcon->conn_state = HID_CONN_STATE_SECURITY;
+    btm_sec_mx_access_request (p_dev->addr, HID_PSM_CONTROL,
+        FALSE, BTM_SEC_PROTO_HID,
+        (p_dev->attr_mask & HID_SEC_REQUIRED) ? HID_SEC_CHN : HID_NOSEC_CHN,
+        &hidh_sec_check_complete_term, p_dev);
+
+    /* Free the buffer */
+    GKI_freebuf(hh_cb.incoming_conn_info);
+    hh_cb.incoming_conn_info = NULL;
+    hh_cb.unknown_dev_sdp_in_prog = FALSE;
 }
 
 /*******************************************************************************

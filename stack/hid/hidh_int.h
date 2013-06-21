@@ -47,6 +47,12 @@ typedef struct per_device_ctb
     tHID_CONN      conn; /* L2CAP channel info */
 } tHID_HOST_DEV_CTB;
 
+typedef struct incmg_con_info {
+    BD_ADDR bd_addr;
+    UINT16 l2cap_cid;
+    UINT8 l2cap_id;
+} tHID_HOST_INCMNG_CON_INFO ;
+
 typedef struct host_ctb
 {
     tHID_HOST_DEV_CTB       devices[HID_HOST_MAX_DEVICES];
@@ -61,6 +67,8 @@ typedef struct host_ctb
     tHID_DEV_SDP_INFO       sdp_rec;
     BOOLEAN                 reg_flag;
     UINT8                   trace_level;
+    BOOLEAN                 unknown_dev_sdp_in_prog;
+    tHID_HOST_INCMNG_CON_INFO *incoming_conn_info;
 } tHID_HOST_CTB;
 
 extern tHID_STATUS hidh_conn_snd_data(UINT8 dhandle, UINT8 trans_type, UINT8 param, \
@@ -70,6 +78,7 @@ extern void hidh_conn_dereg( void );
 extern tHID_STATUS hidh_conn_disconnect (UINT8 dhandle);
 extern tHID_STATUS hidh_conn_initiate (UINT8 dhandle);
 extern void hidh_proc_repage_timeout (TIMER_LIST_ENT *p_tle);
+extern void hidh_send_l2cap_connect_rsp(UINT8 status);
 
 #ifdef __cplusplus
 extern "C"
