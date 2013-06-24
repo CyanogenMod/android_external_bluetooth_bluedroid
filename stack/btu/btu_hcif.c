@@ -2241,12 +2241,15 @@ static void btu_hcif_enhanced_flush_complete_evt (UINT8 *p, UINT16 evt_len)
 static void btu_hcif_encyption_key_refresh_cmpl_evt (UINT8 *p, UINT16 evt_len)
 {
     UINT8   status;
+    UINT8   enc_enable = 0;
     UINT16  handle;
 
     STREAM_TO_UINT8  (status, p);
     STREAM_TO_UINT16 (handle, p);
 
-    btm_sec_encrypt_change (handle, status, 1);
+    if (status == HCI_SUCCESS) enc_enable = 1;
+
+    btm_sec_encrypt_change (handle, status, enc_enable);
 }
 
 static void btu_ble_process_adv_pkt (UINT8 *p, UINT16 evt_len)
