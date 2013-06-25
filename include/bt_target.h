@@ -54,6 +54,11 @@
 
 
 //------------------Added from Bluedroid buildcfg.h---------------------
+/* This feature is used to update any QCOM related changes in the stack*/
+#ifndef BLUETOOTH_QCOM_SW
+#define BLUETOOTH_QCOM_SW TRUE
+#endif
+
 #ifndef UNV_INCLUDED
 #define UNV_INCLUDED FALSE
 #endif
@@ -845,9 +850,13 @@ and USER_HW_DISABLE_API macros */
 #define BTM_SCO_HCI_INCLUDED            FALSE       /* TRUE includes SCO over HCI code */
 #endif
 
+#if (BLUETOOTH_QCOM_SW == TRUE) /* Enable WBS only under this flag.*/
+#define BTM_WBS_INCLUDED            TRUE
+#else
 /* Includes WBS if TRUE */
 #ifndef BTM_WBS_INCLUDED
 #define BTM_WBS_INCLUDED            FALSE       /* TRUE includes WBS code */
+#endif
 #endif
 
 /* Includes PCM2 support if TRUE */

@@ -400,7 +400,11 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
         case BTA_AG_AT_BTRH_EVT:
             send_at_result(BTA_AG_OK_ERROR, BTA_AG_ERR_OP_NOT_SUPPORTED);
             break;
-
+#if (BLUETOOTH_QCOM_SW == TRUE) /* Update the JNI about codec value.*/
+        case BTA_AG_AT_BCS_EVT:
+            HAL_CBACK(bt_hf_callbacks, codec_negotiated_callback, p_data->val.num);
+            break;
+#endif
 
         default:
             BTIF_TRACE_WARNING2("%s: Unhandled event: %d", __FUNCTION__, event);
