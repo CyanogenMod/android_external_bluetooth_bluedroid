@@ -416,6 +416,12 @@ tBTM_SEC_DEV_REC *btm_find_dev_by_handle (UINT16 handle)
     tBTM_SEC_DEV_REC *p_dev_rec = &btm_cb.sec_dev_rec[0];
     int i;
 
+    if(handle == BTM_INVALID_HCI_HANDLE)
+    {
+        BTM_TRACE_DEBUG("btm_find_dev_by_handle: Invalid handle");
+        return (NULL);
+    }
+
     for (i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i++, p_dev_rec++)
     {
         if ((p_dev_rec->sec_flags & BTM_SEC_IN_USE)
@@ -424,6 +430,31 @@ tBTM_SEC_DEV_REC *btm_find_dev_by_handle (UINT16 handle)
             ||(p_dev_rec->ble_hci_handle == handle)
 #endif
                 ))
+            return(p_dev_rec);
+    }
+    return(NULL);
+}
+
+/*******************************************************************************
+**
+** Function         btm_find_dev_by_sec_state
+**
+** Description      Look for the record in the device database for the record
+**                  with specific security state
+**
+** Returns          Pointer to the record or NULL
+**
+*******************************************************************************/
+tBTM_SEC_DEV_REC *btm_find_dev_by_sec_state(UINT8 sec_state)
+{
+    tBTM_SEC_DEV_REC *p_dev_rec = &btm_cb.sec_dev_rec[0];
+    int i;
+    BTM_TRACE_DEBUG("btm_find_dev_by_sec_state: sec_state : %d", sec_state);
+
+    for (i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i++, p_dev_rec++)
+    {
+        if ((p_dev_rec->sec_flags & BTM_SEC_IN_USE)
+            && (p_dev_rec->sec_state == sec_state))
             return(p_dev_rec);
     }
     return(NULL);

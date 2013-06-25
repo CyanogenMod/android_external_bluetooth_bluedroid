@@ -274,6 +274,35 @@ bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
 
 /*******************************************************************************
 **
+** Function         check_eir_is_remote_name_short
+**
+** Description      Check if remote name is shortened
+**
+** Returns          TRUE if remote name found
+**                  else FALSE
+**
+*******************************************************************************/
+static BOOLEAN check_eir_is_remote_name_short(tBTA_DM_SEARCH *p_search_data)
+{
+    UINT8 *p_eir_remote_name = NULL;
+    UINT8 remote_name_len = 0;
+
+    /* Check EIR for remote name and services */
+    if (p_search_data->inq_res.p_eir)
+    {
+        p_eir_remote_name = BTA_CheckEirData(p_search_data->inq_res.p_eir,
+                BTM_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
+
+        if (p_eir_remote_name)
+        {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+/*******************************************************************************
+**
 ** Function         check_eir_remote_name
 **
 ** Description      Check if remote name is in the EIR data
@@ -1098,13 +1127,11 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
                 status = BT_STATUS_AUTH_REJECTED;
                 break;
 
-            case HCI_ERR_LMP_RESPONSE_TIMEOUT:
-                status =  BT_STATUS_AUTH_FAILURE;
-                break;
 
             /* map the auth failure codes, so we can retry pairing if necessary */
             case HCI_ERR_AUTH_FAILURE:
             case HCI_ERR_KEY_MISSING:
+            case HCI_ERR_LMP_RESPONSE_TIMEOUT:
                 btif_storage_remove_bonded_device(&bd_addr);
             case HCI_ERR_HOST_REJECT_SECURITY:
             case HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE:
@@ -1265,10 +1292,18 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
                 }
                 else if (bdname.name[0])
                 {
-                    BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
-                                               BT_PROPERTY_BDNAME,
+                    if( (check_eir_is_remote_name_short(p_search_data) == TRUE) &&
+                        (btif_storage_is_device_bonded(&bdaddr) == TRUE) )
+                    {
+                        BTIF_TRACE_DEBUG("%s Don't update about the device name ", __FUNCTION__);
+                    }
+                    else
+                    {
+                        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                                                   BT_PROPERTY_BDNAME,
                                                strlen((char *)bdname.name), &bdname);
-                    num_properties++;
+                        num_properties++;
+                    }
                 }
 
                 /* DEV_CLASS */
@@ -1364,7 +1399,8 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
         case BTA_DM_DISC_RES_EVT:
         {
             bt_uuid_t uuid_arr[BT_MAX_NUM_UUIDS]; /* Max 32 services */
-            bt_property_t prop;
+            bt_property_t prop[2];
+            int num_properties = 0;
             uint32_t i = 0,  j = 0;
             bt_bdaddr_t bd_addr;
             bt_status_t ret;
@@ -1382,12 +1418,12 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                 btif_dm_get_remote_services(&bd_addr);
                 return;
             }
-            prop.type = BT_PROPERTY_UUIDS;
-            prop.len = 0;
+            prop[0].type = BT_PROPERTY_UUIDS;
+            prop[0].len = 0;
             if ((p_data->disc_res.result == BTA_SUCCESS) && (p_data->disc_res.num_uuids > 0))
             {
-                 prop.val = p_data->disc_res.p_uuid_list;
-                 prop.len = p_data->disc_res.num_uuids * MAX_UUID_SIZE;
+                 prop[0].val = p_data->disc_res.p_uuid_list;
+                 prop[0].len = p_data->disc_res.num_uuids * MAX_UUID_SIZE;
                  for (i=0; i < p_data->disc_res.num_uuids; i++)
                  {
                       char temp[256];
@@ -1412,12 +1448,30 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
             if(p_data->disc_res.num_uuids != 0)
             {
                 /* Also write this to the NVRAM */
-                ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
+                ret = btif_storage_set_remote_device_property(&bd_addr, &prop[0]);
                 ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed", ret);
+                num_properties++;
+            }
+
+            /* Remote name update */
+            if (strlen((const char *) p_data->disc_res.bd_name))
+            {
+                prop[1].type = BT_PROPERTY_BDNAME;
+                prop[1].val = p_data->disc_res.bd_name;
+                prop[1].len = strlen((char *)p_data->disc_res.bd_name);
+
+                ret = btif_storage_set_remote_device_property(&bd_addr, &prop[1]);
+                ASSERTC(ret == BT_STATUS_SUCCESS, "failed to save remote device property", ret);
+                num_properties++;
+            }
+
+            if(num_properties > 0)
+            {
                 /* Send the event to the BTIF */
                 HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
-                                 BT_STATUS_SUCCESS, &bd_addr, 1, &prop);
+                                 BT_STATUS_SUCCESS, &bd_addr, num_properties, prop);
             }
+
         }
         break;
 
@@ -2204,7 +2258,11 @@ bt_status_t btif_dm_start_discovery(void)
     tBTA_SERVICE_MASK services = 0;
     tBTA_DM_BLE_PF_FILT_PARAMS adv_filt_param;
 
-    BTIF_TRACE_EVENT("%s", __FUNCTION__);
+    BTIF_TRACE_EVENT("%s : pairing_cb.state: 0x%x", __FUNCTION__, pairing_cb.state);
+
+    /* We should not go for inquiry in BONDING STATE. */
+    if (pairing_cb.state == BT_BOND_STATE_BONDING)
+        return BT_STATUS_BUSY;
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     memset(&adv_filt_param, 0, sizeof(tBTA_DM_BLE_PF_FILT_PARAMS));

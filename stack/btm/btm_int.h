@@ -1120,6 +1120,7 @@ extern void               btm_sec_free_dev (tBTM_SEC_DEV_REC *p_dev_rec);
 extern tBTM_SEC_DEV_REC  *btm_find_dev (BD_ADDR bd_addr);
 extern tBTM_SEC_DEV_REC  *btm_find_or_alloc_dev (BD_ADDR bd_addr);
 extern tBTM_SEC_DEV_REC  *btm_find_dev_by_handle (UINT16 handle);
+extern tBTM_SEC_DEV_REC  *btm_find_dev_by_sec_state(UINT8 sec_state);
 
 /* Internal functions provided by btm_sec.c
 **********************************************
