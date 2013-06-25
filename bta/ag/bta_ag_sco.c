@@ -215,8 +215,10 @@ static void bta_ag_sco_disc_cback(UINT16 sco_idx)
         /* Restore settings */
         if(bta_ag_cb.sco.p_curr_scb->inuse_codec == BTA_AG_CODEC_MSBC)
         {
+#if (BLUETOOTH_QCOM_SW == FALSE) /* This change is not needed.*/
             BTM_SetWBSCodec (BTM_SCO_CODEC_NONE);
             BTM_WriteVoiceSettings (BTM_VOICE_SETTING_CVSD);
+#endif
 
             /* If SCO open was initiated by AG and failed for mSBC, try CVSD again. */
             if (bta_ag_sco_is_opening (bta_ag_cb.sco.p_curr_scb))
@@ -532,6 +534,7 @@ static void bta_ag_create_sco(tBTA_AG_SCB *p_scb, BOOLEAN is_orig)
 #endif
 
 #if (BTM_WBS_INCLUDED == TRUE )
+#if (BLUETOOTH_QCOM_SW == FALSE) /* These changes are not needed*/
         if (esco_codec == BTA_AG_CODEC_MSBC)
         {
             /* Enable mSBC codec in fw */
@@ -547,7 +550,7 @@ static void bta_ag_create_sco(tBTA_AG_SCB *p_scb, BOOLEAN is_orig)
             BTM_WriteVoiceSettings (BTM_VOICE_SETTING_TRANS);
         else
             BTM_WriteVoiceSettings (BTM_VOICE_SETTING_CVSD);
-
+#endif
         /* save the current codec because sco_codec can be updated while SCO is open. */
         p_scb->inuse_codec = esco_codec;
 #endif
@@ -1524,10 +1527,13 @@ void bta_ag_sco_conn_rsp(tBTA_AG_SCB *p_scb, tBTM_ESCO_CONN_REQ_EVT_DATA *p_data
         /* Allow any platform specific pre-SCO set up to take place */
         bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_SETUP);
 
+#if (BLUETOOTH_QCOM_SW == FALSE ) /*Not required .*/
 #if (BTM_WBS_INCLUDED == TRUE )
         /* When HS initiated SCO, it cannot be WBS. */
         BTM_ConfigI2SPCM (BTM_SCO_CODEC_CVSD, (UINT8)HCI_BRCM_I2SPCM_IS_DEFAULT_ROLE, (UINT8)HCI_BRCM_I2SPCM_SAMPLE_DEFAULT, (UINT8)HCI_BRCM_I2SPCM_CLOCK_DEFAULT);
 #endif
+#endif
+
 
 #if (BTM_SCO_HCI_INCLUDED == TRUE )
         pcm_sample_rate = BTA_DM_SCO_SAMP_RATE_8K;
