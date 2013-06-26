@@ -62,7 +62,7 @@
 
 #define BTIF_DM_DEFAULT_INQ_MAX_RESULTS     0
 #define BTIF_DM_DEFAULT_INQ_MAX_DURATION    10
-
+#define BTIF_DM_MAX_SDP_ATTEMPTS_AFTER_PAIRING 2
 
 
 typedef struct
@@ -74,7 +74,7 @@ typedef struct
     UINT8   is_ssp;
     UINT8   autopair_attempts;
     UINT8   is_local_initiated;
-    UINT8   bonded_pending_sdp;
+    UINT8   sdp_attempts;
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     BOOLEAN          is_le_only;
     btif_dm_ble_cb_t ble;
@@ -739,7 +739,7 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
         cod = COD_UNCLASSIFIED;
     }
 
-    pairing_cb.bonded_pending_sdp = FALSE;
+    pairing_cb.sdp_attempts = 0;
     HAL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name, cod,
                      (p_ssp_cfm_req->just_works ? BT_SSP_VARIANT_CONSENT : BT_SSP_VARIANT_PASSKEY_CONFIRMATION),
                      p_ssp_cfm_req->num_val);
@@ -815,7 +815,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         state = BT_BOND_STATE_BONDED;
 
         /* Trigger SDP on the device */
-        pairing_cb.bonded_pending_sdp = TRUE;
+        pairing_cb.sdp_attempts = 1;;
 
         if(btif_dm_inquiry_in_progress)
             btif_dm_cancel_discovery();
@@ -1064,6 +1064,15 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
 
             BTIF_TRACE_DEBUG3("%s:(result=0x%x, services 0x%x)", __FUNCTION__,
                     p_data->disc_res.result, p_data->disc_res.services);
+            if  ((p_data->disc_res.result != BTA_SUCCESS) &&
+                 (pairing_cb.state == BT_BOND_STATE_BONDING ) &&
+                 (pairing_cb.sdp_attempts < BTIF_DM_MAX_SDP_ATTEMPTS_AFTER_PAIRING))
+            {
+                BTIF_TRACE_WARNING1("%s:SDP failed after bonding re-attempting", __FUNCTION__);
+                pairing_cb.sdp_attempts++;
+                btif_dm_get_remote_services(&bd_addr);
+                return;
+            }
             prop.type = BT_PROPERTY_UUIDS;
             prop.len = 0;
             if ((p_data->disc_res.result == BTA_SUCCESS) && (p_data->disc_res.num_uuids > 0))
@@ -1083,11 +1092,11 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
             */
             if ((pairing_cb.state == BT_BOND_STATE_BONDING) &&
                 (bdcmp(p_data->disc_res.bd_addr, pairing_cb.bd_addr) == 0)&&
-                pairing_cb.bonded_pending_sdp == TRUE)
+                pairing_cb.sdp_attempts > 0)
             {
                  BTIF_TRACE_DEBUG1("%s Remote Service SDP done. Call bond_state_changed_cb BONDED",
                                    __FUNCTION__);
-                 pairing_cb.bonded_pending_sdp = FALSE;
+                 pairing_cb.sdp_attempts  = 0;
                  bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDED);
             }
 
@@ -1319,11 +1328,6 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 
         case BTA_DM_LINK_DOWN_EVT:
             bdcpy(bd_addr.address, p_data->link_down.bd_addr);
-            if ((pairing_cb.state == BT_BOND_STATE_BONDING) &&
-                (bdcmp(p_data->link_down.bd_addr, pairing_cb.bd_addr) == 0))
-            {
-                bond_state_changed(BT_STATUS_RMT_DEV_DOWN,&bd_addr, BT_BOND_STATE_NONE);
-            }
             BTIF_TRACE_DEBUG0("BTA_DM_LINK_DOWN_EVT. Sending BT_ACL_STATE_DISCONNECTED");
             HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
                       &bd_addr, BT_ACL_STATE_DISCONNECTED);
