@@ -233,7 +233,7 @@ int btif_a2dp_start_media_task(void);
 void btif_a2dp_stop_media_task(void);
 
 void btif_a2dp_on_init(void);
-void btif_a2dp_setup_codec(void);
+tBTIF_STATUS btif_a2dp_setup_codec(void);
 void btif_a2dp_on_idle(void);
 void btif_a2dp_on_open(void);
 void btif_a2dp_on_started(tBTA_AV_START *p_av);

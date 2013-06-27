@@ -750,13 +750,13 @@ void btif_a2dp_on_init(void)
 **
 ** Function        btif_a2dp_setup_codec
 **
-** Description
+** Description     does codec setup
 **
-** Returns
+** Returns        tBTIF_STATUS
 **
 *******************************************************************************/
 
-void btif_a2dp_setup_codec(void)
+tBTIF_STATUS btif_a2dp_setup_codec(void)
 {
     tBTIF_AV_MEDIA_FEEDINGS media_feeding;
     tBTIF_STATUS status;
@@ -786,6 +786,7 @@ void btif_a2dp_setup_codec(void)
     }
 
     GKI_enable();
+    return status;
 }
 
 
