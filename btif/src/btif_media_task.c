@@ -855,13 +855,13 @@ void btif_a2dp_on_init(void)
 **
 ** Function        btif_a2dp_setup_codec
 **
-** Description
+** Description     does codec setup
 **
-** Returns
+** Returns        tBTIF_STATUS
 **
 *******************************************************************************/
 
-void btif_a2dp_setup_codec(void)
+tBTIF_STATUS btif_a2dp_setup_codec(void)
 {
     tBTIF_AV_MEDIA_FEEDINGS media_feeding;
     tBTIF_STATUS status;
@@ -889,8 +889,12 @@ void btif_a2dp_setup_codec(void)
         /* Send message to Media task to configure transcoding */
         btif_media_task_audio_feeding_init_req(&mfeed);
     }
-
+    else
+    {
+        status = BTIF_ERROR_SRV_AV_FEEDING_NOT_SUPPORTED;
+    }
     GKI_enable();
+    return status;
 }
 
 

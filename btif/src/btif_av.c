@@ -668,6 +668,7 @@ static BOOLEAN btif_av_state_closing_handler(btif_sm_event_t event, void *p_data
 static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
 {
     tBTA_AV *p_av = (tBTA_AV*)p_data;
+    tBTIF_STATUS status = BTIF_SUCCESS;
 
     BTIF_TRACE_DEBUG("%s event:%s flags %x", __FUNCTION__,
                      dump_av_sm_event_name(event), btif_av_cb.flags);
@@ -691,10 +692,34 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             break;
 
         case BTIF_AV_START_STREAM_REQ_EVT:
-            if (btif_av_cb.peer_sep != AVDT_TSEP_SRC)
-                btif_a2dp_setup_codec();
-            BTA_AvStart();
-            btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
+            if (btif_av_cb.peer_sep == AVDT_TSEP_SRC)
+            {
+                BTA_AvStart();
+                btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
+                break;
+            }
+            status = btif_a2dp_setup_codec();
+            if (status == BTIF_SUCCESS)
+            {
+                BTA_AvStart();
+                btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
+            }
+            else if (status == BTIF_ERROR_SRV_AV_CP_NOT_SUPPORTED)
+            {
+#if defined(BTA_AV_DISCONNECT_IF_NO_SCMS_T) && (BTA_AV_DISCONNECT_IF_NO_SCMS_T == TRUE)
+                BTIF_TRACE_ERROR0("SCMST enabled, disconnect as remote does not support SCMST");
+                BTA_AvDisconnect(btif_av_cb.peer_bda.address);
+#else
+                BTIF_TRACE_WARNING("SCMST enabled, connecting to non SCMST SEP");
+                BTA_AvStart();
+                btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
+#endif
+            }
+            else
+            {
+                BTIF_TRACE_ERROR("## AV Disconnect## status : %x",status);
+                BTA_AvDisconnect(btif_av_cb.peer_bda.address);
+            }
             break;
 
         case BTIF_AV_UPDATE_ENCODER_REQ_EVT:

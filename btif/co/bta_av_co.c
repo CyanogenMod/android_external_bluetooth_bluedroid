@@ -1505,7 +1505,16 @@ BOOLEAN bta_av_co_audio_codec_supported(tBTIF_STATUS *p_status)
                     APPL_TRACE_DEBUG("bta_av_co_audio_codec_supported sink %d of peer %d doesn't support cp",
                             snk_index, index);
                     *p_status = BTIF_ERROR_SRV_AV_CP_NOT_SUPPORTED;
+#if defined(BTA_AV_CO_CP_SCMS_T) && (BTA_AV_CO_CP_SCMS_T == TRUE)
+                    if (!bta_av_co_audio_codec_build_config(p_sink->codec_caps, codec_cfg))
+                    {
+                        APPL_TRACE_DEBUG2("%s:index %d doesn't support codec", __FUNCTION__, index);
+                        return FALSE;
+                    }
+                    return TRUE;
+#else
                     return FALSE;
+#endif
                 }
 
                 /* Build the codec configuration for this sink */
