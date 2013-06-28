@@ -845,6 +845,14 @@ and USER_HW_DISABLE_API macros */
 #define BTM_SCO_INCLUDED            TRUE       /* TRUE includes SCO code */
 #endif
 
+/*  As per the specification we need not send this commands to controller during connection
+**  as it is decided in controller itself based on local and remote supported features.
+**  QCOM and Atheros controllers are behaving as per BT spec.
+*/
+#ifndef BTM_BYPASS_EXTRA_ACL_SETUP
+#define BTM_BYPASS_EXTRA_ACL_SETUP TRUE
+#endif
+
 /* Includes SCO if TRUE */
 #ifndef BTM_SCO_HCI_INCLUDED
 #define BTM_SCO_HCI_INCLUDED            FALSE       /* TRUE includes SCO over HCI code */
