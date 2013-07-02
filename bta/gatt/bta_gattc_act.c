@@ -729,7 +729,11 @@ void bta_gattc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     if (p_data->hdr.event == BTA_GATTC_API_CLOSE_EVT)
         cb_data.close.status = GATT_Disconnect(p_data->hdr.layer_specific);
 
-    ( * p_cback)(BTA_GATTC_CLOSE_EVT,   (tBTA_GATTC *)&cb_data);
+    if ((p_cback != NULL) && (*p_cback != NULL))
+    {
+        (*p_cback)(BTA_GATTC_CLOSE_EVT,(tBTA_GATTC *)&cb_data);
+    }
+
 
     if (p_clreg->num_clcb == 0 && p_clreg->dereg_pending)
     {
