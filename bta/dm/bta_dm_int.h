@@ -410,6 +410,7 @@ typedef struct
     BOOLEAN             dc_known;
     BD_NAME             bd_name;
     UINT8               features[BTA_FEATURE_BYTES_PER_PAGE * (BTA_EXT_FEATURES_PAGE_MAX + 1)];
+    UINT8               pin_len;
 } tBTA_DM_API_ADD_DEVICE;
 
 /* data type for BTA_DM_API_REMOVE_ACL_EVT */

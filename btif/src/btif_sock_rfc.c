@@ -58,6 +58,10 @@
 #include <hardware/bluetooth.h>
 #define asrt(s) if(!(s)) APPL_TRACE_ERROR3("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
+#define UUID_MAX_LENGTH 16
+
+#define IS_UUID(u1,u2)  !memcmp(u1,u2,UUID_MAX_LENGTH)
+
 extern void uuid_to_string(bt_uuid_t *p_uuid, char *str);
 static inline void logu(const char* title, const uint8_t * p_uuid)
 {
@@ -249,9 +253,15 @@ static rfc_slot_t* alloc_rfc_slot(const bt_bdaddr_t *addr, const char* name, con
     int security = 0;
     if(flags & BTSOCK_FLAG_ENCRYPT)
         security |= server ? BTM_SEC_IN_ENCRYPT : BTM_SEC_OUT_ENCRYPT;
-    if(flags & BTSOCK_FLAG_AUTH)
-        security |= server ? BTM_SEC_IN_AUTHENTICATE : BTM_SEC_OUT_AUTHENTICATE;
-
+    if(flags & BTSOCK_FLAG_AUTH) {
+        /* Convert SAP Authentication to High Authentication */
+        if(IS_UUID(UUID_SAP, uuid)) {
+            security |= BTM_SEC_IN_AUTH_HIGH;
+        }
+        else {
+            security |= server ? BTM_SEC_IN_AUTHENTICATE : BTM_SEC_OUT_AUTHENTICATE;
+        }
+    }
     rfc_slot_t* rs = find_free_slot();
     if(rs)
     {

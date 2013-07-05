@@ -547,7 +547,7 @@ typedef struct
     BOOLEAN     link_key_not_sent;      /* link key notification has not been sent waiting for name */
     UINT8       link_key_type;          /* Type of key used in pairing   */
     BOOLEAN     link_key_changed;       /* Changed link key during current connection */
-
+    UINT8       pin_key_len;            /* PIN key length of current pairing for Legacy devices */
 #define BTM_MAX_PRE_SM4_LKEY_TYPE   BTM_LKEY_TYPE_REMOTE_UNIT /* the link key type used by legacy pairing */
 
 #define BTM_SM4_UNKNOWN     0x00

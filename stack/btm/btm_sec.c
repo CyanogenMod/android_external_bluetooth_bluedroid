@@ -27,6 +27,7 @@
 #include "hcimsgs.h"
 #include "btu.h"
 #include "btm_int.h"
+#include "btm_api.h"
 #include "l2c_int.h"
 
 #if (BT_USE_TRACES == TRUE && BT_TRACE_VERBOSE == FALSE)
@@ -887,6 +888,8 @@ void BTM_PINCodeReply (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len, UINT8 *p_pin, 
 
     if ( (pin_len > PIN_CODE_LEN) || (pin_len == 0) || (p_pin == NULL) )
         res = BTM_ILLEGAL_VALUE;
+
+    p_dev_rec->pin_key_len = pin_len;
 
     if (res != BTM_SUCCESS)
     {
@@ -3013,7 +3016,7 @@ void btm_sec_rmt_name_request_complete (UINT8 *p_bd_addr, UINT8 *p_bd_name, UINT
         {
             BTM_TRACE_EVENT0 ("btm_sec_rmt_name_request_complete() calling pin_callback");
             btm_cb.pairing_flags |= BTM_PAIR_FLAGS_PIN_REQD;
-            (*btm_cb.api.p_pin_callback) (p_dev_rec->bd_addr, p_dev_rec->dev_class, p_bd_name);
+            (*btm_cb.api.p_pin_callback) (p_dev_rec->bd_addr, p_dev_rec->dev_class, p_bd_name, FALSE);
         }
 
         /* Set the same state again to force the timer to be restarted */
@@ -3919,6 +3922,10 @@ void btm_sec_auth_complete (UINT16 handle, UINT8 status)
         {
             btm_sec_send_hci_disconnect (p_dev_rec, HCI_ERR_AUTH_FAILURE);
         }
+        if ( (BTM_SEC_IS_SM4_LEGACY(p_dev_rec->sm4)) && (p_dev_rec->security_required & BTM_SEC_IN_AUTH_HIGH ))
+        {
+            p_dev_rec->pin_key_len = 0;
+        }
         return;
     }
 
@@ -4657,6 +4664,13 @@ void btm_sec_link_key_request (UINT8 *p_bda)
     BTM_TRACE_EVENT6 ("btm_sec_link_key_request()  BDA: %02x:%02x:%02x:%02x:%02x:%02x",
                       p_bda[0], p_bda[1], p_bda[2], p_bda[3], p_bda[4], p_bda[5]);
 
+    if ( (BTM_SEC_IS_SM4_LEGACY(p_dev_rec->sm4)) && (p_dev_rec->security_required & BTM_SEC_IN_AUTH_HIGH)
+         && ((p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED) && (p_dev_rec->pin_key_len < 16)) )
+    {
+        btsnd_hcic_link_key_neg_reply (p_bda);
+        return;
+    }
+
     if (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN)
     {
         btsnd_hcic_link_key_req_reply (p_bda, p_dev_rec->link_key);
@@ -4955,7 +4969,16 @@ void btm_sec_pin_code_request (UINT8 *p_bda)
 
             btm_cb.pairing_flags |= BTM_PAIR_FLAGS_PIN_REQD;
             if (p_cb->api.p_pin_callback)
-                (*p_cb->api.p_pin_callback) (p_bda, p_dev_rec->dev_class, p_dev_rec->sec_bd_name);
+            {
+                if(p_dev_rec->security_required & BTM_SEC_IN_AUTH_HIGH)
+                {
+                    (*p_cb->api.p_pin_callback) (p_bda, p_dev_rec->dev_class, p_dev_rec->sec_bd_name, TRUE);
+                }
+                else
+                {
+                    (*p_cb->api.p_pin_callback) (p_bda, p_dev_rec->dev_class, p_dev_rec->sec_bd_name, FALSE);
+                }
+            }
         }
         else
         {
@@ -4975,7 +4998,16 @@ void btm_sec_pin_code_request (UINT8 *p_bda)
 
                 btm_cb.pairing_flags |= BTM_PAIR_FLAGS_PIN_REQD;
                 if (p_cb->api.p_pin_callback)
-                    (*p_cb->api.p_pin_callback) (p_bda, p_dev_rec->dev_class, p_dev_rec->sec_bd_name);
+                {
+                    if(p_dev_rec->security_required & BTM_SEC_IN_AUTH_HIGH)
+                    {
+                        (*p_cb->api.p_pin_callback) (p_bda, p_dev_rec->dev_class, p_dev_rec->sec_bd_name, TRUE);
+                    }
+                    else
+                    {
+                        (*p_cb->api.p_pin_callback) (p_bda, p_dev_rec->dev_class, p_dev_rec->sec_bd_name, FALSE);
+                    }
+                }
             }
         }
     }
@@ -5043,6 +5075,28 @@ static tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec)
     {
         BTM_TRACE_EVENT0 ("Security Manager: Start get name");
         if (!btm_sec_start_get_name (p_dev_rec))
+        {
+            return(BTM_NO_RESOURCES);
+        }
+        return(BTM_CMD_STARTED);
+    }
+
+    /* If connection is not high authenticated and high authentication is required for legacy devices */
+    /* start authentication and return PENDING to the caller */
+    if ((BTM_SEC_IS_SM4_LEGACY(p_dev_rec->sm4))
+         && (!p_dev_rec->is_originator && (p_dev_rec->security_required & BTM_SEC_IN_AUTH_HIGH))
+         && ((!(p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED)) ||
+              ((p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED) && (p_dev_rec->pin_key_len < 16)))
+         && (p_dev_rec->hci_handle != BTM_SEC_INVALID_HANDLE))
+    {
+#if (L2CAP_UCD_INCLUDED == TRUE)
+        /* if incoming UCD packet, discard it */
+        if ( !p_dev_rec->is_originator && (p_dev_rec->is_ucd == TRUE ))
+            return(BTM_FAILED_ON_SECURITY);
+#endif
+        BTM_TRACE_EVENT0 ("Security Manager: Start High security authentication");
+
+        if (!btm_sec_start_authentication (p_dev_rec))
         {
             return(BTM_NO_RESOURCES);
         }
@@ -5731,7 +5785,7 @@ static BOOLEAN btm_sec_check_prefetch_pin (tBTM_SEC_DEV_REC  *p_dev_rec)
                 BTM_TRACE_DEBUG0("btm_sec_check_prefetch_pin: PIN code callback called");
                 if (btm_bda_to_acl(p_dev_rec->bd_addr) == NULL)
                 btm_cb.pairing_flags |= BTM_PAIR_FLAGS_PIN_REQD;
-                (btm_cb.api.p_pin_callback) (p_dev_rec->bd_addr, p_dev_rec->dev_class, p_dev_rec->sec_bd_name);
+                (btm_cb.api.p_pin_callback) (p_dev_rec->bd_addr, p_dev_rec->dev_class, p_dev_rec->sec_bd_name, FALSE);
             }
         }
 

@@ -1120,6 +1120,7 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_SEC_ATTEMPT_SLAVE      0x0800 /* Try to switch connection to be slave */
 #define BTM_SEC_IN_MITM            0x1000 /* inbound Do man in the middle protection */
 #define BTM_SEC_OUT_MITM           0x2000 /* outbound Do man in the middle protection */
+#define BTM_SEC_IN_AUTH_HIGH       0x4000 /* Inbound call requires high authentication 16 digits */
 
 /* Security Flags [bit mask] (BTM_GetSecurityFlags)
 */
@@ -1327,9 +1328,10 @@ typedef UINT8 (tBTM_AUTHORIZE_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
 **              BD Address of remote
 **              Device Class of remote
 **              BD Name of remote
+**              Secure PIN code
 */
 typedef UINT8 (tBTM_PIN_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                   tBTM_BD_NAME bd_name);
+                                   tBTM_BD_NAME bd_name, BOOLEAN secure);
 
 
 /* Get Link Key for the connection.  Parameters are
@@ -3849,7 +3851,8 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 ** Description      Add/modify device.  This function will be normally called
 **                  during host startup to restore all required information
 **                  stored in the NVRAM.
-**                  dev_class, bd_name, link_key, and features are NULL if unknown
+**                  dev_class, bd_name, link_key, pin_len and features are NULL
+**                  if unknown
 **
 ** Returns          TRUE if added OK, else FALSE
 **
@@ -3857,7 +3860,8 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
     BTM_API extern BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class,
                                              BD_NAME bd_name, UINT8 *features,
                                              UINT32 trusted_mask[], LINK_KEY link_key,
-                                             UINT8 key_type, tBTM_IO_CAP io_cap);
+                                             UINT8 key_type, tBTM_IO_CAP io_cap,
+                                             UINT8 pin_len);
 
 
 /*******************************************************************************

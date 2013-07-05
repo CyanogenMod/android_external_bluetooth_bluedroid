@@ -741,7 +741,7 @@ void BTA_DmPasskeyCancel(BD_ADDR bd_addr)
 *******************************************************************************/
 void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
                      tBTA_SERVICE_MASK trusted_mask, BOOLEAN is_trusted,
-                     UINT8 key_type, tBTA_IO_CAP io_cap)
+                     UINT8 key_type, tBTA_IO_CAP io_cap, UINT8 pin_len)
 {
 
     tBTA_DM_API_ADD_DEVICE *p_msg;
@@ -755,6 +755,7 @@ void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
         p_msg->tm = trusted_mask;
         p_msg->is_trusted = is_trusted;
         p_msg->io_cap = io_cap;
+        p_msg->pin_len = pin_len;
 
         if (link_key)
         {
@@ -836,6 +837,7 @@ void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
         p_msg->tm = trusted_mask;
         p_msg->is_trusted = is_trusted;
         p_msg->io_cap = io_cap;
+        p_msg->pin_len = 0;
 
         if (link_key)
         {
