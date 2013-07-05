@@ -731,6 +731,7 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     bt_bdname_t bd_name;
     UINT32 cod;
     bt_pin_code_t pin_code;
+    BOOLEAN secure;
 
     /* Remote properties update */
     btif_update_remote_properties(p_pin_req->bd_addr, p_pin_req->bd_name,
@@ -742,6 +743,8 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
 
     cod = devclass2uint(p_pin_req->dev_class);
+
+    secure = p_pin_req->secure;
 
     if ( cod == 0) {
         BTIF_TRACE_DEBUG1("%s():cod is 0, set as unclassified", __FUNCTION__);
@@ -793,7 +796,7 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
         }
     }
     HAL_CBACK(bt_hal_cbacks, pin_request_cb,
-                     &bd_addr, &bd_name, cod);
+                     &bd_addr, &bd_name, cod, secure);
 }
 
 /*******************************************************************************
@@ -2670,7 +2673,7 @@ static void btif_dm_ble_passkey_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     cod = COD_UNCLASSIFIED;
 
     HAL_CBACK(bt_hal_cbacks, pin_request_cb,
-              &bd_addr, &bd_name, cod);
+              &bd_addr, &bd_name, cod, FALSE);
 }
 
 
