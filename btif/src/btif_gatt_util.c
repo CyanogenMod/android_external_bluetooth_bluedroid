@@ -117,7 +117,7 @@ void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src)
     }
 }
 
-void btif_to_bta_char_id(tBTA_GATT_ID *p_dest, btgatt_char_id_t *p_src)
+void btif_to_bta_gatt_id(tBTA_GATT_ID *p_dest, btgatt_gatt_id_t *p_src)
 {
     p_dest->inst_id = p_src->inst_id;
     btif_to_bta_uuid(&p_dest->uuid, &p_src->uuid);
@@ -182,7 +182,7 @@ void bta_to_btif_uuid(bt_uuid_t *p_dest, tBT_UUID *p_src)
 }
 
 
-void bta_to_btif_char_id(btgatt_char_id_t *p_dest, tBTA_GATT_ID *p_src)
+void bta_to_btif_gatt_id(btgatt_gatt_id_t *p_dest, tBTA_GATT_ID *p_src)
 {
     p_dest->inst_id = p_src->inst_id;
     bta_to_btif_uuid(&p_dest->uuid, &p_src->uuid);
@@ -227,8 +227,8 @@ uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src)
 
     p_dest->status = p_src->status;
     bta_to_btif_srvc_id(&p_dest->srvc_id, &p_src->srvc_id);
-    bta_to_btif_char_id(&p_dest->char_id, &p_src->char_id);
-    bta_to_btif_uuid(&p_dest->descr_id, &p_src->descr_type.uuid);
+    bta_to_btif_gatt_id(&p_dest->char_id, &p_src->char_id);
+    bta_to_btif_gatt_id(&p_dest->descr_id, &p_src->descr_type);
 
     descr_type = get_uuid16(&p_src->descr_type.uuid);
 
