@@ -27,6 +27,7 @@
 
 #include "bta_api.h"
 #include "bta_gatt_api.h"
+#include "bta_jv_api.h"
 #include "bd.h"
 #include "btif_storage.h"
 
@@ -41,20 +42,10 @@
 #define GATTC_READ_VALUE_TYPE_VALUE          0x0000  /* Attribute value itself */
 #define GATTC_READ_VALUE_TYPE_AGG_FORMAT     0x2905  /* Characteristic Aggregate Format*/
 
-#define BTIF_GATT_MAX_ENC_LINK_RECORDS       10
-
-typedef struct
-{
-    BD_ADDR         bd_addr;
-    BOOLEAN         in_use;
-}__attribute__((packed)) btif_gatt_encrypted_link_t;
-
 static char BASE_UUID[16] = {
     0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80,
     0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
-
-static btif_gatt_encrypted_link_t encrypted_links[BTIF_GATT_MAX_ENC_LINK_RECORDS];
 
 extern bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr);
 
@@ -271,72 +262,19 @@ static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_STATUS result);
 
 static BOOLEAN btif_gatt_is_link_encrypted (BD_ADDR bd_addr)
 {
-    btif_gatt_encrypted_link_t *p_link = &encrypted_links[0];
-    int i;
-
     if (bd_addr == NULL)
         return FALSE;
 
-    for (i = 0; i != BTIF_GATT_MAX_ENC_LINK_RECORDS; ++i, ++p_link)
-    {
-        if (p_link->in_use && (!memcmp(p_link->bd_addr, bd_addr, BD_ADDR_LEN)))
-            return TRUE;
-    }
-    return FALSE;
-}
-
-static BOOLEAN btif_gatt_add_encrypted_link (BD_ADDR bd_addr)
-{
-    btif_gatt_encrypted_link_t *p_link = &encrypted_links[0];
-    int i;
-
-    if (bd_addr == NULL)
-        return FALSE;
-
-    if (btif_gatt_is_link_encrypted(bd_addr))
-        return TRUE;
-
-    for (i = 0; i != BTIF_GATT_MAX_ENC_LINK_RECORDS; ++i, ++p_link)
-    {
-        if (!p_link->in_use)
-        {
-            p_link->in_use = TRUE;
-            memcpy( p_link->bd_addr, bd_addr, sizeof(BD_ADDR) );
-            return  TRUE;
-        }
-    }
-
-    return FALSE;
-}
-
-void btif_gatt_remove_encrypted_link (BD_ADDR bd_addr)
-{
-    btif_gatt_encrypted_link_t *p_link = &encrypted_links[0];
-    int i;
-
-    if (bd_addr == NULL)
-        return;
-
-    for (i = 0; i != BTIF_GATT_MAX_ENC_LINK_RECORDS; ++i, ++p_link)
-    {
-        if (p_link->in_use && (!memcmp (p_link->bd_addr, bd_addr, BD_ADDR_LEN)))
-        {
-            p_link->in_use = FALSE;
-            break;
-        }
-    }
+    return BTA_JvIsEncrypted(bd_addr);
 }
 
 static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_STATUS result)
 {
-    if (result == BTA_SUCCESS)
+    if (result != BTA_SUCCESS)
     {
-        btif_gatt_add_encrypted_link(bd_addr);
-    } else {
         bt_bdaddr_t bda;
         bdcpy(bda.address, bd_addr);
 
-        btif_gatt_remove_encrypted_link(bd_addr);
         btif_dm_remove_bond(&bda);
     }
 }

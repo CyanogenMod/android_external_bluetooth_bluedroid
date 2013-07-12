@@ -437,9 +437,6 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             bdcpy(bda.address, p_data->close.remote_bda);
             HAL_CBACK(bt_gatt_callbacks, client->close_cb, p_data->close.conn_id
                 , p_data->status, p_data->close.client_if, &bda);
-
-            if(p_data->status == BTA_GATT_OK)
-                btif_gatt_remove_encrypted_link(p_data->close.remote_bda);
             break;
         }
 
