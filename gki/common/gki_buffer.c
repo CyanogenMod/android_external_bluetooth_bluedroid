@@ -401,8 +401,11 @@ void *GKI_getbuf (UINT16 size)
         /* Only look at PUBLIC buffer pools (bypass RESTRICTED pools) */
         if (((UINT16)1 << p_cb->pool_list[i]) & p_cb->pool_access_mask)
             continue;
+        if ( size <= p_cb->freeq[p_cb->pool_list[i]].size )
+             Q = &p_cb->freeq[p_cb->pool_list[i]];
+        else
+             continue;
 
-        Q = &p_cb->freeq[p_cb->pool_list[i]];
         if(Q->cur_cnt < Q->total)
         {
 // btla-specific ++
