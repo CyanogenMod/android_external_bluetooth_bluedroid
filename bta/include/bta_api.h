@@ -282,6 +282,9 @@ typedef struct
     BOOLEAN             report_dup;     /* report duplicated inquiry response with higher RSSI value */
     tBTA_DM_INQ_FILT    filter_type;    /* Filter condition type. */
     tBTA_DM_INQ_COND    filter_cond;    /* Filter condition data. */
+#ifdef BLUETOOTH_QCOM_LE_INTL_SCAN
+    UINT8               intl_duration[4];/*duration array storing the interleave scan's time portions*/
+#endif
 } tBTA_DM_INQ;
 
 typedef struct
