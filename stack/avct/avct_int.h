@@ -96,6 +96,8 @@ typedef struct {
     UINT8               ch_flags;       /* L2CAP configuration flags */
     BT_HDR              *p_tx_msg;      /* Message to be sent - in case the browsing channel is not open when MsgReg is called */
     UINT8               ch_close;       /* CCB index+1, if CCB initiated channel close */
+    BUFFER_Q            tx_q;           /* Transmit data buffer queue       */
+    BOOLEAN             cong;           /* TRUE, if congested */
 } tAVCT_BCB;
 
 #define AVCT_ALOC_LCB       0x01

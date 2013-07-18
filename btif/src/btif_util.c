@@ -508,6 +508,7 @@ const char *dump_rc_event(UINT8 event)
         CASE_RETURN_STR(BTA_AV_VENDOR_RSP_EVT)
         CASE_RETURN_STR(BTA_AV_META_MSG_EVT)
         CASE_RETURN_STR(BTA_AV_RC_FEAT_EVT)
+        CASE_RETURN_STR(BTA_AV_BROWSE_MSG_EVT)
         default:
             return "UNKNOWN_EVENT";
    }
@@ -550,6 +551,7 @@ const char*  dump_rc_pdu(UINT8 pdu)
         CASE_RETURN_STR(AVRC_PDU_REQUEST_CONTINUATION_RSP)
         CASE_RETURN_STR(AVRC_PDU_ABORT_CONTINUATION_RSP)
         CASE_RETURN_STR(AVRC_PDU_SET_ABSOLUTE_VOLUME)
+        CASE_RETURN_STR(AVRC_PDU_SET_ADDRESSED_PLAYER)
         default:
             return "Unknown PDU";
     }

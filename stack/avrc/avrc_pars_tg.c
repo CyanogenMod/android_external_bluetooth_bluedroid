@@ -262,6 +262,14 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
 
     /* case AVRC_PDU_REQUEST_CONTINUATION_RSP: 0x40 */
     /* case AVRC_PDU_ABORT_CONTINUATION_RSP:   0x41 */
+    case AVRC_PDU_SET_ADDRESSED_PLAYER:
+        if (len != 2)
+        {
+           status = AVRC_STS_INTERNAL_ERR;
+           return status ;
+        }
+        BE_STREAM_TO_UINT16 (p_result->addr_player.player_id, p);
+        break;
 
     default:
         status = AVRC_STS_BAD_CMD;

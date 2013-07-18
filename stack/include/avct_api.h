@@ -47,6 +47,7 @@
 #define AVCT_REV_1_0                0x0100
 #define AVCT_REV_1_2                0x0102
 #define AVCT_REV_1_3                0x0103
+#define AVCT_REV_1_4                0x0104
 
 /* the layer_specific settings */
 #define AVCT_DATA_CTRL              0x0001    /* for the control channel */

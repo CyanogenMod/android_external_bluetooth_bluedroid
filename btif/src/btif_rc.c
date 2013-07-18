@@ -46,7 +46,9 @@
 /* cod value for Headsets */
 #define COD_AV_HEADSETS        0x0404
 /* for AVRC 1.4 need to change this */
-#define MAX_RC_NOTIFICATIONS AVRC_EVT_APP_SETTING_CHANGE
+#define MAX_RC_NOTIFICATIONS AVRC_EVT_VOLUME_CHANGE
+//#define TEST_BROWSE_RESPONSE
+#define MAX_FOLDER_RSP_SUPPORT 3
 
 #define IDX_GET_PLAY_STATUS_RSP   0
 #define IDX_LIST_APP_ATTR_RSP     1
@@ -56,10 +58,13 @@
 #define IDX_GET_APP_ATTR_TXT_RSP  5
 #define IDX_GET_APP_VAL_TXT_RSP   6
 #define IDX_GET_ELEMENT_ATTR_RSP  7
+#define IDX_GET_FOLDER_ITEMS_RSP  8
+#define IDX_SET_FOLDER_ITEM_RSP   9
+#define IDX_SET_ADDRESS_PLAYER_RSP 10
 #define MAX_VOLUME 128
 #define MAX_LABEL 16
 #define MAX_TRANSACTIONS_PER_SESSION 16
-#define MAX_CMD_QUEUE_LEN 8
+#define MAX_CMD_QUEUE_LEN 11
 
 #define CHECK_RC_CONNECTED                                                                  \
     BTIF_TRACE_DEBUG1("## %s ##", __FUNCTION__);                                            \
@@ -84,6 +89,21 @@
         return BT_STATUS_UNHANDLED;                                                            \
     }                                                                                          \
     send_metamsg_rsp(btif_rc_cb.rc_handle, btif_rc_cb.rc_pdu_info[index].label,                \
+        btif_rc_cb.rc_pdu_info[index].ctype, avrc_rsp);                                        \
+    btif_rc_cb.rc_pdu_info[index].ctype = 0;                                                   \
+    btif_rc_cb.rc_pdu_info[index].label = 0;                                                   \
+    btif_rc_cb.rc_pdu_info[index].is_rsp_pending = FALSE;                                      \
+}
+
+
+#define SEND_BROWSEMSG_RSP(index , avrc_rsp)                                                   \
+{                                                                                              \
+    if(btif_rc_cb.rc_pdu_info[index].is_rsp_pending == FALSE)                                  \
+    {                                                                                          \
+        BTIF_TRACE_WARNING1("%s Not sending response as no PDU was registered", __FUNCTION__); \
+        return BT_STATUS_UNHANDLED;                                                            \
+    }                                                                                          \
+    send_browsemsg_rsp(btif_rc_cb.rc_handle, btif_rc_cb.rc_pdu_info[index].label,              \
         btif_rc_cb.rc_pdu_info[index].ctype, avrc_rsp);                                        \
     btif_rc_cb.rc_pdu_info[index].ctype = 0;                                                   \
     btif_rc_cb.rc_pdu_info[index].label = 0;                                                   \
@@ -176,6 +196,11 @@ static rc_transaction_t* get_transaction_by_lbl(UINT8 label);
 static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg);
 static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND* p_param, UINT8 ctype, UINT8 label);
 static void btif_rc_upstreams_rsp_evt(UINT16 event, tAVRC_RESPONSE *pavrc_resp, UINT8 ctype, UINT8 label);
+
+/*Added for Browsing Message Response */
+static void send_browsemsg_rsp (UINT8 rc_handle, UINT8 label,
+    tBTA_AV_CODE code, tAVRC_RESPONSE *pmetamsg_resp);
+
 
 /*****************************************************************************
 **  Static variables
@@ -643,6 +668,96 @@ void handle_rc_metamsg_cmd (tBTA_AV_META_MSG *pmeta_msg)
     }
 }
 
+
+/************************************************************************************
+*  Function                 handle_rc_browsemsg_cmd
+*
+* - Argument:               tBTA_AV_BROWSE_MSG  structure containing  the recieved
+*                           browse message
+*
+*  - Description:           Remote Control browse message handler
+*
+************************************************************************************/
+void handle_rc_browsemsg_cmd (tBTA_AV_BROWSE_MSG *pbrowse_msg)
+{
+    UINT16 event,length;
+    tAVRC_COMMAND cmd;
+    UINT8 *start_item, *p_length;
+    UINT8 *end_item;
+    tAVRC_RESPONSE avrc_rsp;
+    UINT8  dropmsg = TRUE;
+
+    BTIF_TRACE_EVENT1("+ %s", __FUNCTION__);
+    BTIF_TRACE_EVENT1("pbrowse_msg PDU_ID :%x",pbrowse_msg->p_msg->browse.p_browse_data[0]);
+    BTIF_TRACE_EVENT1("pbrowse_msg length :%x",pbrowse_msg->p_msg->browse.browse_len);
+    switch(pbrowse_msg->p_msg->browse.p_browse_data[0])
+    {
+        case AVRC_PDU_GET_FOLDER_ITEMS:
+            event  = pbrowse_msg->p_msg->browse.p_browse_data[0] ;
+            cmd.get_items.pdu    = event;
+            //Check length
+            p_length = &pbrowse_msg->p_msg->browse.p_browse_data[1];
+            BE_STREAM_TO_UINT16(length, p_length);
+            if (length != 10) //Refer to spec
+            {
+                BTIF_TRACE_ERROR1("GET_FOLDER_ITEMS: length error: =%d",length);
+            }
+            else
+            {
+                cmd.get_items.attr_count = pbrowse_msg->p_msg->browse.p_browse_data[12];
+                start_item = pbrowse_msg->p_msg->browse.p_browse_data+4;
+                BE_STREAM_TO_UINT32(cmd.get_items.start_item ,start_item);
+                BTIF_TRACE_EVENT1("pbrowse_msg start_item :%x",cmd.get_items.start_item);
+                end_item  =  pbrowse_msg->p_msg->browse.p_browse_data + 8;
+                BE_STREAM_TO_UINT32(cmd.get_items.end_item,end_item);
+                BTIF_TRACE_EVENT1("pbrowse_msg start_item :%x",cmd.get_items.end_item);
+                //Update OPCODE
+                cmd.get_items.opcode  = AVRC_OP_BROWSE;
+                cmd.get_items.scope   = pbrowse_msg->p_msg->browse.p_browse_data[3] ;
+                cmd.get_items.status = AVRC_STS_NO_ERROR ;
+                cmd.get_items.p_attr_list = NULL;
+                //Fill PDU to send Response
+                btif_rc_upstreams_evt(event,&cmd,0,pbrowse_msg->label);
+                dropmsg = FALSE;
+            }
+        break;
+        case AVRC_PDU_SET_BROWSED_PLAYER:
+            event  = pbrowse_msg->p_msg->browse.p_browse_data[0] ;
+            cmd.br_player.pdu     = event;
+            //Check for length
+            p_length = &pbrowse_msg->p_msg->browse.p_browse_data[1];
+            BE_STREAM_TO_UINT16(length, p_length);
+            if (length != 0x0002)
+            {
+                BTIF_TRACE_ERROR1("SET_BROWSED_PLAYERlength error: = %d",length);
+            }
+            else
+            {
+                p_length = &pbrowse_msg->p_msg->browse.p_browse_data[3];
+                BE_STREAM_TO_UINT16(cmd.br_player.player_id, p_length);
+                cmd.br_player.opcode = AVRC_OP_BROWSE;
+                btif_rc_upstreams_evt(event, &cmd, 0, pbrowse_msg->label);
+                dropmsg = FALSE;
+            }
+        break;
+
+        default:
+            BTIF_TRACE_ERROR0("pbrowse_msg ERROR");
+        break;
+    }
+    if (dropmsg == TRUE)
+    {
+        avrc_rsp.rsp.pdu    = pbrowse_msg->p_msg->browse.p_browse_data[0];
+        avrc_rsp.rsp.status = AVRC_STS_BAD_CMD;
+        avrc_rsp.rsp.opcode = AVRC_OP_BROWSE;
+        BTIF_TRACE_ERROR0("pbrowse_msg ERROR");
+        send_browsemsg_rsp(btif_rc_cb.rc_handle, pbrowse_msg->label, 0, &avrc_rsp);
+    }
+
+}
+
+
+
 /***************************************************************************
  **
  ** Function       btif_rc_handler
@@ -683,11 +798,16 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
         case BTA_AV_META_MSG_EVT:
         {
             BTIF_TRACE_DEBUG2("BTA_AV_META_MSG_EVT  code:%d label:%d", p_data->meta_msg.code,
-                p_data->meta_msg.label);
-            BTIF_TRACE_DEBUG3("  company_id:0x%x len:%d handle:%d", p_data->meta_msg.company_id,
-                p_data->meta_msg.len, p_data->meta_msg.rc_handle);
+                p_data->meta_msg.rc_handle);
             /* handle the metamsg command */
             handle_rc_metamsg_cmd(&(p_data->meta_msg));
+        }
+        break;
+        case BTA_AV_BROWSE_MSG_EVT:
+        {
+            BTIF_TRACE_DEBUG2("BTA_AV_BROWSE_MSG_EVT  label:%d handle:%d", p_data->browse_msg.label,
+                p_data->browse_msg.rc_handle);
+            handle_rc_browsemsg_cmd(&(p_data->browse_msg));
         }
         break;
         default:
@@ -907,6 +1027,68 @@ static UINT8 opcode_from_pdu(UINT8 pdu)
     return opcode;
 }
 
+/****************************************************************************
+* Function         send_browsemsg_rsp
+*
+* Arguments    -   rc_handle     RC handle corresponding to the connected RC
+*                  label         Label of the RC response
+*                  code          Response type---->Not needed for Browsing
+*                  pmetamsg_resp Vendor response
+*
+* Description  -   Remote control browse Message Rsp
+*
+*******************************************************************************/
+static void send_browsemsg_rsp (UINT8 rc_handle, UINT8 label, tBTA_AV_CODE code,
+                                                       tAVRC_RESPONSE *pbrowsemsg_resp)
+{
+    tAVRC_STS status;
+    BT_HDR *p_msg = NULL;
+
+    if (!pbrowsemsg_resp)
+    {
+        BTIF_TRACE_WARNING1("%s: Invalid response received from application", __FUNCTION__);
+        return;
+    }
+
+    BTIF_TRACE_EVENT5("+%s:rc_handle: %d, label: %d, code: 0x%02x, pdu: %s", __FUNCTION__,\
+                      rc_handle, label, code, dump_rc_pdu(pbrowsemsg_resp->rsp.pdu));
+    if (pbrowsemsg_resp->rsp.status != AVRC_STS_NO_ERROR)
+    {
+        BTIF_TRACE_ERROR0("send_browsemsg_rsp **Error**");
+    }
+    /*Browse Command and Response structure are different
+     *as comapared to Meta data response ,opcode and c-type
+     *not part of browse response hence handling browse response
+     *in seprate function
+    */
+    status = AVRC_BldBrowseResponse(rc_handle, pbrowsemsg_resp, &p_msg);
+    if (status == AVRC_STS_NO_ERROR)
+    {
+        BTA_AvMetaRsp(rc_handle, label, 0, p_msg);
+    }
+    else
+    {
+        BTIF_TRACE_ERROR2("%s: failed to build metamsg response. status: 0x%02x",
+                __FUNCTION__, status);
+    }
+}
+
+/****************************************************************************
+* Function         app_sendbrowsemsg
+*
+* Arguments    -   index         Of array stored while recieving command
+*                  avrc_rsp      Avrcp response from application
+*
+* Description  -   Send Browse message
+*
+*******************************************************************************/
+int app_sendbrowsemsg(UINT8 index ,tAVRC_RESPONSE *avrc_rsp)
+{
+   SEND_BROWSEMSG_RSP(index ,avrc_rsp);
+   return 0;
+}
+
+
 /*******************************************************************************
 **
 ** Function         btif_rc_upstreams_evt
@@ -925,19 +1107,117 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
     {
         case AVRC_PDU_GET_PLAY_STATUS:
         {
+            BTIF_TRACE_DEBUG0("AVRC_PDU_GET_PLAY_STATUS ");
             FILL_PDU_QUEUE(IDX_GET_PLAY_STATUS_RSP, ctype, label, TRUE)
             HAL_CBACK(bt_rc_callbacks, get_play_status_cb);
         }
         break;
         case AVRC_PDU_LIST_PLAYER_APP_ATTR:
+        {
+            BTIF_TRACE_DEBUG0("AVRC_PDU_LIST_PLAYER_APP_ATTR ");
+            FILL_PDU_QUEUE(IDX_LIST_APP_ATTR_RSP, ctype, label, TRUE)
+            HAL_CBACK(bt_rc_callbacks, list_player_app_attr_cb);
+        }
+        break;
         case AVRC_PDU_LIST_PLAYER_APP_VALUES:
+        {
+            BTIF_TRACE_DEBUG1("AVRC_PDU_LIST_PLAYER_APP_VALUES =%d" ,pavrc_cmd->list_app_values.attr_id);
+            if (pavrc_cmd->list_app_values.attr_id == 0)
+            {
+                send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
+                break;
+            }
+            FILL_PDU_QUEUE(IDX_LIST_APP_VALUE_RSP, ctype, label, TRUE)
+            HAL_CBACK(bt_rc_callbacks, list_player_app_values_cb ,pavrc_cmd->list_app_values.attr_id);
+        }
+        break;
         case AVRC_PDU_GET_CUR_PLAYER_APP_VALUE:
+        {
+            btrc_player_attr_t player_attr[BTRC_MAX_ELEM_ATTR_SIZE];
+            UINT8 player_attr_num;
+            BTIF_TRACE_DEBUG1("PLAYER_APP_VALUE PDU 0x13 = %d",pavrc_cmd->get_cur_app_val.num_attr);
+            if ((pavrc_cmd->get_cur_app_val.num_attr == 0) ||
+                  (pavrc_cmd->get_cur_app_val.num_attr > BTRC_MAX_ELEM_ATTR_SIZE))
+            {
+                send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
+                break;
+            }
+            memset( player_attr, 0, sizeof(player_attr));
+            for (player_attr_num = 0 ; player_attr_num < pavrc_cmd->get_cur_app_val.num_attr;
+                                                                            ++player_attr_num)
+            {
+                player_attr[player_attr_num] = pavrc_cmd->get_cur_app_val.attrs[player_attr_num];
+            }
+            FILL_PDU_QUEUE(IDX_GET_CURR_APP_VAL_RSP, ctype, label, TRUE)
+            HAL_CBACK(bt_rc_callbacks, get_player_app_value_cb ,
+                                               pavrc_cmd->get_cur_app_val.num_attr, player_attr );
+        }
+        break;
         case AVRC_PDU_SET_PLAYER_APP_VALUE:
+        {
+            btrc_player_settings_t attr;
+            UINT8 count;
+            tAVRC_RESPONSE avrc_rsp;
+            if ((pavrc_cmd->set_app_val.num_val== 0) ||
+                              (pavrc_cmd->set_app_val.num_val > BTRC_MAX_ELEM_ATTR_SIZE))
+            {
+                send_reject_response (btif_rc_cb.rc_handle, label,
+                                       pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
+                break;
+            }
+            else
+            {
+                for(count = 0; count < pavrc_cmd->set_app_val.num_val ; ++count)
+                {
+                    attr.attr_ids[count] = pavrc_cmd->set_app_val.p_vals[count].attr_id ;
+                    attr.attr_values[count]= pavrc_cmd->set_app_val.p_vals[count].attr_val;
+                }
+                attr.num_attr  =  pavrc_cmd->set_app_val.num_val ;
+                FILL_PDU_QUEUE(IDX_SET_APP_VAL_RSP, ctype, label, TRUE)
+                HAL_CBACK(bt_rc_callbacks, set_player_app_value_cb, &attr );
+            }
+        }
+        break;
         case AVRC_PDU_GET_PLAYER_APP_ATTR_TEXT:
+        {
+            btrc_player_attr_t player_attr_txt [BTRC_MAX_ELEM_ATTR_SIZE];
+            UINT8 count_txt = 0 ;
+            if ((pavrc_cmd->get_app_attr_txt.num_attr == 0) ||
+                   (pavrc_cmd->get_app_attr_txt.num_attr > BTRC_MAX_ELEM_ATTR_SIZE))
+            {
+                send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
+            }
+            else
+            {
+                for (count_txt = 0;count_txt < pavrc_cmd->get_app_attr_txt.num_attr ; ++count_txt)
+                {
+                    player_attr_txt[count_txt] = pavrc_cmd->get_app_attr_txt.attrs[count_txt];
+                }
+                FILL_PDU_QUEUE(IDX_GET_APP_ATTR_TXT_RSP, ctype, label, TRUE)
+                HAL_CBACK(bt_rc_callbacks, get_player_app_attrs_text_cb,
+                            pavrc_cmd->get_app_attr_txt.num_attr, player_attr_txt );
+            }
+        }
+        break;
         case AVRC_PDU_GET_PLAYER_APP_VALUE_TEXT:
         {
-            /* TODO: Add support for Application Settings */
-            send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_CMD);
+            if (pavrc_cmd->get_app_val_txt.attr_id == 0 ||
+                     pavrc_cmd->get_app_val_txt.attr_id > AVRC_PLAYER_VAL_GROUP_REPEAT)
+            {
+                send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
+                break;
+            }
+            if (pavrc_cmd->get_app_val_txt.num_val == 0)
+            {
+                send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
+            }
+            else
+            {
+                FILL_PDU_QUEUE(IDX_GET_APP_VAL_TXT_RSP, ctype, label, TRUE)
+                HAL_CBACK(bt_rc_callbacks, get_player_app_values_text_cb,
+                          pavrc_cmd->get_app_val_txt.attr_id, pavrc_cmd->get_app_val_txt.num_val,
+                          pavrc_cmd->get_app_val_txt.vals);
+            }
         }
         break;
         case AVRC_PDU_GET_ELEMENT_ATTR:
@@ -974,7 +1254,7 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
         break;
         case AVRC_PDU_REGISTER_NOTIFICATION:
         {
-            if(pavrc_cmd->reg_notif.event_id == BTRC_EVT_PLAY_POS_CHANGED &&
+            if (pavrc_cmd->reg_notif.event_id == BTRC_EVT_PLAY_POS_CHANGED &&
                 pavrc_cmd->reg_notif.param == 0)
             {
                 BTIF_TRACE_WARNING1("%s Device registering position changed with illegal param 0.",
@@ -1002,11 +1282,75 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
             }
         }
         break;
+        case AVRC_PDU_SET_ADDRESSED_PLAYER:
+        {
+            btrc_status_t status_code = AVRC_STS_NO_ERROR;
+            BTIF_TRACE_EVENT1("%s() AVRC_PDU_SET_ADDRESSED_PLAYER", __FUNCTION__);
+            if (btif_rc_cb.rc_connected == TRUE)
+            {
+                FILL_PDU_QUEUE(IDX_SET_ADDRESS_PLAYER_RSP, ctype, label, TRUE);
+                HAL_CBACK(bt_rc_callbacks, set_addrplayer_cb, pavrc_cmd->addr_player.player_id);
+            }
+        }
+        break;
+        case AVRC_PDU_GET_FOLDER_ITEMS:
+        {
+            //For testing purpose to cover Send path, initiate Send from here
+            tAVRC_RESPONSE avrc_rsp;
+            btrc_getfolderitem_t getfolder ;
+            btrc_browse_folderitem_t scope;
+            UINT8 player[] = "MusicPlayer1";
+            tAVRC_ITEM tem[1];
+            UINT8  index ;
+            BTIF_TRACE_EVENT1("%s()AVRC_PDU_GET_FOLDER_ITEMS", __FUNCTION__);
+            FILL_PDU_QUEUE(IDX_GET_FOLDER_ITEMS_RSP,ctype, label, TRUE);
+            BTIF_TRACE_EVENT1("rc_connected: %d",btif_rc_cb.rc_connected);
+            if (btif_rc_cb.rc_connected == TRUE)
+            {
+                getfolder.start_item = pavrc_cmd->get_items.start_item;
+                getfolder.end_item   = pavrc_cmd->get_items.end_item;
+                getfolder.size       = AVCT_GetBrowseMtu(btif_rc_cb.rc_handle);
+                scope                = (btrc_browse_folderitem_t)pavrc_cmd->get_items.scope;
+                HAL_CBACK(bt_rc_callbacks, get_folderitems_cb, scope, &getfolder);
+            }
+        }
+        break;
+        case AVRC_PDU_SET_BROWSED_PLAYER:
+        {
+            //For testing purpose to cover Send path, initiate Send from here
+            tAVRC_RESPONSE avrc_rsp;
+            UINT8 fd1[] = "AB";
+            UINT8 fd2[] = "CD";
+            tAVRC_NAME  name[2];
+            UINT8 index;
+            BTIF_TRACE_EVENT1("%s() AVRC_PDU_SET_BROWSED_PLAYER", __FUNCTION__);
+            FILL_PDU_QUEUE(IDX_SET_FOLDER_ITEM_RSP,ctype, label, TRUE);
+            if (btif_rc_cb.rc_connected == TRUE)
+            {
+                index = IDX_SET_FOLDER_ITEM_RSP ;
+                avrc_rsp.br_player.opcode   = 0xFF;
+                avrc_rsp.br_player.pdu      = AVRC_PDU_SET_BROWSED_PLAYER;
+                avrc_rsp.br_player.num_items = 0x04;
+                avrc_rsp.br_player.folder_depth = 0x02;
+                avrc_rsp.br_player.p_folders = name ;
+                avrc_rsp.br_player.status    = 0x04;
+                avrc_rsp.br_player.uid_counter = 0x1357;
+                avrc_rsp.br_player.charset_id = 0x006A;
+                //for(i =0 ; i< avrc_rsp.br_player.folder_depth ; ++i)
+                {
+                    name[0].str_len = strlen("AB");
+                    name[0].p_str   = fd1;
+                    name[1].str_len = strlen("CD");
+                    name[1].p_str   = fd2;
+                }
+                app_sendbrowsemsg(index ,&avrc_rsp);
+            }
+        }
+        break;
         default:
         {
-        send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu,
-            (pavrc_cmd->pdu == AVRC_PDU_SEARCH)?AVRC_STS_SEARCH_NOT_SUP:AVRC_STS_BAD_CMD);
-        return;
+            send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu,
+                 (pavrc_cmd->pdu == AVRC_PDU_SEARCH)?AVRC_STS_SEARCH_NOT_SUP:AVRC_STS_BAD_CMD);
         }
         break;
     }
@@ -1115,12 +1459,239 @@ static bt_status_t get_play_status_rsp(btrc_play_status_t play_status, uint32_t 
     return BT_STATUS_SUCCESS;
 }
 
+
+/**************************************************************************
+**
+** Function         list_player_app_attr_rsp
+**
+** Description      ListPlayerApplicationSettingAttributes (PDU ID: 0x11)
+**                  This method is callled in response to PDU 0x11
+**
+** Returns          bt_status_t
+**
+****************************************************************************/
+static bt_status_t  list_player_app_attr_rsp( uint8_t num_attr, btrc_player_attr_t *p_attrs)
+{
+    tAVRC_RESPONSE avrc_rsp;
+    UINT32 i;
+
+    CHECK_RC_CONNECTED
+    memset(&(avrc_rsp.list_app_attr), 0, sizeof(tAVRC_LIST_APP_ATTR_RSP));
+    if (num_attr == 0)
+    {
+        avrc_rsp.list_app_attr.status = AVRC_STS_BAD_PARAM;
+    }
+    else
+    {
+        avrc_rsp.list_app_attr.num_attr = num_attr;
+        for (i = 0 ; i < num_attr ; ++i)
+        {
+            avrc_rsp.list_app_attr.attrs[i] = p_attrs[i];
+        }
+        avrc_rsp.list_app_attr.status = AVRC_STS_NO_ERROR;
+    }
+    avrc_rsp.list_app_attr.pdu  = AVRC_PDU_LIST_PLAYER_APP_ATTR ;
+    avrc_rsp.list_app_attr.opcode = opcode_from_pdu(AVRC_PDU_LIST_PLAYER_APP_ATTR);
+    /* Send the response */
+    SEND_METAMSG_RSP(IDX_LIST_APP_ATTR_RSP, &avrc_rsp);
+    return BT_STATUS_SUCCESS;
+}
+
+/**********************************************************************
+**
+** Function list_player_app_value_rsp
+**
+** Description      ListPlayerApplicationSettingValues (PDU ID: 0x12)
+                    This method is called in response to PDU 0x12
+************************************************************************/
+static bt_status_t  list_player_app_value_rsp( uint8_t num_val, uint8_t *value)
+{
+    tAVRC_RESPONSE avrc_rsp;
+    UINT32 i;
+
+    CHECK_RC_CONNECTED
+    memset(&(avrc_rsp.list_app_values), 0, sizeof(tAVRC_LIST_APP_VALUES_RSP));
+    if ((num_val == 0) || (num_val > AVRC_MAX_APP_ATTR_SIZE))
+    {
+        avrc_rsp.list_app_values.status = AVRC_STS_BAD_PARAM;
+    }
+    else
+    {
+        avrc_rsp.list_app_values.num_val = num_val;
+        for (i = 0; i < num_val; ++i)
+        {
+            avrc_rsp.list_app_values.vals[i] = value[i];
+        }
+        avrc_rsp.list_app_values.status = AVRC_STS_NO_ERROR;
+    }
+    avrc_rsp.list_app_values.pdu   = AVRC_PDU_LIST_PLAYER_APP_VALUES;
+    avrc_rsp.list_app_attr.opcode  = opcode_from_pdu(AVRC_PDU_LIST_PLAYER_APP_VALUES);
+    /* Send the response */
+    SEND_METAMSG_RSP(IDX_LIST_APP_VALUE_RSP, &avrc_rsp);
+    return BT_STATUS_SUCCESS;
+}
+
+
+/**********************************************************************
+**
+** Function  get_player_app_value_rsp
+**
+** Description  This methos is called in response to PDU ID 0x13
+**
+***********************************************************************/
+static bt_status_t get_player_app_value_rsp(btrc_player_settings_t *p_vals)
+{
+    tAVRC_RESPONSE avrc_rsp;
+    UINT32 i;
+    tAVRC_APP_SETTING app_sett[AVRC_MAX_APP_ATTR_SIZE];
+
+    CHECK_RC_CONNECTED
+    memset(&(avrc_rsp.get_cur_app_val) ,0 , sizeof(tAVRC_GET_CUR_APP_VALUE_RSP));
+    avrc_rsp.get_cur_app_val.p_vals   = app_sett ;
+    //Check for Error Condition
+    if ((p_vals == NULL) || (p_vals->num_attr== 0) || (p_vals->num_attr > AVRC_MAX_APP_ATTR_SIZE))
+    {
+        avrc_rsp.get_cur_app_val.status = AVRC_STS_BAD_PARAM;
+    }
+    else
+    {
+        memset(app_sett, 0, sizeof(tAVRC_APP_SETTING)*p_vals->num_attr );
+        //update num_val
+        avrc_rsp.get_cur_app_val.num_val  = p_vals->num_attr ;
+        avrc_rsp.get_cur_app_val.p_vals   = app_sett ;
+        for (i = 0; i < p_vals->num_attr; ++i)
+        {
+            app_sett[i].attr_id  = p_vals->attr_ids[i] ;
+            app_sett[i].attr_val = p_vals->attr_values[i];
+            BTIF_TRACE_DEBUG4("%s attr_id:0x%x, charset_id:0x%x, num_element:%d",
+                           __FUNCTION__, (unsigned int)app_sett[i].attr_id,
+                              app_sett[i].attr_val ,p_vals->num_attr );
+        }
+        //Update PDU , status aind
+        avrc_rsp.get_cur_app_val.status = AVRC_STS_NO_ERROR;
+    }
+    avrc_rsp.get_cur_app_val.pdu = AVRC_PDU_GET_CUR_PLAYER_APP_VALUE;
+    avrc_rsp.get_cur_app_val.opcode = opcode_from_pdu(AVRC_PDU_GET_CUR_PLAYER_APP_VALUE);
+    SEND_METAMSG_RSP(IDX_GET_CURR_APP_VAL_RSP, &avrc_rsp);
+    return BT_STATUS_SUCCESS;
+}
+
+/********************************************************************
+**
+** Function     set_player_app_value_rsp
+**
+** Description  This method is called in response to
+**              application value
+**
+** Return       bt_staus_t
+**
+*******************************************************************/
+static bt_status_t set_player_app_value_rsp (btrc_status_t rsp_status )
+{
+    tAVRC_RESPONSE avrc_rsp;
+    tAVRC_RSP    set_app_val;
+
+    CHECK_RC_CONNECTED
+    avrc_rsp.set_app_val.opcode = opcode_from_pdu(AVRC_PDU_SET_PLAYER_APP_VALUE);
+    avrc_rsp.set_app_val.pdu    =  AVRC_PDU_SET_PLAYER_APP_VALUE ;
+    avrc_rsp.set_app_val.status =  rsp_status ;
+    SEND_METAMSG_RSP(IDX_SET_APP_VAL_RSP, &avrc_rsp);
+    return BT_STATUS_SUCCESS;
+}
+
+/********************************************************************
+**
+** Function      get_player_app_attr_text_rsp
+**
+** Description   This method is called in response to get player
+**               applicaton attribute text response
+**
+**
+*******************************************************************/
+static bt_status_t get_player_app_attr_text_rsp(int num_attr, btrc_player_setting_text_t *p_attrs)
+{
+    tAVRC_RESPONSE avrc_rsp;
+    tAVRC_APP_SETTING_TEXT attr_txt[AVRC_MAX_APP_ATTR_SIZE];
+    int i;
+
+    CHECK_RC_CONNECTED
+    if (num_attr == 0)
+    {
+        avrc_rsp.get_app_attr_txt.status = AVRC_STS_BAD_PARAM;
+    }
+    else
+    {
+        for (i =0; i< num_attr; ++i)
+        {
+            attr_txt[i].charset_id = AVRC_CHARSET_ID_UTF8;
+            attr_txt[i].attr_id = p_attrs[i].id ;
+            attr_txt[i].str_len = (UINT8)strnlen((char *)p_attrs[i].text, BTRC_MAX_ATTR_STR_LEN);
+            attr_txt[i].p_str       = p_attrs[i].text ;
+            BTIF_TRACE_DEBUG5("%s attr_id:0x%x, charset_id:0x%x, str_len:%d, str:%s",
+                                  __FUNCTION__, (unsigned int)attr_txt[i].attr_id,
+                                  attr_txt[i].charset_id , attr_txt[i].str_len, attr_txt[i].p_str);
+        }
+        avrc_rsp.get_app_attr_txt.status = AVRC_STS_NO_ERROR;
+    }
+    avrc_rsp.get_app_attr_txt.p_attrs = attr_txt ;
+    avrc_rsp.get_app_attr_txt.num_attr = (UINT8)num_attr;
+    avrc_rsp.get_app_attr_txt.pdu = AVRC_PDU_GET_PLAYER_APP_ATTR_TEXT;
+    avrc_rsp.get_app_attr_txt.opcode = opcode_from_pdu(AVRC_PDU_GET_PLAYER_APP_ATTR_TEXT);
+    /* Send the response */
+    SEND_METAMSG_RSP(IDX_GET_APP_ATTR_TXT_RSP, &avrc_rsp);
+    return BT_STATUS_SUCCESS;
+}
+
+/********************************************************************
+**
+** Function      get_player_app_value_text_rsp
+**
+** Description   This method is called in response to Player application
+**               value text
+**
+** Return        bt_status_t
+**
+*******************************************************************/
+static bt_status_t get_player_app_value_text_rsp(int num_attr, btrc_player_setting_text_t *p_attrs)
+{
+    tAVRC_RESPONSE avrc_rsp;
+    tAVRC_APP_SETTING_TEXT attr_txt[AVRC_MAX_APP_ATTR_SIZE];
+    int i;
+
+    CHECK_RC_CONNECTED
+    if (num_attr == 0)
+    {
+        avrc_rsp.get_app_val_txt.status = AVRC_STS_BAD_PARAM;
+    }
+    else
+    {
+        for (i =0; i< num_attr; ++i)
+        {
+            attr_txt[i].charset_id = AVRC_CHARSET_ID_UTF8;
+            attr_txt[i].attr_id  = p_attrs[i].id ;
+            attr_txt[i].str_len  = (UINT8)strnlen((char *)p_attrs[i].text ,BTRC_MAX_ATTR_STR_LEN );
+            attr_txt[i].p_str    = p_attrs[i].text ;
+            BTIF_TRACE_DEBUG5("%s attr_id:0x%x, charset_id:0x%x, str_len:%d, str:%s",
+                                  __FUNCTION__, (unsigned int)attr_txt[i].attr_id,
+                                 attr_txt[i].charset_id , attr_txt[i].str_len,attr_txt[i].p_str);
+        }
+        avrc_rsp.get_app_val_txt.status = AVRC_STS_NO_ERROR;
+    }
+    avrc_rsp.get_app_val_txt.p_attrs = attr_txt;
+    avrc_rsp.get_app_val_txt.num_attr = (UINT8)num_attr;
+    avrc_rsp.get_app_val_txt.pdu = AVRC_PDU_GET_PLAYER_APP_VALUE_TEXT;
+    avrc_rsp.get_app_val_txt.opcode = opcode_from_pdu(AVRC_PDU_GET_PLAYER_APP_VALUE_TEXT);
+    /* Send the response */
+    SEND_METAMSG_RSP(IDX_GET_APP_VAL_TXT_RSP, &avrc_rsp);
+    return BT_STATUS_SUCCESS;
+}
+
 /***************************************************************************
 **
 ** Function         get_element_attr_rsp
 **
 ** Description      Returns the current songs' element attributes
-**                      in text.
+**                  in text.
 **
 ** Returns          bt_status_t
 **
@@ -1191,6 +1762,20 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
         case BTRC_EVT_PLAY_POS_CHANGED:
             avrc_rsp.reg_notif.param.play_pos = p_param->song_pos;
             break;
+        case BTRC_EVT_APP_SETTINGS_CHANGED:
+            avrc_rsp.reg_notif.param.player_setting.num_attr = p_param->player_setting.num_attr;
+            memcpy(&avrc_rsp.reg_notif.param.player_setting.attr_id,
+                                       p_param->player_setting.attr_ids, 2);
+            memcpy(&avrc_rsp.reg_notif.param.player_setting.attr_value,
+                                       p_param->player_setting.attr_values, 2);
+            break;
+        case BTRC_EVT_ADDRESSED_PLAYER_CHANGED:
+            avrc_rsp.reg_notif.param.addr_player.player_id = p_param->player_id;
+            avrc_rsp.reg_notif.param.addr_player.uid_counter = 0;
+            break;
+        case BTRC_EVT_AVAILABLE_PLAYERS_CHANGED:
+            avrc_rsp.reg_notif.param.evt  = 0x0a;
+            break;
         default:
             BTIF_TRACE_WARNING2("%s : Unhandled event ID : 0x%x", __FUNCTION__, event_id);
             return BT_STATUS_UNHANDLED;
@@ -1198,11 +1783,110 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
 
     avrc_rsp.reg_notif.pdu = AVRC_PDU_REGISTER_NOTIFICATION;
     avrc_rsp.reg_notif.opcode = opcode_from_pdu(AVRC_PDU_REGISTER_NOTIFICATION);
-    avrc_rsp.get_play_status.status = AVRC_STS_NO_ERROR;
+    if (type == BTRC_NOTIFICATION_TYPE_REJECT)
+    {
+        /* Spec AVRCP 1.5 ,section 6.9.2.2, on completion
+         * of the addressed player changed notificatons the TG shall
+         * complete all player specific notification with AV/C C-type
+         * Rejected with error code Addressed Player changed.
+         * This will happen in case when music player has changed
+         * Application should take care of sending reject response.
+        */
+        avrc_rsp.get_play_status.status = AVRC_STS_ADDR_PLAYER_CHG;
+    }
+    else
+    {
+        avrc_rsp.get_play_status.status = AVRC_STS_NO_ERROR;
+    }
 
     /* Send the response. */
     send_metamsg_rsp(btif_rc_cb.rc_handle, btif_rc_cb.rc_notif[event_id-1].label,
         ((type == BTRC_NOTIFICATION_TYPE_INTERIM)?AVRC_CMD_NOTIF:AVRC_RSP_CHANGED), &avrc_rsp);
+    return BT_STATUS_SUCCESS;
+}
+
+
+/***************************************************************************
+**
+** Function         get_folderitem_rsp
+**
+** Description      Response to Get Folder Items , PDU 0x71
+**
+** Returns          bt_status_t
+**
+***************************************************************************/
+static bt_status_t get_folderitem_rsp(btrc_folder_list_entries_t *rsp)
+{
+    tAVRC_RESPONSE avrc_rsp;
+    CHECK_RC_CONNECTED
+    tAVRC_ITEM item[MAX_FOLDER_RSP_SUPPORT]; //Number of players that could be supported
+    UINT8  index, i ;
+
+    BTIF_TRACE_EVENT1("%s() AVRC_PDU_GET_FOLDER_ITEMS", __FUNCTION__);
+    index                             = IDX_GET_FOLDER_ITEMS_RSP ;
+    avrc_rsp.get_items.pdu            = AVRC_PDU_GET_FOLDER_ITEMS;
+    avrc_rsp.get_items.opcode         = AVRC_OP_BROWSE;
+    avrc_rsp.get_items.uid_counter    = rsp->uid_counter;
+    avrc_rsp.get_items.status         = rsp->status ;//4 means SUCCESS
+    avrc_rsp.get_items.item_count     = 0;
+    BTIF_TRACE_EVENT2("status =%d, item_count =%d",rsp->status, rsp->item_count);
+
+    for (i=0; (i < rsp->item_count && i < MAX_FOLDER_RSP_SUPPORT) ; ++i)
+    {
+        item[i].item_type = rsp->p_item_list[i].item_type;
+        BTIF_TRACE_EVENT1("item_type  =%d", rsp->p_item_list[i].item_type);
+        switch (item[i].item_type)
+        {
+            case AVRC_ITEM_PLAYER:
+                memcpy(item[i].u.player.features, rsp->p_item_list[i].player.features,
+                            AVRC_FEATURE_MASK_SIZE);
+                item[i].u.player.major_type      =  rsp->p_item_list[i].player.major_type;
+                item[i].u.player.sub_type        =  rsp->p_item_list[i].player.sub_type;
+                item[i].u.player.play_status     =  rsp->p_item_list[i].player.play_status;
+                item[i].u.player.player_id       =  rsp->p_item_list[i].player.player_id;
+                item[i].u.player.name.charset_id =  rsp->p_item_list[i].player.name.charset_id;
+                item[i].u.player.name.str_len    =  rsp->p_item_list[i].player.name.str_len;
+                item[i].u.player.name.p_str      =  rsp->p_item_list[i].player.name.p_str;
+                ++avrc_rsp.get_items.item_count;
+            break;
+
+            case AVRC_ITEM_FOLDER:
+                return BT_STATUS_UNHANDLED;
+            break;
+
+            case AVRC_ITEM_MEDIA:
+                return BT_STATUS_UNHANDLED;
+            break;
+
+            default:
+                return BT_STATUS_UNHANDLED;
+            break;
+        }
+    }
+    avrc_rsp.get_items.p_item_list = item;
+    app_sendbrowsemsg(IDX_GET_FOLDER_ITEMS_RSP ,&avrc_rsp);
+    return BT_STATUS_SUCCESS;
+}
+
+/**********************************************************************
+**
+** Function        set_addrplayer_rsp
+**
+** Description     Response to Set Addressed Player , PDU 0x60
+**
+** Return          status
+**
+*********************************************************************/
+
+static bt_status_t set_addrplayer_rsp(btrc_status_t status_code)
+{
+    tAVRC_RESPONSE avrc_rsp;
+    CHECK_RC_CONNECTED
+    avrc_rsp.addr_player.status = status_code;
+    avrc_rsp.addr_player.opcode = opcode_from_pdu(AVRC_PDU_SET_ADDRESSED_PLAYER);
+    avrc_rsp.addr_player.pdu    = AVRC_PDU_SET_ADDRESSED_PLAYER;
+    /* Send the response */
+    SEND_METAMSG_RSP(IDX_SET_ADDRESS_PLAYER_RSP, &avrc_rsp);
     return BT_STATUS_SUCCESS;
 }
 
@@ -1428,15 +2112,17 @@ static const btrc_interface_t bt_rc_interface = {
     sizeof(bt_rc_interface),
     init,
     get_play_status_rsp,
-    NULL, /* list_player_app_attr_rsp */
-    NULL, /* list_player_app_value_rsp */
-    NULL, /* get_player_app_value_rsp */
-    NULL, /* get_player_app_attr_text_rsp */
-    NULL, /* get_player_app_value_text_rsp */
+    list_player_app_attr_rsp,     /* list_player_app_attr_rsp */
+    list_player_app_value_rsp,    /* list_player_app_value_rsp */
+    get_player_app_value_rsp,     /* get_player_app_value_rsp PDU 0x13*/
+    get_player_app_attr_text_rsp, /* get_player_app_attr_text_rsp */
+    get_player_app_value_text_rsp,/* get_player_app_value_text_rsp */
     get_element_attr_rsp,
-    NULL, /* set_player_app_value_rsp */
+    set_player_app_value_rsp,     /* set_player_app_value_rsp */
     register_notification_rsp,
     set_volume,
+    get_folderitem_rsp,
+    set_addrplayer_rsp,
     cleanup,
 };
 

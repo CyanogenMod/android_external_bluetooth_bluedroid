@@ -32,6 +32,7 @@
 #define AVRC_REV_1_0        0x0100
 #define AVRC_REV_1_3        0x0103
 #define AVRC_REV_1_4        0x0104
+#define AVRC_REV_1_5        0x0105
 
 #define AVRC_PACKET_LEN             512 /* Per the spec, you must support 512 byte RC packets */
 
@@ -839,7 +840,7 @@ typedef union
 #define AVRC_IS_VALID_CAP_ID(a)           (((a == AVRC_CAP_COMPANY_ID) || (a == AVRC_CAP_EVENTS_SUPPORTED)) ? TRUE : FALSE)
 
 #define AVRC_IS_VALID_EVENT_ID(a)           (((a >= AVRC_EVT_PLAY_STATUS_CHANGE) && \
-                                              (a <= AVRC_EVT_APP_SETTING_CHANGE)) ? TRUE : FALSE)
+                                              (a <= AVRC_EVT_ADDR_PLAYER_CHANGE)) ? TRUE : FALSE)
 
 #define AVRC_IS_VALID_ATTRIBUTE(a)          (((((a > 0) && a <= AVRC_PLAYER_SETTING_SCAN)) || \
                                                ((a >= AVRC_PLAYER_SETTING_LOW_MENU_EXT) && \
@@ -1303,6 +1304,7 @@ typedef union
     tAVRC_ADDR_PLAYER_PARAM addr_player;
     UINT16                  uid_counter;
     UINT8                   volume;
+    UINT8                   evt;//For Available Player Changed Notification
 } tAVRC_NOTIF_RSP_PARAM;
 
 /* RegNotify */

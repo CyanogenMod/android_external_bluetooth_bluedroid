@@ -60,7 +60,13 @@ const UINT16  bta_av_audio_flush_to[] = {
 /* Note: Android doesnt support AVRC_SUPF_TG_GROUP_NAVI  */
 /* Note: if AVRC_SUPF_TG_GROUP_NAVI is set, bta_av_cfg.avrc_group should be TRUE */
 #if AVRC_METADATA_INCLUDED == TRUE
-#define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1) /* TODO: | AVRC_SUPF_TG_APP_SETTINGS) */
+
+#if AVCT_BROWSE_INCLUDED == TRUE
+#define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1 | AVRC_SUPF_TG_BROWSE | AVRC_SUPF_TG_APP_SETTINGS)
+#else
+#define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1 | AVRC_SUPF_TG_APP_SETTINGS)
+#endif
+
 #else
 #define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1)
 #endif
@@ -72,9 +78,12 @@ const UINT8  bta_av_meta_caps_evt_ids[] = {
     AVRC_EVT_PLAY_STATUS_CHANGE,
     AVRC_EVT_TRACK_CHANGE,
     AVRC_EVT_PLAY_POS_CHANGED,
-    /* TODO: Add support for these events
     AVRC_EVT_APP_SETTING_CHANGE,
-    */
+#if AVCT_BROWSE_INCLUDED == TRUE
+    AVRC_EVT_NOW_PLAYING_CHANGE,
+    AVRC_EVT_AVAL_PLAYERS_CHANGE,
+    AVRC_EVT_ADDR_PLAYER_CHANGE,
+#endif
 };
 #ifndef BTA_AV_NUM_RC_EVT_IDS
 #define BTA_AV_NUM_RC_EVT_IDS   (sizeof(bta_av_meta_caps_evt_ids) / sizeof(bta_av_meta_caps_evt_ids[0]))
