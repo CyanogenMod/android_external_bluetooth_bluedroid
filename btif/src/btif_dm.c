@@ -443,6 +443,23 @@ static void btif_dm_cb_hid_remote_name(tBTM_REMOTE_DEV_NAME *p_remote_name)
     }
 }
 
+/*******************************************************************************
+**
+** Function         btif_dm_cb_cancel_hid_bond
+**
+** Description      Cancels pending Bonding with HID Device. Called in btif context
+**                  Special handling for HID devices
+**
+** Returns          void
+**
+*******************************************************************************/
+static void btif_dm_cb_cancel_hid_bond(bt_bdaddr_t *p_bdaddr)
+{
+    BTIF_TRACE_DEBUG2("%s: pairing_cb.state=%d", __FUNCTION__, pairing_cb.state);
+    if (pairing_cb.state == BT_BOND_STATE_BONDING)
+        bond_state_changed(BT_STATUS_RMT_DEV_DOWN, p_bdaddr, BT_BOND_STATE_NONE);
+}
+
 int remove_hid_bond(bt_bdaddr_t *bd_addr)
 {
     /* For HID device, inorder to avoid the HID device from re-connecting again after unpairing,
@@ -1573,6 +1590,12 @@ static void btif_dm_generic_evt(UINT16 event, char* p_param)
         }
         break;
 
+        case BTIF_DM_CB_CANCEL_HID_BOND:
+        {
+            btif_dm_cb_cancel_hid_bond((bt_bdaddr_t *)p_param);
+        }
+        break;
+
         case BTIF_DM_CB_BOND_STATE_BONDING:
             {
                 bond_state_changed(BT_STATUS_SUCCESS, (bt_bdaddr_t *)p_param, BT_BOND_STATE_BONDING);
@@ -1881,6 +1904,29 @@ bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr)
 
     BTIF_TRACE_EVENT2("%s: bd_addr=%s", __FUNCTION__, bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
     btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_REMOVE_BOND,
+                          (char *)bd_addr, sizeof(bt_bdaddr_t), NULL);
+
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_dm_cancel_hid_bond
+**
+** Description      Cancels bonding to HID device if in progress
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_dm_cancel_hid_bond(const bt_bdaddr_t *bd_addr)
+{
+    bdstr_t bdstr;
+
+    BTIF_TRACE_EVENT2("%s: bd_addr=%s", __FUNCTION__, bd2str((bt_bdaddr_t *) bd_addr, &bdstr));
+    if (pairing_cb.state != BT_BOND_STATE_BONDING)
+        return BT_STATUS_DONE;
+
+    btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_CANCEL_HID_BOND,
                           (char *)bd_addr, sizeof(bt_bdaddr_t), NULL);
 
     return BT_STATUS_SUCCESS;

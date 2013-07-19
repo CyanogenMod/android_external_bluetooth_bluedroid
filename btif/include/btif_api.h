@@ -335,4 +335,16 @@ bt_status_t btif_dut_mode_send(uint16_t opcode, uint8_t *buf, uint8_t len);
 **
 *******************************************************************************/
 bt_status_t btif_le_test_mode(uint16_t opcode, uint8_t *buf, uint8_t len);
+
+/*******************************************************************************
+**
+** Function         btif_dm_cancel_hid_bond
+**
+** Description      Cancels bonding to HID device if in progress
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_dm_cancel_hid_bond(const bt_bdaddr_t *bd_addr);
+
 #endif /* BTIF_API_H */
