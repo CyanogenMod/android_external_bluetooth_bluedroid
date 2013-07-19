@@ -41,6 +41,7 @@
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btif_hh.h"
+#include "btif_api.h"
 #include "gki.h"
 #include "l2c_api.h"
 
@@ -841,6 +842,9 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             else {
                 bt_bdaddr_t *bdaddr = (bt_bdaddr_t*)p_data->conn.bda;
                 HAL_CBACK(bt_hh_callbacks, connection_state_cb, (bt_bdaddr_t*) &p_data->conn.bda,BTHH_CONN_STATE_DISCONNECTED);
+                if (p_data->conn.status == BTA_HH_ERR_SDP)
+                    /* In case we are in pairing state and connection failed, update bond state cahnge as well */
+                    btif_dm_cancel_hid_bond((bt_bdaddr_t*) &p_data->conn.bda);
                 btif_hh_cb.status = BTIF_HH_DEV_DISCONNECTED;
             }
             break;
