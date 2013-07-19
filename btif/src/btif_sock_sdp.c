@@ -211,6 +211,112 @@ static int add_pbap_sdp(const char* p_service_name, int scn)
     return sdp_handle;
 }
 
+/* This is horrible design - to reserve channel ID's and use them to magically link
+ * a channel number to a hard coded SDP entry.
+ * TODO: expose a prober SDP API, to avoid hacks like this, and make it possible
+ *        to set useful names for the ServiceName */
+#define BTA_MAP_MSG_TYPE_EMAIL    0x01
+#define BTA_MAP_MSG_TYPE_SMS_GSM  0x02
+#define BTA_MAP_MSG_TYPE_SMS_CDMA 0x04
+#define BTA_MAP_MSG_TYPE_MMS      0x08
+
+#define BTA_MAPS_DEFAULT_VERSION 0x0100
+typedef struct
+{
+    UINT8       mas_id;                /* the MAS instance id */
+    const char* service_name;          /* Description of the MAS instance */
+    UINT8       supported_message_types; /* Server supported message types - SMS/MMS/EMAIL */
+} tBTA_MAPS_CFG;
+const tBTA_MAPS_CFG bta_maps_cfg_sms_mms =
+{
+    0,                                /* Mas id 0 is for SMS/MMS */
+    "MAP SMS/MMS",
+    BTA_MAP_MSG_TYPE_SMS_GSM | BTA_MAP_MSG_TYPE_SMS_CDMA | BTA_MAP_MSG_TYPE_MMS
+};
+const tBTA_MAPS_CFG bta_maps_cfg_email =
+{
+    1,                                /* Mas id 1 is for EMAIL */
+    "MAP EMAIL",
+    BTA_MAP_MSG_TYPE_EMAIL
+};
+static int add_maps_sdp(const char* p_service_name, int scn)
+{
+
+    tSDP_PROTOCOL_ELEM  protoList [3];
+    UINT16              service = UUID_SERVCLASS_MESSAGE_ACCESS;
+    UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    BOOLEAN             status = FALSE;
+    UINT32              sdp_handle = 0;
+    // TODO: To add support for EMAIL set below depending on the scn to either SMS or Email
+    const tBTA_MAPS_CFG *p_bta_maps_cfg = &bta_maps_cfg_sms_mms;
+
+    APPL_TRACE_DEBUG2("add_maps_sdd:scn %d, service name %s", scn, p_service_name);
+
+    if ((sdp_handle = SDP_CreateRecord()) == 0)
+    {
+        APPL_TRACE_ERROR0("MAPS SDP: Unable to register MAPS Service");
+        return sdp_handle;
+    }
+
+    /* add service class */
+    if (SDP_AddServiceClassIdList(sdp_handle, 1, &service))
+    {
+        memset( protoList, 0 , 3*sizeof(tSDP_PROTOCOL_ELEM) );
+        /* add protocol list, including RFCOMM scn */
+        protoList[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
+        protoList[0].num_params = 0;
+        protoList[1].protocol_uuid = UUID_PROTOCOL_RFCOMM;
+        protoList[1].num_params = 1;
+        protoList[1].params[0] = scn;
+        protoList[2].protocol_uuid = UUID_PROTOCOL_OBEX;
+        protoList[2].num_params = 0;
+
+        if (SDP_AddProtocolList(sdp_handle, 3, protoList))
+        {
+            status = TRUE;  /* All mandatory fields were successful */
+
+            /* optional:  if name is not "", add a name entry */
+            SDP_AddAttribute(sdp_handle,
+                             (UINT16)ATTR_ID_SERVICE_NAME,
+                             (UINT8)TEXT_STR_DESC_TYPE,
+                             (UINT32)(strlen(p_bta_maps_cfg->service_name) + 1),
+                             (UINT8 *)p_bta_maps_cfg->service_name);
+
+            /* Add in the Bluetooth Profile Descriptor List */
+            SDP_AddProfileDescriptorList(sdp_handle,
+                                             UUID_SERVCLASS_MAP_PROFILE,
+                                             BTA_MAPS_DEFAULT_VERSION);
+
+        } /* end of setting mandatory protocol list */
+    } /* end of setting mandatory service class */
+
+    /* add supported feature and repositories */
+    if (status)
+    {
+        SDP_AddAttribute(sdp_handle, ATTR_ID_MAS_INSTANCE_ID, UINT_DESC_TYPE,
+                  (UINT32)1, (UINT8*)&p_bta_maps_cfg->mas_id);
+        SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_MSG_TYPE, UINT_DESC_TYPE,
+                  (UINT32)1, (UINT8*)&p_bta_maps_cfg->supported_message_types);
+
+        /* Make the service browseable */
+        SDP_AddUuidSequence (sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, &browse);
+    }
+
+    if (!status)
+    {
+        SDP_DeleteRecord(sdp_handle);
+        sdp_handle = 0;
+        APPL_TRACE_ERROR0("bta_mass_sdp_register FAILED");
+    }
+    else
+    {
+        bta_sys_add_uuid(service);  /* UUID_SERVCLASS_MESSAGE_ACCESS */
+        APPL_TRACE_DEBUG1("MAPSS:  SDP Registered (handle 0x%08x)", sdp_handle);
+    }
+
+    return sdp_handle;
+}
+
 
 /* object format lookup table */
 static const tBTA_OP_FMT bta_ops_obj_fmt[] =
@@ -377,6 +483,10 @@ static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
     else if (IS_UUID(UUID_PBAP_PSE,uuid))
     {
         handle = add_pbap_sdp(name, final_scn); //PBAP Server is always 19
+    }
+    else if (IS_UUID(UUID_MAPS_MAS,uuid))
+    {
+        handle = add_maps_sdp(name, final_scn); //PBAP Server is always 19
     }
     else if (IS_UUID(UUID_SPP, uuid))
     {
