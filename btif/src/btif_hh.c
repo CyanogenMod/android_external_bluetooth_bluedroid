@@ -634,6 +634,7 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
     char bda_str[20];
     int i;
     BD_ADDR *bda = (BD_ADDR*)bd_addr;
+    tBTA_SEC sec_mask;
     tBTA_HH_CONN conn;
     CHECK_BTHH_INIT();
     dev = btif_hh_find_dev_by_bda(bd_addr);
@@ -668,7 +669,13 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
     /* Not checking the NORMALLY_Connectible flags from sdp record, and anyways sending this
     request from host, for subsequent user initiated connection. If the remote is not in
     pagescan mode, we will do 2 retries to connect before giving up */
-    tBTA_SEC sec_mask = BTUI_HH_SECURITY;
+
+    // Don't request security if peer device is HID pointing device
+    if (check_cod(bd_addr, COD_HID_POINTING))
+        sec_mask = BTUI_HH_MOUSE_SECURITY;
+    else
+        sec_mask = BTUI_HH_SECURITY;
+
     btif_hh_cb.status = BTIF_HH_DEV_CONNECTING;
     BTA_HhOpen(*bda, BTA_HH_PROTO_RPT_MODE, sec_mask);
     HAL_CBACK(bt_hh_callbacks, connection_state_cb, bd_addr, BTHH_CONN_STATE_CONNECTING);

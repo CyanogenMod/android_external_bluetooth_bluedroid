@@ -506,6 +506,14 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr)
             status = btif_hh_connect(bd_addr);
             if(status != BT_STATUS_SUCCESS)
                 bond_state_changed(status, bd_addr, BT_BOND_STATE_NONE);
+            else
+            {
+                /* Trigger SDP on the device */
+                pairing_cb.sdp_attempts = 1;
+                btif_dm_get_remote_services(bd_addr);
+                /* Store Device as bonded in nvram */
+                btif_storage_add_bonded_device(bd_addr, NULL, 0, 0);
+            }
     }
     else
     {
