@@ -172,8 +172,7 @@ tBTA_GATTC_CLCB * bta_gattc_find_clcb_by_cif (UINT8 client_if, BD_ADDR remote_bd
     {
         if (p_clcb->in_use &&
             p_clcb->p_rcb->client_if == client_if &&
-            p_clcb->p_srcb &&
-            bdcmp(p_clcb->p_srcb->server_bda, remote_bda) == 0)
+            bdcmp(p_clcb->bda, remote_bda) == 0)
             return p_clcb;
     }
     return NULL;
@@ -400,7 +399,7 @@ tBTA_GATTC_SERV * bta_gattc_srcb_alloc(BD_ADDR bda)
     /* if not found, try to recycle one known device */
     if (!found && !p_recycle)
         p_tcb = NULL;
-    else if (p_recycle)
+    else if (!found && p_recycle)
         p_tcb = p_recycle;
 
     if (p_tcb != NULL)
