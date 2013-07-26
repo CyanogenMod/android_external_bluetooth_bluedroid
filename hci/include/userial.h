@@ -147,5 +147,9 @@ typedef struct {
     tUSERIAL_IOCTL ioctl;
 } tUSERIAL_IF;
 
+#ifdef QCOM_WCN_SSR
+uint8_t userial_dev_inreset();
+#endif
+
 #endif /* USERIAL_H */
 
