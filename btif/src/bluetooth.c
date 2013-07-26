@@ -372,6 +372,17 @@ int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len)
 }
 #endif
 
+int config_hci_snoop_log(uint8_t enable)
+{
+    ALOGI("config_hci_snoop_log");
+
+    /* sanity check */
+    if (interface_ready() == FALSE)
+        return BT_STATUS_NOT_READY;
+
+    return btif_config_hci_snoop_log(enable);
+}
+
 static const bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -397,10 +408,11 @@ static const bt_interface_t bluetoothInterface = {
     dut_mode_configure,
     dut_mode_send,
 #if BLE_INCLUDED == TRUE
-    le_test_mode
+    le_test_mode,
 #else
-    NULL
+    NULL,
 #endif
+    config_hci_snoop_log
 };
 
 const bt_interface_t* bluetooth__get_bluetooth_interface ()
