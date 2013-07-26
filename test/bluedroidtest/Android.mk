@@ -23,7 +23,7 @@ LOCAL_SRC_FILES:=     \
 
 LOCAL_C_INCLUDES :=
 
-LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_TAGS := debug optional
 
 LOCAL_MODULE:= bdt
 
