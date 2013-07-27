@@ -29,8 +29,16 @@
 
 typedef bt_status_t (*btif_connect_cb_t) (bt_bdaddr_t *bda, uint16_t uuid);
 
+typedef enum {
+  BTIF_QUEUE_CONNECT_EVT,
+  BTIF_QUEUE_ADVANCE_EVT,
+  BTIF_QUEUE_CHECK_CONNECT_REQ,
+} btif_queue_event_t;
+
 bt_status_t btif_queue_connect(uint16_t uuid, const bt_bdaddr_t *bda, btif_connect_cb_t connect_cb);
+
 void btif_queue_advance();
 void btif_queue_release();
+void btif_queue_remove_connect(uint16_t uuid, uint8_t check_connect_req);
 
 #endif

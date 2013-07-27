@@ -66,6 +66,18 @@ btif_sm_handle_t btif_av_get_sm_handle(void);
 
 /*******************************************************************************
 **
+** Function         btif_av_get_addr
+**
+** Description      Fetches current AV BD address
+**
+** Returns          BD address
+**
+*******************************************************************************/
+
+bt_bdaddr_t btif_av_get_addr(void);
+
+/*******************************************************************************
+**
 ** Function         btif_av_stream_ready
 **
 ** Description      Checks whether AV is ready for starting a stream
@@ -140,5 +152,14 @@ BOOLEAN btif_av_is_connected(void);
 *******************************************************************************/
 
 BOOLEAN btif_av_is_peer_edr(void);
+/******************************************************************************
+**
+** Function         btif_av_clear_remote_suspend_flag
+**
+** Description      Clears remote suspended flag
+**
+** Returns          Void
+********************************************************************************/
+void btif_av_clear_remote_suspend_flag(void);
 
 #endif /* BTIF_AV_H */

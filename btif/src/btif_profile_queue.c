@@ -36,11 +36,6 @@
 **  Local type definitions
 *******************************************************************************/
 
-typedef enum {
-  BTIF_QUEUE_CONNECT_EVT,
-  BTIF_QUEUE_ADVANCE_EVT,
-} btif_queue_event_t;
-
 typedef struct {
     bt_bdaddr_t bda;
     uint16_t uuid;
@@ -92,14 +87,56 @@ static bt_status_t queue_int_connect_next() {
     return p_head->connect_cb(&p_head->bda, p_head->uuid);
 }
 
-static void queue_int_handle_evt(UINT16 event, char *p_param) {
-    switch(event) {
+static void queue_check_connect(connect_node_t *p_param)
+{
+    BTIF_TRACE_VERBOSE("%s, UUID : 0x%x", __FUNCTION__, p_param->uuid);
+    bool is_first_node = TRUE;
+    if (connect_queue == NULL)
+        return;
+    for (const list_node_t *node = list_begin(connect_queue); node != list_end(connect_queue); node = list_next(node)) {
+        connect_node_t *temp_node = list_node(node);
+        if (temp_node->uuid == p_param->uuid) {
+            if (is_first_node) {
+                // delete first node
+                BTIF_TRACE_VERBOSE("Deleting first node");
+                if (connect_queue && !list_is_empty(connect_queue))
+                    list_remove(connect_queue, list_front(connect_queue));
+                break;
+            }
+            if (!list_next(node)) {
+                //last node to be deleted
+                BTIF_TRACE_VERBOSE("Deleting last node");
+                if (connect_queue && !list_is_empty(connect_queue))
+                    list_remove(connect_queue, list_back(connect_queue));
+                break;
+            }
+            //delete any middle node
+            BTIF_TRACE_VERBOSE("Deleting middle node");
+            if (connect_queue && !list_is_empty(connect_queue))
+                list_remove(connect_queue, temp_node);
+            break;
+        }
+        is_first_node = FALSE;
+    }
+}
+
+static void queue_int_handle_evt(UINT16 event, char *p_param)
+{
+    BTIF_TRACE_VERBOSE("%s, Event : 0x%x", __FUNCTION__, event);
+    switch(event)
+    {
         case BTIF_QUEUE_CONNECT_EVT:
             queue_int_add((connect_node_t *)p_param);
             break;
 
         case BTIF_QUEUE_ADVANCE_EVT:
             queue_int_advance();
+            break;
+        case BTIF_QUEUE_CHECK_CONNECT_REQ:
+            queue_check_connect((connect_node_t*)p_param);
+            break;
+        default:
+            BTIF_TRACE_VERBOSE("Unknown Event");
             break;
     }
 
@@ -154,4 +191,23 @@ void btif_queue_advance() {
 void btif_queue_release() {
     list_free(connect_queue);
     connect_queue = NULL;
+}
+/*******************************************************************************
+**
+** Function         btif_queue_remove_connect
+**
+** Description      Remove connection request from connect Queue
+**                  when connect request for same UUID is received
+**                  from app.
+**
+** Returns          void
+**
+*******************************************************************************/
+void btif_queue_remove_connect(uint16_t uuid, uint8_t check_connect_req)
+{
+    connect_node_t node;
+    memset(&node, 0, sizeof(connect_node_t));
+    node.uuid = uuid;
+    btif_transfer_context(queue_int_handle_evt, check_connect_req,
+                      (char*)&node, sizeof(connect_node_t), NULL);
 }

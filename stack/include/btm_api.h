@@ -3562,6 +3562,18 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 
 /*******************************************************************************
 **
+** Function         BTM_ReadEScoLinkTxInterval
+**
+**                  Note: If the upper layer doesn't know the current sco index,
+**                  BTM_FIRST_ACTIVE_SCO_INDEX can be used as parameter to
+**                  find the first active SCO index
+**
+** Description      Return Tx interval for ESCO link
+*******************************************************************************/
+    BTM_API extern int BTM_ReadEScoLinkTxInterval (UINT16 sco_inx);
+
+/*******************************************************************************
+**
 ** Function         BTM_EScoConnRsp
 **
 ** Description      This function is called upon receipt of an (e)SCO connection

@@ -36,6 +36,7 @@
 #include "btif_profile_queue.h"
 #include "bta_api.h"
 #include "btif_media.h"
+#include "btif_storage.h"
 #include "bta_av_api.h"
 #include "gki.h"
 #include "bd.h"
@@ -100,6 +101,9 @@ static btav_callbacks_t *bt_av_src_callbacks = NULL;
 static btav_callbacks_t *bt_av_sink_callbacks = NULL;
 static btif_av_cb_t btif_av_cb;
 static TIMER_LIST_ENT tle_av_open_on_rc;
+static btif_sm_event_t idle_rc_event;
+static tBTA_AV idle_rc_data;
+
 
 /* both interface and media task needs to be ready to alloc incoming request */
 #define CHECK_BTAV_INIT() if (((bt_av_src_callbacks == NULL) &&(bt_av_sink_callbacks == NULL)) \
@@ -146,6 +150,7 @@ static const btif_sm_handler_t btif_av_state_handlers[] =
 extern void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data);
 extern BOOLEAN btif_rc_get_connected_peer(BD_ADDR peer_addr);
 extern void btif_rc_check_handle_pending_play (BD_ADDR peer_addr, BOOLEAN bSendToApp);
+extern BOOLEAN btif_hf_is_call_idle();
 
 /*****************************************************************************
 ** Local helper functions
@@ -196,6 +201,7 @@ const char *dump_av_sm_event_name(btif_av_sm_event_t event)
         CASE_RETURN_STR(BTIF_AV_STOP_STREAM_REQ_EVT)
         CASE_RETURN_STR(BTIF_AV_SUSPEND_STREAM_REQ_EVT)
         CASE_RETURN_STR(BTIF_AV_SINK_CONFIG_REQ_EVT)
+
         default: return "UNKNOWN_EVENT";
    }
 }
@@ -291,25 +297,17 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             btif_av_cb.bta_handle = ((tBTA_AV*)p_data)->registr.hndl;
             break;
 
-        case BTA_AV_PENDING_EVT:
         case BTIF_AV_CONNECT_REQ_EVT:
-        {
-             if (event == BTIF_AV_CONNECT_REQ_EVT)
-             {
-                 memcpy(&btif_av_cb.peer_bda, ((btif_av_connect_req_t*)p_data)->target_bda,
-                                                                   sizeof(bt_bdaddr_t));
-                 BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
+             /* For outgoing connect stack and app are in sync.
+              */
+            memcpy(&btif_av_cb.peer_bda, ((btif_av_connect_req_t*)p_data)->target_bda,
+                                                                     sizeof(bt_bdaddr_t));
+			BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
                     TRUE, BTA_SEC_NONE, ((btif_av_connect_req_t*)p_data)->uuid);
-             }
-             else if (event == BTA_AV_PENDING_EVT)
-             {
-                  bdcpy(btif_av_cb.peer_bda.address, ((tBTA_AV*)p_data)->pend.bd_addr);
-                  BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
-                    TRUE, BTA_SEC_NONE, UUID_SERVCLASS_AUDIO_SOURCE);
-             }
              btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
-        } break;
+             break;
 
+        case BTA_AV_PENDING_EVT:
         case BTA_AV_RC_OPEN_EVT:
             /* IOP_FIX: Jabra 620 only does RC open without AV open whenever it connects. So
              * as per the AV WP, an AVRC connection cannot exist without an AV connection. Therefore,
@@ -321,12 +319,35 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
              * TODO: We may need to do this only on an AVRCP Play. FixMe
              */
 
-            BTIF_TRACE_DEBUG("BTA_AV_RC_OPEN_EVT received w/o AV");
-            memset(&tle_av_open_on_rc, 0, sizeof(tle_av_open_on_rc));
-            tle_av_open_on_rc.param = (UINT32)btif_initiate_av_open_tmr_hdlr;
-            btu_start_timer(&tle_av_open_on_rc, BTU_TTYPE_USER_FUNC,
-                            BTIF_TIMEOUT_AV_OPEN_ON_RC_SECS);
-            btif_rc_handler(event, p_data);
+            /* Check if connection allowed with this device */
+            BTIF_TRACE_DEBUG("Check A2dp priority of device");
+            if (idle_rc_event != 0)
+            {
+                BTIF_TRACE_DEBUG("Processing another RC Event ");
+                return FALSE;
+            }
+            idle_rc_event = event;
+            memcpy(&idle_rc_data, ((tBTA_AV*)p_data), sizeof(tBTA_AV));
+            if (event == BTA_AV_RC_OPEN_EVT )
+            {
+                bdcpy(btif_av_cb.peer_bda.address, ((tBTA_AV*)p_data)->rc_open.peer_addr);
+            }
+            else
+            {
+                bdcpy(btif_av_cb.peer_bda.address, ((tBTA_AV*)p_data)->pend.bd_addr);
+            }
+
+            // Only for AVDTP connection request move to opening state
+            if (event == BTA_AV_PENDING_EVT)
+                btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
+
+            if (btif_av_cb.peer_sep == AVDT_TSEP_SRC && bt_av_sink_callbacks != NULL) {
+                HAL_CBACK(bt_av_sink_callbacks, connection_priority_cb,
+                    &(btif_av_cb.peer_bda));
+            } else if (btif_av_cb.peer_sep == AVDT_TSEP_SNK && bt_av_src_callbacks != NULL) {
+                HAL_CBACK(bt_av_src_callbacks, connection_priority_cb,
+                    &(btif_av_cb.peer_bda));
+            }
             break;
 
         case BTA_AV_REMOTE_CMD_EVT:
@@ -442,6 +463,46 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
                         req.sample_rate, req.channel_count);
             }
         } break;
+
+        case BTIF_AV_CONNECT_REQ_EVT:
+            // Check for device, if same device which moved to opening then ignore callback
+            if (memcmp ((bt_bdaddr_t*)p_data, &(btif_av_cb.peer_bda),
+                sizeof(btif_av_cb.peer_bda)) == 0)
+            {
+                BTIF_TRACE_WARNING("Same device moved to Opening state,ignore Connect Req");
+                break;
+            }
+            BTIF_TRACE_WARNING("Moved from idle by Incoming Connection request");
+ 
+            btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED, (bt_bdaddr_t*)p_data);
+
+            break;
+
+        case BTA_AV_PENDING_EVT:
+            // Check for device, if same device which moved to opening then ignore callback
+            if (memcmp (((tBTA_AV*)p_data)->pend.bd_addr, &(btif_av_cb.peer_bda),
+                sizeof(btif_av_cb.peer_bda)) == 0)
+            {
+                BTIF_TRACE_WARNING("Same device moved to Opening state,ignore Pending Req");
+                break;
+            }
+            BTIF_TRACE_WARNING("Moved from idle by outgoing Connection request");
+            BTA_AvDisconnect(((tBTA_AV*)p_data)->pend.bd_addr);
+			break;
+
+        case BTIF_AV_DISCONNECT_REQ_EVT:
+            btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED,
+                &(btif_av_cb.peer_bda));
+            btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
+            break;
+        case BTA_AV_CLOSE_EVT:
+            /* avdtp link is closed */
+            btif_a2dp_on_stopped(NULL);
+            /* inform the application that we are disconnected */
+            btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED,
+                &(btif_av_cb.peer_bda));
+            btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
+            break;
 
         CHECK_RC_EVENT(event, p_data);
 
@@ -576,6 +637,24 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             if ((p_av->start.status == BTA_SUCCESS) && (p_av->start.suspending == TRUE))
                 return TRUE;
 
+            /* if remote tries to start a2dp when DUT is a2dp source
+             * then suspend. In case a2dp is sink and call is active
+             * then disconnect the AVDTP channel
+             */
+            if (!(btif_av_cb.flags & BTIF_AV_FLAG_PENDING_START))
+            {
+                if (btif_av_cb.peer_sep == AVDT_TSEP_SNK)
+                {
+                    BTIF_TRACE_EVENT("%s: trigger suspend as remote initiated!!", __FUNCTION__);
+                    btif_dispatch_sm_event(BTIF_AV_SUSPEND_STREAM_REQ_EVT, NULL, 0);
+                }
+                else if (!btif_hf_is_call_idle())
+                {
+                    BTIF_TRACE_WARNING(" Peer is SRC, Disc the Link ");
+                    btif_dispatch_sm_event(BTIF_AV_DISCONNECT_REQ_EVT, NULL, 0);
+                }
+            }
+
             /*  In case peer is A2DP SRC we do not want to ack commands on UIPC*/
             if (btif_av_cb.peer_sep == AVDT_TSEP_SNK)
             {
@@ -642,6 +721,21 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             {
                btif_av_cb.flags &= ~BTIF_AV_FLAG_PENDING_START;
                btif_a2dp_ack_fail();
+            }
+            break;
+
+        case BTIF_AV_CONNECT_REQ_EVT:
+            if (memcmp ((bt_bdaddr_t*)p_data, &(btif_av_cb.peer_bda),
+                sizeof(btif_av_cb.peer_bda)) == 0)
+            {
+                BTIF_TRACE_WARNING("Btif moved to opened by incoming request");
+                BTIF_TRACE_WARNING("Ignore BTIF_AV_CONNECT_REQ_EVT for same device");
+
+            }
+            else
+            {
+                BTIF_TRACE_WARNING("Moved to opened by Other Incoming Conn req");
+                btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED, (bt_bdaddr_t*)p_data);
             }
             break;
 
@@ -831,11 +925,92 @@ static void btif_av_handle_event(UINT16 event, char* p_param)
     btif_sm_dispatch(btif_av_cb.sm_handle, event, (void*)p_param);
 }
 
+void display_meta_msg(tBTA_AV_META_MSG meta_msg)
+{
+    int index, disp_index = 0;
+    char disp_buf[128] = {0};
+
+    BTIF_TRACE_DEBUG("rc_hndl = %d : comp_id = 0x%x : label = %d",
+        meta_msg.rc_handle, meta_msg.company_id, meta_msg.label);
+
+    BTIF_TRACE_DEBUG("len = %d : p_data = %p : p_msg = %p : rc_handle = %d",
+        meta_msg.len, meta_msg.p_data, meta_msg.p_msg, meta_msg.rc_handle);
+
+    BTIF_TRACE_DEBUG("AVRC Msg : Vendor Header: ctype = %d : subunit_type = %d :"
+        "subunit_id = %d : opcode = %d",
+        meta_msg.p_msg->vendor.hdr.ctype, meta_msg.p_msg->vendor.hdr.subunit_type,
+        meta_msg.p_msg->vendor.hdr.subunit_id, meta_msg.p_msg->vendor.hdr.opcode);
+
+    BTIF_TRACE_DEBUG("AVRC Msg : Vendor: comp_id = 0x%x : p_vendor_data = %p : vendor_len = %d",
+        meta_msg.p_msg->vendor.company_id, meta_msg.p_msg->vendor.p_vendor_data,
+        meta_msg.p_msg->vendor.vendor_len);
+
+    BTIF_TRACE_DEBUG("Vendor data : ");
+    for (index = 0; index < meta_msg.p_msg->vendor.vendor_len; index++)
+    {
+        disp_index += snprintf(disp_buf + disp_index, 128 - disp_index, "%02x ",
+                                meta_msg.p_msg->vendor.p_vendor_data[index]);
+        if (disp_index % 20 == 0)
+        {
+            BTIF_TRACE_DEBUG("%s", disp_buf);
+            disp_index = 0;
+        }
+    }
+    if(disp_index != 0)
+    {
+        BTIF_TRACE_DEBUG("%s", disp_buf);
+    }
+}
+
+void btif_av_msg_copy(UINT16 event, char *p_dest, char *p_src)
+{
+    if (event == BTA_AV_META_MSG_EVT)
+    {
+        tBTA_AV *p_data;
+        tAVRC_MSG *p_avrc;
+        UINT8 *p_vendor_data;
+
+        memcpy(p_dest, p_src, sizeof(tBTA_AV));  /* callback parameter data */
+        p_data = (tBTA_AV *)p_dest;
+
+        p_avrc = (tAVRC_MSG *)GKI_getbuf(sizeof(tAVRC_MSG) +
+                  p_data->meta_msg.p_msg->vendor.vendor_len);
+        if(p_avrc == NULL)
+        {
+            BTIF_TRACE_ERROR("GKI_getbuf failed : Failed to copy Meta Msg");
+            return;
+        }
+        memcpy(p_avrc, p_data->meta_msg.p_msg, sizeof(tAVRC_MSG));
+        p_vendor_data = (UINT8*)(p_avrc + 1);
+
+        memcpy(p_vendor_data, p_data->meta_msg.p_msg->vendor.p_vendor_data,
+            p_data->meta_msg.p_msg->vendor.vendor_len);
+
+        p_data->meta_msg.p_msg = p_avrc;
+        p_data->meta_msg.p_msg->vendor.p_vendor_data = p_vendor_data;
+    }
+}
+
 static void bte_av_callback(tBTA_AV_EVT event, tBTA_AV *p_data)
 {
+    int param_len;
+
     /* Switch to BTIF context */
-    btif_transfer_context(btif_av_handle_event, event,
+    /* Special handling for META_MSG because of vendor data pointer */
+    if (event == BTA_AV_META_MSG_EVT)
+    {
+        param_len = sizeof(tAVRC_MSG) + p_data->meta_msg.p_msg->vendor.vendor_len;
+        BTIF_TRACE_DEBUG(" Meta Message Length %d", param_len);
+
+        display_meta_msg(p_data->meta_msg);
+        btif_transfer_context(btif_av_handle_event, event,
+                          (char*)p_data, sizeof(tBTA_AV), btif_av_msg_copy);
+    }
+    else
+    {
+        btif_transfer_context(btif_av_handle_event, event,
                           (char*)p_data, sizeof(tBTA_AV), NULL);
+    }
 }
 
 static void bte_av_media_callback(tBTA_AV_EVT event, tBTA_AV_MEDIA *p_data)
@@ -983,7 +1158,20 @@ static bt_status_t connect_int(bt_bdaddr_t *bd_addr, uint16_t uuid)
     connect_req.uuid = uuid;
     BTIF_TRACE_EVENT("%s", __FUNCTION__);
 
-    btif_sm_dispatch(btif_av_cb.sm_handle, BTIF_AV_CONNECT_REQ_EVT, (char*)&connect_req);
+
+    if(btif_storage_is_device_bonded (bd_addr))
+    {
+        btif_sm_dispatch(btif_av_cb.sm_handle, BTIF_AV_CONNECT_REQ_EVT, (char*)&connect_req);
+    }
+    else
+    {
+        bdstr_t bdstr;
+
+        BTIF_TRACE_ERROR("## connect_int ## Device Not Bonded : %s", bd2str (bd_addr, &bdstr));
+        /* inform the application of the disconnection as the connection is not processed */
+        btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED,bd_addr);
+        btif_queue_advance();
+    }
 
     return BT_STATUS_SUCCESS;
 }
@@ -993,6 +1181,7 @@ static bt_status_t src_connect_sink(bt_bdaddr_t *bd_addr)
     BTIF_TRACE_EVENT("%s", __FUNCTION__);
     CHECK_BTAV_INIT();
 
+
     return btif_queue_connect(UUID_SERVCLASS_AUDIO_SOURCE, bd_addr, connect_int);
 }
 
@@ -1001,7 +1190,9 @@ static bt_status_t sink_connect_src(bt_bdaddr_t *bd_addr)
     BTIF_TRACE_EVENT("%s", __FUNCTION__);
     CHECK_BTAV_INIT();
 
+
     return btif_queue_connect(UUID_SERVCLASS_AUDIO_SINK, bd_addr, connect_int);
+
 }
 
 /*******************************************************************************
@@ -1068,12 +1259,55 @@ static void cleanup_sink(void) {
     }
 }
 
+static void allow_connection(int is_valid)
+{
+    BTIF_TRACE_DEBUG(" %s isValid is %d event %d", __FUNCTION__,is_valid,idle_rc_event);
+    switch (idle_rc_event)
+    {
+        case BTA_AV_RC_OPEN_EVT:
+            if (is_valid)
+            {
+                memset(&tle_av_open_on_rc, 0, sizeof(tle_av_open_on_rc));
+                tle_av_open_on_rc.param = (UINT32)btif_initiate_av_open_tmr_hdlr;
+                btu_start_timer(&tle_av_open_on_rc, BTU_TTYPE_USER_FUNC,
+                        BTIF_TIMEOUT_AV_OPEN_ON_RC_SECS);
+                btif_rc_handler(idle_rc_event, &idle_rc_data);
+            }
+            else
+            {
+                UINT8 rc_handle =  idle_rc_data.rc_open.rc_handle;
+                BTA_AvCloseRc(rc_handle);
+            }
+            break;
+
+        case BTA_AV_PENDING_EVT:
+            if (is_valid)
+            {
+                BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
+                       TRUE, BTA_SEC_NONE, UUID_SERVCLASS_AUDIO_SOURCE);
+                btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
+            }
+            else
+            {
+                BTA_AvDisconnect(idle_rc_data.pend.bd_addr);
+            }
+            break;
+
+        default:
+            BTIF_TRACE_DEBUG("%s : unhandled event:%s", __FUNCTION__,
+                                dump_av_sm_event_name(idle_rc_event));
+    }
+    idle_rc_event = 0;
+    memset(&idle_rc_data, 0, sizeof(tBTA_AV));
+}
+
 static const btav_interface_t bt_av_src_interface = {
     sizeof(btav_interface_t),
     init_src,
     src_connect_sink,
     disconnect,
     cleanup_src,
+    allow_connection,
 };
 
 static const btav_interface_t bt_av_sink_interface = {
@@ -1082,6 +1316,7 @@ static const btav_interface_t bt_av_sink_interface = {
     sink_connect_src,
     disconnect,
     cleanup_sink,
+    allow_connection,
 };
 
 /*******************************************************************************
@@ -1097,6 +1332,21 @@ static const btav_interface_t bt_av_sink_interface = {
 btif_sm_handle_t btif_av_get_sm_handle(void)
 {
     return btif_av_cb.sm_handle;
+}
+
+/*******************************************************************************
+**
+** Function         btif_av_get_addr
+**
+** Description      Fetches current AV BD address
+**
+** Returns          BD address
+**
+*******************************************************************************/
+
+bt_bdaddr_t btif_av_get_addr(void)
+{
+    return btif_av_cb.peer_bda;
 }
 
 /*******************************************************************************
@@ -1281,3 +1531,16 @@ BOOLEAN btif_av_is_peer_edr(void)
         return FALSE;
 }
 
+/******************************************************************************
+**
+** Function        btif_av_clear_remote_suspend_flag
+**
+** Description     Clears btif_av_cd.flags if BTIF_AV_FLAG_REMOTE_SUSPEND is set
+**
+** Returns          void
+******************************************************************************/
+void btif_av_clear_remote_suspend_flag(void)
+{
+    BTIF_TRACE_DEBUG(" flag :%x",btif_av_cb.flags);
+    btif_av_cb.flags  &= ~BTIF_AV_FLAG_REMOTE_SUSPEND;
+}

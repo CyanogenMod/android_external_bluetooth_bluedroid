@@ -60,6 +60,7 @@
 #define MAX_LABEL 16
 #define MAX_TRANSACTIONS_PER_SESSION 16
 #define MAX_CMD_QUEUE_LEN 8
+#define PLAY_STATUS_PLAYING 1
 
 #define CHECK_RC_CONNECTED                                                                  \
     BTIF_TRACE_DEBUG("## %s ##", __FUNCTION__);                                            \
@@ -351,9 +352,17 @@ void handle_rc_features()
 {
     btrc_remote_features_t rc_features = BTRC_FEAT_NONE;
     bt_bdaddr_t rc_addr;
-    bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+    bt_bdaddr_t avdtp_addr;
+    bdstr_t addr1, addr2;
 
-    if (dev_blacklisted_for_absolute_volume(btif_rc_cb.rc_addr))
+    bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+    avdtp_addr = btif_av_get_addr();
+
+    BTIF_TRACE_DEBUG("AVDTP Address : %s AVCTP address: %s",
+                       bd2str(&avdtp_addr, &addr1), bd2str(&rc_addr, &addr2));
+
+    if (dev_blacklisted_for_absolute_volume(btif_rc_cb.rc_addr) ||
+        bdcmp(avdtp_addr.address, rc_addr.address))
     {
         btif_rc_cb.rc_features &= ~BTA_AV_FEAT_ADV_CTRL;
     }
@@ -430,6 +439,19 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
 
     if(p_rc_open->status == BTA_AV_SUCCESS)
     {
+        //check if already some RC is connected
+        if (btif_rc_cb.rc_connected)
+        {
+            BTIF_TRACE_ERROR("Got RC OPEN in connected state, Connected RC: %d \
+                and Current RC: %d", btif_rc_cb.rc_handle,p_rc_open->rc_handle );
+            if ((btif_rc_cb.rc_handle != p_rc_open->rc_handle)
+                && (bdcmp(btif_rc_cb.rc_addr, p_rc_open->peer_addr)))
+            {
+                BTIF_TRACE_DEBUG("Got RC connected for some other handle");
+                BTA_AvCloseRc(p_rc_open->rc_handle);
+                return;
+            }
+        }
         memcpy(btif_rc_cb.rc_addr, p_rc_open->peer_addr, sizeof(BD_ADDR));
         btif_rc_cb.rc_features = p_rc_open->peer_features;
         btif_rc_cb.rc_vol_label=MAX_LABEL;
@@ -478,6 +500,12 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
     tBTA_AV_FEAT features;
 #endif
     BTIF_TRACE_DEBUG("%s: rc_handle: %d", __FUNCTION__, p_rc_close->rc_handle);
+    if ((p_rc_close->rc_handle != btif_rc_cb.rc_handle)
+        && (bdcmp(btif_rc_cb.rc_addr, p_rc_close->peer_addr)))
+    {
+        BTIF_TRACE_ERROR("Got disconnect of unknown device");
+        return;
+    }
 
     btif_rc_cb.rc_handle = 0;
     btif_rc_cb.rc_connected = FALSE;
@@ -542,28 +570,20 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
             return;
         }
     }
+
+    if(!btif_av_is_connected())
+    {
+        APPL_TRACE_WARNING("%s: AVDT not open, discarding pass-through command: %d",
+                                                        __FUNCTION__, p_remote_cmd->rc_id);
+        return;
+    }
+
     if (p_remote_cmd->key_state == AVRC_STATE_RELEASE) {
         status = "released";
         pressed = 0;
     } else {
         status = "pressed";
         pressed = 1;
-    }
-
-    /* If this is Play/Pause command (press or release)  before processing, check the following
-     * a voice call has ended recently
-     * the remote device is not of type headset
-     * If the above conditions meet, drop the Play/Pause command
-     * This fix is to interop with certain carkits which sends an automatic  PLAY  or PAUSE
-     * commands right after call ends
-     */
-    if((p_remote_cmd->rc_id == BTA_AV_RC_PLAY || p_remote_cmd->rc_id == BTA_AV_RC_PAUSE)&&
-       (btif_hf_call_terminated_recently() == TRUE) &&
-       (check_cod( (const bt_bdaddr_t*)&(btif_rc_cb.rc_addr), COD_AV_HEADSETS) != TRUE))
-    {
-        BTIF_TRACE_DEBUG("%s:Dropping the play/Pause command received right after call end cmd:%d",
-                           __FUNCTION__,p_remote_cmd->rc_id);
-        return;
     }
 
     if (p_remote_cmd->rc_id == BTA_AV_RC_FAST_FOR || p_remote_cmd->rc_id == BTA_AV_RC_REWIND) {
@@ -788,7 +808,18 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
         {
             BTIF_TRACE_DEBUG("rc_id:0x%x key_state:%d", p_data->remote_cmd.rc_id,
                                p_data->remote_cmd.key_state);
-            handle_rc_passthrough_cmd( (&p_data->remote_cmd) );
+            /** In race conditions just after 2nd AVRCP is connected
+             *  remote might send pass through commands, so check for
+             *  Rc handle before processing pass through commands
+             **/
+            if (btif_rc_cb.rc_handle == p_data->remote_cmd.rc_handle)
+            {
+                handle_rc_passthrough_cmd( (&p_data->remote_cmd) );
+            }
+            else
+            {
+                BTIF_TRACE_DEBUG("Pas-through command for Invalid rc handle");
+            }
         }
         break;
 #if (AVRC_CTLR_INCLUDED == TRUE)
@@ -814,7 +845,10 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
             BTIF_TRACE_DEBUG("  company_id:0x%x len:%d handle:%d", p_data->meta_msg.company_id,
                 p_data->meta_msg.len, p_data->meta_msg.rc_handle);
             /* handle the metamsg command */
+
             handle_rc_metamsg_cmd(&(p_data->meta_msg));
+            /* Free the Memory allocated for tAVRC_MSG */
+            GKI_freebuf(p_data->meta_msg.p_msg);
         }
         break;
         default:
@@ -1093,9 +1127,33 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
             }
             else
             {
-                num_attr = pavrc_cmd->get_elem_attrs.num_attr;
-                memcpy(element_attrs, pavrc_cmd->get_elem_attrs.attrs, sizeof(UINT32)
-                    *pavrc_cmd->get_elem_attrs.num_attr);
+                int attr_cnt, filled_attr_count;
+
+                num_attr = 0;
+                /* Attribute IDs from 1 to AVRC_MAX_NUM_MEDIA_ATTR_ID are only valid,
+                 * hence HAL definition limits the attributes to AVRC_MAX_NUM_MEDIA_ATTR_ID.
+                 * Fill only valid entries.
+                 */
+                for (attr_cnt = 0; (attr_cnt < pavrc_cmd->get_elem_attrs.num_attr) &&
+                    (num_attr < AVRC_MAX_NUM_MEDIA_ATTR_ID); attr_cnt++)
+                {
+                    if ((pavrc_cmd->get_elem_attrs.attrs[attr_cnt] > 0) &&
+                        (pavrc_cmd->get_elem_attrs.attrs[attr_cnt] <= AVRC_MAX_NUM_MEDIA_ATTR_ID))
+                    {
+                        /* Skip the duplicate entries : PTS sends duplicate entries for Fragment cases
+                         */
+                        for (filled_attr_count = 0; filled_attr_count < num_attr; filled_attr_count++)
+                        {
+                            if (element_attrs[filled_attr_count] == pavrc_cmd->get_elem_attrs.attrs[attr_cnt])
+                                break;
+                        }
+                        if (filled_attr_count == num_attr)
+                        {
+                            element_attrs[num_attr] = pavrc_cmd->get_elem_attrs.attrs[attr_cnt];
+                            num_attr++;
+                        }
+                    }
+                }
             }
             FILL_PDU_QUEUE(IDX_GET_ELEMENT_ATTR_RSP, ctype, label, TRUE);
             HAL_CBACK(bt_rc_callbacks, get_element_attr_cb, num_attr, element_attrs);
@@ -1344,6 +1402,12 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
     {
         case BTRC_EVT_PLAY_STATUS_CHANGED:
             avrc_rsp.reg_notif.param.play_status = p_param->play_status;
+            /* Clear remote suspend flag, as remote device issues
+             * suspend within 3s after pause, and DUT within 3s
+             * initiates Play
+            */
+            if (avrc_rsp.reg_notif.param.play_status == PLAY_STATUS_PLAYING)
+                btif_av_clear_remote_suspend_flag();
             break;
         case BTRC_EVT_TRACK_CHANGE:
             memcpy(&(avrc_rsp.reg_notif.param.track), &(p_param->track), sizeof(btrc_uid_t));

@@ -774,6 +774,16 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
     pdu = *(p_vendor->p_vendor_data);
     p_rc_rsp->pdu = pdu;
     *p_ctype = AVRC_RSP_REJ;
+    /* Check for valid Meta Length,
+     *  AVRC_MIN_CMD_LEN is 20. */
+    if ((20 + p_vendor->vendor_len) > AVRC_META_CMD_POOL_SIZE)
+    {
+        /* reject it */
+        evt = 0;
+        p_rc_rsp->rsp.status = AVRC_STS_BAD_PARAM;
+        APPL_TRACE_ERROR("Invalid param length, we cant handle: %d", p_vendor->vendor_len);
+        return evt;
+    }
     /* Metadata messages only use PANEL sub-unit type */
     if (p_vendor->hdr.subunit_type != AVRC_SUB_PANEL)
     {
@@ -1489,23 +1499,27 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
     else
     {
         /* disconnected. */
+        int is_lcb_used = bta_av_cb.conn_lcb;
+        APPL_TRACE_DEBUG(" is_lcb_used is %d",is_lcb_used);
         p_lcb = bta_av_find_lcb(p_data->str_msg.bd_addr, BTA_AV_LCB_FREE);
-        if(p_lcb && p_lcb->conn_msk)
+        if (p_lcb && (p_lcb->conn_msk || is_lcb_used))
         {
             APPL_TRACE_DEBUG("conn_msk: 0x%x", p_lcb->conn_msk);
             /* clean up ssm  */
             for(xx=0; xx < BTA_AV_NUM_STRS; xx++)
             {
                 mask = 1 << (xx + 1);
-                if ((mask & p_lcb->conn_msk) && (p_cb->p_scb[xx]) &&
+                if (((mask & p_lcb->conn_msk) || is_lcb_used)
+                     && (p_cb->p_scb[xx]) &&
                     (bdcmp(p_cb->p_scb[xx]->peer_addr, p_data->str_msg.bd_addr) == 0))
                 {
+                    APPL_TRACE_DEBUG("Sending AVDT_DISCONNECT_EVT");
                     bta_av_ssm_execute(p_cb->p_scb[xx], BTA_AV_AVDT_DISCONNECT_EVT, NULL);
                 }
             }
         }
     }
-    APPL_TRACE_DEBUG("conn_lcb: 0x%x", p_cb->conn_lcb);
+    APPL_TRACE_DEBUG("sig_chg conn_lcb: 0x%x", p_cb->conn_lcb);
 }
 
 /*******************************************************************************
@@ -1750,7 +1764,20 @@ void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
                 if(p_lcb)
                 {
                     rc_handle = bta_av_rc_create(p_cb, AVCT_INT, (UINT8)(p_scb->hdi + 1), p_lcb->lidx);
-                    p_cb->rcb[rc_handle].peer_features = peer_features;
+                    if(rc_handle != BTA_AV_RC_HANDLE_NONE)
+                    {
+                        p_cb->rcb[rc_handle].peer_features = peer_features;
+                    }
+                    else
+                    {
+                        /* cannot create valid rc_handle for current device */
+                        APPL_TRACE_ERROR(" No link resources available");
+                        p_scb->use_rc = FALSE;
+                        bdcpy(rc_open.peer_addr, p_scb->peer_addr);
+                        rc_open.peer_features = 0;
+                        rc_open.status = BTA_AV_FAIL_RESOURCES;
+                        (*p_cb->p_cback)(BTA_AV_RC_CLOSE_EVT, (tBTA_AV *) &rc_open);
+                    }
                 }
 #if (BT_USE_TRACES == TRUE || BT_TRACE_APPL == TRUE)
                 else

@@ -764,7 +764,10 @@ static bt_status_t connect_int(bt_bdaddr_t *bd_addr, uint16_t uuid)
 static bt_status_t connect( bt_bdaddr_t *bd_addr )
 {
     CHECK_BTHF_INIT();
+    btif_queue_remove_connect(UUID_SERVCLASS_AG_HANDSFREE, BTIF_QUEUE_CHECK_CONNECT_REQ);
+
     return btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int);
+
 }
 
 /*******************************************************************************
@@ -1372,7 +1375,64 @@ update_call_states:
     return status;
 }
 
+/*******************************************************************************
+**
+** Function         btif_hf_is_call_idle
+**
+** Description      returns true if no call is in progress
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+BOOLEAN btif_hf_is_call_idle()
+{
+    int i, j = 1;
+    for (i = 0; i < btif_max_hf_clients; i++)
+    {
+        BTIF_TRACE_EVENT("%s: call_setup_state: %d for handle: %d",
+              __FUNCTION__, btif_hf_cb[i].call_setup_state, btif_hf_cb[i].handle);
+        BTIF_TRACE_EVENT("num_held: %d, num_active: %d for handle: %d",
+                btif_hf_cb[i].num_held, btif_hf_cb[i].num_active, btif_hf_cb[i].handle);
+        j &= ((btif_hf_cb[i].call_setup_state == BTHF_CALL_STATE_IDLE) &&
+                ((btif_hf_cb[i].num_held + btif_hf_cb[i].num_active) == 0));
+    }
 
+    if (j)
+    {
+        BTIF_TRACE_EVENT("%s: call state idle ", __FUNCTION__);
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+/*******************************************************************************
+** Function         get_remote_features
+**
+** Description      get remote features
+**
+** Returns         int
+**
+*******************************************************************************/
+static int get_remote_features(bt_bdaddr_t *bd_addr)
+{
+    CHECK_BTHF_INIT();
+
+    int idx = btif_hf_idx_by_bdaddr(bd_addr);
+
+    if((idx<0)||(idx>=BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return 0;
+    }
+
+    if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX))
+    {
+        return btif_hf_cb[idx].peer_feat;
+    }
+    return 0;
+}
 /*******************************************************************************
 **
 ** Function         btif_hf_call_terminated_recently
@@ -1464,6 +1524,7 @@ static const bthf_interface_t bthfInterface = {
     at_response,
     clcc_response,
     phone_state_change,
+    get_remote_features,
     cleanup,
     configure_wbs,
 };

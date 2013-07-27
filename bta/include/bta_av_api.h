@@ -249,11 +249,13 @@ typedef UINT8 tBTA_AV_ERR;
 #define BTA_AV_META_MSG_EVT     17      /* metadata messages */
 #define BTA_AV_REJECT_EVT       18      /* incoming connection rejected */
 #define BTA_AV_RC_FEAT_EVT      19      /* remote control channel peer supported features update */
-#define BTA_AV_MEDIA_SINK_CFG_EVT    20      /* command to configure codec */
-#define BTA_AV_MEDIA_DATA_EVT   21      /* sending data to Media Task */
-/* Max BTA event */
-#define BTA_AV_MAX_EVT          22
+#define BTA_AV_BROWSE_MSG_EVT   20      /* Browse MSG EVT */
+#define BTA_AV_MEDIA_SINK_CFG_EVT    21      /* sending command to Media Task */
+#define BTA_AV_MEDIA_DATA_EVT   22      /* sending command to Media Task */
+#define BTA_AV_SM_PRIORITY_EVT  23       /* if priority of device is 0 then move back to idle */
 
+/* Max BTA event */
+#define BTA_AV_MAX_EVT          24
 
 typedef UINT8 tBTA_AV_EVT;
 
