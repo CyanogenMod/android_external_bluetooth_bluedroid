@@ -558,11 +558,10 @@ static int out_standby(struct audio_stream *stream)
     FNLOG();
 
     pthread_mutex_lock(&out->lock);
-
-    if (out->state == AUDIO_A2DP_STATE_STARTED)
-        retVal =  suspend_audio_datapath(out, true);
-    else
-        retVal = 0;
+    /*Need not check State here as btif layer does
+    check of btif state , during remote initited suspend
+    DUT need to clear flag else start will not happen*/
+    retVal =  suspend_audio_datapath(out, true);
     pthread_mutex_unlock (&out->lock);
 
     return retVal;
