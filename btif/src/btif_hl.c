@@ -3492,7 +3492,7 @@ static void btif_hl_upstreams_evt(UINT16 event, char* p_param){
                     if (btif_hl_find_mcl_idx(app_idx, p_data->sdp_query_cfm.bd_addr, &mcl_idx))
                     {
                         p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-                        if ( (p_mcb->cch_oper =  BTIF_HL_CCH_OP_MDEP_FILTERING) ||
+                        if ( (p_mcb->cch_oper ==  BTIF_HL_CCH_OP_MDEP_FILTERING) ||
                              (p_mcb->cch_oper == BTIF_HL_CCH_OP_DCH_OPEN) )
                         {
                             pending_op = p_mcb->pcb.op;
