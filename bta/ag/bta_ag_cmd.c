@@ -1246,6 +1246,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 #endif
 
         default:
+            bta_ag_send_error(p_scb, BTA_AG_ERR_OP_NOT_SUPPORTED);
             break;
     }
 
