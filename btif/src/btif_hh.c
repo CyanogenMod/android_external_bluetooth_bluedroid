@@ -909,6 +909,9 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             BTIF_TRACE_DEBUG3("BTA_HH_GET_IDLE_EVT: handle = %d, status = %d, rate = %d",
                  p_data->hs_data.handle, p_data->hs_data.status,
                  p_data->hs_data.rsp_data.idle_rate);
+            p_dev = btif_hh_find_connected_dev_by_handle(p_data->conn.handle);
+            HAL_CBACK(bt_hh_callbacks, idle_time_cb,(bt_bdaddr_t*) &(p_dev->bd_addr), (bthh_status_t) p_data->hs_data.status,
+                p_data->hs_data.rsp_data.idle_rate);
             break;
 
         case BTA_HH_SET_IDLE_EVT:
@@ -1385,7 +1388,7 @@ static bt_status_t get_idle_time(bt_bdaddr_t *bd_addr)
 
     p_dev = btif_hh_find_connected_dev_by_bda(bd_addr);
     if (p_dev != NULL) {
-        //BTA_HhGetIdle(p_dev->dev_handle);
+        BTA_HhGetIdle(p_dev->dev_handle);
     }
     else {
         return BT_STATUS_FAIL;
@@ -1423,7 +1426,7 @@ static bt_status_t set_idle_time (bt_bdaddr_t *bd_addr, uint8_t idle_time)
         return BT_STATUS_FAIL;
     }
     else {
-        //BTA_HhSetIdle(p_dev->dev_handle, idle_time);
+        BTA_HhSetIdle(p_dev->dev_handle, idle_time);
     }
     return BT_STATUS_SUCCESS;
 }
@@ -1738,8 +1741,8 @@ static const bthh_interface_t bthhInterface = {
     set_info,
     get_protocol,
     set_protocol,
-//    get_idle_time,
-//    set_idle_time,
+    get_idle_time,
+    set_idle_time,
     get_report,
     set_report,
     send_data,
