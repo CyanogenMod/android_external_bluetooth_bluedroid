@@ -2259,7 +2259,9 @@ BOOLEAN l2cu_create_conn_after_switch (tL2C_LCB *p_lcb)
 #endif
 
     if (!btsnd_hcic_create_conn (p_lcb->remote_bd_addr,
-                                 HCI_PKT_TYPES_MASK_DM1 + HCI_PKT_TYPES_MASK_DH1,
+                                 ( HCI_PKT_TYPES_MASK_DM1 + HCI_PKT_TYPES_MASK_DH1
+                                 + HCI_PKT_TYPES_MASK_DM3 + HCI_PKT_TYPES_MASK_DH3
+                                 + HCI_PKT_TYPES_MASK_DM5 + HCI_PKT_TYPES_MASK_DH5 ),
                                  page_scan_rep_mode,
                                  page_scan_mode,
                                  clock_offset,
