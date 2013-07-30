@@ -878,7 +878,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             break;
 
         case BTA_HH_GET_PROTO_EVT:
-            p_dev = btif_hh_find_connected_dev_by_handle(p_data->dev_status.handle);
+            p_dev = btif_hh_find_connected_dev_by_handle(p_data->hs_data.handle);
             BTIF_TRACE_WARNING("BTA_HH_GET_PROTO_EVT: status = %d, handle = %d, proto = [%d], %s",
                  p_data->hs_data.status, p_data->hs_data.handle,
                  p_data->hs_data.rsp_data.proto_mode,
@@ -911,6 +911,9 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             BTIF_TRACE_DEBUG("BTA_HH_GET_IDLE_EVT: handle = %d, status = %d, rate = %d",
                  p_data->hs_data.handle, p_data->hs_data.status,
                  p_data->hs_data.rsp_data.idle_rate);
+            p_dev = btif_hh_find_connected_dev_by_handle(p_data->hs_data.handle);
+            HAL_CBACK(bt_hh_callbacks, idle_time_cb,(bt_bdaddr_t*) &(p_dev->bd_addr),
+                (bthh_status_t) p_data->hs_data.status, p_data->hs_data.rsp_data.idle_rate);
             break;
 
         case BTA_HH_SET_IDLE_EVT:
@@ -1380,6 +1383,74 @@ static bt_status_t set_info (bt_bdaddr_t *bd_addr, bthh_hid_info_t hid_info )
 
 /*******************************************************************************
 **
+** Function         get_idle_time
+**
+** Description      Get the HID idle time
+**
+** Returns         bt_status_t
+**
+*******************************************************************************/
+static bt_status_t get_idle_time(bt_bdaddr_t *bd_addr)
+{
+    CHECK_BTHH_INIT();
+    btif_hh_device_t *p_dev;
+    BD_ADDR* bda = (BD_ADDR*) bd_addr;
+
+    BTIF_TRACE_DEBUG(" addr = %02X:%02X:%02X:%02X:%02X:%02X",
+         (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
+
+    if (btif_hh_cb.status == BTIF_HH_DISABLED) {
+        BTIF_TRACE_ERROR("%s: Error, HH status = %d", __FUNCTION__, btif_hh_cb.status);
+        return BT_STATUS_FAIL;
+    }
+
+    p_dev = btif_hh_find_connected_dev_by_bda(bd_addr);
+    if (p_dev != NULL) {
+        BTA_HhGetIdle(p_dev->dev_handle);
+    }
+    else {
+        return BT_STATUS_FAIL;
+    }
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         set_idle_time
+**
+** Description      Set the HID idle time
+**
+** Returns         bt_status_t
+**
+*******************************************************************************/
+static bt_status_t set_idle_time (bt_bdaddr_t *bd_addr, uint8_t idle_time)
+{
+    CHECK_BTHH_INIT();
+    btif_hh_device_t *p_dev;
+    BD_ADDR* bda = (BD_ADDR*) bd_addr;
+
+    BTIF_TRACE_DEBUG("addr = %02X:%02X:%02X:%02X:%02X:%02X",
+         (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
+
+    if (btif_hh_cb.status == BTIF_HH_DISABLED) {
+        BTIF_TRACE_ERROR("%s: Error, HH status = %d", __FUNCTION__, btif_hh_cb.status);
+        return BT_STATUS_FAIL;
+    }
+
+    p_dev = btif_hh_find_connected_dev_by_bda(bd_addr);
+    if (p_dev == NULL) {
+        BTIF_TRACE_WARNING(" Error, device %02X:%02X:%02X:%02X:%02X:%02X not opened.",
+             (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
+        return BT_STATUS_FAIL;
+    }
+    else {
+        BTA_HhSetIdle(p_dev->dev_handle, idle_time);
+    }
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
 ** Function         get_protocol
 **
 ** Description      Get the HID proto mode.
@@ -1689,8 +1760,8 @@ static const bthh_interface_t bthhInterface = {
     set_info,
     get_protocol,
     set_protocol,
-//    get_idle_time,
-//    set_idle_time,
+    get_idle_time,
+    set_idle_time,
     get_report,
     set_report,
     send_data,
