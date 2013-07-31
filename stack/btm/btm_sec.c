@@ -1996,9 +1996,16 @@ static BOOLEAN btm_sec_is_upgrade_possible(tBTM_SEC_DEV_REC  *p_dev_rec, BOOLEAN
     if (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN)
     {
         is_possible = FALSE;
-        BTM_TRACE_DEBUG5 ("btm_sec_is_upgrade_possible id:%d, link_key_typet:%d, rmt_io_caps:%d, chk flags:x%x, flags:x%x",
-                          p_dev_rec->p_cur_service->service_id, p_dev_rec->link_key_type, p_dev_rec->rmt_io_caps,
-                          mtm_check, p_dev_rec->p_cur_service->security_flags);
+        BTM_TRACE_DEBUG3 ("btm_sec_is_upgrade_possible link_key_type:%d, rmt_io_caps:%d, chk flags:x%x",
+                          p_dev_rec->link_key_type, p_dev_rec->rmt_io_caps, mtm_check);
+
+        BTM_TRACE_DEBUG1 ("btm_sec_is_upgrade_possible p_cur_service:%p", p_dev_rec->p_cur_service);
+
+        if(p_dev_rec->p_cur_service)
+        {
+            BTM_TRACE_DEBUG2 ("btm_sec_is_upgrade_possible id:%d, flags:x%x",
+                          p_dev_rec->p_cur_service->service_id, p_dev_rec->p_cur_service->security_flags);
+        }
         /* Already have a link key to the connected peer. Is the link key secure enough?
         ** Is a link key upgrade even possible?
         */
