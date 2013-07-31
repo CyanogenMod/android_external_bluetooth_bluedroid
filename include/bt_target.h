@@ -56,7 +56,7 @@
 //------------------Added from Bluedroid buildcfg.h---------------------
 /* This feature is used to update any QCOM related changes in the stack*/
 #ifndef BLUETOOTH_QCOM_SW
-#define BLUETOOTH_QCOM_SW TRUE
+#define BLUETOOTH_QCOM_SW FALSE
 #endif
 
 #ifndef UNV_INCLUDED
