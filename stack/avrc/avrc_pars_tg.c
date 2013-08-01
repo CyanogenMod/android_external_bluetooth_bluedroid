@@ -244,9 +244,19 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
     case AVRC_PDU_REGISTER_NOTIFICATION:    /* 0x31 */
         if (len != 5)
             status = AVRC_STS_INTERNAL_ERR;
-        BE_STREAM_TO_UINT8 (p_result->reg_notif.event_id, p);
-        BE_STREAM_TO_UINT32 (p_result->reg_notif.param, p);
+        else
+        {
+            BE_STREAM_TO_UINT8 (p_result->reg_notif.event_id, p);
+            BE_STREAM_TO_UINT32 (p_result->reg_notif.param, p);
+        }
         break;
+
+    case AVRC_PDU_SET_ABSOLUTE_VOLUME:
+    {
+        if(len!=1)
+            status = AVRC_STS_INTERNAL_ERR;
+        break;
+    }
 
     /* case AVRC_PDU_REQUEST_CONTINUATION_RSP: 0x40 */
     /* case AVRC_PDU_ABORT_CONTINUATION_RSP:   0x41 */

@@ -472,6 +472,7 @@ const char *dump_rc_event(UINT8 event)
         CASE_RETURN_STR(BTA_AV_VENDOR_CMD_EVT)
         CASE_RETURN_STR(BTA_AV_VENDOR_RSP_EVT)
         CASE_RETURN_STR(BTA_AV_META_MSG_EVT)
+        CASE_RETURN_STR(BTA_AV_RC_FEAT_EVT)
         default:
             return "UNKNOWN_EVENT";
    }
@@ -489,6 +490,7 @@ const char * dump_rc_notification_event_id(UINT8 event_id)
         CASE_RETURN_STR(AVRC_EVT_BATTERY_STATUS_CHANGE)
         CASE_RETURN_STR(AVRC_EVT_SYSTEM_STATUS_CHANGE)
         CASE_RETURN_STR(AVRC_EVT_APP_SETTING_CHANGE)
+        CASE_RETURN_STR(AVRC_EVT_VOLUME_CHANGE)
 
         default:
             return "Unhandled Event ID";
@@ -512,7 +514,7 @@ const char*  dump_rc_pdu(UINT8 pdu)
         CASE_RETURN_STR(AVRC_PDU_REGISTER_NOTIFICATION)
         CASE_RETURN_STR(AVRC_PDU_REQUEST_CONTINUATION_RSP)
         CASE_RETURN_STR(AVRC_PDU_ABORT_CONTINUATION_RSP)
-
+        CASE_RETURN_STR(AVRC_PDU_SET_ABSOLUTE_VOLUME)
         default:
             return "Unknown PDU";
     }

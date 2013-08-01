@@ -132,7 +132,8 @@ static void avrc_prep_end_frag(UINT8 handle)
     p_fcb = &avrc_cb.fcb[handle];
 
     /* The response type of the end fragment should be the same as the the PDU of "End Fragment
-    ** Respose" Errata: https://www.bluetooth.org/errata/errata_view.cfm?errata_id=4383 */
+    ** Response" Errata: https://www.bluetooth.org/errata/errata_view.cfm?errata_id=4383
+    */
     p_orig_data = ((UINT8 *)(p_fcb->p_fmsg + 1) + p_fcb->p_fmsg->offset);
     rsp_type = ((*p_orig_data) & AVRC_CTYPE_MASK);
 
@@ -146,6 +147,7 @@ static void avrc_prep_end_frag(UINT8 handle)
     AVRC_CO_ID_TO_BE_STREAM(p_data, AVRC_CO_METADATA);
     *p_data++       = p_fcb->frag_pdu;
     *p_data++       = AVRC_PKT_END;
+
     /* 4=pdu, pkt_type & len */
     UINT16_TO_BE_STREAM(p_data, (p_pkt_new->len - AVRC_VENDOR_HDR_SIZE - AVRC_MIN_META_HDR_SIZE));
 }
@@ -337,7 +339,7 @@ static BT_HDR * avrc_proc_vendor_command(UINT8 handle, UINT8 label,
 **
 ** Function         avrc_proc_far_msg
 **
-** Description      This function processes vendor command/response fragmetation
+** Description      This function processes metadata fragmenation
 **                  and reassembly
 **
 ** Returns          0, to report the message with msg_cback .
@@ -359,6 +361,10 @@ static UINT8 avrc_proc_far_msg(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR **pp_
     tAVRC_NEXT_CMD   avrc_cmd;
 
     p_data  = (UINT8 *)(p_pkt+1) + p_pkt->offset;
+
+    /* Skip over vendor header (ctype, subunit*, opcode, CO_ID) */
+    p_data += AVRC_VENDOR_HDR_SIZE;
+
     pkt_type = *(p_data + 1) & AVRC_PKT_TYPE_MASK;
     AVRC_TRACE_DEBUG1 ("pkt_type %d", pkt_type );
     p_rcb = &avrc_cb.rcb[handle];
@@ -381,12 +387,47 @@ static UINT8 avrc_proc_far_msg(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR **pp_
             /* not a single response packet - need to re-assemble metadata messages */
             if (pkt_type == AVRC_PKT_START)
             {
-                p_rcb->rasm_offset = p_pkt->offset;
-                p_rcb->p_rmsg = p_pkt;
+                /* Allocate buffer for re-assembly */
+                p_rcb->rasm_pdu = *p_data;
+                if ((p_rcb->p_rmsg = (BT_HDR *)GKI_getbuf(GKI_MAX_BUF_SIZE)) != NULL)
+                {
+                    /* Copy START packet to buffer for re-assembling fragments*/
+                    memcpy(p_rcb->p_rmsg, p_pkt, sizeof(BT_HDR));   /* Copy bt hdr */
+
+                    /* Copy metadata message */
+                    memcpy((UINT8 *)(p_rcb->p_rmsg + 1),
+                           (UINT8 *)(p_pkt+1) + p_pkt->offset, p_pkt->len);
+
+                    /* offset of start of metadata response in reassembly buffer */
+                    p_rcb->p_rmsg->offset = p_rcb->rasm_offset = 0;
+
+                    /* Free original START packet, replace with pointer to reassembly buffer  */
+                    GKI_freebuf(p_pkt);
+                    *pp_pkt = p_rcb->p_rmsg;
+                }
+                else
+                {
+                    /* Unable to allocate buffer for fragmented avrc message. Reuse START
+                                      buffer for reassembly (re-assembled message may fit into ACL buf) */
+                    AVRC_TRACE_DEBUG0 ("Unable to allocate buffer for fragmented avrc message, \
+                                       reusing START buffer for reassembly");
+                    p_rcb->rasm_offset = p_pkt->offset;
+                    p_rcb->p_rmsg = p_pkt;
+                }
+
                 /* set offset to point to where to copy next - use the same re-asm logic as AVCT */
                 p_rcb->p_rmsg->offset += p_rcb->p_rmsg->len;
-                p_rcb->rasm_pdu = *p_data;
                 req_continue = TRUE;
+            }
+            else if (p_rcb->p_rmsg == NULL)
+            {
+                /* Received a CONTINUE/END, but no corresponding START
+                              (or previous fragmented response was dropped) */
+                AVRC_TRACE_DEBUG0 ("Received a CONTINUE/END without no corresponding START \
+                                   (or previous fragmented response was dropped)");
+                drop = 5;
+                GKI_freebuf(p_pkt);
+                *pp_pkt = NULL;
             }
             else
             {
@@ -453,7 +494,19 @@ static UINT8 avrc_proc_far_msg(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR **pp_
                 drop = 4;
 
         }
+        else if (cr == AVCT_RSP && req_continue == TRUE)
+        {
+            avrc_cmd.pdu    = AVRC_PDU_REQUEST_CONTINUATION_RSP;
+            avrc_cmd.status = AVRC_STS_NO_ERROR;
+            avrc_cmd.target_pdu = p_rcb->rasm_pdu;
+            if (AVRC_BldCommand ((tAVRC_COMMAND *)&avrc_cmd, &p_cmd) == AVRC_STS_NO_ERROR)
+            {
+                drop = 2;
+                AVRC_MsgReq (handle, (UINT8)(label), AVRC_CMD_CTRL, p_cmd);
+            }
+        }
     }
+
     return drop;
 }
 #endif /* (AVRC_METADATA_INCLUDED == TRUE) */
@@ -604,7 +657,21 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
             p_msg->vendor_len      = p_pkt->len - (p_data - p_begin);
 
 #if (AVRC_METADATA_INCLUDED == TRUE)
-            drop = avrc_proc_far_msg(handle, label, cr, &p_pkt, p_msg);
+            if (p_msg->company_id == AVRC_CO_METADATA)
+            {
+                /* Validate length for metadata message */
+                if (p_pkt->len < (AVRC_VENDOR_HDR_SIZE + AVRC_MIN_META_HDR_SIZE))
+                {
+                    if (cr == AVCT_CMD)
+                        reject = TRUE;
+                    else
+                        drop = TRUE;
+                    break;
+                }
+
+                /* Check+handle fragmented messages */
+                drop = avrc_proc_far_msg(handle, label, cr, &p_pkt, p_msg);
+            }
             if (drop)
             {
                 free = FALSE;

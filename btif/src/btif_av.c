@@ -960,8 +960,12 @@ bt_status_t btif_av_execute_service(BOOLEAN b_enable)
           * be initiated by the app/audioflinger layers */
 #if (AVRC_METADATA_INCLUDED == TRUE)
          BTA_AvEnable(BTA_SEC_AUTHENTICATE,
-             BTA_AV_FEAT_RCTG|BTA_AV_FEAT_METADATA|BTA_AV_FEAT_VENDOR|BTA_AV_FEAT_NO_SCO_SSPD,
-             bte_av_callback);
+             BTA_AV_FEAT_RCTG|BTA_AV_FEAT_METADATA|BTA_AV_FEAT_VENDOR|BTA_AV_FEAT_NO_SCO_SSPD
+#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
+             |BTA_AV_FEAT_RCCT
+             |BTA_AV_FEAT_ADV_CTRL
+#endif
+             ,bte_av_callback);
 #else
          BTA_AvEnable(BTA_SEC_AUTHENTICATE, (BTA_AV_FEAT_RCTG | BTA_AV_FEAT_NO_SCO_SSPD),
                       bte_av_callback);
