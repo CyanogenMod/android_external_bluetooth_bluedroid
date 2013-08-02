@@ -59,6 +59,10 @@
 #define BLUETOOTH_QCOM_SW FALSE
 #endif
 
+#ifndef I2SPCM_SLAVE_BRCM
+#define I2SPCM_SLAVE_BRCM FALSE
+#endif
+
 #ifndef UNV_INCLUDED
 #define UNV_INCLUDED FALSE
 #endif
