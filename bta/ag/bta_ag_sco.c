@@ -555,6 +555,13 @@ static void bta_ag_create_sco(tBTA_AG_SCB *p_scb, BOOLEAN is_orig)
         p_scb->inuse_codec = esco_codec;
 #endif
 
+#if (I2SPCM_SLAVE_BRCM == TRUE )
+        /* Configure I2SPCM slave path */
+        UINT8 cmd_buf[4] = { 0, 0, 0, 1 };
+        BTM_VendorSpecificCommand(109, 4, (UINT8 *)&cmd_buf, 0);
+        BTM_WriteVoiceSettings (BTM_VOICE_SETTING_CVSD);
+#endif
+
 #if (BTM_SCO_HCI_INCLUDED == TRUE )
         /* initialize SCO setup, no voice setting for AG, data rate <==> sample rate */
         BTM_ConfigScoPath(sco_route, bta_ag_sco_read_cback, NULL, TRUE);
@@ -1541,7 +1548,6 @@ void bta_ag_sco_conn_rsp(tBTA_AG_SCB *p_scb, tBTM_ESCO_CONN_REQ_EVT_DATA *p_data
         BTM_ConfigI2SPCM (BTM_SCO_CODEC_CVSD, (UINT8)HCI_BRCM_I2SPCM_IS_DEFAULT_ROLE, (UINT8)HCI_BRCM_I2SPCM_SAMPLE_DEFAULT, (UINT8)HCI_BRCM_I2SPCM_CLOCK_DEFAULT);
 #endif
 #endif
-
 
 #if (BTM_SCO_HCI_INCLUDED == TRUE )
         pcm_sample_rate = BTA_DM_SCO_SAMP_RATE_8K;
