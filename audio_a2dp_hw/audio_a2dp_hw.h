@@ -52,7 +52,8 @@ typedef enum {
 
 typedef enum {
     A2DP_CTRL_ACK_SUCCESS,
-    A2DP_CTRL_ACK_FAILURE
+    A2DP_CTRL_ACK_FAILURE,
+    A2DP_CTRL_ACK_INCALL_FAILURE /* Failure when in Call*/
 } tA2DP_CTRL_ACK;
 
 
