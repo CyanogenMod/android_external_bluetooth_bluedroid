@@ -13,6 +13,10 @@ ifeq ($(BLUETOOTH_HCI_USE_MCT),true)
 
 LOCAL_CFLAGS := -DHCI_USE_MCT
 
+ifeq ($(TARGET_BUILD_VARIANT), userdebug)
+  LOCAL_CFLAGS += -DBTSNOOP_EXT_PARSER_INCLUDED=TRUE
+endif
+
 LOCAL_SRC_FILES += \
         src/hci_mct.c \
         src/userial_mct.c
