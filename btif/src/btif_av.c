@@ -248,6 +248,7 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
 
         case BTA_AV_REGISTER_EVT:
             btif_av_cb.bta_handle = ((tBTA_AV*)p_data)->registr.hndl;
+            btif_queue_pending_retry();
             break;
 
         case BTA_AV_PENDING_EVT:
@@ -762,7 +763,8 @@ static bt_status_t init(btav_callbacks_t* callbacks )
         return BT_STATUS_DONE;
 
     bt_av_callbacks = callbacks;
-    btif_av_cb.sm_handle = NULL;
+
+    memset(&btif_av_cb, 0, sizeof(btif_av_cb_t));
 
     return btif_av_init();
 }
@@ -788,10 +790,11 @@ static bt_status_t connect_int(bt_bdaddr_t *bd_addr)
 
 static bt_status_t connect(bt_bdaddr_t *bd_addr)
 {
-    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
     CHECK_BTAV_INIT();
-
-    return btif_queue_connect(UUID_SERVCLASS_AUDIO_SOURCE, bd_addr, connect_int);
+    if(btif_av_cb.bta_handle)
+       return btif_queue_connect(UUID_SERVCLASS_AUDIO_SOURCE, bd_addr, connect_int, BTIF_QUEUE_CONNECT_EVT);
+    else
+       return btif_queue_connect(UUID_SERVCLASS_AUDIO_SOURCE, bd_addr, connect_int, BTIF_QUEUE_PENDING_CONECT_EVT);
 }
 
 /*******************************************************************************
