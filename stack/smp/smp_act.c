@@ -889,10 +889,27 @@ void smp_pair_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG0 ("smp_pair_terminate ");
 
-    if (p_data->reason == L2CAP_CONN_CANCEL)
         p_cb->status = SMP_CONN_TOUT;
+
+    smp_proc_pairing_cmpl(p_cb);
+}
+
+/*******************************************************************************
+** Function         smp_delay_terminate
+** Description      This function is called when connection dropped when smp delay
+**                  timer is still active.
+*******************************************************************************/
+void smp_delay_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
+{
+    SMP_TRACE_DEBUG0 ("smp_delay_terminate ");
+
+    btu_stop_timer (&p_cb->rsp_timer_ent);
+
+    /* if remote user terminate connection, finish SMP pairing as normal */
+    if (p_data->reason == HCI_ERR_PEER_USER)
+        p_cb->status = SMP_SUCCESS;
     else
-        p_cb->status = SMP_PAIR_FAIL_UNKNOWN;
+        p_cb->status = SMP_CONN_TOUT;
 
     smp_proc_pairing_cmpl(p_cb);
 }

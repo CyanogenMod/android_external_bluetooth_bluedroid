@@ -73,6 +73,7 @@ void gatt_act_discovery(tGATT_CLCB *p_clcb)
 {
     UINT8       op_code = disc_type_to_att_opcode[p_clcb->op_subtype];
     tGATT_CL_MSG   cl_req;
+    tGATT_STATUS    st;
 
     if (p_clcb->s_handle <= p_clcb->e_handle && p_clcb->s_handle != 0)
     {
@@ -97,7 +98,9 @@ void gatt_act_discovery(tGATT_CLCB *p_clcb)
             memcpy (cl_req.find_type_value.value,  &p_clcb->uuid.uu, p_clcb->uuid.len);
         }
 
-        if (attp_send_cl_msg(p_clcb->p_tcb, p_clcb->clcb_idx, op_code, &cl_req) !=  GATT_SUCCESS)
+        st = attp_send_cl_msg(p_clcb->p_tcb, p_clcb->clcb_idx, op_code, &cl_req);
+
+        if (st !=  GATT_SUCCESS && st != GATT_CMD_STARTED)
         {
             gatt_end_operation(p_clcb, GATT_ERROR, NULL);
         }
@@ -185,8 +188,10 @@ void gatt_act_read (tGATT_CLCB *p_clcb, UINT16 offset)
             break;
     }
 
-    if ( op_code == 0 ||
-         (rt = attp_send_cl_msg(p_tcb, p_clcb->clcb_idx, op_code, &msg)) != GATT_SUCCESS)
+    if (op_code != 0)
+        rt = attp_send_cl_msg(p_tcb, p_clcb->clcb_idx, op_code, &msg);
+
+    if ( op_code == 0 || (rt != GATT_SUCCESS && rt != GATT_CMD_STARTED))
     {
         gatt_end_operation(p_clcb, rt, NULL);
     }
@@ -204,7 +209,7 @@ void gatt_act_read (tGATT_CLCB *p_clcb, UINT16 offset)
 void gatt_act_write (tGATT_CLCB *p_clcb, UINT8 sec_act)
 {
     tGATT_TCB           *p_tcb = p_clcb->p_tcb;
-    UINT8               rt = GATT_SUCCESS, op_code;
+    UINT8               rt = GATT_SUCCESS, op_code = 0;
     tGATT_VALUE         *p_attr = (tGATT_VALUE *)p_clcb->p_attr_buf;
 
     if (p_attr)
@@ -373,7 +378,7 @@ void gatt_send_prepare_write(tGATT_TCB  *p_tcb, tGATT_CLCB *p_clcb)
     /* remember the write long attribute length */
     p_clcb->counter = to_send;
 
-    if (rt != GATT_SUCCESS )
+    if (rt != GATT_SUCCESS && rt != GATT_CMD_STARTED)
     {
         gatt_end_operation(p_clcb, rt, NULL);
     }
@@ -820,7 +825,7 @@ void gatt_process_read_by_type_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 
             }
             return;
         }
-        else /* discover characterisitic or read characteristic value */
+        else /* discover characterisitic */
         {
             STREAM_TO_UINT8 (record_value.dclr_value.char_prop, p);
             STREAM_TO_UINT16(record_value.dclr_value.val_handle, p);

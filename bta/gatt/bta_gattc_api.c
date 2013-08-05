@@ -252,8 +252,12 @@ void BTA_GATTC_ServiceSearchRequest (UINT16 conn_id, tBT_UUID *p_srvc_uuid)
 
         if (p_srvc_uuid)
         {
-            memcpy(&p_buf->srvc_uuid, p_srvc_uuid, sizeof(tBT_UUID));
+            p_buf->p_srvc_uuid = (tBT_UUID *)(p_buf + 1);
+            memcpy(p_buf->p_srvc_uuid, p_srvc_uuid, sizeof(tBT_UUID));
         }
+        else
+            p_buf->p_srvc_uuid = NULL;
+
         bta_sys_sendmsg(p_buf);
     }
     return;
@@ -289,7 +293,7 @@ tBTA_GATT_STATUS  BTA_GATTC_GetFirstChar (UINT16 conn_id, tBTA_GATT_SRVC_ID *p_s
         return BTA_GATT_ILLEGAL_PARAMETER;
 
     if ((status = bta_gattc_query_cache(conn_id, BTA_GATTC_ATTR_TYPE_CHAR, p_srvc_id, NULL,
-                                        p_char_uuid_cond, &p_char_result->char_id, p_property))
+                                        p_char_uuid_cond, &p_char_result->char_id, (void *)p_property))
         == BTA_GATT_OK)
     {
         memcpy(&p_char_result->srvc_id, p_srvc_id, sizeof(tBTA_GATT_SRVC_ID));
@@ -333,7 +337,7 @@ tBTA_GATT_STATUS  BTA_GATTC_GetNextChar (UINT16 conn_id,
                                         &p_start_char_id->char_id,
                                         p_char_uuid_cond,
                                         &p_char_result->char_id,
-                                        p_property))
+                                        (void *) p_property))
         == BTA_GATT_OK)
     {
         memcpy(&p_char_result->srvc_id, &p_start_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
@@ -379,7 +383,7 @@ tBTA_GATT_STATUS  BTA_GATTC_GetFirstCharDescr (UINT16 conn_id, tBTA_GATTC_CHAR_I
                                         NULL))
         == BTA_GATT_OK)
     {
-        memcpy(&p_descr_result->descr_type, &p_descr_result->char_id.char_id.uuid, sizeof(tBT_UUID));
+        memcpy(&p_descr_result->descr_id, &p_descr_result->char_id.char_id, sizeof(tBTA_GATT_ID));
         memcpy(&p_descr_result->char_id, p_char_id, sizeof(tBTA_GATTC_CHAR_ID));
     }
 
@@ -421,10 +425,10 @@ tBTA_GATT_STATUS  BTA_GATTC_GetNextCharDescr (UINT16 conn_id,
                                         &p_start_descr_id->char_id.char_id,
                                         p_descr_uuid_cond,
                                         &p_descr_result->char_id.char_id,
-                                        (void *)&p_start_descr_id->descr_type))
+                                        (void *)&p_start_descr_id->descr_id))
         == BTA_GATT_OK)
     {
-        memcpy(&p_descr_result->descr_type, &p_descr_result->char_id.char_id.uuid, sizeof(tBT_UUID));
+        memcpy(&p_descr_result->descr_id, &p_descr_result->char_id.char_id, sizeof(tBTA_GATT_ID));
         memcpy(&p_descr_result->char_id, p_start_descr_id, sizeof(tBTA_GATTC_CHAR_ID));
     }
 
@@ -463,7 +467,7 @@ tBTA_GATT_STATUS  BTA_GATTC_GetFirstIncludedService(UINT16 conn_id, tBTA_GATT_SR
                                         NULL,
                                         p_uuid_cond,
                                         &p_result->incl_svc_id.id,
-                                        (tBTA_GATT_CHAR_PROP *)&p_result->incl_svc_id.is_primary))
+                                        (void *)&p_result->incl_svc_id.is_primary))
         == BTA_GATT_OK)
     {
         memcpy(&p_result->srvc_id, p_srvc_id, sizeof(tBTA_GATT_SRVC_ID));
@@ -505,7 +509,7 @@ tBTA_GATT_STATUS  BTA_GATTC_GetNextIncludedService(UINT16 conn_id,
                                         &p_start_id->incl_svc_id.id,
                                         p_uuid_cond,
                                         &p_result->incl_svc_id.id,
-                                        (tBTA_GATT_CHAR_PROP *)&p_result->incl_svc_id.is_primary))
+                                        (void *)&p_result->incl_svc_id.is_primary))
         == BTA_GATT_OK)
     {
         memcpy(&p_result->srvc_id, &p_start_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
@@ -542,6 +546,7 @@ void BTA_GATTC_ReadCharacteristic(UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id,
 
         memcpy(&p_buf->srvc_id, &p_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
         memcpy(&p_buf->char_id, &p_char_id->char_id, sizeof(tBTA_GATT_ID));
+        p_buf->p_descr_type = NULL;
 
         bta_sys_sendmsg(p_buf);
     }
@@ -565,8 +570,9 @@ void BTA_GATTC_ReadCharDescr (UINT16 conn_id,
                               tBTA_GATT_AUTH_REQ auth_req)
 {
     tBTA_GATTC_API_READ  *p_buf;
+    UINT16  len = (UINT16)(sizeof(tBTA_GATT_ID) + sizeof(tBTA_GATTC_API_READ));
 
-    if ((p_buf = (tBTA_GATTC_API_READ *) GKI_getbuf(sizeof(tBTA_GATTC_API_READ))) != NULL)
+    if ((p_buf = (tBTA_GATTC_API_READ *) GKI_getbuf(len)) != NULL)
     {
         memset(p_buf, 0, sizeof(tBTA_GATTC_API_READ));
 
@@ -576,7 +582,9 @@ void BTA_GATTC_ReadCharDescr (UINT16 conn_id,
 
         memcpy(&p_buf->srvc_id, &p_descr_id->char_id.srvc_id, sizeof(tBTA_GATT_SRVC_ID));
         memcpy(&p_buf->char_id, &p_descr_id->char_id.char_id, sizeof(tBTA_GATT_ID));
-        memcpy(&p_buf->descr_type, &p_descr_id->descr_type, sizeof(tBT_UUID));
+        p_buf->p_descr_type  = (tBTA_GATT_ID *)(p_buf + 1);
+
+        memcpy(p_buf->p_descr_type, &p_descr_id->descr_id, sizeof(tBTA_GATT_ID));
 
         bta_sys_sendmsg(p_buf);
     }
@@ -699,7 +707,7 @@ void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
                                tBTA_GATT_AUTH_REQ auth_req)
 {
     tBTA_GATTC_API_WRITE  *p_buf;
-    UINT16  len = sizeof(tBTA_GATTC_API_WRITE);
+    UINT16  len = sizeof(tBTA_GATTC_API_WRITE) + sizeof(tBTA_GATT_ID);
 
     if (p_data != NULL)
         len += p_data->len;
@@ -714,12 +722,13 @@ void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
 
         memcpy(&p_buf->srvc_id, &p_char_descr_id->char_id.srvc_id, sizeof(tBTA_GATT_SRVC_ID));
         memcpy(&p_buf->char_id, &p_char_descr_id->char_id.char_id, sizeof(tBTA_GATT_ID));
-        memcpy(&p_buf->descr_type, &p_char_descr_id->descr_type, sizeof(tBT_UUID));
+        p_buf->p_descr_type = (tBTA_GATT_ID *)(p_buf + 1);
+        memcpy(p_buf->p_descr_type, &p_char_descr_id->descr_id, sizeof(tBTA_GATT_ID));
         p_buf->write_type = write_type;
 
         if (p_data && p_data->len != 0)
         {
-            p_buf->p_value  = (UINT8 *)(p_buf + 1);
+            p_buf->p_value  = (UINT8 *)(p_buf->p_descr_type + 1);
             p_buf->len      = p_data->len;
             /* pack the descr data */
             memcpy(p_buf->p_value, p_data->p_value, p_data->len);

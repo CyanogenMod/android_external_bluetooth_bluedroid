@@ -228,9 +228,9 @@ uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src)
     p_dest->status = p_src->status;
     bta_to_btif_srvc_id(&p_dest->srvc_id, &p_src->srvc_id);
     bta_to_btif_char_id(&p_dest->char_id, &p_src->char_id);
-    bta_to_btif_uuid(&p_dest->descr_id, &p_src->descr_type);
+    bta_to_btif_uuid(&p_dest->descr_id, &p_src->descr_type.uuid);
 
-    descr_type = get_uuid16(&p_src->descr_type);
+    descr_type = get_uuid16(&p_src->descr_type.uuid);
 
     switch (descr_type)
     {

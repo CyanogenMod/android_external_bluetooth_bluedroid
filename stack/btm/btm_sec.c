@@ -44,9 +44,10 @@
 BOOLEAN (APPL_AUTH_WRITE_EXCEPTION)(BD_ADDR bd_addr);
 #endif
 
-/********************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+
+/********************************************************************************
+**              L O C A L    F U N C T I O N     P R O T O T Y P E S            *
+*********************************************************************************/
 static tBTM_SEC_SERV_REC *btm_sec_find_first_serv (BOOLEAN is_originator, UINT16 psm);
 static tBTM_SEC_SERV_REC *btm_sec_find_next_serv (tBTM_SEC_SERV_REC *p_cur);
 static tBTM_SEC_SERV_REC *btm_sec_find_mx_serv (UINT8 is_originator, UINT16 psm,
@@ -1051,12 +1052,7 @@ tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, UINT8 pin_len, UINT8 *p_pin, UINT32 tr
     tBTM_STATUS      status;
     UINT8            *p_features;
     UINT8            ii;
-#if SMP_INCLUDED == TRUE
-    tACL_CONN   *p=NULL;
-    BOOLEAN     is_le_slave_role=FALSE;
-    tBT_DEVICE_TYPE     dev_type;
-    tBLE_ADDR_TYPE      addr_type;
-#endif
+
     BTM_TRACE_API6 ("BTM_SecBond BDA: %02x:%02x:%02x:%02x:%02x:%02x",
                     bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4], bd_addr[5]);
 
@@ -1067,47 +1063,13 @@ tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, UINT8 pin_len, UINT8 *p_pin, UINT32 tr
         return(BTM_WRONG_MODE);
     }
 
+    if ((p_dev_rec = btm_find_or_alloc_dev (bd_addr)) == NULL)
+    {
+        return(BTM_NO_RESOURCES);
+        }
 
-    p_dev_rec = btm_find_or_alloc_dev (bd_addr);
     BTM_TRACE_DEBUG1 ("before update sec_flags=0x%x", p_dev_rec->sec_flags);
 
-
-#if SMP_INCLUDED == TRUE
-    p = btm_bda_to_acl(bd_addr);
-    if (p && p->is_le_link )
-    {
-        if (p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING)
-        {
-            BTM_TRACE_ERROR1 ("BTM_SecBond: LE already busy in state: %x", p_dev_rec->sec_state );
-            return(BTM_WRONG_MODE);
-        }
-
-        if (p->link_role == BTM_ROLE_SLAVE)
-        {
-            is_le_slave_role = TRUE;
-            BTM_TRACE_DEBUG0 ("LE Link Slave" );
-        }
-        else
-        {
-            BTM_TRACE_DEBUG0 ("LE Link Maste" );
-        }
-    }
-    else
-    {
-        BTM_TRACE_DEBUG0 ("No LE Link" );
-    }
-
-    if (!is_le_slave_role)
-    {
-        /* Finished if connection is active and already paired */
-        if ( (p_dev_rec->hci_handle != BTM_SEC_INVALID_HANDLE)
-             &&  (p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED) )
-        {
-            BTM_TRACE_WARNING0("BTM_SecBond -> Already Paired");
-            return(BTM_SUCCESS);
-        }
-    }
-#else
     /* Finished if connection is active and already paired */
     if ( (p_dev_rec->hci_handle != BTM_SEC_INVALID_HANDLE)
          &&  (p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED) )
@@ -1115,7 +1077,6 @@ tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, UINT8 pin_len, UINT8 *p_pin, UINT32 tr
         BTM_TRACE_WARNING0("BTM_SecBond -> Already Paired");
         return(BTM_SUCCESS);
     }
-#endif
 
     /* Tell controller to get rid of the link key if it has one stored */
     if ((BTM_DeleteStoredLinkKey (bd_addr, NULL)) != BTM_SUCCESS)
@@ -1137,32 +1098,23 @@ tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, UINT8 pin_len, UINT8 *p_pin, UINT32 tr
     if (trusted_mask)
         BTM_SEC_COPY_TRUSTED_DEVICE(trusted_mask, p_dev_rec->trusted_mask);
 
-
-
-#if SMP_INCLUDED == TRUE
-
-    if (!is_le_slave_role)
-    {
-        p_dev_rec->sec_flags &= ~(BTM_SEC_LINK_KEY_KNOWN | BTM_SEC_AUTHENTICATED | BTM_SEC_ENCRYPTED
+    p_dev_rec->sec_flags &= ~(BTM_SEC_LINK_KEY_KNOWN | BTM_SEC_AUTHENTICATED | BTM_SEC_ENCRYPTED
                                   | BTM_SEC_ROLE_SWITCHED  | BTM_SEC_LINK_KEY_AUTHED);
 
-    }
 
-    BTM_ReadDevInfo(bd_addr, &dev_type, &addr_type);
+#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
     /* LE device, do SMP pairing */
-    if (dev_type == BT_DEVICE_TYPE_BLE)
+    if (BTM_UseLeLink(bd_addr))
     {
         if (SMP_Pair(bd_addr) == SMP_STARTED)
         {
+            btm_cb.pairing_state = BTM_PAIR_STATE_WAIT_AUTH_COMPLETE;
             p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
             return BTM_CMD_STARTED;
         }
         else
             return(BTM_NO_RESOURCES);
     }
-#else
-    p_dev_rec->sec_flags &= ~(BTM_SEC_LINK_KEY_KNOWN | BTM_SEC_AUTHENTICATED | BTM_SEC_ENCRYPTED
-                              | BTM_SEC_ROLE_SWITCHED  | BTM_SEC_LINK_KEY_AUTHED);
 #endif
 
     BTM_TRACE_DEBUG1 ("after update sec_flags=0x%x", p_dev_rec->sec_flags);
@@ -1179,9 +1131,6 @@ tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, UINT8 pin_len, UINT8 *p_pin, UINT32 tr
             btsnd_hcic_write_pin_type (HCI_PIN_TYPE_FIXED);
         }
     }
-
-    BTM_TRACE_EVENT1("BTM_SecBond: Local device supports SSP=%d",
-            HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]));
 
     for (ii = 0; ii <= HCI_EXT_FEATURES_PAGE_MAX; ii++)
     {

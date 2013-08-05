@@ -31,6 +31,7 @@
 #include "gki.h"
 #include "bta_sys.h"
 #include "bta_gattc_int.h"
+#include "l2c_api.h"
 #include "bd.h"
 
 /*****************************************************************************
@@ -40,6 +41,8 @@
 
 static const UINT8  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00, 0x00, 0x80,
     0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+static const BD_ADDR dummy_bda = {0,0,0,0,0,0};
 
 /*******************************************************************************
 **
@@ -67,13 +70,13 @@ void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uui
 ** Returns          TRUE if two uuid match; FALSE otherwise.
 **
 *******************************************************************************/
-BOOLEAN bta_gattc_uuid_compare (tBT_UUID src, tBT_UUID tar, BOOLEAN is_precise)
+BOOLEAN bta_gattc_uuid_compare (tBT_UUID *p_src, tBT_UUID *p_tar, BOOLEAN is_precise)
 {
     UINT8  su[LEN_UUID_128], tu[LEN_UUID_128];
     UINT8  *ps, *pt;
 
     /* any of the UUID is unspecified */
-    if (src.len == 0 || tar.len == 0)
+    if (p_src == 0 || p_tar == 0)
     {
         if (is_precise)
             return FALSE;
@@ -82,29 +85,29 @@ BOOLEAN bta_gattc_uuid_compare (tBT_UUID src, tBT_UUID tar, BOOLEAN is_precise)
     }
 
     /* If both are 16-bit, we can do a simple compare */
-    if (src.len == 2 && tar.len == 2)
+    if (p_src->len == 2 && p_tar->len == 2)
     {
-        return src.uu.uuid16 == tar.uu.uuid16;
+        return p_src->uu.uuid16 == p_tar->uu.uuid16;
     }
 
     /* One or both of the UUIDs is 128-bit */
-    if (src.len == LEN_UUID_16)
+    if (p_src->len == LEN_UUID_16)
     {
         /* convert a 16 bits UUID to 128 bits value */
-        bta_gatt_convert_uuid16_to_uuid128(su, src.uu.uuid16);
+        bta_gatt_convert_uuid16_to_uuid128(su, p_src->uu.uuid16);
         ps = su;
     }
     else
-        ps = src.uu.uuid128;
+        ps = p_src->uu.uuid128;
 
-    if (tar.len == LEN_UUID_16)
+    if (p_tar->len == LEN_UUID_16)
     {
         /* convert a 16 bits UUID to 128 bits value */
-        bta_gatt_convert_uuid16_to_uuid128(tu, tar.uu.uuid16);
+        bta_gatt_convert_uuid16_to_uuid128(tu, p_tar->uu.uuid16);
         pt = tu;
     }
     else
-        pt = tar.uu.uuid128;
+        pt = p_tar->uu.uuid128;
 
     return(memcmp(ps, pt, LEN_UUID_128) == 0);
 }
@@ -276,15 +279,18 @@ tBTA_GATTC_CLCB *bta_gattc_find_alloc_clcb(tBTA_GATTC_IF client_if, BD_ADDR remo
 *******************************************************************************/
 void bta_gattc_clcb_dealloc(tBTA_GATTC_CLCB *p_clcb)
 {
-    tBTA_GATTC_SERV     *p_srcb = p_clcb->p_srcb;
+    tBTA_GATTC_SERV     *p_srcb = NULL;
 
     if (p_clcb)
     {
+        p_srcb = p_clcb->p_srcb;
         if (p_srcb->num_clcb)
             p_srcb->num_clcb --;
 
         if (p_clcb->p_rcb->num_clcb)
             p_clcb->p_rcb->num_clcb --;
+
+        /* if the srcb is no longer needed, reset the state */
         if ( p_srcb->num_clcb == 0)
         {
             p_srcb->connected = FALSE;
@@ -505,7 +511,7 @@ void bta_gattc_cpygattid(tBTA_GATT_ID *p_des, tBTA_GATT_ID *p_src)
 BOOLEAN bta_gattc_gattid_compare(tBTA_GATT_ID *p_src, tBTA_GATT_ID *p_tar)
 {
     if (p_src->inst_id == p_tar->inst_id &&
-        bta_gattc_uuid_compare (p_src->uuid, p_tar->uuid, TRUE ))
+        bta_gattc_uuid_compare (&p_src->uuid, &p_tar->uuid, TRUE ))
         return TRUE;
     else
         return FALSE;
@@ -616,8 +622,10 @@ void bta_gattc_clear_notif_registration(UINT16 conn_id)
 ** Returns
 **
 *******************************************************************************/
-tBTA_GATT_STATUS bta_gattc_pack_read_cb_data(tBTA_GATTC_SERV *p_srcb, tBT_UUID descr_uuid,
-                                             tGATT_VALUE *p_attr, tBTA_GATT_READ_VAL *p_value)
+tBTA_GATT_STATUS bta_gattc_pack_read_cb_data(tBTA_GATTC_SERV *p_srcb,
+                                             tBT_UUID *p_descr_uuid,
+                                             tGATT_VALUE *p_attr,
+                                             tBTA_GATT_READ_VAL *p_value)
 {
     UINT8                   i = 0, *pp = p_attr->value;
     tBT_UUID                uuid = {LEN_UUID_16, {GATT_UUID_CHAR_AGG_FORMAT}};
@@ -625,7 +633,7 @@ tBTA_GATT_STATUS bta_gattc_pack_read_cb_data(tBTA_GATTC_SERV *p_srcb, tBT_UUID d
     tBTA_GATT_STATUS        status = BTA_GATT_OK;
 
     /* GATT_UUID_CHAR_AGG_FORMAT */
-    if (bta_gattc_uuid_compare (uuid, descr_uuid, TRUE))
+    if (bta_gattc_uuid_compare (&uuid, p_descr_uuid, TRUE))
     {
         while (p_attr->len >= 2 && i < BTA_GATTC_MULTI_MAX)
         {
@@ -635,7 +643,7 @@ tBTA_GATT_STATUS bta_gattc_pack_read_cb_data(tBTA_GATTC_SERV *p_srcb, tBT_UUID d
                                     handle,
                                     &p_value->aggre_value.pre_format[i].char_id.srvc_id,
                                     &p_value->aggre_value.pre_format[i].char_id.char_id,
-                                    &p_value->aggre_value.pre_format[i].descr_type) == FALSE)
+                                    &p_value->aggre_value.pre_format[i].descr_id) == FALSE)
             {
                 status = BTA_GATT_INTERNAL_ERROR;
                 APPL_TRACE_ERROR1("can not map to GATT ID. handle = 0x%04x", handle);
@@ -675,7 +683,7 @@ BOOLEAN bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda
     {
         if (p_bg_tck->in_use &&
             ((remote_bda_ptr != NULL && bdcmp(p_bg_tck->remote_bda, remote_bda_ptr) == 0) ||
-            (remote_bda_ptr == NULL && bdcmp(p_bg_tck->remote_bda, bd_addr_null) == 0)))
+            (remote_bda_ptr == NULL && bdcmp(p_bg_tck->remote_bda, dummy_bda) == 0)))
         {
              p_cif_mask = is_listen ? &p_bg_tck->cif_adv_mask : &p_bg_tck->cif_mask;
 
@@ -713,7 +721,7 @@ BOOLEAN bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda
                 if (remote_bda_ptr)
                     bdcpy(p_bg_tck->remote_bda, remote_bda_ptr);
                 else
-                    bdcpy(p_bg_tck->remote_bda, bd_addr_null);
+                    bdcpy(p_bg_tck->remote_bda, dummy_bda);
 
                 p_cif_mask = is_listen ? &p_bg_tck->cif_adv_mask : &p_bg_tck->cif_mask;
 
@@ -744,7 +752,7 @@ BOOLEAN bta_gattc_check_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR remote_bda, U
     {
         if (p_bg_tck->in_use &&
             (bdcmp(p_bg_tck->remote_bda, remote_bda) == 0 ||
-             bdcmp(p_bg_tck->remote_bda, bd_addr_null) == 0))
+             bdcmp(p_bg_tck->remote_bda, dummy_bda) == 0))
         {
             if (((p_bg_tck->cif_mask &(1 <<(client_if - 1))) != 0) &&
                 role == HCI_ROLE_MASTER)
@@ -880,6 +888,68 @@ BOOLEAN bta_gattc_conn_dealloc(BD_ADDR remote_bda)
         return TRUE;
     }
     return FALSE;
+}
+
+/*******************************************************************************
+**
+** Function         bta_gattc_find_int_conn_clcb
+**
+** Description      try to locate a clcb when an internal connecion event arrives.
+**
+** Returns          pointer to the clcb
+**
+*******************************************************************************/
+tBTA_GATTC_CLCB * bta_gattc_find_int_conn_clcb(tBTA_GATTC_DATA *p_msg)
+{
+    tBTA_GATTC_CLCB *p_clcb = NULL;
+
+    if (p_msg->int_conn.role == HCI_ROLE_SLAVE)
+        bta_gattc_conn_find_alloc(p_msg->int_conn.remote_bda);
+
+    /* try to locate a logic channel */
+    if ((p_clcb = bta_gattc_find_clcb_by_cif(p_msg->int_conn.client_if,
+                                             p_msg->int_conn.remote_bda)) == NULL)
+    {
+        /* for a background connection or listening connection */
+        if (p_msg->int_conn.role == HCI_ROLE_SLAVE ||
+            bta_gattc_check_bg_conn(p_msg->int_conn.client_if,
+                                    p_msg->int_conn.remote_bda,
+                                    p_msg->int_conn.role))
+        {
+            /* allocate a new channel */
+            p_clcb = bta_gattc_clcb_alloc(p_msg->int_conn.client_if, p_msg->int_conn.remote_bda);
+        }
+    }
+    return p_clcb;
+}
+
+/*******************************************************************************
+**
+** Function         bta_gattc_find_int_disconn_clcb
+**
+** Description      try to locate a clcb when an internal disconnect callback arrives.
+**
+** Returns          pointer to the clcb
+**
+*******************************************************************************/
+tBTA_GATTC_CLCB * bta_gattc_find_int_disconn_clcb(tBTA_GATTC_DATA *p_msg)
+{
+    tBTA_GATTC_CLCB         *p_clcb = NULL;
+    tGATT_DISCONN_REASON    reason = p_msg->int_conn.reason;
+
+    bta_gattc_conn_dealloc(p_msg->int_conn.remote_bda);
+    /* connection attempt timeout, send connection callback event */
+    if (reason == GATT_CONN_CANCEL || reason == GATT_CONN_L2C_FAILURE)
+    {
+        p_clcb = bta_gattc_find_clcb_by_cif(p_msg->int_conn.client_if,
+                                            p_msg->int_conn.remote_bda);
+    }
+    else if ((p_clcb = bta_gattc_find_clcb_by_conn_id(p_msg->int_conn.hdr.layer_specific)) == NULL)
+    {
+        APPL_TRACE_DEBUG1("disconnection ID: [%d] not used by BTA",
+                           p_msg->int_conn.hdr.layer_specific);
+    }
+    return p_clcb;
 }
 
 #endif /* BTA_GATT_INCLUDED */

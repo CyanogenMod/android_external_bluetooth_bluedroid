@@ -48,7 +48,7 @@ BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda)
     tL2C_LCB *p_lcb;
 
     /* There can be only one BLE connection request outstanding at a time */
-    if (btm_ble_get_conn_st() == BLE_DIR_CONN)
+    if (btm_ble_get_conn_st() == BLE_CONN_IDLE)
     {
         L2CAP_TRACE_WARNING0 ("L2CA_CancelBleConnectReq - no connection pending");
         return(FALSE);
@@ -72,8 +72,8 @@ BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda)
             p_lcb->disc_reason = L2CAP_CONN_CANCEL;
             l2cu_release_lcb (p_lcb);
         }
-        /* update conn state to IDLE */
-        btm_ble_set_conn_st (BLE_CONN_IDLE);
+        /* update state to be cancel, wait for connection cancel complete */
+        btm_ble_set_conn_st (BLE_CONN_CANCEL);
 
         return(TRUE);
     }
@@ -551,9 +551,9 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
     if (!btsnd_hcic_ble_create_ll_conn (scan_int,/* UINT16 scan_int      */
                                         scan_win, /* UINT16 scan_win      */
                                         FALSE,                   /* UINT8 white_list     */
-                                        p_lcb->ble_addr_type,          /* UINT8 addr_type_peer */
-                                        p_lcb->remote_bd_addr,         /* BD_ADDR bda_peer     */
-                                        BLE_ADDR_PUBLIC,         /* UINT8 addr_type_own  */
+                                        init_addr_type,          /* UINT8 addr_type_peer */
+                                        init_addr,               /* BD_ADDR bda_peer     */
+                                        own_addr_type,         /* UINT8 addr_type_own  */
                                         (UINT16) ((p_dev_rec->conn_params.min_conn_int != BTM_BLE_CONN_PARAM_UNDEF) ? p_dev_rec->conn_params.min_conn_int : BTM_BLE_CONN_INT_MIN),  /* UINT16 conn_int_min  */
                                         (UINT16) ((p_dev_rec->conn_params.max_conn_int != BTM_BLE_CONN_PARAM_UNDEF) ? p_dev_rec->conn_params.max_conn_int : BTM_BLE_CONN_INT_MIN),  /* UINT16 conn_int_max  */
                                         (UINT16) ((p_dev_rec->conn_params.slave_latency != BTM_BLE_CONN_PARAM_UNDEF) ? p_dev_rec->conn_params.slave_latency : 0), /* UINT16 conn_latency  */
@@ -568,6 +568,7 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
     else
     {
         p_lcb->link_state = LST_CONNECTING;
+        l2cb.is_ble_connecting = TRUE;
         memcpy (l2cb.ble_connecting_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN);
         btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_BLE_LINK_CONNECT_TOUT);
         btm_ble_set_conn_st (BLE_DIR_CONN);

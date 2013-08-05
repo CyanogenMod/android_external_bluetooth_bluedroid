@@ -363,8 +363,7 @@ BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   bg_conn_type,
 BOOLEAN BTM_BleUpdateBgConnDev(BOOLEAN add_remove, BD_ADDR   remote_bda)
 {
     BOOLEAN ret = TRUE;
-    UINT8   dev_wl_type = BTM_BLE_WL_INIT;
-
+    UINT8   dev_wl_type = 0;
     BTM_TRACE_EVENT0 (" BTM_BleUpdateBgConnDev");
 
     /* update white list */
@@ -2033,10 +2032,6 @@ void btm_ble_update_mode_operation(UINT8 link_role, BD_ADDR bd_addr, BOOLEAN con
         btm_ble_set_connectability ( btm_cb.ble_ctr_cb.inq_var.connectable_mode );
     }
 
-    /* if connection complete */
-    if (conn_cancel || link_role != HCI_ROLE_UNKNOWN)
-        btm_ble_set_conn_st(BLE_CONN_IDLE);
-
     if (btm_ble_get_conn_st() == BLE_CONN_IDLE)
     {
         if (!btm_send_pending_direct_conn())
@@ -2074,7 +2069,7 @@ void btm_ble_init (void)
     /* for background connection, reset connection params to be undefined */
     p_cb->scan_int = p_cb->scan_win = BTM_BLE_CONN_PARAM_UNDEF;
 
-    p_cb->inq_var.evt_type = BTM_BLE_UNKNOWN_EVT;
+    p_cb->inq_var.evt_type = BTM_BLE_NON_CONNECT_EVT;
 }
 
 #endif  /* BLE_INCLUDED */

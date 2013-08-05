@@ -338,7 +338,7 @@ void gatt_process_exec_write_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
         GATT_TRACE_DEBUG2("conf test forced err rsp for %s error status=%d",
                            __FUNCTION__,gatt_cb.err_status);
 
-        gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, 0, FALSE);
+        gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, gatt_cb.handle, FALSE);
 
         return;
     }
@@ -395,7 +395,7 @@ void gatt_process_exec_write_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
 void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, UINT8 *p_data)
 {
     UINT32          trans_id;
-    UINT16          handle, ll = len;
+    UINT16          handle = 0, ll = len;
     UINT8           *p = p_data, i_rcb;
     tGATT_STATUS    err = GATT_SUCCESS;
     UINT8           sec_flag, key_size;
@@ -1241,6 +1241,7 @@ void gatts_process_attribute_req (tGATT_TCB *p_tcb, UINT8 op_code,
     len -= 2;
 
 #if GATT_CONFORMANCE_TESTING == TRUE
+    gatt_cb.handle = handle;
     if (gatt_cb.enable_err_rsp && gatt_cb.req_op_code == op_code)
     {
         GATT_TRACE_DEBUG1("Conformance tst: forced err rsp: error status=%d", gatt_cb.err_status);

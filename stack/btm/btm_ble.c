@@ -309,6 +309,35 @@ void BTM_ReadConnectionAddr (BD_ADDR remote_bda, BD_ADDR local_conn_addr, tBLE_A
 
 #endif
 }
+/*******************************************************************************
+**
+** Function         BTM_IsBleConnection
+**
+** Description      This function is called to check if the connection handle
+**                  for an LE link
+**
+** Returns          TRUE if connection is LE link, otherwise FALSE.
+**
+*******************************************************************************/
+BOOLEAN BTM_IsBleConnection (UINT16 conn_handle)
+{
+#if (BLE_INCLUDED == TRUE)
+    UINT8                xx;
+    tACL_CONN            *p;
+
+    BTM_TRACE_API1 ("BTM_IsBleConnection: conn_handle: %d", conn_handle);
+
+    xx = btm_handle_to_acl_index (conn_handle);
+    if (xx >= MAX_L2CAP_LINKS)
+        return FALSE;
+
+    p = &btm_cb.acl_db[xx];
+
+    return(p->is_le_link);
+#else
+    return FALSE;
+#endif
+}
 
 /*******************************************************************************
 **
@@ -327,7 +356,10 @@ BOOLEAN BTM_ReadRemoteConnectionAddr(BD_ADDR pseudo_addr, BD_ADDR conn_addr, tBL
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(pseudo_addr);
 
     memcpy(conn_addr, pseudo_addr, BD_ADDR_LEN);
-    *p_addr_type = p_dev_rec->ble.ble_addr_type;
+    if (p_dev_rec != NULL)
+    {
+        *p_addr_type = p_dev_rec->ble.ble_addr_type;
+    }
 #endif
     return st;
 }
@@ -689,7 +721,35 @@ BOOLEAN BTM_IsBleLink (BD_ADDR bd_addr)
 #endif
         return FALSE;
 }
+/*******************************************************************************
+**
+** Function         BTM_UseLeLink
+**
+** Description      This function is to select the underneath physical link to use.
+**
+** Returns          TRUE to use LE, FALSE use BR/EDR.
+**
+*******************************************************************************/
+BOOLEAN BTM_UseLeLink (BD_ADDR bd_addr)
+{
+    tACL_CONN         *p;
+    tBT_DEVICE_TYPE     dev_type;
+    tBLE_ADDR_TYPE      addr_type;
+    BOOLEAN             use_le = FALSE;
 
+    if ((p = btm_bda_to_acl(bd_addr)) != NULL)
+    {
+#if (BLE_INCLUDED == TRUE)
+        use_le = (p->is_le_link);
+#endif
+    }
+    else
+    {
+        BTM_ReadDevInfo(bd_addr, &dev_type, &addr_type);
+        use_le = (dev_type == BT_DEVICE_TYPE_BLE);
+    }
+    return use_le;
+}
 /*******************************************************************************
 **
 ** Function         btm_ble_rand_enc_complete
@@ -1006,7 +1066,7 @@ UINT8 btm_ble_read_sec_key_size(BD_ADDR bd_addr)
 void btm_ble_link_sec_check(BD_ADDR bd_addr, tBTM_LE_AUTH_REQ auth_req, tBTM_BLE_SEC_REQ_ACT *p_sec_req_act)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev (bd_addr);
-    UINT8 req_sec_level, cur_sec_level;
+    UINT8 req_sec_level = BTM_LE_SEC_NONE, cur_sec_level = BTM_LE_SEC_NONE;
 
     BTM_TRACE_DEBUG1 ("btm_ble_link_sec_check auth_req =0x%x", auth_req);
 
@@ -1167,9 +1227,11 @@ void btm_ble_ltk_request(UINT16 handle, UINT8 rand[8], UINT16 ediv)
 
     memcpy(p_cb->enc_rand, rand, BT_OCTET8_LEN);
 
-    if (!smp_proc_ltk_request(p_dev_rec->bd_addr))
-        btm_ble_ltk_request_reply(p_dev_rec->bd_addr, FALSE, dummy_stk);
-
+    if (p_dev_rec != NULL)
+    {
+        if (!smp_proc_ltk_request(p_dev_rec->bd_addr))
+            btm_ble_ltk_request_reply(p_dev_rec->bd_addr, FALSE, dummy_stk);
+    }
 
 }
 
@@ -1188,6 +1250,7 @@ BOOLEAN btm_ble_start_encrypt(BD_ADDR bda, BOOLEAN use_stk, BT_OCTET16 stk)
     tBTM_CB *p_cb = &btm_cb;
     tBTM_SEC_DEV_REC    *p_rec = btm_find_dev (bda);
     BT_OCTET8    dummy_rand = {0};
+    BOOLEAN     rt = FALSE;
 
     BTM_TRACE_DEBUG0 ("btm_ble_start_encrypt");
 
@@ -1195,27 +1258,30 @@ BOOLEAN btm_ble_start_encrypt(BD_ADDR bda, BOOLEAN use_stk, BT_OCTET16 stk)
         (p_rec && p_rec->sec_state == BTM_SEC_STATE_ENCRYPTING))
         return FALSE;
 
-    if (p_rec->sec_state == BTM_SEC_STATE_IDLE)
-        p_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
     p_cb->enc_handle = p_rec->hci_handle;
 
     if (use_stk)
     {
-        if (!btsnd_hcic_ble_start_enc(p_rec->hci_handle, dummy_rand, 0, stk))
-            return FALSE;
+        if (btsnd_hcic_ble_start_enc(p_rec->hci_handle, dummy_rand, 0, stk))
+            rt = TRUE;
     }
     else if (p_rec->ble.key_type & BTM_LE_KEY_PENC)
     {
-        if (!btsnd_hcic_ble_start_enc(p_rec->hci_handle, p_rec->ble.keys.rand,
+        if (btsnd_hcic_ble_start_enc(p_rec->hci_handle, p_rec->ble.keys.rand,
                                       p_rec->ble.keys.ediv, p_rec->ble.keys.ltk))
-            return FALSE;
+            rt = TRUE;
     }
     else
     {
-        return FALSE;
+        BTM_TRACE_ERROR0("No key available to encrypt the link");
+    }
+    if (rt)
+    {
+        if (p_rec->sec_state == BTM_SEC_STATE_IDLE)
+            p_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
     }
 
-    return TRUE;
+    return rt;
 }
 
 /*******************************************************************************
@@ -1519,6 +1585,9 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
         if (status == HCI_ERR_DIRECTED_ADVERTISING_TIMEOUT)
             btm_ble_dir_adv_tout();
     }
+
+    btm_ble_set_conn_st(BLE_CONN_IDLE);
+
     btm_ble_update_mode_operation(role, bda, TRUE);
 }
 
@@ -1548,6 +1617,9 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
             case SMP_OOB_REQ_EVT:
                 p_dev_rec->sec_flags |= BTM_SEC_LINK_KEY_AUTHED;
             case SMP_SEC_REQUEST_EVT:
+                memcpy (btm_cb.pairing_bda, bd_addr, BD_ADDR_LEN);
+                p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
+                /* fall through */
             case SMP_COMPLT_EVT:
                 if (btm_cb.api.p_le_callback)
                 {
@@ -1575,7 +1647,7 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE
                     if (res != BTM_SUCCESS)
                     {
-                        if (!btm_cb.devcb.no_disc_if_pair_fail)
+                        if (!btm_cb.devcb.no_disc_if_pair_fail && p_data->cmplt.reason != SMP_CONN_TOUT)
                         {
                             BTM_TRACE_DEBUG0 ("Pairing failed - Remove ACL");
                             btm_remove_acl(bd_addr);
@@ -1587,7 +1659,7 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
                         }
                     }
 #else
-                    if (res != BTM_SUCCESS)
+                    if (res != BTM_SUCCESS && p_data->cmplt.reason != SMP_CONN_TOUT)
                         btm_remove_acl(bd_addr);
 #endif
 
@@ -1600,6 +1672,7 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
                                       btm_cb.pairing_bda[3], btm_cb.pairing_bda[4], btm_cb.pairing_bda[5]);
 
                     memset (btm_cb.pairing_bda, 0xff, BD_ADDR_LEN);
+                    btm_cb.pairing_state = BTM_PAIR_STATE_IDLE;
                     btm_cb.pairing_flags = 0;
                 }
                 break;
@@ -1665,6 +1738,7 @@ BOOLEAN BTM_BleDataSignature (BD_ADDR bd_addr, UINT8 *p_text, UINT16 len,
         if ((p_buf = (UINT8 *)GKI_getbuf((UINT16)(len + 4))) != NULL)
         {
             BTM_TRACE_DEBUG0("Start to generate Local CSRK");
+            pp = p_buf;
             /* prepare plain text */
             if (p_text)
             {

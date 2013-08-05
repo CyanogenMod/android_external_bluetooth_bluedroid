@@ -162,7 +162,7 @@ typedef struct
 typedef UINT8 tBTA_GATTC_WRITE_TYPE;
 
 #define BTA_GATT_CONN_UNKNOWN                   0
-#define BTA_GATT_CONN_NO_RESOURCES              GATT_CONN_NO_RESOURCES        /* connection fail for l2cap resource failure */
+#define BTA_GATT_CONN_L2C_FAILURE               GATT_CONN_L2C_FAILURE         /* general l2cap resource failure */
 #define BTA_GATT_CONN_TIMEOUT                   GATT_CONN_TIMEOUT             /* 0x08 connection timeout  */
 #define BTA_GATT_CONN_TERMINATE_PEER_USER       GATT_CONN_TERMINATE_PEER_USER /* 0x13 connection terminate by peer user  */
 #define BTA_GATT_CONN_TERMINATE_LOCAL_HOST      GATT_CONN_TERMINATE_LOCAL_HOST/* 0x16 connectionterminated by local host  */
@@ -187,7 +187,7 @@ typedef struct
 typedef struct
 {
     tBTA_GATTC_CHAR_ID      char_id;
-    tBT_UUID                descr_type;
+    tBTA_GATT_ID            descr_id;
 }tBTA_GATTC_CHAR_DESCR_ID;
 
 typedef struct
@@ -278,7 +278,7 @@ typedef struct
     tBTA_GATT_STATUS    status;
     tBTA_GATT_SRVC_ID   srvc_id;
     tBTA_GATT_ID        char_id;
-    tBT_UUID            descr_type;
+    tBTA_GATT_ID        descr_type;
     tBTA_GATT_READ_VAL  *p_value;
 }tBTA_GATTC_READ;
 
@@ -288,7 +288,7 @@ typedef struct
     tBTA_GATT_STATUS    status;
     tBTA_GATT_SRVC_ID   srvc_id;
     tBTA_GATT_ID        char_id;
-    tBT_UUID            descr_type;
+    tBTA_GATT_ID        descr_type;
 }tBTA_GATTC_WRITE;
 
 typedef struct
@@ -332,7 +332,7 @@ typedef struct
     UINT16              conn_id;
     BD_ADDR             bda;
     tBTA_GATTC_CHAR_ID  char_id;
-    tBT_UUID            descr_type;
+    tBTA_GATT_ID        descr_type;
     UINT16              len;
     UINT8               value[BTA_GATT_MAX_ATTR_LEN];
     BOOLEAN             is_notify;

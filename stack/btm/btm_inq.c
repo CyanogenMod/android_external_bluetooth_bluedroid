@@ -968,11 +968,6 @@ tBTM_STATUS  BTM_ReadRemoteDeviceName (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
     tBTM_INQ_INFO   *p_cur = NULL;
     tINQ_DB_ENT     *p_i;
 
-#if BLE_INCLUDED == TRUE
-    tBT_DEVICE_TYPE dev_type;
-    tBLE_ADDR_TYPE  addr_type;
-#endif
-
     BTM_TRACE_API6 ("BTM_ReadRemoteDeviceName: bd addr [%02x%02x%02x%02x%02x%02x]",
                remote_bda[0], remote_bda[1], remote_bda[2],
                remote_bda[3], remote_bda[4], remote_bda[5]);
@@ -989,8 +984,7 @@ tBTM_STATUS  BTM_ReadRemoteDeviceName (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
     BTM_TRACE_API0 ("no device found in inquiry db");
 
 #if (BLE_INCLUDED == TRUE)
-    BTM_ReadDevInfo(remote_bda, &dev_type, &addr_type);
-    if (dev_type == BT_DEVICE_TYPE_BLE)
+    if (BTM_UseLeLink(remote_bda))
     {
         return btm_ble_read_remote_name(remote_bda, p_cur, p_cb);
     }
@@ -1021,19 +1015,13 @@ tBTM_STATUS  BTM_CancelRemoteDeviceName (void)
 {
     tBTM_INQUIRY_VAR_ST *p_inq = &btm_cb.btm_inq_vars;
 
-#if BLE_INCLUDED == TRUE
-    tBT_DEVICE_TYPE dev_type;
-    tBLE_ADDR_TYPE  addr_type;
-#endif
-
     BTM_TRACE_API0 ("BTM_CancelRemoteDeviceName()");
 
     /* Make sure there is not already one in progress */
     if (p_inq->remname_active)
     {
 #if BLE_INCLUDED == TRUE
-        BTM_ReadDevInfo(p_inq->remname_bda, &dev_type, &addr_type);
-        if (dev_type == BT_DEVICE_TYPE_BLE)
+        if (BTM_UseLeLink(p_inq->remname_bda))
         {
             if (btm_ble_cancel_remote_name(p_inq->remname_bda))
                 return (BTM_CMD_STARTED);
@@ -2533,11 +2521,6 @@ void btm_process_remote_name (BD_ADDR bda, BD_NAME bdn, UINT16 evt_len, UINT8 hc
     UINT8                  *p_n;
     tBTM_INQ_INFO          *p_cur;
 #endif
-#if BLE_INCLUDED == TRUE
-    tBT_DEVICE_TYPE     dev_type;
-    tBLE_ADDR_TYPE      addr_type;
-#endif
-
 
     if (bda != NULL)
     {
@@ -2559,8 +2542,7 @@ void btm_process_remote_name (BD_ADDR bda, BD_NAME bdn, UINT16 evt_len, UINT8 hc
 
 	{
 #if BLE_INCLUDED == TRUE
-        BTM_ReadDevInfo(p_inq->remname_bda, &dev_type, &addr_type);
-        if (dev_type == BT_DEVICE_TYPE_BLE)
+        if (BTM_UseLeLink(p_inq->remname_bda))
         {
             if (hci_status == HCI_ERR_UNSPECIFIED)
                 btm_ble_cancel_remote_name(p_inq->remname_bda);
@@ -2658,8 +2640,7 @@ void btm_process_remote_name (BD_ADDR bda, BD_NAME bdn, UINT16 evt_len, UINT8 hc
             {
                 p_cur->remote_name_state = BTM_INQ_RMT_NAME_PENDING;
 #if (BLE_INCLUDED == TRUE)
-                BTM_ReadDevInfo(remote_bda, &dev_type, &addr_type);
-                if (dev_type == BT_DEVICE_TYPE_BLE)
+                if (BTM_UseLeLink(remote_bda))
                 {
                     if (btm_ble_read_remote_name(remote_bda, p_cur, p_cb) != BTM_CMD_STARTED)
                         p_cur->remote_name_state = BTM_INQ_RMT_NAME_FAILED;

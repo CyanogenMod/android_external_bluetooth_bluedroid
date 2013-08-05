@@ -875,6 +875,17 @@ void BTM_BleTestEnd(tBTM_CMPL_CB *p_cmd_cmpl_cback);
 *******************************************************************************/
 BTM_API extern BOOLEAN BTM_IsBleLink (BD_ADDR bd_addr);
 
+/*******************************************************************************
+**
+** Function         BTM_UseLeLink
+**
+** Description      This function is to select the underneath physical link to use.
+**
+** Returns          TRUE to use LE, FALSE use BR/EDR.
+**
+*******************************************************************************/
+BTM_API extern BOOLEAN BTM_UseLeLink (BD_ADDR bd_addr);
+
 #ifdef __cplusplus
 }
 #endif

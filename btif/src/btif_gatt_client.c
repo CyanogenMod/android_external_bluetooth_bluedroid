@@ -26,7 +26,6 @@
  *******************************************************************************/
 
 #include <hardware/bluetooth.h>
-#include <hardware/bt_gatt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -40,6 +39,7 @@
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 
 #include "gki.h"
+#include <hardware/bt_gatt.h>
 #include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "bd.h"
@@ -173,7 +173,7 @@ static void btapp_gattc_req_data(UINT16 event, char *p_dest, char *p_src)
                         sizeof(tBTA_GATT_READ_VAL));
 
                     // Allocate buffer for att value if necessary
-                    if (get_uuid16(&p_src_data->read.descr_type) != GATT_UUID_CHAR_AGG_FORMAT
+                    if (get_uuid16(&p_src_data->read.descr_type.uuid) != GATT_UUID_CHAR_AGG_FORMAT
                       && p_src_data->read.p_value->unformat.len > 0
                       && p_src_data->read.p_value->unformat.p_value != NULL)
                     {
@@ -210,7 +210,7 @@ static void btapp_gattc_free_req_data(UINT16 event, tBTA_GATTC *p_data)
         case BTA_GATTC_READ_DESCR_EVT:
             if (p_data != NULL && p_data->read.p_value != NULL)
             {
-                if (get_uuid16 (&p_data->read.descr_type) != GATT_UUID_CHAR_AGG_FORMAT
+                if (get_uuid16 (&p_data->read.descr_type.uuid) != GATT_UUID_CHAR_AGG_FORMAT
                   && p_data->read.p_value->unformat.len > 0
                   && p_data->read.p_value->unformat.p_value != NULL)
                 {
@@ -386,7 +386,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             btgatt_write_params_t data;
             bta_to_btif_srvc_id(&data.srvc_id, &p_data->write.srvc_id);
             bta_to_btif_char_id(&data.char_id, &p_data->write.char_id);
-            bta_to_btif_uuid(&data.descr_id, &p_data->write.descr_type);
+            bta_to_btif_uuid(&data.descr_id, &p_data->write.descr_type.uuid);
 
             HAL_CBACK(bt_gatt_callbacks, client->write_descriptor_cb
                 , p_data->write.conn_id, p_data->write.status, &data);
@@ -422,11 +422,11 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             bt_bdaddr_t bda;
             bdcpy(bda.address, p_data->open.remote_bda);
 
-            if (p_data->open.status == BTA_GATT_OK)
-                btif_gatt_check_encrypted_link(p_data->open.remote_bda);
-
             HAL_CBACK(bt_gatt_callbacks, client->open_cb, p_data->open.conn_id
                 , p_data->open.status, p_data->open.client_if, &bda);
+
+            if (p_data->open.status == BTA_GATT_OK)
+                btif_gatt_check_encrypted_link(p_data->open.remote_bda);
             break;
         }
 
@@ -479,14 +479,14 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
     btapp_gattc_free_req_data(event, p_data);
 }
 
-static void bte_gattc_cback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
+static void bta_gattc_cback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 {
     bt_status_t status = btif_transfer_context(btif_gattc_upstreams_evt,
                     (uint16_t) event, (void*)p_data, sizeof(tBTA_GATTC), btapp_gattc_req_data);
     ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
 }
 
-static void bte_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data)
+static void bta_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data)
 {
     btif_gattc_cb_t btif_cb;
     uint8_t len;
@@ -552,6 +552,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
     tBTA_GATTC_INCL_SVC_ID     in_incl_svc_id;
     tBTA_GATTC_INCL_SVC_ID     out_incl_svc_id;
     tBTA_GATT_UNFMT            descr_val;
+    static  UINT8              descr_inst = 0;
 
     btif_gattc_cb_t* p_cb = (btif_gattc_cb_t*)p_param;
     if (!p_cb) return;
@@ -562,7 +563,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
     {
         case BTIF_GATTC_REGISTER_APP:
             btif_to_bta_uuid(&uuid, &p_cb->uuid);
-            BTA_GATTC_AppRegister(&uuid, bte_gattc_cback);
+            BTA_GATTC_AppRegister(&uuid, bta_gattc_cback);
             break;
 
         case BTIF_GATTC_UNREGISTER_APP:
@@ -571,7 +572,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_SCAN_START:
             btif_gattc_init_dev_cb();
-            BTA_DmBleObserve(TRUE, 0, bte_scan_results_cb);
+            BTA_DmBleObserve(TRUE, 0, bta_scan_results_cb);
             break;
 
         case BTIF_GATTC_SCAN_STOP:
@@ -586,7 +587,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
 
         case BTIF_GATTC_CLOSE:
-            // Disconnect establiched connections
+            // Disconnect established connections
             if (p_cb->conn_id != 0)
                 BTA_GATTC_Close(p_cb->conn_id);
             else
@@ -647,12 +648,13 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             bt_uuid_t descr_id;
             btif_to_bta_srvc_id(&in_char_id.srvc_id, &p_cb->srvc_id);
             btif_to_bta_char_id(&in_char_id.char_id, &p_cb->char_id);
+            descr_inst = 0;
 
             status = BTA_GATTC_GetFirstCharDescr(p_cb->conn_id, &in_char_id, NULL,
                                                     &out_char_descr_id);
 
             if (status == 0)
-                bta_to_btif_uuid(&descr_id, &out_char_descr_id.descr_type);
+                bta_to_btif_uuid(&descr_id, &out_char_descr_id.descr_id.uuid);
 
             HAL_CBACK(bt_gatt_callbacks, client->get_descriptor_cb,
                 p_cb->conn_id, status, &p_cb->srvc_id,
@@ -665,13 +667,15 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             bt_uuid_t descr_id;
             btif_to_bta_srvc_id(&in_char_descr_id.char_id.srvc_id, &p_cb->srvc_id);
             btif_to_bta_char_id(&in_char_descr_id.char_id.char_id, &p_cb->char_id);
-            btif_to_bta_uuid(&in_char_descr_id.descr_type, &p_cb->uuid);
+            btif_to_bta_uuid(&in_char_descr_id.descr_id.uuid, &p_cb->uuid);
+            in_char_descr_id.descr_id.inst_id = descr_inst; /* TODO: need app layer input */
+            descr_inst ++;
 
             status = BTA_GATTC_GetNextCharDescr(p_cb->conn_id, &in_char_descr_id
                                         , NULL, &out_char_descr_id);
 
             if (status == 0)
-                bta_to_btif_uuid(&descr_id, &out_char_descr_id.descr_type);
+                bta_to_btif_uuid(&descr_id, &out_char_descr_id.descr_id.uuid);
 
             HAL_CBACK(bt_gatt_callbacks, client->get_descriptor_cb,
                 p_cb->conn_id, status, &p_cb->srvc_id,
@@ -722,7 +726,8 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
         case BTIF_GATTC_READ_CHAR_DESCR:
             btif_to_bta_srvc_id(&in_char_descr_id.char_id.srvc_id, &p_cb->srvc_id);
             btif_to_bta_char_id(&in_char_descr_id.char_id.char_id, &p_cb->char_id);
-            btif_to_bta_uuid(&in_char_descr_id.descr_type, &p_cb->uuid);
+            btif_to_bta_uuid(&in_char_descr_id.descr_id.uuid, &p_cb->uuid);
+            in_char_descr_id.descr_id.inst_id = 0; /* TODO: need app layer input */
 
             BTA_GATTC_ReadCharDescr(p_cb->conn_id, &in_char_descr_id, p_cb->auth_req);
             break;
@@ -741,7 +746,8 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
         case BTIF_GATTC_WRITE_CHAR_DESCR:
             btif_to_bta_srvc_id(&in_char_descr_id.char_id.srvc_id, &p_cb->srvc_id);
             btif_to_bta_char_id(&in_char_descr_id.char_id.char_id, &p_cb->char_id);
-            btif_to_bta_uuid(&in_char_descr_id.descr_type, &p_cb->uuid);
+            btif_to_bta_uuid(&in_char_descr_id.descr_id.uuid, &p_cb->uuid);
+            in_char_descr_id.descr_id.inst_id = 0; /* TODO: need app layer input */
 
             descr_val.len = p_cb->len;
             descr_val.p_value = p_cb->value;

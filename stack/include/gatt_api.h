@@ -100,7 +100,7 @@ typedef UINT8 tGATT_STATUS;
 #define  GATT_HANDLE_IS_VALID(x) ((x) != 0)
 
 #define GATT_CONN_UNKNOWN                   0
-#define GATT_CONN_NO_RESOURCES              L2CAP_CONN_NO_RESOURCES         /* connection fail for l2cap resource failure */
+#define GATT_CONN_L2C_FAILURE               1                               /* general L2cap failure  */
 #define GATT_CONN_TIMEOUT                   HCI_ERR_CONNECTION_TOUT         /* 0x08 connection timeout  */
 #define GATT_CONN_TERMINATE_PEER_USER       HCI_ERR_PEER_USER               /* 0x13 connection terminate by peer user  */
 #define GATT_CONN_TERMINATE_LOCAL_HOST      HCI_ERR_CONN_CAUSE_LOCAL_HOST   /* 0x16 connectionterminated by local host  */
@@ -243,6 +243,15 @@ typedef struct
     INT8                exp;
     UINT8               name_spc;   /* The name space of the description */
 } tGATT_CHAR_PRES;
+
+/* Characteristic Report reference Descriptor format
+*/
+typedef struct
+{
+    UINT8              rpt_id;       /* report ID */
+    UINT8              rpt_type;       /* report type */
+} tGATT_CHAR_RPT_REF;
+
 
 #define GATT_VALID_RANGE_MAX_SIZE       16
 typedef struct
@@ -522,12 +531,10 @@ typedef union
     tGATT_INCL_SRVC     incl_service;  /* include service value */
     tGATT_GROUP_VALUE   group_value;   /* Service UUID type.
                                           This field is used with GATT_DISC_SRVC_ALL
+                                          or GATT_DISC_SRVC_BY_UUID
                                           type of discovery result callback. */
 
-    UINT16              handle;        /* When used with GATT_DISC_SRVC_BY_UUID type
-                                          discovery result, it is the ending handle of a
-                                          known service to be discovered. When used with
-                                          GATT_DISC_INC_SRVC type discovery result,
+    UINT16              handle;        /* When used with GATT_DISC_INC_SRVC type discovery result,
                                           it is the included service starting handle.*/
 
     tGATT_CHAR_DCLR_VAL dclr_value;    /* Characteristic declaration value.
@@ -1047,7 +1054,8 @@ extern "C"
 **
 ** Function         GATT_Connect
 **
-** Description      This function initiate a connecttion to a ATT server.
+** Description      This function initiate a connecttion to a remote device on GATT
+**                  channel.
 **
 ** Parameters       gatt_if: applicaiton interface
 **                  bd_addr: peer device address.
@@ -1063,7 +1071,8 @@ extern "C"
 **
 ** Function         GATT_CancelConnect
 **
-** Description      This function initiate a cancel connecttion to a ATT server.
+** Description      This function terminate the connection initaition to a remote
+**                  device on GATT channel.
 **
 ** Parameters       gatt_if: client interface. If 0 used as unconditionally disconnect,
 **                          typically used for direct connection cancellation.
@@ -1079,7 +1088,8 @@ extern "C"
 **
 ** Function         GATT_Disconnect
 **
-** Description      This function disconnect a logic channel.
+** Description      This function disconnect the GATT channel for this registered
+**                  application.
 **
 ** Parameters       conn_id: connection identifier.
 **

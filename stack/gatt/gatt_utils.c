@@ -710,7 +710,7 @@ BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *p_found
 
     for (i = start_idx ; i < GATT_MAX_PHY_CHANNEL; i ++)
     {
-        if (gatt_cb.tcb[i].in_use)
+        if (gatt_cb.tcb[i].in_use && gatt_cb.tcb[i].ch_state == GATT_CH_OPEN)
         {
             memcpy( bda, gatt_cb.tcb[i].peer_bda, BD_ADDR_LEN);
             *p_found_idx = i;
@@ -2543,7 +2543,9 @@ void gatt_deregister_bgdev_list(tGATT_IF gatt_if)
                 if (p_dev_list->listen_gif[j] == gatt_if)
                 {
                     p_dev_list->listen_gif[j] = 0;
-                    p_reg->listening --;
+
+                    if (p_reg != NULL && p_reg->listening > 0)
+                        p_reg->listening --;
 
                     /* move all element behind one forward */
                     for (k = j + 1; k < GATT_MAX_APPS; k ++)

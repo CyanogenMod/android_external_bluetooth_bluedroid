@@ -128,8 +128,8 @@ enum
     BTA_DM_SDP_RESULT_EVT,
     BTA_DM_SEARCH_CMPL_EVT,
     BTA_DM_DISCOVERY_RESULT_EVT,
-    BTA_DM_API_DI_DISCOVER_EVT
-
+    BTA_DM_API_DI_DISCOVER_EVT,
+    BTA_DM_DISC_CLOSE_TOUT_EVT
 };
 
 /* data type for BTA_DM_API_ENABLE_EVT */
@@ -818,6 +818,8 @@ typedef struct
     UINT8 *                 p_ble_rawdata;
     UINT32                 ble_raw_size;
     UINT32                 ble_raw_used;
+    TIMER_LIST_ENT         gatt_close_timer;
+    BD_ADDR                pending_close_bda;
 #endif
 #endif
 
@@ -991,6 +993,7 @@ extern void bta_dm_security_grant (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_bg_conn_type (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_conn_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_scan_params (tBTA_DM_MSG *p_data);
+extern void bta_dm_close_gatt_conn(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_observe (tBTA_DM_MSG *p_data);
 #endif
 extern void bta_dm_set_encryption(tBTA_DM_MSG *p_data);

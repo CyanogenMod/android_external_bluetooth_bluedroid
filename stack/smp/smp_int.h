@@ -287,6 +287,7 @@ extern void smp_send_pair_rsp(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 extern void smp_key_distribution(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 extern void smp_proc_srk_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 extern void smp_generate_csrk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
+extern void smp_delay_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 /* smp_l2c */
 extern void smp_l2cap_if_init (void);
 

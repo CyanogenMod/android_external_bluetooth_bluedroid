@@ -589,9 +589,9 @@ void bta_gatts_stop_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_m
 }
 /*******************************************************************************
 **
-** Function         bta_gatts_indicate_handle
+** Function         bta_gatts_send_rsp
 **
-** Description      GATTS send handle value indication or notification.
+** Description      GATTS send response.
 **
 ** Returns          none.
 **
@@ -612,7 +612,11 @@ void bta_gatts_send_rsp (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 **
 ** Function         bta_gatts_indicate_handle
 **
+<<<<<<< HEAD
 ** Description      GATTS indicate handel value
+=======
+** Description      GATTS send handle value indication or notification.
+>>>>>>> 6ea30bf... LE: UPF 45 bug fixes
 **
 ** Returns          none.
 **
@@ -856,7 +860,12 @@ static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
     {
         /* there is no RM for GATT */
         if (!BTM_IsBleLink(bda))
-            bta_sys_conn_open(BTA_ID_GATTS, BTA_ALL_APP_ID, bda);
+        {
+            if (connected)
+                bta_sys_conn_open(BTA_ID_GATTS, BTA_ALL_APP_ID, bda);
+            else
+                bta_sys_conn_close( BTA_ID_GATTS ,BTA_ALL_APP_ID, bda);
+        }
 
         cb_data.conn.conn_id = conn_id;
         cb_data.conn.server_if = gatt_if;

@@ -15,7 +15,6 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-
 #include "bt_target.h"
 
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
@@ -585,9 +584,6 @@ void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, BOOLEAN status, UINT16 len, UINT8 *p_
     p_clcb->cl_op_uuid = 0;
     p_clcb->p_cback=NULL;
 
-    if (!gap_ble_process_pending_op(p_clcb) && op != 0)
-        GATT_Disconnect(p_clcb->conn_id);
-
     if (p_dev_name_cback)
     {
         GAP_TRACE_EVENT0("calling gap_ble_cl_op_cmpl");
@@ -595,6 +591,10 @@ void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, BOOLEAN status, UINT16 len, UINT8 *p_
         if (op == GATT_UUID_GAP_DEVICE_NAME)
             (* p_dev_name_cback)(status, p_clcb->bda, len, (char *)p_name);
     }
+
+    if (!gap_ble_process_pending_op(p_clcb) &&
+        p_clcb->cl_op_uuid == 0)
+        GATT_Disconnect(p_clcb->conn_id);
 
 }
 
@@ -779,16 +779,17 @@ BOOLEAN gap_ble_cl_read_request(tGAP_CLCB *p_clcb, UINT16 uuid, void * p_cback)
 *******************************************************************************/
 BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
 {
-    tGAP_CLCB   *p_clcb;
 
+    tGAP_CLCB   *p_clcb = gap_find_clcb_by_bd_addr (peer_bda);
 
-    /* This function should only be called if there is a connection to  */
-    /* the peer. Get a client handle for that connection.               */
-    if ((p_clcb = gap_find_clcb_by_bd_addr (peer_bda)) == NULL ||
-        !p_clcb->connected)
+    if (p_clcb == NULL)
     {
-        GAP_TRACE_ERROR0("No connection, can not update reconnect address");
-        return(FALSE);
+        if ((p_clcb = gap_clcb_alloc(0, peer_bda)) == NULL)
+        {
+            GAP_TRACE_ERROR0("GAP_BleReadPeerPrefConnParams max connection reached");
+            return FALSE;
+        }
+        p_clcb->connected = FALSE;
     }
 
     GAP_TRACE_API3 ("GAP_BleReadPeerPrefConnParams() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
@@ -799,7 +800,18 @@ BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
     if (p_clcb->cl_op_uuid != 0)
         return(FALSE);
 
+    /* hold the link here */
+    GATT_Connect(gap_cb.gatt_if, p_clcb->bda, TRUE);
+
+    if (p_clcb->connected)
+    {
     return gap_ble_cl_read_request(p_clcb, GATT_UUID_GAP_PREF_CONN_PARAM, NULL);
+    }
+    /* Mark currently active operation */
+    p_clcb->cl_op_uuid = GATT_UUID_GAP_PREF_CONN_PARAM;
+
+    return(TRUE);
+
 
 }
 
@@ -814,22 +826,20 @@ BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
 *******************************************************************************/
 BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NAME_CBACK *p_cback)
 {
-    tGAP_CLCB   *p_clcb = gap_find_clcb_by_bd_addr (peer_bda);
+    tGAP_CLCB   *p_clcb = NULL;
 
     if (p_cback == NULL)
         return(FALSE);
 
-    if (p_clcb == NULL)
+    if ((p_clcb = gap_find_clcb_by_bd_addr (peer_bda)) == NULL)
     {
-        p_clcb = gap_clcb_alloc(0, peer_bda);
-        p_clcb->connected = FALSE;
-    }
-
-    if (p_clcb == NULL)
+        if ((p_clcb = gap_clcb_alloc(0, peer_bda)) == NULL)
     {
         GAP_TRACE_ERROR0("GAP_BleReadPeerDevName max connection reached");
+            return FALSE;
     }
-
+        p_clcb->connected = FALSE;
+    }
 
     GAP_TRACE_EVENT3 ("GAP_BleReadPeerDevName() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
                       (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],

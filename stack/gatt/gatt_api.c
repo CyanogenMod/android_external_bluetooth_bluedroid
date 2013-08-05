@@ -1537,7 +1537,7 @@ BOOLEAN GATT_GetConnectionInfor(UINT16 conn_id, tGATT_IF *p_gatt_if, BD_ADDR bd_
 **                   bd_addr: peer device address. (input)
 **                   p_conn_id: connection id  (output)
 **
-** Returns          TRUE the ligical link is connected
+** Returns          TRUE the logical link is connected
 **
 *******************************************************************************/
 BOOLEAN GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, UINT16 *p_conn_id)
