@@ -351,12 +351,22 @@ BOOLEAN SDP_FindServiceUUIDInRec(tSDP_DISC_REC *p_rec, tBT_UUID * p_uuid)
             {
                 if (SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE)
                 {
-                    /* only support 16 bits UUID for now */
-                    if (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == 2)
+                    if (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == LEN_UUID_16)
                     {
-                        p_uuid->len = 2;
+                        p_uuid->len = LEN_UUID_16;
                         p_uuid->uu.uuid16 = p_sattr->attr_value.v.u16;
                     }
+                    else if (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == LEN_UUID_128)
+                    {
+                        p_uuid->len = LEN_UUID_128;
+                        memcpy(p_uuid->uu.uuid128, p_sattr->attr_value.v.array, LEN_UUID_128);
+                    }
+                    else if (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == LEN_UUID_32)
+                    {
+                        p_uuid->len = LEN_UUID_32;
+                        p_uuid->uu.uuid32 = p_sattr->attr_value.v.u32;
+                    }
+
                     return(TRUE);
                 }
 
@@ -547,12 +557,6 @@ tSDP_DISC_REC *SDP_FindServiceInDb (tSDP_DISCOVERY_DB *p_db, UINT16 service_uuid
             }
             else if (p_attr->attr_id == ATTR_ID_SERVICE_ID)
             {
-                if ((SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UUID_DESC_TYPE)
-                    && (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2))
-                {
-                    printf("SDP_FindServiceInDb - p_attr value = 0x%x serviceuuid= 0x%x \r\n", p_attr->attr_value.v.u16, service_uuid);
-                }
-
                 if ((SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UUID_DESC_TYPE)
                     && (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2)
                     /* find a specific UUID or anyone */
