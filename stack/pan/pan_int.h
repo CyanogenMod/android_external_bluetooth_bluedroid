@@ -86,7 +86,9 @@ typedef struct
     char                        *user_service_name;
     char                        *gn_service_name;
     char                        *nap_service_name;
+#if defined(PAN_ALWAYS_NAP_NO_PANU_ON_SDP) && (PAN_ALWAYS_NAP_NO_PANU_ON_SDP == FALSE)
     UINT32                      pan_user_sdp_handle;
+#endif
     UINT32                      pan_gn_sdp_handle;
     UINT32                      pan_nap_sdp_handle;
     UINT8                       num_conns;
