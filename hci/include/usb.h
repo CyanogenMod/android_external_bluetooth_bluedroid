@@ -77,7 +77,7 @@ struct bt_usb_device {
 ** Returns         TRUE/FALSE
 **
 *******************************************************************************/
-uint8_t usb_init(void);
+typedef uint8_t (*tUSERIAL_INIT)(void);
 
 /*******************************************************************************
 **
@@ -88,7 +88,7 @@ uint8_t usb_init(void);
 ** Returns         TRUE/FALSE
 **
 *******************************************************************************/
-uint8_t usb_open(uint8_t port);
+typedef uint8_t (*tUSERIAL_OPEN)(uint8_t port);
 
 /*******************************************************************************
 **
@@ -100,7 +100,7 @@ uint8_t usb_open(uint8_t port);
 **                 copied into p_data.  This may be less than len.
 **
 *******************************************************************************/
-uint16_t  usb_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len);
+typedef uint16_t (*tUSERIAL_READ)(uint16_t msg_id, uint8_t *p_buffer, uint16_t len);
 
 /*******************************************************************************
 **
@@ -112,7 +112,7 @@ uint16_t  usb_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len);
 **                 may be less than len.
 **
 *******************************************************************************/
-uint16_t usb_write(uint16_t msg_id, uint8_t *p_data, uint16_t len);
+typedef uint16_t (*tUSERIAL_WRITE)(uint16_t msg_id, uint8_t *p_data, uint16_t len);
 
 /*******************************************************************************
 **
@@ -123,7 +123,7 @@ uint16_t usb_write(uint16_t msg_id, uint8_t *p_data, uint16_t len);
 ** Returns         None
 **
 *******************************************************************************/
-void usb_close(void);
+typedef void (*tUSERIAL_CLOSE)(void);
 
 /*******************************************************************************
 **
@@ -134,7 +134,16 @@ void usb_close(void);
 ** Returns         None
 **
 *******************************************************************************/
-void usb_ioctl(usb_ioctl_op_t op, void *p_data);
+typedef void (*tUSERIAL_IOCTL)(userial_ioctl_op_t op, void *p_data);
+
+typedef struct {
+    tUSERIAL_INIT init;
+    tUSERIAL_OPEN open;
+    tUSERIAL_READ read;
+    tUSERIAL_WRITE write;
+    tUSERIAL_CLOSE close;
+    tUSERIAL_IOCTL ioctl;
+} tUSERIAL_IF;
 
 #endif /* USB_H */
 

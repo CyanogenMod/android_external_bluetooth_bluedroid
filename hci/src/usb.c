@@ -1162,8 +1162,18 @@ void usb_close(void)
 ** Returns         None
 **
 *******************************************************************************/
-void usb_ioctl(usb_ioctl_op_t op, void *p_data)
+void usb_ioctl(userial_ioctl_op_t op, void *p_data)
 {
     return;
 }
+
+const tUSERIAL_IF userial_h4_func_table =
+{
+    usb_init,
+    usb_open,
+    usb_read,
+    usb_write,
+    usb_close,
+    usb_ioctl
+};
 

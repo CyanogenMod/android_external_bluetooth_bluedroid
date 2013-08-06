@@ -11,22 +11,32 @@ LOCAL_SRC_FILES := \
         src/btsnoop.c \
         src/utils.c
 
-LOCAL_SRC_FILES += \
-        src/userial.c \
-        src/userial_mct.c \
-        src/hci_mct.c \
-        src/hci_h4.c
 
 ifeq ($(BLUETOOTH_HCI_USE_USB),true)
+
+LOCAL_CFLAGS += -DHCI_H2
+
 LOCAL_SRC_FILES += \
-        src/usb.c
+        src/usb.c \
+        src/hci_h4.c
 
 LOCAL_C_INCLUDES += \
         external/libusb
 
 LOCAL_SHARED_LIBRARIES := \
         libusb
+
+else
+
+LOCAL_SRC_FILES += \
+        src/userial.c \
+        src/hci_h4.c
+
 endif
+
+LOCAL_SRC_FILES += \
+        src/userial_mct.c \
+        src/hci_mct.c
 
 LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/include \
