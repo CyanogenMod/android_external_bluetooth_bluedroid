@@ -64,6 +64,12 @@
 #define BTIF_DM_DEFAULT_INQ_MAX_DURATION    10
 #define BTIF_DM_MAX_SDP_ATTEMPTS_AFTER_PAIRING 2
 
+#ifdef BLUETOOTH_QCOM_LE_INTL_SCAN
+#define BTIF_DM_INTERLEAVE_DURATION_BR_ONE    4
+#define BTIF_DM_INTERLEAVE_DURATION_LE_ONE    4
+#define BTIF_DM_INTERLEAVE_DURATION_BR_TWO    2
+#define BTIF_DM_INTERLEAVE_DURATION_LE_TWO    2
+#endif
 
 typedef struct
 {
@@ -1764,6 +1770,12 @@ bt_status_t btif_dm_start_discovery(void)
     /* Set inquiry params and call API */
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     inq_params.mode = BTA_DM_GENERAL_INQUIRY|BTA_BLE_GENERAL_INQUIRY;
+#ifdef BLUETOOTH_QCOM_LE_INTL_SCAN
+    inq_params.intl_duration[0]= BTIF_DM_INTERLEAVE_DURATION_BR_ONE;
+    inq_params.intl_duration[1]= BTIF_DM_INTERLEAVE_DURATION_LE_ONE;
+    inq_params.intl_duration[2]= BTIF_DM_INTERLEAVE_DURATION_BR_TWO;
+    inq_params.intl_duration[3]= BTIF_DM_INTERLEAVE_DURATION_LE_TWO;
+#endif
 #else
     inq_params.mode = BTA_DM_GENERAL_INQUIRY;
 #endif
