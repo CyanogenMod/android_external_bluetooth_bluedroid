@@ -1021,3 +1021,21 @@ void btif_av_clear_remote_suspend_flag(void)
     BTIF_TRACE_DEBUG1(" flag :%x",btif_av_cb.flags);
     btif_av_cb.flags  &= ~BTIF_AV_FLAG_REMOTE_SUSPEND;
 }
+/*******************************************************************************
+**
+** Function         btif_av_close_update
+**
+** Description      close audio and update to application layer
+**
+** Returns          boolean
+**
+*******************************************************************************/
+void btif_av_close_update(void)
+{
+
+    /* inform the application that we are disconnected */
+    BTIF_TRACE_DEBUG0("Inform application for disconection ");
+    btif_a2dp_on_stopped(NULL);
+    HAL_CBACK(bt_av_callbacks, connection_state_cb,
+              BTAV_CONNECTION_STATE_DISCONNECTED, &(btif_av_cb.peer_bda));
+}
