@@ -329,6 +329,7 @@ typedef struct
 #ifdef BLUETOOTH_QCOM_LE_INTL_SCAN
     btm_inq_state    next_state;        /*interleaving state to determine next mode to be inquired*/
 #endif
+    BOOLEAN          no_rname_req_in_conn;  /* to stop remote name request on incoming conneciton */
 } tBTM_INQUIRY_VAR_ST;
 
 /* The MSB of the clock offset field indicates that the offset is valid if TRUE */
