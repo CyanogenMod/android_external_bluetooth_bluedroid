@@ -1017,5 +1017,44 @@ void BTA_GATTC_Refresh(BD_ADDR remote_bda)
     }
     return;
 }
+
+/*******************************************************************************
+**
+** Function         BTA_GATTC_Listen
+**
+** Description      Start advertisement to listen for connection request for a GATT
+**                  client application.
+**
+** Parameters       client_if: server interface.
+**                  start: to start or stop listening for connection
+**                  remote_bda: remote device BD address, if listen to all device
+**                              use NULL.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR target_bda)
+{
+    tBTA_GATTC_API_LISTEN  *p_buf;
+
+    if ((p_buf = (tBTA_GATTC_API_LISTEN *) GKI_getbuf((UINT16)(sizeof(tBTA_GATTC_API_LISTEN) + BD_ADDR_LEN))) != NULL)
+    {
+        p_buf->hdr.event = BTA_GATTC_API_LISTEN_EVT;
+
+        p_buf->client_if = client_if;
+        p_buf->start = start;
+        if (target_bda)
+        {
+            p_buf->remote_bda = (UINT8*)(p_buf + 1);
+            memcpy(p_buf->remote_bda, target_bda, BD_ADDR_LEN);
+        }
+        else
+            p_buf->remote_bda = NULL;
+
+        bta_sys_sendmsg(p_buf);
+    }
+    return;
+}
+
 #endif /* BTA_GATT_INCLUDED */
 

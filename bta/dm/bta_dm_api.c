@@ -1447,6 +1447,72 @@ void BTA_DmSetBleConnScanParams(UINT16 scan_interval, UINT16 scan_window )
 
 /*******************************************************************************
 **
+** Function         BTA_DmSetBleAdvParams
+**
+** Description      This function sets the advertising parameters BLE functionality.
+**                  It is to be called when device act in peripheral or broadcaster
+**                  role.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
+                           tBLE_BD_ADDR *p_dir_bda)
+{
+#if BLE_INCLUDED == TRUE
+    tBTA_DM_API_BLE_ADV_PARAMS    *p_msg;
+
+    APPL_TRACE_API2 ("BTA_DmSetBleAdvParam: %d, %d", adv_int_min, adv_int_max);
+
+    if ((p_msg = (tBTA_DM_API_BLE_ADV_PARAMS *) GKI_getbuf(sizeof(tBTA_DM_API_BLE_ADV_PARAMS))) != NULL)
+    {
+        memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_ADV_PARAMS));
+
+        p_msg->hdr.event = BTA_DM_API_BLE_ADV_PARAM_EVT;
+
+        p_msg->adv_int_min      = adv_int_min;
+        p_msg->adv_int_max      = adv_int_max;
+
+        if (p_dir_bda != NULL)
+        {
+            p_msg->p_dir_bda = (tBLE_BD_ADDR *)(p_msg + 1);
+            memcpy(p_msg->p_dir_bda, p_dir_bda, sizeof(tBLE_BD_ADDR));
+        }
+
+        bta_sys_sendmsg(p_msg);
+    }
+#endif
+}
+
+#if BLE_INCLUDED == TRUE
+/*******************************************************************************
+**
+** Function         BTA_DmBleSetAdvConfig
+**
+** Description      This function is called to override the BTA default ADV parameters.
+**
+** Parameters       Pointer to User defined ADV data structure
+**
+** Returns          None
+**
+*******************************************************************************/
+void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg)
+{
+    tBTA_DM_API_SET_ADV_CONFIG  *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_SET_ADV_CONFIG *) GKI_getbuf(sizeof(tBTA_DM_API_SET_ADV_CONFIG))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_SET_ADV_CONFIG_EVT;
+		p_msg->data_mask = data_mask;
+        p_msg->p_adv_cfg = p_adv_cfg;
+
+        bta_sys_sendmsg(p_msg);
+    }
+}
+#endif
+/*******************************************************************************
+**
 ** Function         BTA_DmBleSetBgConnType
 **
 ** Description      This function is called to set BLE connectable mode for a

@@ -1948,6 +1948,99 @@ void bta_gattc_init_clcb_conn(UINT8 cif, BD_ADDR remote_bda)
         APPL_TRACE_ERROR0("No resources");
     }
 }
+/*******************************************************************************
+**
+** Function         bta_gattc_process_listen_all
+**
+** Description      process listen all, send open callback to application for all
+**                  connected slave LE link.
+**
+** Returns          void
+**
+********************************************************************************/
+void bta_gattc_process_listen_all(UINT8 cif)
+{
+    UINT8               i_conn = 0;
+    tBTA_GATTC_CONN     *p_conn = &bta_gattc_cb.conn_track[0];
 
-#endif /* #if BLE_INCLUDED == TRUE */
-#endif /* BTA_GATT_INCLUDED */
+    for (i_conn = 0; i_conn < BTA_GATTC_CONN_MAX; i_conn++, p_conn ++)
+    {
+        if (p_conn->in_use )
+        {
+            if (bta_gattc_find_clcb_by_cif(cif, p_conn->remote_bda) == NULL)
+            {
+                bta_gattc_init_clcb_conn(cif, p_conn->remote_bda);
+            }
+            /* else already connected */
+        }
+    }
+}
+/*******************************************************************************
+**
+** Function         bta_gattc_listen
+**
+** Description      Start or stop a listen for connection
+**
+** Returns          void
+**
+********************************************************************************/
+void bta_gattc_listen(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
+{
+    tBTA_GATTC_RCB      *p_clreg = bta_gattc_cl_get_regcb(p_msg->api_listen.client_if);
+    tBTA_GATTC          cb_data;
+    cb_data.reg_oper.status = BTA_GATT_ERROR;
+    cb_data.reg_oper.client_if = p_msg->api_listen.client_if;
+
+    if (p_clreg == NULL)
+    {
+        APPL_TRACE_ERROR1("bta_gattc_listen failed, unknown client_if: %d",
+                            p_msg->api_listen.client_if);
+        return;
+    }
+    /* mark bg conn record */
+    if (bta_gattc_mark_bg_conn(p_msg->api_listen.client_if,
+                               (BD_ADDR_PTR) p_msg->api_listen.remote_bda,
+                               p_msg->api_listen.start,
+                               TRUE))
+    {
+        if (!GATT_Listen(p_msg->api_listen.client_if,
+                         p_msg->api_listen.start,
+                         p_msg->api_listen.remote_bda))
+        {
+            APPL_TRACE_ERROR0("Listen failure");
+            (*p_clreg->p_cback)(BTA_GATTC_LISTEN_EVT, &cb_data);
+        }
+        else
+        {
+            cb_data.status = BTA_GATT_OK;
+
+            (*p_clreg->p_cback)(BTA_GATTC_LISTEN_EVT, &cb_data);
+
+            if (p_msg->api_listen.start)
+            {
+                /* if listen to a specific target */
+                if (p_msg->api_listen.remote_bda != NULL)
+                {
+
+                    /* if is a connected remote device */
+                    if (L2CA_GetBleConnRole(p_msg->api_listen.remote_bda) == HCI_ROLE_SLAVE &&
+                        bta_gattc_find_clcb_by_cif(p_msg->api_listen.client_if, p_msg->api_listen.remote_bda) == NULL)
+                    {
+
+                        bta_gattc_init_clcb_conn(p_msg->api_listen.client_if,
+                                                p_msg->api_listen.remote_bda);
+                    }
+                }
+                /* if listen to all */
+                else
+                {
+                    APPL_TRACE_ERROR0("Listen For All now");
+                    /* go through all connected device and send callback for all connected slave connection */
+                    bta_gattc_process_listen_all(p_msg->api_listen.client_if);
+                }
+            }
+        }
+    }
+}
+#endif
+#endif

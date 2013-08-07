@@ -4960,6 +4960,37 @@ void bta_dm_ble_observe (tBTA_DM_MSG *p_data)
         BTM_BleObserve(FALSE, 0, NULL,NULL );
     }
 }
+/*******************************************************************************
+**
+** Function         bta_dm_ble_set_scan_params
+**
+** Description      This function set the adv parameters.
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_set_adv_params (tBTA_DM_MSG *p_data)
+{
+    BTM_BleSetAdvParams(p_data->ble_set_adv_params.adv_int_min,
+                        p_data->ble_set_adv_params.adv_int_max,
+                        p_data->ble_set_adv_params.p_dir_bda,
+                        BTA_DM_BLE_ADV_CHNL_MAP);
+}
+/*******************************************************************************
+**
+** Function         bta_dm_ble_set_adv_config
+**
+** Description      This function set the customized ADV data configuration
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data)
+{
+    BTM_BleWriteAdvData(p_data->ble_set_adv_data.data_mask,
+                        (tBTM_BLE_ADV_DATA *)p_data->ble_set_adv_data.p_adv_cfg);
+}
+
 
 #if ((defined BTA_GATT_INCLUDED) &&  (BTA_GATT_INCLUDED == TRUE))
 #ifndef BTA_DM_GATT_CLOSE_DELAY_TOUT

@@ -961,6 +961,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
             {
                 bt_property_t properties[5];
                 bt_device_type_t dev_type;
+                UINT8 addr_type;
                 uint32_t num_properties = 0;
                 bt_status_t status;
 
@@ -971,7 +972,8 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
                 num_properties++;
                 /* BD_NAME */
                 /* Don't send BDNAME if it is empty */
-                if (bdname.name[0]) {
+                if (bdname.name[0])
+                {
                     BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
                                                BT_PROPERTY_BDNAME,
                                                strlen((char *)bdname.name), &bdname);
@@ -983,9 +985,10 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
                                     BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod), &cod);
                 num_properties++;
                 /* DEV_TYPE */
-#if (BLE_INCLUDED == TRUE)
+#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
                 /* FixMe: Assumption is that bluetooth.h and BTE enums match */
                 dev_type = p_search_data->inq_res.device_type;
+                addr_type = p_search_data->inq_res.ble_addr_type;
 #else
                 dev_type = BT_DEVICE_TYPE_BREDR;
 #endif
@@ -1000,7 +1003,10 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
 
                 status = btif_storage_add_remote_device(&bdaddr, num_properties, properties);
                 ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device (inquiry)", status);
-
+#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
+                status = btif_storage_set_remote_addr_type(&bdaddr, addr_type);
+                ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote addr type (inquiry)", status);
+#endif
                 /* Callback to notify upper layer of device */
                 HAL_CBACK(bt_hal_cbacks, device_found_cb,
                                  num_properties, properties);
