@@ -1204,8 +1204,11 @@ bt_status_t btif_hf_execute_service(BOOLEAN b_enable)
           /* Enable and register with BTA-AG */
           BTA_AgEnable (BTA_AG_PARSE, bte_hf_evt);
           if (btif_features)
+          {
+              btif_features |= BTA_AG_FEAT_UNAT; /* used for phone book at commands, e.g. CPBR*/
               BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY, btif_features,
                              p_service_names, BTIF_HF_ID_1);
+          }
           else
               BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY, BTIF_HF_FEATURES,
                              p_service_names, BTIF_HF_ID_1);
