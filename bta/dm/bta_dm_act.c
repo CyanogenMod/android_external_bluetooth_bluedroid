@@ -180,7 +180,7 @@ const UINT32 bta_service_id_to_btm_srv_id_lkup_tbl [BTA_MAX_SERVICE_ID] =
     BTM_SEC_SERVICE_SAP,                    /* BTA_SAP_SERVICE_ID */
     BTM_SEC_SERVICE_AVDTP,                  /* BTA_A2DP_SERVICE_ID */
     BTM_SEC_SERVICE_AVCTP,                  /* BTA_AVRCP_SERVICE_ID */
-    BTM_SEC_SERVICE_HID_SEC_CTRL,           /* BTA_HID_SERVICE_ID */
+    BTM_SEC_SERVICE_HIDH_SEC_CTRL,          /* BTA_HID_SERVICE_ID */
     BTM_SEC_SERVICE_AVDTP,                  /* BTA_VDP_SERVICE_ID */
     BTM_SEC_SERVICE_PBAP,                   /* BTA_PBAP_SERVICE_ID */
     BTM_SEC_SERVICE_HEADSET,                /* BTA_HSP_HS_SERVICE_ID */

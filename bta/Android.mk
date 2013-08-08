@@ -42,6 +42,7 @@ LOCAL_SRC_FILES:= \
     ./hh/bta_hh_cfg.c \
     ./hh/bta_hh_act.c \
     ./hh/bta_hh_api.c \
+    ./hh/bta_hh_le.c \
     ./hh/bta_hh_utils.c \
     ./hh/bta_hh_main.c \
     ./pb/bta_pbs_cfg.c \

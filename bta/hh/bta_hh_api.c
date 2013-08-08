@@ -305,6 +305,13 @@ void BTA_HhSendCtrl(UINT8 dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type)
 *******************************************************************************/
 void BTA_HhSendData(UINT8 dev_handle, BD_ADDR dev_bda, BT_HDR  *p_data)
 {
+#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+        if (p_data->layer_specific != BTA_HH_RPTT_OUTPUT)
+        {
+            APPL_TRACE_ERROR0("ERROR! Wrong report type! Write Command only valid for output report!");
+            return;
+        }
+#endif
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_DATA, (UINT8)p_data->layer_specific, 0, 0, p_data);
 }
 
@@ -406,7 +413,37 @@ void BTA_HhRemoveDev(UINT8 dev_handle )
         bta_sys_sendmsg(p_buf);
     }
 }
+#if BTA_HH_LE_INCLUDED == TRUE
 
+/*******************************************************************************
+**
+** Function         BTA_HhUpdateLeScanParam
+**
+** Description      Update the scan paramteters if connected to a LE hid device as
+**                  report host.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_HhUpdateLeScanParam(UINT8 dev_handle, UINT16 scan_int, UINT16 scan_win)
+{
+    tBTA_HH_SCPP_UPDATE    *p_buf;
+
+    p_buf = (tBTA_HH_SCPP_UPDATE *)GKI_getbuf((UINT16)sizeof(tBTA_HH_SCPP_UPDATE));
+
+    if (p_buf != NULL)
+    {
+        memset(p_buf, 0, sizeof(tBTA_HH_SCPP_UPDATE));
+
+        p_buf->hdr.event            = BTA_HH_API_SCPP_UPDATE_EVT;
+        p_buf->hdr.layer_specific   = (UINT16) dev_handle;
+        p_buf->scan_int             =  scan_int;
+        p_buf->scan_win             =  scan_win;
+
+        bta_sys_sendmsg(p_buf);
+    }
+}
+#endif
 /*******************************************************************************/
 /*                          Utility Function                                   */
 /*******************************************************************************/
