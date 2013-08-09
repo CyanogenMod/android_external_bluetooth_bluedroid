@@ -393,21 +393,6 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
         pressed = 1;
     }
 
-    /* If this is Play/Pause command (press or release)  before processing, check the following
-     * a voice call has ended recently
-     * the remote device is not of type headset
-     * If the above conditions meet, drop the Play/Pause command
-     * This fix is to interop with certain carkits which sends an automatic  PLAY  or PAUSE
-     * commands right after call ends
-     */
-    if((p_remote_cmd->rc_id == BTA_AV_RC_PLAY || p_remote_cmd->rc_id == BTA_AV_RC_PAUSE)&&
-       (btif_hf_call_terminated_recently() == TRUE) &&
-       (check_cod( (const bt_bdaddr_t*)&(btif_rc_cb.rc_addr), COD_AV_HEADSETS) != TRUE))
-    {
-        BTIF_TRACE_DEBUG2("%s:Dropping the play/Pause command received right after call end cmd:%d",
-                           __FUNCTION__,p_remote_cmd->rc_id);
-        return;
-    }
 
     for (i = 0; key_map[i].name != NULL; i++) {
         if (p_remote_cmd->rc_id == key_map[i].avrcp) {
