@@ -1354,6 +1354,8 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             }
             #endif
             btif_storage_remove_bonded_device(&bd_addr);
+            BTIF_TRACE_DEBUG0("Removing keys of BLE device");
+            btif_storage_remove_ble_bonding_keys(&bd_addr);
             bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_NONE);
             break;
 
