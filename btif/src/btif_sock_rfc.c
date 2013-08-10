@@ -867,7 +867,10 @@ static BOOLEAN flush_incoming_que_on_wr_signal(rfc_slot_t* rs)
 
     //app is ready to receive data, tell stack to start the data flow
     //fix me: need a jv flow control api to serialize the call in stack
-    PORT_FlowControl(rs->rfc_port_handle, TRUE);
+    APPL_TRACE_DEBUG3("enable data flow, rfc_handle:0x%x, rfc_port_handle:0x%x, user_id:%d",
+                        rs->rfc_handle, rs->rfc_port_handle, rs->id);
+    extern int PORT_FlowControl_MaxCredit(UINT16 handle, BOOLEAN enable);
+    PORT_FlowControl_MaxCredit(rs->rfc_port_handle, TRUE);
     return TRUE;
 }
 void btsock_rfc_signaled(int fd, int flags, uint32_t user_id)
