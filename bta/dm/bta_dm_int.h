@@ -89,6 +89,7 @@ enum
 #endif /* BTM_OOB_INCLUDED */
 
     BTA_DM_API_REMOVE_DEVICE_EVT,
+    BTA_DM_API_REM_NAME_EVT,
 
 #if BLE_INCLUDED == TRUE
     BTA_DM_API_ADD_BLEKEY_EVT,
@@ -286,6 +287,14 @@ typedef struct
     BT_HDR      hdr;
     BD_ADDR     bd_addr;
 } tBTA_DM_API_PASKY_CANCEL;
+
+/* data type for BTA_DM_API_REM_NAME_EVT*/
+typedef struct
+{
+    BT_HDR      hdr;
+    tBTA_DM_REM_NAME_CBACK * p_cback;
+    BD_ADDR     bd_addr;
+} tBTA_DM_API_REM_NAME;
 
 /* data type for BTA_DM_CI_IO_REQ_EVT */
 typedef struct
@@ -590,6 +599,8 @@ typedef union
 
     tBTA_DM_API_BOND_CANCEL bond_cancel;
 
+    tBTA_DM_API_REM_NAME remote_name;
+
     tBTA_DM_API_PIN_REPLY pin_reply;
     tBTA_DM_API_LINK_POLICY link_policy;
 
@@ -776,6 +787,7 @@ typedef struct
 #endif
 
     tBTA_DM_ENCRYPT_CBACK      *p_encrypt_cback;
+    tBTA_DM_REM_NAME_CBACK     *p_rem_name_cback;
     tBTA_DM_BLE_SEC_ACT         sec_act;
     TIMER_LIST_ENT              switch_delay_timer;
 
@@ -977,6 +989,7 @@ extern void bta_dm_tx_inqpower(tBTA_DM_MSG *p_data);
 extern void bta_dm_acl_change(tBTA_DM_MSG *p_data);
 extern void bta_dm_add_device (tBTA_DM_MSG *p_data);
 extern void bta_dm_remove_device (tBTA_DM_MSG *p_data);
+extern void bta_dm_remote_name(tBTA_DM_MSG *p_data);
 extern void bta_dm_close_acl(tBTA_DM_MSG *p_data);
 
 
