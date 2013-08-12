@@ -86,6 +86,7 @@ const tBTA_DM_ACTION bta_dm_action[] =
 #endif /* BTM_OOB_INCLUDED */
 
     bta_dm_remove_device,      /*  BTA_DM_API_REMOVE_DEVICE_EVT */
+    bta_dm_remote_name,         /* BTA_DM_API_REM_NAME_EVT*/
 
 #if BLE_INCLUDED == TRUE
     bta_dm_add_blekey,          /*  BTA_DM_API_ADD_BLEKEY_EVT           */

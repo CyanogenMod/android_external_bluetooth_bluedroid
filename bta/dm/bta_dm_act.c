@@ -1110,6 +1110,47 @@ void bta_dm_confirm(tBTA_DM_MSG *p_data)
     BTM_ConfirmReqReply(res, p_data->confirm.bd_addr);
 }
 
+
+/*******************************************************************************
+**
+** Function         bta_dm_remote_name_cback
+**
+** Description      Callback function indicating remote request is completed
+**
+** Returns          void
+**
+*******************************************************************************/
+static void bta_dm_remote_name_cback (tBTM_REMOTE_DEV_NAME *p_remote_name)
+{
+    tBTA_DM_REM_NAME * p_msg;
+
+    APPL_TRACE_DEBUG2("bta_dm_remote_name_cback len = %d name=<%s>", p_remote_name->length,
+                      p_remote_name->remote_bd_name);
+
+    if (bta_dm_cb.p_rem_name_cback)
+    {
+        bta_dm_cb.p_rem_name_cback(p_remote_name);
+        bta_dm_cb.p_rem_name_cback = NULL;
+    }
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_remote_name
+**
+** Description      Send the remote name request to remote device
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_dm_remote_name(tBTA_DM_MSG *p_data)
+{
+    /* save callback */
+    bta_dm_cb.p_rem_name_cback = p_data->remote_name.p_cback;
+    BTM_ReadRemoteDeviceName (p_data->remote_name.bd_addr,
+                                           (tBTM_CMPL_CB *) bta_dm_remote_name_cback);
+}
+
 /*******************************************************************************
 **
 ** Function         bta_dm_passkey_cancel
