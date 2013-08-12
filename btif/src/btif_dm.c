@@ -64,6 +64,12 @@
 #define BTIF_DM_DEFAULT_INQ_MAX_DURATION    10
 #define BTIF_DM_MAX_SDP_ATTEMPTS_AFTER_PAIRING 2
 
+#ifdef BLUETOOTH_QCOM_LE_INTL_SCAN
+#define BTIF_DM_INTERLEAVE_DURATION_BR_ONE    4
+#define BTIF_DM_INTERLEAVE_DURATION_LE_ONE    4
+#define BTIF_DM_INTERLEAVE_DURATION_BR_TWO    2
+#define BTIF_DM_INTERLEAVE_DURATION_LE_TWO    2
+#endif
 
 typedef struct
 {
@@ -881,6 +887,10 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
                 status =  BT_STATUS_RMT_DEV_DOWN;
                 break;
 
+            case HCI_ERR_PAIRING_NOT_ALLOWED:
+                status = BT_STATUS_AUTH_REJECTED;
+                break;
+
             /* map the auth failure codes, so we can retry pairing if necessary */
             case HCI_ERR_AUTH_FAILURE:
             case HCI_ERR_HOST_REJECT_SECURITY:
@@ -888,6 +898,8 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             case HCI_ERR_UNIT_KEY_USED:
             case HCI_ERR_PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED:
             case HCI_ERR_INSUFFCIENT_SECURITY:
+            case HCI_ERR_PEER_USER:
+            case HCI_ERR_UNSPECIFIED:
                 BTIF_TRACE_DEBUG1(" %s() Authentication fail ", __FUNCTION__);
                 if (pairing_cb.autopair_attempts  == 1)
                 {
@@ -1764,6 +1776,12 @@ bt_status_t btif_dm_start_discovery(void)
     /* Set inquiry params and call API */
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     inq_params.mode = BTA_DM_GENERAL_INQUIRY|BTA_BLE_GENERAL_INQUIRY;
+#ifdef BLUETOOTH_QCOM_LE_INTL_SCAN
+    inq_params.intl_duration[0]= BTIF_DM_INTERLEAVE_DURATION_BR_ONE;
+    inq_params.intl_duration[1]= BTIF_DM_INTERLEAVE_DURATION_LE_ONE;
+    inq_params.intl_duration[2]= BTIF_DM_INTERLEAVE_DURATION_BR_TWO;
+    inq_params.intl_duration[3]= BTIF_DM_INTERLEAVE_DURATION_LE_TWO;
+#endif
 #else
     inq_params.mode = BTA_DM_GENERAL_INQUIRY;
 #endif

@@ -11,6 +11,9 @@ LOCAL_SRC_FILES := \
         src/btsnoop.c \
         src/utils.c
 
+ifeq ($(QCOM_BT_USE_SMD_TTY),true)
+LOCAL_CFLAGS += -DQCOM_WCN_SSR
+endif
 
 ifeq ($(BLUETOOTH_HCI_USE_USB),true)
 

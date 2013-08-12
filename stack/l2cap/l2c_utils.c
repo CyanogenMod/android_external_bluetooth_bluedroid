@@ -136,6 +136,28 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     btm_remove_sco_links(p_lcb->remote_bd_addr);
 #endif
 
+    if (p_lcb->sent_not_acked > 0)
+    {
+#if (BLE_INCLUDED == TRUE)
+        if (p_lcb->is_ble_link)
+        {
+            l2cb.controller_le_xmit_window += p_lcb->sent_not_acked;
+            if (l2cb.controller_le_xmit_window > l2cb.num_lm_ble_bufs)
+            {
+                l2cb.controller_le_xmit_window = l2cb.num_lm_ble_bufs;
+            }
+        }
+        else
+#endif
+        {
+            l2cb.controller_xmit_window += p_lcb->sent_not_acked;
+            if (l2cb.controller_xmit_window > l2cb.num_lm_acl_bufs)
+            {
+                l2cb.controller_xmit_window = l2cb.num_lm_acl_bufs;
+            }
+        }
+    }
+
 #if (BLE_INCLUDED == TRUE)
     p_lcb->is_ble_link = FALSE;
     l2cb.is_ble_connecting = FALSE;
@@ -182,15 +204,6 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     /* Re-adjust flow control windows make sure it does not go negative */
     if (l2cb.num_links_active >= 1)
         l2cb.num_links_active--;
-
-    if (p_lcb->sent_not_acked > 0)
-    {
-        l2cb.controller_xmit_window += p_lcb->sent_not_acked;
-        if (l2cb.controller_xmit_window > l2cb.num_lm_acl_bufs)
-        {
-            l2cb.controller_xmit_window = l2cb.num_lm_acl_bufs;
-        }
-    }
 
     l2c_link_adjust_allocation();
 
@@ -2246,7 +2259,9 @@ BOOLEAN l2cu_create_conn_after_switch (tL2C_LCB *p_lcb)
 #endif
 
     if (!btsnd_hcic_create_conn (p_lcb->remote_bd_addr,
-                                 HCI_PKT_TYPES_MASK_DM1 + HCI_PKT_TYPES_MASK_DH1,
+                                 ( HCI_PKT_TYPES_MASK_DM1 + HCI_PKT_TYPES_MASK_DH1
+                                 + HCI_PKT_TYPES_MASK_DM3 + HCI_PKT_TYPES_MASK_DH3
+                                 + HCI_PKT_TYPES_MASK_DM5 + HCI_PKT_TYPES_MASK_DH5 ),
                                  page_scan_rep_mode,
                                  page_scan_mode,
                                  clock_offset,

@@ -35,6 +35,10 @@
 #include <errno.h>
 #include <stdio.h>
 #include <sys/socket.h>
+#ifdef QCOM_WCN_SSR
+#include <termios.h>
+#include <sys/ioctl.h>
+#endif
 #include "bt_hci_bdroid.h"
 #include "userial.h"
 #include "utils.h"
@@ -214,6 +218,39 @@ static void *userial_read_thread(void *arg)
 
     return NULL;    // Compiler friendly
 }
+#ifdef QCOM_WCN_SSR
+/*******************************************************************************
+**
+** Function        userial_dev_inreset
+**
+** Description     checks for H/w reset events
+**
+** Returns         reset status
+**
+*******************************************************************************/
+
+uint8_t userial_dev_inreset()
+{
+    volatile int serial_bits;
+    uint8_t dev_reset_done =0, retry_count = 0;
+     ioctl(userial_cb.fd[CH_EVT], TIOCMGET, &serial_bits);
+     if (serial_bits & TIOCM_OUT2) {
+        while(serial_bits & TIOCM_OUT1) {
+             ALOGW("userial_device in reset \n");
+             utils_delay(2000);
+             retry_count++;
+             ioctl(userial_cb.fd[CH_EVT], TIOCMGET, &serial_bits);
+             if((serial_bits & TIOCM_OUT1))
+                dev_reset_done = 0;
+             else
+                dev_reset_done = 1;
+             if(retry_count == 6)
+               break;
+          }
+     }
+    return dev_reset_done;
+}
+#endif
 
 
 /*****************************************************************************
