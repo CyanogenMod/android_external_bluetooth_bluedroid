@@ -65,7 +65,7 @@
 
 /* This feature is used to eanble QCOM interleaved scan*/
 #ifndef BLUETOOTH_QCOM_LE_INTL_SCAN
-#define BLUETOOTH_QCOM_LE_INTL_SCAN TRUE
+#define BLUETOOTH_QCOM_LE_INTL_SCAN FALSE
 #endif
 
 #ifndef UNV_INCLUDED
