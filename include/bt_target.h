@@ -3359,7 +3359,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 ******************************************************************************/
 
 #ifndef BTC_INCLUDED
-#define BTC_INCLUDED                TRUE
+#define BTC_INCLUDED                FALSE
 #endif
 
 /******************************************************************************
