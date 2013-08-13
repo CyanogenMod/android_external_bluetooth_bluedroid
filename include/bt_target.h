@@ -2171,6 +2171,11 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define PAN_NAP_SECURITY_LEVEL           0
 #endif
 
+/*This ensures that PANU Service record will not be advertised on SDP */
+#ifndef PAN_ALWAYS_NAP_NO_PANU_ON_SDP
+#define PAN_ALWAYS_NAP_NO_PANU_ON_SDP TRUE
+#endif
+
 
 
 
