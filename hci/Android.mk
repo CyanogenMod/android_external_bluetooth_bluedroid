@@ -19,7 +19,8 @@ LOCAL_SRC_FILES += \
         src/userial.c \
         src/userial_mct.c \
         src/hci_mct.c \
-        src/hci_h4.c
+        src/hci_h4.c\
+        src/hci_ibs.c
 
 LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/include \
