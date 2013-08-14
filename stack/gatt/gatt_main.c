@@ -736,10 +736,11 @@ void gatt_l2cif_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
             L2CA_DisconnectRsp(lcid);
         }
 
-        if (btm_sec_is_a_bonded_dev(p_tcb->peer_bda) &&
-            btm_sec_is_le_capable_dev(p_tcb->peer_bda))
+        if (gatt_is_bda_in_the_srv_chg_clt_list(p_tcb->peer_bda) == NULL)
         {
-            gatt_add_a_bonded_dev_for_srv_chg(p_tcb->peer_bda);
+            if (btm_sec_is_a_bonded_dev(p_tcb->peer_bda) &&
+                btm_sec_is_le_capable_dev(p_tcb->peer_bda))
+                gatt_add_a_bonded_dev_for_srv_chg(p_tcb->peer_bda);
         }
 
         /* if ACL link is still up, no reason is logged, l2cap is disconnect from peer */
@@ -769,10 +770,12 @@ void gatt_l2cif_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
     /* look up clcb for this channel */
     if ((p_tcb = gatt_find_tcb_by_cid(lcid)) != NULL)
     {
-        if (btm_sec_is_a_bonded_dev(p_tcb->peer_bda) &&
-            btm_sec_is_le_capable_dev(p_tcb->peer_bda))
+        /* If the device is not in the service changed client list, add it... */
+        if (gatt_is_bda_in_the_srv_chg_clt_list(p_tcb->peer_bda) == NULL)
         {
-            gatt_add_a_bonded_dev_for_srv_chg(p_tcb->peer_bda);
+            if (btm_sec_is_a_bonded_dev(p_tcb->peer_bda) &&
+                btm_sec_is_le_capable_dev(p_tcb->peer_bda))
+                gatt_add_a_bonded_dev_for_srv_chg(p_tcb->peer_bda);
         }
 
         /* send disconnect callback */
