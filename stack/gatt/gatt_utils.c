@@ -2315,7 +2315,7 @@ BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_init
                 if (p_dev->gatt_if[i] == gatt_if)
                 {
                     GATT_TRACE_ERROR0("device already in iniator white list");
-                    break;
+                    return TRUE;
                 }
                 else if (p_dev->gatt_if[i] == 0)
                 {
@@ -2332,7 +2332,7 @@ BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_init
                 if (p_dev->listen_gif[i] == gatt_if)
                 {
                     GATT_TRACE_ERROR0("device already in adv white list");
-                    return FALSE;
+                    return TRUE;
                 }
                 else if (p_dev->listen_gif[i] == 0)
                 {
