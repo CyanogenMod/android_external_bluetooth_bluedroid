@@ -381,6 +381,11 @@ BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
             bta_gattc_process_api_refresh(p_cb, (tBTA_GATTC_DATA *) p_msg);
             break;
 
+#if BLE_INCLUDED == TRUE
+        case BTA_GATTC_API_LISTEN_EVT:
+            bta_gattc_listen(p_cb, (tBTA_GATTC_DATA *) p_msg);
+            break;
+#endif
         default:
             if (p_msg->event == BTA_GATTC_INT_CONN_EVT)
                 p_clcb = bta_gattc_find_int_conn_clcb((tBTA_GATTC_DATA *) p_msg);
@@ -472,6 +477,8 @@ static char *gattc_evt_code(tBTA_GATTC_INT_EVT evt_code)
             return "BTA_GATTC_API_DEREG_EVT";
         case BTA_GATTC_API_REFRESH_EVT:
             return "BTA_GATTC_API_REFRESH_EVT";
+        case BTA_GATTC_API_LISTEN_EVT:
+            return "BTA_GATTC_API_LISTEN_EVT";
         case BTA_GATTC_API_DISABLE_EVT:
             return "BTA_GATTC_API_DISABLE_EVT";
         default:

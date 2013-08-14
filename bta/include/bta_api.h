@@ -1767,6 +1767,23 @@ BTA_API extern void BTA_DmSetBleConnScanParams(UINT16 scan_interval,
 
 /*******************************************************************************
 **
+** Function         BTA_DmSetBleAdvParams
+**
+** Description      This function sets the advertising parameters BLE functionality.
+**                  It is to be called when device act in peripheral or broadcaster
+**                  role.
+**
+** Parameters:      adv_int_min    - adv interval minimum
+**                  adv_int_max    - adv interval max
+**                  p_dir_bda      - directed adv initator address
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
+                                           tBLE_BD_ADDR *p_dir_bda);
+/*******************************************************************************
+**
 ** Function         BTA_DmSearchExt
 **
 ** Description      This function searches for peer Bluetooth devices. It performs

@@ -68,8 +68,8 @@ enum
     BTA_GATTC_INT_START_IF_EVT,
     BTA_GATTC_API_REG_EVT,
     BTA_GATTC_API_DEREG_EVT,
+    BTA_GATTC_API_LISTEN_EVT,
     BTA_GATTC_API_DISABLE_EVT
-
 };
 typedef UINT16 tBTA_GATTC_INT_EVT;
 
@@ -181,6 +181,14 @@ typedef struct
 typedef struct
 {
     BT_HDR                  hdr;
+    BD_ADDR_PTR             remote_bda;
+    tBTA_GATTC_IF           client_if;
+    BOOLEAN                 start;
+} tBTA_GATTC_API_LISTEN;
+
+typedef struct
+{
+    BT_HDR                  hdr;
     BD_ADDR                 remote_bda;
     tBTA_GATTC_IF           client_if;
     UINT8                   role;
@@ -208,6 +216,8 @@ typedef union
 
     tBTA_GATTC_INT_START_IF     int_start_if;
     tBTA_GATTC_INT_DEREG        int_dereg;
+    /* if peripheral role is supported */
+    tBTA_GATTC_API_LISTEN       api_listen;
 
 } tBTA_GATTC_DATA;
 
@@ -462,7 +472,9 @@ extern void bta_gattc_cancel_bk_conn(tBTA_GATTC_API_CANCEL_OPEN *p_data);
 extern void bta_gattc_send_open_cback( tBTA_GATTC_RCB *p_clreg, tBTA_GATT_STATUS status,
                                        BD_ADDR remote_bda, UINT16 conn_id);
 extern void bta_gattc_process_api_refresh(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
-
+#if BLE_INCLUDED == TRUE
+extern void bta_gattc_listen(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
+#endif
 /* utility functions */
 extern tBTA_GATTC_CLCB * bta_gattc_find_clcb_by_cif (UINT8 client_if, BD_ADDR remote_bda);
 extern tBTA_GATTC_CLCB * bta_gattc_find_clcb_by_conn_id (UINT16 conn_id);
