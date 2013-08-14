@@ -250,11 +250,6 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
             if (p_dev_rec && is_le_link)
             {
                 btm_establish_continue(p);
-
-                if (link_role == HCI_ROLE_MASTER)
-                {
-                    btsnd_hcic_ble_read_remote_feat(p->hci_handle);
-                }
             }
             else
 #endif
