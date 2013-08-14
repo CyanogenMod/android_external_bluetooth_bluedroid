@@ -107,12 +107,12 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data);
 static void bta_dm_observe_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_observe_cmpl_cb (void * p_result);
 
-static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr);
-
 #ifndef BTA_DM_BLE_ADV_CHNL_MAP
 #define BTA_DM_BLE_ADV_CHNL_MAP (BTM_BLE_ADV_CHNL_37|BTM_BLE_ADV_CHNL_38|BTM_BLE_ADV_CHNL_39)
 #endif
 #endif
+static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr);
+
 extern void sdpu_uuid16_to_uuid128(UINT16 uuid16, UINT8* p_uuid128);
 
 const UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID] =
