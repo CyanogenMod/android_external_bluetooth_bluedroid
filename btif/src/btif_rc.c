@@ -138,7 +138,7 @@ static const struct {
     { "FORWARD",      AVRC_ID_FORWARD,  KEY_NEXTSONG,     0 },
     { "BACKWARD",     AVRC_ID_BACKWARD, KEY_PREVIOUSSONG, 0 },
     { "REWIND",       AVRC_ID_REWIND,   KEY_REWIND,       0 },
-    { "FAST FORWARD", AVRC_ID_FAST_FOR, KEY_FORWARD, 0 },
+    { "FAST FORWARD", AVRC_ID_FAST_FOR, KEY_FAST_FORWARD, 0 },
     { NULL,           0,                0,                0 }
 };
 
@@ -297,7 +297,7 @@ void close_uinput (void)
 /***************************************************************************
  *  Function       handle_rc_connect
  *
- *  - Argument:    tBTA_AV_RC_OPEN 	RC open data structure
+ *  - Argument:    tBTA_AV_RC_OPEN  RC open data structure
  *
  *  - Description: RC connection event handler
  *
@@ -334,7 +334,7 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
 /***************************************************************************
  *  Function       handle_rc_disconnect
  *
- *  - Argument:    tBTA_AV_RC_CLOSE 	RC close data structure
+ *  - Argument:    tBTA_AV_RC_CLOSE     RC close data structure
  *
  *  - Description: RC disconnection event handler
  *
@@ -363,6 +363,8 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
 {
     const char *status;
     int pressed, i;
+
+    BTIF_TRACE_DEBUG2("%s: p_remote_cmd->rc_id=%d", __FUNCTION__, p_remote_cmd->rc_id);
 
     /* If AVRC is open and peer sends PLAY but there is no AVDT, then we queue-up this PLAY */
     if (p_remote_cmd)
@@ -406,6 +408,11 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
     {
         BTIF_TRACE_DEBUG2("%s:Dropping the play/Pause command received right after call end cmd:%d",
                            __FUNCTION__,p_remote_cmd->rc_id);
+        return;
+    }
+
+    if (p_remote_cmd->rc_id == BTA_AV_RC_FAST_FOR || p_remote_cmd->rc_id == BTA_AV_RC_REWIND) {
+        HAL_CBACK(bt_rc_callbacks, passthrough_cmd_cb, p_remote_cmd->rc_id, pressed);
         return;
     }
 
