@@ -1144,6 +1144,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
             /* fixme */
         break;
 
+#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
         case BTA_DM_DISC_BLE_RES_EVT:
              BTIF_TRACE_DEBUG2("%s:, services 0x%x)", __FUNCTION__,
                                 p_data->disc_ble_res.service.uu.uuid16);
@@ -1182,6 +1183,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
 
             }
         break;
+#endif /* BLE_INCLUDED */
 
         default:
         {
