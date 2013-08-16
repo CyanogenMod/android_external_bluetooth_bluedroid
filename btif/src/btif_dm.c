@@ -139,6 +139,7 @@ extern bt_status_t btif_hf_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_av_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_hh_execute_service(BOOLEAN b_enable);
 extern int btif_hh_connect(bt_bdaddr_t *bd_addr);
+extern void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16);
 
 
 /******************************************************************************
@@ -285,7 +286,28 @@ BOOLEAN check_cod_hid(const bt_bdaddr_t *remote_bdaddr, uint32_t cod)
         if ((remote_cod & 0x700) == cod)
             return TRUE;
     }
+    return FALSE;
+}
 
+BOOLEAN check_hid_le(const bt_bdaddr_t *remote_bdaddr)
+{
+    uint32_t    remote_dev_type;
+    bt_property_t prop_name;
+
+    /* check if we already have it in our btif_storage cache */
+    BTIF_STORAGE_FILL_PROPERTY(&prop_name,BT_PROPERTY_TYPE_OF_DEVICE,
+                               sizeof(uint32_t), &remote_dev_type);
+    if (btif_storage_get_remote_device_property((bt_bdaddr_t *)remote_bdaddr,
+                                &prop_name) == BT_STATUS_SUCCESS)
+    {
+        if (remote_dev_type == BT_DEVICE_DEVTYPE_BLE)
+        {
+            bdstr_t bdstr;
+            bd2str(remote_bdaddr, &bdstr);
+            if(btif_config_exist("Remote", bdstr, "HidAppId"))
+                return TRUE;
+        }
+    }
     return FALSE;
 }
 
@@ -1106,17 +1128,59 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                  bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDED);
             }
 
-            /* Also write this to the NVRAM */
-            ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
-            ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed", ret);
-            /* Send the event to the BTIF */
-            HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
-                             BT_STATUS_SUCCESS, &bd_addr, 1, &prop);
+            if(p_data->disc_res.num_uuids != 0)
+            {
+                /* Also write this to the NVRAM */
+                ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
+                ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed", ret);
+                /* Send the event to the BTIF */
+                HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+                                 BT_STATUS_SUCCESS, &bd_addr, 1, &prop);
+            }
         }
         break;
 
         case BTA_DM_DISC_CMPL_EVT:
             /* fixme */
+        break;
+
+        case BTA_DM_DISC_BLE_RES_EVT:
+             BTIF_TRACE_DEBUG2("%s:, services 0x%x)", __FUNCTION__,
+                                p_data->disc_ble_res.service.uu.uuid16);
+             bt_uuid_t  uuid;
+             int i = 0;
+             int j = 15;
+             if (p_data->disc_ble_res.service.uu.uuid16 == UUID_SERVCLASS_LE_HID)
+             {
+                BTIF_TRACE_DEBUG1("%s: Found HOGP UUID",__FUNCTION__);
+                bt_property_t prop;
+                bt_bdaddr_t bd_addr;
+                char temp[256];
+
+                bta_gatt_convert_uuid16_to_uuid128(uuid.uu,p_data->disc_ble_res.service.uu.uuid16);
+
+                while(i < j )
+                {
+                    unsigned char c = uuid.uu[j];
+                    uuid.uu[j] = uuid.uu[i];
+                    uuid.uu[i] = c;
+                    i++;
+                    j--;
+                }
+
+                uuid_to_string(&uuid, temp);
+                BTIF_TRACE_ERROR1(" uuid:%s", temp);
+
+                bdcpy(bd_addr.address, p_data->disc_ble_res.bd_addr);
+                prop.type = BT_PROPERTY_UUIDS;
+                prop.val = uuid.uu;
+                prop.len = MAX_UUID_SIZE;
+
+                /* Send the event to the BTIF */
+                HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+                                 BT_STATUS_SUCCESS, &bd_addr, 1, &prop);
+
+            }
         break;
 
         default:
@@ -1293,6 +1357,9 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             /*special handling for HID devices */
             #if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
             btif_hh_remove_device(bd_addr);
+            #endif
+            #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
+            btif_storage_remove_ble_bonding_keys(&bd_addr);
             #endif
             btif_storage_remove_bonded_device(&bd_addr);
             bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_NONE);
