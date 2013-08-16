@@ -187,6 +187,10 @@
 #define BTA_HH_ROLE BTA_MASTER_ROLE_PREF
 #endif
 
+#ifndef BTA_HH_LE_INCLUDED
+#define BTA_HH_LE_INCLUDED TRUE
+#endif
+
 #ifndef BTA_AR_INCLUDED
 #define BTA_AR_INCLUDED TRUE
 #endif

@@ -123,6 +123,11 @@ void bta_hh_clean_up_kdev(tBTA_HH_DEV_CB *p_cb)
 
     if (p_cb->hid_handle != BTA_HH_INVALID_HANDLE )
     {
+#if BTA_HH_LE_INCLUDED == TRUE
+        if (p_cb->is_le_device)
+            bta_hh_cb.le_cb_index[BTA_HH_GET_LE_CB_IDX(p_cb->hid_handle)] = BTA_HH_IDX_INVALID;
+        else
+#endif
             bta_hh_cb.cb_index[p_cb->hid_handle] = BTA_HH_IDX_INVALID;
     }
 
@@ -158,6 +163,9 @@ void bta_hh_update_di_info(tBTA_HH_DEV_CB *p_cb, UINT16 vendor_id, UINT16 produc
     p_cb->dscp_info.vendor_id     =   vendor_id;
     p_cb->dscp_info.product_id    =   product_id;
     p_cb->dscp_info.version       =   version;
+#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+    p_cb->dscp_info.flag          =   flag;
+#endif
 }
 /*******************************************************************************
 **
@@ -483,6 +491,17 @@ UINT8 bta_hh_dev_handle_to_cb_idx(UINT8 dev_handle)
 {
     UINT8 index = BTA_HH_IDX_INVALID;
 
+#if BTA_HH_LE_INCLUDED == TRUE
+    if (BTA_HH_IS_LE_DEV_HDL(dev_handle))
+    {
+        if (BTA_HH_IS_LE_DEV_HDL_VALID(dev_handle))
+            index = bta_hh_cb.le_cb_index[BTA_HH_GET_LE_CB_IDX(dev_handle)];
+#if BTA_HH_DEBUG == TRUE
+        APPL_TRACE_DEBUG2("bta_hh_dev_handle_to_cb_idx dev_handle = %d index = %d", dev_handle, index);
+#endif
+    }
+    else
+#endif
         /* regular HID device checking */
         if (dev_handle < BTA_HH_MAX_KNOWN )
         index = bta_hh_cb.cb_index[dev_handle];
