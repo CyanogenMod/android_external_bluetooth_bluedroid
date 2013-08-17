@@ -1170,10 +1170,6 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
             BTIF_TRACE_DEBUG2("%s %s found a BLE device", __FUNCTION__,remote_bd_addr);
             str2bd(remote_bd_addr, &bd_addr);
             bdcpy(bta_bd_addr, bd_addr.address);
-            if (btif_storage_get_remote_addr_type(&bd_addr, &addr_type) != BT_STATUS_SUCCESS)
-            {
-                return BT_STATUS_FAIL;
-            }
 
             memset(buf, 0, sizeof(buf));
             if (btif_storage_get_ble_bonding_key(&bd_addr,
