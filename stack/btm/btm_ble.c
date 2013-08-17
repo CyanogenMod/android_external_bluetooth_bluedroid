@@ -1115,11 +1115,17 @@ tBTM_STATUS btm_ble_set_encryption (BD_ADDR bd_addr, void *p_ref_data, UINT8 lin
         case BTM_BLE_SEC_ENCRYPT:
             if (link_role == BTM_ROLE_MASTER)
             {
-                /* start link layer encryption using the security info stored */
-                if (btm_ble_start_encrypt(bd_addr, FALSE, NULL))
-                {
-                    p_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
+                if(p_rec->sec_state == BTM_SEC_STATE_ENCRYPTING) {
+                    BTM_TRACE_DEBUG0 ("State is already encrypting::");
                     cmd = BTM_CMD_STARTED;
+                }
+                else {
+                    /* start link layer encryption using the security info stored */
+                    if (btm_ble_start_encrypt(bd_addr, FALSE, NULL))
+                    {
+                        p_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
+                        cmd = BTM_CMD_STARTED;
+                    }
                 }
                 break;
             }
