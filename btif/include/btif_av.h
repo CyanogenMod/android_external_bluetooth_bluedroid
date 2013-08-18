@@ -125,4 +125,14 @@ bt_status_t btif_av_init(void);
 
 BOOLEAN btif_av_is_connected(void);
 
+/******************************************************************************
+**
+** Function         btif_av_clear_remote_suspend_flag
+**
+** Description      Clears remote suspended flag
+**
+** Returns          Void
+********************************************************************************/
+void btif_av_clear_remote_suspend_flag(void);
+
 #endif /* BTIF_AV_H */

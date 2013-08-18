@@ -35,6 +35,15 @@
 #include "hcidefs.h"
 #include "btm_api.h"
 
+/********************************************************************************/
+/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/********************************************************************************/
+
+#if defined(PAN_ALWAYS_NAP_NO_PANU_ON_SDP) && (PAN_ALWAYS_NAP_NO_PANU_ON_SDP == TRUE)
+
+static void PAN_SetPanuSecurity(UINT8 sec_mask, char *p_name);
+
+#endif
 
 /*******************************************************************************
 **
@@ -103,6 +112,36 @@ void PAN_Deregister (void)
     return;
 }
 
+
+#if defined(PAN_ALWAYS_NAP_NO_PANU_ON_SDP) && (PAN_ALWAYS_NAP_NO_PANU_ON_SDP == TRUE)
+
+/*******************************************************************************
+**
+** Function         PAN_SetPanuSecurity
+**
+** Description      This function is used to register PANU service security
+**                  level with Security Manager
+**
+** Parameters:      sec_mask    - Security mask for PANU role
+**                  p_name      - Service name for PANU role
+**
+** Returns          none
+**
+*******************************************************************************/
+static void PAN_SetPanuSecurity(UINT8 sec_mask, char *p_name)
+{
+#if (defined (PAN_SUPPORTS_ROLE_PANU) && PAN_SUPPORTS_ROLE_PANU == TRUE)
+    if ((!BTM_SetSecurityLevel (TRUE, p_name, BTM_SEC_SERVICE_BNEP_PANU,
+        sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_PANU))
+        || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_PANU,
+        sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_PANU)))
+    {
+        PAN_TRACE_ERROR0 ("PAN Security Registration failed for  PANU");
+    }
+#endif
+}
+
+#endif
 
 
 
@@ -237,6 +276,9 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
     {
         /* Registering for PANU service with SDP */
         p_desc = PAN_PANU_DEFAULT_DESCRIPTION;
+#if defined(PAN_ALWAYS_NAP_NO_PANU_ON_SDP) && (PAN_ALWAYS_NAP_NO_PANU_ON_SDP == TRUE)
+        PAN_SetPanuSecurity(p_sec[0], p_user_name);
+#else
         if (pan_cb.pan_user_sdp_handle != 0)
             SDP_DeleteRecord (pan_cb.pan_user_sdp_handle);
 
@@ -256,6 +298,7 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
             bta_sys_remove_uuid(UUID_SERVCLASS_PANU);
 // btla-specific --
         }
+#endif
     }
 #endif
 

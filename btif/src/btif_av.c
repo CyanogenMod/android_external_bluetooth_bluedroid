@@ -128,6 +128,7 @@ static const btif_sm_handler_t btif_av_state_handlers[] =
 extern void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data);
 extern BOOLEAN btif_rc_get_connected_peer(BD_ADDR peer_addr);
 extern void btif_rc_check_handle_pending_play (BD_ADDR peer_addr, BOOLEAN bSendToApp);
+extern BOOLEAN btif_hf_is_call_idle();
 
 /*****************************************************************************
 ** Local helper functions
@@ -488,6 +489,12 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
 
             if ((p_av->start.status == BTA_SUCCESS) && (p_av->start.suspending == TRUE))
                 return TRUE;
+
+            /* if remote tries to start a2dp when call is in progress, suspend it right away */
+            if ((!(btif_av_cb.flags & BTIF_AV_FLAG_PENDING_START)) && (!btif_hf_is_call_idle())) {
+                BTIF_TRACE_EVENT1("%s: trigger suspend as call is in progress!!", __FUNCTION__);
+                btif_dispatch_sm_event(BTIF_AV_SUSPEND_STREAM_REQ_EVT, NULL, 0);
+            }
 
             btif_av_cb.flags &= ~BTIF_AV_FLAG_PENDING_START;
             btif_a2dp_on_started(&p_av->start);
@@ -1006,4 +1013,36 @@ BOOLEAN btif_av_is_connected(void)
 {
     btif_sm_state_t state = btif_sm_get_state(btif_av_cb.sm_handle);
     return ((state == BTIF_AV_STATE_OPENED) || (state ==  BTIF_AV_STATE_STARTED));
+}
+
+/******************************************************************************
+**
+** Function        btif_av_clear_remote_suspend_flag
+**
+** Description     Clears btif_av_cd.flags if BTIF_AV_FLAG_REMOTE_SUSPEND is set
+**
+** Returns          void
+******************************************************************************/
+void btif_av_clear_remote_suspend_flag(void)
+{
+    BTIF_TRACE_DEBUG1(" flag :%x",btif_av_cb.flags);
+    btif_av_cb.flags  &= ~BTIF_AV_FLAG_REMOTE_SUSPEND;
+}
+/*******************************************************************************
+**
+** Function         btif_av_close_update
+**
+** Description      close audio and update to application layer
+**
+** Returns          boolean
+**
+*******************************************************************************/
+void btif_av_close_update(void)
+{
+
+    /* inform the application that we are disconnected */
+    BTIF_TRACE_DEBUG0("Inform application for disconection ");
+    btif_a2dp_on_stopped(NULL);
+    HAL_CBACK(bt_av_callbacks, connection_state_cb,
+              BTAV_CONNECTION_STATE_DISCONNECTED, &(btif_av_cb.peer_bda));
 }

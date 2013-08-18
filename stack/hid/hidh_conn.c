@@ -511,6 +511,8 @@ static void hidh_l2cif_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
      && (p_hcon->conn_state == HID_CONN_STATE_CONFIG))
     {
         p_hcon->conn_state = HID_CONN_STATE_CONNECTED;
+        /* Reset disconnect reason to success, as connection successful */
+        p_hcon->disc_reason = HID_SUCCESS;
 
         hh_cb.devices[dhandle].state = HID_DEV_CONNECTED;
         hh_cb.callback( dhandle, HID_HDEV_EVT_OPEN, 0, NULL ) ;
@@ -565,6 +567,8 @@ static void hidh_l2cif_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
      && (p_hcon->conn_state == HID_CONN_STATE_CONFIG))
     {
         p_hcon->conn_state = HID_CONN_STATE_CONNECTED;
+        /* Reset disconnect reason to success, as connection successful */
+        p_hcon->disc_reason = HID_SUCCESS;
 
         hh_cb.devices[dhandle].state = HID_DEV_CONNECTED;
         hh_cb.callback( dhandle, HID_HDEV_EVT_OPEN, 0, NULL ) ;
