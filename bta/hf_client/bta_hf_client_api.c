@@ -1,5 +1,6 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2014 The Android Open Source Project
  *  Copyright (C) 2003-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,130 +19,118 @@
 
 /******************************************************************************
  *
- *  This is the implementation of the API for the audio gateway (AG)
- *  subsystem of BTA, Broadcom's Bluetooth application layer for mobile
- *  phones.
+ *  This is the implementation of the API for the handsfree (HF role)
+ *  subsystem of BTA
  *
  ******************************************************************************/
 
-#include "bta_api.h"
-#include "bd.h"
-#include "bta_sys.h"
-#include "bta_ag_api.h"
-#include "bta_ag_int.h"
-#include "gki.h"
 #include <string.h>
+#include "bta_hf_client_api.h"
+#include "bta_hf_client_int.h"
+#include "bd.h"
 
 /*****************************************************************************
-**  Constants
+**  Constants and data types
 *****************************************************************************/
-
-static const tBTA_SYS_REG bta_ag_reg =
+static const tBTA_SYS_REG bta_hf_client_reg =
 {
-    bta_ag_hdl_event,
-    BTA_AgDisable
+    bta_hf_client_hdl_event,
+    BTA_HfClientDisable
 };
+
+
+/*****************************************************************************
+**  External Function Declarations
+*****************************************************************************/
 
 /*******************************************************************************
 **
-** Function         BTA_AgEnable
+** Function         BTA_HfClientEnable
 **
-** Description      Enable the audio gateway service. When the enable
+** Description      Enable the HF CLient service. When the enable
 **                  operation is complete the callback function will be
-**                  called with a BTA_AG_ENABLE_EVT. This function must
-**                  be called before other function in the AG API are
+**                  called with a BTA_HF_CLIENT_ENABLE_EVT. This function must
+**                  be called before other function in the HF CLient API are
 **                  called.
 **
 ** Returns          BTA_SUCCESS if OK, BTA_FAILURE otherwise.
 **
 *******************************************************************************/
-tBTA_STATUS BTA_AgEnable(tBTA_AG_PARSE_MODE parse_mode, tBTA_AG_CBACK *p_cback)
+BTA_API tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK *p_cback)
 {
-    tBTA_AG_API_ENABLE  *p_buf;
+    tBTA_HF_CLIENT_API_ENABLE  *p_buf;
     UINT8       idx;
 
-    /* Error if AG is already enabled, or AG is in the middle of disabling. */
-    for (idx = 0; idx < BTA_AG_NUM_SCB; idx++)
+    if (bta_sys_is_register (BTA_ID_HS))
     {
-        if (bta_ag_cb.scb[idx].in_use)
-        {
-            APPL_TRACE_ERROR0 ("BTA_AgEnable: FAILED, AG already enabled.");
-            return BTA_FAILURE;
-        }
+        APPL_TRACE_ERROR0("BTA HF Client is already enabled, ignoring ...");
+        return BTA_FAILURE;
     }
 
     /* register with BTA system manager */
     GKI_sched_lock();
-    bta_sys_register(BTA_ID_AG, &bta_ag_reg);
+    bta_sys_register(BTA_ID_HS, &bta_hf_client_reg);
     GKI_sched_unlock();
 
-    if ((p_buf = (tBTA_AG_API_ENABLE *) GKI_getbuf(sizeof(tBTA_AG_API_ENABLE))) != NULL)
+    if ((p_buf = (tBTA_HF_CLIENT_API_ENABLE *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_API_ENABLE))) != NULL)
     {
-        p_buf->hdr.event = BTA_AG_API_ENABLE_EVT;
-        p_buf->parse_mode = parse_mode;
+        p_buf->hdr.event = BTA_HF_CLIENT_API_ENABLE_EVT;
         p_buf->p_cback = p_cback;
         bta_sys_sendmsg(p_buf);
     }
 
     return BTA_SUCCESS;
-
 }
 
 /*******************************************************************************
 **
-** Function         BTA_AgDisable
+** Function         BTA_HfClientDisable
 **
-** Description      Disable the audio gateway service
+** Description      Disable the HF Client service
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgDisable(void)
+BTA_API void BTA_HfClientDisable(void)
 {
     BT_HDR  *p_buf;
 
     if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
-        p_buf->event = BTA_AG_API_DISABLE_EVT;
+        p_buf->event = BTA_HF_CLIENT_API_DISABLE_EVT;
         bta_sys_sendmsg(p_buf);
     }
 }
 
 /*******************************************************************************
 **
-** Function         BTA_AgRegister
+** Function         BTA_HfClientRegister
 **
-** Description      Register an Audio Gateway service.
+** Description      Register an HF Client service.
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,tBTA_AG_FEAT features,
-                  char * p_service_names[], UINT8 app_id)
+BTA_API void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
+                                                        char *p_service_name)
 {
-    tBTA_AG_API_REGISTER    *p_buf;
-    int                     i;
+    tBTA_HF_CLIENT_API_REGISTER    *p_buf;
 
-    if ((p_buf = (tBTA_AG_API_REGISTER *) GKI_getbuf(sizeof(tBTA_AG_API_REGISTER))) != NULL)
+    if ((p_buf = (tBTA_HF_CLIENT_API_REGISTER *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_API_REGISTER))) != NULL)
     {
-        p_buf->hdr.event = BTA_AG_API_REGISTER_EVT;
+        p_buf->hdr.event = BTA_HF_CLIENT_API_REGISTER_EVT;
         p_buf->features = features;
         p_buf->sec_mask = sec_mask;
-        p_buf->services = services;
-        p_buf->app_id = app_id;
-        for (i = 0; i < BTA_AG_NUM_IDX; i++)
+        if(p_service_name)
         {
-            if(p_service_names[i])
-            {
-                BCM_STRNCPY_S(p_buf->p_name[i], BTA_SERVICE_NAME_LEN+1, p_service_names[i], BTA_SERVICE_NAME_LEN);
-                p_buf->p_name[i][BTA_SERVICE_NAME_LEN] = 0;
-            }
-            else
-            {
-                p_buf->p_name[i][0] = 0;
-            }
+            BCM_STRNCPY_S(p_buf->name, BTA_SERVICE_NAME_LEN+1, p_service_name, BTA_SERVICE_NAME_LEN);
+            p_buf->name[BTA_SERVICE_NAME_LEN] = 0;
+        }
+        else
+        {
+            p_buf->name[0] = '\0';
         }
         bta_sys_sendmsg(p_buf);
     }
@@ -149,31 +138,31 @@ void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,tBTA_AG_FEAT f
 
 /*******************************************************************************
 **
-** Function         BTA_AgDeregister
+** Function         BTA_HfClientDeregister
 **
-** Description      Deregister an audio gateway service.
+** Description      Deregister an HF Client service.
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgDeregister(UINT16 handle)
+BTA_API void BTA_HfClientDeregister(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
-    {
-        p_buf->event = BTA_AG_API_DEREGISTER_EVT;
-        p_buf->layer_specific = handle;
-        bta_sys_sendmsg(p_buf);
-    }
+     if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+     {
+         p_buf->event = BTA_HF_CLIENT_API_DEREGISTER_EVT;
+         p_buf->layer_specific = handle;
+         bta_sys_sendmsg(p_buf);
+     }
 }
 
 /*******************************************************************************
 **
-** Function         BTA_AgOpen
+** Function         BTA_HfClientOpen
 **
-** Description      Opens a connection to a headset or hands-free device.
+** Description      Opens a connection to an audio gateway.
 **                  When connection is open callback function is called
 **                  with a BTA_AG_OPEN_EVT. Only the data connection is
 **                  opened. The audio connection is not opened.
@@ -182,16 +171,15 @@ void BTA_AgDeregister(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVICE_MASK services)
+BTA_API void BTA_HfClientOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask)
 {
-    tBTA_AG_API_OPEN  *p_buf;
+    tBTA_HF_CLIENT_API_OPEN  *p_buf;
 
-    if ((p_buf = (tBTA_AG_API_OPEN *) GKI_getbuf(sizeof(tBTA_AG_API_OPEN))) != NULL)
+    if ((p_buf = (tBTA_HF_CLIENT_API_OPEN *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_API_OPEN))) != NULL)
     {
-        p_buf->hdr.event = BTA_AG_API_OPEN_EVT;
+        p_buf->hdr.event = BTA_HF_CLIENT_API_OPEN_EVT;
         p_buf->hdr.layer_specific = handle;
         bdcpy(p_buf->bd_addr, bd_addr);
-        p_buf->services = services;
         p_buf->sec_mask = sec_mask;
         bta_sys_sendmsg(p_buf);
     }
@@ -199,22 +187,22 @@ void BTA_AgOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVICE_
 
 /*******************************************************************************
 **
-** Function         BTA_AgClose
+** Function         BTA_HfClientClose
 **
-** Description      Close the current connection to a headset or a handsfree
-**                  Any current audio connection will also be closed.
+** Description      Close the current connection to an audio gateway.
+**                  Any current audio connection will also be closed
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgClose(UINT16 handle)
+BTA_API void BTA_HfClientClose(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
     if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
-        p_buf->event = BTA_AG_API_CLOSE_EVT;
+        p_buf->event = BTA_HF_CLIENT_API_CLOSE_EVT;
         p_buf->layer_specific = handle;
         bta_sys_sendmsg(p_buf);
     }
@@ -222,22 +210,22 @@ void BTA_AgClose(UINT16 handle)
 
 /*******************************************************************************
 **
-** Function         BTA_AgAudioOpen
+** Function         BTA_HfCllientAudioOpen
 **
 ** Description      Opens an audio connection to the currently connected
-**                  headset or hnadsfree.
+**                 audio gateway
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgAudioOpen(UINT16 handle)
+BTA_API void BTA_HfClientAudioOpen(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
     if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
-        p_buf->event = BTA_AG_API_AUDIO_OPEN_EVT;
+        p_buf->event = BTA_HF_CLIENT_API_AUDIO_OPEN_EVT;
         p_buf->layer_specific = handle;
         bta_sys_sendmsg(p_buf);
     }
@@ -245,79 +233,59 @@ void BTA_AgAudioOpen(UINT16 handle)
 
 /*******************************************************************************
 **
-** Function         BTA_AgAudioClose
+** Function         BTA_HfClientAudioClose
 **
-** Description      Close the currently active audio connection to a headset
-**                  or hnadsfree. The data connection remains open
+** Description      Close the currently active audio connection to an audio
+**                  gateway. The data connection remains open
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgAudioClose(UINT16 handle)
+BTA_API void BTA_HfClientAudioClose(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
     if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
-        p_buf->event = BTA_AG_API_AUDIO_CLOSE_EVT;
+        p_buf->event = BTA_HF_CLIENT_API_AUDIO_CLOSE_EVT;
         p_buf->layer_specific = handle;
         bta_sys_sendmsg(p_buf);
     }
 }
 
-
 /*******************************************************************************
 **
-** Function         BTA_AgResult
+** Function         BTA_HfClientSendAT
 **
-** Description      Send an AT result code to a headset or hands-free device.
-**                  This function is only used when the AG parse mode is set
-**                  to BTA_AG_PARSE.
+** Description      send AT command
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgResult(UINT16 handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data)
+BTA_API void BTA_HfClientSendAT(UINT16 handle, tBTA_HF_CLIENT_AT_CMD_TYPE at, UINT32 val1, UINT32 val2, const char *str)
 {
-    tBTA_AG_API_RESULT  *p_buf;
+    tBTA_HF_CLIENT_DATA_VAL  *p_buf;
 
-    if ((p_buf = (tBTA_AG_API_RESULT *) GKI_getbuf(sizeof(tBTA_AG_API_RESULT))) != NULL)
+    if ((p_buf = (tBTA_HF_CLIENT_DATA_VAL *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_DATA_VAL))) != NULL)
     {
-        p_buf->hdr.event = BTA_AG_API_RESULT_EVT;
-        p_buf->hdr.layer_specific = handle;
-        p_buf->result = result;
-        if(p_data)
+        p_buf->hdr.event = BTA_HF_CLIENT_SEND_AT_CMD_EVT;
+        p_buf->uint8_val = at;
+        p_buf->uint32_val1 = val1;
+        p_buf->uint32_val2 = val2;
+
+        if (str)
         {
-            memcpy(&p_buf->data, p_data, sizeof(p_buf->data));
+            strlcpy(p_buf->str, str, BTA_HF_CLIENT_NUMBER_LEN + 1);
+            p_buf->str[BTA_HF_CLIENT_NUMBER_LEN] = '\0';
         }
-        bta_sys_sendmsg(p_buf);
-    }
-}
+        else
+        {
+            p_buf->str[0] = '\0';
+        }
 
-/*******************************************************************************
-**
-** Function         BTA_AgSetCodec
-**
-** Description      Specify the codec type to be used for the subsequent
-**                  audio connection.
-**
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_AgSetCodec(UINT16 handle, tBTA_AG_PEER_CODEC codec)
-{
-    tBTA_AG_API_SETCODEC    *p_buf;
-
-    if ((p_buf = (tBTA_AG_API_SETCODEC *) GKI_getbuf(sizeof(tBTA_AG_API_SETCODEC))) != NULL)
-    {
-        p_buf->hdr.event = BTA_AG_API_SETCODEC_EVT;
         p_buf->hdr.layer_specific = handle;
-        p_buf->codec = codec;
         bta_sys_sendmsg(p_buf);
     }
 }
-

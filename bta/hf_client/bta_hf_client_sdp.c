@@ -1,5 +1,6 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2014 The Android Open Source Project
  *  Copyright (C) 2003-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,41 +27,19 @@
 #include <string.h>
 #include "bta_api.h"
 #include "bta_sys.h"
-#include "bta_ag_api.h"
-#include "bta_ag_int.h"
-#include "sdp_api.h"
-#include "btm_api.h"
-#include "gki.h"
-#include "utl.h"
+#include "bt_utils.h"
+#include "bta_hf_client_api.h"
+#include "bta_hf_client_int.h"
 
 /* Number of protocol elements in protocol element list. */
-#define BTA_AG_NUM_PROTO_ELEMS      2
+#define BTA_HF_CLIENT_NUM_PROTO_ELEMS      2
 
 /* Number of elements in service class id list. */
-#define BTA_AG_NUM_SVC_ELEMS        2
-
-/* size of database for service discovery */
-#ifndef BTA_AG_DISC_BUF_SIZE
-#define BTA_AG_DISC_BUF_SIZE        GKI_MAX_BUF_SIZE
-#endif
-
-/* declare sdp callback functions */
-void bta_ag_sdp_cback_1(UINT16 status);
-void bta_ag_sdp_cback_2(UINT16 status);
-void bta_ag_sdp_cback_3(UINT16 status);
-
-/* SDP callback function table */
-typedef tSDP_DISC_CMPL_CB *tBTA_AG_SDP_CBACK;
-const tBTA_AG_SDP_CBACK bta_ag_sdp_cback_tbl[] =
-{
-    bta_ag_sdp_cback_1,
-    bta_ag_sdp_cback_2,
-    bta_ag_sdp_cback_3
-};
+#define BTA_HF_CLIENT_NUM_SVC_ELEMS        2
 
 /*******************************************************************************
 **
-** Function         bta_ag_sdp_cback
+** Function         bta_hf_client_sdp_cback
 **
 ** Description      SDP callback function.
 **
@@ -68,58 +47,37 @@ const tBTA_AG_SDP_CBACK bta_ag_sdp_cback_tbl[] =
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_sdp_cback(UINT16 status, UINT8 idx)
+static void bta_hf_client_sdp_cback(UINT16 status)
 {
-    tBTA_AG_DISC_RESULT *p_buf;
-    UINT16              event;
-    tBTA_AG_SCB         *p_scb;
+    tBTA_HF_CLIENT_DISC_RESULT *p_buf;
+    UINT16                     event;
 
-    APPL_TRACE_DEBUG1("bta_ag_sdp_cback status:0x%x", status);
+    APPL_TRACE_DEBUG1("bta_hf_client_sdp_cback status:0x%x", status);
 
-    if ((p_scb = bta_ag_scb_by_idx(idx)) != NULL)
+    /* set event according to int/acp */
+    if (bta_hf_client_cb.scb.role == BTA_HF_CLIENT_ACP)
     {
-        /* set event according to int/acp */
-        if (p_scb->role == BTA_AG_ACP)
-        {
-            event = BTA_AG_DISC_ACP_RES_EVT;
-        }
-        else
-        {
-            event = BTA_AG_DISC_INT_RES_EVT;
-        }
+        event = BTA_HF_CLIENT_DISC_ACP_RES_EVT;
+    }
+    else
+    {
+        event = BTA_HF_CLIENT_DISC_INT_RES_EVT;
+    }
 
-        if ((p_buf = (tBTA_AG_DISC_RESULT *) GKI_getbuf(sizeof(tBTA_AG_DISC_RESULT))) != NULL)
-        {
-            p_buf->hdr.event = event;
-            p_buf->hdr.layer_specific = idx;
-            p_buf->status = status;
-            bta_sys_sendmsg(p_buf);
-        }
+    if ((p_buf = (tBTA_HF_CLIENT_DISC_RESULT *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_DISC_RESULT))) != NULL)
+    {
+        p_buf->hdr.event = event;
+        p_buf->status = status;
+        bta_sys_sendmsg(p_buf);
     }
 }
 
-/*******************************************************************************
-**
-** Function         bta_ag_sdp_cback_1 to 3
-**
-** Description      SDP callback functions.  Since there is no way to
-**                  distinguish scb from the callback we need separate
-**                  callbacks for each scb.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_sdp_cback_1(UINT16 status) {bta_ag_sdp_cback(status, 1);}
-void bta_ag_sdp_cback_2(UINT16 status) {bta_ag_sdp_cback(status, 2);}
-void bta_ag_sdp_cback_3(UINT16 status) {bta_ag_sdp_cback(status, 3);}
-
 /******************************************************************************
 **
-** Function         bta_ag_add_record
+** Function         bta_hf_client_add_record
 **
 ** Description      This function is called by a server application to add
-**                  HSP or HFP information to an SDP record.  Prior to
+**                  HFP Client information to an SDP record.  Prior to
 **                  calling this function the application must call
 **                  SDP_CreateRecord() to create an SDP record.
 **
@@ -127,22 +85,22 @@ void bta_ag_sdp_cback_3(UINT16 status) {bta_ag_sdp_cback(status, 3);}
 **                  FALSE if function execution failed.
 **
 ******************************************************************************/
-BOOLEAN bta_ag_add_record(UINT16 service_uuid, char *p_service_name, UINT8 scn,
-                          tBTA_AG_FEAT features, UINT32 sdp_handle)
+BOOLEAN bta_hf_client_add_record(char *p_service_name, UINT8 scn,
+                          tBTA_HF_CLIENT_FEAT features, UINT32 sdp_handle)
 {
-    tSDP_PROTOCOL_ELEM  proto_elem_list[BTA_AG_NUM_PROTO_ELEMS];
-    UINT16              svc_class_id_list[BTA_AG_NUM_SVC_ELEMS];
+    tSDP_PROTOCOL_ELEM  proto_elem_list[BTA_HF_CLIENT_NUM_PROTO_ELEMS];
+    UINT16              svc_class_id_list[BTA_HF_CLIENT_NUM_SVC_ELEMS];
     UINT16              browse_list[] = {UUID_SERVCLASS_PUBLIC_BROWSE_GROUP};
     UINT16              version;
     UINT16              profile_uuid;
-    UINT8               network;
     BOOLEAN             result = TRUE;
     BOOLEAN             codec_supported = FALSE;
     UINT8               buf[2];
+    UINT16              sdp_features = 0;
 
-    APPL_TRACE_DEBUG1("bta_ag_add_record uuid: %x", service_uuid);
+    APPL_TRACE_DEBUG0("bta_hf_client_add_record");
 
-    memset( proto_elem_list, 0 , BTA_AG_NUM_PROTO_ELEMS*sizeof(tSDP_PROTOCOL_ELEM));
+    memset( proto_elem_list, 0 , BTA_HF_CLIENT_NUM_PROTO_ELEMS*sizeof(tSDP_PROTOCOL_ELEM));
 
     /* add the protocol element sequence */
     proto_elem_list[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
@@ -150,24 +108,17 @@ BOOLEAN bta_ag_add_record(UINT16 service_uuid, char *p_service_name, UINT8 scn,
     proto_elem_list[1].protocol_uuid = UUID_PROTOCOL_RFCOMM;
     proto_elem_list[1].num_params = 1;
     proto_elem_list[1].params[0] = scn;
-    result &= SDP_AddProtocolList(sdp_handle, BTA_AG_NUM_PROTO_ELEMS, proto_elem_list);
+    result &= SDP_AddProtocolList(sdp_handle, BTA_HF_CLIENT_NUM_PROTO_ELEMS, proto_elem_list);
 
     /* add service class id list */
-    svc_class_id_list[0] = service_uuid;
+    svc_class_id_list[0] = UUID_SERVCLASS_HF_HANDSFREE;
     svc_class_id_list[1] = UUID_SERVCLASS_GENERIC_AUDIO;
-    result &= SDP_AddServiceClassIdList(sdp_handle, BTA_AG_NUM_SVC_ELEMS, svc_class_id_list);
+    result &= SDP_AddServiceClassIdList(sdp_handle, BTA_HF_CLIENT_NUM_SVC_ELEMS, svc_class_id_list);
 
     /* add profile descriptor list */
-    if (service_uuid == UUID_SERVCLASS_AG_HANDSFREE)
-    {
-        profile_uuid = UUID_SERVCLASS_HF_HANDSFREE;
-        version = HFP_VERSION_1_6;
-    }
-    else
-    {
-        profile_uuid = UUID_SERVCLASS_HEADSET;
-        version = HSP_VERSION_1_2;
-    }
+    profile_uuid = UUID_SERVCLASS_HF_HANDSFREE;
+    version = HFP_VERSION_1_6;
+
     result &= SDP_AddProfileDescriptorList(sdp_handle, profile_uuid, version);
 
     /* add service name */
@@ -177,25 +128,28 @@ BOOLEAN bta_ag_add_record(UINT16 service_uuid, char *p_service_name, UINT8 scn,
                     (UINT32)(strlen(p_service_name)+1), (UINT8 *) p_service_name);
     }
 
-    /* add features and network */
-    if (service_uuid == UUID_SERVCLASS_AG_HANDSFREE)
-    {
-        network = (features & BTA_AG_FEAT_REJECT) ? 1 : 0;
-        result &= SDP_AddAttribute(sdp_handle, ATTR_ID_DATA_STORES_OR_NETWORK,
-                    UINT_DESC_TYPE, 1, &network);
+    /* add features */
+    if (features & BTA_HF_CLIENT_FEAT_ECNR)
+       sdp_features |= BTA_HF_CLIENT_FEAT_ECNR;
 
-        if (features & BTA_AG_FEAT_CODEC)
-            codec_supported = TRUE;
+    if (features & BTA_HF_CLIENT_FEAT_3WAY)
+       sdp_features |= BTA_HF_CLIENT_FEAT_3WAY;
 
-        features &= BTA_AG_SDP_FEAT_SPEC;
+    if (features & BTA_HF_CLIENT_FEAT_CLI)
+       sdp_features |= BTA_HF_CLIENT_FEAT_CLI;
 
-        /* Codec bit position is different in SDP and in BRSF */
-        if (codec_supported)
-            features |= 0x0020;
+    if (features & BTA_HF_CLIENT_FEAT_VREC)
+       sdp_features |= BTA_HF_CLIENT_FEAT_VREC;
 
-        UINT16_TO_BE_FIELD(buf, features);
-        result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE, 2, buf);
-    }
+    if (features & BTA_HF_CLIENT_FEAT_VOL)
+       sdp_features |= BTA_HF_CLIENT_FEAT_VOL;
+
+    /* Codec bit position is different in SDP (bit 5) and in BRSF (bit 7) */
+    if (features & BTA_HF_CLIENT_FEAT_CODEC)
+       sdp_features |= 0x0020;
+
+    UINT16_TO_BE_FIELD(buf, sdp_features);
+    result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE, 2, buf);
 
     /* add browse group list */
     result &= SDP_AddUuidSequence(sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, browse_list);
@@ -205,153 +159,91 @@ BOOLEAN bta_ag_add_record(UINT16 service_uuid, char *p_service_name, UINT8 scn,
 
 /*******************************************************************************
 **
-** Function         bta_ag_create_records
+** Function         bta_hf_client_create_record
 **
-** Description      Create SDP records for registered services.
+** Description      Create SDP record for registered service.
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_create_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_create_record(tBTA_HF_CLIENT_DATA *p_data)
 {
-    int                 i;
-    tBTA_SERVICE_MASK   services;
-
-    services = p_scb->reg_services >> BTA_HSP_SERVICE_ID;
-    for (i = 0; i < BTA_AG_NUM_IDX && services != 0; i++, services >>= 1)
+    /* add sdp record if not already registered */
+    if (bta_hf_client_cb.sdp_handle == 0)
     {
-        /* if service is set in mask */
-        if (services & 1)
-        {
-            /* add sdp record if not already registered */
-            if (bta_ag_cb.profile[i].sdp_handle == 0)
-            {
-                bta_ag_cb.profile[i].sdp_handle = SDP_CreateRecord();
-                bta_ag_cb.profile[i].scn = BTM_AllocateSCN();
-                bta_ag_add_record(bta_ag_uuid[i], p_data->api_register.p_name[i],
-                    bta_ag_cb.profile[i].scn, p_data->api_register.features,
-                    bta_ag_cb.profile[i].sdp_handle);
-                bta_sys_add_uuid(bta_ag_uuid[i]);
-            }
-        }
-    }
+        bta_hf_client_cb.sdp_handle = SDP_CreateRecord();
+        bta_hf_client_cb.scn = BTM_AllocateSCN();
+        bta_hf_client_add_record(p_data->api_register.name,
+                                 bta_hf_client_cb.scn,
+                                 p_data->api_register.features,
+                                 bta_hf_client_cb.sdp_handle);
 
-    p_scb->hsp_version = HSP_VERSION_1_2;
+        bta_sys_add_uuid(UUID_SERVCLASS_HF_HANDSFREE);
+    }
 
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_del_records
+** Function         bta_hf_client_del_record
 **
-** Description      Delete SDP records for any registered services.
+** Description      Delete SDP record for registered service.
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_del_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_del_record(tBTA_HF_CLIENT_DATA *p_data)
 {
-    tBTA_AG_SCB         *p = &bta_ag_cb.scb[0];
-    tBTA_SERVICE_MASK   services;
-    tBTA_SERVICE_MASK   others = 0;
-    int                 i;
     UNUSED(p_data);
 
-    /* get services of all other registered servers */
-    for (i = 0; i < BTA_AG_NUM_IDX; i++, p++)
-    {
-        if (p_scb == p)
-        {
-            continue;
-        }
+    APPL_TRACE_DEBUG0("bta_hf_client_del_record");
 
-        if (p->in_use && p->dealloc == FALSE)
-        {
-            others |= p->reg_services;
-        }
-    }
-
-    others >>= BTA_HSP_SERVICE_ID;
-    services = p_scb->reg_services >> BTA_HSP_SERVICE_ID;
-    for (i = 0; i < BTA_AG_NUM_IDX && services != 0; i++, services >>= 1, others >>= 1)
+    if (bta_hf_client_cb.sdp_handle != 0)
     {
-        /* if service registered for this scb and not registered for any other scb */
-        if (((services & 1) == 1) && ((others & 1) == 0))
-        {
-            APPL_TRACE_DEBUG1("bta_ag_del_records %d", i);
-            if (bta_ag_cb.profile[i].sdp_handle != 0)
-            {
-                SDP_DeleteRecord(bta_ag_cb.profile[i].sdp_handle);
-                bta_ag_cb.profile[i].sdp_handle = 0;
-            }
-            BTM_FreeSCN(bta_ag_cb.profile[i].scn);
-            BTM_SecClrService(bta_ag_sec_id[i]);
-            bta_sys_remove_uuid(bta_ag_uuid[i]);
-        }
+        SDP_DeleteRecord(bta_hf_client_cb.sdp_handle);
+        bta_hf_client_cb.sdp_handle = 0;
+        BTM_FreeSCN(bta_hf_client_cb.scn);
+        BTM_SecClrService(BTM_SEC_SERVICE_HF_HANDSFREE);
+        bta_sys_remove_uuid(UUID_SERVCLASS_HF_HANDSFREE);
     }
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_sdp_find_attr
+** Function         bta_hf_client_sdp_find_attr
 **
-** Description      Process SDP discovery results to find requested attributes
-**                  for requested service.
+** Description      Process SDP discovery results to find requested attribute
 **
 **
 ** Returns          TRUE if results found, FALSE otherwise.
 **
 *******************************************************************************/
-BOOLEAN bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
+BOOLEAN bta_hf_client_sdp_find_attr(void)
 {
     tSDP_DISC_REC       *p_rec = NULL;
     tSDP_DISC_ATTR      *p_attr;
     tSDP_PROTOCOL_ELEM  pe;
-    UINT16              uuid;
     BOOLEAN             result = FALSE;
 
-    if (service & BTA_HFP_SERVICE_MASK)
-    {
-        uuid = UUID_SERVCLASS_HF_HANDSFREE;
-        p_scb->peer_version = HFP_VERSION_1_1;   /* Default version */
-    }
-    else if (service & BTA_HSP_SERVICE_MASK && p_scb->role == BTA_AG_INT)
-    {
-        uuid = UUID_SERVCLASS_HEADSET_HS;
-        p_scb->peer_version = 0x0100;   /* Default version */
-    }
-    else
-    {
-        return result;
-    }
+    bta_hf_client_cb.scb.peer_version = HFP_VERSION_1_1;   /* Default version */
 
     /* loop through all records we found */
     while (TRUE)
     {
         /* get next record; if none found, we're done */
-        if ((p_rec = SDP_FindServiceInDb(p_scb->p_disc_db, uuid, p_rec)) == NULL)
+        if ((p_rec = SDP_FindServiceInDb(bta_hf_client_cb.scb.p_disc_db, UUID_SERVCLASS_AG_HANDSFREE, p_rec)) == NULL)
         {
-            if (uuid == UUID_SERVCLASS_HEADSET_HS)
-            {
-                /* Search again in case the peer device is HSP v1.0 */
-                uuid = UUID_SERVCLASS_HEADSET;
-                if ((p_rec = SDP_FindServiceInDb(p_scb->p_disc_db, uuid, p_rec)) == NULL)
-                {
-                    break;
-                }
-            }
-            else
-                break;
+            break;
         }
 
         /* get scn from proto desc list if initiator */
-        if (p_scb->role == BTA_AG_INT)
+        if (bta_hf_client_cb.scb.role == BTA_HF_CLIENT_INT)
         {
             if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_RFCOMM, &pe))
             {
-                p_scb->peer_scn = (UINT8) pe.params[0];
+                bta_hf_client_cb.scb.peer_scn = (UINT8) pe.params[0];
             }
             else
             {
@@ -360,43 +252,51 @@ BOOLEAN bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
         }
 
         /* get profile version (if failure, version parameter is not updated) */
-        SDP_FindProfileVersionInRec(p_rec, uuid, &p_scb->peer_version);
+        SDP_FindProfileVersionInRec(p_rec, UUID_SERVCLASS_HF_HANDSFREE, &bta_hf_client_cb.scb.peer_version);
 
-        /* get features if HFP */
-        if (service & BTA_HFP_SERVICE_MASK)
+        /* get features */
+        if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_FEATURES)) != NULL)
         {
-            if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_FEATURES)) != NULL)
+            /* Found attribute. Get value. */
+            /* There might be race condition between SDP and BRSF.  */
+            /* Do not update if we already received BRSF.           */
+            if (bta_hf_client_cb.scb.peer_features == 0)
             {
-                /* Found attribute. Get value. */
-                /* There might be race condition between SDP and BRSF.  */
-                /* Do not update if we already received BRSF.           */
-                if (p_scb->peer_features == 0)
-                    p_scb->peer_features = p_attr->attr_value.v.u16;
-            }
-        }
-        else    /* HSP */
-        {
-            if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_REMOTE_AUDIO_VOLUME_CONTROL)) != NULL)
-            {
-                /* Remote volume control of HSP */
-                if (p_attr->attr_value.v.u8)
-                    p_scb->peer_features |= BTA_AG_PEER_FEAT_VOL;
-                else
-                    p_scb->peer_features &= ~BTA_AG_PEER_FEAT_VOL;
-            }
+                bta_hf_client_cb.scb.peer_features = p_attr->attr_value.v.u16;
 
+                /* SDP and BRSF WBS bit are different, correct it if set */
+                if (bta_hf_client_cb.scb.peer_features & 0x0020)
+                {
+                    bta_hf_client_cb.scb.peer_features &= ~0x0020;
+                    bta_hf_client_cb.scb.peer_features |= BTA_HF_CLIENT_PEER_CODEC;
+                }
+
+                /* get network for ability to reject calls */
+                if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_NETWORK)) != NULL)
+                {
+                    if (p_attr->attr_value.v.u16 == 0x01)
+                    {
+                        bta_hf_client_cb.scb.peer_features |= BTA_HF_CLIENT_PEER_REJECT;
+                    }
+                }
+            }
         }
 
         /* found what we needed */
         result = TRUE;
         break;
     }
+
+    APPL_TRACE_DEBUG3("%s peer_version=0x%x peer_features=0x%x",
+                      __FUNCTION__, bta_hf_client_cb.scb.peer_version,
+                      bta_hf_client_cb.scb.peer_features);
+
     return result;
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_do_disc
+** Function         bta_hf_client_do_disc
 **
 ** Description      Do service discovery.
 **
@@ -404,7 +304,7 @@ BOOLEAN bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_do_disc(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
+void bta_hf_client_do_disc(void)
 {
     tSDP_UUID       uuid_list[2];
     UINT16          num_uuid = 1;
@@ -412,79 +312,58 @@ void bta_ag_do_disc(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
     UINT8           num_attr;
     BOOLEAN         db_inited = FALSE;
 
-    /* HFP initiator; get proto list and features */
-    if (service & BTA_HFP_SERVICE_MASK && p_scb->role == BTA_AG_INT)
+    /* initiator; get proto list and features */
+    if (bta_hf_client_cb.scb.role == BTA_HF_CLIENT_INT)
     {
         attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;
         attr_list[1] = ATTR_ID_PROTOCOL_DESC_LIST;
         attr_list[2] = ATTR_ID_BT_PROFILE_DESC_LIST;
         attr_list[3] = ATTR_ID_SUPPORTED_FEATURES;
         num_attr = 4;
-        uuid_list[0].uu.uuid16 = UUID_SERVCLASS_HF_HANDSFREE;
+        uuid_list[0].uu.uuid16 = UUID_SERVCLASS_AG_HANDSFREE;
     }
-    /* HFP acceptor; get features */
-    else if (service & BTA_HFP_SERVICE_MASK && p_scb->role == BTA_AG_ACP)
+    /* acceptor; get features */
+    else
     {
         attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;
         attr_list[1] = ATTR_ID_BT_PROFILE_DESC_LIST;
         attr_list[2] = ATTR_ID_SUPPORTED_FEATURES;
         num_attr = 3;
-        uuid_list[0].uu.uuid16 = UUID_SERVCLASS_HF_HANDSFREE;
-    }
-    /* HSP initiator; get proto list */
-    else if (service & BTA_HSP_SERVICE_MASK && p_scb->role == BTA_AG_INT)
-    {
-        attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;
-        attr_list[1] = ATTR_ID_PROTOCOL_DESC_LIST;
-        attr_list[2] = ATTR_ID_BT_PROFILE_DESC_LIST;
-        attr_list[3] = ATTR_ID_REMOTE_AUDIO_VOLUME_CONTROL;
-        num_attr = 4;
-
-        uuid_list[0].uu.uuid16 = UUID_SERVCLASS_HEADSET;        /* Legacy from HSP v1.0 */
-        if (p_scb->hsp_version >= HSP_VERSION_1_2)
-        {
-            uuid_list[1].uu.uuid16 = UUID_SERVCLASS_HEADSET_HS;
-            num_uuid = 2;
-        }
-    }
-    /* HSP acceptor; no discovery */
-    else
-    {
-        return;
+        uuid_list[0].uu.uuid16 = UUID_SERVCLASS_AG_HANDSFREE;
     }
 
     /* allocate buffer for sdp database */
-    p_scb->p_disc_db = (tSDP_DISCOVERY_DB *) GKI_getbuf(BTA_AG_DISC_BUF_SIZE);
+    bta_hf_client_cb.scb.p_disc_db = (tSDP_DISCOVERY_DB *) GKI_getbuf(GKI_MAX_BUF_SIZE);
 
-    if(p_scb->p_disc_db)
+    if (bta_hf_client_cb.scb.p_disc_db)
     {
         /* set up service discovery database; attr happens to be attr_list len */
         uuid_list[0].len = LEN_UUID_16;
         uuid_list[1].len = LEN_UUID_16;
-        db_inited = SDP_InitDiscoveryDb(p_scb->p_disc_db, BTA_AG_DISC_BUF_SIZE, num_uuid,
+        db_inited = SDP_InitDiscoveryDb(bta_hf_client_cb.scb.p_disc_db, GKI_MAX_BUF_SIZE, num_uuid,
                             uuid_list, num_attr, attr_list);
     }
 
-    if(db_inited)
+    if (db_inited)
     {
         /*Service discovery not initiated */
-        db_inited = SDP_ServiceSearchAttributeRequest(p_scb->peer_addr, p_scb->p_disc_db,
-                                      bta_ag_sdp_cback_tbl[bta_ag_scb_to_idx(p_scb) - 1]);
+        db_inited = SDP_ServiceSearchAttributeRequest(bta_hf_client_cb.scb.peer_addr,
+                            bta_hf_client_cb.scb.p_disc_db, bta_hf_client_sdp_cback);
     }
 
-    if(!db_inited)
+    if (!db_inited)
     {
         /*free discover db */
-        bta_ag_free_db(p_scb, NULL);
+        bta_hf_client_free_db(NULL);
         /* sent failed event */
-        bta_ag_sm_execute(p_scb, BTA_AG_DISC_FAIL_EVT, NULL);
+        bta_hf_client_sm_execute(BTA_HF_CLIENT_DISC_FAIL_EVT, NULL);
     }
 
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_free_db
+** Function         bta_hf_client_free_db
 **
 ** Description      Free discovery database.
 **
@@ -492,13 +371,13 @@ void bta_ag_do_disc(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_free_db(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_free_db(tBTA_HF_CLIENT_DATA *p_data)
 {
     UNUSED(p_data);
 
-    if (p_scb->p_disc_db != NULL)
+    if (bta_hf_client_cb.scb.p_disc_db != NULL)
     {
-        GKI_freebuf(p_scb->p_disc_db);
-        p_scb->p_disc_db = NULL;
+        GKI_freebuf(bta_hf_client_cb.scb.p_disc_db);
+        bta_hf_client_cb.scb.p_disc_db = NULL;
     }
 }
