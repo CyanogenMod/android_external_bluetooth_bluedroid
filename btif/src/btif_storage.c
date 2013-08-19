@@ -1,5 +1,7 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -650,6 +652,12 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
                     case BTA_A2DP_SERVICE_ID:
                         {
                             uuid16_to_uuid128(UUID_SERVCLASS_AUDIO_SOURCE,
+                                              p_uuid+num_uuids);
+                            num_uuids++;
+                        }break;
+                    case BTA_HFP_HS_SERVICE_ID:
+                        {
+                            uuid16_to_uuid128(UUID_SERVCLASS_HF_HANDSFREE,
                                               p_uuid+num_uuids);
                             num_uuids++;
                         }break;

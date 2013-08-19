@@ -1,5 +1,7 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
  *  Copyright (C) 1999-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +35,9 @@
 #define BTIF_HFAG_SERVICE_NAME  ("Handsfree Gateway")
 #endif
 
+#ifndef BTIF_HF_CLIENT_SERVICE_NAME
+#define BTIF_HF_CLIENT_SERVICE_NAME  ("Handsfree")
+#endif
 
 #ifdef BUILDCFG
 

@@ -39,6 +39,14 @@ LOCAL_SRC_FILES:= \
     ./ag/bta_ag_cmd.c \
     ./ag/bta_ag_ci.c \
     ./ag/bta_ag_at.c \
+    ./hf_client/bta_hf_client_act.c \
+    ./hf_client/bta_hf_client_api.c \
+    ./hf_client/bta_hf_client_main.c \
+    ./hf_client/bta_hf_client_rfc.c \
+    ./hf_client/bta_hf_client_at.c \
+    ./hf_client/bta_hf_client_sdp.c \
+    ./hf_client/bta_hf_client_sco.c \
+    ./hf_client/bta_hf_client_cmd.c \
     ./hh/bta_hh_cfg.c \
     ./hh/bta_hh_act.c \
     ./hh/bta_hh_api.c \

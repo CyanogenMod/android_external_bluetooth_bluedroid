@@ -1,5 +1,7 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,6 +49,7 @@
 #include "bta_ag_api.h"
 #include "bta_av_api.h"
 #include "bta_hh_api.h"
+#include "bta_hf_client_api.h"
 #include "avrc_defs.h"
 
 
@@ -320,6 +323,38 @@ const char* dump_hf_event(UINT16 event)
         CASE_RETURN_STR(BTA_AG_AT_CBC_EVT)
         CASE_RETURN_STR(BTA_AG_AT_BAC_EVT)
         CASE_RETURN_STR(BTA_AG_AT_BCS_EVT)
+
+        default:
+            return "UNKNOWN MSG ID";
+     }
+}
+
+const char* dump_hf_client_event(UINT16 event)
+{
+    switch(event)
+    {
+        CASE_RETURN_STR(BTA_HF_CLIENT_ENABLE_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_REGISTER_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_OPEN_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_CLOSE_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_CONN_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_AUDIO_OPEN_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_AUDIO_MSBC_OPEN_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_AUDIO_CLOSE_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_SPK_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_MIC_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_DISABLE_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_IND_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_VOICE_REC_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_OPERATOR_NAME_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_CLIP_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_CCWA_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_AT_RESULT_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_CLCC_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_CNUM_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_BTRH_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_BSIR_EVT)
+        CASE_RETURN_STR(BTA_HF_CLIENT_BINP_EVT)
 
         default:
             return "UNKNOWN MSG ID";
