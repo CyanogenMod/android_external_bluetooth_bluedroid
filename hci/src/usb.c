@@ -1054,6 +1054,10 @@ uint16_t usb_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
     CMD_HDR *cmd_hdr;
     static int xmit_count;
 
+    if (usb.handle == NULL) {
+        return 0;
+    }
+
     if(!(xmit_transfer = libusb_alloc_transfer(0)))
     {
         USBERR( "libusb_alloc_tranfer() failed");
