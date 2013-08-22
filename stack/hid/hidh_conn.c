@@ -500,7 +500,8 @@ static void hidh_l2cif_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     if (l2cap_cid == p_hcon->ctrl_cid)
     {
         p_hcon->conn_flags |= HID_CONN_FLAGS_HIS_CTRL_CFG_DONE;
-        if (p_hcon->conn_flags & HID_CONN_FLAGS_IS_ORIG)
+        if ((p_hcon->conn_flags & HID_CONN_FLAGS_IS_ORIG) &&
+           (p_hcon->conn_flags & HID_CONN_FLAGS_MY_CTRL_CFG_DONE))
         {
             /* Connect interrupt channel */
             p_hcon->disc_reason = HID_L2CAP_CONN_FAIL;	/* Reset initial reason for CLOSE_EVT: Connection Attempt was made but failed */
@@ -575,7 +576,29 @@ static void hidh_l2cif_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     }
 
     if (l2cap_cid == p_hcon->ctrl_cid)
+    {
         p_hcon->conn_flags |= HID_CONN_FLAGS_MY_CTRL_CFG_DONE;
+        if ((p_hcon->conn_flags & HID_CONN_FLAGS_IS_ORIG) &&
+           (p_hcon->conn_flags & HID_CONN_FLAGS_HIS_CTRL_CFG_DONE))
+        {
+            /* Connect interrupt channel */
+            p_hcon->disc_reason = HID_L2CAP_CONN_FAIL;  /* Reset initial reason for CLOSE_EVT: Connection Attempt was made but failed */
+            if ((p_hcon->intr_cid = L2CA_ConnectReq (HID_PSM_INTERRUPT, hh_cb.devices[dhandle].addr)) == 0)
+            {
+                HIDH_TRACE_WARNING0 ("HID - INTR Originate failed");
+                reason = HID_L2CAP_REQ_FAIL ;
+                p_hcon->conn_state = HID_CONN_STATE_UNUSED;
+                hidh_conn_disconnect (dhandle);
+                hh_cb.callback( dhandle, HID_HDEV_EVT_CLOSE, reason, NULL ) ;
+                return;
+            }
+            else
+            {
+                /* Transition to the next appropriate state, waiting for connection confirm on interrupt channel. */
+                p_hcon->conn_state = HID_CONN_STATE_CONNECTING_INTR;
+            }
+        }
+    }
     else
         p_hcon->conn_flags |= HID_CONN_FLAGS_MY_INTR_CFG_DONE;
 
