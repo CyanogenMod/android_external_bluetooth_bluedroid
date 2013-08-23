@@ -200,6 +200,7 @@ typedef struct
     BD_ADDR         bda;                /* HID device bd address    */
     tBTA_HH_STATUS  status;             /* operation status         */
     UINT8           handle;             /* device handle            */
+    INT16           priority;           /* priority                     */
 } tBTA_HH_CONN;
 
 typedef tBTA_HH_CONN tBTA_HH_DEV_INFO;
@@ -482,7 +483,8 @@ BTA_API extern void BTA_HhGetDscpInfo(UINT8 dev_handle);
 *******************************************************************************/
 BTA_API extern void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask,
                                  UINT8 sub_class, UINT8 app_id,
-                                 tBTA_HH_DEV_DSCP_INFO dscp_info);
+                                 tBTA_HH_DEV_DSCP_INFO dscp_info,
+                                 INT16 priority);
 /*******************************************************************************
 **
 ** Function         BTA_HhRemoveDev

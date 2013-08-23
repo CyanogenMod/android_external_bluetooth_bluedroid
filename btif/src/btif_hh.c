@@ -73,6 +73,7 @@ static int btif_hh_keylockstates=0; //The current key state of each key
 
 #define BTIF_HH_ID_1        0
 #define BTIF_HH_DEV_DISCONNECTED 3
+#define BTIF_HH_CONNECTED_PRIORITY  100
 
 #define BTIF_TIMEOUT_VUP_SECS   3
 
@@ -743,6 +744,40 @@ void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type, UINT1
 
 }
 
+/*******************************************************************************
+**
+** Function         btif_hh_check_if_device_connectable
+**
+** Description      Checks if remote device can be connected
+**
+** Returns          TRUE if device can be connected, FALSE otherwise
+**
+*******************************************************************************/
+
+static int btif_hh_check_if_device_connectable(BD_ADDR bda)
+{
+    btif_hh_added_device_t *p_added_dev;
+    int i;
+
+    for (i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
+        p_added_dev = &btif_hh_cb.added_devices[i];
+        if (memcmp(&(p_added_dev->bd_addr), bda, BD_ADDR_LEN) == 0) {
+            BTIF_TRACE_DEBUG2("%s: priority for device = %d", __FUNCTION__, p_added_dev->priority);
+            if (p_added_dev->priority <= 0)
+                return FALSE;
+            else
+                return TRUE;
+        }
+    }
+    /* Device not found, it would be case when Host is initiating
+     * pairing and connection to remote device for the firt time,
+     * retrun TRUE as we don't want to disconnect connection becuase
+     * of priority.
+     */
+    return TRUE;
+}
+
+
 /*****************************************************************************
 **   Section name (Group of functions)
 *****************************************************************************/
@@ -821,6 +856,11 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                     //remove the connection  and then try again to reconnect from the mouse side to recover
                     btif_hh_cb.status = BTIF_HH_DEV_DISCONNECTED;
                     BTA_HhClose(p_data->conn.handle);
+                }
+                else if (!btif_hh_check_if_device_connectable(p_data->conn.bda)) {
+                    BTIF_TRACE_WARNING0("BTA_HH_OPEN_EVT: Error, device cannot be connected");
+                    BTA_HhClose(p_data->conn.handle);
+                    HAL_CBACK(bt_hh_callbacks, connection_state_cb, (bt_bdaddr_t*) &p_data->conn.bda,BTHH_CONN_STATE_DISCONNECTED);
                 }
                 else {
                     BTIF_TRACE_WARNING1("BTA_HH_OPEN_EVT: Found device...Getting dscp info for handle ... %d",p_data->conn.handle);
@@ -958,13 +998,13 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                               p_dev->bd_addr.address[0], p_dev->bd_addr.address[1],
                               p_dev->bd_addr.address[2],p_dev->bd_addr.address[3],
                               p_dev->bd_addr.address[4], p_dev->bd_addr.address[5]);
-                    BTA_HhAddDev(bda, p_dev->attr_mask,p_dev->sub_class,p_dev->app_id, dscp_info);
+                    BTA_HhAddDev(bda, p_dev->attr_mask,p_dev->sub_class,p_dev->app_id, dscp_info, BTIF_HH_CONNECTED_PRIORITY);
                     // write hid info to nvram
                     ret = btif_storage_add_hid_device_info(&(p_dev->bd_addr), p_dev->attr_mask,p_dev->sub_class,p_dev->app_id,
                                                         p_data->dscp_info.vendor_id, p_data->dscp_info.product_id,
                                                         p_data->dscp_info.version,   p_data->dscp_info.ctry_code,
                                                         p_data->dscp_info.ssr_max_latency,p_data->dscp_info.ssr_min_tout,
-                                                        len, p_data->dscp_info.descriptor.dsc_list);
+                                                        len, p_data->dscp_info.descriptor.dsc_list, BTIF_HH_CONNECTED_PRIORITY);
 
                     ASSERTC(ret == BT_STATUS_SUCCESS, "storing hid info failed", ret);
                     BTIF_TRACE_WARNING0("BTA_HH_GET_DSCP_EVT: Called add device");
@@ -1013,6 +1053,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 if (memcmp(btif_hh_cb.added_devices[i].bd_addr.address, p_data->dev_info.bda, 6) == 0) {
                     if (p_data->dev_info.status == BTA_HH_OK) {
                         btif_hh_cb.added_devices[i].dev_handle = p_data->dev_info.handle;
+                        btif_hh_cb.added_devices[i].priority = p_data->dev_info.priority;
                     }
                     else {
                         memset(btif_hh_cb.added_devices[i].bd_addr.address, 0, 6);
@@ -1358,7 +1399,7 @@ static bt_status_t set_info (bt_bdaddr_t *bd_addr, bthh_hid_info_t hid_info )
     if (btif_hh_add_added_dev(*bd_addr, hid_info.attr_mask))
     {
         BTA_HhAddDev(*bda, hid_info.attr_mask, hid_info.sub_class,
-                     hid_info.app_id, dscp_info);
+                     hid_info.app_id, dscp_info, hid_info.priority);
     }
 
     GKI_freebuf(dscp_info.descriptor.dsc_list);
@@ -1525,7 +1566,7 @@ static bt_status_t get_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
     btif_hh_device_t *p_dev;
     BD_ADDR* bda = (BD_ADDR*) bd_addr;
 
-    BTIF_TRACE_DEBUG4("%s:proto_mode = %dr_type = %d, rpt_id = %d, buf_size = %d", __FUNCTION__,
+    BTIF_TRACE_DEBUG4("%s:r_type = %d, rpt_id = %d, buf_size = %d", __FUNCTION__,
           reportType, reportId, bufferSize);
 
     BTIF_TRACE_DEBUG6("addr = %02X:%02X:%02X:%02X:%02X:%02X",
@@ -1695,6 +1736,38 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
     return BT_STATUS_FAIL;
 }
 
+/*******************************************************************************
+**
+** Function         set_priority
+**
+** Description      set priority of remote HID Device
+**
+** Returns         bt_status_t
+**
+*******************************************************************************/
+static bt_status_t set_priority( bt_bdaddr_t *bd_addr, int priority)
+{
+    CHECK_BTHH_INIT();
+    btif_hh_added_device_t *p_added_dev;
+    int i;
+
+    if (btif_hh_cb.status == BTIF_HH_DISABLED)
+    {
+        BTIF_TRACE_ERROR2("%s: Error, HH status = %d", __FUNCTION__, btif_hh_cb.status);
+        return BT_STATUS_FAIL;
+    }
+    for (i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
+        p_added_dev = &btif_hh_cb.added_devices[i];
+        if (memcmp(&(p_added_dev->bd_addr), bd_addr, BD_ADDR_LEN) == 0) {
+            BTIF_TRACE_DEBUG2("%s: adding priority for device = %d", __FUNCTION__, priority);
+            p_added_dev->priority = priority;
+            btif_storage_add_device_priority(&(p_added_dev->bd_addr),
+                p_added_dev->priority);
+            break;
+        }
+    }
+    return BT_STATUS_SUCCESS;
+}
 
 /*******************************************************************************
 **
@@ -1748,6 +1821,7 @@ static const bthh_interface_t bthhInterface = {
     get_report,
     set_report,
     send_data,
+    set_priority,
     cleanup,
 };
 
