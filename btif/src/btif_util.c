@@ -245,6 +245,7 @@ const char* dump_property_type(bt_property_type_t type)
         CASE_RETURN_STR(BT_PROPERTY_ADAPTER_BONDED_DEVICES)
         CASE_RETURN_STR(BT_PROPERTY_ADAPTER_SCAN_MODE)
         CASE_RETURN_STR(BT_PROPERTY_REMOTE_FRIENDLY_NAME)
+        CASE_RETURN_STR(BT_PROPERTY_REMOTE_TRUST_VALUE)
 
         default:
             return "UNKNOWN PROPERTY ID";
