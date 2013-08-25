@@ -906,6 +906,9 @@ typedef void (tBTA_DM_EXEC_CBACK) (void * p_param);
 /* Encryption callback*/
 typedef void (tBTA_DM_ENCRYPT_CBACK) (BD_ADDR bd_addr, tBTA_STATUS result);
 
+/* Remote Name callback */
+typedef void (tBTA_DM_REM_NAME_CBACK)(tBTM_REMOTE_DEV_NAME * p_param);
+
 #if BLE_INCLUDED == TRUE
 #define BTA_DM_BLE_SEC_NONE         BTM_BLE_SEC_NONE
 #define BTA_DM_BLE_SEC_ENCRYPT      BTM_BLE_SEC_ENCRYPT
@@ -1311,6 +1314,19 @@ BTA_API extern void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_le
 *******************************************************************************/
 BTA_API extern void BTA_DmLinkPolicy(BD_ADDR bd_addr, tBTA_DM_LP_MASK policy_mask,
                                      BOOLEAN set);
+
+/*******************************************************************************
+**
+** Function         BTA_DmRemName
+**
+** Description      This function initiates a Remote Name Request with a peer
+**                  device
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmRemName(BD_ADDR bd_addr, tBTA_DM_REM_NAME_CBACK * p_cback);
 
 #if (BTM_OOB_INCLUDED == TRUE)
 /*******************************************************************************
