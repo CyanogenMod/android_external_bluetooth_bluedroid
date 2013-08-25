@@ -544,3 +544,19 @@ tHID_STATUS HID_HostSetSecurityLevel( char serv_name[], UINT8 sec_lvl )
 
     return( HID_SUCCESS );
 }
+
+/*******************************************************************************
+**
+** Function         HID_HostSendL2capConnectRsp
+**
+** Description      This function sends back the pending l2cap connect response for incoming HID
+**                       connect from unknown device.
+**
+** Returns          void
+**
+*******************************************************************************/
+void HID_HostSendL2capConnectRsp (UINT8 status)
+{
+    hidh_send_l2cap_connect_rsp(status);
+}
+

@@ -1118,9 +1118,9 @@ extern void  btm_sec_dev_rec_cback_event (tBTM_SEC_DEV_REC *p_dev_rec, UINT8 res
 #if BLE_INCLUDED == TRUE
 extern void  btm_sec_clear_ble_keys (tBTM_SEC_DEV_REC  *p_dev_rec);
 extern  BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_DEV_REC *p_rec);
-extern BOOLEAN btm_sec_is_a_bonded_dev (BD_ADDR bda);
 extern BOOLEAN btm_sec_is_le_capable_dev (BD_ADDR bda);
 #endif /* BLE_INCLUDED */
+extern BOOLEAN btm_sec_is_a_bonded_dev (BD_ADDR bda);
 
 extern tINQ_DB_ENT *btm_inq_db_new (BD_ADDR p_bda);
 

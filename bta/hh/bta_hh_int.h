@@ -49,6 +49,7 @@ enum
     BTA_HH_API_GET_DSCP_EVT,
     BTA_HH_API_MAINT_DEV_EVT,
     BTA_HH_OPEN_CMPL_EVT,
+    BTA_HH_INT_PERFORM_SDP_EVT,
 
     /* not handled by execute state machine */
     BTA_HH_API_ENABLE_EVT,
@@ -103,6 +104,7 @@ typedef struct
     BD_ADDR         bd_addr;
     UINT8           sec_mask;
     tBTA_HH_PROTO_MODE  mode;
+    BOOLEAN             incoming_conn;
 }tBTA_HH_API_CONN;
 
 /* internal event data from BTE HID callback */
@@ -154,6 +156,7 @@ typedef struct
     BOOLEAN             opened;         /* TRUE if device successfully opened HID connection */
     tBTA_HH_PROTO_MODE  mode;           /* protocol mode */
     tBTA_HH_STATE       state;          /* CB state */
+    BOOLEAN             unknown_incoming_conn;  /* is incoming connection from unknown device */
 } tBTA_HH_DEV_CB;
 
 /* key board parsing control block */
