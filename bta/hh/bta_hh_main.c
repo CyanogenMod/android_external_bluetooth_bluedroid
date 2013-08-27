@@ -96,7 +96,8 @@ const UINT8 bta_hh_st_idle[][BTA_HH_NUM_COLS] =
 /* BTA_HH_API_WRITE_DEV_EVT */    {BTA_HH_IGNORE,        BTA_HH_IDLE_ST    },
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_IGNORE,        BTA_HH_IDLE_ST    },
 /* BTA_HH_API_MAINT_DEV_EVT */    {BTA_HH_MAINT_DEV_ACT, BTA_HH_IDLE_ST    },
-/* BTA_HH_OPEN_CMPL_EVT        */  {BTA_HH_OPEN_CMPL_ACT, BTA_HH_CONN_ST    }
+/* BTA_HH_OPEN_CMPL_EVT        */    {BTA_HH_IGNORE,         BTA_HH_IDLE_ST    },
+/* BTA_HH_INT_PERFORM_SDP_EVT      */    {BTA_HH_START_SDP,     BTA_HH_IDLE_ST },
 };
 
 
@@ -114,7 +115,8 @@ const UINT8 bta_hh_st_w4_conn[][BTA_HH_NUM_COLS] =
 /* BTA_HH_API_WRITE_DEV_EVT */    {BTA_HH_IGNORE  ,      BTA_HH_W4_CONN_ST },
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_IGNORE,        BTA_HH_W4_CONN_ST },
 /* BTA_HH_API_MAINT_DEV_EVT */    {BTA_HH_MAINT_DEV_ACT, BTA_HH_IDLE_ST    },
-/* BTA_HH_OPEN_CMPL_EVT     */    {BTA_HH_OPEN_CMPL_ACT, BTA_HH_CONN_ST    }
+/* BTA_HH_OPEN_CMPL_EVT        */    {BTA_HH_OPEN_CMPL_ACT, BTA_HH_CONN_ST    },
+/* BTA_HH_INT_PERFORM_SDP_EVT      */    {BTA_HH_IGNORE,     BTA_HH_W4_CONN_ST },
 };
 
 
@@ -132,7 +134,8 @@ const UINT8 bta_hh_st_connected[][BTA_HH_NUM_COLS] =
 /* BTA_HH_API_WRITE_DEV_EVT */    {BTA_HH_WRITE_DEV_ACT, BTA_HH_CONN_ST    },
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_GET_DSCP_ACT,  BTA_HH_CONN_ST    },
 /* BTA_HH_API_MAINT_DEV_EVT */    {BTA_HH_MAINT_DEV_ACT, BTA_HH_CONN_ST    },
-/* BTA_HH_OPEN_CMPL_EVT        */    {BTA_HH_IGNORE,         BTA_HH_CONN_ST    }
+/* BTA_HH_OPEN_CMPL_EVT        */    {BTA_HH_IGNORE,         BTA_HH_CONN_ST    },
+/* BTA_HH_INT_PERFORM_SDP_EVT      */    {BTA_HH_IGNORE,     BTA_HH_CONN_ST },
 };
 
 /* type for state table */
@@ -249,6 +252,12 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
                 cback_data.dev_status.handle = (UINT8)p_data->api_sndcmd.hdr.layer_specific;
                 break;
 
+            case BTA_HH_INT_PERFORM_SDP_EVT:
+                /* Inform stack back, to send security block */
+                APPL_TRACE_ERROR0("no space available for allocating more device");
+                HID_HostSendL2capConnectRsp(BTA_HH_ERR_DB_FULL);
+                break;
+
             default:
                 /* invalid handle, call bad API event */
                 APPL_TRACE_ERROR1("wrong device handle: [%d]", p_data->hdr.layer_specific);
@@ -327,6 +336,15 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
             if (p_msg->event == BTA_HH_API_OPEN_EVT)
             {
                 index = bta_hh_find_cb(((tBTA_HH_API_CONN *)p_msg)->bd_addr);
+            }
+            else if (p_msg->event == BTA_HH_INT_PERFORM_SDP_EVT)
+            {
+                BD_ADDR *bda = ((tBTA_HH_CBACK_DATA *)p_msg)->p_data;
+                bdcpy(((tBTA_HH_DATA *) p_msg)->api_conn.bd_addr, *bda);
+                ((tBTA_HH_DATA *) p_msg)->api_conn.sec_mask = 0;
+                ((tBTA_HH_DATA *) p_msg)->api_conn.mode = BTA_HH_PROTO_RPT_MODE;
+                ((tBTA_HH_DATA *) p_msg)->api_conn.incoming_conn = TRUE;
+                index = bta_hh_find_cb(*bda);
             }
             else if (p_msg->event == BTA_HH_API_MAINT_DEV_EVT)
             {
@@ -412,6 +430,8 @@ static char *bta_hh_evt_code(tBTA_HH_INT_EVT evt_code)
         return "BTA_HH_API_GET_DSCP_EVT";
     case BTA_HH_OPEN_CMPL_EVT:
         return "BTA_HH_OPEN_CMPL_EVT";
+    case BTA_HH_INT_PERFORM_SDP_EVT:
+        return "BTA_HH_INT_PERFORM_SDP_EVT";
     default:
         return "unknown HID Host event code";
     }

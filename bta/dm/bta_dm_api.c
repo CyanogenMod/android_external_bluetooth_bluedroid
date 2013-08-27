@@ -656,6 +656,29 @@ void BTA_DmLinkPolicy(BD_ADDR bd_addr, tBTA_DM_LP_MASK policy_mask,
     }
 }
 
+/*******************************************************************************
+**
+** Function         BTA_DmRemName
+**
+** Description      This function initiates a Remote Name Request with a peer
+**                  device
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmRemName(BD_ADDR bd_addr, tBTA_DM_REM_NAME_CBACK * p_cback)
+{
+    tBTA_DM_API_REM_NAME    *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_REM_NAME *) GKI_getbuf(sizeof(tBTA_DM_API_REM_NAME))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_REM_NAME_EVT;
+        bdcpy(p_msg->bd_addr, bd_addr);
+        p_msg->p_cback = p_cback;
+        bta_sys_sendmsg(p_msg);
+    }
+}
 
 #if (BTM_OOB_INCLUDED == TRUE)
 /*******************************************************************************

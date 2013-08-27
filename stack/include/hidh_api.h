@@ -61,6 +61,7 @@ HID_HDEV_EVT_IN_REPORT  Device sent an input report     Data=Report Type pdata= 
                                                         (GKI buffer having report data.)
 HID_HDEV_EVT_HANDSHAKE  Device sent SET_REPORT          Data=Result-code pdata=NA.
 HID_HDEV_EVT_VC_UNPLUG  Device sent Virtual Unplug      Data=NA. pdata=NA.
+HID_HDEV_EVT_PERFORM_SDP  Unknown Device initiating hid connection, perform sdp Data=NA. pdata=BD Address.
 */
 
 enum
@@ -73,7 +74,9 @@ enum
     HID_HDEV_EVT_CTRL_DATA,
     HID_HDEV_EVT_CTRL_DATC,
     HID_HDEV_EVT_HANDSHAKE,
-    HID_HDEV_EVT_VC_UNPLUG
+    HID_HDEV_EVT_VC_UNPLUG,
+    HID_HDEV_EVT_PERFORM_SDP,
+
 };
 typedef void (tHID_HOST_DEV_CALLBACK) (UINT8 dev_handle,
                                        UINT8 event, /* Event from HID-DEVICE. */
@@ -215,6 +218,17 @@ HID_API extern tHID_STATUS HID_HostSetSecurityLevel( char serv_name[], UINT8 sec
 *******************************************************************************/
 HID_API extern UINT8 HID_HostSetTraceLevel (UINT8 new_level);
 
+/*******************************************************************************
+**
+** Function         HID_HostSendL2capConnectRsp
+**
+** Description      This function sends back the pending l2cap connect response for incoming HID
+**                       connect from unknown device.
+**
+** Returns          void
+**
+*******************************************************************************/
+HID_API extern void HID_HostSendL2capConnectRsp (UINT8 status);
 #ifdef __cplusplus
 }
 #endif

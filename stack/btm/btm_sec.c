@@ -5850,32 +5850,6 @@ void btm_sec_clear_ble_keys (tBTM_SEC_DEV_REC  *p_dev_rec)
     gatt_delete_dev_from_srv_chg_clt_list(p_dev_rec->bd_addr);
 }
 
-
-/*******************************************************************************
-**
-** Function         btm_sec_is_a_bonded_dev
-**
-** Description       Is the specified device is a bonded device
-**
-** Returns          TRUE - dev is bonded
-**
-*******************************************************************************/
-BOOLEAN btm_sec_is_a_bonded_dev (BD_ADDR bda)
-{
-
-    tBTM_SEC_DEV_REC *p_dev_rec= btm_find_dev (bda);
-    BOOLEAN is_bonded= FALSE;
-
-#if (SMP_INCLUDED== TRUE)
-    if (p_dev_rec && (p_dev_rec->ble.key_type || (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN)))
-    {
-        is_bonded = TRUE;
-    }
-#endif
-    BTM_TRACE_DEBUG1 ("btm_sec_is_a_bonded_dev is_bonded=%d", is_bonded);
-    return(is_bonded);
-}
-
 /*******************************************************************************
 **
 ** Function         btm_sec_is_le_capable_dev
@@ -5937,4 +5911,34 @@ BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_D
     return(found);
 }
 #endif /* BLE_INCLUDED */
+
+/*******************************************************************************
+**
+** Function         btm_sec_is_a_bonded_dev
+**
+** Description       Is the specified device is a bonded device
+**
+** Returns          TRUE - dev is bonded
+**
+*******************************************************************************/
+BOOLEAN btm_sec_is_a_bonded_dev (BD_ADDR bda)
+{
+
+    tBTM_SEC_DEV_REC *p_dev_rec= btm_find_dev (bda);
+    BOOLEAN is_bonded= FALSE;
+
+#if (SMP_INCLUDED== TRUE)
+    if (p_dev_rec && (p_dev_rec->ble.key_type || (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN)))
+    {
+        is_bonded = TRUE;
+    }
+#else
+    if (p_dev_rec && (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN))
+    {
+        is_bonded = TRUE;
+    }
+#endif
+    BTM_TRACE_DEBUG1 ("btm_sec_is_a_bonded_dev is_bonded=%d", is_bonded);
+    return(is_bonded);
+}
 
