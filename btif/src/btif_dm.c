@@ -1828,7 +1828,11 @@ bt_status_t btif_dm_start_discovery(void)
     tBTA_DM_INQ inq_params;
     tBTA_SERVICE_MASK services = 0;
 
-    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
+    BTIF_TRACE_EVENT2("%s : pairing_cb.state: 0x%x", __FUNCTION__, pairing_cb.state);
+
+    /* We should not go for inquiry in BONDING STATE. */
+    if (pairing_cb.state == BT_BOND_STATE_BONDING)
+        return BT_STATUS_BUSY;
     /* TODO: Do we need to handle multiple inquiries at the same time? */
 
     /* Set inquiry params and call API */
