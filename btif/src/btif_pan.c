@@ -197,7 +197,7 @@ static inline int btpan_role_to_bta(int btpan_role)
 }
 static volatile int btpan_dev_local_role;
 static tBTA_PAN_ROLE_INFO bta_panu_info = {PANU_SERVICE_NAME, 0, PAN_SECURITY};
-static tBTA_PAN_ROLE_INFO bta_pan_nap_info = {PAN_NAP_SERVICE_NAME, 0, PAN_SECURITY};
+static tBTA_PAN_ROLE_INFO bta_pan_nap_info = {PAN_NAP_SERVICE_NAME, 1, PAN_SECURITY};
 
 static bt_status_t btpan_enable(int local_role)
 {
