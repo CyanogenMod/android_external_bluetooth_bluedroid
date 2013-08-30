@@ -864,14 +864,9 @@ bt_status_t btif_storage_load_bonded_devices(void)
         num_props++;
 
         /* SCAN_MODE */
-        /* TODO: At the time of BT on, always report the scan mode as 0 irrespective
-         of the scan_mode during the previous enable cycle.
-         This needs to be re-visited as part of the app/stack enable sequence
-         synchronization */
-        mode = BT_SCAN_MODE_NONE;
-        adapter_props[num_props].type = BT_PROPERTY_ADAPTER_SCAN_MODE;
-        adapter_props[num_props].len = sizeof(mode);
-        adapter_props[num_props].val = &mode;
+        BTIF_STORAGE_GET_ADAPTER_PROP(BT_PROPERTY_ADAPTER_SCAN_MODE,
+                                      &mode, sizeof(mode),
+                                      adapter_props[num_props]);
         num_props++;
 
         /* DISC_TIMEOUT */
