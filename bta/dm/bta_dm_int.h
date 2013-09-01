@@ -785,6 +785,8 @@ typedef struct
     BD_ADDR                     pin_bd_addr;
     DEV_CLASS                   pin_dev_class;
     tBTA_DM_SEC_EVT             pin_evt;
+    tBTA_IO_CAP                 loc_io_caps;    /* IO Capabilities of local device */
+    tBTA_AUTH_REQ               rmt_io_caps;    /* IO Capabilities of remote device */
     UINT32          num_val;        /* the numeric value for comparison. If just_works, do not show this number to UI */
     BOOLEAN         just_works;     /* TRUE, if "Just Works" association model */
 #if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )
