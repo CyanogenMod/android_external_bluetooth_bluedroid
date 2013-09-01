@@ -953,9 +953,7 @@ tBTM_STATUS BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms, tBTM_INQ_RESULTS_CB *p
             BTM_TRACE_API1("BTM:Interleaving: started LE scan, Advancing to next state: %d", p_inq->next_state+1);
             p_inq->next_state+=1;
         }
-        if(p_inq->next_state==BTM_FINISH)
-            p_inqparms->mode &= ~BTM_BLE_INQUIRY_MASK;
-            //reset next_state if status <> BTM_Started
+        //reset next_state if status <> BTM_Started
         if(status!=BTM_CMD_STARTED)
             p_inq->next_state=BTM_BR_ONE;
 
