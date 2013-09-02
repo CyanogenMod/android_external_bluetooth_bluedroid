@@ -1362,8 +1362,8 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
                                                     UINT16 attr_mask, UINT8 sub_class,
                                                     UINT8 app_id, UINT16 vendor_id,
                                                     UINT16 product_id, UINT16 version,
-                                                    UINT8 ctry_code, UINT8 ssr_max_lat,
-                                                    UINT8 ssr_min_tout, UINT16 dl_len, UINT8 *dsc_list)
+                                                    UINT8 ctry_code, UINT16 ssr_max_lat,
+                                                    UINT16 ssr_min_tout, UINT16 dl_len, UINT8 *dsc_list)
 {
     bdstr_t bdstr;
     bd2str(remote_bd_addr, &bdstr);
@@ -1435,10 +1435,10 @@ bt_status_t btif_storage_load_bonded_hid_info(void)
             dscp_info.ctry_code = (uint8_t) value;
 
             btif_config_get_int("Remote", kname, "ssrmaxlat", &value);
-            dscp_info.ssr_max_latency = (uint8_t) value;
+            dscp_info.ssr_max_latency = (uint16_t) value;
 
             btif_config_get_int("Remote", kname, "ssrmintout", &value);
-            dscp_info.ssr_min_tout = (uint8_t) value;
+            dscp_info.ssr_min_tout = (uint16_t) value;
 
             btif_config_get_int("Remote", kname, "ssrmaxlat", &value);
             dscp_info.ssr_max_latency = (uint8_t) value;
