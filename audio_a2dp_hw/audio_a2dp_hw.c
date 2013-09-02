@@ -289,6 +289,10 @@ static int a2dp_command(struct a2dp_stream_out *out, char cmd)
 
     DEBUG("A2DP COMMAND %s DONE STATUS %d", dump_a2dp_ctrl_event(cmd), ack);
 
+    if (ack == A2DP_CTRL_ACK_INCALL_FAILURE)
+    {
+        return ack;
+    }
     if (ack != A2DP_CTRL_ACK_SUCCESS)
         return -1;
 
@@ -325,6 +329,7 @@ static void a2dp_stream_out_init(struct a2dp_stream_out *out)
 
 static int start_audio_datapath(struct a2dp_stream_out *out)
 {
+    int a2dp_status;
     int oldstate = out->state;
 
     INFO("state %d", out->state);
@@ -333,12 +338,18 @@ static int start_audio_datapath(struct a2dp_stream_out *out)
         return -1;
 
     out->state = AUDIO_A2DP_STATE_STARTING;
-
-    if (a2dp_command(out, A2DP_CTRL_CMD_START) < 0)
+    a2dp_status =  a2dp_command(out, A2DP_CTRL_CMD_START);
+    if (a2dp_status < 0)
     {
         ERROR("audiopath start failed");
 
         out->state = oldstate;
+        return -1;
+    }
+    else if (a2dp_status == A2DP_CTRL_ACK_INCALL_FAILURE)
+    {
+        ERROR("audiopath start failed- In call a2dp, move to suspended");
+        out->state = AUDIO_A2DP_STATE_SUSPENDED;
         return -1;
     }
 
@@ -561,7 +572,9 @@ static int out_standby(struct audio_stream *stream)
     /*Need not check State here as btif layer does
     check of btif state , during remote initited suspend
     DUT need to clear flag else start will not happen*/
-    retVal =  suspend_audio_datapath(out, true);
+    /* Do nothing in SUSPENDED state. */
+    if (out->state != AUDIO_A2DP_STATE_SUSPENDED)
+        retVal =  suspend_audio_datapath(out, true);
     pthread_mutex_unlock (&out->lock);
 
     return retVal;
@@ -609,6 +622,8 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
         {
             if (out->state == AUDIO_A2DP_STATE_STARTED)
                 retval = suspend_audio_datapath(out, false);
+            else
+                out->state = AUDIO_A2DP_STATE_SUSPENDED;
         }
         else
         {
