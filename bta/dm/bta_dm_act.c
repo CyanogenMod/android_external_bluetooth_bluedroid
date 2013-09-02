@@ -2860,6 +2860,9 @@ static void bta_dm_pinname_cback (void *p_data)
 
         /* 1 additional event data fields for this event */
         sec_event.cfm_req.just_works = bta_dm_cb.just_works;
+        /* retrieve the loc and rmt caps */
+        sec_event.cfm_req.loc_io_caps = bta_dm_cb.loc_io_caps;
+        sec_event.cfm_req.rmt_io_caps = bta_dm_cb.rmt_io_caps;
     }
     else
     {
@@ -3099,6 +3102,9 @@ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
         if (p_data->key_notif.bd_name[0] == 0)
         {
             bta_dm_cb.pin_evt = pin_evt;
+            /* Store the local and remote io caps */
+            bta_dm_cb.loc_io_caps = sec_event.cfm_req.loc_io_caps;
+            bta_dm_cb.rmt_io_caps = sec_event.cfm_req.rmt_io_caps;
             bdcpy(bta_dm_cb.pin_bd_addr, p_data->key_notif.bd_addr);
             BTA_COPY_DEVICE_CLASS(bta_dm_cb.pin_dev_class, p_data->key_notif.dev_class);
             if ((BTM_ReadRemoteDeviceName(p_data->key_notif.bd_addr, bta_dm_pinname_cback)) == BTM_CMD_STARTED)
