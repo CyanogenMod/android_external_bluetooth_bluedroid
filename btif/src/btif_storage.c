@@ -1401,6 +1401,7 @@ bt_status_t btif_storage_add_device_priority(bt_bdaddr_t *remote_bd_addr,
     bdstr_t bdstr;
     bd2str(remote_bd_addr, &bdstr);
     btif_config_set_int("Remote", bdstr, "priority", priority);
+    btif_config_save();
     return BT_STATUS_SUCCESS;
 }
 
