@@ -48,7 +48,8 @@ BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda)
     tL2C_LCB *p_lcb;
 
     /* There can be only one BLE connection request outstanding at a time */
-    if (btm_ble_get_conn_st() == BLE_DIR_CONN)
+    //changed check for BLE_CONN_IDLE instead of incorrect BLE_DIR_CONN for no pending connection
+    if (btm_ble_get_conn_st() == BLE_CONN_IDLE)
     {
         L2CAP_TRACE_WARNING0 ("L2CA_CancelBleConnectReq - no connection pending");
         return(FALSE);
@@ -569,6 +570,8 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
     {
         p_lcb->link_state = LST_CONNECTING;
         memcpy (l2cb.ble_connecting_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN);
+        //Assigning below variable which is checked at LE conn cancel
+        l2cb.is_ble_connecting=TRUE;
         btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_BLE_LINK_CONNECT_TOUT);
         btm_ble_set_conn_st (BLE_DIR_CONN);
 
