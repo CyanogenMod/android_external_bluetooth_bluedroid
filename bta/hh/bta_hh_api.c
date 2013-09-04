@@ -344,7 +344,7 @@ void BTA_HhGetDscpInfo(UINT8 dev_handle)
 **
 *******************************************************************************/
 void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, UINT8 sub_class,
-                  UINT8 app_id, tBTA_HH_DEV_DSCP_INFO dscp_info)
+                  UINT8 app_id, tBTA_HH_DEV_DSCP_INFO dscp_info, INT16 priority)
 {
     tBTA_HH_MAINT_DEV    *p_buf;
     UINT16  len = sizeof(tBTA_HH_MAINT_DEV) + dscp_info.descriptor.dl_len;
@@ -362,6 +362,7 @@ void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, UINT8 sub_class,
         p_buf->attr_mask            = (UINT16) attr_mask;
         p_buf->sub_class            = sub_class;
         p_buf->app_id               = app_id;
+        p_buf->priority             = priority;
         bdcpy(p_buf->bda, bda);
 
         memcpy(&p_buf->dscp_info, &dscp_info, sizeof(tBTA_HH_DEV_DSCP_INFO));

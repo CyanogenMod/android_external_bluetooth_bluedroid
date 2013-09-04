@@ -123,6 +123,7 @@ typedef struct
     UINT16              sub_event;
     UINT8               sub_class;
     UINT8               app_id;
+    INT16               priority;
     tBTA_HH_DEV_DSCP_INFO      dscp_info;
 }tBTA_HH_MAINT_DEV;
 
