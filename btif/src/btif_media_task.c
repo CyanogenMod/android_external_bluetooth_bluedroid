@@ -1056,7 +1056,14 @@ static void btif_media_task_aa_handle_timer(void)
     log_tstamps_us("media task tx timer");
 
 #if (BTA_AV_INCLUDED == TRUE)
-    btif_media_send_aa_frame();
+    if(btif_media_cb.is_tx_timer == TRUE)
+    {
+        btif_media_send_aa_frame();
+    }
+    else
+    {
+        APPL_TRACE_ERROR0("ERROR Media task Scheduled after Suspend");
+    }
 #endif
 }
 
@@ -2177,7 +2184,10 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
 
                 /* break read loop if timer was stopped (media task stopped) */
                 if ( btif_media_cb.is_tx_timer == FALSE )
+                {
+                    GKI_freebuf(p_buf);
                     return;
+                }
             }
 
         } while (((p_buf->len + btif_media_cb.encoder.u16PacketLength) < btif_media_cb.TxAaMtuSize)
