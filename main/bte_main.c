@@ -77,7 +77,7 @@ typedef struct
 ******************************************************************************/
 BOOLEAN hci_logging_enabled = FALSE;    /* by default, turn hci log off */
 char hci_logfile[256] = HCI_LOGGING_FILENAME;
-
+BOOLEAN hci_ssp_debug_enabled = FALSE; /* by default, turn ssp debug off */
 
 /*******************************************************************************
 **  Static variables
