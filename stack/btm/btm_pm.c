@@ -303,6 +303,39 @@ tBTM_STATUS BTM_ReadPowerMode (BD_ADDR remote_bda, tBTM_PM_MODE *p_mode)
 
 /*******************************************************************************
 **
+** Function         btm_read_power_mode_state
+**
+** Description      This returns the current pm state for a specific
+**                  ACL connection.
+**
+** Input Param      remote_bda - device address of desired ACL connection
+**
+** Output Param     pmState - address where the current  pm state is copied into.
+**                          BTM_PM_ST_ACTIVE
+**                          BTM_PM_ST_HOLD
+**                          BTM_PM_ST_SNIFF
+**                          BTM_PM_ST_PARK
+**                          BTM_PM_ST_PENDING
+**                          (valid only if return code is BTM_SUCCESS)
+**
+** Returns          BTM_SUCCESS if successful,
+**                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
+**
+*******************************************************************************/
+tBTM_STATUS btm_read_power_mode_state (BD_ADDR remote_bda, tBTM_PM_STATE *pmState)
+{
+    int acl_ind;
+
+    if( (acl_ind = btm_pm_find_acl_ind(remote_bda)) == MAX_L2CAP_LINKS)
+        return (BTM_UNKNOWN_ADDR);
+
+    *pmState= btm_cb.pm_mode_db[acl_ind].state;
+    return BTM_SUCCESS;
+}
+
+
+/*******************************************************************************
+**
 ** Function         BTM_SetSsrParams
 **
 ** Description      This sends the given SSR parameters for the given ACL
@@ -905,6 +938,10 @@ void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, U
             (*btm_cb.pm_reg_db[yy].cback)( p->remote_addr, mode, interval, hci_status);
         }
     }
+#if BTM_SCO_INCLUDED == TRUE
+    /*check if sco disconnect  is waiting for the mode change */
+    btm_sco_disc_chk_pend_for_modechange(hci_status);
+#endif
 
     /* If mode change was because of an active role switch or change link key */
     btm_cont_rswitch_or_chglinkkey(p, btm_find_dev(p->remote_addr), hci_status);
