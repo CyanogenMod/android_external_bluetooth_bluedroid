@@ -369,10 +369,10 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
                           bta_hh_evt_code(debug_event));
 #endif
 
-        if (in_state >= BTA_HH_INVALID_ST)
+        if ((p_cb->state == BTA_HH_NULL_ST) || (p_cb->state >= BTA_HH_INVALID_ST))
         {
             APPL_TRACE_ERROR2("bta_hh_sm_execute: Invalid state State = 0x%x, Event = %d",
-                              in_state,event);
+                              p_cb->state,event);
             return;
         }
         state_table = bta_hh_st_tbl[p_cb->state - 1];
