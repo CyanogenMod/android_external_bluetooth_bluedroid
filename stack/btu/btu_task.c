@@ -580,6 +580,7 @@ BTU_API UINT32 btu_task (UINT32 param)
 void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
 {
     BT_HDR *p_msg;
+    GKI_disable();
     /* if timer list is currently empty, start periodic GKI timer */
     if (btu_cb.timer_queue.p_first == NULL)
     {
@@ -606,6 +607,7 @@ void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
     p_tle->ticks = timeout;         /* Save the number of seconds for the timer */
 
     GKI_add_to_timer_list (&btu_cb.timer_queue, p_tle);
+    GKI_enable();
 }
 
 /*******************************************************************************
@@ -634,6 +636,7 @@ UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle)
 void btu_stop_timer (TIMER_LIST_ENT *p_tle)
 {
     BT_HDR *p_msg;
+    GKI_disable();
     GKI_remove_from_timer_list (&btu_cb.timer_queue, p_tle);
 
     /* if timer is stopped on other than BTU task */
@@ -654,6 +657,7 @@ void btu_stop_timer (TIMER_LIST_ENT *p_tle)
             GKI_stop_timer(TIMER_0);
         }
     }
+    GKI_enable();
 }
 
 #if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
@@ -674,6 +678,7 @@ void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
 {
     BT_HDR *p_msg;
 
+    GKI_disable();
     /* if timer list is currently empty, start periodic GKI timer */
     if (btu_cb.quick_timer_queue.p_first == NULL)
     {
@@ -697,6 +702,7 @@ void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
     p_tle->ticks = timeout; /* Save the number of ticks for the timer */
 
     GKI_add_to_timer_list (&btu_cb.quick_timer_queue, p_tle);
+    GKI_enable();
 }
 
 
@@ -711,6 +717,7 @@ void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
 *******************************************************************************/
 void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle)
 {
+    GKI_disable();
     GKI_remove_from_timer_list (&btu_cb.quick_timer_queue, p_tle);
 
     /* if timer list is empty stop periodic GKI timer */
@@ -718,6 +725,7 @@ void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle)
     {
         GKI_stop_timer(TIMER_2);
     }
+    GKI_enable();
 }
 
 /*******************************************************************************
