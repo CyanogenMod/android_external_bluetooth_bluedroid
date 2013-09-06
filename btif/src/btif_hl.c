@@ -147,7 +147,11 @@ static const btif_hl_data_type_cfg_t data_type_table[] = {
     {BTIF_HL_DATA_TYPE_BODY_THERMOMETER,    896,    224},
     {BTIF_HL_DATA_TYPE_BODY_WEIGHT_SCALE,   896,    224},
     {BTIF_HL_DATA_TYPE_GLUCOSE_METER,       896,    224},
-    {BTIF_HL_DATA_TYPE_STEP_COUNTER,        6624,   224}
+    {BTIF_HL_DATA_TYPE_STEP_COUNTER,        6624,   224},
+    {BTIF_HL_DATA_TYPE_BCA,                 7730,   1230},
+    {BTIF_HL_DATA_TYPE_PEAK_FLOW    ,       2030,   224},
+    {BTIF_HL_DATA_TYPE_ACTIVITY_HUB,        5120,   224},
+    {BTIF_HL_DATA_TYPE_AMM,                 1024,   64}
 };
 
 #define BTIF_HL_DATA_TABLE_SIZE  (sizeof(data_type_table) / sizeof(btif_hl_data_type_cfg_t))
