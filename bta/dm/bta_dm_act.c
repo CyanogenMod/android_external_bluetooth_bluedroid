@@ -3281,9 +3281,20 @@ static void bta_dm_rs_cback (tBTM_ROLE_SWITCH_CMPL *p1)
 *******************************************************************************/
 static BOOLEAN bta_dm_check_av(UINT16 event)
 {
+    BOOLEAN avoid_roleswitch = FALSE;
     BOOLEAN switching = FALSE;
     UINT8 i;
     tBTA_DM_PEER_DEVICE *p_dev;
+
+#if defined(BTA_DM_AVOID_A2DP_ROLESWITCH_ON_INQUIRY) && (BTA_DM_AVOID_A2DP_ROLESWITCH_ON_INQUIRY == TRUE)
+
+    /* avoid role switch upon inquiry if a2dp is actively streaming as it
+       introduces an audioglitch due to FW scheduling delays (unavoidable) */
+    if (event == BTA_DM_API_SEARCH_EVT)
+    {
+        avoid_roleswitch = TRUE;
+    }
+#endif
 
     APPL_TRACE_WARNING1("bta_dm_check_av:%d", bta_dm_cb.cur_av_count);
     if(bta_dm_cb.cur_av_count)
@@ -3291,8 +3302,10 @@ static BOOLEAN bta_dm_check_av(UINT16 event)
         for(i=0; i<bta_dm_cb.device_list.count; i++)
         {
             p_dev = &bta_dm_cb.device_list.peer_device[i];
-            APPL_TRACE_WARNING3("[%d]: state:%d, info:x%x", i, p_dev->conn_state, p_dev->info);
-            if((p_dev->conn_state == BTA_DM_CONNECTED) && (p_dev->info & BTA_DM_DI_AV_ACTIVE))
+            APPL_TRACE_WARNING4("[%d]: state:%d, info:x%x, avoid_rs %d",
+                                i, p_dev->conn_state, p_dev->info, avoid_roleswitch);
+            if((p_dev->conn_state == BTA_DM_CONNECTED) && (p_dev->info & BTA_DM_DI_AV_ACTIVE) &&
+               (avoid_roleswitch == FALSE))
             {
                 /* make master and take away the role switch policy */
                 if(BTM_CMD_STARTED == BTM_SwitchRole (p_dev->peer_bdaddr, HCI_ROLE_MASTER, (tBTM_CMPL_CB *)bta_dm_rs_cback))
