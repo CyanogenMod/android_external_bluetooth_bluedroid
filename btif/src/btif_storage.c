@@ -1380,6 +1380,7 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
     btif_config_set_int("Remote", bdstr, "priority", priority);
     if(dl_len > 0)
         btif_config_set("Remote", bdstr, "HidDescriptor", (const char*)dsc_list, dl_len, BTIF_CFG_TYPE_BIN);
+    btif_config_save();
     return BT_STATUS_SUCCESS;
 }
 
@@ -1401,6 +1402,7 @@ bt_status_t btif_storage_add_device_priority(bt_bdaddr_t *remote_bd_addr,
     bdstr_t bdstr;
     bd2str(remote_bd_addr, &bdstr);
     btif_config_set_int("Remote", bdstr, "priority", priority);
+    btif_config_save();
     return BT_STATUS_SUCCESS;
 }
 
@@ -1517,6 +1519,7 @@ bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr)
     btif_config_remove("Remote", bdstr, "ssrmaxlat");
     btif_config_remove("Remote", bdstr, "ssrmintout");
     btif_config_remove("Remote", bdstr, "priority");
+    btif_config_save();
     return BT_STATUS_SUCCESS;
 }
 
