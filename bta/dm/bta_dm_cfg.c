@@ -43,6 +43,11 @@
 #define BTA_DM_LINK_TIMEOUT    8000
 #endif
 
+/* TRUE to avoid scatternet when av is streaming (be the master) */
+#ifndef BTA_DM_AVOID_SCATTER_A2DP
+#define BTA_DM_AVOID_SCATTER_A2DP    TRUE
+#endif
+
 /* For Insight, PM cfg lookup tables are runtime configurable (to allow tweaking of params for power consumption measurements) */
 #ifndef BTE_SIM_APP
 #define tBTA_DM_PM_TYPE_QUALIFIER   const
@@ -62,7 +67,7 @@ const tBTA_DM_CFG bta_dm_cfg =
     /* link supervision timeout in 625uS*/
     BTA_DM_LINK_TIMEOUT,
     /* TRUE to avoid scatternet when av is streaming (be the master) */
-    TRUE
+    BTA_DM_AVOID_SCATTER_A2DP
 };
 
 #ifndef BTA_DM_SCATTERNET
