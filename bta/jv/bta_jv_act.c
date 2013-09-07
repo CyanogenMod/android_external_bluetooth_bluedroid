@@ -1945,6 +1945,7 @@ static int bta_jv_port_data_co_cback(UINT16 port_handle, UINT8 *buf, UINT16 len,
         switch(type)
         {
             case DATA_CO_CALLBACK_TYPE_INCOMING:
+                bta_jv_pm_conn_busy(p_pcb->p_pm_cb);
                 return bta_co_rfc_data_incoming(p_pcb->user_data, (BT_HDR*)buf);
             case DATA_CO_CALLBACK_TYPE_OUTGOING_SIZE:
                 return bta_co_rfc_data_outgoing_size(p_pcb->user_data, (int*)buf);
