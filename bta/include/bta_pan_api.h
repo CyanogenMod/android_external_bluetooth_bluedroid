@@ -110,7 +110,7 @@ typedef union
 
 /* Number of PAN connections */
 #ifndef BTA_PAN_NUM_CONN
-#define BTA_PAN_NUM_CONN         4
+#define BTA_PAN_NUM_CONN         5
 #endif
 
 /* PAN callback */
