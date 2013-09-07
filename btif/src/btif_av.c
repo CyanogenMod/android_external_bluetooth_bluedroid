@@ -348,6 +348,7 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
             {
                  state = BTAV_CONNECTION_STATE_CONNECTED;
                  av_state = BTIF_AV_STATE_OPENED;
+                 btif_set_edr_cap(&p_bta_data->open);
             }
             else
             {

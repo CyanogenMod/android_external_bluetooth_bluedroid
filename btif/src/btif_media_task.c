@@ -153,8 +153,9 @@ enum {
 #define BTIF_MEDIA_BITRATE_STEP 5
 #endif
 
-/* Middle quality quality setting @ 44.1 khz */
-#define DEFAULT_SBC_BITRATE 229
+/* Middle quality quality setting @ 48 khz */
+#define DEFAULT_SBC_BITRATE 237
+#define SBC_HIGH_QUALITY_BITRATE 345
 
 #ifndef A2DP_MEDIA_TASK_STACK_SIZE
 #define A2DP_MEDIA_TASK_STACK_SIZE       0x2000         /* In bytes */
@@ -229,6 +230,7 @@ typedef struct
     UINT8 a2dp_cmd_pending; /* we can have max one command pending */
     BOOLEAN tx_flush; /* discards any outgoing data when true */
     BOOLEAN scaling_disabled;
+    BOOLEAN is_edr_supported;
 #endif
 
 } tBTIF_MEDIA_CB;
@@ -836,6 +838,28 @@ void btif_a2dp_on_open(void)
     /* always use callback to notify socket events */
     UIPC_Open(UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb);
 }
+
+
+/*****************************************************************************
+**
+** Function        btif_set_edr_cap
+**
+** Description
+**
+** Returns
+**
+*******************************************************************************/
+
+void btif_set_edr_cap(tBTA_AV_OPEN *p_av)
+{
+    APPL_TRACE_EVENT0("SET EDR CAP ON OPEN");
+
+    if (p_av->edr)
+        btif_media_cb.is_edr_supported = TRUE;
+    else
+        btif_media_cb.is_edr_supported = FALSE;
+}
+
 
 /*****************************************************************************
 **
@@ -1457,7 +1481,8 @@ static void btif_media_task_enc_init(BT_HDR *p_msg)
     btif_media_cb.encoder.s16AllocationMethod = pInitAudio->AllocationMethod;
     btif_media_cb.encoder.s16SamplingFreq = pInitAudio->SamplingFreq;
 
-    btif_media_cb.encoder.u16BitRate = DEFAULT_SBC_BITRATE;
+    btif_media_cb.encoder.u16BitRate = btif_media_cb.is_edr_supported ?
+                                    SBC_HIGH_QUALITY_BITRATE : DEFAULT_SBC_BITRATE;
     /* Default transcoding is PCM to SBC, modified by feeding configuration */
     btif_media_cb.TxTranscoding = BTIF_MEDIA_TRSCD_PCM_2_SBC;
     btif_media_cb.TxAaMtuSize = ((BTIF_MEDIA_AA_BUF_SIZE-BTIF_MEDIA_AA_SBC_OFFSET-sizeof(BT_HDR))
@@ -1509,7 +1534,8 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
                 - sizeof(BT_HDR)) : pUpdateAudio->MinMtuSize;
 
         /* Set the initial target bit rate */
-        pstrEncParams->u16BitRate = DEFAULT_SBC_BITRATE;
+        pstrEncParams->u16BitRate = btif_media_cb.is_edr_supported ?
+                                    SBC_HIGH_QUALITY_BITRATE : DEFAULT_SBC_BITRATE;
 
         if (pstrEncParams->s16SamplingFreq == SBC_sf16000)
             s16SamplingFreq = 16000;
