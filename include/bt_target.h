@@ -63,11 +63,6 @@
 #define I2SPCM_SLAVE_BRCM FALSE
 #endif
 
-/* This feature is used to eanble QCOM interleaved scan*/
-#ifndef BLUETOOTH_QCOM_LE_INTL_SCAN
-#define BLUETOOTH_QCOM_LE_INTL_SCAN FALSE
-#endif
-
 #ifndef UNV_INCLUDED
 #define UNV_INCLUDED FALSE
 #endif
@@ -861,11 +856,22 @@ and USER_HW_DISABLE_API macros */
 
 #if (BLUETOOTH_QCOM_SW == TRUE) /* Enable WBS only under this flag.*/
 #define BTM_WBS_INCLUDED            TRUE
+#define BLUETOOTH_QCOM_SW           TRUE
+#define BTC_INCLUDED                TRUE
 #else
 /* Includes WBS if TRUE */
 #ifndef BTM_WBS_INCLUDED
 #define BTM_WBS_INCLUDED            FALSE       /* TRUE includes WBS code */
 #endif
+/* This feature is used to eanble QCOM interleaved scan*/
+#ifndef BLUETOOTH_QCOM_LE_INTL_SCAN
+#define BLUETOOTH_QCOM_LE_INTL_SCAN FALSE
+#endif
+/* BTC */
+#ifndef BTC_INCLUDED
+#define BTC_INCLUDED FALSE
+#endif
+
 #endif
 
 /* Includes PCM2 support if TRUE */
@@ -3356,16 +3362,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define HCRPM_MAX_CLIENTS           3
 #endif
 
-
-/******************************************************************************
-**
-** BTC
-**
-******************************************************************************/
-
-#ifndef BTC_INCLUDED
-#define BTC_INCLUDED                FALSE
-#endif
 
 /******************************************************************************
 **
