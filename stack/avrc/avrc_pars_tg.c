@@ -243,7 +243,9 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
 
     case AVRC_PDU_REGISTER_NOTIFICATION:    /* 0x31 */
         if (len != 5)
+        {
             status = AVRC_STS_INTERNAL_ERR;
+        }
         else
         {
             BE_STREAM_TO_UINT8 (p_result->reg_notif.event_id, p);
