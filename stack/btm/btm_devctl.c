@@ -144,9 +144,6 @@ void btm_dev_init (void)
     /* Initialize nonzero defaults */
 #if (BTM_MAX_LOC_BD_NAME_LEN > 0)
     memset(btm_cb.cfg.bd_name, 0, sizeof(tBTM_LOC_BD_NAME));
-#if (BTM_USE_DEF_LOCAL_NAME == TRUE)
-    BCM_STRNCPY_S(btm_cb.cfg.bd_name, sizeof(btm_cb.cfg.bd_name), BTM_DEF_LOCAL_NAME, BTM_MAX_LOC_BD_NAME_LEN);
-#endif
 #endif
 
     btm_cb.devcb.reset_timer.param  = (TIMER_PARAM_TYPE)TT_DEV_RESET;
@@ -688,8 +685,6 @@ void btm_continue_reset (void)
 
 #if (BTM_MAX_LOC_BD_NAME_LEN > 0) && (BTM_SET_DEV_NAME_UPON_RESET == TRUE)
     BTM_SetLocalDeviceName(btm_cb.cfg.bd_name);
-#elif BTM_USE_DEF_LOCAL_NAME == TRUE
-    BTM_SetLocalDeviceName(BTM_DEF_LOCAL_NAME);
 #endif
 
     BTM_SetPinType (btm_cb.cfg.pin_type, btm_cb.cfg.pin_code, btm_cb.cfg.pin_code_len);

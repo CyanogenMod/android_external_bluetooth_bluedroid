@@ -1057,12 +1057,9 @@ and USER_HW_DISABLE_API macros */
 #define BTM_MAX_LOC_BD_NAME_LEN     248
 #endif
 
-/* TRUE if default string is used, FALSE if device name is set in the application */
-#ifndef BTM_USE_DEF_LOCAL_NAME
-#define BTM_USE_DEF_LOCAL_NAME      TRUE
-#endif
-
-/* Fixed Default String (Ignored if BTM_USE_DEF_LOCAL_NAME is FALSE) */
+/* Fixed Default String. When this is defined as null string, the device's
+ * product model name is used as the default local name.
+ */
 #ifndef BTM_DEF_LOCAL_NAME
 #define BTM_DEF_LOCAL_NAME      ""
 #endif
