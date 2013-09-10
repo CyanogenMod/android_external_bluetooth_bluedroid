@@ -764,7 +764,6 @@ static bt_status_t connect_int(bt_bdaddr_t *bd_addr, uint16_t uuid)
 static bt_status_t connect( bt_bdaddr_t *bd_addr )
 {
     CHECK_BTHF_INIT();
-    btif_queue_remove_connect(UUID_SERVCLASS_AG_HANDSFREE, BTIF_QUEUE_CHECK_CONNECT_REQ);
 
     return btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int);
 
@@ -1231,10 +1230,10 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
     ** force the SCO to be setup. Handle this special case here prior to
     ** call setup handling
     */
-    if ( (num_active == 1) && (btif_hf_cb[idx].num_active == 0) && (btif_hf_cb[idx].num_held == 0)
+    if ( ((num_active + num_held) > 0) && (btif_hf_cb[idx].num_active == 0) && (btif_hf_cb[idx].num_held == 0)
          && (btif_hf_cb[idx].call_setup_state == BTHF_CALL_STATE_IDLE) )
     {
-        BTIF_TRACE_DEBUG("%s: Active call notification received without call setup update",
+        BTIF_TRACE_DEBUG("%s: Active/Held call notification received without call setup update",
                           __FUNCTION__);
 
         memset(&ag_res, 0, sizeof(tBTA_AG_RES_DATA));
@@ -1348,7 +1347,8 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
     }
 
     /* Held Changed? */
-    if (num_held != btif_hf_cb[idx].num_held)
+    if (num_held != btif_hf_cb[idx].num_held  ||
+        ((num_active == 0) && ((num_held + btif_hf_cb[idx].num_held) > 1)))
     {
         BTIF_TRACE_DEBUG("%s: Held call states changed. old: %d new: %d",
                         __FUNCTION__, btif_hf_cb[idx].num_held, num_held);

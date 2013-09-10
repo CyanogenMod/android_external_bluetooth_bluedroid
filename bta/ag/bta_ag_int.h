@@ -354,6 +354,7 @@ extern tBTA_AG_SCB *bta_ag_scb_by_idx(UINT16 idx);
 extern UINT8 bta_ag_service_to_idx(tBTA_SERVICE_MASK services);
 extern UINT16 bta_ag_idx_by_bdaddr(BD_ADDR peer_addr);
 extern BOOLEAN bta_ag_other_scb_open(tBTA_AG_SCB *p_curr_scb);
+extern BOOLEAN bta_ag_scb_open(tBTA_AG_SCB *p_curr_scb);
 extern tBTA_AG_SCB *bta_ag_get_other_idle_scb (tBTA_AG_SCB *p_curr_scb);
 extern void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, UINT16 event, tBTA_AG_DATA *p_data);
 extern BOOLEAN bta_ag_hdl_event(BT_HDR *p_msg);

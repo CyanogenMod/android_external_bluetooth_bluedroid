@@ -520,6 +520,26 @@ BOOLEAN bta_ag_other_scb_open(tBTA_AG_SCB *p_curr_scb)
 
 /*******************************************************************************
 **
+** Function         bta_ag_scb_open
+**
+** Description      Check whether given scb is in open state.
+**
+**
+** Returns          TRUE if scb is in open state, FALSE otherwise.
+**
+*******************************************************************************/
+BOOLEAN bta_ag_scb_open(tBTA_AG_SCB *p_curr_scb)
+{
+    if (p_curr_scb && p_curr_scb->in_use && p_curr_scb->state == BTA_AG_OPEN_ST)
+    {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*******************************************************************************
+**
 ** Function         bta_ag_get_other_idle_scb
 **
 ** Description      Return other scb if it is in INIT st.

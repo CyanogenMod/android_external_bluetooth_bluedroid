@@ -97,6 +97,7 @@ typedef UINT8 tBTA_AG_STATUS;
 #define BTA_AG_END_CALL_RES         18  /* End call */
 #define BTA_AG_IN_CALL_HELD_RES     19  /* Incoming call held */
 #define BTA_AG_UNAT_RES             20  /* Response to unknown AT command event */
+#define BTA_AG_MULTI_CALL_RES       21  /* SLC at three way call */
 
 typedef UINT8 tBTA_AG_RES;
 

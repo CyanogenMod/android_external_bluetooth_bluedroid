@@ -34,6 +34,8 @@
 #include "utl.h"
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+
 
 /*****************************************************************************
 **  Constants
@@ -44,7 +46,8 @@
 
 #define BTA_AG_CMD_MAX_VAL      32767  /* Maximum value is signed 16-bit value */
 
-
+/* Invalid Chld command */
+#define BTA_AG_INVALID_CHLD        255
 
 /* clip type constants */
 #define BTA_AG_CLIP_TYPE_MIN        128
@@ -627,7 +630,8 @@ static BOOLEAN bta_ag_parse_cmer(char *p_s, BOOLEAN *p_enabled)
 ** Description      Parse AT+CHLD parameter string.
 **
 **
-** Returns          Returns idx (1-7), or 0 if ECC not enabled or idx doesn't exist
+** Returns          Returns idx (1-7), 0 if ECC not enabled or BTA_AG_INVALID_CHLD
+                    if idx doesn't exist/1st character of argument is not a digit
 **
 *******************************************************************************/
 static UINT8 bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
@@ -636,12 +640,23 @@ static UINT8 bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
     INT16   idx = -1;
     UNUSED(p_scb);
 
+    if (!isdigit(p_s[0]))
+    {
+        return BTA_AG_INVALID_CHLD;
+    }
+
     if (p_s[1] != 0)
     {
         /* p_idxstr++;  point to beginning of call number */
         idx = utl_str2int(&p_s[1]);
         if (idx != -1 && idx < 255)
+        {
             retval = (UINT8)idx;
+        }
+        else
+        {
+            retval = BTA_AG_INVALID_CHLD;
+        }
     }
 
     return (retval);
@@ -806,6 +821,7 @@ void bta_ag_send_call_inds(tBTA_AG_SCB *p_scb, tBTA_AG_RES result)
         call = p_scb->call_ind;
     }
 
+
     /* Send indicator function tracks if the values have actually changed */
     bta_ag_send_ind(p_scb, BTA_AG_IND_CALL, call, FALSE);
     bta_ag_send_ind(p_scb, BTA_AG_IND_CALLSETUP, callsetup, FALSE);
@@ -960,6 +976,12 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
             {
                 val.idx = bta_ag_parse_chld(p_scb, val.str);
 
+                if (val.idx == BTA_AG_INVALID_CHLD)
+                {
+                    event = 0;
+                    bta_ag_send_error(p_scb, BTA_AG_ERR_OP_NOT_SUPPORTED);
+                    break;
+                }
                 if(val.idx && !((p_scb->features & BTA_AG_FEAT_ECC) && (p_scb->peer_features & BTA_AG_PEER_FEAT_ECC)))
                 {
                     /* we do not support ECC, but HF is sending us a CHLD with call index*/
@@ -1252,6 +1274,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 
         case BTA_AG_HF_CMD_BCC:
             bta_ag_send_ok(p_scb);
+            p_scb->codec_updated = TRUE;
             bta_ag_sco_open(p_scb, NULL);
             break;
 #endif
@@ -1553,6 +1576,22 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             }
             break;
 
+        case BTA_AG_MULTI_CALL_RES:
+            /* open sco at SLC for this three way call */
+            APPL_TRACE_DEBUG("Headset Connected in three way call");
+            if (!(p_scb->features & BTA_AG_FEAT_NOSCO))
+                {
+                if (p_result->data.audio_handle == bta_ag_scb_to_idx(p_scb))
+                {
+                    bta_ag_sco_open(p_scb, (tBTA_AG_DATA *) p_result);
+                }
+                else if (p_result->data.audio_handle == BTA_AG_HANDLE_NONE)
+                {
+                    bta_ag_sco_close(p_scb, (tBTA_AG_DATA *) p_result);
+                }
+            }
+            break;
+
         case BTA_AG_OUT_CALL_CONN_RES:
             /* send indicators */
             bta_ag_send_call_inds(p_scb, p_result->result);
@@ -1615,6 +1654,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             p_scb->signal_ind = p_result->data.str[6] - '0';
             p_scb->roam_ind = p_result->data.str[8] - '0';
             p_scb->battchg_ind = p_result->data.str[10] - '0';
+            p_scb->callheld_ind = p_result->data.str[12] - '0';
             APPL_TRACE_DEBUG("cind call:%d callsetup:%d", p_scb->call_ind, p_scb->callsetup_ind);
 
             bta_ag_send_result(p_scb, code, p_result->data.str, 0);

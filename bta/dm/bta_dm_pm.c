@@ -160,6 +160,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
     UINT16 policy_setting;
     tBTM_STATUS btm_status;
     tBTM_VERSION_INFO vers;
+    UINT8 *p = NULL;
 #if (BTM_SSR_INCLUDED == TRUE)
     int               index = BTA_DM_PM_SSR0;
 #endif
@@ -306,6 +307,24 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
         else
         {
             bta_dm_pm_ssr(peer_addr);
+        }
+    }
+    else
+    {
+        if( ((NULL != (p = BTM_ReadLocalFeatures ())) && HCI_SNIFF_SUB_RATE_SUPPORTED(p)) &&
+            ((NULL != (p = BTM_ReadRemoteFeatures (peer_addr))) && HCI_SNIFF_SUB_RATE_SUPPORTED(p))
+            && (index == BTA_DM_PM_SSR0) )
+        {
+            if (status == BTA_SYS_SCO_OPEN)
+            {
+                APPL_TRACE_DEBUG("bta_dm_pm_cback: SCO is open, reset SSR to zero");
+                BTM_SetSsrParams (peer_addr, 0,0,0 );
+            }
+            else if (status == BTA_SYS_SCO_CLOSE)
+            {
+                APPL_TRACE_DEBUG("bta_dm_pm_cback: SCO is close, back to old SSR");
+                bta_dm_pm_ssr(peer_addr);
+            }
         }
     }
 
@@ -552,6 +571,17 @@ static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index)
     if(mode != BTM_PM_MD_SNIFF)
 #endif
     {
+#if (BTM_SSR_INCLUDED == TRUE)
+        /* Dont initiate Sniff if controller has alreay accepted
+         * remote sniff params. This avoid sniff loop issue with
+         * some agrresive headsets who use sniff latencies more than
+         * DUT supported range of Sniff intervals.*/
+        if ((mode == BTM_PM_MD_SNIFF) && (p_peer_dev->info & BTA_DM_DI_ACP_SNIFF))
+        {
+            APPL_TRACE_DEBUG("bta_dm_pm_sniff: already in remote initiate sniff");
+            return TRUE;
+        }
+#endif
         /* if the current mode is not sniff, issue the sniff command.
          * If sniff, but SSR is not used in this link, still issue the command */
         memcpy(&pwr_md, &p_bta_dm_pm_md[index], sizeof (tBTM_PM_PWR_MD));
