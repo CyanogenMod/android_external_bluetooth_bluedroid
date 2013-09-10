@@ -1,5 +1,8 @@
 /******************************************************************************
  *
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
+ *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -144,6 +147,7 @@ extern UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID];
 extern bt_status_t btif_hf_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_av_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_hh_execute_service(BOOLEAN b_enable);
+extern bt_status_t btif_mce_execute_service(BOOLEAN b_enable);
 extern int btif_hh_connect(bt_bdaddr_t *bd_addr);
 extern BOOLEAN btif_av_is_connected();
 extern void btif_av_close_update();
@@ -172,7 +176,10 @@ bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
          {
               btif_hh_execute_service(b_enable);
          }break;
-
+         case BTA_MAP_SERVICE_ID:
+         {
+             btif_mce_execute_service(b_enable);
+         }break;
          default:
               BTIF_TRACE_ERROR1("%s: Unknown service being enabled", __FUNCTION__);
               return BT_STATUS_FAIL;
