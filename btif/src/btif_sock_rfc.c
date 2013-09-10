@@ -139,6 +139,7 @@ static void init_rfc_slots()
 bt_status_t btsock_rfc_init(int poll_thread_handle)
 {
     pth = poll_thread_handle;
+    btif_data_profile_register(0);
     init_rfc_slots();
     return BT_STATUS_SUCCESS;
 }
@@ -146,6 +147,7 @@ void btsock_rfc_cleanup()
 {
     int curr_pth = pth;
     pth = -1;
+    btif_data_profile_register(0);
     btsock_thread_exit(curr_pth);
     lock_slot(&slot_lock);
     int i;
@@ -323,6 +325,9 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
     *sock_fd = -1;
     if(!is_init_done())
         return BT_STATUS_NOT_READY;
+
+    btif_data_profile_register(1);
+
     if(channel == RESERVED_SCN_FTP)
     {
         service_uuid = UUID_FTP;
@@ -510,6 +515,7 @@ static void cleanup_rfc_slot(rfc_slot_t* rs)
         close(rs->fd);
         rs->fd = -1;
     }
+
     if(rs->app_fd != -1)
     {
         close(rs->app_fd);
