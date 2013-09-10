@@ -175,6 +175,7 @@ tBTA_SERVICE_MASK btif_get_enabled_services_mask(void);
 bt_status_t btif_enable_service(tBTA_SERVICE_ID service_id);
 bt_status_t btif_disable_service(tBTA_SERVICE_ID service_id);
 int btif_is_enabled(void);
+void btif_data_profile_register(int value);
 
 /**
  * BTIF_Events
