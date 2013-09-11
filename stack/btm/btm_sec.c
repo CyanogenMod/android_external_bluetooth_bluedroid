@@ -2534,9 +2534,6 @@ tBTM_STATUS btm_sec_mx_access_request (BD_ADDR bd_addr, UINT16 psm, BOOLEAN is_o
 void btm_sec_conn_req (UINT8 *bda, UINT8 *dc)
 {
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev (bda);
-    tBTM_CMPL_CB *p_inq_cb;
-    tBTM_INQUIRY_VAR_ST *p_inq = &btm_cb.btm_inq_vars;
-
 
     /* Some device may request a connection before we are done with the HCI_Reset sequence */
     if (btm_cb.devcb.state != BTM_DEV_STATE_READY)
@@ -2596,28 +2593,6 @@ void btm_sec_conn_req (UINT8 *bda, UINT8 *dc)
         btsnd_hcic_reject_conn (bda, HCI_ERR_HOST_REJECT_DEVICE);
         return;
     }
-    /* Host is about to accept the Incoming ACL Connection, cancel */
-    /* any ongoing name requests to avoid connection being disconnected */
-    /* because of delays in firmware. */
-    if (p_inq->remname_active)
-    {
-        BTM_TRACE_EVENT0 ("Accepting Incoming Connection, cancelling name request");
-        tBTM_REMOTE_DEV_NAME     rem_name;
-
-        BTM_CancelRemoteDeviceName();
-        /* Notify the caller (if waiting) */
-        btu_stop_timer (&p_inq->rmt_name_timer_ent);
-        p_inq->remname_active = FALSE;
-        memset(p_inq->remname_bda, 0, BD_ADDR_LEN);
-        if (p_inq->p_remname_cmpl_cb)
-        {
-            rem_name.status = BTM_REM_NAME_CANCELLED_INCMNG_CONN;
-            (*p_inq->p_remname_cmpl_cb)(&rem_name);
-            p_inq->p_remname_cmpl_cb = NULL;
-        }
-    }
-    BTM_TRACE_EVENT0 ("btm_sec_conn_req no_rname_req_in_conn is set\n");
-    p_inq->no_rname_req_in_conn = TRUE;
 
     /* Host is not interested or approved connection.  Save BDA and DC and */
     /* pass request to L2CAP */

@@ -2730,26 +2730,6 @@ static void bta_dm_remname_cback (tBTM_REMOTE_DEV_NAME *p_remote_name)
     if (dev_type == BT_DEVICE_TYPE_BLE)
         GAP_BleReadPeerPrefConnParams (bta_dm_search_cb.peer_bdaddr);
 #endif
-
-    if ((p_remote_name->status == BTM_REM_NAME_CANCELLED_INCMNG_CONN) ||
-        (p_remote_name->rnr_inc_conn_status == BTM_RNR_DONE_NO_FURTHER_RNR_REQ))
-    {
-        APPL_TRACE_DEBUG0("bta_dm_remname_cback: Informing that search is now complete");
-        /* reset the RNR cancellation on incoming connection flag */
-        BTM_ResetRnrIncFlag();
-        /* Remote name request is cancelled,  inform upper layers that Search is complete */
-        /* If search was not active, this message would be ignored. */
-        bta_dm_search_cb.services = 0;
-        if ((p_msg = (tBTA_DM_MSG *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
-        {
-            p_msg->hdr.event          = BTA_DM_SEARCH_CMPL_EVT;
-            p_msg->hdr.layer_specific = BTA_DM_API_DISCOVER_EVT;
-            bta_sys_sendmsg(p_msg);
-            if(p_remote_name->status == BTM_REM_NAME_CANCELLED_INCMNG_CONN)
-                return;
-        }
-    }
-
     if ((p_msg = (tBTA_DM_REM_NAME *) GKI_getbuf(sizeof(tBTA_DM_REM_NAME))) != NULL)
     {
         bdcpy (p_msg->result.disc_res.bd_addr, bta_dm_search_cb.peer_bdaddr);
