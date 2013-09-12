@@ -2264,6 +2264,16 @@ static void btu_ble_ll_conn_complete_evt ( UINT8 *p, UINT16 evt_len)
 static void btu_ble_ll_conn_param_upd_evt (UINT8 *p, UINT16 evt_len)
 {
 /* This is empty until an upper layer cares about returning event */
+    //LE connection update has completed successfully as a master.
+    //We can enable the update request if the result is a success
+    //extract the HCI handle first
+    UINT8   status;
+    UINT16  handle;
+    BT_TRACE_0(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, "btu_ble_ll_conn_param_upd_evt");
+
+    STREAM_TO_UINT8  (status, p);
+    STREAM_TO_UINT16 (handle, p);
+    L2CA_HandleConnUpdateEvent(handle, status);
 }
 
 static void btu_ble_read_remote_feat_evt (UINT8 *p, UINT16 evt_len)
