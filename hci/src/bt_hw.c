@@ -41,6 +41,7 @@
 extern tHCI_IF *p_hci_if;
 extern uint8_t fwcfg_acked;
 void lpm_vnd_cback(uint8_t vnd_result);
+void lpm_vnd_sleep_func(uint8_t vnd_result);
 
 /******************************************************************************
 **  Variables
@@ -107,6 +108,24 @@ static void lpm_vnd_cb(bt_vendor_op_result_t result)
     uint8_t status = (result == BT_VND_OP_RESULT_SUCCESS) ? 0 : 1;
 
     lpm_vnd_cback(status);
+}
+
+/******************************************************************************
+**
+** Function         lpm_vnd_set_state_cb
+**
+** Description      HOST/CONTROLLER VENDOR LIB CALLBACK API - This function is
+**                  called back from the libbt-vendor to indicate the stack to
+**                  wake up the BT-Device or to enter into sleep mode.
+**
+** Returns          None
+**
+******************************************************************************/
+static void lpm_vnd_set_state_cb(bt_vendor_lpm_wake_state_t state)
+{
+    uint8_t lpm_state = state;
+
+    lpm_vnd_sleep_func(state);
 }
 
 /******************************************************************************
@@ -192,7 +211,8 @@ static const bt_vendor_callbacks_t vnd_callbacks = {
     alloc,
     dealloc,
     xmit_cb,
-    epilog_cb
+    epilog_cb,
+    lpm_vnd_set_state_cb
 };
 
 /******************************************************************************
