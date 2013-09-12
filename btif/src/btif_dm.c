@@ -232,8 +232,8 @@ extern bt_status_t btif_hf_client_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_mce_execute_service(BOOLEAN b_enable);
 extern int btif_hh_connect(bt_bdaddr_t *bd_addr);
 extern void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16);
-extern BOOLEAN btif_av_is_connected();
-extern void btif_av_close_update();
+extern void btif_av_move_idle(bt_bdaddr_t bd_addr);
+
 
 
 /******************************************************************************
@@ -1789,6 +1789,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
         case BTA_DM_LINK_DOWN_EVT:
             bdcpy(bd_addr.address, p_data->link_down.bd_addr);
             BTIF_TRACE_DEBUG("BTA_DM_LINK_DOWN_EVT. Sending BT_ACL_STATE_DISCONNECTED");
+            btif_av_move_idle(bd_addr);
             HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
                       &bd_addr, BT_ACL_STATE_DISCONNECTED);
             break;
@@ -1797,15 +1798,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             BTIF_TRACE_ERROR("Received H/W Error. ");
             /* Flush storage data */
             btif_config_flush();
-            //checking weather music is palyed or not
-            if (btif_av_is_connected())
-            {
-                BTIF_TRACE_DEBUG("Stream is Active disconnect before kill");
-                btif_av_close_update();
-            }
-            BTIF_TRACE_DEBUG("going to sleep ");
             usleep(100000); /* 100milliseconds */
-            BTIF_TRACE_DEBUG("sleep over !! ");
             /* Killing the process to force a restart as part of fault tolerance */
             kill(getpid(), SIGKILL);
             break;

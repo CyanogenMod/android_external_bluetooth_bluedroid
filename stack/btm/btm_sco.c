@@ -49,6 +49,7 @@
 #define SCO_ST_DISCONNECTING    5
 #define SCO_ST_PEND_UNPARK      6
 #define SCO_ST_PEND_ROLECHANGE  7
+#define SCO_ST_PEND_MODECHANGE  8
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
@@ -571,8 +572,8 @@ tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, BOOLEAN is_orig, UINT16 pkt_types
     tACL_CONN        *p_acl;
 
 #if (BTM_PWR_MGR_INCLUDED == TRUE) && (BTM_SCO_WAKE_PARKED_LINK == TRUE)
-    tBTM_PM_MODE      md;
     tBTM_PM_PWR_MD    pm;
+    tBTM_PM_STATE     State = BTM_PM_ST_INVALID;
 #else
     UINT8             mode;
 #endif
@@ -620,10 +621,12 @@ tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, BOOLEAN is_orig, UINT16 pkt_types
                 {
                     /* can not create SCO link if in park mode */
 #if (BTM_PWR_MGR_INCLUDED == TRUE) && (BTM_SCO_WAKE_PARKED_LINK == TRUE)
-                    if(BTM_ReadPowerMode(remote_bda, &md) == BTM_SUCCESS)
+                    if((btm_read_power_mode_state(p->esco.data.bd_addr, &State) == BTM_SUCCESS))
                     {
-                        if (md == BTM_PM_MD_PARK || md == BTM_PM_MD_SNIFF)
+                        if (State == BTM_PM_ST_SNIFF || State == BTM_PM_ST_PARK ||
+                            State == BTM_PM_ST_PENDING)
                         {
+                            BTM_TRACE_DEBUG("In sniff,park or pend mode: %d", State);
                             memset( (void*)&pm, 0, sizeof(pm));
                             pm.mode = BTM_PM_MD_ACTIVE;
                             BTM_SetPowerMode(BTM_PM_SET_ONLY_ID, remote_bda, &pm);
@@ -785,6 +788,40 @@ void btm_sco_chk_pend_rolechange (UINT16 hci_handle)
     }
 #endif
 }
+
+/*******************************************************************************
+**
+** Function        btm_sco_disc_chk_pend_for_modechange
+**
+** Description     This function is called by btm when there is a mode change
+**                 event to see if there are SCO  disconnect commands waiting for the mode change.
+**
+** Returns         void
+**
+*******************************************************************************/
+void btm_sco_disc_chk_pend_for_modechange (UINT16 hci_handle)
+{
+#if (BTM_MAX_SCO_LINKS>0)
+    UINT16      xx;
+    tSCO_CONN   *p = &btm_cb.sco_cb.sco_db[0];
+
+    BTM_TRACE_DEBUG("btm_sco_disc_chk_pend_for_modechange: hci_handle 0x%04x, p->state 0x%02x",
+                      hci_handle, p->state);
+
+    for (xx = 0; xx < BTM_MAX_SCO_LINKS; xx++, p++)
+    {
+        if ((p->state == SCO_ST_PEND_MODECHANGE) &&
+            (BTM_GetHCIConnHandle (p->esco.data.bd_addr, BT_TRANSPORT_BR_EDR)) == hci_handle)
+
+        {
+            BTM_TRACE_DEBUG("btm_sco_disc_chk_pend_for_modechange -> SCO Link handle 0x%04x",
+                              p->hci_handle);
+            BTM_RemoveSco(xx);
+        }
+    }
+#endif
+}
+
 
 /*******************************************************************************
 **
@@ -1022,6 +1059,9 @@ tBTM_STATUS BTM_RemoveSco (UINT16 sco_inx)
 #if (BTM_MAX_SCO_LINKS>0)
     tSCO_CONN   *p = &btm_cb.sco_cb.sco_db[sco_inx];
     UINT16       tempstate;
+    tBTM_PM_STATE       State = BTM_PM_ST_INVALID;
+
+    BTM_TRACE_DEBUG("BTM_RemoveSco");
 
     /* Validity check */
     if ((sco_inx >= BTM_MAX_SCO_LINKS) || (p->state == SCO_ST_UNUSED))
@@ -1036,6 +1076,14 @@ tBTM_STATUS BTM_RemoveSco (UINT16 sco_inx)
         return (BTM_SUCCESS);
     }
 
+    if ((btm_read_power_mode_state(p->esco.data.bd_addr, &State) == BTM_SUCCESS)
+        && State == BTM_PM_ST_PENDING)
+    {
+        BTM_TRACE_DEBUG("BTM_RemoveSco: BTM_PM_ST_PENDING for ACL mapped with SCO Link 0x%04x",
+                          p->hci_handle);
+        p->state = SCO_ST_PEND_MODECHANGE;
+        return (BTM_CMD_STARTED);
+    }
     tempstate = p->state;
     p->state = SCO_ST_DISCONNECTING;
 
@@ -1478,6 +1526,59 @@ tBTM_STATUS BTM_ReadEScoLinkParms (UINT16 sco_inx, tBTM_ESCO_DATA *p_parms)
     BTM_TRACE_API("BTM_ReadEScoLinkParms cannot find the SCO index!");
     memset(p_parms, 0, sizeof(tBTM_ESCO_DATA));
     return (BTM_WRONG_MODE);
+}
+
+/*******************************************************************************
+**
+** Function         BTM_ReadEScoLinkTxInterval
+**
+**                  Note: If the upper layer doesn't know the current sco index,
+**                  BTM_FIRST_ACTIVE_SCO_INDEX can be used as parameter to
+**                  find the first active SCO index
+**
+** Description      Return Tx interval for ESCO link
+*******************************************************************************/
+int BTM_ReadEScoLinkTxInterval (UINT16 sco_indx)
+{
+#if (BTM_MAX_SCO_LINKS > 0)
+    UINT8 index;
+
+    BTM_TRACE_API("BTM_ReadEScoLinkTxInterval -> sco_inx 0x%04x", sco_indx);
+
+    if (sco_indx == BTM_FIRST_ACTIVE_SCO_INDEX)
+    {
+        for (index = 0; index < BTM_MAX_SCO_LINKS; index++)
+        {
+            if (btm_cb.sco_cb.sco_db[index].state >= SCO_ST_CONNECTED)
+            {
+                BTM_TRACE_API("BTM_ReadEScoLinkTxInterval the first active SCO index is %d",index);
+                sco_indx = index;
+            }
+        }
+    }
+
+    if (sco_indx < BTM_MAX_SCO_LINKS &&
+        btm_cb.sco_cb.sco_db[sco_indx].state >= SCO_ST_CONNECTED)
+    {
+        BTM_TRACE_API("tx_interval is %d",
+            btm_cb.sco_cb.sco_db[sco_indx].esco.data.tx_interval);
+        BTM_TRACE_API("link_type is %d",
+            btm_cb.sco_cb.sco_db[sco_indx].esco.data.link_type);
+        if (btm_cb.sco_cb.sco_db[sco_indx].esco.data.link_type ==
+                BTM_LINK_TYPE_ESCO) {
+            BTM_TRACE_API("returning tx_interval = %d",
+                btm_cb.sco_cb.sco_db[sco_indx].esco.data.tx_interval);
+            return btm_cb.sco_cb.sco_db[sco_indx].esco.data.tx_interval;
+        } else {
+            BTM_TRACE_API("BTM_ReadEScoLinkTxIntervallink is not esco");
+            return 0x0000;
+        }
+    }
+
+#endif
+
+    BTM_TRACE_API("BTM_ReadEScoLinkTxInterval cannot find the SCO index!");
+    return 0x0000;
 }
 
 /*******************************************************************************

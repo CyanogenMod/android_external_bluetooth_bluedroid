@@ -52,6 +52,9 @@ static void bta_dm_pm_set_sniff_policy(tBTA_DM_PEER_DEVICE *p_dev, BOOLEAN bDisa
 static void bta_dm_pm_ssr(BD_ADDR peer_addr);
 #endif
 
+/* Sniff interval for active ESCO and HID connection */
+#define SNIFF_INTERVAL_ACTIVE_HID_ESCO 12
+
 tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
 
 
@@ -193,7 +196,6 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
     if(i> p_bta_dm_pm_cfg[0].app_id)
         return;
 
-    bta_dm_pm_stop_timer(peer_addr);
     /*p_dev = bta_dm_find_peer_device(peer_addr);*/
 
 #if (BTM_SSR_INCLUDED == TRUE)
@@ -232,6 +234,9 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
         {
             bta_dm_conn_srvcs.count--;
 
+            APPL_TRACE_DEBUG("Removed power mode entry for service id = %d, count = %d",
+                               p_bta_dm_pm_cfg[i].id, bta_dm_conn_srvcs.count);
+
             for(; j<bta_dm_conn_srvcs.count ; j++)
             {
 
@@ -263,12 +268,18 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
 
         bta_dm_conn_srvcs.count++;
         bta_dm_conn_srvcs.conn_srvc[j].state = status;
+
+        APPL_TRACE_WARNING("new conn_srvc id:%d, app_id:%d count:%d", id, app_id,
+                             bta_dm_conn_srvcs.count);
     }
     else
     {
         /* no service is added or removed. only updating status. */
         bta_dm_conn_srvcs.conn_srvc[j].state = status;
     }
+
+    /* stop timer */
+    bta_dm_pm_stop_timer(peer_addr);
 
     if(p_dev)
     {
@@ -466,8 +477,8 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
         /* dont initiate SNIFF, if link_policy has it disabled */
         if (p_peer_device->link_policy & HCI_ENABLE_SNIFF_MODE)
         {
-	        p_peer_device->pm_mode_attempted = BTA_DM_PM_SNIFF;
-    	    bta_dm_pm_sniff(p_peer_device, (UINT8)(pm_action & 0x0F) );
+            p_peer_device->pm_mode_attempted = BTA_DM_PM_SNIFF;
+            bta_dm_pm_sniff(p_peer_device, (UINT8)(pm_action & 0x0F) );
         }
         else
         {
