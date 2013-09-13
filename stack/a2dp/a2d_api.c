@@ -392,4 +392,17 @@ void A2D_Init(void)
     a2d_cb.trace_level  = BT_TRACE_LEVEL_NONE;
 #endif
 }
+/*******************************************************************************
+**
+** Function         a2d_get_avdt_sdp_ver
+**
+** Description      This function fetches current version of AVDT.
+**
+** Returns          Current version of AVDT
+**
+*******************************************************************************/
+int a2d_get_avdt_sdp_ver ()
+{
+    return a2d_cb.avdt_sdp_ver;
+}
 
