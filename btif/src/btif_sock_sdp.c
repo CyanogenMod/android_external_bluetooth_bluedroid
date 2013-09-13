@@ -220,22 +220,22 @@ static int add_pbap_sdp(const char* p_service_name, int scn)
 #define BTA_MAP_MSG_TYPE_SMS_CDMA 0x04
 #define BTA_MAP_MSG_TYPE_MMS      0x08
 
-#define BTA_MAPS_DEFAULT_VERSION 0x0100
+#define BTA_MAPS_DEFAULT_VERSION 0x0101 /* MAP 1.1 */
 typedef struct
 {
-    UINT8       mas_id;                /* the MAS instance id */
+    UINT8       mas_id;                 /* the MAS instance id */
     const char* service_name;          /* Description of the MAS instance */
-    UINT8       supported_message_types; /* Server supported message types - SMS/MMS/EMAIL */
+    UINT8       supported_message_types;/* Server supported message types - SMS/MMS/EMAIL */
 } tBTA_MAPS_CFG;
 const tBTA_MAPS_CFG bta_maps_cfg_sms_mms =
 {
-    0,                                /* Mas id 0 is for SMS/MMS */
+    0,                  /* Mas id 0 is for SMS/MMS */
     "MAP SMS/MMS",
     BTA_MAP_MSG_TYPE_SMS_GSM | BTA_MAP_MSG_TYPE_SMS_CDMA | BTA_MAP_MSG_TYPE_MMS
 };
 const tBTA_MAPS_CFG bta_maps_cfg_email =
 {
-    1,                                /* Mas id 1 is for EMAIL */
+    1,                  /* Mas id 1 is for EMAIL */
     "MAP EMAIL",
     BTA_MAP_MSG_TYPE_EMAIL
 };
@@ -277,10 +277,10 @@ static int add_maps_sdp(const char* p_service_name, int scn)
 
             /* optional:  if name is not "", add a name entry */
             SDP_AddAttribute(sdp_handle,
-                             (UINT16)ATTR_ID_SERVICE_NAME,
-                             (UINT8)TEXT_STR_DESC_TYPE,
-                             (UINT32)(strlen(p_bta_maps_cfg->service_name) + 1),
-                             (UINT8 *)p_bta_maps_cfg->service_name);
+                            (UINT16)ATTR_ID_SERVICE_NAME,
+                            (UINT8)TEXT_STR_DESC_TYPE,
+                            (UINT32)(strlen(p_bta_maps_cfg->service_name) + 1),
+                            (UINT8 *)p_bta_maps_cfg->service_name);
 
             /* Add in the Bluetooth Profile Descriptor List */
             SDP_AddProfileDescriptorList(sdp_handle,
@@ -486,7 +486,7 @@ static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
     }
     else if (IS_UUID(UUID_MAPS_MAS,uuid))
     {
-        handle = add_maps_sdp(name, final_scn); //PBAP Server is always 19
+        handle = add_maps_sdp(name, final_scn); //MAP Server is always 19
     }
     else if (IS_UUID(UUID_SPP, uuid))
     {
