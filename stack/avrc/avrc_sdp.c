@@ -27,6 +27,10 @@
 #include "avrc_api.h"
 #include "avrc_int.h"
 
+#ifndef SDP_AVRCP_1_4
+#define SDP_AVRCP_1_4      FALSE
+#endif
+
 /*****************************************************************************
 **  Global data
 *****************************************************************************/
@@ -38,7 +42,7 @@ tAVRC_CB avrc_cb;
 const tSDP_PROTOCOL_ELEM  avrc_proto_list [] =
 {
     {UUID_PROTOCOL_L2CAP, 1, {AVCT_PSM, 0} },
-#if AVRC_ADV_CTRL_INCLUDED == TRUE
+#if SDP_AVRCP_1_4 == TRUE
     {UUID_PROTOCOL_AVCTP, 1, {AVCT_REV_1_3, 0}  }
 #else
 #if AVRC_METADATA_INCLUDED == TRUE
@@ -49,7 +53,7 @@ const tSDP_PROTOCOL_ELEM  avrc_proto_list [] =
 #endif
 };
 
-#if AVRC_ADV_CTRL_INCLUDED == TRUE
+#if SDP_AVRCP_1_4 == TRUE
 const tSDP_PROTO_LIST_ELEM  avrc_add_proto_list [] =
 {
     {AVRC_NUM_PROTO_ELEMS,
@@ -223,7 +227,7 @@ UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
 
     /* add service class id list */
     class_list[0] = service_uuid;
-#if AVRC_ADV_CTRL_INCLUDED == TRUE
+#if SDP_AVRCP_1_4 == TRUE
     if( service_uuid == UUID_SERVCLASS_AV_REMOTE_CONTROL )
     {
         class_list[1] = UUID_SERVCLASS_AV_REM_CTRL_CONTROL;
@@ -236,7 +240,7 @@ UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
     result &= SDP_AddProtocolList(sdp_handle, AVRC_NUM_PROTO_ELEMS, (tSDP_PROTOCOL_ELEM *)avrc_proto_list);
 
     /* add profile descriptor list   */
-#if AVRC_ADV_CTRL_INCLUDED == TRUE
+#if SDP_AVRCP_1_4 == TRUE
     /* additional protocol list to include browsing channel */
     result &= SDP_AddAdditionProtoLists( sdp_handle, 1, (tSDP_PROTO_LIST_ELEM *)avrc_add_proto_list);
 
