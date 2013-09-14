@@ -187,8 +187,6 @@ static int add_pbap_sdp(const char* p_service_name, int scn)
     /* add supported feature and repositories */
     if (status)
     {
-        SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE,
-                  (UINT32)1, (UINT8*)&p_bta_pbs_cfg->supported_features);
         SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_REPOSITORIES, UINT_DESC_TYPE,
                   (UINT32)1, (UINT8*)&p_bta_pbs_cfg->supported_repositories);
 
