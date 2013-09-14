@@ -36,6 +36,7 @@
 #include "userial.h"
 #include "utils.h"
 #include "bt_vendor_lib.h"
+#include "bt_utils.h"
 
 /******************************************************************************
 **  Constants & Macros
@@ -147,6 +148,8 @@ static void *userial_read_thread(void *arg)
 
     rx_flow_on = TRUE;
     userial_running = 1;
+
+    raise_priority_a2dp(TASK_HIGH_USERIAL_READ);
 
     while (userial_running)
     {
