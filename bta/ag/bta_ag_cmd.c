@@ -1241,6 +1241,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 
         case BTA_AG_HF_CMD_BCC:
             bta_ag_send_ok(p_scb);
+            p_scb->codec_updated = TRUE;
             bta_ag_sco_open(p_scb, NULL);
             break;
 #endif
