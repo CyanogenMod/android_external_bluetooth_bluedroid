@@ -799,7 +799,7 @@ UDRV_API UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UI
         if (poll(&pfd, 1, uipc_main.ch[ch_id].read_poll_tmo_ms) == 0)
         {
             BTIF_TRACE_EVENT1("poll timeout (%d ms)", uipc_main.ch[ch_id].read_poll_tmo_ms);
-            return 0;
+            break;
         }
 
         //BTIF_TRACE_EVENT1("poll revents %x", pfd.revents);
