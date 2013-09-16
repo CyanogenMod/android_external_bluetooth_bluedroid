@@ -1684,8 +1684,9 @@ bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_bd
     char input_value [20];
 
     bd2str(remote_bd_addr, &bdstr);
-    strncpy(input_value, (char*)bdstr, 20);
-    strncat(input_value,BTIF_AUTO_PAIR_CONF_VALUE_SEPARATOR, 20);
+    strlcpy(input_value, (char*)bdstr, sizeof(input_value));
+    strlcat(input_value,BTIF_AUTO_PAIR_CONF_VALUE_SEPARATOR, sizeof(input_value));
+
     int line_size = sizeof(linebuf);
     if(btif_config_get_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
                             BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR, linebuf, &line_size))

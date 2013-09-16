@@ -839,14 +839,14 @@ void bta_dm_bond (tBTA_DM_MSG *p_data)
     if (bta_dm_cb.p_sec_cback && (status != BTM_CMD_STARTED))
     {
 
-        p_name = BTM_SecReadDevName(p_data->bond.bd_addr);
-        if (!p_name)
-            p_name = "";
-
         memset(&sec_event, 0, sizeof(tBTA_DM_SEC));
         bdcpy(sec_event.auth_cmpl.bd_addr, p_data->bond.bd_addr);
-        memcpy(sec_event.auth_cmpl.bd_name, p_name, (BD_NAME_LEN-1));
-        sec_event.auth_cmpl.bd_name[BD_NAME_LEN-1] = 0;
+        p_name = BTM_SecReadDevName(p_data->bond.bd_addr);
+        if (p_name != NULL)
+        {
+            memcpy(sec_event.auth_cmpl.bd_name, p_name, (BD_NAME_LEN-1));
+            sec_event.auth_cmpl.bd_name[BD_NAME_LEN-1] = 0;
+        }
 
 /*      taken care of by memset [above]
         sec_event.auth_cmpl.key_present = FALSE;

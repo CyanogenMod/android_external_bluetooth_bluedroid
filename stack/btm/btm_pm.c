@@ -369,8 +369,6 @@ void btm_pm_reset(void)
         cb = btm_cb.pm_reg_db[btm_cb.pm_pend_id].cback;
     }
 
-    /* no command pending */
-    btm_cb.pm_pend_link = MAX_L2CAP_LINKS;
 
     /* clear the register record */
     for(xx=0; xx<BTM_MAX_PM_RECORDS; xx++)
@@ -378,8 +376,11 @@ void btm_pm_reset(void)
         btm_cb.pm_reg_db[xx].mask = BTM_PM_REC_NOT_USED;
     }
 
-    if(cb != NULL)
+    if(cb != NULL && btm_cb.pm_pend_link < MAX_L2CAP_LINKS)
         (*cb)(btm_cb.acl_db[btm_cb.pm_pend_link].remote_addr, BTM_PM_STS_ERROR, BTM_DEV_RESET, 0);
+
+    /* no command pending */
+    btm_cb.pm_pend_link = MAX_L2CAP_LINKS;
 }
 
 /*******************************************************************************

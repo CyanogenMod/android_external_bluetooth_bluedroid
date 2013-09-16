@@ -470,6 +470,8 @@ static int load_bluez_cfg_value(const char* adapter_path, const char* file_name)
     {
         error("open_file_map fail, fd:%d, path:%s, size:%d", fd, path, size);
         //debug("out");
+        if (fd >= 0)
+            close(fd);
         return FALSE;
     }
     //get local bt device name from bluez config
@@ -539,6 +541,8 @@ static int load_bluez_dev_value(const char* adapter_path, const char* bd_addr,
     {
         error("open_file_map fail, fd:%d, path:%s, size:%d", fd, path, size);
         //debug("out");
+        if (fd >= 0)
+            close(fd);
         return FALSE;
     }
     int line_size = 0;
@@ -597,6 +601,8 @@ int load_bluez_linkkeys(const char* adapter_path)
     {
         error("open_file_map fail, fd:%d, path:%s, size:%d", fd, path, size);
         //debug("out");
+        if (fd >= 0)
+            close(fd);
         return FALSE;
     }
     int pos = 0;

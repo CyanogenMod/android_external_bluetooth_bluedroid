@@ -194,6 +194,7 @@ static inline int create_server_socket(const char* name)
     if(socket_local_server_bind(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT) < 0)
     {
         BTIF_TRACE_EVENT1("socket failed to create (%s)", strerror(errno));
+        close(s);
         return -1;
     }
 
