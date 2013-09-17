@@ -664,9 +664,12 @@ void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             (!p_data->api_meta_rsp.is_rsp && (p_cb->features & BTA_AV_FEAT_RCCT)) )
         {
             p_rcb = &p_cb->rcb[p_data->hdr.layer_specific];
-            AVRC_MsgReq(p_rcb->handle, p_data->api_meta_rsp.label, p_data->api_meta_rsp.rsp_code,
-                                      p_data->api_meta_rsp.p_pkt);
-            free = FALSE;
+            if (p_rcb->handle != BTA_AV_RC_HANDLE_NONE) {
+                AVRC_MsgReq(p_rcb->handle, p_data->api_meta_rsp.label,
+                            p_data->api_meta_rsp.rsp_code,
+                            p_data->api_meta_rsp.p_pkt);
+                free = FALSE;
+            }
         }
     }
 
