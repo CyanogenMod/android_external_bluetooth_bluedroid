@@ -4588,6 +4588,7 @@ void bta_dm_set_encryption (tBTA_DM_MSG *p_data)
     if (bta_dm_cb.p_encrypt_cback)
     {
         (*p_data->set_encryption.p_callback)(p_data->set_encryption.bd_addr, BTA_BUSY);
+        APPL_TRACE_ERROR0("bta_dm_set_encryption status is BTA_BUSY.");
         return;
     }
 
