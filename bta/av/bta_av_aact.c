@@ -317,7 +317,7 @@ static BOOLEAN bta_av_next_getcap(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
                 i = p_scb->num_seps;
                 break;
             }
-            if (p_scb->avdt_version >= AVDT_VERSION_SYNC)
+            if ((p_scb->avdt_version >= AVDT_VERSION_SYNC) && (a2d_get_avdt_sdp_ver() >= AVDT_VERSION_SYNC) )
             {
                 p_req = AVDT_GetAllCapReq;
             }
