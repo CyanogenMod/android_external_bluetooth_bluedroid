@@ -813,6 +813,8 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
     UINT32           nr_ticks_total;
     UINT8 tt;
     TIMER_LIST_ENT  *p_temp;
+    /* block others to edit the timer_queue list while it is getting modified */
+    GKI_disable();
 
     /* Only process valid tick values */
     if (p_tle->ticks >= 0)
@@ -875,7 +877,10 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
         for (tt = 0; tt < GKI_MAX_TIMER_QUEUES; tt++)
         {
              if (gki_cb.com.timer_queues[tt] == p_timer_listq)
-                 return;
+             {
+                GKI_enable();
+                return;
+             }
         }
         /* add this timer queue to the array */
         for (tt = 0; tt < GKI_MAX_TIMER_QUEUES; tt++)
@@ -888,7 +893,7 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
             gki_cb.com.timer_queues[tt] = p_timer_listq;
         }
     }
-
+    GKI_enable();
     return;
 }
 
@@ -915,6 +920,8 @@ void GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p
     {
         return;
     }
+    /* block others to edit the timer_queue list while it is getting modified */
+    GKI_disable();
 
     /* Add the ticks remaining in this timer (if any) to the next guy in the list.
     ** Note: Expired timers have a tick value of '0'.
@@ -956,6 +963,7 @@ void GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p
             else
             {
                 /* Error case - chain messed up ?? */
+                GKI_enable();
                 return;
             }
 
@@ -964,6 +972,7 @@ void GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p
             else
             {
                 /* Error case - chain messed up ?? */
+                GKI_enable();
                 return;
             }
         }
@@ -985,7 +994,7 @@ void GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p
             }
         }
     }
-
+    GKI_enable();
     return;
 }
 
