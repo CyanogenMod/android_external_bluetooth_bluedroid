@@ -65,7 +65,7 @@
 #define BTIF_DM_MAX_SDP_ATTEMPTS_AFTER_PAIRING 2
 
 #define PROPERTY_PRODUCT_MODEL "ro.product.model"
-#define DEFAULT_LOCAL_NAME_MAX  15
+#define DEFAULT_LOCAL_NAME_MAX  31
 #if (DEFAULT_LOCAL_NAME_MAX > BTM_MAX_LOC_BD_NAME_LEN)
     #error "default btif local name size exceeds stack supported length"
 #endif
