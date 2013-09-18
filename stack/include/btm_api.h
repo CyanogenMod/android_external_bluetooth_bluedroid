@@ -63,11 +63,8 @@ enum
     BTM_SCO_BAD_LENGTH,                 /* 16 Bad SCO over HCI data length */
     BTM_SUCCESS_NO_SECURITY,            /* 17 security passed, no security set  */
     BTM_FAILED_ON_SECURITY ,             /* 18 security failed                   */
-    BTM_REPEATED_ATTEMPTS,               /* 19 repeated attempts for LE security requests */
-    BTM_REM_NAME_CANCELLED_INCMNG_CONN,  /* 20 Remote name is cancelled to handle incoming connection */
-    BTM_RNR_DONE_NO_FURTHER_RNR_REQ      /* 21 Remote name is done but no further RNR Requests */
+    BTM_REPEATED_ATTEMPTS               /* 19 repeated attempts for LE security requests */
 };
-
 typedef UINT8 tBTM_STATUS;
 
 #ifdef BLUETOOTH_QCOM_LE_INTL_SCAN
@@ -677,7 +674,6 @@ typedef struct
     UINT16      status;
     UINT16      length;
     BD_NAME     remote_bd_name;
-    tBTM_STATUS rnr_inc_conn_status;
 } tBTM_REMOTE_DEV_NAME;
 
 typedef struct
@@ -2524,19 +2520,6 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
     BTM_API extern tBTM_STATUS  BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms,
                                                   tBTM_INQ_RESULTS_CB *p_results_cb,
                                                   tBTM_CMPL_CB *p_cmpl_cb);
-
-/*******************************************************************************
-**
-** Function         BTM_ResetRnrIncFlag
-**
-** Description      This function is called to reset the RNR cancellation flag on
-**                  incoming connection.
-**
-** Returns          BTM_SUCCESS if successful
-**                  BTM_NO_RESOURCES if could not allocate a message buffer
-**
-*******************************************************************************/
-    BTM_API extern tBTM_STATUS  BTM_ResetRnrIncFlag (void);
 
 
 /*******************************************************************************
