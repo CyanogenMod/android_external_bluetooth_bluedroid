@@ -448,7 +448,7 @@ static tBTA_JV_STATUS bta_jv_free_set_pm_profile_cb(UINT32 jv_handle)
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_PM_CB  **p_cb;
-    int i;
+    int i, j, bd_counter=0,appid_counter=0;
 
     for (i = 0; i < BTA_JV_PM_MAX_NUM; i++)
     {
@@ -456,11 +456,26 @@ static tBTA_JV_STATUS bta_jv_free_set_pm_profile_cb(UINT32 jv_handle)
         if ((bta_jv_cb.pm_cb[i].state != BTA_JV_PM_FREE_ST) &&
                 (jv_handle == bta_jv_cb.pm_cb[i].handle))
         {
-            APPL_TRACE_API3("bta_jv_free_set_pm_profile_cb(jv_handle: 0x%2x), idx: %d, "
-                    "app_id: 0x%x", jv_handle, i, bta_jv_cb.pm_cb[i].app_id);
+            for (j = 0; j < BTA_JV_PM_MAX_NUM; j++)
+            {
+                if (bdcmp(bta_jv_cb.pm_cb[j].peer_bd_addr, bta_jv_cb.pm_cb[i].peer_bd_addr) == 0 )
+                   bd_counter++;
+                if(bta_jv_cb.pm_cb[j].app_id == bta_jv_cb.pm_cb[i].app_id)
+                   appid_counter++;
+           }
 
-            bta_jv_clear_pm_cb(&bta_jv_cb.pm_cb[i], TRUE);
-
+        APPL_TRACE_API3("bta_jv_free_set_pm_profile_cb(jv_handle: 0x%2x), idx: %d, "
+                "app_id: 0x%x", jv_handle, i, bta_jv_cb.pm_cb[i].app_id);
+        APPL_TRACE_API2("bta_jv_free_set_pm_profile_cb, bd_counter = %d, "
+                "appid_counter = %d", bd_counter, appid_counter);
+        if(bd_counter > 1)
+           bta_jv_pm_conn_idle(&bta_jv_cb.pm_cb[i]);
+        if(bd_counter <= 1 || (appid_counter <=1))
+           bta_jv_clear_pm_cb(&bta_jv_cb.pm_cb[i], TRUE);
+        else
+        {
+           bta_jv_clear_pm_cb(&bta_jv_cb.pm_cb[i], FALSE);
+        }
             if (BTA_JV_RFCOMM_MASK & jv_handle)
             {
                 UINT32 hi = ((jv_handle & BTA_JV_RFC_HDL_MASK) & ~BTA_JV_RFCOMM_MASK) - 1;
