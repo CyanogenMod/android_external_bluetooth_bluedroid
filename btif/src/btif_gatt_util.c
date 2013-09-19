@@ -332,7 +332,12 @@ static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_STATUS result)
     if (result == BTA_SUCCESS)
     {
         btif_gatt_add_encrypted_link(bd_addr);
-    } else {
+    }
+    else if(result==BTA_BUSY)
+    {
+        ALOGE("%s: callback called with status busy. No Action.", __FUNCTION__);
+    }
+    else {
         bt_bdaddr_t bda;
         bdcpy(bda.address, bd_addr);
 
