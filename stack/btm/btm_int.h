@@ -436,6 +436,8 @@ extern void     btm_accept_sco_link(UINT16 sco_inx, tBTM_ESCO_PARAMS *p_setup,
                                     tBTM_SCO_CB *p_conn_cb, tBTM_SCO_CB *p_disc_cb);
 extern void     btm_reject_sco_link(UINT16 sco_inx );
 extern void btm_sco_chk_pend_rolechange (UINT16 hci_handle);
+extern void btm_sco_disc_chk_pend_for_modechange (UINT16 hci_handle);
+
 #else
 #define btm_accept_sco_link(sco_inx, p_setup, p_conn_cb, p_disc_cb)
 #define btm_reject_sco_link(sco_inx)
@@ -612,7 +614,8 @@ enum
     BTM_PM_ST_HOLD    = BTM_PM_STS_HOLD,
     BTM_PM_ST_SNIFF   = BTM_PM_STS_SNIFF,
     BTM_PM_ST_PARK    = BTM_PM_STS_PARK,
-    BTM_PM_ST_PENDING = BTM_PM_STS_PENDING
+    BTM_PM_ST_PENDING = BTM_PM_STS_PENDING,
+    BTM_PM_ST_INVALID = 0xFF
 };
 typedef UINT8 tBTM_PM_STATE;
 
@@ -995,6 +998,8 @@ extern void btm_pm_proc_cmd_status(UINT8 status);
 extern void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode,
                                      UINT16 interval);
 extern void btm_pm_proc_ssr_evt (UINT8 *p, UINT16 evt_len);
+BTM_API extern tBTM_STATUS btm_read_power_mode_state (BD_ADDR remote_bda,
+                                                      tBTM_PM_STATE *pmState);
 #if BTM_SCO_INCLUDED == TRUE
 extern void btm_sco_chk_pend_unpark (UINT8 hci_status, UINT16 hci_handle);
 #else
