@@ -48,7 +48,8 @@ BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda)
     tL2C_LCB *p_lcb;
 
     /* There can be only one BLE connection request outstanding at a time */
-    if (btm_ble_get_conn_st() == BLE_DIR_CONN)
+    //changed check for BLE_CONN_IDLE instead of incorrect BLE_DIR_CONN for no pending connection
+    if (btm_ble_get_conn_st() == BLE_CONN_IDLE)
     {
         L2CAP_TRACE_WARNING0 ("L2CA_CancelBleConnectReq - no connection pending");
         return(FALSE);
@@ -195,6 +196,42 @@ BOOLEAN L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, BOOLEAN enable)
 
     return (TRUE);
 }
+
+/*******************************************************************************
+**
+** Function         L2CA_HandleConnUpdateEvent
+**
+** Description      This function enables the connection update request from remote
+**                  after a successful connection update response is received.
+**
+** Returns          void
+**
+*******************************************************************************/
+void L2CA_HandleConnUpdateEvent (UINT16 handle, UINT8 status)
+{
+    tL2C_LCB *p_lcb;
+    BD_ADDR rem_bda;
+
+    L2CAP_TRACE_DEBUG0("L2CA_HandleConnUpdateEvent");
+    if(status!=HCI_SUCCESS)//no action to be taken
+    {
+        L2CAP_TRACE_WARNING1("L2CA_EnableUpdateBleConnParams: connection update complete event recvd without success, status: %d", status);
+        return;
+    }
+
+    /* See if we have a link control block for the remote device */
+    p_lcb = l2cu_find_lcb_by_handle(handle);
+    if(!p_lcb)
+    {
+        L2CAP_TRACE_WARNING1("L2CA_EnableUpdateBleConnParams: Invalid handle: %d", handle);
+        return;
+    }
+    memcpy(rem_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN);
+    L2CAP_TRACE_DEBUG1("L2CA_HandleConnUpdateEvent: upd_disabled=%d",p_lcb->upd_disabled);
+    if(p_lcb->upd_disabled == UPD_UPDATED)
+        L2CA_EnableUpdateBleConnParams (rem_bda, TRUE);
+}
+
 
 /*******************************************************************************
 **
@@ -569,6 +606,8 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
     {
         p_lcb->link_state = LST_CONNECTING;
         memcpy (l2cb.ble_connecting_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN);
+        //Assigning below variable which is checked at LE conn cancel
+        l2cb.is_ble_connecting=TRUE;
         btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_BLE_LINK_CONNECT_TOUT);
         btm_ble_set_conn_st (BLE_DIR_CONN);
 

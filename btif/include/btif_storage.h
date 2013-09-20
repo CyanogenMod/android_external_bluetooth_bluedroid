@@ -236,9 +236,23 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
                                                     UINT16 attr_mask, UINT8 sub_class,
                                                     UINT8 app_id, UINT16 vendor_id,
                                                     UINT16 product_id, UINT16 version,
-                                                    UINT8 ctry_code, UINT8 ssr_max_lat,
-                                                    UINT8 ssr_min_tout, UINT16 dl_len,
-                                                    UINT8 *dsc_list);
+                                                    UINT8 ctry_code, UINT16 ssr_max_lat,
+                                                    UINT16 ssr_min_tout, UINT16 dl_len,
+                                                    UINT8 *dsc_list, INT16 priority);
+
+/*******************************************************************************
+**
+** Function         btif_storage_add_device_priority
+**
+** Description      BTIF storage API - Adds the priority of remote devices-to NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the store was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+
+bt_status_t btif_storage_add_device_priority(bt_bdaddr_t *remote_bd_addr,
+                                                    INT16 priority);
 
 /*******************************************************************************
 **

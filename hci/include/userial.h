@@ -58,6 +58,8 @@ typedef enum {
     USERIAL_OP_INIT,
     USERIAL_OP_RXFLOW_ON,
     USERIAL_OP_RXFLOW_OFF,
+    USERIAL_OP_CLK_ON,
+    USERIAL_OP_CLK_OFF,
 } userial_ioctl_op_t;
 
 /******************************************************************************

@@ -53,7 +53,7 @@
 
 /* Stack preload process timeout period  */
 #ifndef PRELOAD_START_TIMEOUT_MS
-#define PRELOAD_START_TIMEOUT_MS 3000  // 3 seconds
+#define PRELOAD_START_TIMEOUT_MS 5000  // 5 seconds
 #endif
 
 /* Stack preload process maximum retry attempts  */
@@ -77,7 +77,7 @@ typedef struct
 ******************************************************************************/
 BOOLEAN hci_logging_enabled = FALSE;    /* by default, turn hci log off */
 char hci_logfile[256] = HCI_LOGGING_FILENAME;
-
+BOOLEAN hci_ssp_debug_enabled = FALSE; /* by default, turn ssp debug off */
 
 /*******************************************************************************
 **  Static variables

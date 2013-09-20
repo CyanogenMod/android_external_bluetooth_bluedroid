@@ -54,6 +54,8 @@ extern BOOLEAN BTA_PRM_CHECK_FW_VER(UINT8 *p);
 #define TT_DEV_RESET_MASK 0xff
 #endif
 
+extern BOOLEAN hci_ssp_debug_enabled;
+
 /********************************************************************************/
 /*                 L O C A L    D A T A    D E F I N I T I O N S                */
 /********************************************************************************/
@@ -1195,6 +1197,8 @@ static void btm_issue_host_support_for_lmp_features (void)
     if (btm_cb.devcb.lmp_features_host_may_support & BTM_HOST_MAY_SUPP_SSP)
     {
         btsnd_hcic_write_simple_pairing_mode(HCI_SP_MODE_ENABLED);
+        if (hci_ssp_debug_enabled == TRUE)
+            btsnd_hcic_write_simp_pair_debug_mode(HCI_SPD_MODE_ENABLED);
         return;
     }
 

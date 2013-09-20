@@ -84,7 +84,7 @@ BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 attr
         return started;
     }
 
-    btm_suspend_wl_activity(wl_state);
+    btm_suspend_wl_activity(attr);
 
     if (p_dev_rec != NULL &&
         p_dev_rec->device_type == BT_DEVICE_TYPE_BLE)
@@ -123,7 +123,7 @@ BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 attr
             started = btsnd_hcic_ble_remove_from_white_list (addr_type, bd_addr);
     }
 
-    btm_resume_wl_activity(wl_state);
+    btm_resume_wl_activity(attr);
 
     return started;
 }
@@ -264,10 +264,34 @@ BOOLEAN btm_update_bg_conn_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 *p_attr_t
             ret = TRUE;
             break;
         }
+        else if (memcmp(p_bg_dev->bd_addr, bd_addr, BD_ADDR_LEN) == 0)
+        {
+            if (to_add) {
+                p_bg_dev->attr |= white_list_type;
+            }
+            else {
+                p_bg_dev->attr &=  ~white_list_type;
+            }
+
+            if (p_bg_dev->attr == 0)
+            {
+                memset(p_bg_dev, 0, sizeof(tBTM_LE_BG_CONN_DEV));
+                p_cb->bg_dev_num --;
+                p_cur = p_bg_dev;
+                p_next = p_bg_dev + 1;
+                BTM_TRACE_DEBUG0("Removing white list entry when p_bg_dev not in use");
+                for (j = i + 1 ;j < BTM_BLE_MAX_BG_CONN_DEV_NUM && p_next->in_use ; j ++, p_cur ++, p_next ++ )
+                    memcpy(p_cur, p_next, sizeof(tBTM_LE_BG_CONN_DEV));
+            }
+            ret = TRUE;
+            break;
+        }
     }
 
-    if (i != BTM_BLE_MAX_BG_CONN_DEV_NUM)
+    if (i != BTM_BLE_MAX_BG_CONN_DEV_NUM) {
+        p_bg_dev->attr |= white_list_type;
         *p_attr_tag = p_bg_dev->attr;
+    }
 
     return ret;
 }

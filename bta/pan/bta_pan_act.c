@@ -42,6 +42,40 @@
 #define BTA_PAN_TX_MASK              0xF0
 
 /*******************************************************************************
+ **
+ ** Function    bta_pan_pm_conn_busy
+ **
+ ** Description set pm connection busy state
+ **
+ ** Params      p_scb: state machine control block of pan connection
+ **
+ ** Returns     void
+ **
+ *******************************************************************************/
+static void bta_pan_pm_conn_busy(tBTA_PAN_SCB *p_scb)
+{
+    if ((p_scb != NULL) && (p_scb->state != BTA_PAN_IDLE_ST))
+        bta_sys_busy(BTA_ID_PAN, p_scb->app_id, p_scb->bd_addr);
+}
+
+/*******************************************************************************
+ **
+ ** Function    bta_pan_pm_conn_busy
+ **
+ ** Description set pm connection idle state
+ **
+ ** Params      p_scb: state machine control block of pan connection
+ **
+ ** Returns     void
+ **
+ *******************************************************************************/
+static void bta_pan_pm_conn_idle(tBTA_PAN_SCB *p_scb)
+{
+    if ((p_scb != NULL) && (p_scb->state != BTA_PAN_IDLE_ST))
+        bta_sys_idle(BTA_ID_PAN, p_scb->app_id, p_scb->bd_addr);
+}
+
+/*******************************************************************************
 **
 ** Function         bta_pan_conn_state_cback
 **
@@ -620,12 +654,14 @@ void bta_pan_tx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
     /* if data path configured for tx pull */
     if ((bta_pan_cb.flow_mask & BTA_PAN_TX_MASK) == BTA_PAN_TX_PULL)
     {
+        bta_pan_pm_conn_busy(p_scb);
         /* call application callout function for tx path */
         bta_pan_co_tx_path(p_scb->handle, p_scb->app_id);
 
         /* free data that exceeds queue level */
         while(p_scb->data_queue.count > bta_pan_cb.q_level)
             GKI_freebuf(GKI_dequeue(&p_scb->data_queue));
+        bta_pan_pm_conn_idle(p_scb);
     }
     /* if configured for zero copy push */
     else if ((bta_pan_cb.flow_mask & BTA_PAN_TX_MASK) == BTA_PAN_TX_PUSH_BUF)
@@ -697,6 +733,7 @@ void bta_pan_write_buf(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 {
     if ((bta_pan_cb.flow_mask & BTA_PAN_RX_MASK) == BTA_PAN_RX_PUSH_BUF)
     {
+        bta_pan_pm_conn_busy(p_scb);
 
         PAN_WriteBuf (p_scb->handle,
                       ((tBTA_PAN_DATA_PARAMS *)p_data)->dst,
@@ -704,6 +741,7 @@ void bta_pan_write_buf(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
                       ((tBTA_PAN_DATA_PARAMS *)p_data)->protocol,
                       (BT_HDR *)p_data,
                       ((tBTA_PAN_DATA_PARAMS *)p_data)->ext);
+        bta_pan_pm_conn_idle(p_scb);
 
     }
 }
