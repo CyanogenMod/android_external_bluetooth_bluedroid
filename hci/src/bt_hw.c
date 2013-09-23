@@ -41,7 +41,9 @@
 extern tHCI_IF *p_hci_if;
 extern uint8_t fwcfg_acked;
 void lpm_vnd_cback(uint8_t vnd_result);
+#ifdef QCOM_BT_SIBS_ENABLE
 void lpm_vnd_sleep_func(uint8_t vnd_result);
+#endif
 
 /******************************************************************************
 **  Variables
@@ -110,6 +112,7 @@ static void lpm_vnd_cb(bt_vendor_op_result_t result)
     lpm_vnd_cback(status);
 }
 
+#ifdef QCOM_BT_SIBS_ENABLE
 /******************************************************************************
 **
 ** Function         lpm_vnd_set_state_cb
@@ -127,6 +130,7 @@ static void lpm_vnd_set_state_cb(bt_vendor_lpm_wake_state_t state)
 
     lpm_vnd_sleep_func(state);
 }
+#endif
 
 /******************************************************************************
 **
@@ -211,8 +215,10 @@ static const bt_vendor_callbacks_t vnd_callbacks = {
     alloc,
     dealloc,
     xmit_cb,
-    epilog_cb,
-    lpm_vnd_set_state_cb
+    epilog_cb
+#ifdef QCOM_BT_SIBS_ENABLE
+    ,lpm_vnd_set_state_cb
+#endif
 };
 
 /******************************************************************************
