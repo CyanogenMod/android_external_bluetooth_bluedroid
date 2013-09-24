@@ -1499,7 +1499,7 @@ bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size)
 
     if (!btif_config_exist("Local", BTIF_STORAGE_HL_APP, BTIF_STORAGE_HL_APP_CB))
     {
-        memset(value, value_size, 0);
+        memset(value, 0, value_size);
         if (!btif_config_set("Local", BTIF_STORAGE_HL_APP,BTIF_STORAGE_HL_APP_CB,
                              value, value_size, BTIF_CFG_TYPE_BIN))
         {
