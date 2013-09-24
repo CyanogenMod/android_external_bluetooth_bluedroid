@@ -455,6 +455,14 @@ static void btif_recv_ctrl_data(void)
             }
             break;
 
+        case A2DP_CTRL_CMD_CHECK_STREAM_STARTED:
+
+            if((btif_av_stream_started_ready() == TRUE))
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+            else
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+            break;
+
         case A2DP_CTRL_CMD_START:
 
             if (btif_av_stream_ready() == TRUE)
