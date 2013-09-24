@@ -672,21 +672,11 @@ void* timer_thread(void *arg)
         /* Save the current time for next iteration */
         previous = current;
 
-        timeout.tv_sec = 0;
-
-        /* Sleep until next theoretical tick time.  In case of excessive
-           elapsed time since last theoretical tick expiration, it is
-           possible that the timeout value is negative.  To protect
-           against this error, we set minimum sleep time to 10% of the
-           tick period.  We indicate to compiler that this is unlikely to
-           happen (to help branch prediction) */
-
-        if (__unlikely(timeout_ns < ((GKI_TICKS_TO_MS(1) * 1000000) * 0.1)))
+        if (__unlikely(timeout_ns <= 0))
         {
-            timeout.tv_nsec = (GKI_TICKS_TO_MS(1) * 1000000) * 0.1;
-
-            /* Print error message if tick really got delayed
-               (more than 5 ticks) */
+            /* Don't sleep at all if we missed the tick and print an
+               error message if we missed it by a lot of ticks.
+             */
             if (timeout_ns < GKI_TICKS_TO_MS(-5) * 1000000)
             {
                 GKI_ERROR_LOG("tick delayed > 5 slots (%d,%d) -- cpu overload ? ",
@@ -695,14 +685,15 @@ void* timer_thread(void *arg)
         }
         else
         {
+            timeout.tv_sec = 0;
             timeout.tv_nsec = timeout_ns;
-        }
 
-        do
-        {
-            /* [u]sleep can't be used because it uses SIGALRM */
-            err = nanosleep(&timeout, &timeout);
-        } while (err < 0 && errno == EINTR);
+            do
+            {
+                /* [u]sleep can't be used because it uses SIGALRM */
+                err = nanosleep(&timeout, &timeout);
+            } while (err < 0 && errno == EINTR);
+        }
 
         /* Increment the GKI time value by one tick and update internal timers */
         GKI_timer_update(1);
