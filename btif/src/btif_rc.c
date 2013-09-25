@@ -138,7 +138,7 @@ static const struct {
     { "FORWARD",      AVRC_ID_FORWARD,  KEY_NEXTSONG,     0 },
     { "BACKWARD",     AVRC_ID_BACKWARD, KEY_PREVIOUSSONG, 0 },
     { "REWIND",       AVRC_ID_REWIND,   KEY_REWIND,       0 },
-    { "FAST FORWARD", AVRC_ID_FAST_FOR, KEY_FORWARD, 0 },
+    { "FAST FORWARD", AVRC_ID_FAST_FOR, KEY_FAST_FORWARD, 0 },
     { NULL,           0,                0,                0 }
 };
 
