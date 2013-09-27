@@ -373,10 +373,12 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         case BTIF_GATT_OBSERVE_EVT:
         {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
-            if (!btif_gattc_find_bdaddr(p_btif_cb->bd_addr.address))
-            {
-                btif_gattc_add_remote_bdaddr(p_btif_cb->bd_addr.address, p_btif_cb->addr_type);
-                btif_gattc_update_properties(p_btif_cb);
+            if (p_btif_cb->addr_type != BLE_ADDR_RANDOM) {
+               if (!btif_gattc_find_bdaddr(p_btif_cb->bd_addr.address))
+               {
+                  btif_gattc_add_remote_bdaddr(p_btif_cb->bd_addr.address, p_btif_cb->addr_type);
+                  btif_gattc_update_properties(p_btif_cb);
+               }
             }
             HAL_CBACK(bt_gatt_callbacks, client->scan_result_cb,
                       &p_btif_cb->bd_addr, p_btif_cb->rssi, p_btif_cb->value);
