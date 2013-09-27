@@ -110,6 +110,8 @@ static btif_core_state_t btif_core_state = BTIF_CORE_STATE_DISABLED;
 
 static int btif_shutdown_pending = 0;
 static tBTA_SERVICE_MASK btif_enabled_services = 0;
+static int btif_data_profile_registered = 0;
+static int btif_pending_mode = BT_SCAN_MODE_NONE;
 
 /*
 * This variable should be set to 1, if the Bluedroid+BTIF libraries are to
@@ -1247,6 +1249,14 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
 
                 BTIF_TRACE_EVENT1("set property scan mode : %x", mode);
 
+                if (!btif_data_profile_registered && mode != BT_SCAN_MODE_NONE)
+                {
+                    btif_pending_mode = mode;
+                    BTIF_TRACE_DEBUG0("btif_set_adapter_property: not setting connectable mode, "
+                        "as data profiles are not yet registered. Mode will be set when "
+                        "data profile(s) are registered");
+                    return BT_STATUS_SUCCESS;
+                }
                 BTA_DmSetVisibility(disc_mode, conn_mode, BTA_DM_IGNORE, BTA_DM_IGNORE);
 
                 storage_req_id = BTIF_CORE_STORAGE_ADAPTER_WRITE;
@@ -1472,4 +1482,26 @@ bt_status_t btif_disable_service(tBTA_SERVICE_ID service_id)
     }
 
     return BT_STATUS_SUCCESS;
+}
+
+void btif_data_profile_register(int value)
+{
+    bt_property_t property;
+    int val;
+
+    if (value == btif_data_profile_registered || btif_pending_mode == BT_SCAN_MODE_NONE)
+        return;
+
+    BTIF_TRACE_EVENT2("%s: Data profile registration = %d", __FUNCTION__, value);
+    btif_data_profile_registered = value;
+    if (btif_data_profile_registered)
+    {
+        property.type = BT_PROPERTY_ADAPTER_SCAN_MODE;
+        val = btif_pending_mode;
+        property.val = &val;;
+        property.len = (sizeof(int));
+        /* Reset pending mode to None */
+        btif_pending_mode == BT_SCAN_MODE_NONE;
+        btif_set_adapter_property(&property);
+    }
 }
