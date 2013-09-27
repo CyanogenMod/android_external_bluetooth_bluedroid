@@ -4520,7 +4520,8 @@ void bta_dm_encrypt_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
     tBTA_STATUS   bta_status = BTA_SUCCESS;
     tBTA_DM_ENCRYPT_CBACK *p_callback = bta_dm_cb.p_encrypt_cback;
 
-    bta_dm_cb.p_encrypt_cback = NULL;
+    APPL_TRACE_DEBUG1("bta_dm_encrypt_cback: returned result: 0x%x", result);
+    //bta_dm_cb.p_encrypt_cback = NULL;
     switch (result)
     {
         case BTM_SUCCESS:
@@ -4565,12 +4566,12 @@ void bta_dm_set_encryption (tBTA_DM_MSG *p_data)
         return;
     }
 
-    if (bta_dm_cb.p_encrypt_cback)
-    {
-        (*p_data->set_encryption.p_callback)(p_data->set_encryption.bd_addr, BTA_BUSY);
-        APPL_TRACE_ERROR0("bta_dm_set_encryption status is BTA_BUSY.");
-        return;
-    }
+   // if (bta_dm_cb.p_encrypt_cback)
+   // {
+   //     (*p_data->set_encryption.p_callback)(p_data->set_encryption.bd_addr, BTA_BUSY);
+   //     APPL_TRACE_ERROR0("bta_dm_set_encryption status is BTA_BUSY.");
+   //     return;
+   // }
 
 
     bta_dm_cb.p_encrypt_cback = p_data->set_encryption.p_callback;
