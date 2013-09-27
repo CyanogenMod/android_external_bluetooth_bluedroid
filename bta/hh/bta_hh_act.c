@@ -819,8 +819,6 @@ void bta_hh_close_act (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     /* otherwise report CLOSE/VC_UNPLUG event */
     else
     {
-        /* finaliza device driver */
-        bta_hh_co_close(p_cb->hid_handle, p_cb->app_id);
         /* inform role manager */
         bta_sys_conn_close( BTA_ID_HH ,p_cb->app_id, p_cb->addr);
         /* update total conn number */
