@@ -4802,7 +4802,38 @@ extern UINT8 btif_trace_level;
 #define DRV_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)     APPL_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)
 #define DRV_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)  APPL_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)
 
+/* Simplified Trace Helper Macro
+*/
+#if (BT_USE_TRACES == TRUE)
+#define bdld(fmt, ...) \
+    do{\
+        if((MY_LOG_LEVEL) >= BT_TRACE_LEVEL_DEBUG) \
+            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_DEBUG, "%s(L%d): " fmt, __FUNCTION__, __LINE__,  ## __VA_ARGS__); \
+    }while(0)
 
+#define bdlw(fmt, ...) \
+    do{\
+        if((MY_LOG_LEVEL) >= BT_TRACE_LEVEL_DEBUG) \
+            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_WARNING, "%s(L%d): " fmt, __FUNCTION__, __LINE__,  ## __VA_ARGS__); \
+    }while(0)
+
+#define bdle(fmt, ...) \
+    do{\
+        if((MY_LOG_LEVEL) >= BT_TRACE_LEVEL_DEBUG) \
+            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_ERROR, "%s(L%d): " fmt, __FUNCTION__, __LINE__,  ## __VA_ARGS__); \
+    }while(0)
+
+#define bdla(assert_if) \
+    do{\
+        if(((MY_LOG_LEVEL) >= BT_TRACE_LEVEL_ERROR) && !(assert_if)) \
+            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_ERROR, "%s(L%d): assert failed: " #assert_if, __FUNCTION__, __LINE__); \
+    }while(0)
+#else
+#define bdld(fmt, ...)  ((void)0) /*Empty statement as placeholder*/
+#define bdlw(fmt, ...)  ((void)0)
+#define bdle(fmt, ...)  ((void)0)
+#define bdla(assert_if) ((void)0)
+#endif
 #endif /* BT_TRACE_H */
 
 
