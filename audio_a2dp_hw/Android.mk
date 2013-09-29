@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-ifeq ($(TARGET_QCOM_AUDIO_VARIANT),caf)
+ifneq ($(filter caf bfam,$(TARGET_QCOM_AUDIO_VARIANT)),)
 	LOCAL_CFLAGS += -DSAMPLE_RATE_48K
 endif
 
