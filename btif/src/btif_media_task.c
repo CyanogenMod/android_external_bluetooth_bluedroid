@@ -844,9 +844,10 @@ void btif_a2dp_on_open(void)
 **
 *******************************************************************************/
 
-void btif_a2dp_on_started(tBTA_AV_START *p_av)
+BOOLEAN btif_a2dp_on_started(tBTA_AV_START *p_av, BOOLEAN pending_start)
 {
     tBTIF_STATUS status;
+    BOOLEAN ack = FALSE;
 
     APPL_TRACE_EVENT0("## ON A2DP STARTED ##");
 
@@ -854,7 +855,7 @@ void btif_a2dp_on_started(tBTA_AV_START *p_av)
     {
         /* ack back a local start request */
         a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
-        return;
+        return TRUE;
     }
 
     if (p_av->status == BTA_AV_SUCCESS)
@@ -863,7 +864,10 @@ void btif_a2dp_on_started(tBTA_AV_START *p_av)
         {
             if (p_av->initiator)
             {
-                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+                if (pending_start) {
+                    a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+                    ack = TRUE;
+                }
             }
             else
             {
@@ -875,10 +879,12 @@ void btif_a2dp_on_started(tBTA_AV_START *p_av)
             /* media task is autostarted upon a2dp audiopath connection */
         }
     }
-    else
+    else if (pending_start)
     {
         a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+        ack = TRUE;
     }
+    return ack;
 }
 
 

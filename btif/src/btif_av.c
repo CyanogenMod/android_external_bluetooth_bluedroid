@@ -491,14 +491,21 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             if ((p_av->start.status == BTA_SUCCESS) && (p_av->start.suspending == TRUE))
                 return TRUE;
 
-            btif_av_cb.flags &= ~BTIF_AV_FLAG_PENDING_START;
-            btif_a2dp_on_started(&p_av->start);
+            if (btif_a2dp_on_started(&p_av->start,
+                ((btif_av_cb.flags & BTIF_AV_FLAG_PENDING_START) != 0))) {
+                /* only clear pending flag after acknowledgement */
+                btif_av_cb.flags &= ~BTIF_AV_FLAG_PENDING_START;
+            }
 
             /* remain in open state if status failed */
             if (p_av->start.status != BTA_AV_SUCCESS)
                 return FALSE;
 
-            /* change state to started */
+            /* change state to started, send acknowledgement if start is pending */
+            if (btif_av_cb.flags & BTIF_AV_FLAG_PENDING_START) {
+                btif_a2dp_on_started(NULL, TRUE);
+                /* pending start flag will be cleared when exit current state */
+            }
             btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_STARTED);
 
         } break;
@@ -520,6 +527,11 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             HAL_CBACK(bt_av_callbacks, connection_state_cb,
                 BTAV_CONNECTION_STATE_DISCONNECTED, &(btif_av_cb.peer_bda));
 
+            /* change state to idle, send acknowledgement if start is pending */
+            if (btif_av_cb.flags & BTIF_AV_FLAG_PENDING_START) {
+                btif_a2dp_ack_fail();
+                /* pending start flag will be cleared when exit current state */
+            }
             btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
             break;
 
@@ -581,7 +593,7 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
 
         case BTIF_AV_START_STREAM_REQ_EVT:
             /* we were remotely started, just ack back the local request */
-            btif_a2dp_on_started(NULL);
+            btif_a2dp_on_started(NULL, TRUE);
             break;
 
         /* fixme -- use suspend = true always to work around issue with BTA AV */
