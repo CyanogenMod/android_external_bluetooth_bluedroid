@@ -59,6 +59,7 @@
 #define RESERVED_SCN_PBS 19
 #define RESERVED_SCN_SAP 15
 #define RESERVED_SCN_OPS 12
+#define RESERVED_SCN_DUN 25
 
 #define UUID_MAX_LENGTH 16
 
@@ -567,6 +568,58 @@ static int add_sap_sdp(const char *p_service_name, int scn)
     return sdp_handle;
 }
 
+#define BTA_DUN_PROTOCOL_COUNT    2
+#define BTA_DUN_SERV_CLASS_COUNT  2
+
+static int add_dun_sdp(const char *p_service_name, int scn)
+{
+    tSDP_PROTOCOL_ELEM  protoList [BTA_DUN_PROTOCOL_COUNT];
+    UINT16      servclass[BTA_DUN_SERV_CLASS_COUNT];
+    int         i, j;
+    tBTA_UTL_COD cod;
+    UINT16      browse;
+    UINT32 sdp_handle;
+
+    APPL_TRACE_DEBUG2("scn %d, service name %s", scn, p_service_name);
+
+    sdp_handle = SDP_CreateRecord();
+    servclass[0] = UUID_SERVCLASS_DIALUP_NETWORKING;
+    servclass[1] = UUID_SERVCLASS_GENERIC_NETWORKING;
+
+    /* add service class */
+    if (SDP_AddServiceClassIdList(sdp_handle, BTA_DUN_SERV_CLASS_COUNT, servclass))
+    {
+        /* add protocol list, including RFCOMM scn */
+        protoList[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
+        protoList[0].num_params = 0;
+        protoList[1].protocol_uuid = UUID_PROTOCOL_RFCOMM;
+        protoList[1].num_params = 1;
+        protoList[1].params[0] = scn;
+
+        if (SDP_AddProtocolList(sdp_handle, BTA_DUN_PROTOCOL_COUNT, protoList))
+        {
+            SDP_AddAttribute(sdp_handle,
+               (UINT16)ATTR_ID_SERVICE_NAME,
+                (UINT8)TEXT_STR_DESC_TYPE,
+                (UINT32)(strlen(p_service_name) + 1),
+                (UINT8 *)p_service_name);
+
+            SDP_AddProfileDescriptorList(sdp_handle,
+                UUID_SERVCLASS_DIALUP_NETWORKING,
+                0x0101);
+        }
+    }
+
+    /* Make the service browseable */
+    browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    SDP_AddUuidSequence (sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, &browse);
+
+    bta_sys_add_uuid(servclass[0]); /* UUID_SERVCLASS_DIALUP_NETWORKING */
+
+    return sdp_handle;
+}
+
+
 static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
 {
     int handle = 0;
@@ -613,6 +666,10 @@ static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
     {
         handle = add_sap_sdp(name, final_scn);
     }
+    else if (IS_UUID(UUID_DUN, uuid))
+    {
+        handle = add_dun_sdp(name, final_scn);
+    }
     else
     {
         handle = add_sdp_by_uuid(name, uuid, final_scn);
@@ -627,6 +684,7 @@ BOOLEAN is_reserved_rfc_channel(int scn)
         case RESERVED_SCN_PBS:
         case RESERVED_SCN_OPS:
         case RESERVED_SCN_SAP:
+        case RESERVED_SCN_DUN:
             return TRUE;
     }
     return FALSE;
@@ -646,6 +704,10 @@ int get_reserved_rfc_channel (const uint8_t* uuid)
     else if (IS_UUID(UUID_SAP,uuid))
     {
       return RESERVED_SCN_SAP;
+    }
+    else if (IS_UUID(UUID_DUN,uuid))
+    {
+      return RESERVED_SCN_DUN;
     }
     return -1;
 }
@@ -672,6 +734,9 @@ int add_rfc_sdp_rec(const char* name, const uint8_t* uuid, int scn)
                 break;
              case RESERVED_SCN_SAP:
                 uuid = UUID_SAP;
+                break;
+             case RESERVED_SCN_DUN:
+                uuid = UUID_DUN;
                 break;
             default:
                 uuid = UUID_SPP;
