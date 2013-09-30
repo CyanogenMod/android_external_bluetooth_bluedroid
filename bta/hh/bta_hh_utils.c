@@ -335,7 +335,7 @@ void bta_hh_parse_keybd_rpt(tBTA_HH_BOOT_RPT *p_kb_data, UINT8 *p_report,
         APPL_TRACE_DEBUG1("found keycode %02x ",  this_report[xx]);
 #endif
         p_data->caps_lock   = p_kb->caps_lock;
-        p_kb->num_lock      = p_kb->num_lock;
+        p_data->num_lock      = p_kb->num_lock;
     }
 
     memset (p_kb->last_report, 0, BTA_HH_MAX_RPT_CHARS);
