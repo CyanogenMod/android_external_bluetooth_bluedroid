@@ -19,8 +19,12 @@ LOCAL_SRC_FILES += \
         src/userial.c \
         src/userial_mct.c \
         src/hci_mct.c \
-        src/hci_h4.c\
-        src/hci_ibs.c
+        src/hci_h4.c
+
+ifeq ($(QCOM_BT_USE_SIBS),true)
+LOCAL_SRC_FILES += src/hci_ibs.c
+LOCAL_CFLAGS += -DQCOM_BT_SIBS_ENABLE
+endif
 
 LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/include \
