@@ -118,7 +118,84 @@ static int add_sdp_by_uuid(const char *name,  const uint8_t *service_uuid, UINT1
     return 0;
 }
 
+#define BTA_FTP_DEFAULT_VERSION 0x0101  /* for FTP version 1.1 */
+static int add_ftp_sdp(const char* p_service_name, int scn)
+{
+    tSDP_PROTOCOL_ELEM  protoList [3];
+    UINT16              ftp_service = UUID_SERVCLASS_OBEX_FILE_TRANSFER ;
+    UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    BOOLEAN             status = FALSE;
+    UINT32              sdp_handle = 0;
+    int ftppsm = 0x1489;
 
+    APPL_TRACE_DEBUG2("scn %d, service name %s", scn, p_service_name);
+
+    sdp_handle = SDP_CreateRecord();
+    if (sdp_handle == 0)
+    {
+        APPL_TRACE_ERROR0("FTP SERVER SDP: Unable to register FTP SERVER Service");
+        return sdp_handle;
+    }
+
+    /* add service class */
+    if (SDP_AddServiceClassIdList(sdp_handle, 1, &ftp_service))
+    {
+        memset( protoList, 0 , 3*sizeof(tSDP_PROTOCOL_ELEM) );
+        /* add protocol list, including RFCOMM scn */
+        protoList[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
+        protoList[0].num_params = 0;
+        protoList[1].protocol_uuid = UUID_PROTOCOL_RFCOMM;
+        protoList[1].num_params = 1;
+        protoList[1].params[0] = scn;
+        protoList[2].protocol_uuid = UUID_PROTOCOL_OBEX;
+        protoList[2].num_params = 0;
+
+        if (SDP_AddProtocolList(sdp_handle, 3, protoList))
+        {
+            status = TRUE;  /* All mandatory fields were successful */
+
+            /* optional:  if name is not "", add a name entry */
+            if (*p_service_name != '\0')
+                SDP_AddAttribute(sdp_handle,
+                                 (UINT16)ATTR_ID_SERVICE_NAME,
+                                 (UINT8)TEXT_STR_DESC_TYPE,
+                                 (UINT32)(strlen(p_service_name) + 1),
+                                 (UINT8 *)p_service_name);
+
+            /* Add in the Bluetooth Profile Descriptor List */
+            SDP_AddProfileDescriptorList(sdp_handle,
+                                             UUID_SERVCLASS_OBEX_FILE_TRANSFER,
+                                             BTA_FTP_DEFAULT_VERSION);
+
+        } /* end of setting mandatory protocol list */
+    } /* end of setting mandatory service class */
+
+    /* Add other attributes*/
+    if (status)
+    {
+
+          //NOT REQUIRED: ATTR_ID_OBX_OVR_L2CAP_PSM ?
+         /* SDP_AddAttribute(sdp_handle, ATTR_ID_OBX_OVR_L2CAP_PSM , UINT_DESC_TYPE,
+                  (UINT32)1, (UINT8*)&ftppsm);*/
+
+        /* Make the service browseable */
+        SDP_AddUuidSequence (sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, &browse);
+    }
+
+    if (!status)
+    {
+        SDP_DeleteRecord(sdp_handle);
+        sdp_handle = 0;
+        APPL_TRACE_ERROR0("bta_ftp_sdp_register FAILED");
+    }
+    else
+    {
+        bta_sys_add_uuid(ftp_service);  /* UUID_SERVCLASS_OBE_FILE_TRANSFER */
+        APPL_TRACE_DEBUG1("FTP:  SDP Registered (handle 0x%08x)", sdp_handle);
+    }
+
+    return sdp_handle;
+}
 /* Realm Character Set */
 #define BTA_PBS_REALM_CHARSET   0       /* ASCII */
 
@@ -486,6 +563,10 @@ static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
     {
         handle = add_maps_sdp(name, final_scn); //MAP Server is always 19
     }
+    else if (IS_UUID(UUID_FTP, uuid))
+    {
+        handle = add_ftp_sdp(name, final_scn);
+    }
     else if (IS_UUID(UUID_SPP, uuid))
     {
         handle = add_spp_sdp(name, final_scn);
@@ -534,6 +615,9 @@ int add_rfc_sdp_rec(const char* name, const uint8_t* uuid, int scn)
                 break;
              case RESERVED_SCN_OPS:
                 uuid = UUID_OBEX_OBJECT_PUSH;
+                break;
+             case RESERVED_SCN_FTP:
+                uuid = UUID_FTP;
                 break;
             default:
                 uuid = UUID_SPP;
