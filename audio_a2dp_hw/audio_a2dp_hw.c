@@ -137,6 +137,7 @@ static const char* dump_a2dp_ctrl_event(char event)
         CASE_RETURN_STR(A2DP_CTRL_CMD_START)
         CASE_RETURN_STR(A2DP_CTRL_CMD_STOP)
         CASE_RETURN_STR(A2DP_CTRL_CMD_SUSPEND)
+        CASE_RETURN_STR(A2DP_CTRL_CMD_CHECK_STREAM_STARTED)
         default:
             return "UNKNOWN MSG ID";
     }
@@ -439,6 +440,19 @@ static int check_a2dp_ready(struct a2dp_stream_out *out)
 }
 
 
+static int check_a2dp_stream_started(struct a2dp_stream_out *out)
+{
+   INFO("state %d", out->state);
+
+   if (a2dp_command(out, A2DP_CTRL_CMD_CHECK_STREAM_STARTED) < 0)
+   {
+       DEBUG("Btif not in stream state");
+       return -1;
+   }
+   return 0;
+}
+
+
 /*****************************************************************************
 **
 **  audio output callbacks
@@ -623,7 +637,15 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
             if (out->state == AUDIO_A2DP_STATE_STARTED)
                 retval = suspend_audio_datapath(out, false);
             else
-                out->state = AUDIO_A2DP_STATE_SUSPENDED;
+            {
+                if (check_a2dp_stream_started(out) == 0)
+                   /*Btif and A2dp HAL state can be out of sync
+                    *check state of btif and suspend audio.
+                    *Happens when remote initiates start.*/
+                    retval = suspend_audio_datapath(out, false);
+                else
+                    out->state = AUDIO_A2DP_STATE_SUSPENDED;
+            }
         }
         else
         {
