@@ -34,6 +34,13 @@
 #define GATT_READ_CHAR_VALUE_HDL    (GATT_READ_CHAR_VALUE | 0x80)
 #define GATT_READ_INC_SRV_UUID128   (GATT_DISC_INC_SRVC   | 0x90)
 
+#define GATT_PREP_WRITE_RSP_MIN_LEN 4
+#define GATT_NOTIFICATION_MIN_LEN 2
+#define GATT_WRITE_RSP_MIN_LEN  2
+#define GATT_INFO_RSP_MIN_LEN   1
+#define GATT_MTU_RSP_MIN_LEN    2
+#define GATT_READ_BY_TYPE_RSP_MIN_LEN    1
+
 /********************************************************************************
 **                       G L O B A L      G A T T       D A T A                 *
 *********************************************************************************/
@@ -444,6 +451,12 @@ void gatt_process_read_info_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op_c
     tGATT_DISC_RES  result;
     UINT8   *p = p_data, uuid_len = 0, type;
 
+    if (len < GATT_INFO_RSP_MIN_LEN)
+    {
+        GATT_TRACE_ERROR0("invalid Info Response PDU received, discard.");
+        gatt_end_operation(p_clcb, GATT_INVALID_PDU, NULL);
+        return;
+    }
     /* unexpected response */
     if (p_clcb->operation != GATTC_OPTYPE_DISCOVERY || p_clcb->op_subtype != GATT_DISC_CHAR_DSCPT)
         return;
@@ -583,6 +596,13 @@ void gatt_process_prep_write_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op
 
     GATT_TRACE_ERROR2("value resp op_code = %s len = %d", gatt_dbg_op_name(op_code), len);
 
+    if (len < GATT_PREP_WRITE_RSP_MIN_LEN)
+    {
+        GATT_TRACE_ERROR0("illegal prepare write response length, discard");
+        gatt_end_operation(p_clcb, GATT_INVALID_PDU, &value);
+        return;
+    }
+
     STREAM_TO_UINT16 (value.handle, p);
     STREAM_TO_UINT16 (value.offset, p);
 
@@ -627,6 +647,12 @@ void gatt_process_notification(tGATT_TCB *p_tcb, UINT8 op_code,
     event = (op_code == GATT_HANDLE_VALUE_NOTIF) ? GATTC_OPTYPE_NOTIFICATION : GATTC_OPTYPE_INDICATION;
 
     GATT_TRACE_DEBUG0("gatt_process_notification ");
+
+    if (len < GATT_NOTIFICATION_MIN_LEN)
+    {
+        GATT_TRACE_ERROR0("illegal notification PDU length, discard");
+        return;
+    }
 
     STREAM_TO_UINT16 (value.handle, p);
     value.len = len - 2;
@@ -707,6 +733,13 @@ void gatt_process_read_by_type_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 
     /* discovery procedure and no callback function registered */
     if (((!p_clcb->p_reg) || (!p_clcb->p_reg->app_cb.p_disc_res_cb)) && (p_clcb->operation == GATTC_OPTYPE_DISCOVERY))
         return;
+
+    if (len < GATT_READ_BY_TYPE_RSP_MIN_LEN)
+    {
+        GATT_TRACE_ERROR0("Illegal ReadByType/ReadByGroupType Response length, discard");
+        gatt_end_operation(p_clcb, GATT_INVALID_PDU, NULL);
+        return;
+    }
 
     STREAM_TO_UINT8(value_len, p);
 
@@ -979,16 +1012,9 @@ void gatt_process_read_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,  UINT8 op_code,
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_handle_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op_code, UINT16 len, UINT8 *p_data)
+void gatt_process_handle_rsp(tGATT_CLCB *p_clcb)
 {
-    UINT16      handle;
-    UINT8       * p= p_data;
-
-    STREAM_TO_UINT16(handle, p);
-    len -= 2;
-
-    if (op_code == GATT_RSP_WRITE)
-        gatt_end_operation(p_clcb, GATT_SUCCESS, NULL);
+    gatt_end_operation(p_clcb, GATT_SUCCESS, NULL);
 }
 /*******************************************************************************
 **
@@ -1003,13 +1029,22 @@ void gatt_process_handle_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op_code
 void gatt_process_mtu_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT16 len, UINT8 *p_data)
 {
     UINT16 mtu;
+    tGATT_STATUS    status = GATT_SUCCESS;
 
+    if (len < GATT_MTU_RSP_MIN_LEN)
+    {
+        GATT_TRACE_ERROR0("invalid MTU response PDU received, discard.");
+        status = GATT_INVALID_PDU;
+    }
+    else
+    {
     STREAM_TO_UINT16(mtu, p_data);
 
     if (mtu < p_tcb->payload_size && mtu >= GATT_DEF_BLE_MTU_SIZE)
         p_tcb->payload_size = mtu;
+    }
 
-    gatt_end_operation(p_clcb, p_clcb->status, NULL);
+    gatt_end_operation(p_clcb, status, NULL);
 }
 /*******************************************************************************
 **
@@ -1161,7 +1196,7 @@ void gatt_client_handle_server_rsp (tGATT_TCB *p_tcb, UINT8 op_code,
                 break;
 
             case GATT_RSP_WRITE:
-                gatt_process_handle_rsp(p_tcb, p_clcb, op_code, len, p_data);
+                gatt_process_handle_rsp(p_clcb);
                 break;
 
             case GATT_RSP_PREPARE_WRITE:
