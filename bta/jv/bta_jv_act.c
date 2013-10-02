@@ -1953,15 +1953,19 @@ static int bta_jv_port_data_co_cback(UINT16 port_handle, UINT8 *buf, UINT16 len,
 {
     tBTA_JV_RFC_CB  *p_cb = bta_jv_rfc_port_to_cb(port_handle);
     tBTA_JV_PCB     *p_pcb = bta_jv_rfc_port_to_pcb(port_handle);
-    APPL_TRACE_DEBUG3("bta_jv_port_data_co_cback, p_cb:%p, p_pcb:%p, len:%d",
-                        p_cb, p_pcb, len);
+    APPL_TRACE_DEBUG4("bta_jv_port_data_co_cback, p_cb:%p, p_pcb:%p, len:%d, type:%d",
+                        p_cb, p_pcb, len, type);
+    int ret = 0;
     if (p_pcb != NULL)
     {
         switch(type)
         {
             case DATA_CO_CALLBACK_TYPE_INCOMING:
-                bta_jv_pm_conn_busy(p_pcb->p_pm_cb);
-                return bta_co_rfc_data_incoming(p_pcb->user_data, (BT_HDR*)buf);
+                if(BTA_JV_PM_IDLE_ST == p_pcb->p_pm_cb->state)
+                    bta_jv_pm_conn_busy(p_pcb->p_pm_cb);
+                ret = bta_co_rfc_data_incoming(p_pcb->user_data, (BT_HDR*)buf);
+                bta_jv_pm_conn_idle(p_pcb->p_pm_cb);
+                return ret;
             case DATA_CO_CALLBACK_TYPE_OUTGOING_SIZE:
                 return bta_co_rfc_data_outgoing_size(p_pcb->user_data, (int*)buf);
             case DATA_CO_CALLBACK_TYPE_OUTGOING:
