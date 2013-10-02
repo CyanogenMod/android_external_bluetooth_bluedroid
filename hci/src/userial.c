@@ -276,14 +276,15 @@ static void *userial_read_thread(void *arg)
             continue;
         }
 
-
         if (rx_length > 0)
         {
             p_buf->len = (uint16_t)rx_length;
             utils_enqueue(&(userial_cb.rx_q), p_buf);
 
+#ifdef QCOM_BT_SIBS_ENABLE
             /* Check if received data is IBS data or not */
             is_recvd_data_signal(&p[0]);
+#endif
             bthc_signal_event(HC_EVENT_RX);
         }
         else /* either 0 or < 0 */

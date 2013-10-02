@@ -1438,6 +1438,7 @@ tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBTM_SEC_CBACK *p_callback,
     tACL_CONN         *p;
     p = btm_bda_to_acl(bd_addr);
 #endif
+    BTM_TRACE_EVENT0 ("Security Manager: BTM_SetEncryption");
 
     p_dev_rec = btm_find_dev (bd_addr);
     if (!p_dev_rec || (p_dev_rec->hci_handle == BTM_SEC_INVALID_HANDLE))
