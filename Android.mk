@@ -13,4 +13,4 @@ include $(call all-subdir-makefiles)
 
 # Cleanup our locals
 bdroid_C_INCLUDES :=
-bdroid_CFLaGS :=
+bdroid_CFLAGS :=

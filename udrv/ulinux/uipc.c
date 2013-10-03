@@ -66,6 +66,8 @@
 #define UIPC_LOCK() /*BTIF_TRACE_EVENT1(" %s lock", __FUNCTION__);*/ pthread_mutex_lock(&uipc_main.mutex);
 #define UIPC_UNLOCK() /*BTIF_TRACE_EVENT1("%s unlock", __FUNCTION__);*/ pthread_mutex_unlock(&uipc_main.mutex);
 
+#define SAFE_FD_ISSET(fd, set) (((fd) == -1) ? FALSE : FD_ISSET((fd), (set)))
+
 /*****************************************************************************
 **  Local type definitions
 ******************************************************************************/
@@ -318,7 +320,7 @@ static int uipc_check_fd_locked(tUIPC_CH_ID ch_id)
 
     //BTIF_TRACE_EVENT2("CHECK SRVFD %d (ch %d)", uipc_main.ch[ch_id].srvfd, ch_id);
 
-    if (FD_ISSET(uipc_main.ch[ch_id].srvfd, &uipc_main.read_set))
+    if (SAFE_FD_ISSET(uipc_main.ch[ch_id].srvfd, &uipc_main.read_set))
     {
         BTIF_TRACE_EVENT1("INCOMING CONNECTION ON CH %d", ch_id);
 
@@ -347,7 +349,7 @@ static int uipc_check_fd_locked(tUIPC_CH_ID ch_id)
 
     //BTIF_TRACE_EVENT2("CHECK FD %d (ch %d)", uipc_main.ch[ch_id].fd, ch_id);
 
-    if (FD_ISSET(uipc_main.ch[ch_id].fd, &uipc_main.read_set))
+    if (SAFE_FD_ISSET(uipc_main.ch[ch_id].fd, &uipc_main.read_set))
     {
         //BTIF_TRACE_EVENT1("INCOMING DATA ON CH %d", ch_id);
 
@@ -359,7 +361,7 @@ static int uipc_check_fd_locked(tUIPC_CH_ID ch_id)
 
 static void uipc_check_interrupt_locked(void)
 {
-    if (FD_ISSET(uipc_main.signal_fds[0], &uipc_main.read_set))
+    if (SAFE_FD_ISSET(uipc_main.signal_fds[0], &uipc_main.read_set))
     {
         char sig_recv = 0;
         //BTIF_TRACE_EVENT0("UIPC INTERRUPT");
