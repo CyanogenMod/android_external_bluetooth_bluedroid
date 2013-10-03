@@ -472,7 +472,7 @@ void bta_pan_open(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 
     status = PAN_Connect (p_data->api_open.bd_addr, p_data->api_open.local_role, p_data->api_open.peer_role,
                         &p_scb->handle);
-
+    APPL_TRACE_DEBUG("%s pan connect status: %d", __func__, status);
 
     if(status == PAN_SUCCESS)
     {
@@ -545,6 +545,8 @@ void bta_pan_conn_open(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 
     tBTA_PAN_OPEN data;
 
+    APPL_TRACE_DEBUG("%s pan connection result: %d", __func__, p_data->conn.result);
+
     bdcpy(data.bd_addr, p_scb->bd_addr);
     data.handle = p_scb->handle;
     data.local_role = p_scb->local_role;
@@ -554,18 +556,15 @@ void bta_pan_conn_open(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
     {
         data.status = BTA_PAN_SUCCESS;
         bta_pan_co_open(p_scb->handle, p_scb->app_id, p_scb->local_role, p_scb->peer_role, p_scb->bd_addr);
-
+        p_scb->pan_flow_enable = TRUE;
+        p_scb->app_flow_enable = TRUE;
+        bta_sys_conn_open(BTA_ID_PAN ,p_scb->app_id, p_scb->bd_addr);
     }
     else
     {
         bta_pan_scb_dealloc(p_scb);
         data.status = BTA_PAN_FAIL;
     }
-
-    p_scb->pan_flow_enable = TRUE;
-    p_scb->app_flow_enable = TRUE;
-
-    bta_sys_conn_open( BTA_ID_PAN ,p_scb->app_id, p_scb->bd_addr);
 
     bta_pan_cb.p_cback(BTA_PAN_OPEN_EVT, (tBTA_PAN *)&data);
 
