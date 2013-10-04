@@ -452,8 +452,9 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
                       * So if REMOVE_DEVICE is called and in_use is FALSE then we should treat this as a NULL p_cb. Hence we
                       * force the index to be IDX_INVALID
                       */
-                    if (bta_hh_cb.kdev[index].in_use == FALSE) {
-                           index = BTA_HH_IDX_INVALID;
+                    if ((index != BTA_HH_IDX_INVALID) &&
+                        (bta_hh_cb.kdev[index].in_use == FALSE)) {
+                        index = BTA_HH_IDX_INVALID;
                     }
 // btla-specific --
                 }
