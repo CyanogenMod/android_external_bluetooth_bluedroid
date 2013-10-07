@@ -585,7 +585,7 @@ extern tL2C_LCB *l2cu_find_lcb_by_bd_addr (BD_ADDR p_bd_addr);
 extern tL2C_LCB *l2cu_find_lcb_by_handle (UINT16 handle);
 extern void     l2cu_update_lcb_4_bonding (BD_ADDR p_bd_addr, BOOLEAN is_bonding);
 
-extern UINT8    l2cu_get_conn_role (tL2C_LCB *p_this_lcb);
+extern UINT8    l2cu_get_conn_role (BD_ADDR bd_addr);
 extern BOOLEAN  l2cu_set_acl_priority (BD_ADDR bd_addr, UINT8 priority, BOOLEAN reset_after_rs);
 
 extern void     l2cu_enqueue_ccb (tL2C_CCB *p_ccb);
