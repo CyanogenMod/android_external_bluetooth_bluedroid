@@ -193,16 +193,18 @@ typedef struct
 
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE
     BOOLEAN                 no_disc_if_pair_fail;
-    BOOLEAN			        enable_test_mac_val;
+    BOOLEAN                 enable_test_mac_val;
     BT_OCTET8               test_mac;
-    BOOLEAN			        enable_test_local_sign_cntr;
-    UINT32			        test_local_sign_cntr;
+    BOOLEAN                 enable_test_local_sign_cntr;
+    UINT32                  test_local_sign_cntr;
 #endif
 
 #if BLE_INCLUDED == TRUE
     tBTM_CMPL_CB        *p_le_test_cmd_cmpl_cb;   /* Callback function to be called when
                                                   LE test mode command has been sent successfully */
 #endif
+    tBTM_RSSI_MONITOR_CMD_CPL_CB p_rssi_monitor_cmd_cpl_cb; /* for rssi monitor command complete */
+    tBTM_RSSI_MONITOR_EVENT_CB   p_rssi_monitor_event_cb; /* for rssi threshold event */
 
 #endif  /* BLE_INCLUDED */
 
