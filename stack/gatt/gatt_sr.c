@@ -29,6 +29,8 @@
 #include "gatt_int.h"
 #include "l2c_api.h"
 
+#define GATT_MTU_REQ_MIN_LEN        2
+
 
 /*******************************************************************************
 **
@@ -545,53 +547,54 @@ static tGATT_STATUS gatt_build_primary_service_rsp (BT_HDR *p_msg, tGATT_TCB *p_
             p_rcb->s_hdl <= e_hdl &&
             p_rcb->type == GATT_UUID_PRI_SERVICE)
         {
-            p_uuid = gatts_get_service_uuid (p_rcb->p_db);
-
-            if (op_code == GATT_REQ_READ_BY_GRP_TYPE)
-                handle_len = 4 + p_uuid->len;
-
-            /* get the length byte in the repsonse */
-            if (p_msg->offset ==0)
+            if ((p_uuid = gatts_get_service_uuid (p_rcb->p_db)) != NULL)
             {
-                *p ++ = op_code + 1;
-                p_msg->len ++;
-                p_msg->offset = handle_len;
-
                 if (op_code == GATT_REQ_READ_BY_GRP_TYPE)
+                    handle_len = 4 + p_uuid->len;
+
+                /* get the length byte in the repsonse */
+                if (p_msg->offset ==0)
                 {
-                    *p ++ =  (UINT8)p_msg->offset; /* length byte */
+                    *p ++ = op_code + 1;
                     p_msg->len ++;
-                }
-            }
-
-            if (p_msg->len + p_msg->offset <= p_tcb->payload_size &&
-                handle_len == p_msg->offset)
-            {
-                if (op_code != GATT_REQ_FIND_TYPE_VALUE ||
-                    gatt_uuid_compare(value, *p_uuid))
-                {
-                    UINT16_TO_STREAM(p, p_rcb->s_hdl);
-
-                    if (p_list->p_last_primary == p_srv &&
-                        p_list->p_last_primary == p_list->p_last)
-                    {
-                        GATT_TRACE_DEBUG0("Use 0xFFFF for the last primary attribute");
-                        UINT16_TO_STREAM(p, 0xFFFF); /* see GATT ERRATA 4065, 4063, ATT ERRATA 4062 */
-                    }
-                    else
-                    {
-                        UINT16_TO_STREAM(p, p_rcb->e_hdl);
-                    }
+                    p_msg->offset = handle_len;
 
                     if (op_code == GATT_REQ_READ_BY_GRP_TYPE)
-                        gatt_build_uuid_to_stream(&p, *p_uuid);
-
-                    status = GATT_SUCCESS;
-                    p_msg->len += p_msg->offset;
+                    {
+                        *p ++ =  (UINT8)p_msg->offset; /* length byte */
+                        p_msg->len ++;
+                    }
                 }
+
+                if (p_msg->len + p_msg->offset <= p_tcb->payload_size &&
+                    handle_len == p_msg->offset)
+                {
+                    if (op_code != GATT_REQ_FIND_TYPE_VALUE ||
+                        gatt_uuid_compare(value, *p_uuid))
+                    {
+                        UINT16_TO_STREAM(p, p_rcb->s_hdl);
+
+                        if (p_list->p_last_primary == p_srv &&
+                            p_list->p_last_primary == p_list->p_last)
+                        {
+                            GATT_TRACE_DEBUG0("Use 0xFFFF for the last primary attribute");
+                            UINT16_TO_STREAM(p, 0xFFFF); /* see GATT ERRATA 4065, 4063, ATT ERRATA 4062 */
+                        }
+                        else
+                        {
+                            UINT16_TO_STREAM(p, p_rcb->e_hdl);
+                        }
+
+                        if (op_code == GATT_REQ_READ_BY_GRP_TYPE)
+                            gatt_build_uuid_to_stream(&p, *p_uuid);
+
+                        status = GATT_SUCCESS;
+                        p_msg->len += p_msg->offset;
+                    }
+                }
+                else
+                    break;
             }
-            else
-                break;
         }
         p_srv = p_srv->p_next;
     }
@@ -730,6 +733,8 @@ static tGATT_STATUS gatts_validate_packet_format(UINT8 op_code, UINT16 *p_len,
                 reason = GATT_INVALID_PDU;
         }
     }
+    else
+        reason = GATT_INVALID_PDU;
 
     *p_data     = p;
     *p_len      = len;
@@ -901,15 +906,19 @@ static void gatts_process_mtu_req (tGATT_TCB *p_tcb, UINT16 len, UINT8 *p_data)
     BT_HDR        *p_buf;
     UINT16   conn_id;
 
-    STREAM_TO_UINT16 (mtu, p);
-
     /* BR/EDR conenction, send error response */
     if (p_tcb->att_lcid != L2CAP_ATT_CID)
     {
         gatt_send_error_rsp (p_tcb, GATT_REQ_NOT_SUPPORTED, GATT_REQ_MTU, 0, FALSE);
     }
+    else if (len < GATT_MTU_REQ_MIN_LEN)
+    {
+        GATT_TRACE_ERROR0("invalid MTU request PDU received.");
+        gatt_send_error_rsp (p_tcb, GATT_INVALID_PDU, GATT_REQ_MTU, 0, FALSE);
+    }
     else
     {
+        STREAM_TO_UINT16 (mtu, p);
         /* mtu must be greater than default MTU which is 23/48 */
         if (mtu < GATT_DEF_BLE_MTU_SIZE)
             p_tcb->payload_size = GATT_DEF_BLE_MTU_SIZE;
@@ -1231,14 +1240,22 @@ static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, UINT8 
 void gatts_process_attribute_req (tGATT_TCB *p_tcb, UINT8 op_code,
                                   UINT16 len, UINT8 *p_data)
 {
-    UINT16          handle;
+    UINT16          handle = 0;
     UINT8           *p = p_data, i;
     tGATT_SR_REG    *p_rcb = gatt_cb.sr_reg;
     tGATT_STATUS    status = GATT_INVALID_HANDLE;
     tGATT_ATTR16    *p_attr;
 
-    STREAM_TO_UINT16(handle, p);
-    len -= 2;
+    if (len < 2)
+    {
+        GATT_TRACE_ERROR0("Illegal PDU length, discard request");
+        status = GATT_INVALID_PDU;
+    }
+    else
+    {
+        STREAM_TO_UINT16(handle, p);
+        len -= 2;
+    }
 
 #if GATT_CONFORMANCE_TESTING == TRUE
     gatt_cb.handle = handle;
