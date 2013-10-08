@@ -499,7 +499,11 @@ static bt_callbacks_t bt_callbacks = {
 #else
     NULL, /* le_test_mode_cb */
 #endif
-    NULL /* energy_info_cb */
+    NULL, /* energy_info_cb */
+    NULL, /*le_lpp_write_rssi_thresh_cb*/
+    NULL, /*le_lpp_read_rssi_thresh_cb*/
+    NULL, /*le_lpp_enable_rssi_monitor_cb*/
+    NULL  /*le_lpp_rssi_threshold_evt_cb*/
 };
 
 static bool set_wake_alarm(uint64_t delay_millis, bool should_wake, alarm_cb cb, void *data) {

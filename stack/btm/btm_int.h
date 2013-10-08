@@ -211,6 +211,8 @@ UINT8                   le_supported_states[BTM_LE_SUPPORT_STATE_SIZE];
     UINT32                  test_local_sign_cntr;
 #endif
 
+    tBTM_RSSI_MONITOR_CMD_CPL_CB p_rssi_monitor_cmd_cpl_cb; /* for rssi monitor command complete */
+    tBTM_RSSI_MONITOR_EVENT_CB   p_rssi_monitor_event_cb; /* for rssi threshold event */
 
 #endif  /* BLE_INCLUDED */
 

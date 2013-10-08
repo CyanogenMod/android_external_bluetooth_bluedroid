@@ -176,11 +176,11 @@ typedef UINT8   tBTM_BLE_SFP;
 typedef UINT8 BLE_SIGNATURE[BTM_BLE_AUTH_SIGN_LEN];         /* Device address */
 
 #ifndef BTM_BLE_HOST_SUPPORT
-#define BTM_BLE_HOST_SUPPORT		0x01
+#define BTM_BLE_HOST_SUPPORT          0x01
 #endif
 
 #ifndef BTM_BLE_SIMULTANEOUS_HOST
-#define BTM_BLE_SIMULTANEOUS_HOST	0x01
+#define BTM_BLE_SIMULTANEOUS_HOST    0x01
 #endif
 
 /* Appearance Values Reported with BTM_BLE_AD_TYPE_APPEARANCE */
@@ -234,6 +234,9 @@ typedef UINT8 BLE_SIGNATURE[BTM_BLE_AUTH_SIGN_LEN];         /* Device address */
 #define BTM_BLE_APPEARANCE_OUTDOOR_SPORTS_LOCATION_POD         0x1443
 #define BTM_BLE_APPEARANCE_OUTDOOR_SPORTS_LOCATION_POD_AND_NAV 0x1444
 
+#define WRITE_RSSI_MONITOR_THRESHOLD      0xF2
+#define READ_RSSI_MONITOR_THRESHOLD       0xF3
+#define ENABLE_RSSI_MONITOR               0xF4
 
 /* Structure returned with Rand/Encrypt complete callback */
 typedef struct
@@ -1065,7 +1068,6 @@ BTM_API extern tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask,
 *******************************************************************************/
 BTM_API extern tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
                            tBTM_INQ_RESULTS_CB *p_results_cb, tBTM_CMPL_CB *p_cmpl_cb);
-
 
 /*******************************************************************************
 **

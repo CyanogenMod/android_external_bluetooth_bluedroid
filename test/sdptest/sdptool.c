@@ -393,7 +393,11 @@ static bt_callbacks_t bt_callbacks = {
     NULL, /* thread_evt_cb */
     dut_mode_recv, /*dut_mode_recv_cb */
     NULL,
-    NULL /*energy_info_cb */
+    NULL, /*energy_info_cb */
+    NULL, /*le_lpp_write_rssi_thresh_cb*/
+    NULL, /*le_lpp_read_rssi_thresh_cb*/
+    NULL, /*le_lpp_enable_rssi_monitor_cb*/
+    NULL  /*le_lpp_rssi_threshold_evt_cb*/
 };
 
 void bdt_init(void)

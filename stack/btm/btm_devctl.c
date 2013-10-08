@@ -122,6 +122,7 @@ static void btm_set_lmp_features_host_may_support (UINT8 max_page_number);
 static void btm_get_local_features (void);
 static void btm_issue_host_support_for_lmp_features (void);
 static void btm_read_local_supported_cmds (UINT8 local_controller_id);
+static void btm_hci_vs_event_handler(UINT8 evt_len, UINT8 *p);
 
 #if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
 #if (defined(BTM_READ_CTLR_CAP_INCLUDED) && BTM_READ_CTLR_CAP_INCLUDED == TRUE)
@@ -175,6 +176,7 @@ void btm_dev_init (void)
     btm_cb.first_disabled_channel = 0xff; /* To allow disabling 0th channel alone */
     btm_cb.last_disabled_channel = 0xff; /* To allow disabling 0th channel alone */
 
+    BTM_RegisterForVSEvents(btm_hci_vs_event_handler, TRUE);
 #if (BTM_AUTOMATIC_HCI_RESET == TRUE)
 
 #if (BTM_FIRST_RESET_DELAY > 0)
@@ -457,6 +459,7 @@ void btm_read_ble_wl_size(void)
     /* Send a Read Buffer Size message to the Host Controller. */
     btsnd_hcic_ble_read_white_list_size();
 }
+
 /*******************************************************************************
 **
 ** Function         btm_get_ble_buffer_size
@@ -2144,6 +2147,35 @@ void btm_vsc_complete (UINT8 *p, UINT16 opcode, UINT16 evt_len,
         vcs_cplt_params.param_len = evt_len;    /* Number of bytes in return info */
         vcs_cplt_params.p_param_buf = p;
         (*p_vsc_cplt_cback)(&vcs_cplt_params);  /* Call the VSC complete callback function */
+    }
+}
+
+/*******************************************************************************
+**
+** Function         btm_hci_vs_event_handler
+**
+** Description      This function is called when HCI Vendor Specific
+**                  event was received from the HCI.
+**
+** Returns          void
+**
+*******************************************************************************/
+static void btm_hci_vs_event_handler(UINT8 evt_len, UINT8 *p)
+{
+    UINT8 vs_sub_event;
+    STREAM_TO_UINT8(vs_sub_event, p);
+    BTM_TRACE_EVENT("%s vendor specific sub event: 0x%2x", __FUNCTION__, vs_sub_event);
+    switch(vs_sub_event)
+    {
+    case 0xFF:
+        {
+            BTM_TRACE_EVENT("%s processing rssi threshold event", __FUNCTION__);
+            btm_handle_rssi_monitor_event(p, evt_len - 1);
+        }
+        break;
+    default:
+        BTM_TRACE_EVENT("%s do not handle this vendor specific event with vs_opcode: 0x%2x", __FUNCTION__, vs_sub_event);
+        break;
     }
 }
 

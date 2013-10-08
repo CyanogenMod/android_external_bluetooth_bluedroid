@@ -76,7 +76,11 @@ static bt_callbacks_t bt_callbacks = {
   thread_evt,                // callback_thread_event
   NULL,                      // dut_mode_recv_callback
   NULL,                      // le_test_mode_callback
-  NULL,
+  NULL,                      // energy_info_cb
+  NULL,                      /*le_lpp_write_rssi_thresh_cb*/
+  NULL,                      /*le_lpp_read_rssi_thresh_cb*/
+  NULL,                      /*le_lpp_enable_rssi_monitor_cb*/
+  NULL                       /*le_lpp_rssi_threshold_evt_cb*/
 };
 
 static btpan_callbacks_t pan_callbacks = {
