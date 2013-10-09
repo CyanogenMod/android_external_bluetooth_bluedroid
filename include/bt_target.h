@@ -53,7 +53,7 @@
 #include "dyn_mem.h"    /* defines static and/or dynamic memory for components */
 
 
-//------------------Added from Bluedroid buildcfg.h---------------------
+//------------------Added from bdroid_buildcfg.h---------------------
 #ifndef UNV_INCLUDED
 #define UNV_INCLUDED FALSE
 #endif
@@ -351,6 +351,11 @@
 #define AVDT_CONNECT_CP_ONLY  FALSE
 #endif
 
+/* This feature is used to eanble interleaved scan*/
+#ifndef BTA_HOST_INTERLEAVE_SEARCH
+#define BTA_HOST_INTERLEAVE_SEARCH FALSE
+#endif
+
 #ifndef BT_TRACE_PROTOCOL
 #define BT_TRACE_PROTOCOL  TRUE
 #endif
@@ -410,7 +415,8 @@
 #ifndef BTIF_DM_OOB_TEST
 #define BTIF_DM_OOB_TEST  TRUE
 #endif
-//------------------End added from Bluedroid buildcfg.h---------------------
+
+//------------------End added from bdroid_buildcfg.h---------------------
 
 
 
