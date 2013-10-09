@@ -70,6 +70,13 @@
     #error "default btif local name size exceeds stack supported length"
 #endif
 
+#if (defined(BTA_HOST_INTERLEAVE_SEARCH) && BTA_HOST_INTERLEAVE_SEARCH == TRUE)
+#define BTIF_DM_INTERLEAVE_DURATION_BR_ONE    2
+#define BTIF_DM_INTERLEAVE_DURATION_LE_ONE    2
+#define BTIF_DM_INTERLEAVE_DURATION_BR_TWO    3
+#define BTIF_DM_INTERLEAVE_DURATION_LE_TWO    4
+#endif
+
 typedef struct
 {
     bt_bond_state_t state;
@@ -1792,6 +1799,12 @@ bt_status_t btif_dm_start_discovery(void)
     /* Set inquiry params and call API */
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     inq_params.mode = BTA_DM_GENERAL_INQUIRY|BTA_BLE_GENERAL_INQUIRY;
+#if (defined(BTA_HOST_INTERLEAVE_SEARCH) && BTA_HOST_INTERLEAVE_SEARCH == TRUE)
+    inq_params.intl_duration[0]= BTIF_DM_INTERLEAVE_DURATION_BR_ONE;
+    inq_params.intl_duration[1]= BTIF_DM_INTERLEAVE_DURATION_LE_ONE;
+    inq_params.intl_duration[2]= BTIF_DM_INTERLEAVE_DURATION_BR_TWO;
+    inq_params.intl_duration[3]= BTIF_DM_INTERLEAVE_DURATION_LE_TWO;
+#endif
 #else
     inq_params.mode = BTA_DM_GENERAL_INQUIRY;
 #endif
