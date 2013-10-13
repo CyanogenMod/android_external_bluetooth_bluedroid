@@ -939,25 +939,29 @@ int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf)
     rfc_slot_t* rs = find_rfc_slot_by_id(id);
     if(rs)
     {
-
-        int sent = send_data_to_app(rs->fd, p_buf);
-        switch(sent)
+        if(!GKI_queue_is_empty(&rs->incoming_que))
+            GKI_enqueue(&rs->incoming_que, p_buf);
+        else
         {
-            case SENT_NONE:
-            case SENT_PARTIAL:
-                //add it to the end of the queue
-                GKI_enqueue(&rs->incoming_que, p_buf);
-                //monitor the fd to get callback when app is ready to receive data
-                btsock_thread_add_fd(pth, rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_WR, rs->id);
-                break;
-            case SENT_ALL:
-                GKI_freebuf(p_buf);
-                ret = 1;//enable the data flow
-                break;
-            case SENT_FAILED:
-                GKI_freebuf(p_buf);
-                cleanup_rfc_slot(rs);
-                break;
+            int sent = send_data_to_app(rs->fd, p_buf);
+            switch(sent)
+            {
+                case SENT_NONE:
+                case SENT_PARTIAL:
+                    //add it to the end of the queue
+                    GKI_enqueue(&rs->incoming_que, p_buf);
+                    //monitor the fd to get callback when app is ready to receive data
+                    btsock_thread_add_fd(pth, rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_WR, rs->id);
+                    break;
+                case SENT_ALL:
+                    GKI_freebuf(p_buf);
+                    ret = 1;//enable the data flow
+                    break;
+                case SENT_FAILED:
+                    GKI_freebuf(p_buf);
+                    cleanup_rfc_slot(rs);
+                    break;
+            }
         }
      }
     unlock_slot(&slot_lock);
