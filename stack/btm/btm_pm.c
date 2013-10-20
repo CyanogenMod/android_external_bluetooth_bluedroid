@@ -940,7 +940,7 @@ void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, U
     }
 #if BTM_SCO_INCLUDED == TRUE
     /*check if sco disconnect  is waiting for the mode change */
-    btm_sco_disc_chk_pend_for_modechange(hci_status);
+    btm_sco_disc_chk_pend_for_modechange(hci_handle);
 #endif
 
     /* If mode change was because of an active role switch or change link key */
