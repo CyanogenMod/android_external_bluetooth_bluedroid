@@ -33,6 +33,10 @@ bt_status_t btsock_rfc_listen(const char* name, const uint8_t* uuid, int channel
                               int* sock_fd, int flags);
 bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t* uuid,
                                int channel, int* sock_fd, int flags);
+bt_status_t btsock_rfc_get_sockopt(int channel, btsock_option_type_t option_name,
+                                            void *option_value, int *option_len);
+bt_status_t btsock_rfc_set_sockopt(int channel, btsock_option_type_t option_name,
+                                            void *option_value, int option_len);
 void btsock_rfc_signaled(int fd, int flags, uint32_t user_id);
 
 #endif
