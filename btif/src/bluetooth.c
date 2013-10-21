@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf.h>
 #include <hardware/bt_hf_client.h>
@@ -45,6 +44,12 @@
 
 #include "btif_api.h"
 #include "bt_utils.h"
+#include "l2cdefs.h"
+#include "l2c_api.h"
+
+#if TEST_APP_INTERFACE == TRUE
+#include <bt_testapp.h>
+#endif
 
 /************************************************************************************
 **  Constants & Macros
@@ -100,6 +105,12 @@ extern btgatt_interface_t *btif_gatt_get_interface();
 extern btrc_interface_t *btif_rc_get_interface();
 /* avrc controller */
 extern btrc_interface_t *btif_rc_ctrl_get_interface();
+
+#if TEST_APP_INTERFACE == TRUE
+extern const btl2cap_interface_t *btif_l2cap_get_interface(void);
+extern const btsdp_interface_t *btif_sdp_get_interface(void);
+extern const btrfcomm_interface_t *btif_rfcomm_get_interface(void);
+#endif
 
 /************************************************************************************
 **  Functions
@@ -378,6 +389,28 @@ static const void* get_profile_interface (const char *profile_id)
 
     return NULL;
 }
+#if TEST_APP_INTERFACE == TRUE
+static const void* get_testapp_interface(int test_app_profile)
+{
+    ALOGI("get_testapp_interface %d", test_app_profile);
+
+    if (interface_ready() == FALSE) {
+        return NULL;
+    }
+    switch(test_app_profile) {
+        case TEST_APP_L2CAP:
+            return btif_l2cap_get_interface();
+        case TEST_APP_SDP:
+           return btif_sdp_get_interface();
+        case TEST_APP_RFCOMM:
+           //return btif_rfcomm_get_interface();
+        default:
+            return NULL;
+    }
+    return NULL;
+}
+
+#endif //TEST_APP_INTERFACE
 
 int dut_mode_configure(uint8_t enable)
 {
@@ -463,6 +496,11 @@ static const bt_interface_t bluetoothInterface = {
     config_hci_snoop_log,
     set_os_callouts,
     read_energy_info,
+#if TEST_APP_INTERFACE == TRUE
+    get_testapp_interface
+#else
+    NULL
+#endif
 };
 
 const bt_interface_t* bluetooth__get_bluetooth_interface ()
