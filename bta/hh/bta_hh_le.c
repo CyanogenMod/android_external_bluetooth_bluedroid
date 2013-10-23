@@ -2193,18 +2193,23 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY *p_data)
     else if (p_data->char_id.char_id.uuid.uu.uuid16 == GATT_UUID_HID_BT_KB_INPUT)
         app_id = BTA_HH_APP_ID_KB;
 
-    /* need to append report ID to the head of data */
-    if ((p_buf = (UINT8 *)GKI_getbuf((UINT16)(p_data->len + 1))) == NULL)
-    {
-        APPL_TRACE_ERROR0("No resources to send report data");
-        return;
-    }
-
     APPL_TRACE_ERROR1("Notification received on report ID: %d", p_rpt->rpt_id);
 
-    p_buf[0] = p_rpt->rpt_id;
-    memcpy(&p_buf[1], p_data->value, p_data->len);
-    p_data->len ++;
+    /* need to append report ID to the head of data */
+    if (p_rpt->rpt_id != 0)
+    {
+        if ((p_buf = (UINT8 *)GKI_getbuf((UINT16)(p_data->len + 1))) == NULL)
+        {
+            APPL_TRACE_ERROR0("No resources to send report data");
+            return;
+        }
+
+        p_buf[0] = p_rpt->rpt_id;
+        memcpy(&p_buf[1], p_data->value, p_data->len);
+        ++p_data->len;
+    } else {
+        p_buf = p_data->value;
+    }
 
     bta_hh_co_data((UINT8)p_dev_cb->hid_handle,
                     p_buf,
@@ -2215,7 +2220,8 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY *p_data)
                     p_dev_cb->addr,
                     app_id);
 
-    GKI_freebuf(p_buf);
+    if (p_buf != p_data->value)
+        GKI_freebuf(p_buf);
 }
 
 
