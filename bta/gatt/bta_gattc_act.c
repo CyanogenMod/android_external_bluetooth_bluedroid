@@ -33,6 +33,9 @@
 #include "bta_gattc_int.h"
 #include "l2c_api.h"
 
+#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#include "bta_hh_int.h"
+#endif
 
 #include <string.h>
 
@@ -137,7 +140,15 @@ void bta_gattc_disable(tBTA_GATTC_CB *p_cb)
         if (p_cb->cl_rcb[i].in_use)
         {
             p_cb->state = BTA_GATTC_STATE_DISABLING;
-            bta_gattc_deregister(p_cb, &p_cb->cl_rcb[i]);
+            /* don't deregister HH GATT IF */
+            /* HH GATT IF will be deregistered by bta_hh_le_deregister when disable HH */
+#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+            if (!bta_hh_le_is_hh_gatt_if(p_cb->cl_rcb[i].client_if)) {
+#endif
+                bta_gattc_deregister(p_cb, &p_cb->cl_rcb[i]);
+#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+            }
+#endif
         }
     }
 
