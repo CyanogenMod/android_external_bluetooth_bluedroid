@@ -144,6 +144,7 @@ static int  uinput_driver_check();
 static int  uinput_create(char *name);
 static int  init_uinput (void);
 static void close_uinput (void);
+static BOOLEAN dev_blacklisted_for_absolute_volume(BD_ADDR peer_dev);
 
 static const struct {
     const char *name;
@@ -159,6 +160,11 @@ static const struct {
     { "REWIND",       AVRC_ID_REWIND,   KEY_REWIND,       0 },
     { "FAST FORWARD", AVRC_ID_FAST_FOR, KEY_FAST_FORWARD, 0 },
     { NULL,           0,                0,                0 }
+};
+
+static const UINT8 rc_black_addr_prefix[][3] = {
+    {0x0, 0x18, 0x6b}, // HBS-730
+    {0x0, 0x26, 0x7E}  // VW Passat
 };
 
 static void send_reject_response (UINT8 rc_handle, UINT8 label,
@@ -324,6 +330,11 @@ void handle_rc_features()
     btrc_remote_features_t rc_features = BTRC_FEAT_NONE;
     bt_bdaddr_t rc_addr;
     bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+
+    if (dev_blacklisted_for_absolute_volume(btif_rc_cb.rc_addr))
+    {
+        btif_rc_cb.rc_features &= ~BTA_AV_FEAT_ADV_CTRL;
+    }
 
     if (btif_rc_cb.rc_features & BTA_AV_FEAT_BROWSE)
     {
@@ -1619,4 +1630,27 @@ void release_transaction(UINT8 lbl)
 void lbl_destroy()
 {
     pthread_mutex_destroy(&(device.lbllock));
+}
+
+/*******************************************************************************
+**      Function       dev_blacklisted_for_absolute_volume
+**
+**      Description    Blacklist Devices that donot handle absolute volume well
+**
+**      Returns        True if the device is in the list
+*******************************************************************************/
+static BOOLEAN dev_blacklisted_for_absolute_volume(BD_ADDR peer_dev)
+{
+    int i;
+    int blacklist_size = sizeof(rc_black_addr_prefix)/sizeof(rc_black_addr_prefix[0]);
+    for (i = 0; i < blacklist_size; i++) {
+        if (rc_black_addr_prefix[i][0] == peer_dev[0] &&
+            rc_black_addr_prefix[i][1] == peer_dev[1] &&
+            rc_black_addr_prefix[i][2] == peer_dev[2]) {
+            BTIF_TRACE_WARNING3("blacklist absolute volume for %02x:%02x:%02x",
+                                peer_dev[0], peer_dev[1], peer_dev[2]);
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
