@@ -68,7 +68,7 @@ void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl)
 **
 *******************************************************************************/
 void bta_av_ci_setconfig(tBTA_AV_HNDL hndl, UINT8 err_code, UINT8 category,
-                         UINT8 num_seid, UINT8 *p_seid, BOOLEAN recfg_needed)
+                         UINT8 num_seid, UINT8 *p_seid, BOOLEAN recfg_needed, UINT8 avdt_handle)
 {
     tBTA_AV_CI_SETCONFIG  *p_buf;
 
@@ -81,6 +81,7 @@ void bta_av_ci_setconfig(tBTA_AV_HNDL hndl, UINT8 err_code, UINT8 category,
         p_buf->category = category;
         p_buf->recfg_needed = recfg_needed;
         p_buf->num_seid = num_seid;
+        p_buf->avdt_handle= avdt_handle;
         if(p_seid && num_seid)
         {
             p_buf->p_seid   = (UINT8 *)(p_buf + 1);

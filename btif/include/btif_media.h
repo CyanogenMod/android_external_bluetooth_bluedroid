@@ -90,6 +90,12 @@ typedef struct
         tBTIF_AV_FEEDING_MODE feeding_mode;
         tBTIF_AV_MEDIA_FEEDINGS feeding;
 } tBTIF_MEDIA_INIT_AUDIO_FEEDING;
+
+typedef struct
+{
+        BT_HDR hdr;
+        UINT8 codec_info[AVDT_CODEC_SIZE];
+} tBTIF_MEDIA_SINK_CFG_UPDATE;
 #endif
 
 
@@ -243,5 +249,6 @@ void btif_a2dp_on_stopped(tBTA_AV_SUSPEND *p_av);
 void btif_a2dp_on_suspend(void);
 void btif_a2dp_on_suspended(tBTA_AV_SUSPEND *p_av);
 void btif_a2dp_set_tx_flush(BOOLEAN enable);
-
+void btif_media_check_iop_exceptions(UINT8 *peer_bda);
+void btif_reset_decoder(UINT8 *p_av);
 #endif
