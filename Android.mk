@@ -12,6 +12,7 @@ else
 endif
 
 bdroid_CFLAGS += -Wall -Werror
+bdroid_CFLAGS += -DBTA_AVK_INCLUDED
 
 include $(call all-subdir-makefiles)
 

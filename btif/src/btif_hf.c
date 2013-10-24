@@ -675,7 +675,7 @@ static bt_status_t init( bthf_callbacks_t* callbacks, int max_hf_clients)
 ** Returns         bt_status_t
 **
 *******************************************************************************/
-static bt_status_t connect_int( bt_bdaddr_t *bd_addr )
+static bt_status_t connect_int(bt_bdaddr_t *bd_addr, uint16_t uuid)
 {
     CHECK_BTHF_INIT();
     int i;

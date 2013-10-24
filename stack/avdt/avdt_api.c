@@ -176,6 +176,68 @@ void AVDT_Deregister(void)
 
 /*******************************************************************************
 **
+** Function         AVDT_SINK_Activate
+**
+** Description      Activate SEP of A2DP Sink. In Use parameter is adjusted.
+**                  In Use will be made false in case of activation. A2DP SRC
+**                  will receive in_use as false and can open A2DP Sink
+**                  connection
+**
+** Returns          void.
+**
+*******************************************************************************/
+void AVDT_SINK_Activate()
+{
+    tAVDT_SCB           *p_scb = &avdt_cb.scb[0];
+    int                 i;
+    AVDT_TRACE_DEBUG0("AVDT_SINK_Activate");
+    /* for all allocated scbs */
+    for (i = 0; i < AVDT_NUM_SEPS; i++, p_scb++)
+    {
+        if ((p_scb->allocated) && (p_scb->cs.tsep == AVDT_TSEP_SNK))
+        {
+            AVDT_TRACE_DEBUG0("AVDT_SINK_Activate found scb");
+            p_scb->sink_activated = TRUE;
+            /* update in_use */
+            p_scb->in_use = FALSE;
+            break;
+        }
+    }
+}
+
+/*******************************************************************************
+**
+** Function         AVDT_SINK_Deactivate
+**
+** Description      Deactivate SEP of A2DP Sink. In Use parameter is adjusted.
+**                  In Use will be made TRUE in case of activation. A2DP SRC
+**                  will receive in_use as true and will not open A2DP Sink
+**                  connection
+**
+** Returns          void.
+**
+*******************************************************************************/
+void AVDT_SINK_Deactivate()
+{
+    tAVDT_SCB           *p_scb = &avdt_cb.scb[0];
+    int                 i;
+    AVDT_TRACE_DEBUG0("AVDT_SINK_Deactivate");
+    /* for all allocated scbs */
+    for (i = 0; i < AVDT_NUM_SEPS; i++, p_scb++)
+    {
+        if ((p_scb->allocated) && (p_scb->cs.tsep == AVDT_TSEP_SNK))
+        {
+            AVDT_TRACE_DEBUG0("AVDT_SINK_Deactivate, found scb");
+            p_scb->sink_activated = FALSE;
+            /* update in_use */
+            p_scb->in_use = TRUE;
+            break;
+        }
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         AVDT_CreateStream
 **
 ** Description      Create a stream endpoint.  After a stream endpoint is

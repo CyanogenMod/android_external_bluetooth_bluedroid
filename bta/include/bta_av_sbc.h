@@ -194,6 +194,18 @@ extern UINT8 bta_av_sbc_cfg_in_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap);
 
 /*******************************************************************************
 **
+** Function         bta_av_sbc_cfg_matches_cap
+**
+** Description      This function checks whether an SBC codec configuration
+**                  matched with capabilities. Here we check subset.
+**
+** Returns          0 if ok, nonzero if error.
+**
+*******************************************************************************/
+extern UINT8 bta_av_sbc_cfg_matches_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap);
+
+/*******************************************************************************
+**
 ** Function         bta_av_sbc_bld_hdr
 **
 ** Description      This function builds the packet header for MPF1.

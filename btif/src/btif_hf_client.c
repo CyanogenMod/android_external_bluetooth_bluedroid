@@ -211,7 +211,7 @@ static bt_status_t init( bthf_client_callbacks_t* callbacks )
 ** Returns         bt_status_t
 **
 *******************************************************************************/
-static bt_status_t connect_int( bt_bdaddr_t *bd_addr )
+static bt_status_t connect_int( bt_bdaddr_t *bd_addr, uint16_t uuid )
 {
     if (is_connected(bd_addr))
         return BT_STATUS_BUSY;
