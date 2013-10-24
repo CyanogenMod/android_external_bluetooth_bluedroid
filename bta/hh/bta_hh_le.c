@@ -238,6 +238,21 @@ void bta_hh_le_register_cmpl(tBTA_GATTC_REG *p_reg)
 
 /*******************************************************************************
 **
+** Function         bta_hh_le_is_hh_gatt_if
+**
+** Description      Check to see if client_if is BTA HH LE GATT interface
+**
+**
+** Returns          whether it is HH GATT IF
+**
+*******************************************************************************/
+BOOLEAN bta_hh_le_is_hh_gatt_if(tBTA_GATTC_IF client_if)
+{
+    return (bta_hh_cb.gatt_if == client_if);
+}
+
+/*******************************************************************************
+**
 ** Function         bta_hh_le_deregister
 **
 ** Description      De-register BTA HH from BTA GATTC
