@@ -511,6 +511,78 @@ UINT8 bta_av_sbc_cfg_for_cap(UINT8 *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p
 
 /*******************************************************************************
 **
+** Function         bta_av_sbc_cfg_matches_cap
+**
+** Description      This function checks whether an SBC codec configuration
+**                  matched with capabilities. Here we check subset.
+**
+** Returns          0 if ok, nonzero if error.
+**
+*******************************************************************************/
+UINT8 bta_av_sbc_cfg_matches_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap)
+{
+    UINT8           status = 0;
+    tA2D_SBC_CIE    cfg_cie;
+
+    /* parse configuration */
+    if ((status = A2D_ParsSbcInfo(&cfg_cie, p_cfg, TRUE)) != 0)
+    {
+        APPL_TRACE_ERROR1(" bta_av_sbc_cfg_matches_cap Parsing Failed %d", status);
+        return status;
+    }
+
+    /* verify that each parameter is in range */
+
+    APPL_TRACE_DEBUG2(" FREQ peer: 0%x, capability  0%x", cfg_cie.samp_freq, p_cap->samp_freq);
+    APPL_TRACE_DEBUG2(" CH_MODE peer: 0%x, capability  0%x", cfg_cie.ch_mode, p_cap->ch_mode);
+    APPL_TRACE_DEBUG2(" BLOCK_LEN peer: 0%x, capability  0%x", cfg_cie.block_len, p_cap->block_len);
+    APPL_TRACE_DEBUG2(" SUB_BAND peer: 0%x, capability  0%x", cfg_cie.num_subbands, p_cap->num_subbands);
+    APPL_TRACE_DEBUG2(" ALLOC_MTHD peer: 0%x, capability  0%x", cfg_cie.alloc_mthd, p_cap->alloc_mthd);
+    APPL_TRACE_DEBUG2(" MAX_BitPool peer: 0%x, capability  0%x", cfg_cie.max_bitpool, p_cap->max_bitpool);
+    APPL_TRACE_DEBUG2(" Min_bitpool peer: 0%x, capability  0%x", cfg_cie.min_bitpool, p_cap->min_bitpool);
+
+    /* sampling frequency */
+    if ((cfg_cie.samp_freq & p_cap->samp_freq) == 0)
+    {
+        status = A2D_NS_SAMP_FREQ;
+    }
+    /* channel mode */
+    else if ((cfg_cie.ch_mode & p_cap->ch_mode) == 0)
+    {
+        status = A2D_NS_CH_MODE;
+    }
+    /* block length */
+    else if ((cfg_cie.block_len & p_cap->block_len) == 0)
+    {
+        status = A2D_BAD_BLOCK_LEN;
+    }
+    /* subbands */
+    else if ((cfg_cie.num_subbands & p_cap->num_subbands) == 0)
+    {
+        status = A2D_NS_SUBBANDS;
+    }
+    /* allocation method */
+    else if ((cfg_cie.alloc_mthd & p_cap->alloc_mthd) == 0)
+    {
+        status = A2D_NS_ALLOC_MTHD;
+    }
+    /* max bitpool */
+    else if (cfg_cie.max_bitpool > p_cap->max_bitpool)
+    {
+        status = A2D_NS_MAX_BITPOOL;
+    }
+    /* min bitpool */
+    else if (cfg_cie.min_bitpool < p_cap->min_bitpool)
+    {
+        status = A2D_NS_MIN_BITPOOL;
+    }
+
+    return status;
+}
+
+
+/*******************************************************************************
+**
 ** Function         bta_av_sbc_cfg_in_cap
 **
 ** Description      This function checks whether an SBC codec configuration
@@ -531,6 +603,7 @@ UINT8 bta_av_sbc_cfg_in_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap)
     }
 
     /* verify that each parameter is in range */
+
 
     /* sampling frequency */
     if ((cfg_cie.samp_freq & p_cap->samp_freq) == 0)

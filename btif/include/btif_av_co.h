@@ -28,6 +28,7 @@
 enum
 {
     BTIF_SV_AV_AA_SBC_INDEX = 0,
+    BTIF_SV_AV_AA_SBC_SINK_INDEX,
     BTIF_SV_AV_AA_SEP_INDEX  /* Last index */
 };
 

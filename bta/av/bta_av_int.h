@@ -96,6 +96,9 @@ enum
     BTA_AV_AVRC_CLOSE_EVT,
     BTA_AV_CONN_CHG_EVT,
     BTA_AV_DEREG_COMP_EVT,
+#ifdef BTA_AVK_INCLUDED
+    BTA_AV_API_SINK_ENABLE_EVT,
+#endif
 #if (AVDT_REPORTING == TRUE)
     BTA_AV_AVDT_RPT_CONN_EVT,
 #endif
@@ -156,16 +159,15 @@ enum
 /* function types for call-out functions */
 typedef BOOLEAN (*tBTA_AV_CO_INIT) (UINT8 *p_codec_type, UINT8 *p_codec_info,
                                    UINT8 *p_num_protect, UINT8 *p_protect_info, UINT8 index);
-
 typedef void (*tBTA_AV_CO_DISC_RES) (tBTA_AV_HNDL hndl, UINT8 num_seps,
-                                     UINT8 num_snk, BD_ADDR addr);
-
+                                     UINT8 num_snk, UINT8 num_src, BD_ADDR addr, UINT16 uuid_local);
 typedef UINT8 (*tBTA_AV_CO_GETCFG) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
                                      UINT8 *p_codec_info, UINT8 *p_sep_info_idx, UINT8 seid,
                                      UINT8 *p_num_protect, UINT8 *p_protect_info);
 typedef void (*tBTA_AV_CO_SETCFG) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                    UINT8 *p_codec_info, UINT8 seid, BD_ADDR addr,
-                                    UINT8 num_protect, UINT8 *p_protect_info);
+                                     UINT8 *p_codec_info, UINT8 seid, BD_ADDR addr,
+                                     UINT8 num_protect, UINT8 *p_protect_info,
+                                     UINT8 t_local_sep, UINT8 avdt_handle);
 typedef void (*tBTA_AV_CO_OPEN) (tBTA_AV_HNDL hndl,
                                  tBTA_AV_CODEC codec_type, UINT8 *p_codec_info,
                                    UINT16 mtu);
@@ -206,6 +208,7 @@ typedef struct
     BT_HDR              hdr;
     char                p_service_name[BTA_SERVICE_NAME_LEN+1];
     UINT8               app_id;
+    tBTA_AV_DATA_CBACK       *p_app_data_cback;
 } tBTA_AV_API_REG;
 
 
@@ -225,6 +228,7 @@ typedef struct
     BOOLEAN             use_rc;
     tBTA_SEC            sec_mask;
     tBTA_AV_RS_RES      switch_res;
+    UINT16              uuid;  /* uuid of initiator */
 } tBTA_AV_API_OPEN;
 
 /* data type for BTA_AV_API_STOP_EVT */
@@ -319,6 +323,7 @@ typedef struct
     UINT8               num_seid;
     UINT8               *p_seid;
     BOOLEAN             recfg_needed;
+    UINT8               avdt_handle;  /* local sep type for which this stream will be set up */
 } tBTA_AV_CI_SETCONFIG;
 
 /* data type for all stream events from AVDTP */
@@ -376,8 +381,10 @@ typedef struct
 /* type for SEP control block */
 typedef struct
 {
-    UINT8               av_handle;      /* AVDTP handle */
-    tBTA_AV_CODEC       codec_type;     /* codec type */
+    UINT8               av_handle;         /* AVDTP handle */
+    tBTA_AV_CODEC       codec_type;        /* codec type */
+    UINT8               tsep;              /* SEP type of local SEP */
+    tBTA_AV_DATA_CBACK  *p_app_data_cback; /* Application callback for media packets */
 } tBTA_AV_SEP;
 
 
@@ -483,6 +490,7 @@ typedef struct
     UINT8               hdi;            /* the index to SCB[] */
     UINT8               num_seps;       /* number of seps returned by stream discovery */
     UINT8               num_disc_snks;  /* number of discovered snks */
+    UINT8               num_disc_srcs;  /* number of discovered srcs */
     UINT8               sep_info_idx;   /* current index into sep_info */
     UINT8               sep_idx;        /* current index into local seps[] */
     UINT8               rcfg_idx;       /* reconfig requested index into sep_info */
@@ -505,6 +513,7 @@ typedef struct
     UINT8               wait;           /* set 0x1, when getting Caps as ACP, set 0x2, when started */
     UINT8               q_tag;          /* identify the associated q_info union member */
     BOOLEAN             no_rtp_hdr;     /* TRUE if add no RTP header*/
+    UINT16              uuid_int;       /*intended UUID of Initiator to connect to */
 } tBTA_AV_SCB;
 
 #define BTA_AV_RC_ROLE_MASK     0x10
@@ -554,6 +563,9 @@ typedef struct
     TIMER_LIST_ENT      sig_tmr;        /* link timer */
     TIMER_LIST_ENT      acp_sig_tmr;    /* timer to monitor signalling when accepting */
     UINT32              sdp_a2d_handle; /* SDP record handle for audio src */
+#ifdef BTA_AVK_INCLUDED
+    UINT32              sdp_a2d_snk_handle; /* SDP record handle for audio snk */
+#endif
     UINT32              sdp_vdp_handle; /* SDP record handle for video src */
     tBTA_AV_FEAT        features;       /* features mask */
     tBTA_SEC            sec_mask;       /* security mask */
@@ -601,6 +613,7 @@ extern const tBTA_AV_SACT bta_av_a2d_action[];
 extern const tBTA_AV_CO_FUNCTS bta_av_a2d_cos;
 extern const tBTA_AV_SACT bta_av_vdp_action[];
 extern tAVDT_CTRL_CBACK * const bta_av_dt_cback[];
+extern void bta_av_stream_data_cback(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp, UINT8 m_pt);
 
 /*****************************************************************************
 **  Function prototypes

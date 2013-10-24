@@ -167,6 +167,8 @@
 #define BTA_GATT_INCLUDED TRUE
 #endif
 
+/* defined BTA_AVK_INCLUDED in Android.mk file based on target selected*/
+
 #ifndef BTA_DISABLE_DELAY
 #define BTA_DISABLE_DELAY 200 /* in milliseconds */
 #endif

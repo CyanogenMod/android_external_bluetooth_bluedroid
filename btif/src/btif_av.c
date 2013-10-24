@@ -69,6 +69,12 @@ typedef enum {
 /*****************************************************************************
 **  Local type definitions
 ******************************************************************************/
+typedef enum
+{
+    SEP_SRC = 0x0,
+    SEP_SNK,
+    SEP_NOT_OPENED
+}tbtif_AV_SEP_TYPE;
 
 typedef struct
 {
@@ -77,8 +83,14 @@ typedef struct
     btif_sm_handle_t sm_handle;
     UINT8 flags;
     tBTA_AV_EDR edr;
+    tbtif_AV_SEP_TYPE   sep;  /* sep type of peer device */
 } btif_av_cb_t;
 
+typedef struct
+{
+    bt_bdaddr_t *target_bda;
+    uint16_t uuid;
+} btif_av_connect_req_t;
 /*****************************************************************************
 **  Static variables
 ******************************************************************************/
@@ -181,9 +193,36 @@ const char *dump_av_sm_event_name(btif_av_sm_event_t event)
         CASE_RETURN_STR(BTIF_AV_STOP_STREAM_REQ_EVT)
         CASE_RETURN_STR(BTIF_AV_SUSPEND_STREAM_REQ_EVT)
         CASE_RETURN_STR(BTIF_AV_RECONFIGURE_REQ_EVT)
-
+        CASE_RETURN_STR(BTIF_AV_REQUEST_AUDIO_FOCUS_EVT)
+        CASE_RETURN_STR(BTIF_AV_REQUEST_ACTIVATE_SINK_EVT)
         default: return "UNKNOWN_EVENT";
    }
+}
+
+/*******************************************************************************
+**
+** Function         btif_av_request_audio_focus
+**
+** Description      send request to gain audio focus
+**
+** Returns          void
+**
+*******************************************************************************/
+void btif_av_request_audio_focus( BOOLEAN enable)
+{
+    btif_sm_state_t state;
+    state= btif_sm_get_state(btif_av_cb.sm_handle);
+    /* We shld be in started state */
+    if (state != BTIF_AV_STATE_STARTED)
+        return;
+    /* If we are in started state, suspend shld not have been initiated */
+    if ((btif_av_cb.flags & BTIF_AV_FLAG_REMOTE_SUSPEND )||
+        (btif_av_cb.flags & BTIF_AV_FLAG_LOCAL_SUSPEND_PENDING))
+        return;
+    if(enable)
+    {
+         btif_dispatch_sm_event(BTIF_AV_REQUEST_AUDIO_FOCUS_EVT, NULL, 0);
+    }
 }
 
 /****************************************************************************
@@ -204,11 +243,15 @@ static void btif_initiate_av_open_tmr_hdlr(TIMER_LIST_ENT *tle)
 {
     BD_ADDR peer_addr;
     UNUSED(tle);
-
+    btif_av_connect_req_t connect_req;
+    UNUSED(tle);
     /* is there at least one RC connection - There should be */
     if (btif_rc_get_connected_peer(peer_addr)) {
        BTIF_TRACE_DEBUG1("%s Issuing connect to the remote RC peer", __FUNCTION__);
-       btif_sm_dispatch(btif_av_cb.sm_handle, BTIF_AV_CONNECT_REQ_EVT, (void*)&peer_addr);
+       /* In case of AVRCP connection request, we will initiate SRC connection */
+       connect_req.target_bda = (bt_bdaddr_t*)&peer_addr;
+       connect_req.uuid = UUID_SERVCLASS_AUDIO_SOURCE;
+       btif_sm_dispatch(btif_av_cb.sm_handle, BTIF_AV_CONNECT_REQ_EVT, (char*)&connect_req);
     }
     else
     {
@@ -222,7 +265,7 @@ static void btif_initiate_av_open_tmr_hdlr(TIMER_LIST_ENT *tle)
 
 /*****************************************************************************
 **
-** Function		btif_av_state_idle_handler
+** Function     btif_av_state_idle_handler
 **
 ** Description  State managing disconnected AV link
 **
@@ -242,6 +285,7 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             memset(&btif_av_cb.peer_bda, 0, sizeof(bt_bdaddr_t));
             btif_av_cb.flags = 0;
             btif_av_cb.edr = 0;
+            btif_av_cb.sep = SEP_NOT_OPENED;
             btif_a2dp_on_idle();
             break;
 
@@ -249,6 +293,14 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             break;
 
         case BTA_AV_ENABLE_EVT:
+            break;
+
+        case BTIF_AV_REQUEST_ACTIVATE_SINK_EVT:
+        {
+            int enable = *((int*)p_data);
+            BTIF_TRACE_DEBUG1(" Active_Sink enable %d", enable)
+            BTA_AvEnable_Sink(enable);
+        }
             break;
 
         case BTA_AV_REGISTER_EVT:
@@ -260,14 +312,17 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
         {
              if (event == BTIF_AV_CONNECT_REQ_EVT)
              {
-                 memcpy(&btif_av_cb.peer_bda, (bt_bdaddr_t*)p_data, sizeof(bt_bdaddr_t));
+                 memcpy(&btif_av_cb.peer_bda, ((btif_av_connect_req_t*)p_data)->target_bda,
+                                                                   sizeof(bt_bdaddr_t));
+                 BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
+                    TRUE, BTA_SEC_NONE, ((btif_av_connect_req_t*)p_data)->uuid);
              }
              else if (event == BTA_AV_PENDING_EVT)
              {
                   bdcpy(btif_av_cb.peer_bda.address, ((tBTA_AV*)p_data)->pend.bd_addr);
+                  BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
+                    TRUE, BTA_SEC_NONE, UUID_SERVCLASS_AUDIO_SOURCE);
              }
-             BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
-                    TRUE, BTA_SEC_NONE);
              btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
         } break;
 
@@ -341,6 +396,13 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
         case BTIF_SM_EXIT_EVT:
             break;
 
+        case BTA_AV_REJECT_EVT:
+            BTIF_TRACE_DEBUG0(" Received  BTA_AV_REJECT_EVT ");
+            HAL_CBACK(bt_av_callbacks, connection_state_cb,
+                BTAV_CONNECTION_STATE_DISCONNECTED, &(btif_av_cb.peer_bda));
+            btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
+            break;
+
         case BTA_AV_OPEN_EVT:
         {
             tBTA_AV *p_bta_data = (tBTA_AV*)p_data;
@@ -354,6 +416,11 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
                  state = BTAV_CONNECTION_STATE_CONNECTED;
                  av_state = BTIF_AV_STATE_OPENED;
                  btif_av_cb.edr = p_bta_data->open.edr;
+
+                 if (p_bta_data->open.sep == AVDT_TSEP_SRC)
+                    btif_av_cb.sep = SEP_SRC;
+                 else if (p_bta_data->open.sep == AVDT_TSEP_SNK)
+                     btif_av_cb.sep = SEP_SNK;
             }
             else
             {
@@ -368,9 +435,17 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
                              state, &(btif_av_cb.peer_bda));
             /* change state to open/idle based on the status */
             btif_sm_change_state(btif_av_cb.sm_handle, av_state);
-            /* if queued PLAY command,  send it now */
-            btif_rc_check_handle_pending_play(p_bta_data->open.bd_addr,
+            if (btif_av_cb.sep == SEP_SNK)
+            {
+                /* if queued PLAY command,  send it now */
+                btif_rc_check_handle_pending_play(p_bta_data->open.bd_addr,
                                              (p_bta_data->open.status == BTA_AV_SUCCESS));
+            }
+            else if (btif_av_cb.sep == SEP_SRC)
+            {
+                /* if queued PLAY command,  send it now */
+                btif_rc_check_handle_pending_play(p_bta_data->open.bd_addr, FALSE);
+            }
             btif_queue_advance();
         } break;
 
@@ -405,19 +480,31 @@ static BOOLEAN btif_av_state_closing_handler(btif_sm_event_t event, void *p_data
     switch (event)
     {
         case BTIF_SM_ENTER_EVT:
-
-            /* immediately stop transmission of frames */
-            btif_a2dp_set_tx_flush(TRUE);
-            /* wait for audioflinger to stop a2dp */
+            if (btif_av_cb.sep == SEP_SNK)
+            {
+                /* immediately stop transmission of frames */
+                btif_a2dp_set_tx_flush(TRUE);
+                /* wait for audioflinger to stop a2dp */
+            }
+            if (btif_av_cb.sep == SEP_SRC)
+            {
+                btif_a2dp_set_rx_flush(TRUE);
+            }
             break;
 
         case BTA_AV_STOP_EVT:
         case BTIF_AV_STOP_STREAM_REQ_EVT:
+            if (btif_av_cb.sep == SEP_SNK)
+            {
               /* immediately flush any pending tx frames while suspend is pending */
               btif_a2dp_set_tx_flush(TRUE);
+            }
+            if (btif_av_cb.sep == SEP_SRC)
+            {
+                btif_a2dp_set_rx_flush(TRUE);
+            }
 
-              btif_a2dp_on_stopped(NULL);
-
+            btif_a2dp_on_stopped(NULL);
               break;
 
         case BTIF_SM_EXIT_EVT:
@@ -482,6 +569,12 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             break;
 
         case BTIF_AV_START_STREAM_REQ_EVT:
+            if (btif_av_cb.sep == SEP_SRC)
+            {
+                BTA_AvStart();
+                btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
+                break;
+            }
             btif_a2dp_setup_codec();
             BTA_AvStart();
             btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
@@ -495,19 +588,30 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             if ((p_av->start.status == BTA_SUCCESS) && (p_av->start.suspending == TRUE))
                 return TRUE;
 
-            if (btif_a2dp_on_started(&p_av->start,
-                ((btif_av_cb.flags & BTIF_AV_FLAG_PENDING_START) != 0))) {
-                /* only clear pending flag after acknowledgement */
-                btif_av_cb.flags &= ~BTIF_AV_FLAG_PENDING_START;
+            /*  In case peer is A2DP SRC we do not want to ack commands on UIPC*/
+            if (btif_av_cb.sep == SEP_SNK)
+            {
+                if (btif_a2dp_on_started(&p_av->start,
+                    ((btif_av_cb.flags & BTIF_AV_FLAG_PENDING_START) != 0)))
+                {
+                    /* only clear pending flag after acknowledgement */
+                    btif_av_cb.flags &= ~BTIF_AV_FLAG_PENDING_START;
+                }
             }
 
             /* remain in open state if status failed */
             if (p_av->start.status != BTA_AV_SUCCESS)
                 return FALSE;
 
+            if (btif_av_cb.sep == SEP_SRC)
+            {
+                btif_a2dp_set_rx_flush(FALSE); /*  remove flush state, ready for streaming*/
+            }
+
             /* change state to started, send acknowledgement if start is pending */
             if (btif_av_cb.flags & BTIF_AV_FLAG_PENDING_START) {
-                btif_a2dp_on_started(NULL, TRUE);
+                if (btif_av_cb.sep == SEP_SNK)
+                    btif_a2dp_on_started(NULL, TRUE);
                 /* pending start flag will be cleared when exit current state */
             }
             btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_STARTED);
@@ -523,8 +627,7 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             break;
 
         case BTA_AV_CLOSE_EVT:
-
-            /* avdtp link is closed */
+             /* avdtp link is closed */
             btif_a2dp_on_stopped(NULL);
 
             /* inform the application that we are disconnected */
@@ -605,7 +708,8 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
 
         case BTIF_AV_START_STREAM_REQ_EVT:
             /* we were remotely started, just ack back the local request */
-            btif_a2dp_on_started(NULL, TRUE);
+            if (btif_av_cb.sep == SEP_SNK)
+                btif_a2dp_on_started(NULL, TRUE);
             break;
 
         /* fixme -- use suspend = true always to work around issue with BTA AV */
@@ -620,8 +724,14 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
                always overrides */
             btif_av_cb.flags &= ~BTIF_AV_FLAG_REMOTE_SUSPEND;
 
+            if (btif_av_cb.sep == SEP_SNK)
+            {
             /* immediately stop transmission of frames while suspend is pending */
-            btif_a2dp_set_tx_flush(TRUE);
+                btif_a2dp_set_tx_flush(TRUE);
+            }
+
+            if (btif_av_cb.sep == SEP_SRC)
+                btif_a2dp_set_rx_flush(TRUE);
 
             BTA_AvStop(TRUE);
             break;
@@ -652,8 +762,11 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
             {
                 btif_av_cb.flags &= ~BTIF_AV_FLAG_LOCAL_SUSPEND_PENDING;
 
+               if (btif_av_cb.sep == SEP_SNK)
+               {
                 /* suspend failed, reset back tx flush state */
-                btif_a2dp_set_tx_flush(FALSE);
+                    btif_a2dp_set_tx_flush(FALSE);
+               }
                 return FALSE;
             }
 
@@ -685,7 +798,6 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
         case BTA_AV_STOP_EVT:
 
             btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_STOP;
-
             btif_a2dp_on_stopped(&p_av->suspend);
 
             HAL_CBACK(bt_av_callbacks, audio_state_cb,
@@ -697,12 +809,16 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
 
             break;
 
+            case BTIF_AV_REQUEST_AUDIO_FOCUS_EVT:
+                HAL_CBACK(bt_av_callbacks, audio_focus_request_cb,
+                                       1, &(btif_av_cb.peer_bda));
+                break;
+
         case BTA_AV_CLOSE_EVT:
 
              btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_STOP;
 
             /* avdtp link is closed */
-
             btif_a2dp_on_stopped(NULL);
 
             /* inform the application that we are disconnected */
@@ -739,6 +855,27 @@ static void bte_av_callback(tBTA_AV_EVT event, tBTA_AV *p_data)
                           (char*)p_data, sizeof(tBTA_AV), NULL);
 }
 
+static void bte_av_media_callback(tBTA_AV_EVT event, tBTA_AV_MEDIA *p_data)
+{
+    btif_sm_state_t state;
+    UINT8 que_len;
+
+    if (event == BTA_AV_MEDIA_DATA_EVT)/* Switch to BTIF_MEDIA context */
+    {
+        state= btif_sm_get_state(btif_av_cb.sm_handle);
+        if ( (state == BTIF_AV_STATE_STARTED) || /* send SBC packets only in Started State */
+             (state == BTIF_AV_STATE_OPENED) )
+        {
+            que_len = btif_media_sink_enque_buf((BT_HDR *)p_data);
+            BTIF_TRACE_DEBUG1(" Packets in Que %d",que_len);
+        }
+        else
+            return;
+    }
+
+    if (event == BTA_AV_MEDIA_SINK_CFG_EVT) /* send a command to BT Media Task */
+        btif_reset_decoder((UINT8*)p_data);
+}
 /*******************************************************************************
 **
 ** Function         btif_av_init
@@ -804,16 +941,27 @@ static bt_status_t init(btav_callbacks_t* callbacks )
 **
 *******************************************************************************/
 
-static bt_status_t connect_int(bt_bdaddr_t *bd_addr)
+static bt_status_t connect_int(bt_bdaddr_t *bd_addr, uint16_t uuid)
 {
+    btif_av_connect_req_t connect_req;
+    connect_req.target_bda = bd_addr;
+    connect_req.uuid = uuid;
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
 
-    btif_sm_dispatch(btif_av_cb.sm_handle, BTIF_AV_CONNECT_REQ_EVT, (char*)bd_addr);
+    btif_sm_dispatch(btif_av_cb.sm_handle, BTIF_AV_CONNECT_REQ_EVT, (char*)&connect_req);
 
     return BT_STATUS_SUCCESS;
 }
 
-static bt_status_t connect(bt_bdaddr_t *bd_addr)
+static bt_status_t connect_sink(bt_bdaddr_t *bd_addr)
+{
+    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
+    CHECK_BTAV_INIT();
+    return btif_queue_connect(UUID_SERVCLASS_AUDIO_SINK, bd_addr,
+                                 connect_int);
+}
+
+static bt_status_t connect_src(bt_bdaddr_t *bd_addr)
 {
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
     CHECK_BTAV_INIT();
@@ -868,12 +1016,110 @@ static void cleanup(void)
     return;
 }
 
+/*******************************************************************************
+**
+** Function         is_src
+**
+** Description      Checks if peer device is A2DP SRC
+**
+** Returns          Success in case peer is A2DP Src, FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t is_src( bt_bdaddr_t *bd_addr )
+{
+    BTIF_TRACE_DEBUG0(" isSrc:  Check if peer device with bd_addr is audio src or sink");
+    if (btif_av_cb.sep == SEP_SRC)
+    {
+        BTIF_TRACE_DEBUG0(" Current Peer is SRC");
+        return BT_STATUS_SUCCESS;
+    }
+    else if (btif_av_cb.sep == SEP_SNK)
+    {
+        BTIF_TRACE_DEBUG0(" Current Peer is SNK");
+        return BT_STATUS_FAIL;
+    }
+    else
+    {
+        BTIF_TRACE_DEBUG0(" Stream not opened till now");
+        return BT_STATUS_NOT_READY;
+    }
+}
+
+/*******************************************************************************
+**
+** Function         activate_sink
+**
+** Description      Activates/Deactivates A2DP Sink
+**
+** Returns          None
+**
+*******************************************************************************/
+void activate_sink(int enable)
+{
+    BTIF_TRACE_DEBUG1(" Activate Sink %d", enable);
+    btif_dispatch_sm_event(BTIF_AV_REQUEST_ACTIVATE_SINK_EVT, (char*)&enable, sizeof(int));
+}
+
+/*******************************************************************************
+**
+** Function         suspend_sink
+**
+** Description      Suspends stream  in case of A2DP Sink
+**
+** Returns          None
+**
+*******************************************************************************/
+void suspend_sink()
+{
+    BTIF_TRACE_DEBUG0(" suspend Stream Suspend called");
+    if (btif_av_cb.sep == SEP_SRC)
+        btif_dispatch_sm_event(BTIF_AV_SUSPEND_STREAM_REQ_EVT, NULL, 0);
+}
+
+/*******************************************************************************
+**
+** Function         resume_sink
+**
+** Description      Resumes stream  in case of A2DP Sink
+**
+** Returns          None
+**
+*******************************************************************************/
+void resume_sink()
+{
+    BTIF_TRACE_DEBUG0(" resume Stream called");
+    if (btif_av_cb.sep == SEP_SRC)
+        btif_dispatch_sm_event(BTIF_AV_START_STREAM_REQ_EVT, NULL, 0);
+}
+
+/*******************************************************************************
+**
+** Function         audio_focus_status
+**
+** Description      Updates audio focus state
+**
+** Returns          None
+**
+*******************************************************************************/
+static void audio_focus_status(int state)
+{
+    BTIF_TRACE_DEBUG1(" Audio Focus granted %d",state);
+
+    btif_a2dp_set_audio_focus_state(state);
+}
+
 static const btav_interface_t bt_av_interface = {
     sizeof(btav_interface_t),
     init,
-    connect,
+    connect_src,
+    connect_sink,
     disconnect,
     cleanup,
+    is_src,
+    suspend_sink,
+    resume_sink,
+    audio_focus_status,
+    activate_sink,
 };
 
 /*******************************************************************************
@@ -997,7 +1243,7 @@ bt_status_t btif_av_execute_service(BOOLEAN b_enable)
          BTA_AvEnable(BTA_SEC_AUTHENTICATE, (BTA_AV_FEAT_RCTG | BTA_AV_FEAT_NO_SCO_SSPD),
                       bte_av_callback);
 #endif
-         BTA_AvRegister(BTA_AV_CHNL_AUDIO, BTIF_AV_SERVICE_NAME, 0);
+         BTA_AvRegister(BTA_AV_CHNL_AUDIO, BTIF_AV_SERVICE_NAME, 0, bte_av_media_callback);
      }
      else {
          BTA_AvDeregister(btif_av_cb.bta_handle);
