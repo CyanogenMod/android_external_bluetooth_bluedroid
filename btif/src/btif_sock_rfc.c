@@ -163,6 +163,7 @@ void btsock_rfc_cleanup()
 {
     int curr_pth = pth;
     pth = -1;
+    btif_data_profile_register(0);
     btsock_thread_exit(curr_pth);
     lock_slot(&slot_lock);
     int i;
@@ -642,8 +643,6 @@ static void cleanup_rfc_slot(rfc_slot_t* rs)
         close(rs->fd);
         rs->fd = -1;
     }
-
-    btif_data_profile_register(0);
 
     if(rs->app_fd != -1)
     {
