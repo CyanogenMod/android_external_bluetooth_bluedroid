@@ -1566,8 +1566,13 @@ BOOLEAN btm_ble_update_inq_result(tINQ_DB_ENT *p_i, UINT8 addr_type, UINT8 evt_t
     if ((p_cur->flag & BTM_BLE_BREDR_NOT_SPT) == 0 &&
          evt_type != BTM_BLE_CONNECT_DIR_EVT)
     {
-        BTM_TRACE_DEBUG0("BR/EDR NOT support bit not set, treat as DUMO");
-        p_cur->device_type |= BT_DEVICE_TYPE_DUMO;
+        if (p_cur->ble_addr_type != BLE_ADDR_RANDOM)
+        {
+            BTM_TRACE_DEBUG0("BR/EDR NOT support bit not set, treat as DUMO");
+            p_cur->device_type |= BT_DEVICE_TYPE_DUMO;
+        } else {
+            BTM_TRACE_DEBUG0("Random address, treating device as LE only");
+        }
     }
     else
     {
