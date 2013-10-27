@@ -136,7 +136,6 @@ enum {
 /* 2.5 frames/tick  @ 20 ms tick (every 2nd frame send one less) */
 #define BTIF_MEDIA_FR_PER_TICKS_16               (3 * BTIF_MEDIA_NUM_TICK)
 
-
 /* buffer pool */
 #define BTIF_MEDIA_AA_POOL_ID GKI_POOL_ID_3
 #define BTIF_MEDIA_AA_BUF_SIZE GKI_BUF3_SIZE
@@ -156,6 +155,14 @@ enum {
 /* High quality quality setting @ 48 khz */
 #define DEFAULT_SBC_BITRATE 328
 #define SBC_HIGH_QUALITY_BITRATE 345
+
+#define AVDTP_HDR_SIZE                           12
+#define A2DP_HDR_SIZE                            1
+#define MAX_SBC_FRAME_PER_PACKET_44_1            7
+#define MAX_SBC_FRAME_PER_PACKET_48              8
+#define MAX_SBC_FRAME_SIZE_44_1                  119
+#define MAX_SBC_FRAME_SIZE_48                    115
+
 
 #ifndef A2DP_MEDIA_TASK_STACK_SIZE
 #define A2DP_MEDIA_TASK_STACK_SIZE       0x2000         /* In bytes */
@@ -1521,6 +1528,28 @@ static void btif_media_task_enc_init(BT_HDR *p_msg)
     APPL_TRACE_DEBUG1("btif_media_task_enc_init bit pool %d", btif_media_cb.encoder.s16BitPool);
 }
 
+static UINT16 btif_media_task_get_min_high_bp_avdtp_mtu(UINT16 freq)
+{
+    UINT16 s16Mtu = 0;
+    switch(freq)
+    {
+        case SBC_sf44100:
+            // max number of sbc frames pushed per avdtp packet is 7
+            s16Mtu = (MAX_SBC_FRAME_PER_PACKET_44_1 * MAX_SBC_FRAME_SIZE_44_1) + AVDTP_HDR_SIZE + A2DP_HDR_SIZE;
+            APPL_TRACE_DEBUG1("minimum required MTU: %d", s16Mtu);
+            break;
+        case SBC_sf48000:
+            // max number of sbc frames pushed per avdtp packet is 8
+            s16Mtu = (MAX_SBC_FRAME_PER_PACKET_48 * MAX_SBC_FRAME_SIZE_48) + AVDTP_HDR_SIZE + A2DP_HDR_SIZE;
+            APPL_TRACE_DEBUG1("minimum required MTU: %d", s16Mtu);
+            break;
+        default:
+            APPL_TRACE_DEBUG0("btif_media_task_get_min_required_high_bp_avdtp_mtu; Freq not supported ");
+    };
+    return s16Mtu;
+}
+
+
 /*******************************************************************************
  **
  ** Function       btif_media_task_enc_update
@@ -1552,9 +1581,27 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
                 < pUpdateAudio->MinMtuSize) ? (BTIF_MEDIA_AA_BUF_SIZE - BTIF_MEDIA_AA_SBC_OFFSET
                 - sizeof(BT_HDR)) : pUpdateAudio->MinMtuSize;
 
+        APPL_TRACE_DEBUG1("btif_media_task_enc_update : configured out mtu %d", btif_media_cb.TxAaMtuSize);
+
         /* Set the initial target bit rate */
-        pstrEncParams->u16BitRate = btif_media_cb.is_edr_supported ?
-                                    SBC_HIGH_QUALITY_BITRATE : DEFAULT_SBC_BITRATE;
+        if (btif_media_cb.is_edr_supported)
+        {
+            if (btif_media_cb.TxAaMtuSize < btif_media_task_get_min_high_bp_avdtp_mtu(pstrEncParams->s16SamplingFreq))
+            {
+                APPL_TRACE_DEBUG0("remote supports edr, out mtu is less than required mtu size, setting medium bitrate");
+                pstrEncParams->u16BitRate = DEFAULT_SBC_BITRATE;
+            }
+            else
+            {
+                APPL_TRACE_DEBUG0("remote supports edr, out mtu size is more than minimum required mtu size");
+                pstrEncParams->u16BitRate = SBC_HIGH_QUALITY_BITRATE;
+            }
+        }
+        else
+        {
+            APPL_TRACE_DEBUG0("remote does not support edr, setting medium bitrate");
+            pstrEncParams->u16BitRate = DEFAULT_SBC_BITRATE;
+        }
 
         if (pstrEncParams->s16SamplingFreq == SBC_sf16000)
             s16SamplingFreq = 16000;
