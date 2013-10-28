@@ -1717,15 +1717,21 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
 
     else {
         int    hex_bytes_filled;
-        UINT8  hexbuf[200];
+        UINT8  *hexbuf;
         UINT16 len = (strlen(data) + 1) / 2;
 
         if (p_dev->p_buf != NULL) {
             GKI_freebuf(p_dev->p_buf);
         }
+        hexbuf = GKI_getbuf((UINT16) (strlen(data)));
+        if (hexbuf == NULL) {
+            BTIF_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, len = %d", __FUNCTION__, strlen(data));
+            return BT_STATUS_FAIL;
+        }
         p_dev->p_buf = GKI_getbuf((UINT16) (len + BTA_HH_MIN_OFFSET + sizeof(BT_HDR)));
         if (p_dev->p_buf == NULL) {
             BTIF_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, len = %d", __FUNCTION__, len);
+            GKI_freebuf(hexbuf);
             return BT_STATUS_FAIL;
         }
 
@@ -1733,7 +1739,7 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
         p_dev->p_buf->offset = BTA_HH_MIN_OFFSET;
 
         /* Build a SetReport data buffer */
-        memset(hexbuf, 0, 200);
+        memset(hexbuf, 0, strlen(data));
         hex_bytes_filled = ascii_2_hex(data, len, hexbuf);
         BTIF_TRACE_ERROR2("Hex bytes filled, hex value: %d, %d", hex_bytes_filled, len);
 
@@ -1743,9 +1749,10 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
             memcpy(pbuf_data, hexbuf, hex_bytes_filled);
             p_dev->p_buf->layer_specific = BTA_HH_RPTT_OUTPUT;
             BTA_HhSendData(p_dev->dev_handle, *bda, p_dev->p_buf);
+            GKI_freebuf(hexbuf);
             return BT_STATUS_SUCCESS;
         }
-
+        GKI_freebuf(hexbuf);
     }
     return BT_STATUS_FAIL;
 }
