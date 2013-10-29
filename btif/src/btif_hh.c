@@ -152,7 +152,6 @@ static tHID_KB_LIST hid_kb_numlock_on_list[] =
 **  Externs
 ************************************************************************************/
 extern void bta_hh_co_destroy(int fd);
-extern void bta_hh_co_close(UINT8 dev_handle, UINT8 app_id);
 extern void bta_hh_co_write(int fd, UINT8* rpt, UINT16 len);
 extern bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr);
 extern void bta_hh_co_send_hid_info(btif_hh_device_t *p_dev, char *dev_name, UINT16 vendor_id,
@@ -554,7 +553,6 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
     BTIF_TRACE_DEBUG2("%s: uhid fd = %d", __FUNCTION__, p_dev->fd);
     if (p_dev->fd >= 0) {
         bta_hh_co_destroy(p_dev->fd);
-        bta_hh_co_close(p_dev->dev_handle, p_dev->app_id);
         p_dev->fd = -1;
     }
 }
@@ -911,7 +909,6 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 HAL_CBACK(bt_hh_callbacks, connection_state_cb,&(p_dev->bd_addr), p_dev->dev_status);
                 BTIF_TRACE_DEBUG2("%s: Closing uhid fd = %d", __FUNCTION__, p_dev->fd);
                 bta_hh_co_destroy(p_dev->fd);
-                bta_hh_co_close(p_dev->dev_handle, p_dev->app_id);
                 p_dev->fd = -1;
             }
             else {
@@ -1831,7 +1828,6 @@ static void  cleanup( void )
          if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN && p_dev->fd >= 0) {
              BTIF_TRACE_DEBUG2("%s: Closing uhid fd = %d", __FUNCTION__, p_dev->fd);
              bta_hh_co_destroy(p_dev->fd);
-             bta_hh_co_close(p_dev->dev_handle, p_dev->app_id);
              p_dev->fd = -1;
              p_dev->hh_keep_polling = 0;
              p_dev->hh_poll_thread_id = -1;

@@ -166,7 +166,7 @@ static void *btif_hh_poll_event_thread(void *arg)
     pfds[0].events = POLLIN;
 
     while(p_dev->hh_keep_polling){
-        ret = poll(pfds, 1, 500);
+        ret = poll(pfds, 1, 50);
         if (ret < 0) {
             APPL_TRACE_ERROR2("%s: Cannot poll for fds: %s\n", __FUNCTION__, strerror(errno));
             break;
@@ -200,6 +200,7 @@ void bta_hh_co_destroy(int fd)
     memset(&ev, 0, sizeof(ev));
     ev.type = UHID_DESTROY;
     uhid_write(fd, &ev);
+    BTIF_TRACE_DEBUG2("%s: Closing uhid fd = %d", __FUNCTION__, fd);
     close(fd);
 }
 
@@ -259,8 +260,9 @@ void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class, tBTA_HH_ATTR_MASK attr_ma
                     APPL_TRACE_ERROR2("%s: Error: failed to open uhid, err:%s",
                                                                     __FUNCTION__,strerror(errno));
                 }else
-                    APPL_TRACE_DEBUG2("%s: uhid fd = %d", __FUNCTION__, p_dev->fd);
-            }
+                    APPL_TRACE_DEBUG2("%s: uhid opened fd = %d", __FUNCTION__, p_dev->fd);
+            }else
+                APPL_TRACE_DEBUG2("%s: uhid already opened fd = %d", __FUNCTION__, p_dev->fd);
             p_dev->hh_keep_polling = 1;
             p_dev->hh_poll_thread_id = create_thread(btif_hh_poll_event_thread, p_dev);
             break;
@@ -286,7 +288,7 @@ void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class, tBTA_HH_ATTR_MASK attr_ma
                     APPL_TRACE_ERROR2("%s: Error: failed to open uhid, err:%s",
                                                                     __FUNCTION__,strerror(errno));
                 }else{
-                    APPL_TRACE_DEBUG2("%s: uhid fd = %d", __FUNCTION__, p_dev->fd);
+                    APPL_TRACE_DEBUG2("%s: uhid opened fd = %d", __FUNCTION__, p_dev->fd);
                     p_dev->hh_keep_polling = 1;
                     p_dev->hh_poll_thread_id = create_thread(btif_hh_poll_event_thread, p_dev);
                 }
@@ -435,6 +437,7 @@ void bta_hh_co_send_hid_info(btif_hh_device_t *p_dev, char *dev_name, UINT16 ven
         APPL_TRACE_WARNING2("%s: Error: failed to send DSCP, result = %d", __FUNCTION__, result);
 
         /* The HID report descriptor is corrupted. Close the driver. */
+        BTIF_TRACE_DEBUG2("%s: Closing uhid fd = %d", __FUNCTION__, p_dev->fd);
         close(p_dev->fd);
         p_dev->fd = -1;
     }
