@@ -161,6 +161,7 @@ extern BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
 extern void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr);
 extern BOOLEAN check_cod_hid(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
 extern int  scru_ascii_2_hex(char *p_ascii, int len, UINT8 *p_hex);
+extern void btm_sec_set_hid_as_paired(BD_ADDR bda, BOOLEAN paired);
 
 /*****************************************************************************
 **  Local Function prototypes
@@ -492,6 +493,11 @@ BOOLEAN btif_hh_add_added_dev(bt_bdaddr_t bda, tBTA_HH_ATTR_MASK attr_mask)
             memcpy(&(btif_hh_cb.added_devices[i].bd_addr), &bda, BD_ADDR_LEN);
             btif_hh_cb.added_devices[i].dev_handle = BTA_HH_INVALID_HANDLE;
             btif_hh_cb.added_devices[i].attr_mask  = attr_mask;
+            /* Set linkkey as known in internal security database for pointing devices */
+            if (check_cod(&bda, COD_HID_POINTING))
+            {
+                btm_sec_set_hid_as_paired(bda.address, TRUE);
+            }
             return TRUE;
         }
     }
@@ -535,6 +541,11 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
         return;
     }
 
+    /* Set linkkey as unknown in internal security database for pointing devices */
+    if (check_cod(&(p_dev->bd_addr), COD_HID_POINTING))
+    {
+        btm_sec_set_hid_as_paired((p_dev->bd_addr).address, FALSE);
+    }
     p_dev->dev_status = BTHH_CONN_STATE_UNKNOWN;
     p_dev->dev_handle = BTA_HH_INVALID_HANDLE;
     if (btif_hh_cb.device_num > 0) {
