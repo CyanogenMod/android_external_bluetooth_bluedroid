@@ -57,6 +57,7 @@ enum
     BTA_HH_API_GET_DSCP_EVT,
     BTA_HH_API_MAINT_DEV_EVT,
     BTA_HH_OPEN_CMPL_EVT,
+    BTA_HH_SDP_CMPL_AFTER_BONDING_EVT,
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
     BTA_HH_GATT_CLOSE_EVT,
     BTA_HH_GATT_OPEN_EVT,
@@ -169,6 +170,13 @@ typedef struct
     UINT16              scan_win;
 }tBTA_HH_SCPP_UPDATE;
 #endif
+
+typedef struct
+{
+    BT_HDR              hdr;
+    BD_ADDR             bd_addr;
+}tBTA_HH_SDP_CMP_AFTER_BONDING;
+
 /* union of all event data types */
 typedef union
 {
@@ -184,6 +192,7 @@ typedef union
     tBTA_GATTC_OPEN          le_open;
     tBTA_HH_SCPP_UPDATE      le_scpp_update;
 #endif
+    tBTA_HH_SDP_CMP_AFTER_BONDING sdp_cmp_after_bonding;
 } tBTA_HH_DATA;
 
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
@@ -352,6 +361,7 @@ extern void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data);
 extern void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data);
 extern void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data);
 extern void bta_hh_open_failure(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data);
+extern void bta_hh_sdp_cmp_after_bonding_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data);
 
 /* utility functions */
 extern UINT8  bta_hh_find_cb(BD_ADDR bda);

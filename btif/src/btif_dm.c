@@ -61,6 +61,7 @@
 #define COD_AV_PORTABLE_AUDIO               0x041C
 #define COD_AV_HIFI_AUDIO                   0x0428
 
+#define HID_UUID            "00001124-0000-1000-8000-00805f9b34fb"
 
 #define BTIF_DM_DEFAULT_INQ_MAX_RESULTS     0
 #define BTIF_DM_DEFAULT_INQ_MAX_DURATION    10
@@ -1209,6 +1210,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
             uint32_t i = 0,  j = 0;
             bt_bdaddr_t bd_addr;
             bt_status_t ret;
+            BOOLEAN hid_uuid_present = FALSE;
 
             bdcpy(bd_addr.address, p_data->disc_res.bd_addr);
 
@@ -1233,6 +1235,8 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                  {
                       char temp[256];
                       uuid_to_string((bt_uuid_t*)(p_data->disc_res.p_uuid_list + (i*MAX_UUID_SIZE)), temp);
+                      if (strcmp(temp, HID_UUID) == 0)
+                          hid_uuid_present = TRUE;
                       BTIF_TRACE_ERROR2("Index: %d uuid:%s", i, temp);
                  }
             }
@@ -1248,6 +1252,12 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                                    __FUNCTION__);
                  pairing_cb.sdp_attempts  = 0;
                  bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDED);
+                 /*special handling for HID devices */
+                 if (check_cod_hid(&bd_addr, COD_HID_MAJOR) || hid_uuid_present)
+                 {
+                     /* Inform HID layer that SDP is complete */
+                     btif_hh_sdp_cmpl_after_bonding(bd_addr);
+                 }
             }
 
             if(p_data->disc_res.num_uuids != 0)
