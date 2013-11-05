@@ -251,10 +251,12 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
             {
                 btm_establish_continue(p);
 
+#if (!defined(BTA_SKIP_BLE_READ_REMOTE_FEAT) || BTA_SKIP_BLE_READ_REMOTE_FEAT == FALSE)
                 if (link_role == HCI_ROLE_MASTER)
                 {
                     btsnd_hcic_ble_read_remote_feat(p->hci_handle);
                 }
+#endif
             }
             else
 #endif
