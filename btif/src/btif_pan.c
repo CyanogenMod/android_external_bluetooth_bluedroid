@@ -552,6 +552,9 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
                 /*         p_data->open.bd_addr[3], p_data->open.bd_addr[4], p_data->open.bd_addr[5]); */
                 btpan_connection_state_t state;
                 bt_status_t status;
+                btpan_conn_t* conn = btpan_find_conn_handle(p_data->open.handle);
+
+                ALOGI("%s: event = BTA_PAN_OPEN_EVT p_data->open.status %d", __FUNCTION__, p_data->open.status);
                 if(p_data->open.status == BTA_PAN_SUCCESS)
                 {
                     state = BTPAN_STATE_CONNECTED;
@@ -561,8 +564,8 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
                 {
                     state = BTPAN_STATE_DISCONNECTED;
                     status = BT_STATUS_FAIL;
+                    btpan_cleanup_conn(conn);
                 }
-                btpan_conn_t* conn = btpan_find_conn_handle(p_data->open.handle);
                 /* debug("BTA_PAN_OPEN_EVT handle:%d, conn:%p",  p_data->open.handle, conn); */
                 /* debug("conn bta local_role:%d, bta remote role:%d", conn->local_role, conn->remote_role); */
                 int btpan_conn_local_role = bta_role_to_btpan(p_data->open.local_role);
