@@ -116,7 +116,7 @@ static const UINT8 bta_av_st_init[][BTA_AV_NUM_COLS] =
 /* API_VENDOR_CMD_EVT */    {BTA_AV_IGNORE,         BTA_AV_INIT_ST },
 /* API_VENDOR_RSP_EVT */    {BTA_AV_IGNORE,         BTA_AV_INIT_ST },
 /* API_META_RSP_EVT */      {BTA_AV_RC_FREE_RSP,    BTA_AV_INIT_ST },
-/* API_RC_CLOSE_EVT */      {BTA_AV_IGNORE,         BTA_AV_INIT_ST },
+/* API_RC_CLOSE_EVT */      {BTA_AV_RC_CLOSE,       BTA_AV_INIT_ST },
 /* AVRC_OPEN_EVT */         {BTA_AV_RC_OPENED,      BTA_AV_OPEN_ST },
 /* AVRC_MSG_EVT */          {BTA_AV_RC_FREE_MSG,    BTA_AV_INIT_ST },
 /* AVRC_NONE_EVT */         {BTA_AV_IGNORE,         BTA_AV_INIT_ST },
