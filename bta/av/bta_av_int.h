@@ -162,8 +162,9 @@ typedef UINT8 (*tBTA_AV_CO_GETCFG) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
                                      UINT8 *p_codec_info, UINT8 *p_sep_info_idx, UINT8 seid,
                                      UINT8 *p_num_protect, UINT8 *p_protect_info);
 typedef void (*tBTA_AV_CO_SETCFG) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                    UINT8 *p_codec_info, UINT8 seid, BD_ADDR addr,
-                                    UINT8 num_protect, UINT8 *p_protect_info, UINT8 t_local_sep, UINT8 avdt_handle);
+                                     UINT8 *p_codec_info, UINT8 seid, BD_ADDR addr,
+                                     UINT8 num_protect, UINT8 *p_protect_info,
+                                     UINT8 t_local_sep, UINT8 avdt_handle);
 typedef void (*tBTA_AV_CO_OPEN) (tBTA_AV_HNDL hndl,
                                  tBTA_AV_CODEC codec_type, UINT8 *p_codec_info,
                                    UINT16 mtu);
@@ -556,7 +557,7 @@ typedef struct
     TIMER_LIST_ENT      sig_tmr;        /* link timer */
     TIMER_LIST_ENT      acp_sig_tmr;    /* timer to monitor signalling when accepting */
     UINT32              sdp_a2d_handle; /* SDP record handle for audio src */
-#if( defined BTA_AVK_INCLUDED ) && (BTA_AVK_INCLUDED == TRUE)
+#ifdef BTA_AVK_INCLUDED
     UINT32              sdp_a2d_snk_handle; /* SDP record handle for audio snk */
 #endif
     UINT32              sdp_vdp_handle; /* SDP record handle for video src */

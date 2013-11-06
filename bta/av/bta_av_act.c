@@ -2061,11 +2061,10 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
                 bta_av_del_sdp_rec(&p_cb->sdp_a2d_handle);
                 bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
 
-#if( defined BTA_AVK_INCLUDED ) && (BTA_AVK_INCLUDED == TRUE)
+#ifdef BTA_AVK_INCLUDED
                 bta_av_del_sdp_rec(&p_cb->sdp_a2d_snk_handle);
                 bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SINK);
 #endif
-
             }
         }
         else
