@@ -162,9 +162,25 @@ static const struct {
     { NULL,           0,                0,                0 }
 };
 
+/* the rc_black_addr_prefix and rc_white_addr_prefix are used to correct
+ * IOP issues of absolute volume feature
+ * We encoutered A2DP headsets/carkits advertising absolute volume but buggy.
+ * We would like to blacklist those devices.
+ * But we donot have a full list of the bad devices. So as a temp fix, we
+ * are blacklisting all the devices except the devices we have well tested,
+ * the ones in the whitelist.
+ *
+ * For now, only the rc_white_addr_prefix is used in the code while
+ * rc_black_addr_prefix is kept here for future long term solution.
+ */
 static const UINT8 rc_black_addr_prefix[][3] = {
-    {0x0, 0x18, 0x6b}, // HBS-730
+    {0x0, 0x18, 0x6B}, // LG HBS-730
     {0x0, 0x26, 0x7E}  // VW Passat
+};
+
+static const UINT8 rc_white_addr_prefix[][3] = {
+    {0x94, 0xCE, 0x2C}, // Sony SBH50
+    {0x30, 0x17, 0xC8}  // Sony wm600
 };
 
 static void send_reject_response (UINT8 rc_handle, UINT8 label,
@@ -1636,21 +1652,24 @@ void lbl_destroy()
 **      Function       dev_blacklisted_for_absolute_volume
 **
 **      Description    Blacklist Devices that donot handle absolute volume well
+**                     We are blacklisting all the devices that are not in whitelist
 **
 **      Returns        True if the device is in the list
 *******************************************************************************/
 static BOOLEAN dev_blacklisted_for_absolute_volume(BD_ADDR peer_dev)
 {
     int i;
-    int blacklist_size = sizeof(rc_black_addr_prefix)/sizeof(rc_black_addr_prefix[0]);
-    for (i = 0; i < blacklist_size; i++) {
-        if (rc_black_addr_prefix[i][0] == peer_dev[0] &&
-            rc_black_addr_prefix[i][1] == peer_dev[1] &&
-            rc_black_addr_prefix[i][2] == peer_dev[2]) {
-            BTIF_TRACE_WARNING3("blacklist absolute volume for %02x:%02x:%02x",
+    int whitelist_size = sizeof(rc_white_addr_prefix)/sizeof(rc_white_addr_prefix[0]);
+    for (i = 0; i < whitelist_size; i++) {
+        if (rc_white_addr_prefix[i][0] == peer_dev[0] &&
+            rc_white_addr_prefix[i][1] == peer_dev[1] &&
+            rc_white_addr_prefix[i][2] == peer_dev[2]) {
+            BTIF_TRACE_DEBUG3("whitelist absolute volume for %02x:%02x:%02x",
                                 peer_dev[0], peer_dev[1], peer_dev[2]);
-            return TRUE;
+            return FALSE;
         }
     }
-    return FALSE;
+    BTIF_TRACE_WARNING3("blacklist absolute volume for %02x:%02x:%02x",
+                        peer_dev[0], peer_dev[1], peer_dev[2]);
+    return TRUE;
 }
