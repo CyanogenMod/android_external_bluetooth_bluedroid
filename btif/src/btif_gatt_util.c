@@ -36,6 +36,7 @@
 #include "btif_util.h"
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
+#include "btif_config.h"
 
 #if BTA_GATT_INCLUDED == TRUE
 
@@ -293,6 +294,31 @@ void btif_gatt_check_encrypted_link (BD_ADDR bd_addr)
         BTA_DmSetEncryption(bd_addr,
                             &btif_gatt_set_encryption_cb, BTM_BLE_SEC_ENCRYPT);
     }
+}
+
+/*******************************************************************************
+ * Device information
+ *******************************************************************************/
+
+BOOLEAN btif_get_device_type(BD_ADDR bd_addr, int *addr_type, int *device_type)
+{
+    if (device_type == NULL || addr_type == NULL)
+        return FALSE;
+
+    bt_bdaddr_t bda;
+    bdcpy(bda.address, bd_addr);
+
+    char bd_addr_str[18] = {0};
+    bd2str(&bda, &bd_addr_str);
+
+    if (!btif_config_get_int("Remote", bd_addr_str, "DevType", device_type))
+        return FALSE;
+
+    if (!btif_config_get_int("Remote", bd_addr_str, "AddrType", addr_type))
+        return FALSE;
+
+    ALOGD("%s: Device [%s] type %d, addr. type %d", __FUNCTION__, bd_addr_str, *device_type, *addr_type);
+    return TRUE;
 }
 
 #endif
