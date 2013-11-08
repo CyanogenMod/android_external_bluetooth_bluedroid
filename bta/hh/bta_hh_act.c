@@ -824,6 +824,13 @@ void bta_hh_open_failure(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                                     BTA_HH_ERR_AUTH_FAILED : BTA_HH_ERR;
      bdcpy(conn_dat.bda, p_cb->addr);
      HID_HostCloseDev(p_cb->hid_handle);
+     if ((p_cb->sub_class == 0x80) &&
+             reason == (HID_L2CAP_CONN_FAIL | L2CAP_CONN_SECURITY_BLOCK))
+     {
+        /* If connection open failure is due to security block,
+         * remove the HID device from database. */
+        BTA_HhRemoveDev(p_cb->hid_handle);
+     }
 
      /* Report OPEN fail event */
      (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn_dat);

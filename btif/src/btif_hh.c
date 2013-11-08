@@ -697,6 +697,21 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
 
 /*******************************************************************************
 **
+** Function         btif_hh_check_if_conn_in_prog
+**
+** Description      connection initiated from the BTIF thread context
+**
+** Returns          int status
+**
+*******************************************************************************/
+
+BOOLEAN btif_hh_check_if_conn_in_prog(void)
+{
+    return (btif_hh_cb.status == BTIF_HH_DEV_CONNECTING);
+}
+
+/*******************************************************************************
+**
 ** Function         btif_hh_disconnect
 **
 ** Description      disconnection initiated from the BTIF thread context
