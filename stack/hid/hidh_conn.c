@@ -138,9 +138,6 @@ tHID_STATUS hidh_conn_disconnect (UINT8 dhandle)
         /* Disconnect both interrupt and control channels */
         if (p_hcon->intr_cid)
             L2CA_DisconnectReq (p_hcon->intr_cid);
-
-        if (p_hcon->ctrl_cid)
-            L2CA_DisconnectReq (p_hcon->ctrl_cid);
     }
     else
     {
@@ -709,7 +706,14 @@ static void hidh_l2cif_disconnect_cfm (UINT16 l2cap_cid, UINT16 result)
     if (l2cap_cid == p_hcon->ctrl_cid)
         p_hcon->ctrl_cid = 0;
     else
+    {
         p_hcon->intr_cid = 0;
+        if (p_hcon->ctrl_cid)
+        {
+            HIDH_TRACE_EVENT0 ("HID-Host Initiating L2CAP Ctrl disconnection");
+            L2CA_DisconnectReq (p_hcon->ctrl_cid);
+        }
+    }
 
     if ((p_hcon->ctrl_cid == 0) && (p_hcon->intr_cid == 0))
     {
