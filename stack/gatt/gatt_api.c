@@ -1294,7 +1294,9 @@ void GATT_Deregister (tGATT_IF gatt_if)
 
     gatt_deregister_bgdev_list(gatt_if);
     /* update the listen mode */
+#ifdef BLE_PERIPHERAL_MODE_SUPPORT
     GATT_Listen(gatt_if, FALSE, NULL);
+#endif
 
     memset (p_reg, 0, sizeof(tGATT_REG));
 }

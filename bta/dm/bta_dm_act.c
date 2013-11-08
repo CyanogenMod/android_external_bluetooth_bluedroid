@@ -4997,6 +4997,7 @@ void bta_dm_ble_set_adv_params (tBTA_DM_MSG *p_data)
                         p_data->ble_set_adv_params.p_dir_bda,
                         BTA_DM_BLE_ADV_CHNL_MAP);
 }
+
 /*******************************************************************************
 **
 ** Function         bta_dm_ble_set_adv_config
@@ -5012,6 +5013,34 @@ void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data)
                         (tBTM_BLE_ADV_DATA *)p_data->ble_set_adv_data.p_adv_cfg);
 }
 
+/*******************************************************************************
+**
+** Function         bta_dm_ble_set_scan_rsp
+**
+** Description      This function set the customized ADV scan resp. configuration
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_set_scan_rsp (tBTA_DM_MSG *p_data)
+{
+    BTM_BleWriteScanRsp(p_data->ble_set_adv_data.data_mask,
+                        (tBTM_BLE_ADV_DATA *)p_data->ble_set_adv_data.p_adv_cfg);
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_ble_broadcast
+**
+** Description      Starts or stops LE broadcasts
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_broadcast (tBTA_DM_MSG *p_data)
+{
+    BTM_BleBroadcast(p_data->ble_observe.start);
+}
 
 #if ((defined BTA_GATT_INCLUDED) &&  (BTA_GATT_INCLUDED == TRUE))
 #ifndef BTA_DM_GATT_CLOSE_DELAY_TOUT
