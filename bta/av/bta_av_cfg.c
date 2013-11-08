@@ -116,7 +116,7 @@ tBTA_AV_CFG *p_bta_av_cfg = (tBTA_AV_CFG *) &bta_av_cfg;
 
 const UINT16 bta_av_rc_id[] =
 {
-    0x021F, /* bit mask: 0=SELECT, 1=UP, 2=DOWN, 3=LEFT,
+    0x0000, /* bit mask: 0=SELECT, 1=UP, 2=DOWN, 3=LEFT,
                          4=RIGHT, 5=RIGHT_UP, 6=RIGHT_DOWN, 7=LEFT_UP,
                          8=LEFT_DOWN, 9=ROOT_MENU, 10=SETUP_MENU, 11=CONT_MENU,
                          12=FAV_MENU, 13=EXIT */

@@ -796,7 +796,8 @@ void btm_sco_disc_chk_pend_for_modechange (UINT16 hci_handle)
     UINT16      xx;
     tSCO_CONN   *p = &btm_cb.sco_cb.sco_db[0];
 
-    BTM_TRACE_DEBUG1("btm_sco_disc_chk_pend_for_modechange: hci_handle", hci_handle);
+    BTM_TRACE_DEBUG2("btm_sco_disc_chk_pend_for_modechange: hci_handle 0x%04x, p->state 0x%02x",
+                      hci_handle, p->state);
 
     for (xx = 0; xx < BTM_MAX_SCO_LINKS; xx++, p++)
     {
@@ -804,8 +805,8 @@ void btm_sco_disc_chk_pend_for_modechange (UINT16 hci_handle)
             (BTM_GetHCIConnHandle (p->esco.data.bd_addr)) == hci_handle)
 
         {
-            BTM_TRACE_DEBUG1("btm_sco_disc_chk_pend_for_modechange -> SCO Link for ACL handle 0x%04x",
-                           hci_handle);
+            BTM_TRACE_DEBUG1("btm_sco_disc_chk_pend_for_modechange -> SCO Link handle 0x%04x",
+                              p->hci_handle);
             BTM_RemoveSco(xx);
         }
     }
@@ -1069,8 +1070,9 @@ tBTM_STATUS BTM_RemoveSco (UINT16 sco_inx)
     if((btm_read_power_mode_state(p->esco.data.bd_addr, &State) == BTM_SUCCESS)
         && State == BTM_PM_ST_PENDING)
     {
-        BTM_TRACE_DEBUG1("BTM_RemoveSco: BTM_PM_ST_PENDING for p->hci_handle", p->hci_handle);
-        p->state == SCO_ST_PEND_MODECHANGE;
+        BTM_TRACE_DEBUG1("BTM_RemoveSco: BTM_PM_ST_PENDING for ACL mapped with SCO Link 0x%04x",
+                          p->hci_handle);
+        p->state = SCO_ST_PEND_MODECHANGE;
         return (BTM_CMD_STARTED);
     }
     tempstate = p->state;

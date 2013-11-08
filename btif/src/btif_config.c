@@ -50,6 +50,7 @@
 #include "btif_sock_thread.h"
 #include "btif_sock_util.h"
 
+#define debug(fmt, ...) ALOGD ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
 #define asrt(s) if(!(s)) BTIF_TRACE_ERROR3 ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 //#define UNIT_TEST
 #define CFG_PATH "/data/misc/bluedroid/"
@@ -82,7 +83,7 @@ typedef struct cfg_node_s
     short used;
     short flag;
 } cfg_node;
-
+int BYTES_USED = 0;
 static pthread_mutex_t slot_lock;
 static int pth = -1; //poll thread handle
 static cfg_node root;
@@ -101,6 +102,7 @@ static int save_cfg();
 static void load_cfg();
 static short find_next_node(const cfg_node* p, short start, char* name, int* bytes);
 static int create_dir(const char* path);
+static int remove_scanned_devices(const char* section);
 #ifdef UNIT_TEST
 static void cfg_test_load();
 static void cfg_test_write();
@@ -220,13 +222,17 @@ int btif_config_set(const char* section, const char* key, const char* name, cons
     if(section && *section && key && *key && name && *name && bytes < MAX_NODE_BYTES)
     {
         lock_slot(&slot_lock);
+        if((BYTES_USED + CFG_GROW_SIZE) >= MAX_NODE_BYTES) {
+           if( remove_scanned_devices("Remote"))
+              debug("Scanned devices are removed ");
+           else debug("Failed to remove devices");
+        }
         ret = set_node(section, key, name, value, (short)bytes, (short)type);
         if(ret && !(type & BTIF_CFG_TYPE_VOLATILE) && ++cached_change > MAX_CACHED_COUNT)
         {
             cached_change = 0;
             btsock_thread_post_cmd(pth, CFG_CMD_SAVE, NULL, 0, 0);
         }
-
         unlock_slot(&slot_lock);
     }
     return ret;
@@ -415,6 +421,7 @@ static cfg_node* find_add_node(cfg_node* p, const char* name)
     int i = -1;
     cfg_node* node = NULL;
     //debug("in, p->name:%s, p->bytes:%d, adding child:%s", p->name, p->bytes, name);
+    BYTES_USED = p->bytes;
     if((i = find_inode(p, name)) < 0)
     {
         if(!(node = find_free_node(p)))
@@ -424,6 +431,9 @@ static cfg_node* find_add_node(cfg_node* p, const char* name)
             {
                 i = GET_NODE_COUNT(old_size);
                 node = &p->child[i];
+            } else {
+                 debug("alloc_node is NULL. Exceeded MAX_NODE_BYTES");
+                 return NULL;
             }
         }
     }
@@ -474,6 +484,7 @@ static int set_node(const char* section, const char* key, const char* name,
             }
         }
     }
+    debug("set_node returning false");
     return FALSE;
 }
 static cfg_node* find_node(const char* section, const char* key, const char* name)
@@ -542,6 +553,53 @@ static short find_next_node(const cfg_node* p, short start, char* name, int* byt
         }
     }
     return next;
+}
+static int remove_scanned_devices(const char* section)
+{
+    short si = -1;
+    if((si = find_inode(&root, section)) >= 0)
+    {
+        short i,j;
+        cfg_node* section_node = &root.child[si];
+        if (section_node == NULL) {
+            debug("Section node is NULL");
+            return FALSE;
+        }
+        int device_count = GET_CHILD_MAX_COUNT(section_node);
+        for(i = 0; i < device_count; i++) {
+           short no_remove_node = 0;
+           cfg_node* key_node = &section_node->child[i];
+           if (key_node == NULL) {
+               debug("key_node is NULL");
+               continue;
+           }
+           int count = GET_CHILD_MAX_COUNT(key_node);
+           for(j = 0; j < count; j++)
+           {
+               cfg_node * node_ptr = &key_node->child[j];
+               if ((node_ptr != NULL) && (node_ptr->name != NULL))
+               {
+                   if (strncmp(node_ptr->name,"AddrType", sizeof("AddrType")) != 0)
+                   {
+                       no_remove_node = 1;
+//                     debug("remove_node :%d \n",no_remove_node);
+                       break;
+                   }
+               }
+           }
+           if (no_remove_node == 1) continue;
+
+           for(j = 0; j < count; j++)
+           {
+              free_node(&key_node->child[j]);
+              //debug("Child node is removed at the index: ");
+           }
+           free_node(key_node);
+//         debug("Node deleted:%d ", i);
+        }
+        return TRUE;
+    }
+    return FALSE;
 }
 static int remove_node(const char* section, const char* key, const char* name)
 {
