@@ -983,6 +983,15 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             }
             {
                 char *cached_name = NULL;
+                bt_property_t remote_property;
+                bt_bdname_t hid_dev_name;
+
+                memset(&remote_property, 0, sizeof(remote_property));
+                BTIF_STORAGE_FILL_PROPERTY(&remote_property, BT_PROPERTY_BDNAME,
+                                           sizeof(hid_dev_name), &hid_dev_name);
+                btif_storage_get_remote_device_property(&p_dev->bd_addr,
+                                                        &remote_property);
+                cached_name = (char *)hid_dev_name.name;
                 char name[] = "Broadcom Bluetooth HID";
                 if (cached_name == NULL) {
                     cached_name = name;
