@@ -1,5 +1,7 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,97 +18,30 @@
  *
  ******************************************************************************/
 
-#ifndef BTIF_HH_H
-#define BTIF_HH_H
+#ifndef BTIF_HD_H
+#define BTIF_HD_H
 
 #include <hardware/bluetooth.h>
-#include <hardware/bt_hh.h>
+#include <hardware/bt_hd.h>
 #include <stdint.h>
-#include "bta_hh_api.h"
-#include "btu.h"
-
-
-/*******************************************************************************
-**  Constants & Macros
-********************************************************************************/
-
-#define BTIF_HH_MAX_HID         8
-#define BTIF_HH_MAX_ADDED_DEV   32
-
-#define BTIF_HH_MAX_KEYSTATES            3
-#define BTIF_HH_KEYSTATE_MASK_NUMLOCK    0x01
-#define BTIF_HH_KEYSTATE_MASK_CAPSLOCK   0x02
-#define BTIF_HH_KEYSTATE_MASK_SCROLLLOCK 0x04
-
-
-/*******************************************************************************
-**  Type definitions and return values
-********************************************************************************/
+#include "bta_hd_api.h"
 
 typedef enum
 {
-    BTIF_HH_DISABLED =   0,
-    BTIF_HH_ENABLED,
-    BTIF_HH_DISABLING,
-    BTIF_HH_DEV_UNKNOWN,
-    BTIF_HH_DEV_CONNECTING,
-    BTIF_HH_DEV_CONNECTED,
-    BTIF_HH_DEV_DISCONNECTED
-} BTIF_HH_STATUS;
+    BTIF_HD_DISABLED  = 0,
+    BTIF_HD_ENABLED,
+    BTIF_HD_DISABLING
+} BTIF_HD_STATUS;
 
+/** BTIF-HD control block */
 typedef struct
 {
-    bthh_connection_state_t       dev_status;
-    UINT8                         dev_handle;
-    bt_bdaddr_t                   bd_addr;
-    tBTA_HH_ATTR_MASK             attr_mask;
-    UINT8                         sub_class;
-    UINT8                         app_id;
-    int                           fd;
-    BT_HDR                        *p_buf;
-    UINT32                        hh_poll_thread_id;
-    UINT8                         hh_keep_polling;
-    BOOLEAN                       vup_timer_active;
-    TIMER_LIST_ENT                vup_timer;
-    BOOLEAN                       local_vup; // Indicated locally initiated VUP
-} btif_hh_device_t;
+    BTIF_HD_STATUS  status;
+    BOOLEAN         app_registered;
+} btif_hd_cb_t;
 
-/* Control block to maintain properties of devices */
-typedef struct
-{
-    UINT8             dev_handle;
-    bt_bdaddr_t       bd_addr;
-    tBTA_HH_ATTR_MASK attr_mask;
-} btif_hh_added_device_t;
+extern btif_hd_cb_t btif_hd_cb;
 
-/**
- * BTIF-HH control block to maintain added devices and currently
- * connected hid devices
- */
-typedef struct
-{
-    BTIF_HH_STATUS          status;
-    btif_hh_device_t        devices[BTIF_HH_MAX_HID];
-    UINT32                  device_num;
-    btif_hh_added_device_t  added_devices[BTIF_HH_MAX_ADDED_DEV];
-    btif_hh_device_t        *p_curr_dev;
-} btif_hh_cb_t;
-
-
-/*******************************************************************************
-**  Functions
-********************************************************************************/
-
-extern btif_hh_cb_t btif_hh_cb;
-
-extern btif_hh_device_t *btif_hh_find_connected_dev_by_handle(UINT8 handle);
-extern void btif_hh_remove_device(bt_bdaddr_t bd_addr);
-BOOLEAN btif_hh_add_added_dev(bt_bdaddr_t bda, tBTA_HH_ATTR_MASK attr_mask);
-extern bt_status_t btif_hh_virtual_unplug(bt_bdaddr_t *bd_addr);
-extern void btif_hh_disconnect(bt_bdaddr_t *bd_addr);
-extern void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type,
-                    UINT16 size, UINT8* report);
-
-BOOLEAN btif_hh_add_added_dev(bt_bdaddr_t bd_addr, tBTA_HH_ATTR_MASK attr_mask);
+extern void btif_hd_remove_device(bt_bdaddr_t bd_addr);
 
 #endif

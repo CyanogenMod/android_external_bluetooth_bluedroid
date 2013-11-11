@@ -1,5 +1,7 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
  *  Copyright (C) 2005-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,65 +20,56 @@
 
 /******************************************************************************
  *
- *  This file contains the HID HOST API in the subsystem of BTA.
+ *  This file contains the HID DEVICE API in the subsystem of BTA.
  *
  ******************************************************************************/
 
 #include "bt_target.h"
 
-#if defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE)
+#if defined(BTA_HD_INCLUDED) && (BTA_HD_INCLUDED == TRUE)
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-#include "bta_hh_api.h"
-#include "bta_hh_int.h"
-#include "l2c_api.h"
-#include "utl.h"
+#include "bta_hd_api.h"
+#include "bta_hd_int.h"
 
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
 
-static const tBTA_SYS_REG bta_hh_reg =
+static const tBTA_SYS_REG bta_hd_reg =
 {
-    bta_hh_hdl_event,
-    BTA_HhDisable
+    bta_hd_hdl_event,
+    BTA_HdDisable
 };
 
 /*******************************************************************************
 **
-** Function         BTA_HhEnable
+** Function         BTA_HdEnable
 **
-** Description      Enable the HID host.  This function must be called before
-**                  any other functions in the HID host API are called. When the
-**                  enable operation is complete the callback function will be
-**                  called with BTA_HH_ENABLE_EVT.
-**
+** Description      Enables HID device
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhEnable(tBTA_SEC sec_mask, tBTA_HH_CBACK *p_cback)
+void BTA_HdEnable(tBTA_HD_CBACK *p_cback)
 {
-    tBTA_HH_API_ENABLE *p_buf;
+    tBTA_HD_API_ENABLE *p_buf;
 
-    /* register with BTA system manager */
-    GKI_sched_lock();
-    bta_sys_register(BTA_ID_HH, &bta_hh_reg);
-    GKI_sched_unlock();
+    APPL_TRACE_API("%s", __FUNCTION__);
 
-    APPL_TRACE_ERROR0("Calling BTA_HhEnable");
-    p_buf = (tBTA_HH_API_ENABLE *)GKI_getbuf((UINT16)sizeof(tBTA_HH_API_ENABLE));
+    bta_sys_register(BTA_ID_HD, &bta_hd_reg);
+
+    p_buf = (tBTA_HD_API_ENABLE *) GKI_getbuf((UINT16) sizeof(tBTA_HD_API_ENABLE));
 
     if (p_buf != NULL)
     {
-        memset(p_buf, 0, sizeof(tBTA_HH_API_ENABLE));
+        memset(p_buf, 0, sizeof(tBTA_HD_API_ENABLE));
 
-        p_buf->hdr.event = BTA_HH_API_ENABLE_EVT;
+        p_buf->hdr.event = BTA_HD_API_ENABLE_EVT;
         p_buf->p_cback = p_cback;
-        p_buf->sec_mask = sec_mask;
 
         bta_sys_sendmsg(p_buf);
     }
@@ -84,412 +77,287 @@ void BTA_HhEnable(tBTA_SEC sec_mask, tBTA_HH_CBACK *p_cback)
 
 /*******************************************************************************
 **
-** Function         BTA_HhDisable
+** Function         BTA_HdDisable
 **
-** Description      Disable the HID host. If the server is currently
-**                  connected, the connection will be closed.
+** Description      Disables HID device.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhDisable(void)
+void BTA_HdDisable(void)
 {
     BT_HDR  *p_buf;
 
-    bta_sys_deregister(BTA_ID_HH);
-    if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    APPL_TRACE_API("%s", __FUNCTION__);
+
+    bta_sys_deregister(BTA_ID_HD);
+
+    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
-        p_buf->event = BTA_HH_API_DISABLE_EVT;
+        p_buf->event = BTA_HD_API_DISABLE_EVT;
         bta_sys_sendmsg(p_buf);
     }
 }
 
 /*******************************************************************************
 **
-** Function         BTA_HhClose
+** Function         BTA_HdRegisterApp
 **
-** Description      Disconnect a connection.
+** Description      This function is called when application should be registered
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhClose(UINT8 dev_handle)
+BTA_API extern void BTA_HdRegisterApp(tBTA_HD_APP_INFO *p_app_info, tBTA_HD_QOS_INFO *p_in_qos,
+                                            tBTA_HD_QOS_INFO *p_out_qos)
 {
-    BT_HDR    *p_buf;
+    tBTA_HD_REGISTER_APP *p_buf;
 
-    if ((p_buf = (BT_HDR *)GKI_getbuf((UINT16)sizeof(BT_HDR))) != NULL)
+    APPL_TRACE_API("%s", __FUNCTION__);
+
+    if ((p_buf = (tBTA_HD_REGISTER_APP *) GKI_getbuf(sizeof(tBTA_HD_REGISTER_APP))) != NULL)
     {
-        memset(p_buf, 0, sizeof(BT_HDR));
-        p_buf->event            = BTA_HH_API_CLOSE_EVT;
-        p_buf->layer_specific   = (UINT16) dev_handle;
+        p_buf->hdr.event = BTA_HD_API_REGISTER_APP_EVT;
 
-        bta_sys_sendmsg(p_buf);
-    }
-}
-
-/*******************************************************************************
-**
-** Function         BTA_HhOpen
-**
-** Description      Connect to a device of specified BD address in specified
-**                  protocol mode and security level.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhOpen(BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode, tBTA_SEC sec_mask)
-{
-    tBTA_HH_API_CONN *p_buf;
-
-    p_buf = (tBTA_HH_API_CONN *)GKI_getbuf((UINT16)sizeof(tBTA_HH_API_CONN));
-
-    if (p_buf!= NULL)
-    {
-        memset((void *)p_buf, 0, sizeof(tBTA_HH_API_CONN));
-
-        p_buf->hdr.event            = BTA_HH_API_OPEN_EVT;
-        p_buf->hdr.layer_specific   = BTA_HH_INVALID_HANDLE;
-        p_buf->sec_mask             = sec_mask;
-        p_buf->mode                 = mode;
-        bdcpy(p_buf->bd_addr, dev_bda);
-
-        bta_sys_sendmsg((void *)p_buf);
-    }
-    else
-    {
-        APPL_TRACE_ERROR0("No resource to send HID host Connect request.");
-    }
-}
-
-/*******************************************************************************
-**
-** Function  bta_hh_snd_write_dev
-**
-*******************************************************************************/
-static void bta_hh_snd_write_dev(UINT8 dev_handle, UINT8 t_type, UINT8 param,
-                                 UINT16 data, UINT8 rpt_id, BT_HDR  *p_data)
-{
-    tBTA_HH_CMD_DATA *p_buf;
-    UINT16          len = (UINT16) (sizeof(tBTA_HH_CMD_DATA) );
-
-    if ((p_buf = (tBTA_HH_CMD_DATA *)GKI_getbuf(len))!= NULL)
-    {
-        memset(p_buf, 0, sizeof(tBTA_HH_CMD_DATA));
-
-        p_buf->hdr.event = BTA_HH_API_WRITE_DEV_EVT;
-        p_buf->hdr.layer_specific   = (UINT16) dev_handle;
-        p_buf->t_type   = t_type;
-        p_buf->data     = data;
-        p_buf->param    = param;
-        p_buf->p_data   = p_data;
-        p_buf->rpt_id   = rpt_id;
-
-        bta_sys_sendmsg(p_buf);
-    }
-}
-/*******************************************************************************
-**
-** Function         BTA_HhSetReport
-**
-** Description      send SET_REPORT to device.
-**
-** Parameter        dev_handle: device handle
-**                  r_type:     report type, could be BTA_HH_RPTT_OUTPUT or
-**                              BTA_HH_RPTT_FEATURE.
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhSetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type, BT_HDR *p_data)
-{
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_REPORT, r_type, 0, 0, p_data);
-}
-/*******************************************************************************
-**
-** Function         BTA_HhGetReport
-**
-** Description      Send a GET_REPORT to HID device.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type, UINT8 rpt_id, UINT16 buf_size)
-{
-    UINT8 param = (buf_size) ? (r_type | 0x08) : r_type;
-
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_GET_REPORT, param,
-                        buf_size, rpt_id, NULL);
-}
-/*******************************************************************************
-**
-** Function         BTA_HhSetProtoMode
-**
-** Description      This function set the protocol mode at specified HID handle
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhSetProtoMode(UINT8 dev_handle, tBTA_HH_PROTO_MODE p_type)
-{
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_PROTOCOL, (UINT8)p_type,
-                        0, 0, NULL);
-}
-/*******************************************************************************
-**
-** Function         BTA_HhGetProtoMode
-**
-** Description      This function get protocol mode information.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhGetProtoMode(UINT8 dev_handle)
-{
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_GET_PROTOCOL, 0, 0, 0, NULL);
-}
-/*******************************************************************************
-**
-** Function         BTA_HhSetIdle
-**
-** Description      send SET_IDLE to device.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate)
-{
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_IDLE, 0, idle_rate, 0, NULL);
-}
-
-/*******************************************************************************
-**
-** Function         BTA_HhGetIdle
-**
-** Description      Send a GET_IDLE from HID device.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhGetIdle(UINT8 dev_handle)
-{
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_GET_IDLE, 0, 0, 0, NULL);
-}
-/*******************************************************************************
-**
-** Function         BTA_HhSendCtrl
-**
-** Description      Send a control command to HID device.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhSendCtrl(UINT8 dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type)
-{
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_CONTROL, (UINT8)c_type, 0, 0, NULL);
-}
-/*******************************************************************************
-**
-** Function         BTA_HhSendData
-**
-** Description      This function send DATA transaction to HID device.
-**
-** Parameter        dev_handle: device handle
-**                  dev_bda: remote device address
-**                  p_data: data to be sent in the DATA transaction; or
-**                          the data to be write into the Output Report of a LE HID
-**                          device. The report is identified the report ID which is
-**                          the value of the byte (UINT8 *)(p_buf + 1) + p_buf->offset.
-**                          p_data->layer_specific needs to be set to the report type,
-**                          it can be OUTPUT report, or FEATURE report.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhSendData(UINT8 dev_handle, BD_ADDR dev_bda, BT_HDR  *p_data)
-{
-    UNUSED(dev_bda);
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
-    if (p_data->layer_specific != BTA_HH_RPTT_OUTPUT)
-    {
-        APPL_TRACE_ERROR0("ERROR! Wrong report type! Write Command only valid for output report!");
-        return;
-    }
-#endif
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_DATA, (UINT8)p_data->layer_specific, 0, 0, p_data);
-}
-
-/*******************************************************************************
-**
-** Function         BTA_HhGetDscpInfo
-**
-** Description      Get HID device report descriptor
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhGetDscpInfo(UINT8 dev_handle)
-{
-    BT_HDR    *p_buf;
-
-    if ((p_buf = (BT_HDR *)GKI_getbuf((UINT16)sizeof(BT_HDR))) != NULL)
-    {
-        memset(p_buf, 0, sizeof(BT_HDR));
-        p_buf->event            = BTA_HH_API_GET_DSCP_EVT;
-        p_buf->layer_specific   = (UINT16) dev_handle;
-
-        bta_sys_sendmsg(p_buf);
-    }
-}
-
-/*******************************************************************************
-**
-** Function         BTA_HhAddDev
-**
-** Description      Add a virtually cabled device into HID-Host device list
-**                  to manage and assign a device handle for future API call,
-**                  host applciation call this API at start-up to initialize its
-**                  virtually cabled devices.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, UINT8 sub_class,
-                  UINT8 app_id, tBTA_HH_DEV_DSCP_INFO dscp_info)
-{
-    tBTA_HH_MAINT_DEV    *p_buf;
-    UINT16  len = sizeof(tBTA_HH_MAINT_DEV) + dscp_info.descriptor.dl_len;
-
-    p_buf = (tBTA_HH_MAINT_DEV *)GKI_getbuf(len);
-
-    if (p_buf != NULL)
-    {
-        memset(p_buf, 0, sizeof(tBTA_HH_MAINT_DEV));
-
-        p_buf->hdr.event            = BTA_HH_API_MAINT_DEV_EVT;
-        p_buf->sub_event            = BTA_HH_ADD_DEV_EVT;
-        p_buf->hdr.layer_specific   = BTA_HH_INVALID_HANDLE;
-
-        p_buf->attr_mask            = (UINT16) attr_mask;
-        p_buf->sub_class            = sub_class;
-        p_buf->app_id               = app_id;
-        bdcpy(p_buf->bda, bda);
-
-        memcpy(&p_buf->dscp_info, &dscp_info, sizeof(tBTA_HH_DEV_DSCP_INFO));
-        if ( dscp_info.descriptor.dl_len != 0 && dscp_info.descriptor.dsc_list)
+        if (p_app_info->p_name)
         {
-            p_buf->dscp_info.descriptor.dl_len =  dscp_info.descriptor.dl_len;
-            p_buf->dscp_info.descriptor.dsc_list = (UINT8 *)(p_buf + 1);
-            memcpy(p_buf->dscp_info.descriptor.dsc_list, dscp_info.descriptor.dsc_list, dscp_info.descriptor.dl_len);
+            BCM_STRNCPY_S(p_buf->name, sizeof(p_buf->name),
+                p_app_info->p_name, BTA_HD_APP_NAME_LEN);
+            p_buf->name[BTA_HD_APP_NAME_LEN] = '\0';
         }
         else
         {
-            p_buf->dscp_info.descriptor.dsc_list = NULL;
-            p_buf->dscp_info.descriptor.dl_len = 0;
+            p_buf->name[0]= '\0';
         }
 
-        bta_sys_sendmsg(p_buf);
-    }
-}
-/*******************************************************************************
-**
-** Function         BTA_HhRemoveDev
-**
-** Description      Remove a device from the HID host devices list.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhRemoveDev(UINT8 dev_handle )
-{
-    tBTA_HH_MAINT_DEV    *p_buf;
-
-    p_buf = (tBTA_HH_MAINT_DEV *)GKI_getbuf((UINT16)sizeof(tBTA_HH_MAINT_DEV));
-
-    if (p_buf != NULL)
-    {
-        memset(p_buf, 0, sizeof(tBTA_HH_MAINT_DEV));
-
-        p_buf->hdr.event            = BTA_HH_API_MAINT_DEV_EVT;
-        p_buf->sub_event            = BTA_HH_RMV_DEV_EVT;
-        p_buf->hdr.layer_specific   = (UINT16) dev_handle;
-
-        bta_sys_sendmsg(p_buf);
-    }
-}
-#if BTA_HH_LE_INCLUDED == TRUE
-
-/*******************************************************************************
-**
-** Function         BTA_HhUpdateLeScanParam
-**
-** Description      Update the scan paramteters if connected to a LE hid device as
-**                  report host.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhUpdateLeScanParam(UINT8 dev_handle, UINT16 scan_int, UINT16 scan_win)
-{
-    tBTA_HH_SCPP_UPDATE    *p_buf;
-
-    p_buf = (tBTA_HH_SCPP_UPDATE *)GKI_getbuf((UINT16)sizeof(tBTA_HH_SCPP_UPDATE));
-
-    if (p_buf != NULL)
-    {
-        memset(p_buf, 0, sizeof(tBTA_HH_SCPP_UPDATE));
-
-        p_buf->hdr.event            = BTA_HH_API_SCPP_UPDATE_EVT;
-        p_buf->hdr.layer_specific   = (UINT16) dev_handle;
-        p_buf->scan_int             =  scan_int;
-        p_buf->scan_win             =  scan_win;
-
-        bta_sys_sendmsg(p_buf);
-    }
-}
-#endif
-/*******************************************************************************/
-/*                          Utility Function                                   */
-/*******************************************************************************/
-
-/*******************************************************************************
-**
-** Function         BTA_HhParseBootRpt
-**
-** Description      This utility function parse a boot mode report.
-**                  For keyboard report, report data will carry the keycode max
-**                  up to 6 key press in one report. Application need to convert
-**                  the keycode into keypress character according to keyboard
-**                  language.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
-                        UINT16 report_len)
-{
-    p_data->dev_type = BTA_HH_DEVT_UNKNOWN;
-
-    if (p_report)
-    {
-        /* first byte is report ID */
-        switch (p_report[0])
+        if (p_app_info->p_description)
         {
-        case BTA_HH_KEYBD_RPT_ID: /* key board report ID */
-            p_data->dev_type = p_report[0];
-            bta_hh_parse_keybd_rpt(p_data, p_report + 1, (UINT16)(report_len -1));
-            break;
-
-        case BTA_HH_MOUSE_RPT_ID: /* mouse report ID */
-            p_data->dev_type = p_report[0];
-            bta_hh_parse_mice_rpt(p_data, p_report + 1, (UINT16)(report_len - 1));
-            break;
-
-        default:
-            APPL_TRACE_DEBUG1("Unknown boot report: %d", p_report[0]);;
-            break;
+            BCM_STRNCPY_S(p_buf->description, sizeof(p_buf->description), p_app_info->p_description,
+                BTA_HD_APP_DESCRIPTION_LEN);
+            p_buf->description[BTA_HD_APP_DESCRIPTION_LEN] = '\0';
         }
-    }
+        else
+        {
+            p_buf->description[0]= '\0';
+        }
 
-    return;
+        if (p_app_info->p_provider)
+        {
+            BCM_STRNCPY_S(p_buf->provider, sizeof(p_buf->provider), p_app_info->p_provider,
+                BTA_HD_APP_PROVIDER_LEN);
+            p_buf->provider[BTA_HD_APP_PROVIDER_LEN] = '\0';
+        }
+        else
+        {
+            p_buf->provider[0]= '\0';
+        }
+
+        p_buf->subclass = p_app_info->subclass;
+
+        p_buf->d_len = p_app_info->descriptor.dl_len;
+        memcpy(p_buf->d_data, p_app_info->descriptor.dsc_list, p_app_info->descriptor.dl_len);
+
+        // copy qos data as-is
+        memcpy(&p_buf->in_qos, p_in_qos, sizeof(tBTA_HD_QOS_INFO));
+        memcpy(&p_buf->out_qos, p_out_qos, sizeof(tBTA_HD_QOS_INFO));
+
+        bta_sys_sendmsg(p_buf);
+    }
 }
 
-#endif /* BTA_HH_INCLUDED */
+/*******************************************************************************
+**
+** Function         BTA_HdUnregisterApp
+**
+** Description      This function is called when application should be unregistered
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HdUnregisterApp(void)
+{
+    BT_HDR *p_buf;
+
+    APPL_TRACE_API("%s", __FUNCTION__);
+
+    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    {
+        p_buf->event = BTA_HD_API_UNREGISTER_APP_EVT;
+
+        bta_sys_sendmsg(p_buf);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_HdSendReport
+**
+** Description      This function is called when report is to be sent
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HdSendReport(tBTA_HD_REPORT *p_report)
+{
+    tBTA_HD_SEND_REPORT *p_buf;
+
+    APPL_TRACE_API("%s", __FUNCTION__);
+
+    if ((p_buf = (tBTA_HD_SEND_REPORT *) GKI_getbuf(sizeof(tBTA_HD_SEND_REPORT))) != NULL)
+    {
+        p_buf->hdr.event = BTA_HD_API_SEND_REPORT_EVT;
+
+        p_buf->use_intr = p_report->use_intr;
+        p_buf->type = p_report->type;
+        p_buf->id = p_report->id;
+        p_buf->len = p_report->len;
+        memcpy(p_buf->data, p_report->p_data, p_report->len);
+
+        bta_sys_sendmsg(p_buf);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_HdVirtualCableUnplug
+**
+** Description      This function is called when VCU shall be sent
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HdVirtualCableUnplug(void)
+{
+    BT_HDR *p_buf;
+
+    APPL_TRACE_API("%s", __FUNCTION__);
+
+    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    {
+        p_buf->event = BTA_HD_API_VC_UNPLUG_EVT;
+
+        bta_sys_sendmsg(p_buf);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_HdConnect
+**
+** Description      This function is called when connection to host shall be made
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HdConnect(void)
+{
+    BT_HDR *p_buf;
+
+    APPL_TRACE_API("%s", __FUNCTION__);
+
+    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    {
+        p_buf->event = BTA_HD_API_CONNECT_EVT;
+
+        bta_sys_sendmsg(p_buf);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_HdDisconnect
+**
+** Description      This function is called when host shall be disconnected
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HdDisconnect(void)
+{
+    BT_HDR *p_buf;
+
+    APPL_TRACE_API("%s", __FUNCTION__);
+
+    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    {
+        p_buf->event = BTA_HD_API_DISCONNECT_EVT;
+
+        bta_sys_sendmsg(p_buf);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_HdAddDevice
+**
+** Description      This function is called when a device is virtually cabled
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HdAddDevice(BD_ADDR addr)
+{
+    tBTA_HD_DEVICE_CTRL *p_buf;
+
+    APPL_TRACE_API("%s", __FUNCTION__);
+
+    if ((p_buf = (tBTA_HD_DEVICE_CTRL *) GKI_getbuf(sizeof(tBTA_HD_DEVICE_CTRL))) != NULL)
+    {
+        p_buf->hdr.event = BTA_HD_API_ADD_DEVICE_EVT;
+
+        memcpy(p_buf->addr, addr, sizeof(BD_ADDR));
+
+        bta_sys_sendmsg(p_buf);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_HdRemoveDevice
+**
+** Description      This function is called when a device is virtually uncabled
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HdRemoveDevice(BD_ADDR addr)
+{
+    tBTA_HD_DEVICE_CTRL *p_buf;
+
+    APPL_TRACE_API("%s", __FUNCTION__);
+
+    if ((p_buf = (tBTA_HD_DEVICE_CTRL *) GKI_getbuf(sizeof(tBTA_HD_DEVICE_CTRL))) != NULL)
+    {
+        p_buf->hdr.event = BTA_HD_API_REMOVE_DEVICE_EVT;
+
+        memcpy(p_buf->addr, addr, sizeof(BD_ADDR));
+
+        bta_sys_sendmsg(p_buf);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_HdReportError
+**
+** Description      This function is called when reporting error for set report
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HdReportError(UINT8 error)
+{
+    tBTA_HD_REPORT_ERR *p_buf;
+
+    APPL_TRACE_API("%s", __FUNCTION__);
+
+    if ((p_buf = (tBTA_HD_REPORT_ERR *) GKI_getbuf(sizeof(tBTA_HD_REPORT_ERR))) != NULL)
+    {
+        p_buf->hdr.event = BTA_HD_API_REPORT_ERROR_EVT;
+        p_buf->error = error;
+
+        bta_sys_sendmsg(p_buf);
+    }
+}
+
+#endif /* BTA_HD_INCLUDED */
