@@ -5862,3 +5862,54 @@ BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_D
 }
 #endif /* BLE_INCLUDED */
 
+/*******************************************************************************
+**
+** Function         btm_sec_set_hid_as_paired
+**
+** Description       Set HID Pointing device as paired or unpaired.
+**
+** Returns         void
+**
+*******************************************************************************/
+void btm_sec_set_hid_as_paired (BD_ADDR bda, BOOLEAN paired)
+{
+
+    tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(bda);
+
+    if (p_dev_rec)
+    {
+        if (paired)
+        {
+            p_dev_rec->sec_flags |= BTM_SEC_LINK_KEY_KNOWN;
+        }
+        else
+        {
+            p_dev_rec->sec_flags &= ~BTM_SEC_LINK_KEY_KNOWN;
+        }
+        BTM_TRACE_DEBUG1 ("btm_sec_set_hid_as_paired: p_dev_rec->sec_flags=%04x",
+                p_dev_rec->sec_flags);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         btm_sec_is_a_paired_dev
+**
+** Description       Is the specified device is a paired device
+**
+** Returns          TRUE - dev is paired
+**
+*******************************************************************************/
+BOOLEAN btm_sec_is_a_paired_dev (BD_ADDR bda)
+{
+
+    tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(bda);
+    BOOLEAN is_paired = FALSE;
+
+    if (p_dev_rec && (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN))
+    {
+        is_paired = TRUE;
+    }
+    BTM_TRACE_DEBUG1 ("btm_sec_is_a_paired_dev is_paired=%d", is_paired);
+    return(is_paired);
+}

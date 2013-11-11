@@ -203,9 +203,19 @@ static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 p
 
     HIDH_TRACE_EVENT2 ("HID-Host Rcvd L2CAP conn ind, PSM: 0x%04x  CID 0x%x", psm, l2cap_cid);
 
+    /* always reject incoming connection from unpaired HID devices. */
+    if (!btm_sec_is_a_paired_dev(bd_addr) && psm == HID_PSM_CONTROL)
+    {
+        HIDH_TRACE_ERROR0 ("HID-Host Rcvd L2CAP conn ind from unpaired device, "
+            "sending security block");
+        L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_SECURITY_BLOCK, 0);
+        return;
+    }
+
     /* always add incoming connection device into HID database by default */
     if (HID_HostAddDev(bd_addr, HID_ATTR_MASK_IGNORE, &i) != HID_SUCCESS)
     {
+        HIDH_TRACE_ERROR0 ("HID-Host failed to add device, sending security block");
         L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_SECURITY_BLOCK, 0);
         return;
     }

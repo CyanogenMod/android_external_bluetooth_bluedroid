@@ -1120,6 +1120,8 @@ extern  BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tB
 extern BOOLEAN btm_sec_is_a_bonded_dev (BD_ADDR bda);
 extern BOOLEAN btm_sec_is_le_capable_dev (BD_ADDR bda);
 #endif /* BLE_INCLUDED */
+extern BOOLEAN btm_sec_is_a_paired_dev (BD_ADDR bda);
+extern void btm_sec_set_hid_as_paired (BD_ADDR bda, BOOLEAN paired);
 
 extern tINQ_DB_ENT *btm_inq_db_new (BD_ADDR p_bda);
 
