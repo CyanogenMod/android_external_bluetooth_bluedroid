@@ -81,6 +81,7 @@ typedef struct
     UINT8 flags;
     tBTA_AV_EDR edr;
     UINT8   peer_sep;  /* sep type of peer device */
+    UINT8 edr_3mbps;
 } btif_av_cb_t;
 
 typedef struct
@@ -290,6 +291,7 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             memset(&btif_av_cb.peer_bda, 0, sizeof(bt_bdaddr_t));
             btif_av_cb.flags = 0;
             btif_av_cb.edr = 0;
+            btif_av_cb.edr_3mbps = 0;
             btif_a2dp_on_idle();
             break;
 
@@ -495,6 +497,12 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
 
                  btif_av_cb.peer_sep = p_bta_data->open.sep;
                  btif_a2dp_set_peer_sep(p_bta_data->open.sep);
+
+                 if (p_bta_data->open.edr & BTA_AV_EDR_3MBPS)
+                 {
+                     BTIF_TRACE_DEBUG("remote supports 3 mbps");
+                     btif_av_cb.edr_3mbps = TRUE;
+                 }
             }
             else
             {
@@ -1795,6 +1803,29 @@ BOOLEAN btif_av_is_peer_edr(void)
     else
         return FALSE;
 }
+
+/*******************************************************************************
+**
+** Function         btif_av_peer_supports_3mbps
+**
+** Description      check if the connected a2dp device supports
+**                  3mbps edr. Only when connected this function
+**                  will accurately provide a true capability of
+**                  remote peer. If not connected it will always be false.
+**
+** Returns          TRUE if remote device is EDR and supports 3mbps
+**
+*******************************************************************************/
+BOOLEAN btif_av_peer_supports_3mbps(void)
+{
+    ASSERTC(btif_av_is_connected(), "No active a2dp connection", 0);
+    BTIF_TRACE_DEBUG("btif_av_peer_supports_3mbps: %d", btif_av_cb.edr_3mbps);
+    if(btif_av_cb.edr_3mbps)
+        return TRUE;
+    else
+        return FALSE;
+}
+
 /******************************************************************************
 **
 ** Function        btif_av_clear_remote_suspend_flag
