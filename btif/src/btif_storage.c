@@ -46,6 +46,8 @@
 #include "gki.h"
 #include "bta_hh_api.h"
 #include "btif_hh.h"
+#include "bta_hd_api.h"
+#include "btif_hd.h"
 
 #include <cutils/log.h>
 
@@ -1776,4 +1778,63 @@ BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_bd_addr)
     }
     return FALSE;
 
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_load_hidd
+**
+** Description      Loads hidd bonded device and "plugs" it into hidd
+**
+** Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_storage_load_hidd(void)
+{
+    bt_bdaddr_t bd_addr;
+    char kname[128];
+    short kpos;
+    int kname_size;
+    int value;
+
+    kname_size = sizeof(kname);
+    kname[0] = 0;
+    kpos = 0;
+
+    do
+    {
+        kpos = btif_config_next_key(kpos, "Remote", kname, &kname_size);
+
+        if (btif_config_get_int("Remote", kname, "HidDeviceCabled", &value))
+        {
+            if (value)
+            {
+                str2bd(kname, &bd_addr);
+                BTA_HdAddDevice(bd_addr.address);
+                break;
+            }
+        }
+    } while (kpos != -1);
+
+    return BT_STATUS_SUCCESS;
+}
+
+bt_status_t btif_storage_set_hidd(bt_bdaddr_t *remote_bd_addr)
+{
+    bdstr_t bdstr;
+    bd2str(remote_bd_addr, &bdstr);
+    btif_config_set_int("Remote", bdstr, "HidDeviceCabled", 1);
+    btif_config_save();
+    return BT_STATUS_SUCCESS;
+}
+
+bt_status_t btif_storage_remove_hidd(bt_bdaddr_t *remote_bd_addr)
+{
+    bdstr_t bdstr;
+    bd2str(remote_bd_addr, &bdstr);
+
+    btif_config_remove("Remote", bdstr, "HidDeviceCabled");
+    btif_config_save();
+
+    return BT_STATUS_SUCCESS;
 }

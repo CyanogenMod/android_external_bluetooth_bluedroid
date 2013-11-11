@@ -1911,6 +1911,13 @@ static void  cleanup( void )
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
     btif_hh_device_t *p_dev;
     int i;
+
+    if (bt_hh_callbacks)
+    {
+        btif_disable_service(BTA_HID_SERVICE_ID);
+        bt_hh_callbacks = NULL;
+    }
+
     if (btif_hh_cb.status == BTIF_HH_DISABLED) {
         BTIF_TRACE_WARNING2("%s: HH disabling or disabled already, status = %d", __FUNCTION__, btif_hh_cb.status);
         return;
@@ -1926,13 +1933,6 @@ static void  cleanup( void )
              p_dev->hh_poll_thread_id = -1;
          }
      }
-
-    if (bt_hh_callbacks)
-    {
-        btif_disable_service(BTA_HID_SERVICE_ID);
-        bt_hh_callbacks = NULL;
-    }
-
 }
 
 static const bthh_interface_t bthhInterface = {

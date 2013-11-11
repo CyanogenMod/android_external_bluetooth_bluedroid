@@ -36,6 +36,7 @@
 #include <hardware/bt_av.h>
 #include <hardware/bt_sock.h>
 #include <hardware/bt_hh.h>
+#include <hardware/bt_hd.h>
 #include <hardware/bt_hl.h>
 #include <hardware/bt_pan.h>
 #include <hardware/bt_mce.h>
@@ -84,6 +85,8 @@ extern btav_interface_t *btif_av_get_interface();
 extern btsock_interface_t *btif_sock_get_interface();
 /* hid host profile */
 extern bthh_interface_t *btif_hh_get_interface();
+/* hid device profile */
+extern bthd_interface_t *btif_hd_get_interface();
 /* health device profile */
 extern bthl_interface_t *btif_hl_get_interface();
 /*pan*/
@@ -333,6 +336,9 @@ static const void* get_profile_interface (const char *profile_id)
 
     if (is_profile(profile_id, BT_PROFILE_HIDHOST_ID))
         return btif_hh_get_interface();
+
+    if (is_profile(profile_id, BT_PROFILE_HIDDEV_ID))
+        return btif_hd_get_interface();
 
     if (is_profile(profile_id, BT_PROFILE_HEALTH_ID))
         return btif_hl_get_interface();
