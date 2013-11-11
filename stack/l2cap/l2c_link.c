@@ -378,6 +378,24 @@ BOOLEAN l2c_link_hci_disc_comp (UINT16 handle, UINT8 reason)
 
         p_lcb->disc_reason = btm_cb.acl_disc_reason;
 
+        /* if HCI connection is abnormally terminated. which mean that neither
+         LOCAL HOST nor PEER terminated connection properly. In this scenario
+         ACL is already removed for particular link. So Upper layer need to be
+         informed ASAP regarding the removal of ACL  for particular link, once
+         hci_disconnection_complete is received. & Transmit queue need to be
+         immediately flushed for that particular ACL, As the ACL is no more. */
+        if (p_lcb->disc_reason != HCI_ERR_CONN_CAUSE_LOCAL_HOST
+           && p_lcb->disc_reason != HCI_ERR_PEER_USER
+           && btm_cb.acl_disc_reason != HCI_ERR_HOST_REJECT_SECURITY)
+        {
+            L2CAP_TRACE_DEBUG1("l2c_link_hci_disc_comp: disc_reason: 0x%x",
+                              p_lcb->disc_reason);
+            btm_acl_removed (p_lcb->remote_bd_addr);
+
+            while (p_lcb->link_xmit_data_q.p_first)
+                GKI_freebuf (GKI_dequeue (&p_lcb->link_xmit_data_q));
+        }
+
         /* Just in case app decides to try again in the callback context */
         p_lcb->link_state = LST_DISCONNECTING;
 

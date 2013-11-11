@@ -200,7 +200,7 @@ void SMP_SecurityGrant(BD_ADDR bd_addr, UINT8 res)
 {
     SMP_TRACE_EVENT0 ("SMP_SecurityGrant ");
     if (smp_cb.state != SMP_ST_WAIT_APP_RSP ||
-        smp_cb.cb_evt != SMP_SEC_REQUEST_EVT ||
+        (smp_cb.cb_evt != SMP_SEC_REQUEST_EVT && smp_cb.cb_evt != SMP_PASSKEY_REQ_EVT) ||
         memcmp (smp_cb.pairing_bda, bd_addr, BD_ADDR_LEN))
         return;
 

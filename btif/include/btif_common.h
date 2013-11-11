@@ -1,5 +1,7 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,6 +51,7 @@
 #define BTIF_HFP            2
 #define BTIF_AV             3
 #define BTIF_PAN            4
+#define BTIF_HF_CLIENT      5
 
 extern bt_callbacks_t *bt_hal_cbacks;
 
@@ -106,6 +109,7 @@ enum
     BTIF_DM_CB_CREATE_BOND,   /* Create bond */
     BTIF_DM_CB_REMOVE_BOND,   /*Remove bond */
     BTIF_DM_CB_HID_REMOTE_NAME,   /* Remote name callback for HID device */
+    BTIF_DM_CB_CANCEL_HID_BOND,   /* Cancel HID bonding */
     BTIF_DM_CB_BOND_STATE_BONDING,
     BTIF_DM_CB_LE_TX_TEST,    /* BLE Tx Test command complete callback */
     BTIF_DM_CB_LE_RX_TEST,    /* BLE Rx Test command complete callback */
@@ -116,6 +120,9 @@ enum
 
     BTIF_PAN_CB_START = BTIF_SIG_CB_START(BTIF_PAN),
     BTIF_PAN_CB_DISCONNECTING, /* PAN Disconnect has been sent to BTA successfully */
+
+    BTIF_HF_CLIENT_CLIENT_CB_START  = BTIF_SIG_CB_START(BTIF_HF_CLIENT),
+    BTIF_HF_CLIENT_CB_AUDIO_CONNECTING, /* AUDIO connect has been sent to BTA successfully */
 };
 
 /* Macro definitions for BD ADDR persistence */
@@ -174,6 +181,7 @@ tBTA_SERVICE_MASK btif_get_enabled_services_mask(void);
 bt_status_t btif_enable_service(tBTA_SERVICE_ID service_id);
 bt_status_t btif_disable_service(tBTA_SERVICE_ID service_id);
 int btif_is_enabled(void);
+void btif_data_profile_register(int value);
 
 /**
  * BTIF_Events

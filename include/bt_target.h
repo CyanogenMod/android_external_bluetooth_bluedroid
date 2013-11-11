@@ -1,5 +1,7 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
  *  Copyright (C) 1999-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +35,9 @@
 #define BTIF_HFAG_SERVICE_NAME  ("Handsfree Gateway")
 #endif
 
+#ifndef BTIF_HF_CLIENT_SERVICE_NAME
+#define BTIF_HF_CLIENT_SERVICE_NAME  ("Handsfree")
+#endif
 
 #ifdef BUILDCFG
 
@@ -68,6 +73,11 @@
 
 #ifndef L2CAP_EXTFEA_SUPPORTED_MASK
 #define L2CAP_EXTFEA_SUPPORTED_MASK (L2CAP_EXTFEA_ENH_RETRANS | L2CAP_EXTFEA_STREAM_MODE | L2CAP_EXTFEA_NO_CRC | L2CAP_EXTFEA_FIXED_CHNLS)
+#endif
+
+/* This feature is used to update any QCOM related changes in the stack*/
+#ifndef BLUETOOTH_QCOM_SW
+#define BLUETOOTH_QCOM_SW TRUE
 #endif
 
 #ifndef BTUI_OPS_FORMATS
@@ -851,9 +861,13 @@ and USER_HW_DISABLE_API macros */
 #define BTM_SCO_HCI_INCLUDED            FALSE       /* TRUE includes SCO over HCI code */
 #endif
 
+#if (BLUETOOTH_QCOM_SW == TRUE) /* Enable WBS only under this flag.*/
+#define BTM_WBS_INCLUDED            TRUE
+#else
 /* Includes WBS if TRUE */
 #ifndef BTM_WBS_INCLUDED
 #define BTM_WBS_INCLUDED            FALSE       /* TRUE includes WBS code */
+#endif
 #endif
 
 /* Includes PCM2 support if TRUE */
@@ -2160,6 +2174,11 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define PAN_NAP_SECURITY_LEVEL           0
 #endif
 
+/*This ensures that PANU Service record will not be advertised on SDP */
+#ifndef PAN_ALWAYS_NAP_NO_PANU_ON_SDP
+#define PAN_ALWAYS_NAP_NO_PANU_ON_SDP TRUE
+#endif
+
 
 
 
@@ -2840,7 +2859,7 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #endif
 
 #ifndef HID_HOST_MAX_CONN_RETRY
-#define HID_HOST_MAX_CONN_RETRY     (3)
+#define HID_HOST_MAX_CONN_RETRY     (1)
 #endif
 
 #ifndef HID_HOST_REPAGE_WIN
@@ -3339,6 +3358,16 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 
 /******************************************************************************
 **
+** BTC
+**
+******************************************************************************/
+
+#ifndef BTC_INCLUDED
+#define BTC_INCLUDED                TRUE
+#endif
+
+/******************************************************************************
+**
 ** PAN
 **
 ******************************************************************************/
@@ -3490,6 +3519,19 @@ Range: Minimum 12000 (12 secs) when supporting PBF.
 #define AVRC_ADV_CTRL_INCLUDED      TRUE
 #endif
 
+#ifndef SDP_AVRCP_1_5
+#define SDP_AVRCP_1_5               TRUE
+
+#if  SDP_AVRCP_1_5    == TRUE
+#ifndef AVCT_BROWSE_INCLUDED
+#define AVCT_BROWSE_INCLUDED        TRUE
+#else
+#ifndef AVCT_BROWSE_INCLUDED
+#define AVCT_BROWSE_INCLUDED        FALSE
+#endif
+#endif
+#endif
+#endif
 /******************************************************************************
 **
 ** MCAP

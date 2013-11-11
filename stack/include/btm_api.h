@@ -110,6 +110,14 @@ typedef struct
     UINT8   *p_param_buf;
 } tBTM_VSC_CMPL;
 
+/* Structure returned with HCI Raw Command complete callback */
+typedef struct
+{
+    UINT16  opcode;
+    UINT16  param_len;
+    UINT8   *p_param_buf;
+} tBTM_RAW_CMPL;
+
 #define  BTM_VSC_CMPL_DATA_SIZE  (BTM_MAX_VENDOR_SPECIFIC_LEN + sizeof(tBTM_VSC_CMPL))
 /**************************************************
 **  Device Control and General Callback Functions
@@ -148,6 +156,11 @@ typedef void (tBTM_CMPL_CB) (void *p1);
 ** BTM function is complete. The pointer contains the address of any returned data.
 */
 typedef void (tBTM_VSC_CMPL_CB) (tBTM_VSC_CMPL *p1);
+
+/* HCI RAW CMD callback function for notifying an application that a synchronous
+** BTM function is complete. The pointer contains the address of any returned data.
+*/
+typedef void (tBTM_RAW_CMPL_CB) (tBTM_RAW_CMPL *p1);
 
 /* Callback for apps to check connection and inquiry filters.
 ** Parameters are the BD Address of remote and the Dev Class of remote.
@@ -1124,6 +1137,7 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_SEC_ATTEMPT_SLAVE      0x0800 /* Try to switch connection to be slave */
 #define BTM_SEC_IN_MITM            0x1000 /* inbound Do man in the middle protection */
 #define BTM_SEC_OUT_MITM           0x2000 /* outbound Do man in the middle protection */
+#define BTM_SEC_IN_AUTH_HIGH       0x4000 /* Inbound call requires high authentication 16 digits */
 
 /* Security Flags [bit mask] (BTM_GetSecurityFlags)
 */
@@ -1331,9 +1345,10 @@ typedef UINT8 (tBTM_AUTHORIZE_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
 **              BD Address of remote
 **              Device Class of remote
 **              BD Name of remote
+**              Secure PIN code
 */
 typedef UINT8 (tBTM_PIN_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                   tBTM_BD_NAME bd_name);
+                                   tBTM_BD_NAME bd_name, BOOLEAN secure);
 
 
 /* Get Link Key for the connection.  Parameters are
@@ -2269,6 +2284,18 @@ extern "C" {
 *******************************************************************************/
     BTM_API extern void BTM_ContinueReset (void);
 
+
+/*******************************************************************************
+**
+** Function         BTM_Hci_Raw_Command
+**
+** Description      Send a HCI RAW started testingcommand to the controller.
+**
+*******************************************************************************/
+    BTM_API extern tBTM_STATUS BTM_Hci_Raw_Command(UINT16 opcode,
+                                                         UINT8 param_len,
+                                                         UINT8 *p_param_buf,
+                                                         tBTM_RAW_CMPL_CB *p_cb);
 
 /*******************************************************************************
 **
@@ -3841,7 +3868,8 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 ** Description      Add/modify device.  This function will be normally called
 **                  during host startup to restore all required information
 **                  stored in the NVRAM.
-**                  dev_class, bd_name, link_key, and features are NULL if unknown
+**                  dev_class, bd_name, link_key, pin_len and features are NULL
+**                  if unknown
 **
 ** Returns          TRUE if added OK, else FALSE
 **
@@ -3849,7 +3877,8 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
     BTM_API extern BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class,
                                              BD_NAME bd_name, UINT8 *features,
                                              UINT32 trusted_mask[], LINK_KEY link_key,
-                                             UINT8 key_type, tBTM_IO_CAP io_cap);
+                                             UINT8 key_type, tBTM_IO_CAP io_cap,
+                                             UINT8 pin_len);
 
 
 /*******************************************************************************

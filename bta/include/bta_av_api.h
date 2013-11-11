@@ -249,8 +249,9 @@ typedef UINT8 tBTA_AV_ERR;
 #define BTA_AV_META_MSG_EVT     17      /* metadata messages */
 #define BTA_AV_REJECT_EVT       18      /* incoming connection rejected */
 #define BTA_AV_RC_FEAT_EVT      19      /* remote control channel peer supported features update */
+#define BTA_AV_BROWSE_MSG_EVT   20      /* Browse MSG EVT */
 /* Max BTA event */
-#define BTA_AV_MAX_EVT          20
+#define BTA_AV_MAX_EVT          21
 
 typedef UINT8 tBTA_AV_EVT;
 
@@ -407,6 +408,15 @@ typedef struct
     tAVRC_MSG       *p_msg;
 } tBTA_AV_META_MSG;
 
+/*data associated with BTA_AV_BROWSE_MSG_EVT */
+typedef struct
+{
+    UINT8           rc_handle;
+    UINT16          len;
+    UINT8           label;
+    tAVRC_MSG       *p_msg;
+}tBTA_AV_BROWSE_MSG;
+
 /* data associated with BTA_AV_PENDING_EVT */
 typedef struct
 {
@@ -442,6 +452,7 @@ typedef union
     tBTA_AV_SUSPEND     suspend;
     tBTA_AV_PEND        pend;
     tBTA_AV_META_MSG    meta_msg;
+    tBTA_AV_BROWSE_MSG  browse_msg;
     tBTA_AV_REJECT      reject;
     tBTA_AV_RC_FEAT     rc_feat;
 } tBTA_AV;

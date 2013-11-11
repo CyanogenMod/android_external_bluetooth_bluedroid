@@ -109,6 +109,9 @@ void AVCT_Deregister(void)
 
     /* deregister PSM with L2CAP */
     L2CA_Deregister(AVCT_PSM);
+#if (AVCT_BROWSE_INCLUDED == TRUE)
+    L2CA_Deregister(AVCT_BR_PSM);
+#endif
 }
 
 /*******************************************************************************

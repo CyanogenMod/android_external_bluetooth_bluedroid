@@ -83,14 +83,6 @@ const tBTA_PAN_ACTION bta_pan_action[] =
 #define BTA_PAN_NUM_COLS             2       /* number of columns in state tables */
 
 
-/* state machine states */
-enum
-{
-    BTA_PAN_IDLE_ST,
-    BTA_PAN_OPEN_ST,
-    BTA_PAN_CLOSING_ST
-};
-
 
 /* state table for listen state */
 const UINT8 bta_pan_st_idle[][BTA_PAN_NUM_COLS] =

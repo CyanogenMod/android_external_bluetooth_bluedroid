@@ -1,6 +1,7 @@
 /******************************************************************************
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
+ *  Copyright (c) 2013, Linux Foundation. All rights reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -270,6 +271,7 @@ static void btif_media_task_audio_feeding_init(BT_HDR *p_msg);
 static void btif_media_task_aa_tx_flush(BT_HDR *p_msg);
 static void btif_media_aa_prep_2_send(UINT8 nb_frame);
 #endif
+extern BOOLEAN btif_hf_is_call_idle();
 
 
 /*****************************************************************************
@@ -455,7 +457,23 @@ static void btif_recv_ctrl_data(void)
             }
             break;
 
+        case A2DP_CTRL_CMD_CHECK_STREAM_STARTED:
+
+            if((btif_av_stream_started_ready() == TRUE))
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+            else
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+            break;
+
         case A2DP_CTRL_CMD_START:
+            /* Dont sent START request to stack while we are in call.
+               Some headsets like Sony MW600, dont allow AVDTP START
+               in call and respond BAD_STATE */
+            if (!btif_hf_is_call_idle())
+            {
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_INCALL_FAILURE);
+                break;
+            }
 
             if (btif_av_stream_ready() == TRUE)
             {
@@ -502,7 +520,8 @@ static void btif_recv_ctrl_data(void)
             {
                 /* if we are not in started state, just ack back ok and let
                    audioflinger close the channel. This can happen if we are
-                   remotely suspended */
+                   remotely suspended , clear REMOTE SUSPEND Flag */
+                btif_av_clear_remote_suspend_flag();
                 a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
             }
             break;
@@ -757,13 +776,13 @@ void btif_a2dp_on_init(void)
 **
 ** Function        btif_a2dp_setup_codec
 **
-** Description
+** Description     does codec setup
 **
-** Returns
+** Returns        tBTIF_STATUS
 **
 *******************************************************************************/
 
-void btif_a2dp_setup_codec(void)
+tBTIF_STATUS btif_a2dp_setup_codec(void)
 {
     tBTIF_AV_MEDIA_FEEDINGS media_feeding;
     tBTIF_STATUS status;
@@ -772,8 +791,8 @@ void btif_a2dp_setup_codec(void)
 
     GKI_disable();
 
-    /* for now hardcode 44.1 khz 16 bit stereo PCM format */
-    media_feeding.cfg.pcm.sampling_freq = 44100;
+    /* for now hardcode 48 khz 16 bit stereo */
+    media_feeding.cfg.pcm.sampling_freq = 48000;
     media_feeding.cfg.pcm.bit_per_sample = 16;
     media_feeding.cfg.pcm.num_channel = 2;
     media_feeding.format = BTIF_AV_CODEC_PCM;
@@ -793,6 +812,7 @@ void btif_a2dp_setup_codec(void)
     }
 
     GKI_enable();
+    return status;
 }
 
 
@@ -1035,7 +1055,14 @@ static void btif_media_task_aa_handle_timer(void)
     log_tstamps_us("media task tx timer");
 
 #if (BTA_AV_INCLUDED == TRUE)
-    btif_media_send_aa_frame();
+    if(btif_media_cb.is_tx_timer == TRUE)
+    {
+        btif_media_send_aa_frame();
+    }
+    else
+    {
+        APPL_TRACE_ERROR0("ERROR Media task Scheduled after Suspend");
+    }
 #endif
 }
 
@@ -1826,13 +1853,30 @@ static void btif_media_task_aa_start_tx(void)
  *******************************************************************************/
 static void btif_media_task_aa_stop_tx(void)
 {
+    BOOLEAN  is_data_path = FALSE;
     APPL_TRACE_DEBUG1("btif_media_task_aa_stop_tx is timer: %d", btif_media_cb.is_tx_timer);
 
     /* Stop the timer first */
     GKI_stop_timer(BTIF_MEDIA_AA_TASK_TIMER_ID);
-    btif_media_cb.is_tx_timer = FALSE;
-
+    if (btif_media_cb.is_tx_timer)
+    {
+        btif_media_cb.is_tx_timer = FALSE;
+        is_data_path  = TRUE ;
+    }
     UIPC_Close(UIPC_CH_ID_AV_AUDIO);
+    /* Try to send acknowldegment once the media stream is
+       stopped. This will make sure that the A2dp HAL layer is
+       unblocked on wait for acknowledgment for the sent command.
+       This resolves corner cases of AVDTP SUSPEND collision
+       when DUT and Remote device issues SUSPEND simultaneously
+       and due to processing of the SUSPEND request of remote,
+       the media path is teared down. If A2dp HAL happens to wait
+       for ACK for initiated SUSPEND, would never receive it casuing
+       a block/wait. Due to this acknowledgement, A2dp HAL is guranteed
+       to get ACK for any pending command in such cases. */
+
+    if (!is_data_path)
+        a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
 
     /* audio engine stopped, reset tx suspended flag */
     btif_media_cb.tx_flush = 0;
@@ -2148,7 +2192,10 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
 
                 /* break read loop if timer was stopped (media task stopped) */
                 if ( btif_media_cb.is_tx_timer == FALSE )
+                {
+                    GKI_freebuf(p_buf);
                     return;
+                }
             }
 
         } while (((p_buf->len + btif_media_cb.encoder.u16PacketLength) < btif_media_cb.TxAaMtuSize)

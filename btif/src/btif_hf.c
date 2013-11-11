@@ -1,4 +1,6 @@
 /******************************************************************************
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
  *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
@@ -83,6 +85,7 @@
 **  Static variables
 ************************************************************************************/
 static bthf_callbacks_t *bt_hf_callbacks = NULL;
+static UINT32 btif_features = 0;
 
 #define CHECK_BTHF_INIT() if (bt_hf_callbacks == NULL)\
     {\
@@ -263,6 +266,7 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
 
         case BTA_AG_REGISTER_EVT:
             btif_hf_cb.handle = p_data->reg.hdr.handle;
+            btif_queue_pending_retry();
             break;
 
         case BTA_AG_OPEN_EVT:
@@ -397,7 +401,11 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
         case BTA_AG_AT_BTRH_EVT:
             send_at_result(BTA_AG_OK_ERROR, BTA_AG_ERR_OP_NOT_SUPPORTED);
             break;
-
+#if (BLUETOOTH_QCOM_SW == TRUE) /* Update the JNI about codec value.*/
+        case BTA_AG_AT_BCS_EVT:
+            HAL_CBACK(bt_hf_callbacks, codec_negotiated_callback, p_data->val.num);
+            break;
+#endif
 
         default:
             BTIF_TRACE_WARNING2("%s: Unhandled event: %d", __FUNCTION__, event);
@@ -501,6 +509,24 @@ static bt_status_t init( bthf_callbacks_t* callbacks )
 
 /*******************************************************************************
 **
+** Function         init_features
+**
+** Description     Initiazes the BRSF feature bitmask.
+**
+** Returns         bt_status_t
+**
+*******************************************************************************/
+static bt_status_t init_features(int features)
+{
+    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
+    /* Safe Typecasting of input param features to UINT32 as bits
+    8 to 31 are zero for the HFP BRSF feature bitmask given from the app*/
+    btif_features = (UINT32)features;
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
 ** Function         connect
 **
 ** Description     connect to headset
@@ -510,6 +536,7 @@ static bt_status_t init( bthf_callbacks_t* callbacks )
 *******************************************************************************/
 static bt_status_t connect_int( bt_bdaddr_t *bd_addr )
 {
+    CHECK_BTHF_INIT();
     if (!is_connected(bd_addr))
     {
         btif_hf_cb.state = BTHF_CONNECTION_STATE_CONNECTING;
@@ -526,7 +553,10 @@ static bt_status_t connect_int( bt_bdaddr_t *bd_addr )
 static bt_status_t connect( bt_bdaddr_t *bd_addr )
 {
     CHECK_BTHF_INIT();
-    return btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int);
+   if(btif_hf_cb.handle)
+       return btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int, BTIF_QUEUE_CONNECT_EVT);
+    else
+       return btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int, BTIF_QUEUE_PENDING_CONECT_EVT);
 }
 
 /*******************************************************************************
@@ -1066,7 +1096,8 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
     }
 
     /* Held Changed? */
-    if (num_held != btif_hf_cb.num_held)
+    if (num_held != btif_hf_cb.num_held  ||
+        ((num_active == 0) && ((num_held + btif_hf_cb.num_held) > 1)))
     {
         BTIF_TRACE_DEBUG3("%s: Held call states changed. old: %d new: %d", __FUNCTION__, btif_hf_cb.num_held, num_held);
         send_indicator_update(BTA_AG_IND_CALLHELD, ((num_held == 0) ? 0 : ((num_active == 0) ? 2 : 1)));
@@ -1090,6 +1121,30 @@ update_call_states:
     return status;
 }
 
+/*******************************************************************************
+**
+** Function         btif_hf_is_call_idle
+**
+** Description      returns true if no call is in progress
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+BOOLEAN btif_hf_is_call_idle()
+{
+    BTIF_TRACE_EVENT2("%s: call_setup_state: %d", __FUNCTION__, btif_hf_cb.call_setup_state );
+    BTIF_TRACE_EVENT2("num_held:%d, num_active:%d", btif_hf_cb.num_held, btif_hf_cb.num_active );
+    if ((btif_hf_cb.call_setup_state == BTHF_CALL_STATE_IDLE) &&
+        ((btif_hf_cb.num_held + btif_hf_cb.num_active) == 0))
+    {
+        BTIF_TRACE_EVENT1("%s: call state idle ", __FUNCTION__);
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
 
 /*******************************************************************************
 **
@@ -1139,6 +1194,7 @@ static void  cleanup( void )
 static const bthf_interface_t bthfInterface = {
     sizeof(bthfInterface),
     init,
+    init_features,
     connect,
     disconnect,
     connect_audio,
@@ -1172,8 +1228,15 @@ bt_status_t btif_hf_execute_service(BOOLEAN b_enable)
      {
           /* Enable and register with BTA-AG */
           BTA_AgEnable (BTA_AG_PARSE, bte_hf_evt);
-          BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY, BTIF_HF_FEATURES,
-                         p_service_names, BTIF_HF_ID_1);
+          if (btif_features)
+          {
+              btif_features |= BTA_AG_FEAT_UNAT; /* used for phone book at commands, e.g. CPBR*/
+              BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY, btif_features,
+                             p_service_names, BTIF_HF_ID_1);
+          }
+          else
+              BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY, BTIF_HF_FEATURES,
+                             p_service_names, BTIF_HF_ID_1);
      }
      else {
          /* De-register AG */

@@ -448,7 +448,7 @@ static tBTA_JV_STATUS bta_jv_free_set_pm_profile_cb(UINT32 jv_handle)
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_PM_CB  **p_cb;
-    int i;
+    int i, j, bd_counter=0,appid_counter=0;
 
     for (i = 0; i < BTA_JV_PM_MAX_NUM; i++)
     {
@@ -456,11 +456,26 @@ static tBTA_JV_STATUS bta_jv_free_set_pm_profile_cb(UINT32 jv_handle)
         if ((bta_jv_cb.pm_cb[i].state != BTA_JV_PM_FREE_ST) &&
                 (jv_handle == bta_jv_cb.pm_cb[i].handle))
         {
-            APPL_TRACE_API3("bta_jv_free_set_pm_profile_cb(jv_handle: 0x%2x), idx: %d, "
-                    "app_id: 0x%x", jv_handle, i, bta_jv_cb.pm_cb[i].app_id);
+            for (j = 0; j < BTA_JV_PM_MAX_NUM; j++)
+            {
+                if (bdcmp(bta_jv_cb.pm_cb[j].peer_bd_addr, bta_jv_cb.pm_cb[i].peer_bd_addr) == 0 )
+                   bd_counter++;
+                if(bta_jv_cb.pm_cb[j].app_id == bta_jv_cb.pm_cb[i].app_id)
+                   appid_counter++;
+           }
 
-            bta_jv_clear_pm_cb(&bta_jv_cb.pm_cb[i], TRUE);
-
+        APPL_TRACE_API3("bta_jv_free_set_pm_profile_cb(jv_handle: 0x%2x), idx: %d, "
+                "app_id: 0x%x", jv_handle, i, bta_jv_cb.pm_cb[i].app_id);
+        APPL_TRACE_API2("bta_jv_free_set_pm_profile_cb, bd_counter = %d, "
+                "appid_counter = %d", bd_counter, appid_counter);
+        if(bd_counter > 1)
+           bta_jv_pm_conn_idle(&bta_jv_cb.pm_cb[i]);
+        if(bd_counter <= 1 || (appid_counter <=1))
+           bta_jv_clear_pm_cb(&bta_jv_cb.pm_cb[i], TRUE);
+        else
+        {
+           bta_jv_clear_pm_cb(&bta_jv_cb.pm_cb[i], FALSE);
+        }
             if (BTA_JV_RFCOMM_MASK & jv_handle)
             {
                 UINT32 hi = ((jv_handle & BTA_JV_RFC_HDL_MASK) & ~BTA_JV_RFCOMM_MASK) - 1;
@@ -1939,14 +1954,19 @@ static int bta_jv_port_data_co_cback(UINT16 port_handle, UINT8 *buf, UINT16 len,
 {
     tBTA_JV_RFC_CB  *p_cb = bta_jv_rfc_port_to_cb(port_handle);
     tBTA_JV_PCB     *p_pcb = bta_jv_rfc_port_to_pcb(port_handle);
-    APPL_TRACE_DEBUG3("bta_jv_port_data_co_cback, p_cb:%p, p_pcb:%p, len:%d",
-                        p_cb, p_pcb, len);
+    APPL_TRACE_DEBUG4("bta_jv_port_data_co_cback, p_cb:%p, p_pcb:%p, len:%d, type:%d",
+                        p_cb, p_pcb, len, type);
+    int ret = 0;
     if (p_pcb != NULL)
     {
         switch(type)
         {
             case DATA_CO_CALLBACK_TYPE_INCOMING:
-                return bta_co_rfc_data_incoming(p_pcb->user_data, (BT_HDR*)buf);
+                if(BTA_JV_PM_IDLE_ST == p_pcb->p_pm_cb->state)
+                    bta_jv_pm_conn_busy(p_pcb->p_pm_cb);
+                ret = bta_co_rfc_data_incoming(p_pcb->user_data, (BT_HDR*)buf);
+                bta_jv_pm_conn_idle(p_pcb->p_pm_cb);
+                return ret;
             case DATA_CO_CALLBACK_TYPE_OUTGOING_SIZE:
                 return bta_co_rfc_data_outgoing_size(p_pcb->user_data, (int*)buf);
             case DATA_CO_CALLBACK_TYPE_OUTGOING:

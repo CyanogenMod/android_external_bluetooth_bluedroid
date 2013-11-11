@@ -171,7 +171,7 @@ typedef struct
 #define BTA_SEC_AUTHENTICATE    (BTM_SEC_IN_AUTHENTICATE | BTM_SEC_OUT_AUTHENTICATE) /* Authentication required. */
 #define BTA_SEC_ENCRYPT         (BTM_SEC_IN_ENCRYPT | BTM_SEC_OUT_ENCRYPT)           /* Encryption required. */
 
-typedef UINT8 tBTA_SEC;
+typedef UINT16 tBTA_SEC;
 
 /* Ignore for Discoverable, Connectable, Pairable and Connectable Paired only device modes */
 
@@ -525,6 +525,7 @@ typedef struct
     BD_ADDR         bd_addr;            /* BD address peer device. */
     DEV_CLASS       dev_class;          /* Class of Device */
     BD_NAME         bd_name;            /* Name of peer device. */
+    BOOLEAN         secure;             /* Secured PIN key or not */
 } tBTA_DM_PIN_REQ;
 
 /* BLE related definition */
@@ -809,6 +810,9 @@ typedef union
 /* Security callback */
 typedef void (tBTA_DM_SEC_CBACK)(tBTA_DM_SEC_EVT event, tBTA_DM_SEC *p_data);
 
+/* HCI RAW Command Callback */
+typedef tBTM_RAW_CMPL_CB        tBTA_RAW_CMPL_CBACK;
+
 /* Vendor Specific Command Callback */
 typedef tBTM_VSC_CMPL_CB        tBTA_VENDOR_CMPL_CBACK;
 
@@ -902,6 +906,9 @@ typedef void (tBTA_DM_EXEC_CBACK) (void * p_param);
 
 /* Encryption callback*/
 typedef void (tBTA_DM_ENCRYPT_CBACK) (BD_ADDR bd_addr, tBTA_STATUS result);
+
+/* Remote Name callback */
+typedef void (tBTA_DM_REM_NAME_CBACK)(tBTM_REMOTE_DEV_NAME * p_param);
 
 #if BLE_INCLUDED == TRUE
 #define BTA_DM_BLE_SEC_NONE         BTM_BLE_SEC_NONE
@@ -1139,6 +1146,18 @@ BTA_API extern void BTA_DmSetScanParam (UINT16 page_scan_interval, UINT16 page_s
 *******************************************************************************/
 BTA_API extern void BTA_DmSetAfhChannels(UINT8 first, UINT8 last);
 
+/*******************************************************************************
+**
+** Function         BTA_DmHciRawCommand
+**
+** Description      This function sends the HCI RAW command
+**                  to the controller
+**
+**
+** Returns          tBTA_STATUS
+**
+*******************************************************************************/
+BTA_API extern tBTA_STATUS BTA_DmHciRawCommand (UINT16 opcode, UINT8 param_len,UINT8 *p_param_buf, tBTA_RAW_CMPL_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -1297,6 +1316,19 @@ BTA_API extern void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_le
 BTA_API extern void BTA_DmLinkPolicy(BD_ADDR bd_addr, tBTA_DM_LP_MASK policy_mask,
                                      BOOLEAN set);
 
+/*******************************************************************************
+**
+** Function         BTA_DmRemName
+**
+** Description      This function initiates a Remote Name Request with a peer
+**                  device
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmRemName(BD_ADDR bd_addr, tBTA_DM_REM_NAME_CBACK * p_cback);
+
 #if (BTM_OOB_INCLUDED == TRUE)
 /*******************************************************************************
 **
@@ -1351,7 +1383,7 @@ BTA_API extern void BTA_DmPasskeyCancel(BD_ADDR bd_addr);
 BTA_API extern void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class,
                                     LINK_KEY link_key, tBTA_SERVICE_MASK trusted_mask,
                                     BOOLEAN is_trusted, UINT8 key_type,
-                                    tBTA_IO_CAP io_cap);
+                                    tBTA_IO_CAP io_cap, UINT8 pin_len);
 
 /*******************************************************************************
 **

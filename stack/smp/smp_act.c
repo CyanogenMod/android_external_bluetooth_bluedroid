@@ -331,6 +331,10 @@ void smp_proc_sec_grant(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     SMP_TRACE_DEBUG0 ("smp_proc_sec_grant ");
     if (res != SMP_SUCCESS)
     {
+        SMP_TRACE_DEBUG0("smp_proc_sec_grant: res is not success, sending auth_cmpl_evt");
+        //if result is not success, we need to mark the callback event as 0, so that the following callback
+        //doesnt cause another unintended event.
+        p_cb->cb_evt=0;
         smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, p_data);
     }
     else /*otherwise, start pairing */

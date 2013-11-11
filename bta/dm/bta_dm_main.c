@@ -86,6 +86,7 @@ const tBTA_DM_ACTION bta_dm_action[] =
 #endif /* BTM_OOB_INCLUDED */
 
     bta_dm_remove_device,      /*  BTA_DM_API_REMOVE_DEVICE_EVT */
+    bta_dm_remote_name,         /* BTA_DM_API_REM_NAME_EVT*/
 
 #if BLE_INCLUDED == TRUE
     bta_dm_add_blekey,          /*  BTA_DM_API_ADD_BLEKEY_EVT           */
@@ -110,7 +111,8 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_enable_test_mode,    /*  BTA_DM_API_ENABLE_TEST_MODE_EVT     */
     bta_dm_disable_test_mode,   /*  BTA_DM_API_DISABLE_TEST_MODE_EVT    */
     bta_dm_execute_callback,     /*  BTA_DM_API_EXECUTE_CBACK_EVT        */
-    bta_dm_set_afh_channel_assesment      /* BTA_DM_API_SET_AFH_CHANNEL_ASSESMENT_EVT */
+    bta_dm_set_afh_channel_assesment,     /* BTA_DM_API_SET_AFH_CHANNEL_ASSESMENT_EVT */
+    bta_dm_hci_raw_command    /* BTA_DM_API_HCI_RAW_COMMAND_EVT */
 };
 
 
