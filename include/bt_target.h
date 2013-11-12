@@ -1445,7 +1445,7 @@ and USER_HW_DISABLE_API macros */
 #endif
 
 #ifndef GATT_MAX_PHY_CHANNEL
-#define GATT_MAX_PHY_CHANNEL        4
+#define GATT_MAX_PHY_CHANNEL        7
 #endif
 
 /* Used for conformance testing ONLY */
