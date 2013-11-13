@@ -49,7 +49,8 @@ static tGATT_CBACK bta_gatts_cback =
     NULL,
     NULL,
     NULL,
-    bta_gatts_send_request_cback
+    bta_gatts_send_request_cback,
+    NULL
 };
 
 tGATT_APPL_INFO bta_gatts_nv_cback =
