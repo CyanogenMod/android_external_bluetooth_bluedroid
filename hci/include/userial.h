@@ -1,5 +1,8 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
+ *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,7 +81,7 @@ typedef enum {
 ** Returns         TRUE/FALSE
 **
 *******************************************************************************/
-uint8_t userial_init(void);
+typedef uint8_t (*tUSERIAL_INIT)(void);
 
 /*******************************************************************************
 **
@@ -89,8 +92,7 @@ uint8_t userial_init(void);
 ** Returns         TRUE/FALSE
 **
 *******************************************************************************/
-uint8_t userial_open(uint8_t port);
-
+typedef uint8_t (*tUSERIAL_OPEN)(uint8_t port);
 /*******************************************************************************
 **
 ** Function        userial_read
@@ -101,8 +103,7 @@ uint8_t userial_open(uint8_t port);
 **                 copied into p_data.  This may be less than len.
 **
 *******************************************************************************/
-uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len);
-
+typedef uint16_t (*tUSERIAL_READ)(uint16_t msg_id, uint8_t *p_buffer, uint16_t len);
 /*******************************************************************************
 **
 ** Function        userial_write
@@ -113,7 +114,7 @@ uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len);
 **                 may be less than len.
 **
 *******************************************************************************/
-uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len);
+typedef uint16_t (*tUSERIAL_WRITE)(uint16_t msg_id, uint8_t *p_data, uint16_t len);
 
 /*******************************************************************************
 **
@@ -124,7 +125,7 @@ uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len);
 ** Returns         None
 **
 *******************************************************************************/
-void userial_close(void);
+typedef void (*tUSERIAL_CLOSE)(void);
 
 /*******************************************************************************
 **
@@ -135,7 +136,16 @@ void userial_close(void);
 ** Returns         None
 **
 *******************************************************************************/
-void userial_ioctl(userial_ioctl_op_t op, void *p_data);
+typedef void (*tUSERIAL_IOCTL)(userial_ioctl_op_t op, void *p_data);
+
+typedef struct {
+    tUSERIAL_INIT init;
+    tUSERIAL_OPEN open;
+    tUSERIAL_READ read;
+    tUSERIAL_WRITE write;
+    tUSERIAL_CLOSE close;
+    tUSERIAL_IOCTL ioctl;
+} tUSERIAL_IF;
 
 #endif /* USERIAL_H */
 
