@@ -435,7 +435,7 @@ static cfg_node* find_add_node(cfg_node* p, const char* name)
         } else ADD_CHILD_COUNT(p, 1);
     }
     else node = &p->child[i];
-    if(!node->name)
+    if(node && (!node->name))
         node->name = strdup(name);
     return node;
 }
