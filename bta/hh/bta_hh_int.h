@@ -228,7 +228,7 @@ typedef struct
 }tBTA_HH_LE_HID_SRVC;
 
 #ifndef BTA_HH_LE_HID_SRVC_MAX
-#define BTA_HH_LE_HID_SRVC_MAX      1
+#define BTA_HH_LE_HID_SRVC_MAX      2
 #endif
 
 /* convert a HID handle to the LE CB index */
