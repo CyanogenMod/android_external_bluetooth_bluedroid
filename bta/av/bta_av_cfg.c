@@ -113,7 +113,7 @@ const tBTA_AV_CFG bta_av_cfg =
     6,                      /* AVDTP audio channel max data queue size */
     BTA_AV_MAX_VDP_MTU,     /* AVDTP video transport channel MTU at L2CAP */
     600,                    /* AVDTP video transport channel flush timeout */
-    TRUE,                   /* TRUE, to accept AVRC 1.3 group nevigation command */
+    FALSE,                   /* TRUE, to accept AVRC 1.3 group nevigation command */
     2,                      /* company id count in p_meta_co_ids */
     BTA_AV_NUM_RC_EVT_IDS, /* event id count in p_meta_evt_ids */
     BTA_AV_RC_PASS_RSP_CODE,/* the default response code for pass through commands */
@@ -125,7 +125,7 @@ tBTA_AV_CFG *p_bta_av_cfg = (tBTA_AV_CFG *) &bta_av_cfg;
 
 const UINT16 bta_av_rc_id[] =
 {
-    0x021F, /* bit mask: 0=SELECT, 1=UP, 2=DOWN, 3=LEFT,
+    0x0000, /* bit mask: 0=SELECT, 1=UP, 2=DOWN, 3=LEFT,
                          4=RIGHT, 5=RIGHT_UP, 6=RIGHT_DOWN, 7=LEFT_UP,
                          8=LEFT_DOWN, 9=ROOT_MENU, 10=SETUP_MENU, 11=CONT_MENU,
                          12=FAV_MENU, 13=EXIT */
@@ -137,7 +137,7 @@ const UINT16 bta_av_rc_id[] =
                          8=8, 9=9, 10=DOT, 11=ENTER,
                          12=CLEAR */
 
-    0x0003, /* bit mask: 0=CHAN_UP, 1=CHAN_DOWN, 2=PREV_CHAN, 3=SOUND_SEL,
+    0x0000, /* bit mask: 0=CHAN_UP, 1=CHAN_DOWN, 2=PREV_CHAN, 3=SOUND_SEL,
                          4=INPUT_SEL, 5=DISP_INFO, 6=HELP, 7=PAGE_UP,
                          8=PAGE_DOWN */
 
