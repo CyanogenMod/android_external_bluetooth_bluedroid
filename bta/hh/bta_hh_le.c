@@ -883,7 +883,7 @@ BOOLEAN bta_hh_le_write_char_clt_cfg(tBTA_HH_DEV_CB *p_cb,
     {
         BTA_GATTC_WriteCharDescr(p_cb->conn_id,
                             &descr_id,
-                            BTA_GATTC_TYPE_WRITE_NO_RSP,
+                            BTA_GATTC_TYPE_WRITE,
                             &value,
                             BTA_GATT_AUTH_REQ_NONE);
 
