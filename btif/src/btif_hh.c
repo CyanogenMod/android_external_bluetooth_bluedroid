@@ -791,6 +791,22 @@ static int btif_hh_check_if_device_connectable(BD_ADDR bda)
     return TRUE;
 }
 
+/*******************************************************************************
+**
+** Function         btif_hh_sdp_cmpl_after_bonding
+**
+** Description      Sends signal to BTA layer that SDP is finished after bonding in stack
+**
+** Returns          void
+**
+*******************************************************************************/
+
+void btif_hh_sdp_cmpl_after_bonding(bt_bdaddr_t bdaddr)
+{
+    BD_ADDR bd_addr;
+    memcpy(bd_addr, &bdaddr, BD_ADDR_LEN);
+    BTA_HhSdpCmplAfterBonding(bd_addr);
+}
 
 /*****************************************************************************
 **   Section name (Group of functions)
