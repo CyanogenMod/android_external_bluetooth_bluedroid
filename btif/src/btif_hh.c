@@ -534,6 +534,9 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
         return;
     }
 
+    /* need to notify up-layer device is disconnected to avoid state out of sync with up-layer */
+    HAL_CBACK(bt_hh_callbacks, connection_state_cb, &(p_dev->bd_addr), BTHH_CONN_STATE_DISCONNECTED);
+
     p_dev->dev_status = BTHH_CONN_STATE_UNKNOWN;
     p_dev->dev_handle = BTA_HH_INVALID_HANDLE;
     if (btif_hh_cb.device_num > 0) {
