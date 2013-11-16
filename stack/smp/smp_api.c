@@ -204,6 +204,9 @@ void SMP_SecurityGrant(BD_ADDR bd_addr, UINT8 res)
         memcmp (smp_cb.pairing_bda, bd_addr, BD_ADDR_LEN))
         return;
 
+    /* clear the SMP_SEC_REQUEST_EVT event after get grant */
+    /* avoid generate duplicate pair request */
+    smp_cb.cb_evt = 0;
     smp_sm_event(&smp_cb, SMP_API_SEC_GRANT_EVT, &res);
 }
 
