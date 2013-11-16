@@ -673,6 +673,11 @@ void bta_dm_remove_device (tBTA_DM_MSG *p_data)
     int i;
     tBTA_DM_SEC sec_event;
 
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+    /* need to remove all pending background connection before unpair */
+    BTA_GATTC_CancelOpen(0, p_dev->bd_addr, FALSE);
+#endif
+
     if (BTM_IsAclConnectionUp(p_dev->bd_addr))
     {
         /* Take the link down first, and mark the device for removal when disconnected */
@@ -692,6 +697,11 @@ void bta_dm_remove_device (tBTA_DM_MSG *p_data)
     else    /* Ok to remove the device in application layer */
     {
         BTM_SecDeleteDevice(p_dev->bd_addr);
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+        /* remove all cached GATT information */
+        BTA_GATTC_Refresh(p_dev->bd_addr);
+#endif
+
         if( bta_dm_cb.p_sec_cback )
         {
             bdcpy(sec_event.link_down.bd_addr, p_dev->bd_addr);
@@ -3459,6 +3469,10 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
             if( bta_dm_cb.device_list.peer_device[i].conn_state == BTA_DM_UNPAIRING )
             {
                 BTM_SecDeleteDevice(bta_dm_cb.device_list.peer_device[i].peer_bdaddr);
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+                /* remove all cached GATT information */
+                BTA_GATTC_Refresh(p_bda);
+#endif
                 issue_unpair_cb = TRUE;
             }
 
@@ -3768,6 +3782,12 @@ static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr)
     else
     {
         BTM_SecDeleteDevice (remote_bd_addr);
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+        /* need to remove all pending background connection */
+        BTA_GATTC_CancelOpen(0, remote_bd_addr, FALSE);
+        /* remove all cached GATT information */
+        BTA_GATTC_Refresh(remote_bd_addr);
+#endif
     }
 }
 
