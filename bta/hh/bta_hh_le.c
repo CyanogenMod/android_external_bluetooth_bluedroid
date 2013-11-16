@@ -2593,6 +2593,8 @@ static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB *p_cb, BOOLEAN check_bond)
 *******************************************************************************/
 UINT8 bta_hh_le_add_device(tBTA_HH_DEV_CB *p_cb, tBTA_HH_MAINT_DEV *p_dev_info)
 {
+    p_cb->hid_handle = BTA_HH_GET_LE_DEV_HDL(p_cb->index);
+    bta_hh_cb.le_cb_index[BTA_HH_GET_LE_CB_IDX(p_cb->hid_handle)] = p_cb->index;
 
     /* update DI information */
     bta_hh_update_di_info(p_cb,
