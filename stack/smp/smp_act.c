@@ -905,10 +905,9 @@ void smp_delay_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
     btu_stop_timer (&p_cb->rsp_timer_ent);
 
-    /* if remote user terminate connection, finish SMP pairing as normal */
-    if (p_data->reason == HCI_ERR_PEER_USER)
-        p_cb->status = SMP_SUCCESS;
-    else
+    /* if remote user terminate connection, keep the previous status */
+    /* this is to avoid reporting reverse status to uplayer */
+    if (p_data->reason != HCI_ERR_PEER_USER)
         p_cb->status = SMP_CONN_TOUT;
 
     smp_proc_pairing_cmpl(p_cb);
