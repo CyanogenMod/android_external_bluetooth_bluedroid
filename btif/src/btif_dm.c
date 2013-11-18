@@ -162,7 +162,7 @@ extern bt_status_t btif_hh_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_mce_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_hf_client_execute_service(BOOLEAN b_enable);
 extern int btif_hh_connect(bt_bdaddr_t *bd_addr);
-extern BOOLEAN btif_hh_check_if_conn_in_prog(void);
+extern BOOLEAN btif_hh_check_if_sdp_required(bt_bdaddr_t *bd_addr);
 extern void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16);
 extern BOOLEAN btif_av_is_connected();
 extern void btif_av_close_update();
@@ -947,7 +947,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
 
         /* Special Handling for HID Devices */
         BOOLEAN is_hid = check_cod(&bd_addr, COD_HID_POINTING);
-        if (is_hid && btif_hh_check_if_conn_in_prog())
+        if (is_hid && btif_hh_check_if_sdp_required(&bd_addr))
         {
             /* For HID Pointing devices, in case of outgoing connection,
              * SDP has been performed already before initiating HID connection,
