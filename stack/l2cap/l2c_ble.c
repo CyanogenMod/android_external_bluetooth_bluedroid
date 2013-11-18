@@ -190,7 +190,8 @@ BOOLEAN L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, BOOLEAN enable)
                 (UINT16) ((p_dev_rec->conn_params.supervision_tout != BTM_BLE_CONN_PARAM_UNDEF) ? p_dev_rec->conn_params.supervision_tout : BTM_BLE_CONN_TIMEOUT_DEF),
                 0, 0);
         }
-        p_lcb->upd_disabled = UPD_DISABLED;
+        if(p_lcb->upd_disabled!=UPD_PENDING)
+            p_lcb->upd_disabled = UPD_DISABLED;
     }
 
     return (TRUE);
