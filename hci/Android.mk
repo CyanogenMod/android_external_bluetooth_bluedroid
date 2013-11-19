@@ -15,6 +15,10 @@ LOCAL_CFLAGS += -DQCOM_WCN_SSR
 
 endif
 
+ifeq ($(TARGET_BUILD_VARIANT), userdebug)
+  LOCAL_CFLAGS += -DBTSNOOP_EXT_PARSER_INCLUDED=TRUE
+endif
+
 LOCAL_SRC_FILES += \
         src/userial.c \
         src/userial_mct.c \
