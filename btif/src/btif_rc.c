@@ -65,6 +65,7 @@
 #define MAX_LABEL 16
 #define MAX_TRANSACTIONS_PER_SESSION 16
 #define MAX_CMD_QUEUE_LEN 11
+#define PLAY_STATUS_PLAYING 1
 
 #define CHECK_RC_CONNECTED                                                                  \
     BTIF_TRACE_DEBUG1("## %s ##", __FUNCTION__);                                            \
@@ -1779,6 +1780,12 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
     {
         case BTRC_EVT_PLAY_STATUS_CHANGED:
             avrc_rsp.reg_notif.param.play_status = p_param->play_status;
+            /* Clear remote suspend flag, as remote device issues
+             * suspend within 3s after pause, and DUT within 3s
+             * initiates Play
+            */
+            if (avrc_rsp.reg_notif.param.play_status == PLAY_STATUS_PLAYING)
+                btif_av_clear_remote_suspend_flag();
             break;
         case BTRC_EVT_TRACK_CHANGE:
             memcpy(&(avrc_rsp.reg_notif.param.track), &(p_param->track), sizeof(btrc_uid_t));
