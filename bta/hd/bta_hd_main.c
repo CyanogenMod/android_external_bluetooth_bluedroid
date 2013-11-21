@@ -36,260 +36,238 @@
 #include "gki.h"
 
 /*****************************************************************************
+** Constants and types
+*****************************************************************************/
+
+/* state machine states */
+enum
+{
+    BTA_HD_INIT_ST,
+    BTA_HD_IDLE_ST,               /* not connected, waiting for connection */
+    BTA_HD_CONN_ST,               /* host connected */
+    BTA_HD_TRANSIENT_TO_INIT_ST,  /* transient state: going back from CONN to INIT */
+};
+typedef UINT8 tBTA_HD_STATE;
+
+/* state machine actions */
+enum
+{
+    BTA_HD_REGISTER_ACT,
+    BTA_HD_UNREGISTER_ACT,
+    BTA_HD_UNREGISTER2_ACT,
+    BTA_HD_CONNECT_ACT,
+    BTA_HD_DISCONNECT_ACT,
+    BTA_HD_ADD_DEVICE_ACT,
+    BTA_HD_REMOVE_DEVICE_ACT,
+    BTA_HD_SEND_REPORT_ACT,
+    BTA_HD_REPORT_ERROR_ACT,
+    BTA_HD_VC_UNPLUG_ACT,
+
+    BTA_HD_OPEN_ACT,
+    BTA_HD_CLOSE_ACT,
+    BTA_HD_INTR_DATA_ACT,
+    BTA_HD_GET_REPORT_ACT,
+    BTA_HD_SET_REPORT_ACT,
+    BTA_HD_SET_PROTOCOL_ACT,
+    BTA_HD_VC_UNPLUG_DONE_ACT,
+    BTA_HD_SUSPEND_ACT,
+    BTA_HD_EXIT_SUSPEND_ACT,
+
+    BTA_HD_NUM_ACTIONS
+};
+
+#define BTA_HD_IGNORE BTA_HD_NUM_ACTIONS
+
+typedef void (*tBTA_HD_ACTION)(tBTA_HD_DATA *p_data);
+
+/* action functions */
+const tBTA_HD_ACTION bta_hd_action[] =
+{
+    bta_hd_register_act,
+    bta_hd_unregister_act,
+    bta_hd_unregister2_act,
+    bta_hd_connect_act,
+    bta_hd_disconnect_act,
+    bta_hd_add_device_act,
+    bta_hd_remove_device_act,
+    bta_hd_send_report_act,
+    bta_hd_report_error_act,
+    bta_hd_vc_unplug_act,
+
+    bta_hd_open_act,
+    bta_hd_close_act,
+    bta_hd_intr_data_act,
+    bta_hd_get_report_act,
+    bta_hd_set_report_act,
+    bta_hd_set_protocol_act,
+    bta_hd_vc_unplug_done_act,
+    bta_hd_suspend_act,
+    bta_hd_exit_suspend_act,
+};
+
+/* state table information */
+#define BTA_HD_ACTION      0  /* position of action */
+#define BTA_HD_NEXT_STATE  1  /* position of next state */
+#define BTA_HD_NUM_COLS    2  /* number of columns */
+
+const UINT8 bta_hd_st_init[][BTA_HD_NUM_COLS] =
+{
+/* Event                               Action                     Next state */
+/* BTA_HD_API_REGISTER_APP_EVT   */  { BTA_HD_REGISTER_ACT,       BTA_HD_IDLE_ST },
+/* BTA_HD_API_UNREGISTER_APP_EVT */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_API_CONNECT_EVT        */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_API_DISCONNECT_EVT     */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_API_ADD_DEVICE_EVT     */  { BTA_HD_ADD_DEVICE_ACT,     BTA_HD_INIT_ST },
+/* BTA_HD_API_REMOVE_DEVICE_EVT  */  { BTA_HD_REMOVE_DEVICE_ACT,  BTA_HD_INIT_ST },
+/* BTA_HD_API_SEND_REPORT_EVT    */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_API_REPORT_ERROR_EVT   */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_API_VC_UNPLUG_EVT      */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_INT_OPEN_EVT           */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_INT_CLOSE_EVT          */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_INT_INTR_DATA_EVT      */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_INT_GET_REPORT_EVT     */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_INT_SET_REPORT_EVT     */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_INT_SET_PROTOCOL_EVT   */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_INT_VC_UNPLUG_EVT      */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_INT_SUSPEND_EVT        */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+/* BTA_HD_INT_EXIT_SUSPEND_EVT   */  { BTA_HD_IGNORE,             BTA_HD_INIT_ST },
+};
+
+const UINT8 bta_hd_st_idle[][BTA_HD_NUM_COLS] =
+{
+/* Event                               Action                     Next state */
+/* BTA_HD_API_REGISTER_APP_EVT   */  { BTA_HD_IGNORE,             BTA_HD_IDLE_ST },
+/* BTA_HD_API_UNREGISTER_APP_EVT */  { BTA_HD_UNREGISTER_ACT,     BTA_HD_INIT_ST },
+/* BTA_HD_API_CONNECT_EVT        */  { BTA_HD_CONNECT_ACT,        BTA_HD_IDLE_ST },
+/* BTA_HD_API_DISCONNECT_EVT     */  { BTA_HD_IGNORE,             BTA_HD_IDLE_ST },
+/* BTA_HD_API_ADD_DEVICE_EVT     */  { BTA_HD_ADD_DEVICE_ACT,     BTA_HD_IDLE_ST },
+/* BTA_HD_API_REMOVE_DEVICE_EVT  */  { BTA_HD_REMOVE_DEVICE_ACT,  BTA_HD_IDLE_ST },
+/* BTA_HD_API_SEND_REPORT_EVT    */  { BTA_HD_SEND_REPORT_ACT,    BTA_HD_IDLE_ST },
+/* BTA_HD_API_REPORT_ERROR_EVT   */  { BTA_HD_IGNORE,             BTA_HD_IDLE_ST },
+/* BTA_HD_API_VC_UNPLUG_EVT      */  { BTA_HD_IGNORE,             BTA_HD_IDLE_ST },
+/* BTA_HD_INT_OPEN_EVT           */  { BTA_HD_OPEN_ACT,           BTA_HD_CONN_ST },
+/* BTA_HD_INT_CLOSE_EVT          */  { BTA_HD_IGNORE,             BTA_HD_IDLE_ST },
+/* BTA_HD_INT_INTR_DATA_EVT      */  { BTA_HD_IGNORE,             BTA_HD_IDLE_ST },
+/* BTA_HD_INT_GET_REPORT_EVT     */  { BTA_HD_IGNORE,             BTA_HD_IDLE_ST },
+/* BTA_HD_INT_SET_REPORT_EVT     */  { BTA_HD_IGNORE,             BTA_HD_IDLE_ST },
+/* BTA_HD_INT_SET_PROTOCOL_EVT   */  { BTA_HD_IGNORE,             BTA_HD_IDLE_ST },
+/* BTA_HD_INT_VC_UNPLUG_EVT      */  { BTA_HD_IGNORE,             BTA_HD_IDLE_ST },
+/* BTA_HD_INT_SUSPEND_EVT        */  { BTA_HD_IGNORE,             BTA_HD_IDLE_ST },
+/* BTA_HD_INT_EXIT_SUSPEND_EVT   */  { BTA_HD_IGNORE,             BTA_HD_IDLE_ST },
+};
+
+const UINT8 bta_hd_st_conn[][BTA_HD_NUM_COLS] =
+{
+/* Event                               Action                     Next state */
+/* BTA_HD_API_REGISTER_APP_EVT   */  { BTA_HD_IGNORE,             BTA_HD_CONN_ST },
+/* BTA_HD_API_UNREGISTER_APP_EVT */  { BTA_HD_DISCONNECT_ACT,     BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_API_CONNECT_EVT        */  { BTA_HD_IGNORE,             BTA_HD_CONN_ST },
+/* BTA_HD_API_DISCONNECT_EVT     */  { BTA_HD_DISCONNECT_ACT,     BTA_HD_CONN_ST },
+/* BTA_HD_API_ADD_DEVICE_EVT     */  { BTA_HD_ADD_DEVICE_ACT,     BTA_HD_CONN_ST },
+/* BTA_HD_API_REMOVE_DEVICE_EVT  */  { BTA_HD_REMOVE_DEVICE_ACT,  BTA_HD_CONN_ST },
+/* BTA_HD_API_SEND_REPORT_EVT    */  { BTA_HD_SEND_REPORT_ACT,    BTA_HD_CONN_ST },
+/* BTA_HD_API_REPORT_ERROR_EVT   */  { BTA_HD_REPORT_ERROR_ACT,   BTA_HD_CONN_ST },
+/* BTA_HD_API_VC_UNPLUG_EVT      */  { BTA_HD_VC_UNPLUG_ACT,      BTA_HD_CONN_ST },
+/* BTA_HD_INT_OPEN_EVT           */  { BTA_HD_IGNORE,             BTA_HD_CONN_ST },
+/* BTA_HD_INT_CLOSE_EVT          */  { BTA_HD_CLOSE_ACT,          BTA_HD_IDLE_ST },
+/* BTA_HD_INT_INTR_DATA_EVT      */  { BTA_HD_INTR_DATA_ACT,      BTA_HD_CONN_ST },
+/* BTA_HD_INT_GET_REPORT_EVT     */  { BTA_HD_GET_REPORT_ACT,     BTA_HD_CONN_ST },
+/* BTA_HD_INT_SET_REPORT_EVT     */  { BTA_HD_SET_REPORT_ACT,     BTA_HD_CONN_ST },
+/* BTA_HD_INT_SET_PROTOCOL_EVT   */  { BTA_HD_SET_PROTOCOL_ACT,   BTA_HD_CONN_ST },
+/* BTA_HD_INT_VC_UNPLUG_EVT      */  { BTA_HD_VC_UNPLUG_DONE_ACT, BTA_HD_IDLE_ST },
+/* BTA_HD_INT_SUSPEND_EVT        */  { BTA_HD_SUSPEND_ACT,        BTA_HD_CONN_ST },
+/* BTA_HD_INT_EXIT_SUSPEND_EVT   */  { BTA_HD_EXIT_SUSPEND_ACT,   BTA_HD_CONN_ST },
+};
+
+const UINT8 bta_hd_st_transient_to_init[][BTA_HD_NUM_COLS] =
+{
+/* Event                               Action                     Next state */
+/* BTA_HD_API_REGISTER_APP_EVT   */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_API_UNREGISTER_APP_EVT */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_API_CONNECT_EVT        */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_API_DISCONNECT_EVT     */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_API_ADD_DEVICE_EVT     */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_API_REMOVE_DEVICE_EVT  */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_API_SEND_REPORT_EVT    */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_API_REPORT_ERROR_EVT   */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_API_VC_UNPLUG_EVT      */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_INT_OPEN_EVT           */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_INT_CLOSE_EVT          */  { BTA_HD_UNREGISTER2_ACT,    BTA_HD_INIT_ST },
+/* BTA_HD_INT_INTR_DATA_EVT      */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_INT_GET_REPORT_EVT     */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_INT_SET_REPORT_EVT     */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_INT_SET_PROTOCOL_EVT   */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_INT_VC_UNPLUG_EVT      */  { BTA_HD_UNREGISTER2_ACT,    BTA_HD_INIT_ST },
+/* BTA_HD_INT_SUSPEND_EVT        */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+/* BTA_HD_INT_EXIT_SUSPEND_EVT   */  { BTA_HD_IGNORE,             BTA_HD_TRANSIENT_TO_INIT_ST },
+};
+
+/* type for state table */
+typedef const UINT8 (*tBTA_HD_ST_TBL)[BTA_HD_NUM_COLS];
+
+/* state table */
+const tBTA_HD_ST_TBL bta_hd_st_tbl[] =
+{
+    bta_hd_st_init,
+    bta_hd_st_idle,
+    bta_hd_st_conn,
+    bta_hd_st_transient_to_init
+};
+
+
+/*****************************************************************************
 ** Global data
 *****************************************************************************/
 #if BTA_DYNAMIC_MEMORY == FALSE
 tBTA_HD_CB  bta_hd_cb;
 #endif
 
-static tBTA_HD_EVT state_disabled(BT_HDR *p_msg, tBTA_HD *cback_data) {
-    APPL_TRACE_API2("%s: p_msg->event=%d", __FUNCTION__, p_msg->event);
+static char *bta_hd_evt_code(tBTA_HD_INT_EVT evt_code);
+static char *bta_hd_state_code(tBTA_HD_STATE state_code);
 
-    switch (p_msg->event) {
-        case BTA_HD_API_ENABLE_EVT:
-            bta_hd_api_enable((tBTA_HD_DATA *) p_msg);
-            bta_hd_cb.state = BTA_HD_STATE_ENABLED;
-            break;
+/*******************************************************************************
+**
+** Function         bta_hd_sm_execute
+**
+** Description      State machine event handling function for HID Device
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hd_sm_execute(UINT16 event, tBTA_HD_DATA * p_data)
+{
+    tBTA_HD_ST_TBL  state_table;
+    tBTA_HD_STATE   prev_state;
+    UINT8           action;
+    tBTA_HD         cback_data;
+    tBTA_HD_EVT     cback_event = 0;
 
-        default:
-            APPL_TRACE_WARNING2("%s: unexpected event (%d)", __FUNCTION__, p_msg->event);
-            break;
+    APPL_TRACE_EVENT5("%s: state=%s (%d) event=%s (%d)", __FUNCTION__,
+        bta_hd_state_code(bta_hd_cb.state), bta_hd_cb.state,
+        bta_hd_evt_code(event), event);
+
+    prev_state = bta_hd_cb.state;
+
+    memset(&cback_data, 0, sizeof(tBTA_HD));
+
+    state_table = bta_hd_st_tbl[bta_hd_cb.state];
+
+    event &= 0xff;
+
+    if ((action = state_table[event][BTA_HD_ACTION]) != BTA_HD_IGNORE)
+    {
+        (*bta_hd_action[action])(p_data);
     }
 
-    return 0;
-}
+    bta_hd_cb.state = state_table[event][BTA_HD_NEXT_STATE] ;
 
-static tBTA_HD_EVT state_enabled(BT_HDR *p_msg, tBTA_HD *cback_data) {
-    tBTA_HD_CBACK_DATA  *p_data = (tBTA_HD_CBACK_DATA *) p_msg;
-
-    APPL_TRACE_API2("%s: p_msg->event=%d", __FUNCTION__, p_msg->event);
-
-    switch (p_msg->event) {
-        case BTA_HD_API_REGISTER_APP_EVT:
-            bta_hd_register_sdp((tBTA_HD_REGISTER_APP *) p_msg);
-            bta_hd_cb.state = BTA_HD_STATE_IDLE;
-            break;
-
-        case BTA_HD_API_DISABLE_EVT:
-            bta_hd_api_disable();
-            bta_hd_cb.state = BTA_HD_STATE_DISABLED;
-            break;
-
-        case BTA_HD_API_ADD_DEVICE_EVT:
-            HID_DevPlugDevice(p_data->addr);
-            break;
-
-        case BTA_HD_API_REMOVE_DEVICE_EVT:
-            HID_DevUnplugDevice(p_data->addr);
-            break;
-
-        default:
-            APPL_TRACE_WARNING2("%s: unexpected event (%d)", __FUNCTION__, p_msg->event);
-            break;
+    if (bta_hd_cb.state != prev_state)
+    {
+        APPL_TRACE_EVENT3("%s: [new] state=%s (%d)", __FUNCTION__,
+            bta_hd_state_code(bta_hd_cb.state), bta_hd_cb.state);
     }
 
-    return 0;
-}
-
-static tBTA_HD_EVT state_idle(BT_HDR *p_msg, tBTA_HD *cback_data) {
-    tBTA_HD_CBACK_DATA  *p_data = (tBTA_HD_CBACK_DATA *) p_msg;
-    tBTA_HD_EVT         cback_event = 0;
-
-    APPL_TRACE_API2("%s: p_msg->event=%d", __FUNCTION__, p_msg->event);
-
-    switch (p_msg->event) {
-        case BTA_HD_API_DISABLE_EVT:
-            bta_hd_unregister_sdp();
-            bta_hd_api_disable();
-            bta_hd_cb.state = BTA_HD_STATE_DISABLED;
-            break;
-
-        case BTA_HD_API_UNREGISTER_APP_EVT:
-            bta_hd_disconnect();
-            bta_hd_unregister_sdp();
-            bta_hd_cb.state = BTA_HD_STATE_ENABLED;
-            break;
-
-        case BTA_HD_API_CONNECT_EVT:
-            bta_hd_connect();
-            break;
-
-        case BTA_HD_API_ADD_DEVICE_EVT:
-            HID_DevPlugDevice(p_data->addr);
-            break;
-
-        case BTA_HD_API_REMOVE_DEVICE_EVT:
-            HID_DevUnplugDevice(p_data->addr);
-            break;
-
-        case BTA_HD_INT_OPEN_EVT:
-            HID_DevPlugDevice(p_data->addr);
-            bta_sys_conn_open(BTA_ID_HD, 1, p_data->addr);
-            cback_event = BTA_HD_OPEN_EVT;
-            bdcpy(cback_data->conn.bda, p_data->addr);
-            bdcpy(bta_hd_cb.bd_addr, p_data->addr);
-
-            bta_hd_cb.state = BTA_HD_STATE_CONNECTED;
-            break;
-
-        case BTA_HD_INT_SEND_REPORT_EVT:
-            bta_hd_send_report((tBTA_HD_SEND_REPORT *) p_msg);
-            break;
-
-        case BTA_HD_INT_GET_REPORT_EVT:
-            bta_hd_get_report(p_data->data, p_data->p_data);
-            break;
-
-        case BTA_HD_INT_SET_REPORT_EVT:
-            bta_hd_set_report(p_data->p_data);
-            break;
-
-        case BTA_HD_INT_SET_PROTOCOL_EVT:
-            bta_hd_cb.boot_mode = (p_data->data == HID_PAR_PROTOCOL_BOOT_MODE);
-            cback_event = BTA_HD_SET_PROTOCOL_EVT;
-            cback_data->set_protocol = p_data->data;
-            break;
-
-        case BTA_HD_INT_INTR_DATA_EVT:
-            bta_hd_intr_data(p_data->p_data);
-            break;
-
-        case BTA_HD_INT_SUSPEND_EVT:
-            bta_sys_idle(BTA_ID_HD, 1, p_data->addr);
-            break;
-
-        case BTA_HD_INT_EXIT_SUSPEND_EVT:
-            bta_sys_busy(BTA_ID_HD, 1, p_data->addr);
-            bta_sys_idle(BTA_ID_HD, 1, p_data->addr);
-            break;
-
-        default:
-            APPL_TRACE_WARNING2("%s: unexpected event (%d)", __FUNCTION__, p_msg->event);
-            break;
-    }
-
-    return cback_event;
-}
-
-static tBTA_HD_EVT state_connected(BT_HDR *p_msg, tBTA_HD *cback_data) {
-    tBTA_HD_CBACK_DATA  *p_data = (tBTA_HD_CBACK_DATA *) p_msg;
-    tBTA_HD_EVT         cback_event = 0;
-
-    APPL_TRACE_API2("%s: p_msg->event=%d", __FUNCTION__, p_msg->event);
-
-    switch (p_msg->event) {
-        case BTA_HD_API_DISABLE_EVT:
-            bta_hd_disconnect();
-            bta_hd_cb.state = BTA_HD_STATE_REMOVING;
-            break;
-
-        case BTA_HD_API_UNREGISTER_APP_EVT:
-            bta_hd_disconnect();
-            bta_hd_cb.state = BTA_HD_STATE_DISABLING;
-            break;
-
-        case BTA_HD_API_VC_UNPLUG_EVT:
-            bta_hd_vc_unplug();
-            break;
-
-        case BTA_HD_API_DISCONNECT_EVT:
-            bta_hd_disconnect();
-            break;
-
-        case BTA_HD_API_REPORT_ERROR_EVT:
-            bta_hd_report_error();
-            break;
-
-        case BTA_HD_INT_VC_UNPLUG_EVT:
-            bta_sys_conn_close(BTA_ID_HD, 1, p_data->addr);
-
-            HID_DevUnplugDevice(p_data->addr);
-
-            cback_event = BTA_HD_VC_UNPLUG_EVT;
-            bdcpy(cback_data->conn.bda, p_data->addr);
-            bdcpy(bta_hd_cb.bd_addr, p_data->addr);
-            break;
-
-        case BTA_HD_INT_CLOSE_EVT:
-            bta_sys_conn_close(BTA_ID_HD, 1, p_data->addr);
-
-            if (bta_hd_cb.vc_unplug)
-            {
-                bta_hd_cb.vc_unplug = FALSE;
-                HID_DevUnplugDevice(p_data->addr);
-                cback_event = BTA_HD_VC_UNPLUG_EVT;
-            }
-            else
-            {
-                cback_event = BTA_HD_CLOSE_EVT;
-            }
-
-            bdcpy(cback_data->conn.bda, p_data->addr);
-            memset(bta_hd_cb.bd_addr, 0, sizeof(BD_ADDR));
-
-            bta_hd_cb.state = BTA_HD_STATE_IDLE;
-            break;
-
-        case BTA_HD_API_CONNECT_EVT:
-            // ignore
-            break;
-
-        default:
-            return state_idle(p_msg, cback_data);
-    }
-
-    return cback_event;
-}
-
-static tBTA_HD_EVT state_disabling(BT_HDR *p_msg, tBTA_HD *cback_data) {
-    tBTA_HD_EVT cback_event = 0;
-
-    APPL_TRACE_API2("%s: p_msg->event=%d", __FUNCTION__, p_msg->event);
-
-    switch (p_msg->event) {
-        case BTA_HD_INT_CLOSE_EVT:
-            // first need to fire proper callback for disconnection
-            cback_event = state_connected(p_msg, cback_data);
-            bta_hd_cb.p_cback(cback_event, cback_data);
-
-            // and now we can safely remove sdp
-            bta_hd_unregister_sdp();
-            bta_hd_cb.state = BTA_HD_STATE_ENABLED;
-            break;
-
-        default:
-            // silently ignore
-            break;
-    }
-
-    // always return 0 since close event is handled
-    return 0;
-}
-
-static tBTA_HD_EVT state_removing(BT_HDR *p_msg, tBTA_HD *cback_data) {
-    tBTA_HD_EVT cback_event = 0;
-
-    APPL_TRACE_API2("%s: p_msg->event=%d", __FUNCTION__, p_msg->event);
-
-    switch (p_msg->event) {
-        case BTA_HD_INT_CLOSE_EVT:
-            // first need to fire proper callback for disconnection
-            cback_event = state_connected(p_msg, cback_data);
-            bta_hd_cb.p_cback(cback_event, cback_data);
-
-            // and now we can safely remove and unregister
-            bta_hd_unregister_sdp();
-            bta_hd_api_disable();
-            bta_hd_cb.state = BTA_HD_STATE_DISABLED;
-            break;
-
-        default:
-            // silently ignore
-            break;
-    }
-
-    // always return 0 since close event is handled
-    return 0;
+    return;
 }
 
 /*******************************************************************************
@@ -304,45 +282,98 @@ static tBTA_HD_EVT state_removing(BT_HDR *p_msg, tBTA_HD *cback_data) {
 BOOLEAN bta_hd_hdl_event(BT_HDR *p_msg)
 {
     tBTA_HD_CBACK_DATA  *p_data = (tBTA_HD_CBACK_DATA *) p_msg;
-    tBTA_HD_EVT         cback_event = 0;
-    tBTA_HD             cback_data;
 
     APPL_TRACE_API2("%s: p_msg->event=%d", __FUNCTION__, p_msg->event);
 
-    switch (bta_hd_cb.state) {
-        case BTA_HD_STATE_DISABLED:
-            cback_event = state_disabled(p_msg, &cback_data);
+    switch (p_msg->event)
+    {
+        case BTA_HD_API_ENABLE_EVT:
+            bta_hd_api_enable((tBTA_HD_DATA *) p_msg);
             break;
 
-        case BTA_HD_STATE_ENABLED:
-            cback_event = state_enabled(p_msg, &cback_data);
-            break;
+        case BTA_HD_API_DISABLE_EVT:
+            if (bta_hd_cb.state == BTA_HD_CONN_ST)
+            {
+                APPL_TRACE_WARNING1("%s: host connected, need to "
+                    "disconnect before disabling", __FUNCTION__);
 
-        case BTA_HD_STATE_IDLE:
-            cback_event = state_idle(p_msg, &cback_data);
-            break;
-
-        case BTA_HD_STATE_CONNECTED:
-            cback_event = state_connected(p_msg, &cback_data);
-            break;
-
-        case BTA_HD_STATE_DISABLING:
-            cback_event = state_disabling(p_msg, &cback_data);
-            break;
-
-        case BTA_HD_STATE_REMOVING:
-            cback_event = state_removing(p_msg, &cback_data);
+                // unregister (and disconnect)
+                bta_hd_cb.disable_w4_close = TRUE;
+                bta_hd_sm_execute(BTA_HD_API_UNREGISTER_APP_EVT,
+                    (tBTA_HD_DATA *) p_msg);
+            }
+            else
+            {
+                bta_hd_api_disable();
+            }
             break;
 
         default:
-            APPL_TRACE_WARNING2("%s: invalid state (%d)", __FUNCTION__, bta_hd_cb.state);
-            break;
+            bta_hd_sm_execute(p_msg->event, (tBTA_HD_DATA *) p_msg);
     }
-
-    if (cback_event)
-        bta_hd_cb.p_cback(cback_event, &cback_data);
-
     return (TRUE);
+}
+
+static char *bta_hd_evt_code(tBTA_HD_INT_EVT evt_code)
+{
+    switch (evt_code)
+    {
+    case BTA_HD_API_REGISTER_APP_EVT:
+        return "BTA_HD_API_REGISTER_APP_EVT";
+    case BTA_HD_API_UNREGISTER_APP_EVT:
+        return "BTA_HD_API_UNREGISTER_APP_EVT";
+    case BTA_HD_API_CONNECT_EVT:
+        return "BTA_HD_API_CONNECT_EVT";
+    case BTA_HD_API_DISCONNECT_EVT:
+        return "BTA_HD_API_DISCONNECT_EVT";
+    case BTA_HD_API_ADD_DEVICE_EVT:
+        return "BTA_HD_API_ADD_DEVICE_EVT";
+    case BTA_HD_API_REMOVE_DEVICE_EVT:
+        return "BTA_HD_API_REMOVE_DEVICE_EVT";
+    case BTA_HD_API_SEND_REPORT_EVT:
+        return "BTA_HD_API_SEND_REPORT_EVT";
+    case BTA_HD_API_REPORT_ERROR_EVT:
+        return "BTA_HD_API_REPORT_ERROR_EVT";
+    case BTA_HD_API_VC_UNPLUG_EVT:
+        return "BTA_HD_API_VC_UNPLUG_EVT";
+    case BTA_HD_INT_OPEN_EVT:
+        return "BTA_HD_INT_OPEN_EVT";
+    case BTA_HD_INT_CLOSE_EVT:
+        return "BTA_HD_INT_CLOSE_EVT";
+    case BTA_HD_INT_INTR_DATA_EVT:
+        return "BTA_HD_INT_INTR_DATA_EVT";
+    case BTA_HD_INT_GET_REPORT_EVT:
+        return "BTA_HD_INT_GET_REPORT_EVT";
+    case BTA_HD_INT_SET_REPORT_EVT:
+        return "BTA_HD_INT_SET_REPORT_EVT";
+    case BTA_HD_INT_SET_PROTOCOL_EVT:
+        return "BTA_HD_INT_SET_PROTOCOL_EVT";
+    case BTA_HD_INT_VC_UNPLUG_EVT:
+        return "BTA_HD_INT_VC_UNPLUG_EVT";
+    case BTA_HD_INT_SUSPEND_EVT:
+        return "BTA_HD_INT_SUSPEND_EVT";
+    case BTA_HD_INT_EXIT_SUSPEND_EVT:
+        return "BTA_HD_INT_EXIT_SUSPEND_EVT";
+    default:
+        return "<unknown>";
+    }
+}
+
+static char *bta_hd_state_code(tBTA_HD_STATE state_code)
+{
+    switch (state_code)
+    {
+    case BTA_HD_INIT_ST:
+        return "BTA_HD_INIT_ST";
+    case BTA_HD_IDLE_ST:
+        return "BTA_HD_IDLE_ST";
+    case BTA_HD_CONN_ST:
+        return "BTA_HD_CONN_ST";
+    case BTA_HD_TRANSIENT_TO_INIT_ST:
+        return "BTA_HD_TRANSIENT_TO_INIT_ST";
+    default:
+        return "<unknown>";
+    }
 }
 
 #endif /* BTA_HD_INCLUDED */
