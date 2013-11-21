@@ -310,11 +310,11 @@ typedef struct
     const char* service_name;          /* Description of the MAS instance */
     UINT8       supported_message_types;/* Server supported message types - SMS/MMS/EMAIL */
 } tBTA_MAPS_CFG;
-const tBTA_MAPS_CFG bta_maps_cfg_sms =
+const tBTA_MAPS_CFG bta_maps_cfg_sms_mms =
 {
     0,                  /* Mas id 0 is for SMS/MMS */
-    "MAP SMS",
-    BTA_MAP_MSG_TYPE_SMS_GSM | BTA_MAP_MSG_TYPE_SMS_CDMA
+    "MAP SMS/MMS",
+    BTA_MAP_MSG_TYPE_SMS_GSM | BTA_MAP_MSG_TYPE_SMS_CDMA | BTA_MAP_MSG_TYPE_MMS
 };
 const tBTA_MAPS_CFG bta_maps_cfg_email =
 {
@@ -331,7 +331,7 @@ static int add_maps_sdp(const char* p_service_name, int scn)
     BOOLEAN             status = FALSE;
     UINT32              sdp_handle = 0;
     // TODO: To add support for EMAIL set below depending on the scn to either SMS or Email
-    const tBTA_MAPS_CFG *p_bta_maps_cfg = &bta_maps_cfg_sms;
+    const tBTA_MAPS_CFG *p_bta_maps_cfg = &bta_maps_cfg_sms_mms;
 
     APPL_TRACE_DEBUG("add_maps_sdd:scn %d, service name %s", scn, p_service_name);
 
