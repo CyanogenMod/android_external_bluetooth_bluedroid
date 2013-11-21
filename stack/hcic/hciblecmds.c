@@ -163,7 +163,7 @@ BOOLEAN btsnd_hcic_ble_set_random_addr (BD_ADDR random_bda)
 BOOLEAN btsnd_hcic_ble_write_adv_params (UINT16 adv_int_min, UINT16 adv_int_max,
                                        UINT8 adv_type, UINT8 addr_type_own,
                                        UINT8 addr_type_dir, BD_ADDR direct_bda,
-                                       UINT8 channel_map, UINT8 adv_filter_policy)
+                                       UINT8 channel_map, UINT8 scan_filter_policy)
 {
     BT_HDR *p;
     UINT8 *pp;
@@ -186,7 +186,7 @@ BOOLEAN btsnd_hcic_ble_write_adv_params (UINT16 adv_int_min, UINT16 adv_int_max,
     UINT8_TO_STREAM (pp, addr_type_dir);
     BDADDR_TO_STREAM (pp, direct_bda);
     UINT8_TO_STREAM (pp, channel_map);
-    UINT8_TO_STREAM (pp, adv_filter_policy);
+    UINT8_TO_STREAM (pp, scan_filter_policy);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
     return (TRUE);

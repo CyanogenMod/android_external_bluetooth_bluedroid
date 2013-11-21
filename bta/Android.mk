@@ -75,7 +75,8 @@ LOCAL_SRC_FILES:= \
     ./jv/bta_jv_act.c \
     ./jv/bta_jv_cfg.c \
     ./jv/bta_jv_main.c \
-    ./jv/bta_jv_api.c
+    ./jv/bta_jv_api.c \
+    ../vnd/ble/bta_vendor.c
 
 LOCAL_MODULE := libbt-brcm_bta
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
@@ -95,7 +96,7 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/../hcis \
                    $(LOCAL_PATH)/../hcis/patchram \
                    $(LOCAL_PATH)/../udrv/include \
-                   $(LOCAL_PATH)/../brcm/include \
+                   $(LOCAL_PATH)/../vnd/include \
                    $(LOCAL_PATH)/../utils/include \
                    $(bdroid_C_INCLUDES) \
 
