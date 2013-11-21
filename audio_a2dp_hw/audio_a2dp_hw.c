@@ -467,9 +467,11 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
 
     DEBUG("write %d bytes (fd %d)", bytes, out->audio_fd);
 
+    pthread_mutex_lock(&out->lock);
     if (out->state == AUDIO_A2DP_STATE_SUSPENDED)
     {
         DEBUG("stream suspended");
+        pthread_mutex_unlock(&out->lock);
         return -1;
     }
 
@@ -477,8 +479,6 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
     if ((out->state == AUDIO_A2DP_STATE_STOPPED) ||
         (out->state == AUDIO_A2DP_STATE_STANDBY))
     {
-        pthread_mutex_lock(&out->lock);
-
         if (start_audio_datapath(out) < 0)
         {
             /* emulate time this write represents to avoid very fast write
@@ -493,13 +493,15 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
             return -1;
         }
 
-        pthread_mutex_unlock(&out->lock);
     }
     else if (out->state != AUDIO_A2DP_STATE_STARTED)
     {
         ERROR("stream not in stopped or standby");
+        pthread_mutex_unlock(&out->lock);
         return -1;
     }
+
+    pthread_mutex_unlock(&out->lock);
 
     sent = skt_write(out->audio_fd, buffer,  bytes);
 
@@ -507,7 +509,10 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
     {
         skt_disconnect(out->audio_fd);
         out->audio_fd = AUDIO_SKT_DISCONNECTED;
-        out->state = AUDIO_A2DP_STATE_STOPPED;
+        if (out->state != AUDIO_A2DP_STATE_SUSPENDED)
+            out->state = AUDIO_A2DP_STATE_STOPPED;
+        else
+            ERROR("write failed : stream suspended, avoid resetting state");
     }
 
     DEBUG("wrote %d bytes out of %d bytes", sent, bytes);
