@@ -19,6 +19,8 @@ LOCAL_C_INCLUDES:= . \
                    $(LOCAL_PATH)/sdp \
                    $(LOCAL_PATH)/smp \
                    $(LOCAL_PATH)/srvc \
+                   $(LOCAL_PATH)/../vnd/include \
+                   $(LOCAL_PATH)/../vnd/ble \
                    $(LOCAL_PATH)/../include \
                    $(LOCAL_PATH)/../gki/common \
                    $(LOCAL_PATH)/../gki/ulinux \
@@ -28,7 +30,6 @@ LOCAL_C_INCLUDES:= . \
                    $(LOCAL_PATH)/../ctrlr/include \
                    $(LOCAL_PATH)/../bta/include \
                    $(LOCAL_PATH)/../bta/sys \
-                   $(LOCAL_PATH)/../brcm/include \
                    $(LOCAL_PATH)/../utils/include \
                    $(bdroid_C_INCLUDES) \
 
@@ -145,7 +146,8 @@ LOCAL_SRC_FILES:= \
     ./gap/gap_api.c \
     ./gap/gap_ble.c \
     ./gap/gap_conn.c \
-    ./gap/gap_utils.c
+    ./gap/gap_utils.c \
+    ../vnd/ble/vendor_ble.c
 
 LOCAL_MODULE := libbt-brcm_stack
 LOCAL_MODULE_TAGS := optional
