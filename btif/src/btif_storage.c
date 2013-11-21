@@ -792,7 +792,8 @@ bt_status_t btif_storage_add_bonded_device(bt_bdaddr_t *remote_bd_addr,
     int ret = btif_config_set_int("Remote", bdstr, "LinkKeyType", (int)key_type);
     ret &= btif_config_set_int("Remote", bdstr, "PinLength", (int)pin_length);
     ret &= btif_config_set("Remote", bdstr, "LinkKey", (const char*)link_key, sizeof(LINK_KEY), BTIF_CFG_TYPE_BIN);
-    btif_config_save();
+    /* write bonded info immediately */
+    btif_config_flush();
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
 
@@ -814,7 +815,8 @@ bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t *remote_bd_addr)
     int ret = btif_config_remove("Remote", bdstr, "LinkKeyType");
     ret &= btif_config_remove("Remote", bdstr, "PinLength");
     ret &= btif_config_remove("Remote", bdstr, "LinkKey");
-    btif_config_save();
+    /* write bonded info immediately */
+    btif_config_flush();
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 
 }
