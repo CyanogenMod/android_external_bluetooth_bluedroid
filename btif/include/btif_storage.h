@@ -1,5 +1,7 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -367,4 +369,9 @@ bt_status_t btif_storage_set_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
 
 bt_status_t btif_storage_get_remote_version(const bt_bdaddr_t *remote_bd_addr,
                                   bt_remote_version_t *p_ver);
+
+bt_status_t btif_storage_load_hidd(void);
+bt_status_t btif_storage_set_hidd(bt_bdaddr_t *remote_bd_addr);
+bt_status_t btif_storage_remove_hidd(bt_bdaddr_t *remote_bd_addr);
+
 #endif /* BTIF_STORAGE_H */

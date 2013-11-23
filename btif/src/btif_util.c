@@ -50,6 +50,7 @@
 #include "bta_av_api.h"
 #include "bta_hh_api.h"
 #include "bta_hf_client_api.h"
+#include "bta_hd_api.h"
 #include "avrc_defs.h"
 
 
@@ -385,6 +386,21 @@ const char* dump_hh_event(UINT16 event)
      }
 }
 
+const char* dump_hd_event(UINT16 event)
+{
+    switch(event)
+    {
+        CASE_RETURN_STR(BTA_HD_ENABLE_EVT)
+        CASE_RETURN_STR(BTA_HD_DISABLE_EVT)
+        CASE_RETURN_STR(BTA_HD_REGISTER_APP_EVT)
+        CASE_RETURN_STR(BTA_HD_UNREGISTER_APP_EVT)
+        CASE_RETURN_STR(BTA_HD_GET_REPORT_EVT)
+        CASE_RETURN_STR(BTA_HD_INTR_DATA_EVT)
+        CASE_RETURN_STR(BTA_HD_API_ERR_EVT)
+        default:
+            return "UNKNOWN MSG ID";
+     }
+}
 
 const char* dump_hf_conn_state(UINT16 event)
 {
