@@ -1,5 +1,8 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
+ *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +60,7 @@
 ******************************************************************************/
 
 extern bt_vendor_interface_t *bt_vnd_if;
-extern int num_hci_cmd_pkts;
+volatile int num_hci_cmd_pkts = 1;
 void lpm_init(void);
 void lpm_cleanup(void);
 void lpm_enable(uint8_t turn_on);
@@ -76,6 +79,7 @@ bt_hc_callbacks_t *bt_hc_cbacks = NULL;
 BUFFER_Q tx_q;
 tHCI_IF *p_hci_if;
 volatile uint8_t fwcfg_acked;
+tUSERIAL_IF *p_userial_if;
 
 /******************************************************************************
 **  Local type definitions
@@ -177,6 +181,25 @@ static void epilog_wait_timer(void)
 **
 *****************************************************************************/
 
+int is_bt_transport_smd()
+{
+    int ret = 0;
+    char bt_transport_type[20];
+
+    ret = property_get("ro.qualcomm.bt.hci_transport", bt_transport_type, NULL);
+    if (ret != 0)
+    {
+        ALOGI("ro.qualcomm.hci_transport set to %s\n", bt_transport_type);
+        if (!strncasecmp(bt_transport_type, "smd", sizeof("smd")))
+            return 1;
+    }
+    else
+    {
+        ALOGI("ro.qualcomm.bt.hci_transport not set, so using default.\n");
+    }
+    return 0;
+}
+
 static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
 {
     pthread_attr_t thread_attr;
@@ -200,17 +223,25 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
     init_vnd_if(local_bdaddr);
 
     utils_init();
-#ifdef HCI_USE_MCT
-    extern tHCI_IF hci_mct_func_table;
-    p_hci_if = &hci_mct_func_table;
-#else
-    extern tHCI_IF hci_h4_func_table;
-    p_hci_if = &hci_h4_func_table;
-#endif
+
+   if(is_bt_transport_smd())
+   {
+       extern tHCI_IF hci_mct_func_table;
+       extern tUSERIAL_IF userial_mct_func_table;
+       p_hci_if = &hci_mct_func_table;
+       p_userial_if = &userial_mct_func_table;
+   }
+   else
+   {
+       extern tHCI_IF hci_h4_func_table;
+       extern tUSERIAL_IF userial_h4_func_table;
+       p_hci_if = &hci_h4_func_table;
+       p_userial_if = &userial_h4_func_table;
+   }
 
     p_hci_if->init();
 
-    userial_init();
+    p_userial_if->init();
     lpm_init();
 
     utils_queue_init(&tx_q);
@@ -329,7 +360,7 @@ static int set_rxflow(bt_rx_flow_state_t state)
 {
     BTHCDBG("set_rxflow %d", state);
 
-    userial_ioctl(\
+    p_userial_if->ioctl(\
      ((state == BT_RXFLOW_ON) ? USERIAL_OP_RXFLOW_ON : USERIAL_OP_RXFLOW_OFF), \
      NULL);
 
@@ -385,7 +416,7 @@ static void cleanup( void )
     lib_running = 0;
 
     lpm_cleanup();
-    userial_close();
+    p_userial_if->close();
     p_hci_if->cleanup();
     utils_cleanup();
 
@@ -443,8 +474,7 @@ static void *bt_hc_worker_thread(void *arg)
         ready_events = 0;
         pthread_mutex_unlock(&hc_cb.mutex);
 
-#ifndef HCI_USE_MCT
-        if (events & HC_EVENT_RX)
+        if (events & HC_EVENT_RX && ( p_hci_if->rcv != NULL))
         {
             p_hci_if->rcv();
 
@@ -457,11 +487,10 @@ static void *bt_hc_worker_thread(void *arg)
                 events |= HC_EVENT_TX;
             }
         }
-#endif
 
         if (events & HC_EVENT_PRELOAD)
         {
-            userial_open(USERIAL_PORT_1);
+            p_userial_if->open(USERIAL_PORT_1);
 
             /* Calling vendor-specific part */
             if (bt_vnd_if)
