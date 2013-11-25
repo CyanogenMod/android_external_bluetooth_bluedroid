@@ -76,6 +76,7 @@ typedef struct
     btif_sm_handle_t sm_handle;
     UINT8 flags;
     tBTA_AV_EDR edr;
+    UINT8 edr_3mbps;
 } btif_av_cb_t;
 
 /*****************************************************************************
@@ -244,6 +245,7 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             memset(&btif_av_cb.peer_bda, 0, sizeof(bt_bdaddr_t));
             btif_av_cb.flags = 0;
             btif_av_cb.edr = 0;
+            btif_av_cb.edr_3mbps = 0;
             btif_a2dp_on_idle();
             break;
 
@@ -363,6 +365,11 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
                  state = BTAV_CONNECTION_STATE_CONNECTED;
                  av_state = BTIF_AV_STATE_OPENED;
                  btif_av_cb.edr = p_bta_data->open.edr;
+                 if (p_bta_data->open.edr & BTA_AV_EDR_3MBPS)
+                 {
+                     BTIF_TRACE_DEBUG0("remote supports 3 mbps");
+                     btif_av_cb.edr_3mbps = TRUE;
+                 }
             }
             else
             {
@@ -622,7 +629,6 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
 
             /* we are again in started state, clear any remote suspend flags */
             btif_av_cb.flags &= ~BTIF_AV_FLAG_REMOTE_SUSPEND;
-
             HAL_CBACK(bt_av_callbacks, audio_state_cb,
                 BTAV_AUDIO_STATE_STARTED, &(btif_av_cb.peer_bda));
             break;
@@ -1126,6 +1132,28 @@ BOOLEAN btif_av_is_peer_edr(void)
     ASSERTC(btif_av_is_connected(), "No active a2dp connection", 0);
 
     if (btif_av_cb.edr)
+        return TRUE;
+    else
+        return FALSE;
+}
+
+/*******************************************************************************
+**
+** Function         btif_av_peer_supports_3mbps
+**
+** Description      check if the connected a2dp device supports
+**                  3mbps edr. Only when connected this function
+**                  will accurately provide a true capability of
+**                  remote peer. If not connected it will always be false.
+**
+** Returns          TRUE if remote device is EDR and supports 3mbps
+**
+*******************************************************************************/
+BOOLEAN btif_av_peer_supports_3mbps(void)
+{
+    ASSERTC(btif_av_is_connected(), "No active a2dp connection", 0);
+    BTIF_TRACE_DEBUG1("btif_av_peer_supports_3mbps: %d", btif_av_cb.edr_3mbps);
+    if(btif_av_cb.edr_3mbps)
         return TRUE;
     else
         return FALSE;

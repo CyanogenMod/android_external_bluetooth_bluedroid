@@ -138,16 +138,22 @@ enum {
 #define BTIF_MEDIA_BITRATE_STEP 5
 #endif
 
-/* Middle quality quality setting @ 44.1 khz */
-#define DEFAULT_SBC_BITRATE 328
+/* Middle quality quality setting @ 48 khz */
+#define DEFAULT_SBC_BITRATE 345
 
 #ifndef BTIF_A2DP_NON_EDR_MAX_RATE
-#define BTIF_A2DP_NON_EDR_MAX_RATE 229
+#define BTIF_A2DP_NON_EDR_MAX_RATE 237
 #endif
 
 #ifndef A2DP_MEDIA_TASK_STACK_SIZE
 #define A2DP_MEDIA_TASK_STACK_SIZE       0x2000         /* In bytes */
 #endif
+
+#define AVDTP_HDR_SIZE              12
+#define A2DP_HDR_SIZE               1
+#define MAX_SBC_HQ_FRAME_SIZE_44_1  119
+#define MAX_SBC_HQ_FRAME_SIZE_48    115
+#define MAX_2MBPS_AVDTP_MTU         675
 
 #define A2DP_MEDIA_TASK_TASK_STR        ((INT8 *) "A2DP-MEDIA")
 static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
@@ -224,6 +230,7 @@ typedef struct
     void* av_sm_hdl;
     UINT8 a2dp_cmd_pending; /* we can have max one command pending */
     BOOLEAN tx_flush; /* discards any outgoing data when true */
+    UINT8 TxNumSBCFrames;
 #endif
 
 } tBTIF_MEDIA_CB;
@@ -252,6 +259,8 @@ static void btif_a2dp_data_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event);
 static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event);
 static void btif_a2dp_encoder_update(void);
 const char* dump_media_event(UINT16 event);
+static UINT8 check_for_max_number_of_frames_per_packet();
+
 
 /*****************************************************************************
  **  Externs
@@ -1497,6 +1506,7 @@ static void btif_media_task_enc_init(BT_HDR *p_msg)
     btif_media_cb.TxAaMtuSize = ((BTIF_MEDIA_AA_BUF_SIZE-BTIF_MEDIA_AA_SBC_OFFSET-sizeof(BT_HDR))
             < pInitAudio->MtuSize) ? (BTIF_MEDIA_AA_BUF_SIZE - BTIF_MEDIA_AA_SBC_OFFSET
             - sizeof(BT_HDR)) : pInitAudio->MtuSize;
+    btif_media_cb.TxNumSBCFrames = check_for_max_number_of_frames_per_packet();
 
     APPL_TRACE_EVENT3("btif_media_task_enc_init busy %d, mtu %d, peer mtu %d",
                      btif_media_cb.busy_level, btif_media_cb.TxAaMtuSize, pInitAudio->MtuSize);
@@ -1541,6 +1551,7 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
                                       BTIF_MEDIA_AA_SBC_OFFSET - sizeof(BT_HDR))
                 < pUpdateAudio->MinMtuSize) ? (BTIF_MEDIA_AA_BUF_SIZE - BTIF_MEDIA_AA_SBC_OFFSET
                 - sizeof(BT_HDR)) : pUpdateAudio->MinMtuSize;
+        btif_media_cb.TxNumSBCFrames = check_for_max_number_of_frames_per_packet();
 
         /* Set the initial target bit rate */
         pstrEncParams->u16BitRate = btif_media_task_get_sbc_rate();
@@ -1810,6 +1821,8 @@ static void btif_media_task_feeding_state_reset(void)
                  btif_media_cb.media_feeding.cfg.pcm.num_channel *
                  BTIF_MEDIA_TIME_TICK)/1000;
 
+        APPL_TRACE_DEBUG1("bit_per_sample %u", btif_media_cb.media_feeding.cfg.pcm.bit_per_sample);
+
         APPL_TRACE_WARNING1("pcm bytes per tick %d",
                             (int)btif_media_cb.media_feeding_state.pcm.bytes_per_tick);
     }
@@ -1885,35 +1898,102 @@ static void btif_media_task_aa_stop_tx(void)
     btif_media_task_feeding_state_reset();
 }
 
+static UINT8 check_for_max_number_of_frames_per_packet()
+{
+    UINT16 result = 0;
+    UINT16 effective_mtu_size = btif_media_cb.TxAaMtuSize;
+
+    APPL_TRACE_DEBUG1("original AVDTP MTU size: %d", btif_media_cb.TxAaMtuSize);
+    if (btif_av_is_peer_edr() && (btif_av_peer_supports_3mbps() == FALSE)) {
+        // This condition would be satisfied only if remote is EDR and supports only 2mbps
+        // but effective AVDTP MTU size exceeds 2dh5 packet size
+        APPL_TRACE_DEBUG0("Headset is edr but does not support 3mbps");
+        if (effective_mtu_size > MAX_2MBPS_AVDTP_MTU)
+        {
+            APPL_TRACE_DEBUG0("restricting AVDTP MTU size to 675");
+            effective_mtu_size = MAX_2MBPS_AVDTP_MTU;
+            btif_media_cb.TxAaMtuSize = effective_mtu_size;
+        }
+    }
+    APPL_TRACE_DEBUG1("effective Tx MTU to be considered: %d", effective_mtu_size);
+    switch(btif_media_cb.encoder.s16SamplingFreq)
+    {
+        case SBC_sf44100:
+            result = (effective_mtu_size - (AVDTP_HDR_SIZE + A2DP_HDR_SIZE))
+                                                    / MAX_SBC_HQ_FRAME_SIZE_44_1;
+            APPL_TRACE_DEBUG1("max number of sbc frames: %d", result);
+            break;
+
+        case SBC_sf48000:
+            result = (effective_mtu_size - (AVDTP_HDR_SIZE + A2DP_HDR_SIZE))
+                                                    / MAX_SBC_HQ_FRAME_SIZE_48;
+            APPL_TRACE_DEBUG1("max number of sbc frames: %d", result);
+            break;
+
+        default:
+            APPL_TRACE_ERROR1("Error: max number of sbc frames: %d", result);
+
+    }
+    return result;
+}
+
 /*******************************************************************************
  **
  ** Function         btif_get_num_aa_frame
  **
- ** Description
+ ** Description      returns number of frames to send and number of iterations
+ **                  to be used. num_of_ietrations and num_of_frames parameters
+ **                  are used as output param for returning the respective values
  **
- ** Returns          The number of media frames in this time slice
+ ** Returns          void
  **
  *******************************************************************************/
-static UINT8 btif_get_num_aa_frame(void)
+static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames)
 {
     UINT8 result=0;
+    UINT8 nof = 0;
+    UINT8 noi = 1;
 
     switch (btif_media_cb.TxTranscoding)
     {
         case BTIF_MEDIA_TRSCD_PCM_2_SBC:
-           {
+        {
             UINT32 pcm_bytes_per_frame = btif_media_cb.encoder.s16NumOfSubBands *
                              btif_media_cb.encoder.s16NumOfBlocks *
                              btif_media_cb.media_feeding.cfg.pcm.num_channel *
                              btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
+            APPL_TRACE_DEBUG1("pcm_bytes_per_frame %u", pcm_bytes_per_frame);
 
             btif_media_cb.media_feeding_state.pcm.counter +=
                                 btif_media_cb.media_feeding_state.pcm.bytes_per_tick;
 
             /* calculate nbr of frames pending for this media tick */
             result = btif_media_cb.media_feeding_state.pcm.counter/pcm_bytes_per_frame;
-            btif_media_cb.media_feeding_state.pcm.counter -= result*pcm_bytes_per_frame;
-
+            APPL_TRACE_DEBUG1("num of frames calculated as per available pcm data =  %u", result);
+            if(btif_av_is_peer_edr())
+            {
+                nof = btif_media_cb.TxNumSBCFrames;
+                if (nof < result)
+                {
+                    noi = result / nof; // number of iterations would vary
+                    result = nof;
+                }
+                else
+                {
+                    noi = 1; // number of iterations is 1
+                    APPL_TRACE_DEBUG0("reducing number of frames as per available pcm data");
+                    nof = result;
+                }
+            }
+            else
+            {
+                // For BR cases nof will be same as the value retrieved at result
+                APPL_TRACE_DEBUG1("headset is of type BR %u", nof);
+                nof = result;
+            }
+            btif_media_cb.media_feeding_state.pcm.counter -= noi * nof * pcm_bytes_per_frame;
+            APPL_TRACE_DEBUG1("effective num of frames %u", nof);
+            APPL_TRACE_DEBUG1("num of iterations %u", noi);
             VERBOSE("WRITE %d FRAMES", result);
         }
         break;
@@ -1921,15 +2001,18 @@ static UINT8 btif_get_num_aa_frame(void)
         default:
             APPL_TRACE_ERROR1("ERROR btif_get_num_aa_frame Unsupported transcoding format 0x%x",
                     btif_media_cb.TxTranscoding);
-            result = 0;
+            result = nof = 0;
+            noi = 0;
             break;
+
     }
 
 #if (defined(DEBUG_MEDIA_AV_FLOW) && (DEBUG_MEDIA_AV_FLOW == TRUE))
     APPL_TRACE_DEBUG1("btif_get_num_aa_frame returns %d", result);
 #endif
 
-    return result;
+    *num_of_frames = nof;
+    *num_of_iterations = noi;
 }
 
 /*******************************************************************************
@@ -2280,13 +2363,17 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame)
 static void btif_media_send_aa_frame(void)
 {
     UINT8 nb_frame_2_send;
+    UINT8 nb_iterations;
+    UINT8 counter;
 
     /* get the number of frame to send */
-    nb_frame_2_send = btif_get_num_aa_frame();
+    btif_get_num_aa_frame(&nb_iterations, &nb_frame_2_send);
 
-    /* format and Q buffer to send */
-    btif_media_aa_prep_2_send(nb_frame_2_send);
-
+    for (counter = 0; counter < nb_iterations; counter++)
+    {
+        /* format and Q buffer to send */
+        btif_media_aa_prep_2_send(nb_frame_2_send);
+    }
     /* send it */
     VERBOSE("btif_media_send_aa_frame : send %d frames", nb_frame_2_send);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
