@@ -209,7 +209,7 @@ const tBTA_PBS_CFG bta_pbs_cfg =
     BTA_PBS_REALM_CHARSET,      /* Server only */
     BTA_PBS_USERID_REQ,         /* Server only */
     (BTA_PBS_SUPF_DOWNLOAD | BTA_PBS_SURF_BROWSE),
-    BTA_PBS_REPOSIT_LOCAL,
+    (BTA_PBS_REPOSIT_LOCAL | BTA_PBS_REPOSIT_SIM),
 };
 
 static int add_pbap_sdp(const char* p_service_name, int scn)
