@@ -371,7 +371,7 @@ static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond
         pairing_cb.state = state;
         bdcpy(pairing_cb.bd_addr, bd_addr->address);
     }
-    else
+    else if (bdcmp(pairing_cb.bd_addr, bd_addr->address) == 0)
     {
         memset(&pairing_cb, 0, sizeof(pairing_cb));
     }
