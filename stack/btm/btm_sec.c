@@ -4596,6 +4596,14 @@ void btm_sec_link_key_notification (UINT8 *p_bda, UINT8 *p_link_key, UINT8 key_t
                                                     p_dev_rec->sec_bd_name, HCI_SUCCESS);
     }
 
+#ifdef PORCHE_PAIRING_CONFLICT
+    if(btm_cb.pin_code_len_saved)
+    {
+        BTM_TRACE_EVENT0 ("btm_sec_link_key_notification: clearing btm_cb.pin_code_len_saved");
+        btm_cb.pin_code_len_saved = 0;
+    }
+#endif
+
     /* We will save link key only if the user authorized it - BTE report link key in all cases */
 #ifdef BRCM_NONE_BTE
     if (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_AUTHED)
