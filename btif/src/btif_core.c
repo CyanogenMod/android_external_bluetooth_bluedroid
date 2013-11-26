@@ -37,6 +37,7 @@
 
 #define LOG_TAG "BTIF_CORE"
 #include "btif_api.h"
+#include "bt_utils.h"
 #include "bta_api.h"
 #include "gki.h"
 #include "btu.h"
@@ -737,6 +738,14 @@ bt_status_t btif_shutdown_bluetooth(void)
 {
     BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
 
+    if (btif_core_state == BTIF_CORE_STATE_DISABLING)
+    {
+        BTIF_TRACE_WARNING0("shutdown during disabling");
+        /* shutdown called before disabling is done */
+        btif_shutdown_pending = 1;
+        return BT_STATUS_NOT_READY;
+    }
+
     if (btif_is_enabled())
     {
         BTIF_TRACE_WARNING0("shutdown while still enabled, initiate disable");
@@ -764,6 +773,8 @@ bt_status_t btif_shutdown_bluetooth(void)
     bte_main_shutdown();
 
     btif_dut_mode = 0;
+
+    bt_utils_cleanup();
 
     BTIF_TRACE_DEBUG1("%s done", __FUNCTION__);
 
