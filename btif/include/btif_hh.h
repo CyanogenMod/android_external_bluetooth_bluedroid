@@ -91,6 +91,7 @@ typedef struct
     UINT32                  device_num;
     btif_hh_added_device_t  added_devices[BTIF_HH_MAX_ADDED_DEV];
     btif_hh_device_t        *p_curr_dev;
+    bt_bdaddr_t             connecting_dev_bd_addr;
 } btif_hh_cb_t;
 
 
@@ -107,6 +108,7 @@ extern bt_status_t btif_hh_virtual_unplug(bt_bdaddr_t *bd_addr);
 extern void btif_hh_disconnect(bt_bdaddr_t *bd_addr);
 extern void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type,
                     UINT16 size, UINT8* report);
+extern void btif_hh_sdp_cmpl_after_bonding(bt_bdaddr_t bdaddr);
 
 BOOLEAN btif_hh_add_added_dev(bt_bdaddr_t bd_addr, tBTA_HH_ATTR_MASK attr_mask);
 

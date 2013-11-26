@@ -168,8 +168,11 @@ void bta_hh_disc_cmpl(void)
         status = BTA_HH_ERR;
 
 #if (BTA_HH_LE_INCLUDED == TRUE)
-    bta_hh_le_deregister();
-    return;
+    if (!bta_hh_cb.w4_disable)
+    {
+        bta_hh_le_deregister();
+        return;
+    }
 #endif
 
     bta_hh_cleanup_disable(status);
@@ -614,8 +617,6 @@ void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 *******************************************************************************/
 void bta_hh_open_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
-    tBTA_HH_API_CONN    conn_data;
-
     UINT8   dev_handle = p_data ? (UINT8)p_data->hid_cback.hdr.layer_specific : \
                         p_cb->hid_handle;
 
@@ -632,13 +633,11 @@ void bta_hh_open_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     /*  app_id == 0 indicates an incoming conenction request arrives without SDP
         performed, do it first */
     {
+        APPL_TRACE_EVENT0 ("bta_hh_open_act: incoming connection from unknown device, waiting for "
+            "sdp to be finished after bonding before restarting hid sdp");
         p_cb->incoming_conn = TRUE;
         /* store the handle here in case sdp fails - need to disconnect */
         p_cb->incoming_hid_handle = dev_handle;
-
-        memset(&conn_data, 0, sizeof(tBTA_HH_API_CONN));
-        bdcpy(conn_data.bd_addr, p_cb->addr);
-        bta_hh_start_sdp(p_cb, (tBTA_HH_DATA *)&conn_data);
     }
 
     return;
@@ -828,6 +827,13 @@ void bta_hh_open_failure(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                                     BTA_HH_ERR_AUTH_FAILED : BTA_HH_ERR;
      bdcpy(conn_dat.bda, p_cb->addr);
      HID_HostCloseDev(p_cb->hid_handle);
+     if ((p_cb->sub_class == 0x80) &&
+             reason == (HID_L2CAP_CONN_FAIL | L2CAP_CONN_SECURITY_BLOCK))
+     {
+        /* If connection open failure is due to security block,
+         * remove the HID device from database. */
+        BTA_HhRemoveDev(p_cb->hid_handle);
+     }
 
      /* Report OPEN fail event */
      (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn_dat);
@@ -1161,6 +1167,40 @@ void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 
     }
     return;
+}
+
+/*******************************************************************************
+**
+** Function         bta_hh_sdp_cmp_after_bonding_act
+**
+** Description      SDP Completed after bonding. Perform SDP if there is an incoming connection from
+**                      unknown HID Device.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hh_sdp_cmp_after_bonding_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
+{
+    tBTA_HH_API_CONN    conn_data;
+
+#if BTA_HH_DEBUG
+    APPL_TRACE_EVENT0 ("bta_hh_sdp_cmp_after_bonding_act");
+#endif
+
+    if (p_cb->incoming_conn &&
+            bdcmp(p_cb->addr, p_data->sdp_cmp_after_bonding.bd_addr) == 0)
+    {
+        APPL_TRACE_EVENT6 ("bta_hh_sdp_cmp_after_bonding_act: "
+                "incoming connection from unknown device"
+                "(%02x:%02x:%02x:%02x:%02x:%02x), performing sdp",
+                p_cb->addr[0], p_cb->addr[1], p_cb->addr[2],
+                p_cb->addr[3], p_cb->addr[4], p_cb->addr[5]);
+
+        memset(&conn_data, 0, sizeof(tBTA_HH_API_CONN));
+        bdcpy(conn_data.bd_addr, p_cb->addr);
+        bta_hh_start_sdp(p_cb, (tBTA_HH_DATA *)&conn_data);
+    }
 }
 
 /*****************************************************************************

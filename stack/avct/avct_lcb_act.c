@@ -88,17 +88,35 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
             GKI_freebuf(p_lcb->p_rx_msg);
             AVCT_TRACE_WARNING0("Got start during reassembly");
         }
-        p_lcb->p_rx_msg = p_buf;
+        /* Allocate bigger buffer for reassembly. As lower layers are
+         * not aware of possible packet size after reassembly they
+         * would have allocated smaller buffer.
+         */
+        p_lcb->p_rx_msg = (BT_HDR*)GKI_getbuf(GKI_MAX_BUF_SIZE);
+        if (p_lcb->p_rx_msg == NULL)
+        {
+            AVCT_TRACE_ERROR0 ("Cannot alloc buffer for reassembly !!");
+            GKI_freebuf(p_buf);
+        }
+        else
+        {
+            memcpy (p_lcb->p_rx_msg, p_buf,
+                sizeof(BT_HDR) + p_buf->offset + p_buf->len);
+            /* Free original buffer */
+            GKI_freebuf(p_buf);
 
-        /* copy first header byte over nosp */
-        *(p + 1) = *p;
+            /* update p to point to new buffer */
+            p = (UINT8 *)(p_lcb->p_rx_msg + 1) + p_lcb->p_rx_msg->offset;
 
-        /* set offset to point to where to copy next */
-        p_lcb->p_rx_msg->offset += p_lcb->p_rx_msg->len;
+            /* copy first header byte over nosp */
+            *(p + 1) = *p;
 
-        /* adjust length for packet header */
-        p_lcb->p_rx_msg->len -= 1;
+            /* set offset to point to where to copy next */
+            p_lcb->p_rx_msg->offset += p_lcb->p_rx_msg->len;
 
+            /* adjust length for packet header */
+            p_lcb->p_rx_msg->len -= 1;
+        }
         p_ret = NULL;
     }
     /* continue or end */

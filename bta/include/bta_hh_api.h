@@ -552,6 +552,17 @@ BTA_API extern void BTA_HhUpdateLeScanParam(UINT8 dev_handle, UINT16 scan_int, U
 BTA_API extern void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, UINT8 rpt_id);
 
 
+/*******************************************************************************
+**
+** Function         BTA_HhSdpCmplAfterBonding
+**
+** Description      Inform BTA layer that sdp is finished after bonding, so that in case incoming
+**                      connection from unknown device is present, SDP can be started again.
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_HhSdpCmplAfterBonding(BD_ADDR bdaddr);
 
 #ifdef __cplusplus
 }

@@ -161,6 +161,7 @@ extern BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
 extern void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr);
 extern BOOLEAN check_cod_hid(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
 extern int  scru_ascii_2_hex(char *p_ascii, int len, UINT8 *p_hex);
+extern void btm_sec_set_hid_as_paired(BD_ADDR bda, BOOLEAN paired);
 
 /*****************************************************************************
 **  Local Function prototypes
@@ -492,6 +493,11 @@ BOOLEAN btif_hh_add_added_dev(bt_bdaddr_t bda, tBTA_HH_ATTR_MASK attr_mask)
             memcpy(&(btif_hh_cb.added_devices[i].bd_addr), &bda, BD_ADDR_LEN);
             btif_hh_cb.added_devices[i].dev_handle = BTA_HH_INVALID_HANDLE;
             btif_hh_cb.added_devices[i].attr_mask  = attr_mask;
+            /* Set linkkey as known in internal security database for pointing devices */
+            if (check_cod(&bda, COD_HID_POINTING))
+            {
+                btm_sec_set_hid_as_paired(bda.address, TRUE);
+            }
             return TRUE;
         }
     }
@@ -535,6 +541,11 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
         return;
     }
 
+    /* Set linkkey as unknown in internal security database for pointing devices */
+    if (check_cod(&(p_dev->bd_addr), COD_HID_POINTING))
+    {
+        btm_sec_set_hid_as_paired((p_dev->bd_addr).address, FALSE);
+    }
     p_dev->dev_status = BTHH_CONN_STATE_UNKNOWN;
     p_dev->dev_handle = BTA_HH_INVALID_HANDLE;
     if (btif_hh_cb.device_num > 0) {
@@ -649,6 +660,13 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
              __FUNCTION__, BTIF_HH_MAX_HID);
         return BT_STATUS_FAIL;
     }
+    dev = btif_hh_find_connected_dev_by_bda(bd_addr);
+    if (dev != NULL) {
+        // Device is already connected
+         BTIF_TRACE_WARNING2("%s: Error, device (%s) already connected %d",
+             __FUNCTION__, bda_str);
+        return BT_STATUS_DONE;
+    }
 
     for (i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
         if (memcmp(&(btif_hh_cb.added_devices[i].bd_addr), bd_addr, BD_ADDR_LEN) == 0) {
@@ -679,9 +697,40 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
         sec_mask = BTUI_HH_SECURITY;
 
     btif_hh_cb.status = BTIF_HH_DEV_CONNECTING;
+    /* Save the Outgoing Connection BD Address */
+    memcpy(&btif_hh_cb.connecting_dev_bd_addr, bd_addr, BD_ADDR_LEN);
     BTA_HhOpen(*bda, BTA_HH_PROTO_RPT_MODE, sec_mask);
     HAL_CBACK(bt_hh_callbacks, connection_state_cb, bd_addr, BTHH_CONN_STATE_CONNECTING);
     return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_hh_check_if_sdp_required
+**
+** Description      Checks if SDP is required on remote HID Device
+**
+** Returns          TRUE if SDP is required, else FALSE;
+**
+*******************************************************************************/
+
+BOOLEAN btif_hh_check_if_sdp_required(bt_bdaddr_t *bd_addr)
+{
+    btif_hh_device_t *dev;
+    BOOLEAN return_val;
+
+    /* check if device is already connected or not */
+    dev = btif_hh_find_connected_dev_by_bda(bd_addr);
+    if (dev != NULL) {
+        return_val = TRUE;
+    } else {
+        /* check if device is in connecting state or not */
+        return_val = !memcmp(&btif_hh_cb.connecting_dev_bd_addr,
+            bd_addr, BD_ADDR_LEN);
+    }
+
+    BTIF_TRACE_DEBUG1("btif_hh_check_if_sdp_required: returning %d", return_val);
+    return return_val;
 }
 
 /*******************************************************************************
@@ -701,6 +750,13 @@ void btif_hh_disconnect(bt_bdaddr_t *bd_addr)
     p_dev = btif_hh_find_connected_dev_by_bda(bd_addr);
     if (p_dev != NULL)
     {
+        if (memcmp(&btif_hh_cb.connecting_dev_bd_addr, bd_addr, BD_ADDR_LEN) == 0)
+        {
+            BTIF_TRACE_DEBUG1("%s-- Address matched, clearing connecting_dev_bd_addr",
+                __FUNCTION__);
+            /* Clear the Outgoing Connecting BD Address */
+            memset(&btif_hh_cb.connecting_dev_bd_addr, 0, BD_ADDR_LEN);
+        }
         BTA_HhClose(p_dev->dev_handle);
     }
     else
@@ -780,6 +836,22 @@ static int btif_hh_check_if_device_connectable(BD_ADDR bda)
     return TRUE;
 }
 
+/*******************************************************************************
+**
+** Function         btif_hh_sdp_cmpl_after_bonding
+**
+** Description      Sends signal to BTA layer that SDP is finished after bonding in stack
+**
+** Returns          void
+**
+*******************************************************************************/
+
+void btif_hh_sdp_cmpl_after_bonding(bt_bdaddr_t bdaddr)
+{
+    BD_ADDR bd_addr;
+    memcpy(bd_addr, &bdaddr, BD_ADDR_LEN);
+    BTA_HhSdpCmplAfterBonding(bd_addr);
+}
 
 /*****************************************************************************
 **   Section name (Group of functions)
@@ -878,6 +950,13 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                     p_dev->dev_status = BTHH_CONN_STATE_CONNECTED;
                     HAL_CBACK(bt_hh_callbacks, connection_state_cb,&(p_dev->bd_addr), p_dev->dev_status);
                 }
+                if (memcmp(&btif_hh_cb.connecting_dev_bd_addr, &(p_dev->bd_addr), BD_ADDR_LEN) == 0)
+                {
+                    BTIF_TRACE_DEBUG1("%s-- Address matched, clearing connecting_dev_bd_addr",
+                        __FUNCTION__);
+                    /* Clear the Outgoing Connecting BD Address */
+                    memset(&btif_hh_cb.connecting_dev_bd_addr, 0, BD_ADDR_LEN);
+                }
             }
             else {
                 bt_bdaddr_t *bdaddr = (bt_bdaddr_t*)p_data->conn.bda;
@@ -886,6 +965,13 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                     /* In case we are in pairing state and connection failed, update bond state cahnge as well */
                     btif_dm_cancel_hid_bond((bt_bdaddr_t*) &p_data->conn.bda);
                 btif_hh_cb.status = BTIF_HH_DEV_DISCONNECTED;
+                if (memcmp(&btif_hh_cb.connecting_dev_bd_addr, &p_data->conn.bda, BD_ADDR_LEN) == 0)
+                {
+                    BTIF_TRACE_DEBUG1("%s-- Address matched, clearing connecting_dev_bd_addr",
+                        __FUNCTION__);
+                    /* Clear the Outgoing Connecting BD Address */
+                    memset(&btif_hh_cb.connecting_dev_bd_addr, 0, BD_ADDR_LEN);
+                }
             }
             break;
         case BTA_HH_CLOSE_EVT:
@@ -906,6 +992,13 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 }
                 btif_hh_cb.status = BTIF_HH_DEV_DISCONNECTED;
                 p_dev->dev_status = BTHH_CONN_STATE_DISCONNECTED;
+                if (memcmp(&btif_hh_cb.connecting_dev_bd_addr, &(p_dev->bd_addr), BD_ADDR_LEN) == 0)
+                {
+                    BTIF_TRACE_DEBUG1("%s-- Address matched, clearing connecting_dev_bd_addr",
+                        __FUNCTION__);
+                    /* Clear the Outgoing Connecting BD Address */
+                    memset(&btif_hh_cb.connecting_dev_bd_addr, 0, BD_ADDR_LEN);
+                }
                 HAL_CBACK(bt_hh_callbacks, connection_state_cb,&(p_dev->bd_addr), p_dev->dev_status);
                 BTIF_TRACE_DEBUG2("%s: Closing uhid fd = %d", __FUNCTION__, p_dev->fd);
                 bta_hh_co_destroy(p_dev->fd);
@@ -1818,6 +1911,13 @@ static void  cleanup( void )
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
     btif_hh_device_t *p_dev;
     int i;
+
+    if (bt_hh_callbacks)
+    {
+        btif_disable_service(BTA_HID_SERVICE_ID);
+        bt_hh_callbacks = NULL;
+    }
+
     if (btif_hh_cb.status == BTIF_HH_DISABLED) {
         BTIF_TRACE_WARNING2("%s: HH disabling or disabled already, status = %d", __FUNCTION__, btif_hh_cb.status);
         return;
@@ -1833,13 +1933,6 @@ static void  cleanup( void )
              p_dev->hh_poll_thread_id = -1;
          }
      }
-
-    if (bt_hh_callbacks)
-    {
-        btif_disable_service(BTA_HID_SERVICE_ID);
-        bt_hh_callbacks = NULL;
-    }
-
 }
 
 static const bthh_interface_t bthhInterface = {

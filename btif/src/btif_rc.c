@@ -65,6 +65,7 @@
 #define MAX_LABEL 16
 #define MAX_TRANSACTIONS_PER_SESSION 16
 #define MAX_CMD_QUEUE_LEN 11
+#define PLAY_STATUS_PLAYING 1
 
 #define CHECK_RC_CONNECTED                                                                  \
     BTIF_TRACE_DEBUG1("## %s ##", __FUNCTION__);                                            \
@@ -1244,9 +1245,33 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
             }
             else
             {
-                num_attr = pavrc_cmd->get_elem_attrs.num_attr;
-                memcpy(element_attrs, pavrc_cmd->get_elem_attrs.attrs, sizeof(UINT32)
-                    *pavrc_cmd->get_elem_attrs.num_attr);
+                int attr_cnt, filled_attr_count;
+
+                num_attr = 0;
+                /* Attribute IDs from 1 to AVRC_MAX_NUM_MEDIA_ATTR_ID are only valid,
+                 * hence HAL definition limits the attributes to AVRC_MAX_NUM_MEDIA_ATTR_ID.
+                 * Fill only valid entries.
+                 */
+                for (attr_cnt = 0; (attr_cnt < pavrc_cmd->get_elem_attrs.num_attr) &&
+                    (num_attr < AVRC_MAX_NUM_MEDIA_ATTR_ID); attr_cnt++)
+                {
+                    if ((pavrc_cmd->get_elem_attrs.attrs[attr_cnt] > 0) &&
+                        (pavrc_cmd->get_elem_attrs.attrs[attr_cnt] <= AVRC_MAX_NUM_MEDIA_ATTR_ID))
+                    {
+                        /* Skip the duplicate entries : PTS sends duplicate entries for Fragment cases
+                         */
+                        for (filled_attr_count = 0; filled_attr_count < num_attr; filled_attr_count++)
+                        {
+                            if (element_attrs[filled_attr_count] == pavrc_cmd->get_elem_attrs.attrs[attr_cnt])
+                                break;
+                        }
+                        if (filled_attr_count == num_attr)
+                        {
+                            element_attrs[num_attr] = pavrc_cmd->get_elem_attrs.attrs[attr_cnt];
+                            num_attr++;
+                        }
+                    }
+                }
             }
             FILL_PDU_QUEUE(IDX_GET_ELEMENT_ATTR_RSP, ctype, label, TRUE);
             HAL_CBACK(bt_rc_callbacks, get_element_attr_cb, num_attr, element_attrs);
@@ -1755,6 +1780,12 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
     {
         case BTRC_EVT_PLAY_STATUS_CHANGED:
             avrc_rsp.reg_notif.param.play_status = p_param->play_status;
+            /* Clear remote suspend flag, as remote device issues
+             * suspend within 3s after pause, and DUT within 3s
+             * initiates Play
+            */
+            if (avrc_rsp.reg_notif.param.play_status == PLAY_STATUS_PLAYING)
+                btif_av_clear_remote_suspend_flag();
             break;
         case BTRC_EVT_TRACK_CHANGE:
             memcpy(&(avrc_rsp.reg_notif.param.track), &(p_param->track), sizeof(btrc_uid_t));

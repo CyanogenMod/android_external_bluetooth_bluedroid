@@ -53,6 +53,7 @@ const char* dump_dm_event(UINT16 event);
 const char* dump_hf_event(UINT16 event);
 const char* dump_hf_client_event(UINT16 event);
 const char* dump_hh_event(UINT16 event);
+const char* dump_hd_event(UINT16 event);
 const char* dump_hf_conn_state(UINT16 event);
 const char* dump_hf_call_state(bthf_call_state_t call_state);
 const char* dump_property_type(bt_property_type_t type);
