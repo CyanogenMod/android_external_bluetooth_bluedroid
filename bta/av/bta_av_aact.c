@@ -632,6 +632,12 @@ static void bta_av_a2d_sdp_cback(BOOLEAN found, tA2D_Service *p_service)
 
             p_msg->hdr.layer_specific = bta_av_cb.handle;
             bta_sys_sendmsg(p_msg);
+            if (!found)
+            {
+                APPL_TRACE_ERROR0 ("bta_av_a2d_sdp_cback, SDP record not found");
+                APPL_TRACE_DEBUG0 ("bta_av_a2d_sdp_cback, start pm idle timer");
+                bta_sys_idle(BTA_ID_AV, p_scb->app_id, p_scb->peer_addr);
+            }
         }
         else
         {
