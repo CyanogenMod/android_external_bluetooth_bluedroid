@@ -40,6 +40,7 @@
 extern void btm_process_cancel_complete(UINT8 status, UINT8 mode);
 extern void btm_ble_test_command_complete(UINT8 *p);
 
+#include "bt_target.h"
 // btla-specific ++
 #define LOG_TAG "BTLD"
 #if (defined(ANDROID_APP_INCLUDED) && (ANDROID_APP_INCLUDED == TRUE) && (!defined(LINUX_NATIVE)) )
@@ -1705,7 +1706,8 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
     {
         HCI_TRACE_ERROR("Num consecutive HCI Cmd tout =%d Restarting BT process",num_hci_cmds_timed_out);
 
-        usleep(10000); /* 10 milliseconds */
+        bte_ssr_cleanup();
+        usleep(20000); /* 20 milliseconds */
         /* Killing the process to force a restart as part of fault tolerance */
         kill(getpid(), SIGKILL);
     }
@@ -1739,6 +1741,14 @@ static void btu_hcif_hardware_error_evt (UINT8 *p)
     /* Reset the controller */
     if (BTM_IsDeviceUp())
         BTM_DeviceReset (NULL);
+    if(*p == 0x0f)
+     {
+       HCI_TRACE_ERROR("Ctlr H/w error event - code:Tigger SSR");
+       bte_ssr_cleanup();
+       usleep(20000); /* 20 milliseconds */
+        /* Killing the process to force a restart as part of fault tolerance */
+       kill(getpid(), SIGKILL);
+     }
 }
 
 

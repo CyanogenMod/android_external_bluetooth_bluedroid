@@ -25,6 +25,10 @@
 #endif
 #include "data_types.h"
 
+#ifndef BT_CLEAN_TURN_ON_DISABLED
+#define BT_CLEAN_TURN_ON_DISABLED 1
+#endif
+
 
 #ifndef BTIF_HSAG_SERVICE_NAME
 #define BTIF_HSAG_SERVICE_NAME  ("Headset Gateway")
@@ -655,6 +659,8 @@ BT_API extern void bte_main_hci_send (BT_HDR *p_msg, UINT16 event);
 #if (HCISU_H4_INCLUDED == TRUE)
 BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #endif
+
+BT_API extern void bte_ssr_cleanup(void);
 
 #ifdef __cplusplus
 }

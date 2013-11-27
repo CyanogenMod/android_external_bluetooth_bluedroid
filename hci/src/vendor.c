@@ -101,6 +101,11 @@ void vendor_close(void) {
   lib_handle = NULL;
 }
 
+void vendor_ssrcleanup(void) {
+  if (vendor_interface)
+    vendor_interface->ssr_cleanup();
+}
+
 int vendor_send_command(bt_vendor_opcode_t opcode, void *param) {
   assert(vendor_interface != NULL);
 

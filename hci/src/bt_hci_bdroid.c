@@ -451,6 +451,12 @@ static int tx_hc_cmd(TRANSAC transac, char *p_buf, int len) {
   thread_post(hc_cb.worker_thread, event_tx_cmd, transac);
   return BT_HC_STATUS_SUCCESS;
 }
+static void ssr_cleanup (void) {
+    BTHCDBG("ssr_cleanup");
+    /* Calling vendor-specific part */
+    vendor_ssrcleanup();
+}
+
 
 // Closes the interface.
 // This routine is not thread safe.
@@ -513,6 +519,7 @@ static const bt_hc_interface_t bluetoothHCLibInterface = {
     logging,
     cleanup,
     tx_hc_cmd,
+    ssr_cleanup
 };
 
 /*******************************************************************************
