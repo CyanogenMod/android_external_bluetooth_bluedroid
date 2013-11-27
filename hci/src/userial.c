@@ -1,5 +1,8 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
+ *
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -276,11 +279,15 @@ static void *userial_read_thread(void *arg)
             continue;
         }
 
-
         if (rx_length > 0)
         {
             p_buf->len = (uint16_t)rx_length;
             utils_enqueue(&(userial_cb.rx_q), p_buf);
+
+#ifdef QCOM_BT_SIBS_ENABLE
+            /* Check if received data is IBS data or not */
+            is_recvd_data_signal(&p[0]);
+#endif
             bthc_signal_event(HC_EVENT_RX);
         }
         else /* either 0 or < 0 */
@@ -556,9 +563,27 @@ void userial_ioctl(userial_ioctl_op_t op, void *p_data)
                 send_wakeup_signal(USERIAL_RX_FLOW_OFF);
             break;
 
+        case USERIAL_OP_CLK_ON:
+            ioctl(userial_cb.fd, 13);
+            break;
+
+        case USERIAL_OP_CLK_OFF:
+            ioctl(userial_cb.fd, 14);
+            break;
+
         case USERIAL_OP_INIT:
         default:
             break;
     }
 }
+
+const tUSERIAL_IF userial_h4_func_table =
+{
+    userial_init,
+    userial_open,
+    userial_read,
+    userial_write,
+    userial_close,
+    userial_ioctl
+};
 

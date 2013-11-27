@@ -76,6 +76,7 @@ typedef struct
     btif_sm_handle_t sm_handle;
     UINT8 flags;
     tBTA_AV_EDR edr;
+    UINT8 edr_3mbps;
 } btif_av_cb_t;
 
 /*****************************************************************************
@@ -84,6 +85,9 @@ typedef struct
 static btav_callbacks_t *bt_av_callbacks = NULL;
 static btif_av_cb_t btif_av_cb;
 static TIMER_LIST_ENT tle_av_open_on_rc;
+static btif_sm_event_t idle_rc_event;
+static tBTA_AV idle_rc_data;
+
 
 /* both interface and media task needs to be ready to alloc incoming request */
 #define CHECK_BTAV_INIT() if ((bt_av_callbacks == NULL) || (btif_av_cb.sm_handle == NULL))\
@@ -241,6 +245,7 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             memset(&btif_av_cb.peer_bda, 0, sizeof(bt_bdaddr_t));
             btif_av_cb.flags = 0;
             btif_av_cb.edr = 0;
+            btif_av_cb.edr_3mbps = 0;
             btif_a2dp_on_idle();
             break;
 
@@ -255,22 +260,16 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             btif_queue_pending_retry();
             break;
 
-        case BTA_AV_PENDING_EVT:
         case BTIF_AV_CONNECT_REQ_EVT:
-        {
-             if (event == BTIF_AV_CONNECT_REQ_EVT)
-             {
-                 memcpy(&btif_av_cb.peer_bda, (bt_bdaddr_t*)p_data, sizeof(bt_bdaddr_t));
-             }
-             else if (event == BTA_AV_PENDING_EVT)
-             {
-                  bdcpy(btif_av_cb.peer_bda.address, ((tBTA_AV*)p_data)->pend.bd_addr);
-             }
+             /* For outgoing connect stack and app are in sync.
+              */
+             memcpy(&btif_av_cb.peer_bda, (bt_bdaddr_t*)p_data, sizeof(bt_bdaddr_t));
              BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
                     TRUE, BTA_SEC_NONE);
              btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
-        } break;
+             break;
 
+        case BTA_AV_PENDING_EVT:
         case BTA_AV_RC_OPEN_EVT:
             /* IOP_FIX: Jabra 620 only does RC open without AV open whenever it connects. So
              * as per the AV WP, an AVRC connection cannot exist without an AV connection. Therefore,
@@ -282,12 +281,24 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
              * TODO: We may need to do this only on an AVRCP Play. FixMe
              */
 
-            BTIF_TRACE_DEBUG0("BTA_AV_RC_OPEN_EVT received w/o AV");
-            memset(&tle_av_open_on_rc, 0, sizeof(tle_av_open_on_rc));
-            tle_av_open_on_rc.param = (UINT32)btif_initiate_av_open_tmr_hdlr;
-            btu_start_timer(&tle_av_open_on_rc, BTU_TTYPE_USER_FUNC,
-                            BTIF_TIMEOUT_AV_OPEN_ON_RC_SECS);
-            btif_rc_handler(event, p_data);
+            /* Check if connection allowed with this device */
+            BTIF_TRACE_DEBUG0("Check A2dp priority of device");
+            if (idle_rc_event != 0)
+            {
+                BTIF_TRACE_DEBUG0("Processing another RC Event ");
+                return FALSE;
+            }
+            idle_rc_event = event;
+            memcpy(&idle_rc_data, ((tBTA_AV*)p_data), sizeof(tBTA_AV));
+            if (event == BTA_AV_RC_OPEN_EVT )
+            {
+                bdcpy(btif_av_cb.peer_bda.address, ((tBTA_AV*)p_data)->rc_open.peer_addr);
+            }
+            else
+            {
+                bdcpy(btif_av_cb.peer_bda.address, ((tBTA_AV*)p_data)->pend.bd_addr);
+            }
+            HAL_CBACK(bt_av_callbacks, connection_priority_cb, &(btif_av_cb.peer_bda));
             break;
 
         case BTA_AV_REMOTE_CMD_EVT:
@@ -354,6 +365,11 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
                  state = BTAV_CONNECTION_STATE_CONNECTED;
                  av_state = BTIF_AV_STATE_OPENED;
                  btif_av_cb.edr = p_bta_data->open.edr;
+                 if (p_bta_data->open.edr & BTA_AV_EDR_3MBPS)
+                 {
+                     BTIF_TRACE_DEBUG0("remote supports 3 mbps");
+                     btif_av_cb.edr_3mbps = TRUE;
+                 }
             }
             else
             {
@@ -613,7 +629,6 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
 
             /* we are again in started state, clear any remote suspend flags */
             btif_av_cb.flags &= ~BTIF_AV_FLAG_REMOTE_SUSPEND;
-
             HAL_CBACK(bt_av_callbacks, audio_state_cb,
                 BTAV_AUDIO_STATE_STARTED, &(btif_av_cb.peer_bda));
             break;
@@ -888,12 +903,56 @@ static void cleanup(void)
     return;
 }
 
+static void allow_connection(int is_valid)
+{
+    BTIF_TRACE_EVENT3(" %s isValid is %d event %d", __FUNCTION__,is_valid,idle_rc_event);
+    switch (idle_rc_event)
+    {
+        case BTA_AV_RC_OPEN_EVT:
+            if (is_valid)
+            {
+                memset(&tle_av_open_on_rc, 0, sizeof(tle_av_open_on_rc));
+                tle_av_open_on_rc.param = (UINT32)btif_initiate_av_open_tmr_hdlr;
+                btu_start_timer(&tle_av_open_on_rc, BTU_TTYPE_USER_FUNC,
+                        BTIF_TIMEOUT_AV_OPEN_ON_RC_SECS);
+                btif_rc_handler(idle_rc_event, &idle_rc_data);
+            }
+            else
+            {
+                UINT8 rc_handle =  idle_rc_data.rc_open.rc_handle;
+                BTA_AvCloseRc(rc_handle);
+            }
+            break;
+
+        case BTA_AV_PENDING_EVT:
+            if (is_valid)
+            {
+                BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
+                       TRUE, BTA_SEC_NONE);
+                btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
+            }
+            else
+            {
+                BTA_AvDisconnect(idle_rc_data.pend.bd_addr);
+                memset(&btif_av_cb.peer_bda, 0, sizeof(bt_bdaddr_t));
+            }
+            break;
+
+        default:
+            BTIF_TRACE_WARNING2("%s : unhandled event:%s", __FUNCTION__,
+                                dump_av_sm_event_name(idle_rc_event));
+    }
+    idle_rc_event = 0;
+    memset(&idle_rc_data, 0, sizeof(tBTA_AV));
+}
+
 static const btav_interface_t bt_av_interface = {
     sizeof(btav_interface_t),
     init,
     connect,
     disconnect,
     cleanup,
+    allow_connection,
 };
 
 /*******************************************************************************
@@ -1073,6 +1132,28 @@ BOOLEAN btif_av_is_peer_edr(void)
     ASSERTC(btif_av_is_connected(), "No active a2dp connection", 0);
 
     if (btif_av_cb.edr)
+        return TRUE;
+    else
+        return FALSE;
+}
+
+/*******************************************************************************
+**
+** Function         btif_av_peer_supports_3mbps
+**
+** Description      check if the connected a2dp device supports
+**                  3mbps edr. Only when connected this function
+**                  will accurately provide a true capability of
+**                  remote peer. If not connected it will always be false.
+**
+** Returns          TRUE if remote device is EDR and supports 3mbps
+**
+*******************************************************************************/
+BOOLEAN btif_av_peer_supports_3mbps(void)
+{
+    ASSERTC(btif_av_is_connected(), "No active a2dp connection", 0);
+    BTIF_TRACE_DEBUG1("btif_av_peer_supports_3mbps: %d", btif_av_cb.edr_3mbps);
+    if(btif_av_cb.edr_3mbps)
         return TRUE;
     else
         return FALSE;

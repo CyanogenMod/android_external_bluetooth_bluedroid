@@ -31,6 +31,7 @@ LOCAL_SRC_FILES += \
     ../btif/src/btif_rc.c \
     ../btif/src/btif_media_task.c \
     ../btif/src/btif_hh.c \
+    ../btif/src/btif_hd.c \
     ../btif/src/btif_hl.c \
     ../btif/src/btif_sock.c \
     ../btif/src/btif_sock_rfc.c \

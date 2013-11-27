@@ -491,4 +491,33 @@ void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
     return;
 }
 
+/*******************************************************************************
+**
+** Function         BTA_HhSdpCmplAfterBonding
+**
+** Description      Inform BTA layer that sdp is finished after bonding, so that in case incoming
+**                      connection from unknown device is present, SDP can be started again.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_HhSdpCmplAfterBonding(BD_ADDR bd_addr)
+{
+    tBTA_HH_SDP_CMP_AFTER_BONDING *p_buf;
+
+    p_buf = (tBTA_HH_SDP_CMP_AFTER_BONDING *)GKI_getbuf((UINT16)sizeof(tBTA_HH_SDP_CMP_AFTER_BONDING));
+
+    if (p_buf!= NULL)
+    {
+        memset((void *)p_buf, 0, sizeof(tBTA_HH_SDP_CMP_AFTER_BONDING));
+        p_buf->hdr.event            = BTA_HH_SDP_CMPL_AFTER_BONDING_EVT;
+        memcpy(p_buf->bd_addr, bd_addr, 6);
+        bta_sys_sendmsg((void *)p_buf);
+    }
+    else
+    {
+        APPL_TRACE_ERROR0("No resource to send SDP finished after bonding request.");
+    }
+}
+
 #endif /* BTA_HH_INCLUDED */

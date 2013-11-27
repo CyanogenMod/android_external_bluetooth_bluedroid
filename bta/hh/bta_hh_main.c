@@ -52,6 +52,7 @@ enum
     BTA_HH_MAINT_DEV_ACT,
     BTA_HH_OPEN_CMPL_ACT,
     BTA_HH_OPEN_FAILURE,
+    BTA_HH_SDP_CMPL_AFTER_BONDING_ACT,
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
     BTA_HH_GATT_CLOSE,
     BTA_HH_LE_OPEN_FAIL,
@@ -91,7 +92,8 @@ const tBTA_HH_ACTION bta_hh_action[] =
     bta_hh_get_dscp_act,
     bta_hh_maint_dev_act,
     bta_hh_open_cmpl_act,
-    bta_hh_open_failure
+    bta_hh_open_failure,
+    bta_hh_sdp_cmp_after_bonding_act
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
     ,bta_hh_gatt_close
     ,bta_hh_le_open_fail
@@ -129,7 +131,8 @@ const UINT8 bta_hh_st_idle[][BTA_HH_NUM_COLS] =
 /* BTA_HH_API_WRITE_DEV_EVT */    {BTA_HH_IGNORE,        BTA_HH_IDLE_ST    },
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_IGNORE,        BTA_HH_IDLE_ST    },
 /* BTA_HH_API_MAINT_DEV_EVT */    {BTA_HH_MAINT_DEV_ACT, BTA_HH_IDLE_ST    },
-/* BTA_HH_OPEN_CMPL_EVT        */  {BTA_HH_OPEN_CMPL_ACT, BTA_HH_CONN_ST    }
+/* BTA_HH_OPEN_CMPL_EVT        */  {BTA_HH_OPEN_CMPL_ACT, BTA_HH_CONN_ST    },
+/* BTA_HH_SDP_CMPL_AFTER_BONDING_EVT      */    {BTA_HH_IGNORE,     BTA_HH_IDLE_ST }
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
 /* BTA_HH_GATT_CLOSE_EVT    */   ,{BTA_HH_IGNORE,         BTA_HH_IDLE_ST    }
 /* BTA_HH_GATT_OPEN_EVT    */    ,{BTA_HH_GATT_OPEN,      BTA_HH_W4_CONN_ST }
@@ -159,7 +162,8 @@ const UINT8 bta_hh_st_w4_conn[][BTA_HH_NUM_COLS] =
 /* BTA_HH_API_WRITE_DEV_EVT */    {BTA_HH_WRITE_DEV_ACT, BTA_HH_W4_CONN_ST },
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_IGNORE,        BTA_HH_W4_CONN_ST },
 /* BTA_HH_API_MAINT_DEV_EVT */    {BTA_HH_MAINT_DEV_ACT, BTA_HH_IDLE_ST    },
-/* BTA_HH_OPEN_CMPL_EVT     */    {BTA_HH_OPEN_CMPL_ACT, BTA_HH_CONN_ST    }
+/* BTA_HH_OPEN_CMPL_EVT     */    {BTA_HH_OPEN_CMPL_ACT, BTA_HH_CONN_ST    },
+/* BTA_HH_SDP_CMPL_AFTER_BONDING_EVT      */    {BTA_HH_SDP_CMPL_AFTER_BONDING_ACT,     BTA_HH_W4_CONN_ST }
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
 /* BTA_HH_GATT_CLOSE_EVT    */   ,{BTA_HH_LE_OPEN_FAIL,  BTA_HH_IDLE_ST    }
 /* BTA_HH_GATT_OPEN_EVT    */    ,{BTA_HH_GATT_OPEN,     BTA_HH_W4_CONN_ST }
@@ -188,7 +192,8 @@ const UINT8 bta_hh_st_connected[][BTA_HH_NUM_COLS] =
 /* BTA_HH_API_WRITE_DEV_EVT */    {BTA_HH_WRITE_DEV_ACT, BTA_HH_CONN_ST    },
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_GET_DSCP_ACT,  BTA_HH_CONN_ST    },
 /* BTA_HH_API_MAINT_DEV_EVT */    {BTA_HH_MAINT_DEV_ACT, BTA_HH_CONN_ST    },
-/* BTA_HH_OPEN_CMPL_EVT        */    {BTA_HH_IGNORE,         BTA_HH_CONN_ST    }
+/* BTA_HH_OPEN_CMPL_EVT        */    {BTA_HH_IGNORE,         BTA_HH_CONN_ST    },
+/* BTA_HH_SDP_CMPL_AFTER_BONDING_EVT      */    {BTA_HH_IGNORE,     BTA_HH_CONN_ST }
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
 /* BTA_HH_GATT_CLOSE_EVT    */    ,{BTA_HH_GATT_CLOSE,    BTA_HH_IDLE_ST    }
 /* BTA_HH_GATT_OPEN_EVT    */    ,{BTA_HH_IGNORE,        BTA_HH_CONN_ST    }
@@ -217,6 +222,7 @@ const UINT8 bta_hh_st_w4_sec[][BTA_HH_NUM_COLS] =
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_IGNORE,        BTA_HH_W4_SEC  },
 /* BTA_HH_API_MAINT_DEV_EVT */    {BTA_HH_MAINT_DEV_ACT, BTA_HH_W4_SEC  },
 /* BTA_HH_OPEN_CMPL_EVT     */    {BTA_HH_IGNORE,        BTA_HH_W4_SEC  },
+/* BTA_HH_SDP_CMPL_AFTER_BONDING_EVT      */    {BTA_HH_IGNORE,     BTA_HH_W4_SEC },
 /* BTA_HH_GATT_CLOSE_EVT    */    {BTA_HH_LE_OPEN_FAIL,  BTA_HH_IDLE_ST },
 /* BTA_HH_GATT_OPEN_EVT    */     {BTA_HH_IGNORE,        BTA_HH_W4_SEC  },
 /* BTA_HH_START_ENC_EVT    */     {BTA_HH_IGNORE,        BTA_HH_W4_SEC     },
@@ -463,6 +469,10 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
             {
                 index = bta_hh_find_cb(((tBTA_HH_CBACK_DATA *)p_msg)->addr);
             }
+            else if (p_msg->event == BTA_HH_SDP_CMPL_AFTER_BONDING_EVT)
+            {
+                index = bta_hh_find_cb(((tBTA_HH_SDP_CMP_AFTER_BONDING *)p_msg)->bd_addr);
+            }
             else
                 index = bta_hh_dev_handle_to_cb_idx((UINT8)p_msg->layer_specific);
 
@@ -542,6 +552,8 @@ static char *bta_hh_evt_code(tBTA_HH_INT_EVT evt_code)
     case BTA_HH_GATT_WRITE_DESCR_CMPL_EVT:
         return "BTA_HH_GATT_WRITE_DESCR_CMPL_EVT";
 #endif
+    case BTA_HH_SDP_CMPL_AFTER_BONDING_EVT:
+        return "BTA_HH_SDP_CMPL_AFTER_BONDING_EVT";
     default:
         return "unknown HID Host event code";
     }

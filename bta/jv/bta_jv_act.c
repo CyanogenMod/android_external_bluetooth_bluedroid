@@ -1962,8 +1962,9 @@ static int bta_jv_port_data_co_cback(UINT16 port_handle, UINT8 *buf, UINT16 len,
         switch(type)
         {
             case DATA_CO_CALLBACK_TYPE_INCOMING:
-                if(BTA_JV_PM_IDLE_ST == p_pcb->p_pm_cb->state)
-                    bta_jv_pm_conn_busy(p_pcb->p_pm_cb);
+                APPL_TRACE_DEBUG1("bta_jv_port_data_co_cback, p_pcb->p_pm_cb: %p",
+                        p_pcb->p_pm_cb);
+                bta_jv_pm_conn_busy(p_pcb->p_pm_cb);
                 ret = bta_co_rfc_data_incoming(p_pcb->user_data, (BT_HDR*)buf);
                 bta_jv_pm_conn_idle(p_pcb->p_pm_cb);
                 return ret;
