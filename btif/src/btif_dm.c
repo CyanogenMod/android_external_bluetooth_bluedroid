@@ -521,8 +521,6 @@ static void btif_dm_cb_hid_remote_name(tBTM_REMOTE_DEV_NAME *p_remote_name)
             /* Trigger SDP on the device */
             pairing_cb.sdp_attempts = 1;
             btif_dm_get_remote_services(&remote_bd);
-            /* Store Device as bonded in nvram */
-            btif_storage_add_bonded_device(&remote_bd, NULL, 0, 0);
         }
         else
             bond_state_changed(BT_STATUS_FAIL, &remote_bd, BT_BOND_STATE_NONE);
@@ -588,8 +586,6 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr)
                 /* Remote Name of device known, Trigger SDP on the device */
                 pairing_cb.sdp_attempts = 1;
                 btif_dm_get_remote_services(bd_addr);
-                /* Store Device as bonded in nvram */
-                btif_storage_add_bonded_device(bd_addr, NULL, 0, 0);
             }
             else
             {
@@ -1282,23 +1278,33 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                 (bdcmp(p_data->disc_res.bd_addr, pairing_cb.bd_addr) == 0)&&
                 pairing_cb.sdp_attempts > 0)
             {
-                 BTIF_TRACE_DEBUG1("%s Remote Service SDP done. Call bond_state_changed_cb BONDED",
-                                   __FUNCTION__);
-                 pairing_cb.sdp_attempts  = 0;
-                 bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDED);
+                pairing_cb.sdp_attempts  = 0;
 
-                 /*special handling for HID devices */
-                 BOOLEAN is_hid = check_cod(&bd_addr, COD_HID_POINTING);
-                 if (is_hid)
-                 {
-                     /* Initiate HID connection for Pointing Devices */
-                     btif_hh_connect(&bd_addr);
-                 }
-                 if (check_cod_hid(&bd_addr, COD_HID_MAJOR) || hid_uuid_present)
-                 {
-                     /* Inform HID layer that SDP is complete */
-                     btif_hh_sdp_cmpl_after_bonding(bd_addr);
-                 }
+                /*special handling for HID pointing devices */
+                BOOLEAN is_hid = check_cod(&bd_addr, COD_HID_POINTING);
+                if (is_hid && p_data->disc_res.result != BTA_SUCCESS)
+                {
+                    BTIF_TRACE_DEBUG1("%s Remote Service SDP failed", __FUNCTION__);
+                    bond_state_changed(BT_STATUS_RMT_DEV_DOWN, &bd_addr, BT_BOND_STATE_NONE);
+                    break;
+                }
+
+                BTIF_TRACE_DEBUG1("%s Remote Service SDP done. Call "
+                    "bond_state_changed_cb BONDED", __FUNCTION__);
+                bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDED);
+
+                if (is_hid)
+                {
+                    /* Store Device as bonded in nvram */
+                    btif_storage_add_bonded_device(&bd_addr, NULL, 0, 0);
+                    /* Initiate HID connection for Pointing Devices */
+                    btif_hh_connect(&bd_addr);
+                }
+                if (check_cod_hid(&bd_addr, COD_HID_MAJOR) || hid_uuid_present)
+                {
+                    /* Inform HID layer that SDP is complete */
+                    btif_hh_sdp_cmpl_after_bonding(bd_addr);
+                }
             }
 
             if(p_data->disc_res.num_uuids != 0)
