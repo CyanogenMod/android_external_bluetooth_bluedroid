@@ -36,7 +36,7 @@
 #include "l2c_int.h"
 #include "btm_api.h"
 #include "btm_int.h"
-
+#include "bt_target.h"
 // btla-specific ++
 #define LOG_TAG "BTLD"
 #if (defined(ANDROID_APP_INCLUDED) && (ANDROID_APP_INCLUDED == TRUE) && (!defined(LINUX_NATIVE)) )
@@ -1657,7 +1657,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
     {
         BT_TRACE_1(TRACE_LAYER_HCI, TRACE_TYPE_ERROR,
                   "Num consecutive HCI Cmd tout =%d Restarting BT process",num_hci_cmds_timed_out);
-
+        bte_ssr_cleanup();
         usleep(10000); /* 10 milliseconds */
         /* Killing the process to force a restart as part of fault tolerance */
         kill(getpid(), SIGKILL);

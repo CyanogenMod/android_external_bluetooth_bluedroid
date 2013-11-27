@@ -3593,7 +3593,11 @@ void btm_simple_pair_complete (UINT8 *p)
     if (disc)
     {
         /* simple pairing failed */
-        btm_sec_send_hci_disconnect (p_dev_rec, HCI_ERR_AUTH_FAILURE);
+        /* Avoid sending disconnect on HCI_ERR_PEER_USER */
+        if (status != HCI_ERR_PEER_USER)
+        {
+            btm_sec_send_hci_disconnect (p_dev_rec, HCI_ERR_AUTH_FAILURE);
+        }
     }
 }
 
@@ -3756,6 +3760,7 @@ void btm_sec_auth_complete (UINT16 handle, UINT8 status)
     /* for random timeout because only slave should receive the result */
     if ((status == HCI_ERR_LMP_ERR_TRANS_COLLISION) || (status == HCI_ERR_DIFF_TRANSACTION_COLLISION))
     {
+        btm_sec_change_pairing_state (BTM_PAIR_STATE_WAIT_PIN_REQ);
         btm_sec_auth_collision(handle);
         return;
     }
