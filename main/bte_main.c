@@ -328,6 +328,23 @@ static void bte_hci_enable(void)
 
 /******************************************************************************
 **
+** Function         bte_ssr_cleanup
+**
+** Description      sends PWR_OFF to vendor library so that harware would be
+**                  turned off as part of hardware subsystem crash
+**
+** Returns          None
+**
+******************************************************************************/
+void bte_ssr_cleanup(void)
+{
+    APPL_TRACE_ERROR1("%s", __FUNCTION__);
+    bt_hc_if->set_power(BT_HC_CHIP_PWR_OFF);
+
+}
+
+/******************************************************************************
+**
 ** Function         bte_hci_disable
 **
 ** Description      Disable HCI & Vendor modules

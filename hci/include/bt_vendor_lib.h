@@ -155,6 +155,10 @@ typedef enum {
  *      specific epilog process once it has been done.
  */
     BT_VND_OP_EPILOG,
+
+    BT_VND_OP_ANT_USERIAL_OPEN,
+
+    BT_VND_OP_ANT_USERIAL_CLOSE,
 } bt_vendor_opcode_t;
 
 /** Power on/off control states */
