@@ -358,7 +358,7 @@
 #endif
 
 #ifndef BTA_AV_CO_CP_SCMS_T
-#define BTA_AV_CO_CP_SCMS_T  FALSE
+#define BTA_AV_CO_CP_SCMS_T  TRUE
 #endif
 
 #ifndef AVDT_CONNECT_CP_ONLY
