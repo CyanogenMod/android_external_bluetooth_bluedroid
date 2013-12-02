@@ -288,6 +288,7 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
             break;
         case BT_PROPERTY_REMOTE_TRUST_VALUE:
             btif_config_set_int("Remote", bdstr, BTIF_STORAGE_PATH_REMOTE_TRUST_VALUE, *(int*)prop->val);
+            btif_config_save();
             break;
         case BT_PROPERTY_ADAPTER_SCAN_MODE:
             btif_config_set_int("Local", "Adapter",
