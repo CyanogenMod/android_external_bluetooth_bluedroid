@@ -659,7 +659,15 @@ void bta_ag_rfc_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
         /* run AT command interpreter on data */
         bta_sys_busy(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
         bta_ag_at_parse(&p_scb->at_cb, buf, len);
-        bta_sys_idle(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
+        if (p_scb->sco_idx != BTM_INVALID_SCO_INDEX)
+        {
+            APPL_TRACE_DEBUG0 ("bta_ag_rfc_data, change link policy for SCO");
+            bta_sys_sco_open(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
+        }
+        else
+        {
+            bta_sys_idle(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
+        }
         /* no more data to read, we're done */
         if (len < BTA_AG_RFC_READ_MAX)
         {
@@ -847,7 +855,15 @@ void bta_ag_ci_rx_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     /* send to RFCOMM */
     bta_sys_busy(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
     PORT_WriteData(p_scb->conn_handle, p_data_area, strlen(p_data_area), &len);
-    bta_sys_idle(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
+    if (p_scb->sco_idx != BTM_INVALID_SCO_INDEX)
+    {
+        APPL_TRACE_DEBUG0 ("bta_ag_rfc_data, change link policy for SCO");
+        bta_sys_sco_open(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
+    }
+    else
+    {
+        bta_sys_idle(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
+    }
 }
 
 /*******************************************************************************
