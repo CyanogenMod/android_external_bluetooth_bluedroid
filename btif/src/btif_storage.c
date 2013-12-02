@@ -828,9 +828,13 @@ bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t *remote_bd_addr)
     bdstr_t bdstr;
     bd2str(remote_bd_addr, &bdstr);
     BTIF_TRACE_DEBUG1("in bd addr:%s", bdstr);
-    int ret = btif_config_remove("Remote", bdstr, "LinkKeyType");
-    ret &= btif_config_remove("Remote", bdstr, "PinLength");
-    ret &= btif_config_remove("Remote", bdstr, "LinkKey");
+    int ret = 1;
+    if(btif_config_exist("Remote", bdstr, "LinkKeyType"))
+        ret &= btif_config_remove("Remote", bdstr, "LinkKeyType");
+    if(btif_config_exist("Remote", bdstr, "PinLength"))
+        ret &= btif_config_remove("Remote", bdstr, "PinLength");
+    if(btif_config_exist("Remote", bdstr, "LinkKey"))
+        ret &= btif_config_remove("Remote", bdstr, "LinkKey");
     /* write bonded info immediately */
     btif_config_flush();
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
