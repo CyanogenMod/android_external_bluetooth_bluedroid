@@ -1936,6 +1936,25 @@ bt_status_t btif_dm_cancel_bond(const bt_bdaddr_t *bd_addr)
 
 /*******************************************************************************
 **
+** Function         btif_dm_hh_open_failed
+**
+** Description      informs the upper layers if the HH have failed during bonding
+**
+** Returns          none
+**
+*******************************************************************************/
+
+void btif_dm_hh_open_failed(bt_bdaddr_t *bdaddr)
+{
+    if (pairing_cb.state == BT_BOND_STATE_BONDING &&
+            bdcmp(bdaddr->address, pairing_cb.bd_addr) == 0)
+    {
+        bond_state_changed(BT_STATUS_FAIL, bdaddr, BT_BOND_STATE_NONE);
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         btif_dm_remove_bond
 **
 ** Description      Removes bonding with the specified device
