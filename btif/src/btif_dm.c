@@ -1310,8 +1310,6 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                 {
                     /* Store Device as bonded in nvram */
                     btif_storage_add_bonded_device(&bd_addr, NULL, 0, 0);
-                    /* Initiate HID connection for Pointing Devices */
-                    btif_hh_connect(&bd_addr);
                 }
                 if (check_cod_hid(&bd_addr, COD_HID_MAJOR) || hid_uuid_present)
                 {
