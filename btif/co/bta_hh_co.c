@@ -207,7 +207,9 @@ void bta_hh_co_destroy(int fd)
 int bta_hh_co_write(int fd, UINT8* rpt, UINT16 len)
 {
     APPL_TRACE_DEBUG0("bta_hh_co_data: UHID write");
+    uint8_t rpt_data=0,i;
     struct uhid_event ev;
+    UINT8* ptr = ++rpt;
     memset(&ev, 0, sizeof(ev));
     ev.type = UHID_INPUT;
     ev.u.input.size = len;
@@ -215,9 +217,21 @@ int bta_hh_co_write(int fd, UINT8* rpt, UINT16 len)
         APPL_TRACE_WARNING1("%s:report size greater than allowed size",__FUNCTION__);
         return -1;
     }
-    memcpy(ev.u.input.data, rpt, len);
-    return uhid_write(fd, &ev);
+    for(i=1; i< len;  i++, ptr++) {
+        if (*ptr != 0) {
+            rpt_data = 1;
+            break;
+        }
+    }
 
+    APPL_TRACE_DEBUG1("report data flag : %d", rpt_data );
+
+    if(rpt_data) {
+       memcpy(ev.u.input.data, rpt, len);
+       APPL_TRACE_DEBUG0("write report with valid data");
+       return uhid_write(fd, &ev);
+   }
+   return 0;
 }
 
 
