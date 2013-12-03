@@ -33,30 +33,32 @@
 
 enum
 {
-    BTA_HD_DUMMY_EVT       = BTA_SYS_EVT_START(BTA_ID_HD),
-    BTA_HD_API_ENABLE_EVT,
-    BTA_HD_API_DISABLE_EVT,
-    BTA_HD_API_REGISTER_APP_EVT,
+    BTA_HD_API_REGISTER_APP_EVT = BTA_SYS_EVT_START(BTA_ID_HD),
     BTA_HD_API_UNREGISTER_APP_EVT,
     BTA_HD_API_CONNECT_EVT,
     BTA_HD_API_DISCONNECT_EVT,
-    BTA_HD_API_VC_UNPLUG_EVT,
     BTA_HD_API_ADD_DEVICE_EVT,
     BTA_HD_API_REMOVE_DEVICE_EVT,
+    BTA_HD_API_SEND_REPORT_EVT,
     BTA_HD_API_REPORT_ERROR_EVT,
+    BTA_HD_API_VC_UNPLUG_EVT,
     BTA_HD_INT_OPEN_EVT,
     BTA_HD_INT_CLOSE_EVT,
-    BTA_HD_INT_SEND_REPORT_EVT,
+    BTA_HD_INT_INTR_DATA_EVT,
     BTA_HD_INT_GET_REPORT_EVT,
     BTA_HD_INT_SET_REPORT_EVT,
     BTA_HD_INT_SET_PROTOCOL_EVT,
-    BTA_HD_INT_INTR_DATA_EVT,
     BTA_HD_INT_VC_UNPLUG_EVT,
     BTA_HD_INT_SUSPEND_EVT,
     BTA_HD_INT_EXIT_SUSPEND_EVT,
-    BTA_HD_INVALID_EVT
+
+    /* handled outside state machine */
+    BTA_HD_API_ENABLE_EVT,
+    BTA_HD_API_DISABLE_EVT
 };
 typedef UINT16 tBTA_HD_INT_EVT;
+
+#define BTA_HD_INVALID_EVT (BTA_HD_API_DISABLE_EVT + 1)
 
 typedef struct
 {
@@ -139,6 +141,7 @@ typedef struct
     BOOLEAN        use_report_id;
     BOOLEAN        boot_mode;
     BOOLEAN        vc_unplug;
+    BOOLEAN        disable_w4_close;
 }
 tBTA_HD_CB;
 
@@ -156,16 +159,26 @@ extern BOOLEAN bta_hd_hdl_event(BT_HDR *p_msg);
 
 extern void bta_hd_api_enable(tBTA_HD_DATA *p_data);
 extern void bta_hd_api_disable(void);
-extern void bta_hd_register_sdp(tBTA_HD_REGISTER_APP *p_app_data);
-extern void bta_hd_unregister_sdp(void);
-extern void bta_hd_send_report(tBTA_HD_SEND_REPORT *p_report);
-extern void bta_hd_get_report(BOOLEAN rep_size_follows, BT_HDR *p_msg);
-extern void bta_hd_set_report(BT_HDR *p_msg);
-extern void bta_hd_intr_data(BT_HDR *p_msg);
-extern void bta_hd_vc_unplug(void);
-extern void bta_hd_connect(void);
-extern void bta_hd_disconnect(void);
-extern void bta_hd_report_error(void);
 
+extern void bta_hd_register_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_unregister_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_unregister2_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_connect_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_disconnect_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_add_device_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_remove_device_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_send_report_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_report_error_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_vc_unplug_act(tBTA_HD_DATA *p_data);
+
+extern void bta_hd_open_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_close_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_intr_data_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_get_report_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_set_report_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_set_protocol_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_vc_unplug_done_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_suspend_act(tBTA_HD_DATA *p_data);
+extern void bta_hd_exit_suspend_act(tBTA_HD_DATA *p_data);
 
 #endif

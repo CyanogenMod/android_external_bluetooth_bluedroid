@@ -450,7 +450,23 @@ static void hidd_l2cif_config_cfm(UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
         return;
     }
 
-    if (p_cfg->result != L2CAP_CFG_OK)
+    if (p_hcon->intr_cid == cid && p_cfg->result ==
+        L2CAP_CFG_UNACCEPTABLE_PARAMS && p_cfg->qos_present)
+    {
+        tL2CAP_CFG_INFO new_qos;
+
+        // QoS parameters not accepted for intr, try again with host proposal
+
+        memcpy(&new_qos, &hd_cb.l2cap_intr_cfg, sizeof(new_qos));
+        memcpy(&new_qos.qos, &p_cfg->qos, sizeof(FLOW_SPEC));
+        new_qos.qos_present = TRUE;
+
+        HIDD_TRACE_WARNING1("%s: config failed, retry", __FUNCTION__);
+
+        L2CA_ConfigReq(cid, &new_qos);
+        return;
+    }
+    else if (p_cfg->result != L2CAP_CFG_OK)
     {
         HIDD_TRACE_WARNING1("%s: config failed, disconnecting", __FUNCTION__);
 
