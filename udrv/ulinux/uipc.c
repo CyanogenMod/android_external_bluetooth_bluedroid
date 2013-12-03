@@ -429,7 +429,7 @@ static void uipc_flush_ch_locked(tUIPC_CH_ID ch_id)
         ret = poll(&pfd, 1, 1);
         BTIF_TRACE_EVENT3("uipc_flush_ch_locked polling : fd %d, rxev %x, ret %d", pfd.fd, pfd.revents, ret);
 
-        if (pfd.revents | (POLLERR|POLLHUP))
+        if (pfd.revents & (POLLERR|POLLHUP))
             return;
 
         if (ret <= 0)
