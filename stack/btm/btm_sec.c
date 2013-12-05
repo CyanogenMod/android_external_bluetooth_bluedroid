@@ -3885,6 +3885,9 @@ void btm_sec_auth_complete (UINT16 handle, UINT8 status)
         }
         if ( (BTM_SEC_IS_SM4_LEGACY(p_dev_rec->sm4)) && (p_dev_rec->security_required & BTM_SEC_IN_AUTH_HIGH ))
         {
+            /* disconnect the exising ACL links if present on SAP authentication failure */
+            if (p_dev_rec->hci_handle != BTM_SEC_INVALID_HANDLE)
+                btm_sec_send_hci_disconnect (p_dev_rec, HCI_ERR_AUTH_FAILURE);
             p_dev_rec->pin_key_len = 0;
         }
         return;
