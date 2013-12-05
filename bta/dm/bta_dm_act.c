@@ -5037,6 +5037,37 @@ void bta_dm_ble_observe (tBTA_DM_MSG *p_data)
         BTM_BleObserve(FALSE, 0, NULL,NULL );
     }
 }
+
+void bta_dm_ble_observe_with_filter(tBTA_DM_MSG *p_data)
+{
+    tBTM_STATUS status;
+    APPL_TRACE_API2("%s Parameter %p enter\n", __FUNCTION__, p_data);
+    if(p_data && p_data->ble_observe_with_filter.start)
+    {
+        /* save call back to report scan results */
+        bta_dm_search_cb.p_scan_cback = p_data->ble_observe_with_filter.p_cback;
+        if((status = BTM_BleObserve_With_Filter(TRUE, p_data->ble_observe_with_filter.duration, p_data->ble_observe_with_filter.filters,
+                                                 p_data->ble_observe_with_filter.filtercnt, p_data->ble_observe_with_filter.scan_policy,
+                                                 bta_dm_observe_results_cb, bta_dm_observe_cmpl_cb)) != BTM_SUCCESS)
+        {
+            tBTA_DM_SEARCH  data;
+            APPL_TRACE_WARNING2(" %s BTM_BleObserve_With_Filter  failed. status %d",__FUNCTION__,status);
+            data.inq_cmpl.num_resps = 0;
+            if (bta_dm_search_cb.p_scan_cback)
+            {
+                bta_dm_search_cb.p_scan_cback(BTA_DM_INQ_CMPL_EVT, &data);
+            }
+        }
+    }
+    else
+    {
+        bta_dm_search_cb.p_scan_cback = NULL;
+        BTM_BleObserve_With_Filter(FALSE, 0, 0, 0, 0, NULL, NULL);
+    }
+
+    APPL_TRACE_API2("%s Parameter %p exit\n", __FUNCTION__, p_data);
+}
+
 /*******************************************************************************
 **
 ** Function         bta_dm_ble_set_scan_params

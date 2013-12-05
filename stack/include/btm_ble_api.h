@@ -72,6 +72,7 @@ typedef UINT8   tBTM_BLE_AFP;
 /* scanning filter policy */
 #define SP_ADV_ALL     0x00     /* accept adv pakt from all, directed adv pkt not directed to me is ignored */
 #define SP_ADV_WL      0x01     /* accept adv pakt from device in white list, directed adv pkt not directed to me is ignored */
+#define SP_ADV_WL_AD  0x80     /* accept adv pakt from device in Advertisting Data-White List */
 typedef UINT8   tBTM_BLE_SFP;
 
 #ifndef BTM_BLE_DEFAULT_SFP
@@ -150,12 +151,20 @@ typedef UINT8   tBTM_BLE_SFP;
 typedef UINT8 BLE_SIGNATURE[BTM_BLE_AUTH_SIGN_LEN];         /* Device address */
 
 #ifndef BTM_BLE_HOST_SUPPORT
-#define BTM_BLE_HOST_SUPPORT		0x01
+#define BTM_BLE_HOST_SUPPORT          0x01
 #endif
 
 #ifndef BTM_BLE_SIMULTANEOUS_HOST
-#define BTM_BLE_SIMULTANEOUS_HOST	0x01
+#define BTM_BLE_SIMULTANEOUS_HOST    0x01
 #endif
+
+#define WRITE_RSSI_MONITOR_THRESHOLD      0xF2
+#define READ_RSSI_MONITOR_THRESHOLD       0xF3
+#define ENABLE_RSSI_MONITOR               0xF4
+#define AD_WHITE_LIST_SUBCMD_READ_SIZE    0xF7
+#define AD_WHITE_LIST_SUBCMD_CLEAR        0xF8
+#define AD_WHITE_LIST_SUBCMD_ADD          0xF9
+#define AD_WHITE_LIST_SUBCMD_REMOVE       0xFA
 
 /* Structure returned with Rand/Encrypt complete callback */
 typedef struct
@@ -273,13 +282,33 @@ typedef struct
 
 typedef struct
 {
-    tBTM_BLE_MANU           manu;			/* manufactuer data */
+    tBTM_BLE_MANU           manu;           /* manufactuer data */
     tBTM_BLE_INT_RANGE      int_range;      /* slave prefered conn interval range */
     tBTM_BLE_SERVICE        services;       /* services */
     UINT8                   flag;
     UINT16                  appearance;
     tBTM_BLE_PROPRIETARY    *p_proprietary;
 }tBTM_BLE_ADV_DATA;
+
+/* LE scan filters*/
+#define NONE_FILTER       0x00
+#define DEV_ADDR_FILTER   0x01       /* Device address filter */
+#define ADV_DATA_FILTER   0x02       /* Advertising data based filter */
+typedef UINT8 tLeScanFilterType;
+typedef struct{
+    tLeScanFilterType type;
+    union{
+        struct{
+            UINT8 addr_type;
+            BD_ADDR address;
+        }addr;
+        struct{
+            UINT8 len;
+            tBTM_BLE_AD_TYPE adtype;
+            UINT8 content[16]; /* For now, only supports service uuid filter whose length is at most 16 bytes */
+        }ad_data;
+    }filter;
+}tBTA_DM_BLE_SCAN_FILTER;
 
 /* These are the fields returned in each device adv packet.  It
 ** is returned in the results callback if registered.
@@ -460,7 +489,16 @@ BTM_API extern void BTM_BleReset(void);
 BTM_API extern tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
                            tBTM_INQ_RESULTS_CB *p_results_cb, tBTM_CMPL_CB *p_cmpl_cb);
 
+BTM_API extern tBTM_STATUS BTM_BleObserve_With_Filter(BOOLEAN start, UINT8 duration, tBTA_DM_BLE_SCAN_FILTER filters[], int entries,
+                                                      tBTM_BLE_SFP scan_policy, tBTM_INQ_RESULTS_CB *p_results_cb, tBTM_CMPL_CB *p_cmpl_cb);
 
+BTM_API extern tBTM_STATUS BTM_Read_AD_White_List_Size (void *cmpl_callback);
+
+BTM_API extern BOOLEAN BTM_Clear_AD_White_List (void *cmpl_callback);
+
+BTM_API extern BOOLEAN BTM_Add_2_AD_White_List (UINT8 ad_type, UINT8 data_len, UINT8 *ad_content, void *cmpl_callback);
+
+BTM_API extern BOOLEAN BTM_Remove_From_AD_White_List (UINT8 ad_type, UINT8 data_len, UINT8 *ad_content, void *cmpl_callback);
 /*******************************************************************************
 **
 ** Function         BTM_GetDeviceIDRoot
