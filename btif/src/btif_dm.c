@@ -768,6 +768,13 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     bdcpy(bd_addr.address, p_pin_req->bd_addr);
     memcpy(bd_name.name, p_pin_req->bd_name, BD_NAME_LEN);
 
+    if (pairing_cb.state == BT_BOND_STATE_BONDING &&
+        bdcmp(bd_addr.address, pairing_cb.bd_addr) != 0) {
+        BTIF_TRACE_WARNING1("%s(): already in bonding state, reject request", __FUNCTION__);
+        btif_dm_pin_reply(&bd_addr, 0, 0, NULL);
+        return;
+    }
+
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
 
     cod = devclass2uint(p_pin_req->dev_class);
@@ -851,6 +858,13 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
 
     bdcpy(bd_addr.address, p_ssp_cfm_req->bd_addr);
     memcpy(bd_name.name, p_ssp_cfm_req->bd_name, BD_NAME_LEN);
+
+    if (pairing_cb.state == BT_BOND_STATE_BONDING &&
+        bdcmp(bd_addr.address, pairing_cb.bd_addr) != 0) {
+        BTIF_TRACE_WARNING1("%s(): already in bonding state, reject request", __FUNCTION__);
+        btif_dm_ssp_reply(&bd_addr, BT_SSP_VARIANT_PASSKEY_CONFIRMATION, 0, 0);
+        return;
+    }
 
     /* Set the pairing_cb based on the local & remote authentication requirements */
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
