@@ -678,8 +678,7 @@ void bta_hh_le_read_rpt_ref_descr(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT *p_rp
 void bta_hh_le_save_rpt_ref(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT  *p_rpt,
                             tBTA_GATTC_READ *p_data)
 {
-    UINT8 *pp,rptid = 0;
-    tBTA_HH_LE_RPT *rpt_ptr = NULL;
+    UINT8 *pp;
 
     /* if the length of the descriptor value is right, parse it */
     if (p_data->status == BTA_GATT_OK &&
@@ -693,15 +692,8 @@ void bta_hh_le_save_rpt_ref(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT  *p_rpt,
         if (p_rpt->rpt_type > BTA_HH_RPTT_FEATURE) /* invalid report type */
             p_rpt->rpt_type = BTA_HH_RPTT_RESRV;
 
-        if (p_rpt->rpt_id == 0) {
-            do {
-                rptid++;
-                rpt_ptr = bta_hh_le_find_rpt_by_idtype(p_rpt,BTA_HH_PROTO_RPT_MODE,p_rpt->rpt_type,rptid);
-            } while(rpt_ptr != NULL && rptid < BTA_HH_LE_RPT_MAX);
-            p_rpt->rpt_id = rptid;
-        }
 #if BTA_HH_DEBUG == TRUE
-        APPL_TRACE_DEBUG2("report ID: %d report_type : %d", p_rpt->rpt_id, p_rpt->rpt_type);
+        APPL_TRACE_DEBUG1("report ID: %d", p_rpt->rpt_id);
 #endif
     }
 
