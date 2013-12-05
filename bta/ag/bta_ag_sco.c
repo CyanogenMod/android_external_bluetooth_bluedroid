@@ -1087,9 +1087,17 @@ static void bta_ag_sco_event(tBTA_AG_SCB *p_scb, UINT8 event)
 
                 case BTA_AG_SCO_CONN_CLOSE_E:
 #if (BTM_WBS_INCLUDED == TRUE )
-                    /* start codec negotiation */
-                    p_sco->state = BTA_AG_SCO_CODEC_ST;
-                    p_cn_scb = p_scb;
+                    if (p_scb->peer_codecs != BTA_AG_CODEC_NONE)
+                    {
+                        /* start codec negotiation */
+                        p_sco->state = BTA_AG_SCO_CODEC_ST;
+                        p_cn_scb = p_scb;
+                    }
+                    else
+                    {
+                        bta_ag_create_sco(p_scb, TRUE);
+                        p_sco->state = BTA_AG_SCO_OPENING_ST;
+                    }
 #else
                     /* open sco connection */
                     bta_ag_create_sco(p_scb, TRUE);
@@ -1142,10 +1150,20 @@ static void bta_ag_sco_event(tBTA_AG_SCB *p_scb, UINT8 event)
                     bta_ag_remove_sco(p_sco->p_xfer_scb, FALSE);
 
 #if (BTM_WBS_INCLUDED == TRUE )
-                    /* start codec negotiation */
-                    p_sco->state = BTA_AG_SCO_CODEC_ST;
-                    p_cn_scb = p_sco->p_xfer_scb;
-                    p_sco->p_xfer_scb = NULL;
+                    if (p_scb->peer_codecs != BTA_AG_CODEC_NONE)
+                    {
+                        /* start codec negotiation */
+                        p_sco->state = BTA_AG_SCO_CODEC_ST;
+                        p_cn_scb = p_sco->p_xfer_scb;
+                        p_sco->p_xfer_scb = NULL;
+                    }
+                    else
+                    {
+                        /* create sco connection to peer */
+                        bta_ag_create_sco(p_sco->p_xfer_scb, TRUE);
+                        p_sco->p_xfer_scb = NULL;
+                        p_sco->state = BTA_AG_SCO_OPENING_ST;
+                    }
 #else
                     /* create sco connection to peer */
                     bta_ag_create_sco(p_sco->p_xfer_scb, TRUE);
