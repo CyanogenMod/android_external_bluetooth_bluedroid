@@ -98,7 +98,7 @@ BOOLEAN l2c_link_hci_conn_req (BD_ADDR bd_addr)
             if (!btm_dev_support_switch (bd_addr))
                 p_lcb->link_role = HCI_ROLE_SLAVE;
             else
-                p_lcb->link_role = l2cu_get_conn_role(p_lcb);
+                p_lcb->link_role = l2cu_get_conn_role(bd_addr);
         }
 
         /* Tell the other side we accept the connection */
@@ -119,7 +119,7 @@ BOOLEAN l2c_link_hci_conn_req (BD_ADDR bd_addr)
         if (!btm_dev_support_switch (bd_addr))
             p_lcb->link_role = HCI_ROLE_SLAVE;
         else
-            p_lcb->link_role = l2cu_get_conn_role(p_lcb);
+            p_lcb->link_role = l2cu_get_conn_role(bd_addr);
 
         btsnd_hcic_accept_conn (bd_addr, p_lcb->link_role);
 

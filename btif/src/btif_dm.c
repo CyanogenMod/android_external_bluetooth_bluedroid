@@ -1347,6 +1347,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                 bt_property_t prop;
                 bt_bdaddr_t bd_addr;
                 char temp[256];
+                bt_status_t ret;
 
                 bta_gatt_convert_uuid16_to_uuid128(uuid.uu,p_data->disc_ble_res.service.uu.uuid16);
 
@@ -1366,6 +1367,10 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                 prop.type = BT_PROPERTY_UUIDS;
                 prop.val = uuid.uu;
                 prop.len = MAX_UUID_SIZE;
+
+                /* Also write this to the NVRAM */
+                ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
+                ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed", ret);
 
                 /* Send the event to the BTIF */
                 HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
