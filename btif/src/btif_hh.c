@@ -935,9 +935,18 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             }
             {
                 char *cached_name = NULL;
-                char name[] = "Broadcom Bluetooth HID";
-                if (cached_name == NULL) {
-                    cached_name = name;
+                bt_bdname_t bdname;
+                bt_property_t prop_name;
+                BTIF_STORAGE_FILL_PROPERTY(&prop_name, BT_PROPERTY_BDNAME,
+                                           sizeof(bt_bdname_t), &bdname);
+                if (btif_storage_get_remote_device_property(
+                    &p_dev->bd_addr, &prop_name) == BT_STATUS_SUCCESS)
+                {
+                    cached_name = (char *)bdname.name;
+                }
+                else
+                {
+                    cached_name = "Bluetooth HID";
                 }
 
                 BTIF_TRACE_WARNING2("%s: name = %s", __FUNCTION__, cached_name);
