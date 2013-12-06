@@ -428,6 +428,10 @@ void btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_msg)
                 btm_vendor_specific_evt (p, hci_evt_len);
             break;
     }
+#if HCI_RAW_CMD_INCLUDED == TRUE
+    btm_hci_event (p, hci_evt_code , hci_evt_len);
+#endif
+
     // reset the  num_hci_cmds_timed_out upon receving any event from controller.
     num_hci_cmds_timed_out = 0;
 }

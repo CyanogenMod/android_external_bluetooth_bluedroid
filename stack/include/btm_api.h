@@ -113,8 +113,8 @@ typedef struct
 /* Structure returned with HCI Raw Command complete callback */
 typedef struct
 {
-    UINT16  opcode;
-    UINT16  param_len;
+    UINT8  event_code;
+    UINT8  param_len;
     UINT8   *p_param_buf;
 } tBTM_RAW_CMPL;
 
