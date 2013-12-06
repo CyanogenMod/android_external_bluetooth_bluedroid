@@ -832,6 +832,45 @@ static bt_status_t btif_disassociate_evt(void)
 **   BTIF Test Mode APIs
 **
 *****************************************************************************/
+#if HCI_RAW_CMD_INCLUDED == TRUE
+/*******************************************************************************
+**
+** Function         btif_hci_event_cback
+**
+** Description     Callback invoked on receiving HCI event
+**
+** Returns          None
+**
+*******************************************************************************/
+static void btif_hci_event_cback ( tBTM_RAW_CMPL *p )
+{
+    BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
+    if(p != NULL)
+    {
+        HAL_CBACK(bt_hal_cbacks, hci_event_recv_cb, p->event_code, p->p_param_buf,
+                                                                p->param_len);
+    }
+}
+
+/*******************************************************************************
+**
+** Function        btif_hci_cmd_send
+**
+** Description     Sends a HCI raw command to the controller
+**
+** Returns         BT_STATUS_SUCCESS on success
+**
+*******************************************************************************/
+bt_status_t btif_hci_cmd_send(uint16_t opcode, uint8_t *buf, uint8_t len)
+{
+    BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
+
+    BTM_Hci_Raw_Command(opcode, len, buf, btif_hci_event_cback);
+    return BT_STATUS_SUCCESS;
+}
+#endif
+
+
 /*******************************************************************************
 **
 ** Function         btif_dut_mode_cback
