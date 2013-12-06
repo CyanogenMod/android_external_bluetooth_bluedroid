@@ -597,11 +597,23 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
 
         case BTIF_GATTC_OPEN:
+        {
+            // Ensure device is in inquiry database
+            int addr_type = 0;
+            int device_type = 0;
+
+            if (btif_get_device_type(p_cb->bd_addr.address, &addr_type, &device_type) == TRUE
+                  && device_type != BT_DEVICE_TYPE_BREDR)
+                BTA_DmAddBleDevice(p_cb->bd_addr.address, addr_type, device_type);
+
+            // Mark background connections
             if (!p_cb->is_direct)
                 BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
 
+            // Connect!
             BTA_GATTC_Open(p_cb->client_if, p_cb->bd_addr.address, p_cb->is_direct);
             break;
+        }
 
         case BTIF_GATTC_CLOSE:
             // Disconnect established connections
