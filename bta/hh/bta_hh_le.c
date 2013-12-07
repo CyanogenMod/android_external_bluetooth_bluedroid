@@ -1,14 +1,20 @@
-/*****************************************************************************
-**
-**  Name:           bta_hh_le.c
-**
-**  Description:    This file contains the HID host over LE
-**                  functions.
-**
-**  Copyright (c) 2005-2011, Broadcom Corp, All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
-**
-*****************************************************************************/
+/******************************************************************************
+ *
+ *  Copyright (C) 2009-2013 Broadcom Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 
 #include "bta_api.h"
 #include "bta_hh_int.h"
@@ -234,6 +240,21 @@ void bta_hh_le_register_cmpl(tBTA_GATTC_REG *p_reg)
 
     /* signal BTA call back event */
     (* bta_hh_cb.p_cback)(BTA_HH_ENABLE_EVT, (tBTA_HH *)&status);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hh_le_is_hh_gatt_if
+**
+** Description      Check to see if client_if is BTA HH LE GATT interface
+**
+**
+** Returns          whether it is HH GATT IF
+**
+*******************************************************************************/
+BOOLEAN bta_hh_le_is_hh_gatt_if(tBTA_GATTC_IF client_if)
+{
+    return (bta_hh_cb.gatt_if == client_if);
 }
 
 /*******************************************************************************
@@ -2200,18 +2221,23 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY *p_data)
     else if (p_data->char_id.char_id.uuid.uu.uuid16 == GATT_UUID_HID_BT_KB_INPUT)
         app_id = BTA_HH_APP_ID_KB;
 
-    /* need to append report ID to the head of data */
-    if ((p_buf = (UINT8 *)GKI_getbuf((UINT16)(p_data->len + 1))) == NULL)
-    {
-        APPL_TRACE_ERROR0("No resources to send report data");
-        return;
-    }
-
     APPL_TRACE_ERROR1("Notification received on report ID: %d", p_rpt->rpt_id);
 
-    p_buf[0] = p_rpt->rpt_id;
-    memcpy(&p_buf[1], p_data->value, p_data->len);
-    p_data->len ++;
+    /* need to append report ID to the head of data */
+    if (p_rpt->rpt_id != 0)
+    {
+        if ((p_buf = (UINT8 *)GKI_getbuf((UINT16)(p_data->len + 1))) == NULL)
+        {
+            APPL_TRACE_ERROR0("No resources to send report data");
+            return;
+        }
+
+        p_buf[0] = p_rpt->rpt_id;
+        memcpy(&p_buf[1], p_data->value, p_data->len);
+        ++p_data->len;
+    } else {
+        p_buf = p_data->value;
+    }
 
     bta_hh_co_data((UINT8)p_dev_cb->hid_handle,
                     p_buf,
@@ -2222,7 +2248,8 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY *p_data)
                     p_dev_cb->addr,
                     app_id);
 
-    GKI_freebuf(p_buf);
+    if (p_buf != p_data->value)
+        GKI_freebuf(p_buf);
 }
 
 
