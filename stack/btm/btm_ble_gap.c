@@ -2024,7 +2024,7 @@ void btm_ble_stop_scan(void)
     BTM_TRACE_DEBUG2 ("BTM Inq Compl Callback: status 0x%02x, num results %d",
                       p_inq->inq_cmpl_info.status, p_inq->inq_cmpl_info.num_resp);
 
-    BTM_Clear_AD_White_List(ad_white_list_hci_cmd_complete);
+    //BTM_Clear_AD_White_List(ad_white_list_hci_cmd_complete);
 
     btm_update_scanner_filter_policy(SP_ADV_ALL);
 
