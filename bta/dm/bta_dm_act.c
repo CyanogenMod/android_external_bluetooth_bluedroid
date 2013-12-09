@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  *
  *  Copyright (C) 2003-2012 Broadcom Corporation
  *
@@ -1967,6 +1967,8 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
 void bta_dm_search_cmpl (tBTA_DM_MSG *p_data)
 {
     APPL_TRACE_DEBUG0("bta_dm_search_cmpl");
+    tBTA_DM_SEARCH   result;
+
 
 #if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
     utl_freebuf((void **)&bta_dm_search_cb.p_srvc_uuid);
@@ -1975,7 +1977,10 @@ void bta_dm_search_cmpl (tBTA_DM_MSG *p_data)
     if (p_data->hdr.layer_specific == BTA_DM_API_DI_DISCOVER_EVT)
         bta_dm_di_disc_cmpl(p_data);
     else
-        bta_dm_search_cb.p_search_cback(BTA_DM_DISC_CMPL_EVT, NULL);
+    {
+        bdcpy (result.disc_ble_res.bd_addr, bta_dm_search_cb.peer_bdaddr);
+        bta_dm_search_cb.p_search_cback(BTA_DM_DISC_CMPL_EVT, &result);
+    }
 }
 
 /*******************************************************************************
