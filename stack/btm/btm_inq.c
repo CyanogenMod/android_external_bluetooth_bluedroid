@@ -187,12 +187,12 @@ tBTM_STATUS BTM_SetDiscoverability (UINT16 inq_mode, UINT16 window, UINT16 inter
 #if (BLE_INCLUDED == TRUE && BLE_INCLUDED == TRUE)
     if (HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
     {
-        if (btm_ble_set_discoverability((UINT16)(inq_mode))
+        /*if (btm_ble_set_discoverability((UINT16)(inq_mode))
                             == BTM_SUCCESS)
         {
             btm_cb.btm_inq_vars.discoverable_mode &= (~BTM_BLE_DISCOVERABLE_MASK);
             btm_cb.btm_inq_vars.discoverable_mode |= (inq_mode & BTM_BLE_CONNECTABLE_MASK);
-        }
+        }*/
     }
     inq_mode &= ~BTM_BLE_DISCOVERABLE_MASK;
 #endif

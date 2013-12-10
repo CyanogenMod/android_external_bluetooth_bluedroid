@@ -3315,7 +3315,18 @@ void btm_read_tx_power_complete (UINT8 *p, BOOLEAN is_ble)
 
     /* If there was a callback registered for read rssi, call it */
     btm_cb.devcb.p_tx_power_cmpl_cb = NULL;
+    /* this is been added to get adv tx power for LE*/
+    if(!p_cb)
+    {
+        BTM_TRACE_API0("btm_read_tx_power_complete without callback");
+#if BLE_INCLUDED == TRUE
+        STREAM_TO_UINT8  (results.hci_status, p);
+        STREAM_TO_UINT8 (results.tx_power, p);
+        btm_cb.ble_ctr_cb.inq_var.tx_power=results.tx_power;
+        BTM_TRACE_API1("btm_read_tx_power_complete assigned value: %d",results.tx_power);
+#endif
 
+    }
     if (p_cb)
     {
         STREAM_TO_UINT8  (results.hci_status, p);

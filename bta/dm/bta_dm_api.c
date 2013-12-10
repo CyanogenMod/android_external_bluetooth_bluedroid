@@ -247,6 +247,193 @@ void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 p
 
 }
 
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetBLEVisibility
+**
+** Description      This function sets the Bluetooth connectable,
+**                  discoverable, pairable and conn paired only modes of local device
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmSetBLEVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, BOOLEAN is_directed)
+{
+
+    tBTA_DM_API_SET_BLE_VISIBILITY    *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_SET_BLE_VISIBILITY *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_VISIBILITY_EVT;
+        p_msg->disc_mode = disc_mode;
+        p_msg->conn_mode = conn_mode;
+        p_msg->is_directed=is_directed;
+
+        bta_sys_sendmsg(p_msg);
+    }
+
+
+}
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetBLEAdvMask
+**
+** Description      This function set the LE adv data mask
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmSetBLEAdvMask(UINT16 datamask)
+{
+
+    tBTA_DM_API_BLE_ADVDATA_MASK *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_BLE_ADVDATA_MASK *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_ADVDATA_MASK_EVT;
+        p_msg->mask=datamask;
+        p_msg->maskType=BTA_DM_ADV_MASK;
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetBLEScanRespMask
+**
+** Description      This function set the LE scan resp mask
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmSetBLEScanRespMask(UINT16 datamask)
+{
+
+    tBTA_DM_API_BLE_ADVDATA_MASK *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_BLE_ADVDATA_MASK *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_ADVDATA_MASK_EVT;
+        p_msg->mask=datamask;
+        p_msg->maskType=BTA_DM_SCAN_RESP_MASK;
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetAdvParams
+**
+** Description      This function sets the Bluetooth connectable,
+**                  discoverable, pairable and conn paired only modes of local device
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max, BD_ADDR bd_addr ,tBLE_ADDR_TYPE addr_type)
+{
+
+    tBTA_DM_API_BLE_ADV_PARAMS    *p_msg;
+    APPL_TRACE_API0 ("BTA_DmSetAdvParams Entry");
+    UINT16 size;
+    size = sizeof(tBLE_BD_ADDR);
+    tBLE_BD_ADDR *p_tempBLE=(tBLE_BD_ADDR *) GKI_getbuf(size);
+    if(p_tempBLE == NULL)
+    {
+        APPL_TRACE_ERROR0("BTA_DmSetAdvParams Buffer could not be allocated");
+        return;
+    }
+    p_tempBLE->type = addr_type;
+    bdcpy(p_tempBLE->bda, bd_addr);
+
+    if ((p_msg = (tBTA_DM_API_BLE_ADV_PARAMS *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_ADV_PARAM_EVT;
+        p_msg->adv_int_max = adv_int_max;
+        p_msg->adv_int_min = adv_int_min;
+        p_msg->p_dir_bda = p_tempBLE;
+        APPL_TRACE_API0 ("BTA_DmSetAdvParams: Gng to send msg with event: BTA_DM_API_BLE_ADV_PARAM_EVT ");
+
+        bta_sys_sendmsg(p_msg);
+    }
+
+
+}
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetManuData
+**
+** Description      This function sets the manufacturer specific data
+**                       for adv data and scan resp data
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmSetManuData(UINT8 *p_buff, UINT8 len)
+{
+    tBTA_DM_API_SET_ADV_CONFIG    *p_msg;
+    APPL_TRACE_API0 ("BTA_DmSetManuData Entry");
+    tBTA_BLE_ADV_DATA *p_adv_input=(tBTA_BLE_ADV_DATA*)GKI_getbuf(sizeof(tBTA_BLE_ADV_DATA));
+    if(p_adv_input == NULL)
+    {
+        APPL_TRACE_ERROR0("BTA_DmSetManuData Buffer could not be allocated");
+        return;
+    }
+    p_adv_input->manu.len = len;
+    p_adv_input->manu.p_val = p_buff;
+
+    if ((p_msg = (tBTA_DM_API_SET_ADV_CONFIG *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_ADVDATA_EVT;
+        p_msg->data_mask = BTM_BLE_AD_BIT_MANU;
+        p_msg->p_adv_cfg = p_adv_input;
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetServiceData
+**
+** Description      This function sets the manufacturer specific data
+**                       for adv data and scan resp data
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmSetServiceData(UINT8 *p_buff, UINT8 len)
+{
+    tBTA_DM_API_SET_ADV_CONFIG    *p_msg;
+    APPL_TRACE_API0 ("BTA_DmSetServiceData Entry");
+    tBTA_BLE_ADV_DATA *p_adv_input=(tBTA_BLE_ADV_DATA*)GKI_getbuf(sizeof(tBTA_BLE_ADV_DATA));
+    if(p_adv_input == NULL)
+    {
+        APPL_TRACE_ERROR0("BTA_DmSetServiceData Buffer could not be allocated");
+        return;
+    }
+    p_adv_input->service_data.len = len;
+    p_adv_input->service_data.p_val = p_buff;
+
+    if ((p_msg = (tBTA_DM_API_SET_ADV_CONFIG *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_SERVICEDATA_EVT;
+        p_msg->data_mask = BTM_BLE_AD_BIT_SERVICE_DATA;
+        p_msg->p_adv_cfg = p_adv_input;
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
+
+
 /*******************************************************************************
 **
 ** Function         BTA_DmSetScanParam
@@ -1565,7 +1752,7 @@ void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv
     if ((p_msg = (tBTA_DM_API_SET_ADV_CONFIG *) GKI_getbuf(sizeof(tBTA_DM_API_SET_ADV_CONFIG))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BLE_SET_ADV_CONFIG_EVT;
-		p_msg->data_mask = data_mask;
+        p_msg->data_mask = data_mask;
         p_msg->p_adv_cfg = p_adv_cfg;
 
         bta_sys_sendmsg(p_msg);

@@ -464,7 +464,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     val_size = sizeof(val);
     if (btif_config_get_str("Local", "Adapter", "Address", val, &val_size))
     {
-        if (strcmp(bdstr, val) ==0)
+        if (strcmp(bdstr, val) == 0)
         {
             // BDA is already present in the config file.
             return;
@@ -1311,6 +1311,7 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
     int storage_req_id = BTIF_CORE_STORAGE_NOTIFY_STATUS; /* default */
     char bd_name[BTM_MAX_LOC_BD_NAME_LEN +1];
     UINT16  name_len = 0;
+    BOOLEAN adv_directed = FALSE;
 
     BTIF_TRACE_EVENT3("btif_set_adapter_property type: %d, len %d, 0x%x",
                       property->type, property->len, property->val);
@@ -1374,6 +1375,49 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
                     return BT_STATUS_SUCCESS;
                 }
                 BTA_DmSetVisibility(disc_mode, conn_mode, BTA_DM_IGNORE, BTA_DM_IGNORE);
+
+                storage_req_id = BTIF_CORE_STORAGE_ADAPTER_WRITE;
+            }
+            break;
+
+        case BT_PROPERTY_ADAPTER_BLE_ADV_MODE:
+            {
+                bt_ble_adv_mode_t mode = *(bt_scan_mode_t*)property->val;
+                tBTA_DM_DISC disc_mode;
+                tBTA_DM_CONN conn_mode;
+
+                switch(mode)
+                {
+                    case BLE_ADV_MODE_NONE:
+                        disc_mode = BTA_DM_BLE_NON_DISCOVERABLE;
+                        conn_mode = BTA_DM_BLE_NON_CONNECTABLE;
+                        break;
+
+                    case BLE_ADV_IND_GENERAL_CONNECTABLE:
+                        disc_mode = BTA_DM_BLE_GENERAL_DISCOVERABLE;
+                        conn_mode = BTA_DM_BLE_CONNECTABLE;
+                        adv_directed = FALSE;
+                        break;
+
+                    case BLE_ADV_IND_LIMITED_CONNECTABLE:
+                        disc_mode = BTA_DM_BLE_LIMITED_DISCOVERABLE;
+                        conn_mode = BTA_DM_BLE_CONNECTABLE;
+                        adv_directed = FALSE;
+                        break;
+
+                    case BLE_ADV_DIR_CONNECTABLE:
+                        disc_mode = BTA_DM_BLE_GENERAL_DISCOVERABLE;
+                        conn_mode = BTA_DM_BLE_CONNECTABLE;
+                        adv_directed = TRUE;
+                        break;
+                    default:
+                        BTIF_TRACE_ERROR1("invalid scan mode (0x%x)", mode);
+                        return BT_STATUS_PARM_INVALID;
+                }
+
+                BTIF_TRACE_EVENT4("set property adv mode : %x, disc mode: %x, conn mode: 0x%x, adv_directed=%d", mode, disc_mode, conn_mode, adv_directed);
+
+                BTA_DmSetBLEVisibility(disc_mode,conn_mode,adv_directed);
 
                 storage_req_id = BTIF_CORE_STORAGE_ADAPTER_WRITE;
             }
@@ -1494,6 +1538,134 @@ bt_status_t btif_set_remote_device_property(bt_bdaddr_t *remote_addr,
                                  (char*)&req,
                                  sizeof(btif_storage_req_t)+property->len,
                                  btif_in_storage_request_copy_cb);
+}
+
+
+/*******************************************************************************
+**
+** Function         btif_set_le_adv_params
+**
+** Description      Sets the LE adv properties namely
+**                  min interval, max interval,
+**                  and direct addr and type for directed advertisement
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_set_le_adv_params( uint16_t int_min, uint16_t int_max, const bt_bdaddr_t *bd_addr,
+                                    uint8_t addr_type)
+{
+    btif_storage_req_t req;
+    BD_ADDR temp_addr;
+    if (!btif_is_enabled())
+        return BT_STATUS_NOT_READY;
+
+    bdcpy(temp_addr,bd_addr->address);
+    if(bd_addr == NULL)
+    {
+        bdcpy(temp_addr, bd_addr_null);
+    }
+    BTIF_TRACE_EVENT4("btif_set_le_adv_params min_int: %d, max_int: %d, addr_type=%d, bdaddr first byte: 0x%0x",
+                      int_min, int_max, addr_type, temp_addr[0]);
+    BTA_DmSetAdvParams(int_min,int_max,temp_addr,addr_type);
+
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_set_le_adv_data_mask
+**
+** Description      Sets the LE adv data mask for
+**                  including in the adv: services, bdName, Tx Power
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_set_le_adv_data_mask(uint16_t dmask)
+{
+    if (!btif_is_enabled())
+        return BT_STATUS_NOT_READY;
+
+    BTIF_TRACE_EVENT1("btif_set_le_adv_data_mask dataMask: %d",dmask);
+
+    BTA_DmSetBLEAdvMask(dmask);
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_set_le_scan_resp_mask
+**
+** Description      Sets the LE scan resp mask for
+**                  including in the adv: services, bdName, Tx Power
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_set_le_scan_resp_mask(uint16_t dmask)
+{
+    if (!btif_is_enabled())
+        return BT_STATUS_NOT_READY;
+
+    BTIF_TRACE_EVENT1("btif_set_le_scan_resp_mask dataMask: %d",dmask);
+
+    BTA_DmSetBLEScanRespMask(dmask);
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_set_le_manu_data
+**
+** Description      sets manufacturer specific data for
+**                  adv data and scan resp data
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_set_le_manu_data(uint8_t *p_buff, uint8_t len)
+{
+    int count = 0;
+    if (!btif_is_enabled())
+        return BT_STATUS_NOT_READY;
+
+    BTIF_TRACE_EVENT1("btif_set_le_manu_data of length: %d", len);
+    while(count < len)
+    {
+        BTIF_TRACE_EVENT2("Manu Data Byte No %d is 0x%x", count, *(p_buff+count));
+        count++;
+    }
+
+    BTA_DmSetManuData(p_buff, len);
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_set_le_service_data
+**
+** Description      sets service data for
+**                  adv data and scan resp data
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_set_le_service_data(uint8_t *p_buff, uint8_t len)
+{
+    int count = 0;
+    if (!btif_is_enabled())
+        return BT_STATUS_NOT_READY;
+
+    BTIF_TRACE_EVENT1("btif_set_le_service_data of length: %d", len);
+    while(count < len)
+    {
+        BTIF_TRACE_EVENT2("Service Data Byte No %d is 0x%x", count, *(p_buff+count));
+        count++;
+    }
+
+    BTA_DmSetServiceData(p_buff, len);
+    return BT_STATUS_SUCCESS;
 }
 
 

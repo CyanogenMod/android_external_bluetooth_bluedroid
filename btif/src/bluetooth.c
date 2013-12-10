@@ -41,6 +41,7 @@
 #include <hardware/bt_mce.h>
 #include <hardware/bt_gatt.h>
 #include <hardware/bt_rc.h>
+#include <hardware/wipower.h>
 
 #define LOG_NDDEBUG 0
 #define LOG_TAG "bluedroid"
@@ -140,6 +141,8 @@ extern btmce_interface_t *btif_mce_get_interface();
 extern btgatt_interface_t *btif_gatt_get_interface();
 /* avrc */
 extern btrc_interface_t *btif_rc_get_interface();
+/*wipower*/
+extern wipower_interface_t *get_wipower_interface();
 
 #if TEST_APP_INTERFACE == TRUE
 extern const btl2cap_interface_t *btif_l2cap_get_interface(void);
@@ -193,6 +196,7 @@ static int initq(bt_callbacks_t* callbacks)
     ALOGI("initq");
     if(interface_ready()==FALSE)
         return BT_STATUS_NOT_READY; //halbacks have not been initialized for the interface yet, by the adapterservice
+    bt_hal_cbacks->le_adv_enable_cb              = callbacks->le_adv_enable_cb;
     bt_hal_cbacks->le_extended_scan_result_cb    = callbacks->le_extended_scan_result_cb;
     bt_hal_cbacks->le_lpp_write_rssi_thresh_cb   = callbacks->le_lpp_write_rssi_thresh_cb;
     bt_hal_cbacks->le_lpp_read_rssi_thresh_cb    = callbacks->le_lpp_read_rssi_thresh_cb;
@@ -416,6 +420,10 @@ static const void* get_profile_interface (const char *profile_id)
     if (is_profile(profile_id, BT_PROFILE_AV_RC_ID))
         return btif_rc_get_interface();
 
+    if (is_profile(profile_id, WIPOWER_PROFILE_ID))
+        return get_wipower_interface();
+
+
     return NULL;
 }
 #if TEST_APP_INTERFACE == TRUE
@@ -487,6 +495,42 @@ int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len)
 
     return btif_le_test_mode(opcode, buf, len);
 }
+static int le_set_adv_params(uint16_t int_min, uint16_t int_max, const bt_bdaddr_t *bd_addr, uint8_t ad_type)
+{
+    ALOGI("le_set_adv_params called");
+
+    return btif_set_le_adv_params(int_min, int_max, bd_addr, ad_type);
+}
+
+static int le_set_adv_data_mask(uint16_t dMask)
+{
+    ALOGI("le_set_adv_data_mask called");
+
+    return btif_set_le_adv_data_mask(dMask);
+}
+
+static int le_set_scan_resp_mask(uint16_t dMask)
+{
+    ALOGI("le_set_scan_resp_mask called");
+
+    return btif_set_le_scan_resp_mask(dMask);
+}
+
+static int le_set_manu_data(uint8_t *buf, uint8_t len)
+{
+    ALOGI("le_set_manu_data called");
+
+    return btif_set_le_manu_data(buf, len);
+}
+
+static int le_set_service_data(uint8_t *buf, uint8_t len)
+{
+    ALOGI("le_set_wipower_data called");
+
+    return btif_set_le_service_data(buf, len);
+}
+
+
 #endif
 
 int config_hci_snoop_log(uint8_t enable)
@@ -815,7 +859,17 @@ static const bt_interface_t bluetoothInterface = {
 #endif
 #if BLE_INCLUDED == TRUE
     le_test_mode,
+    le_set_adv_params,
+    le_set_adv_data_mask,
+    le_set_scan_resp_mask,
+    le_set_manu_data,
+    le_set_service_data,
 #else
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
     NULL,
 #endif
     config_hci_snoop_log,
@@ -824,7 +878,7 @@ static const bt_interface_t bluetoothInterface = {
     bt_le_lpp_enable_rssi_monitor,
     bt_le_lpp_read_rssi_threshold,
 #if TEST_APP_INTERFACE == TRUE
-    get_testapp_interface
+    get_testapp_interface,
 #else
     NULL
 #endif

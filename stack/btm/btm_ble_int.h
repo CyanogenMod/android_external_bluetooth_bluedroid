@@ -132,9 +132,11 @@ typedef struct
 
     tBTM_BLE_LOCAL_ADV_DATA   adv_data;
     tBTM_BLE_ADV_CHNL_MAP     adv_chnl_map;
+    tBTM_BLE_ADV_DATA         adv_data_input; /* input by the user to be used to create the tBTM_BLE_LOCAL_ADV_DATA*/
 
     TIMER_LIST_ENT   inq_timer_ent;
     BOOLEAN          scan_rsp;
+    UINT16           scanResp_mask;
     UINT8            state;             /* Current state that the inquiry process is in */
     INT8             tx_power;
 } tBTM_BLE_INQ_CB;
@@ -243,6 +245,7 @@ typedef struct
 #ifdef BTM_BLE_PC_ADV_TEST_MODE
     tBTM_BLE_SCAN_REQ_CBACK *p_scan_req_cback;
 #endif
+    tBTM_BLE_ADV_ENABLE_CBACK *p_adv_enable_cback;
 
 } tBTM_BLE_CB;
 

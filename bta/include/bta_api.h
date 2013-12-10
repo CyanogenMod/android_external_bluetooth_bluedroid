@@ -215,7 +215,7 @@ typedef UINT16 tBTA_DM_CONN;
 #define BTA_DM_CONN_PAIRED      1
 
 /* Inquiry Modes */
-#define BTA_DM_INQUIRY_NONE		BTM_INQUIRY_NONE            /*No BR inquiry. */
+#define BTA_DM_INQUIRY_NONE     BTM_INQUIRY_NONE            /*No BR inquiry. */
 #define BTA_DM_GENERAL_INQUIRY  BTM_GENERAL_INQUIRY         /* Perform general inquiry. */
 #define BTA_DM_LIMITED_INQUIRY  BTM_LIMITED_INQUIRY         /* Perform limited inquiry. */
 
@@ -327,7 +327,7 @@ typedef struct
 #define BTA_BLE_AD_BIT_INT_RANGE       BTM_BLE_AD_BIT_INT_RANGE
 #define BTA_BLE_AD_BIT_SERVICE         BTM_BLE_AD_BIT_SERVICE
 #define BTA_BLE_AD_BIT_APPEARANCE      BTM_BLE_AD_BIT_APPEARANCE
-#define BTA_BLE_AD_BIT_PROPRIETARY     BTM_BLE_AD_BIT_PROPRIETARY
+#define BTA_BLE_AD_BIT_VS_DATA         BTM_BLE_AD_BIT_VS_DATA
 #define BTA_DM_BLE_AD_BIT_SERVICE_SOL     BTM_BLE_AD_BIT_SERVICE_SOL
 #define BTA_DM_BLE_AD_BIT_SERVICE_DATA    BTM_BLE_AD_BIT_SERVICE_DATA
 #define BTA_DM_BLE_AD_BIT_SIGN_DATA       BTM_BLE_AD_BIT_SIGN_DATA
@@ -367,21 +367,22 @@ typedef struct
     UINT8       *p_val;     /* number of len byte */
 }tBTA_BLE_PROP_ELEM;
 
-/* vendor proprietary adv type */
+/* vendor data  adv type */
 typedef struct
 {
     UINT8                   num_elem;
     tBTA_BLE_PROP_ELEM      *p_elem;
-}tBTA_BLE_PROPRIETARY;
+}tBTA_BLE_VS_DATA;
 
 typedef struct
 {
-    tBTA_BLE_MANU			manu;			/* manufactuer data */
-    tBTA_BLE_INT_RANGE		int_range;      /* slave prefered conn interval range */
-    tBTA_BLE_SERVICE		services;       /* services */
-	UINT16					appearance;		/* appearance data */
-    UINT8					flag;
-    tBTA_BLE_PROPRIETARY    *p_proprietary;
+    tBTA_BLE_MANU           service_data;    /* service data */
+    tBTA_BLE_MANU           manu;            /* manufactuer data */
+    tBTA_BLE_INT_RANGE      int_range;       /* slave prefered conn interval range */
+    tBTA_BLE_SERVICE        services;        /* services */
+    UINT16                  appearance;      /* appearance data */
+    UINT8                   flag;
+    tBTA_BLE_VS_DATA    *vs_data;
 
 }tBTA_BLE_ADV_DATA;
 
@@ -407,10 +408,10 @@ typedef struct
 #define BTA_BLE_RSSI_ALERT_LO        2
 typedef UINT8 tBTA_DM_BLE_RSSI_ALERT_TYPE;
 
-#define BTA_BLE_RSSI_ALERT_NONE		    BTM_BLE_RSSI_ALERT_NONE		/*	(0) */
-#define BTA_BLE_RSSI_ALERT_HI_BIT		BTM_BLE_RSSI_ALERT_HI_BIT		/*	(1) */
-#define BTA_BLE_RSSI_ALERT_RANGE_BIT	BTM_BLE_RSSI_ALERT_RANGE_BIT	/*	(1 << 1) */
-#define BTA_BLE_RSSI_ALERT_LO_BIT		BTM_BLE_RSSI_ALERT_LO_BIT		/*	(1 << 2) */
+#define BTA_BLE_RSSI_ALERT_NONE         BTM_BLE_RSSI_ALERT_NONE       /* (0) */
+#define BTA_BLE_RSSI_ALERT_HI_BIT       BTM_BLE_RSSI_ALERT_HI_BIT     /* (1) */
+#define BTA_BLE_RSSI_ALERT_RANGE_BIT    BTM_BLE_RSSI_ALERT_RANGE_BIT  /* (1 << 1) */
+#define BTA_BLE_RSSI_ALERT_LO_BIT       BTM_BLE_RSSI_ALERT_LO_BIT     /* (1 << 2) */
 typedef UINT8     tBTA_DM_BLE_RSSI_ALERT_MASK;
 
 
@@ -514,7 +515,8 @@ typedef UINT8 tBTA_SIG_STRENGTH_MASK;
 // btla-specific --
 #define BTA_DM_DEV_UNPAIRED_EVT         23
 #define BTA_DM_HW_ERROR_EVT             24      /* BT Chip H/W error */
-#define BTA_DM_REM_NAME_EVT             25      /* Remote name event */
+#define BTA_DM_BLE_ADV_ENABLE_EVT       25      /*BLE adv enable/diable callback event*/
+#define BTA_DM_REM_NAME_EVT             26      /* Remote name event */
 typedef UINT8 tBTA_DM_SEC_EVT;
 
 /* Structure associated with BTA_DM_ENABLE_EVT */
@@ -796,6 +798,14 @@ typedef struct
     tBTA_STATUS     result;    /* TRUE of bond cancel succeeded, FALSE if failed. */
 } tBTA_DM_BOND_CANCEL_CMPL;
 
+/*structure associated with adv enable*/
+typedef struct
+{
+    UINT8          advEnable;          /*adv enable/disable 1/0 */
+    UINT8          advType;             /*HCI command result*/
+    UINT8          isLimited;           /*Limited or General discoverability*/
+} tBTA_DM_ADV_ENABLE_CMPL;
+
 /* Union of all security callback structures */
 typedef union
 {
@@ -818,6 +828,7 @@ typedef union
     tBTA_DM_BLE_KEY      ble_key;        /* BLE SMP keys used when pairing */
     tBTA_BLE_LOCAL_ID_KEYS  ble_id_keys;  /* IR event */
     BT_OCTET16              ble_er;       /* ER event data */
+    tBTA_DM_ADV_ENABLE_CMPL adv_enable;   /*adv enable / disable*/
 } tBTA_DM_SEC;
 
 /* Security callback */
@@ -1129,6 +1140,83 @@ BTA_API extern void BTA_DmSetDeviceName(char *p_name);
 **
 *******************************************************************************/
 BTA_API extern void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 pairable_mode, UINT8 conn_filter);
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetBLEVisibility
+**
+** Description      This function sets the Bluetooth LE connectable,discoverable modes
+                     of local device
+**                  This controls whether other Bluetooth devices can find and connect to
+**                  the local device.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmSetBLEVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode,  BOOLEAN is_directed);
+
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetBLEAdvMask
+**
+** Description      This function set the LE adv data mask
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmSetBLEAdvMask(UINT16 datamask);
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetBLEAdvMask
+**
+** Description      This function set the LE adv data mask
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmSetBLEScanRespMask(UINT16 datamask);
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetAdvParams
+**
+** Description      This function sets the Bluetooth LE adv params
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+
+BTA_API extern void BTA_DmSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max, BD_ADDR bd_addr ,tBLE_ADDR_TYPE addr_type);
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetManuData
+**
+** Description      This function sets the manufacturer specific data
+**                       for adv data and scan resp data
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmSetManuData(UINT8 *p_buff, UINT8 len);
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetServiceData
+**
+** Description      This function sets the service data
+**                       for adv data and scan resp data
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmSetServiceData(UINT8 *p_buff, UINT8 len);
 
 /*******************************************************************************
 **
@@ -1571,7 +1659,7 @@ BTA_API extern BOOLEAN BTA_DmUseSsr( BD_ADDR bd_addr );
 **
 *******************************************************************************/
 BTA_API extern tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info,
-	                          UINT32 *p_handle );
+                              UINT32 *p_handle );
 
 /*******************************************************************************
 **
@@ -1585,7 +1673,7 @@ BTA_API extern tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info
 **
 *******************************************************************************/
 BTA_API extern tBTA_STATUS BTA_DmGetLocalDiRecord( tBTA_DI_GET_RECORD *p_device_info,
-	                          UINT32 *p_handle );
+                          UINT32 *p_handle );
 
 /*******************************************************************************
 **
