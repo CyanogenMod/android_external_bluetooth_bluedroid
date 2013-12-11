@@ -419,6 +419,11 @@ void bta_hh_co_send_hid_info(btif_hh_device_t *p_dev, char *dev_name, UINT16 ven
     memset(&ev, 0, sizeof(ev));
     ev.type = UHID_CREATE;
     strncpy((char*)ev.u.create.name, dev_name, sizeof(ev.u.create.name) - 1);
+    snprintf((char*)ev.u.create.uniq, sizeof(ev.u.create.uniq),
+             "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
+             p_dev->bd_addr.address[5], p_dev->bd_addr.address[4],
+             p_dev->bd_addr.address[3], p_dev->bd_addr.address[2],
+             p_dev->bd_addr.address[1], p_dev->bd_addr.address[0]);
     ev.u.create.rd_size = dscp_len;
     ev.u.create.rd_data = p_dscp;
     ev.u.create.bus = BUS_BLUETOOTH;
