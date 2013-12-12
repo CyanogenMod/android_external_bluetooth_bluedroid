@@ -1149,6 +1149,58 @@ bt_status_t btif_get_adapter_properties(void)
                                  BTIF_CORE_STORAGE_ADAPTER_READ_ALL,
                                  NULL, 0, NULL);
 }
+/*******************************************************************************
+**
+** Function         system_power_manager_wake
+**
+** Description      to Aquire or release the wake lock
+**
+** Returns          void
+**
+*******************************************************************************/
+
+static void system_power_manager_wake(UINT16 event, char *p_param)
+{
+
+    BTIF_TRACE_EVENT3("%s : %d param %ld", __FUNCTION__, event, *(UINT32 *)p_param);
+
+    switch(event)
+    {
+        case BTIF_DM_SYSTEM_WAKE:
+        {
+             if(*(UINT32 *)p_param) {
+                 HAL_CBACK(bt_hal_cbacks, wake_state_changed_cb, BT_STATE_ON);
+             } else {
+                 HAL_CBACK(bt_hal_cbacks, wake_state_changed_cb, BT_STATE_OFF);
+             }
+        } break;
+
+        default:
+            BTIF_TRACE_ERROR2("%s invalid event id (%d)", __FUNCTION__, event);
+            break;
+    }
+}
+/*******************************************************************************
+**
+** Function         btu_hcif_wake_event
+**
+** Description      to Aquire or release the wake lock
+**
+** Returns          int
+**
+*******************************************************************************/
+
+int  btu_hcif_wake_event(UINT32 state)
+{
+    BTIF_TRACE_EVENT2("%s, state : %ld", __FUNCTION__, state);
+
+    if (!btif_is_enabled())
+       return BT_STATUS_NOT_READY;
+
+    return btif_transfer_context(system_power_manager_wake,
+                                 BTIF_DM_SYSTEM_WAKE,
+                                 (char*)&state, sizeof(UINT32), NULL);
+}
 
 /*******************************************************************************
 **
