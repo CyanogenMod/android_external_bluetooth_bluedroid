@@ -199,6 +199,208 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
     return status;
 }
 
+static void ad_white_list_hci_cmd_complete(void *p_data)
+{
+    tBTM_VSC_CMPL *event = (tBTM_VSC_CMPL*)p_data;
+    UINT16 opcode;
+    UINT8 *stream, status, subcmd;
+    BTM_TRACE_EVENT0("ad_white_list_hci_cmd_complete enter");
+    if(event && (stream = (UINT8*)event->p_param_buf))
+    {
+        opcode = event->opcode;
+        STREAM_TO_UINT8(status, stream);
+        STREAM_TO_UINT8(subcmd, stream);
+        BTM_TRACE_EVENT4("%s: opcode: 0x%4x, status: 0x%2x, subcommand: 0x%2x", __FUNCTION__, opcode, status, subcmd);
+        switch(subcmd)
+        {
+        case AD_WHITE_LIST_SUBCMD_READ_SIZE:
+            BTM_TRACE_EVENT0("Read AD White List Size complete");
+            if(HCI_SUCCESS == status)
+            {
+                STREAM_TO_UINT8(btm_cb.ble_ctr_cb.max_filter_entries_AD, stream);
+                btm_cb.ble_ctr_cb.num_empty_filter_AD = btm_cb.ble_ctr_cb.max_filter_entries_AD;
+                BTM_TRACE_EVENT1("AD White List Size: 0x%2x", btm_cb.ble_ctr_cb.max_filter_entries_AD);
+            }
+            break;
+        case AD_WHITE_LIST_SUBCMD_CLEAR:
+            BTM_TRACE_EVENT0("Clear AD White List complete");
+            if(HCI_SUCCESS == status)
+            {
+                btm_cb.ble_ctr_cb.num_empty_filter_AD = btm_cb.ble_ctr_cb.max_filter_entries_AD;
+            }
+            break;
+        case AD_WHITE_LIST_SUBCMD_ADD:
+            BTM_TRACE_EVENT0("Add filter into AD White List complete");
+            if(HCI_SUCCESS == status)
+            {
+                btm_cb.ble_ctr_cb.num_empty_filter_AD--;
+                BTM_TRACE_EVENT1("Available AD White List entries: 0x%2x", btm_cb.ble_ctr_cb.num_empty_filter_AD);
+            }
+            break;
+        case AD_WHITE_LIST_SUBCMD_REMOVE:
+            BTM_TRACE_EVENT0("Remove filter from AD White List complete");
+            if(HCI_SUCCESS == status)
+            {
+                btm_cb.ble_ctr_cb.num_empty_filter_AD++;
+                BTM_TRACE_EVENT1("Available AD White List entries: 0x%2x", btm_cb.ble_ctr_cb.num_empty_filter_AD);
+            }
+            break;
+        default:
+            BTM_TRACE_EVENT0("AD Whitelist invalid event");
+            break;
+        }
+    }
+    BTM_TRACE_EVENT0("ad_white_list_hci_cmd_complete exit");
+}
+
+tBTM_STATUS BTM_BleObserve_With_Filter(BOOLEAN start, UINT8 duration, tBTA_DM_BLE_SCAN_FILTER filters[], int entries,
+                                                      tBTM_BLE_SFP scan_policy, tBTM_INQ_RESULTS_CB *p_results_cb, tBTM_CMPL_CB *p_cmpl_cb)
+{
+    tBTM_STATUS status = BTM_NO_RESOURCES;
+    /* scan_window:0x0B40*0.625ms = 1.8s, scan_interval:0x4000*0.625ms = 10.24s */
+    UINT16 scan_window = 0x0B40, scan_interval = 0x4000;
+    tBTM_BLE_INQ_CB *p_inq = &btm_cb.ble_ctr_cb.inq_var;
+
+    BTM_TRACE_EVENT1("BTM_BleObserve_With_Filter start: %d enter\n", start);
+
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return BTM_ILLEGAL_VALUE;
+
+    if (start)
+    {
+        int i = 0;
+
+        /* shared inquiry database, do not allow observe if any inquiry is active */
+        if (btm_cb.btm_inq_vars.inq_active || p_inq->proc_mode != BTM_BLE_INQUIRY_NONE)
+            return BTM_BUSY;
+
+        btm_cb.btm_inq_vars.p_inq_results_cb = p_results_cb;
+        btm_cb.btm_inq_vars.p_inq_cmpl_cb = p_cmpl_cb;
+        p_inq->scan_type = (p_inq->scan_type == BTM_BLE_SCAN_MODE_NONE) ? BTM_BLE_SCAN_MODE_ACTI: p_inq->scan_type;
+
+        /* clear white list and AD white list*/
+        BTM_TRACE_EVENT1("%s: Clear white list and AD white list", __FUNCTION__);
+        btsnd_hcic_ble_clear_white_list();
+        BTM_Clear_AD_White_List(ad_white_list_hci_cmd_complete);
+
+        /* add white list and/or AD white list*/
+        BTM_TRACE_EVENT1("%s: Add service or address filters", __FUNCTION__);
+        for (i = 0; i < entries; i++)
+        {
+            if (ADV_DATA_FILTER == filters[i].type)
+            {
+                BTM_Add_2_AD_White_List(filters[i].filter.ad_data.adtype, filters[i].filter.ad_data.len - 1,
+                                        (UINT8*)filters[i].filter.ad_data.content, ad_white_list_hci_cmd_complete);
+            }
+            else if (DEV_ADDR_FILTER == filters[i].type)
+            {
+                btsnd_hcic_ble_add_white_list(filters[i].filter.addr.addr_type, filters[i].filter.addr.address);
+            }
+        }
+
+        /* allow config scanning type */
+        BTM_TRACE_EVENT1("%s: set scan params", __FUNCTION__);
+        if (btsnd_hcic_ble_set_scan_params (p_inq->scan_type, scan_interval, scan_window, BLE_ADDR_PUBLIC, scan_policy))
+        {
+            /* start scan, disable duplicate filtering */
+            BTM_TRACE_EVENT1("%s: enable scan", __FUNCTION__);
+            if (btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_ENABLE, BTM_BLE_DUPLICATE_DISABLE))
+            {
+                status = BTM_SUCCESS;
+                p_inq->proc_mode = BTM_BLE_OBSERVE;
+                btm_cb.btm_inq_vars.inq_active |= BTM_LE_OBSERVE_ACTIVE;
+
+                if (duration != 0)
+                {
+                    /* start inquiry timer */
+                    btu_start_timer (&p_inq->inq_timer_ent, BTU_TTYPE_BLE_INQUIRY, duration);
+                }
+            }
+        }
+    }
+    else if (p_inq->proc_mode == BTM_BLE_OBSERVE)
+    {
+        btm_cb.btm_inq_vars.inq_active &= ~BTM_LE_OBSERVE_ACTIVE;
+        btm_ble_stop_scan();
+    }
+
+    BTM_TRACE_EVENT0 ("BTM_BleObserve_With_Filter exit\n");
+    return status;
+}
+
+tBTM_STATUS BTM_Read_AD_White_List_Size (void *cmpl_callback)
+{
+    void *pbuf = 0;
+    UINT16 opcode = 0x03ff;
+    UINT8  subcmd = AD_WHITE_LIST_SUBCMD_READ_SIZE;
+    UINT8 parasize = 0x01;
+    if ((pbuf = HCI_GET_CMD_BUF(sizeof(void*) + parasize)) == NULL)
+        return (FALSE);
+    btsnd_hcic_vendor_spec_cmd(pbuf, opcode, parasize, &subcmd, cmpl_callback);
+    return (TRUE);
+}
+
+BOOLEAN BTM_Clear_AD_White_List (void *cmpl_callback)
+{
+    void *pbuf = 0;
+    UINT16 opcode = 0x03ff;
+    UINT8  subcmd = AD_WHITE_LIST_SUBCMD_CLEAR;
+    UINT8 parasize = 0x01;
+    if ((pbuf = HCI_GET_CMD_BUF(sizeof(void*) + parasize)) == NULL)
+        return (FALSE);
+    btsnd_hcic_vendor_spec_cmd(pbuf, opcode, parasize, &subcmd, cmpl_callback);
+    return (TRUE);
+}
+
+BOOLEAN BTM_Add_2_AD_White_List (UINT8 ad_type, UINT8 data_len, UINT8 *ad_content, void *cmpl_callback)
+{
+    void *pbuf = 0;
+    int i = 0;
+    UINT8 *p, *asmdata = 0;  /*subcmd+data_len+ad_content*/
+    UINT16 opcode = 0x03ff;
+    UINT8  subcmd = AD_WHITE_LIST_SUBCMD_ADD, ad_type_len = 1;
+    UINT8 parasize = 3 + data_len; //3 here means subcommand (1 byte) + length (1 byte) + ad type (1 byte)
+    if ((asmdata = (UINT8*)malloc(parasize)) == NULL ||
+        (pbuf = HCI_GET_CMD_BUF(sizeof(void*) + parasize)) == NULL)
+    {
+        if(asmdata)
+            free(asmdata);
+        return (FALSE);
+    }
+    p = asmdata;
+    *p++ = subcmd;
+    *p++ = ad_type_len + data_len;
+    *p++ = ad_type;
+    memcpy(p, ad_content, data_len);
+    btsnd_hcic_vendor_spec_cmd(pbuf, opcode, parasize, asmdata, cmpl_callback);
+    free(asmdata);
+    return (TRUE);
+}
+
+BOOLEAN BTM_Remove_From_AD_White_List(UINT8 ad_type, UINT8 data_len, UINT8 *ad_content, void *cmpl_callback)
+{
+    void *pbuf = 0;
+    UINT8 *p, *asmdata = 0;  /*subcmd+data_len+ad_content*/
+    UINT16 opcode = 0x03ff;
+    UINT8  subcmd = AD_WHITE_LIST_SUBCMD_REMOVE, ad_type_len = 1;
+    UINT8  parasize = 3 + data_len;
+    if ((asmdata = (UINT8*)malloc(parasize)) == NULL ||
+        (pbuf = HCI_GET_CMD_BUF(sizeof(void*) + parasize)) == NULL)
+    {
+        if(asmdata)
+            free(asmdata);
+        return (FALSE);
+    }
+    p = asmdata;
+    *p++ = subcmd;
+    *p++ = ad_type_len + data_len;
+    *p++ = ad_type;
+    memcpy(p, ad_content, data_len);
+    btsnd_hcic_vendor_spec_cmd(pbuf, opcode, parasize, asmdata, cmpl_callback);
+    free(asmdata);
+    return (TRUE);
+}
+
 /*******************************************************************************
 **
 ** Function         BTM_BleBroadcast
@@ -1566,8 +1768,13 @@ BOOLEAN btm_ble_update_inq_result(tINQ_DB_ENT *p_i, UINT8 addr_type, UINT8 evt_t
     if ((p_cur->flag & BTM_BLE_BREDR_NOT_SPT) == 0 &&
          evt_type != BTM_BLE_CONNECT_DIR_EVT)
     {
-        BTM_TRACE_DEBUG0("BR/EDR NOT support bit not set, treat as DUMO");
-        p_cur->device_type |= BT_DEVICE_TYPE_DUMO;
+        if (p_cur->ble_addr_type != BLE_ADDR_RANDOM)
+        {
+            BTM_TRACE_DEBUG0("BR/EDR NOT support bit not set, treat as DUMO");
+            p_cur->device_type |= BT_DEVICE_TYPE_DUMO;
+        } else {
+            BTM_TRACE_DEBUG0("Random address, treating device as LE only");
+        }
     }
     else
     {
@@ -1816,6 +2023,8 @@ void btm_ble_stop_scan(void)
     /* If we have a callback registered for inquiry complete, call it */
     BTM_TRACE_DEBUG2 ("BTM Inq Compl Callback: status 0x%02x, num results %d",
                       p_inq->inq_cmpl_info.status, p_inq->inq_cmpl_info.num_resp);
+
+    //BTM_Clear_AD_White_List(ad_white_list_hci_cmd_complete);
 
     btm_update_scanner_filter_policy(SP_ADV_ALL);
 

@@ -225,6 +225,8 @@ typedef struct
     /* white list information */
     UINT8                   num_empty_filter;      /* Number of entries in white list */
     UINT8                   max_filter_entries;    /* Maximum number of entries that can be stored */
+    UINT8                   num_empty_filter_AD;   /* Number of entries in AD-based white list*/
+    UINT8                   max_filter_entries_AD; /* Maximum number of entries for AD-based white list that can be stored*/
     tBTM_BLE_WL_STATE       wl_state;
     UINT8                   bg_dev_num;
     tBTM_LE_BG_CONN_DEV     bg_dev_list[BTM_BLE_MAX_BG_CONN_DEV_NUM];

@@ -370,6 +370,11 @@
 #define BTA_HOST_INTERLEAVE_SEARCH FALSE
 #endif
 
+/* This feature is used to skip query of ble read remote features*/
+#ifndef BTA_SKIP_BLE_READ_REMOTE_FEAT
+#define BTA_SKIP_BLE_READ_REMOTE_FEAT FALSE
+#endif
+
 #ifndef BT_TRACE_PROTOCOL
 #define BT_TRACE_PROTOCOL  TRUE
 #endif
@@ -1460,7 +1465,7 @@ and USER_HW_DISABLE_API macros */
 #endif
 
 #ifndef GATT_MAX_PHY_CHANNEL
-#define GATT_MAX_PHY_CHANNEL        4
+#define GATT_MAX_PHY_CHANNEL        7
 #endif
 
 /* Used for conformance testing ONLY */

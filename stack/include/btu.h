@@ -295,6 +295,7 @@ BTU_API extern void btu_check_bt_sleep (void);
 ************************************
 */
 BTU_API extern void  btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_buf);
+BTU_API extern int  btu_hcif_wake_event (UINT32 state);
 BTU_API extern void  btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_msg);
 BTU_API extern void  btu_hcif_send_host_rdy_for_data(void);
 BTU_API extern void  btu_hcif_cmd_timeout (UINT8 controller_id);

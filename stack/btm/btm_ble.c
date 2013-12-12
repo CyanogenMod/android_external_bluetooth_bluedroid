@@ -596,8 +596,10 @@ void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type, tBLE_ADDR
         {
             *p_dev_type = p_inq_info->results.device_type ;
             *p_addr_type = p_inq_info->results.ble_addr_type;
+        } else {
+            /* unknown device, assume BR/EDR */
+            BTM_TRACE_DEBUG0 ("btm_find_dev_type - unknown device, BR/EDR assumed");
         }
-        /* unknown device, assume BR/EDR */
     }
     else /* there is a security device record exisitng */
     {

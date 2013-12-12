@@ -103,6 +103,7 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/include \
                    $(LOCAL_PATH)/sys \
                    $(LOCAL_PATH)/dm \
+                   $(LOCAL_PATH)/hh \
                    $(LOCAL_PATH)/../gki/common \
                    $(LOCAL_PATH)/../gki/ulinux \
                    $(LOCAL_PATH)/../include \

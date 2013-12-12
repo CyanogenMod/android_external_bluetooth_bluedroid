@@ -2094,6 +2094,10 @@ void bta_dm_free_sdp_db (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_queue_search (tBTA_DM_MSG *p_data)
 {
+    if(bta_dm_search_cb.p_search_queue)
+    {
+        GKI_freebuf(bta_dm_search_cb.p_search_queue);
+    }
 
     bta_dm_search_cb.p_search_queue = (tBTA_DM_MSG *)GKI_getbuf(sizeof(tBTA_DM_API_SEARCH));
     memcpy(bta_dm_search_cb.p_search_queue, p_data, sizeof(tBTA_DM_API_SEARCH));
@@ -2111,6 +2115,10 @@ void bta_dm_queue_search (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_queue_disc (tBTA_DM_MSG *p_data)
 {
+    if(bta_dm_search_cb.p_search_queue)
+    {
+        GKI_freebuf(bta_dm_search_cb.p_search_queue);
+    }
 
     bta_dm_search_cb.p_search_queue = (tBTA_DM_MSG *)GKI_getbuf(sizeof(tBTA_DM_API_DISCOVER));
     memcpy(bta_dm_search_cb.p_search_queue, p_data, sizeof(tBTA_DM_API_DISCOVER));
@@ -4542,7 +4550,7 @@ void bta_dm_encrypt_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
             break;
     }
 
-    APPL_TRACE_DEBUG2("bta_dm_encrypt_cback status =%d p_callback=0x%x", bta_status, p_callback);
+    APPL_TRACE_DEBUG3("bta_dm_encrypt_cback status =%d result=0x%x p_callback=0x%x", bta_status, result, p_callback);
 
     if (p_callback)
     {
@@ -4567,13 +4575,6 @@ void bta_dm_set_encryption (tBTA_DM_MSG *p_data)
         APPL_TRACE_ERROR0("bta_dm_set_encryption callback is not provided");
         return;
     }
-
-    if (bta_dm_cb.p_encrypt_cback)
-    {
-        (*p_data->set_encryption.p_callback)(p_data->set_encryption.bd_addr, BTA_BUSY);
-        return;
-    }
-
 
     bta_dm_cb.p_encrypt_cback = p_data->set_encryption.p_callback;
     bta_dm_cb.sec_act         = p_data->set_encryption.sec_act;
@@ -5037,6 +5038,37 @@ void bta_dm_ble_observe (tBTA_DM_MSG *p_data)
         BTM_BleObserve(FALSE, 0, NULL,NULL );
     }
 }
+
+void bta_dm_ble_observe_with_filter(tBTA_DM_MSG *p_data)
+{
+    tBTM_STATUS status;
+    APPL_TRACE_API2("%s Parameter %p enter\n", __FUNCTION__, p_data);
+    if(p_data && p_data->ble_observe_with_filter.start)
+    {
+        /* save call back to report scan results */
+        bta_dm_search_cb.p_scan_cback = p_data->ble_observe_with_filter.p_cback;
+        if((status = BTM_BleObserve_With_Filter(TRUE, p_data->ble_observe_with_filter.duration, p_data->ble_observe_with_filter.filters,
+                                                 p_data->ble_observe_with_filter.filtercnt, p_data->ble_observe_with_filter.scan_policy,
+                                                 bta_dm_observe_results_cb, bta_dm_observe_cmpl_cb)) != BTM_SUCCESS)
+        {
+            tBTA_DM_SEARCH  data;
+            APPL_TRACE_WARNING2(" %s BTM_BleObserve_With_Filter  failed. status %d",__FUNCTION__,status);
+            data.inq_cmpl.num_resps = 0;
+            if (bta_dm_search_cb.p_scan_cback)
+            {
+                bta_dm_search_cb.p_scan_cback(BTA_DM_INQ_CMPL_EVT, &data);
+            }
+        }
+    }
+    else
+    {
+        bta_dm_search_cb.p_scan_cback = NULL;
+        BTM_BleObserve_With_Filter(FALSE, 0, 0, 0, 0, NULL, NULL);
+    }
+
+    APPL_TRACE_API2("%s Parameter %p exit\n", __FUNCTION__, p_data);
+}
+
 /*******************************************************************************
 **
 ** Function         bta_dm_ble_set_scan_params

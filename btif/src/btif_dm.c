@@ -306,6 +306,7 @@ BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod)
                                sizeof(uint32_t), &remote_cod);
     if (btif_storage_get_remote_device_property((bt_bdaddr_t *)remote_bdaddr, &prop_name) == BT_STATUS_SUCCESS)
     {
+        BTIF_TRACE_ERROR2("%s: remote_cod = 0x%06x", __FUNCTION__, remote_cod);
         if ((remote_cod & 0x7ff) == cod)
             return TRUE;
     }
@@ -324,6 +325,7 @@ BOOLEAN check_cod_hid(const bt_bdaddr_t *remote_bdaddr, uint32_t cod)
     if (btif_storage_get_remote_device_property((bt_bdaddr_t *)remote_bdaddr,
                                 &prop_name) == BT_STATUS_SUCCESS)
     {
+        BTIF_TRACE_DEBUG2("%s: remote_cod = 0x%06x", __FUNCTION__, remote_cod);
         if ((remote_cod & 0x700) == cod)
             return TRUE;
     }
@@ -371,7 +373,7 @@ static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond
         pairing_cb.state = state;
         bdcpy(pairing_cb.bd_addr, bd_addr->address);
     }
-    else
+    else if (bdcmp(pairing_cb.bd_addr, bd_addr->address) == 0)
     {
         memset(&pairing_cb, 0, sizeof(pairing_cb));
     }
@@ -438,9 +440,18 @@ static void btif_update_remote_properties(BD_ADDR bd_addr, BD_NAME bd_name,
 
     /* class of device */
     cod = devclass2uint(dev_class);
+    BTIF_TRACE_DEBUG2("%s():cod is 0x%06x", __FUNCTION__, cod);
     if ( cod == 0) {
-        BTIF_TRACE_DEBUG1("%s():cod is 0, set as unclassified", __FUNCTION__);
-        cod = COD_UNCLASSIFIED;
+       /* Try to retrieve cod from storage */
+        BTIF_TRACE_DEBUG1("%s():cod is 0, checking cod from storage", __FUNCTION__);
+        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+            BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod), &cod);
+        status = btif_storage_get_remote_device_property(&bdaddr, &properties[num_properties]);
+        BTIF_TRACE_DEBUG2("%s():cod retreived from storage is 0x%06x", __FUNCTION__, cod);
+        if ( cod == 0) {
+            BTIF_TRACE_DEBUG1("%s():cod is again 0, set as unclassified", __FUNCTION__);
+            cod = COD_UNCLASSIFIED;
+        }
     }
 
     BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
@@ -757,6 +768,13 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     bdcpy(bd_addr.address, p_pin_req->bd_addr);
     memcpy(bd_name.name, p_pin_req->bd_name, BD_NAME_LEN);
 
+    if (pairing_cb.state == BT_BOND_STATE_BONDING &&
+        bdcmp(bd_addr.address, pairing_cb.bd_addr) != 0) {
+        BTIF_TRACE_WARNING1("%s(): already in bonding state, reject request", __FUNCTION__);
+        btif_dm_pin_reply(&bd_addr, 0, 0, NULL);
+        return;
+    }
+
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
 
     cod = devclass2uint(p_pin_req->dev_class);
@@ -840,6 +858,13 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
 
     bdcpy(bd_addr.address, p_ssp_cfm_req->bd_addr);
     memcpy(bd_name.name, p_ssp_cfm_req->bd_name, BD_NAME_LEN);
+
+    if (pairing_cb.state == BT_BOND_STATE_BONDING &&
+        bdcmp(bd_addr.address, pairing_cb.bd_addr) != 0) {
+        BTIF_TRACE_WARNING1("%s(): already in bonding state, reject request", __FUNCTION__);
+        btif_dm_ssp_reply(&bd_addr, BT_SSP_VARIANT_PASSKEY_CONFIRMATION, 0, 0);
+        return;
+    }
 
     /* Set the pairing_cb based on the local & remote authentication requirements */
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
@@ -997,6 +1022,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
 
             /* map the auth failure codes, so we can retry pairing if necessary */
             case HCI_ERR_AUTH_FAILURE:
+                btif_storage_remove_bonded_device(&bd_addr);
             case HCI_ERR_HOST_REJECT_SECURITY:
             case HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE:
             case HCI_ERR_UNIT_KEY_USED:
@@ -1004,7 +1030,8 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             case HCI_ERR_INSUFFCIENT_SECURITY:
             case HCI_ERR_PEER_USER:
             case HCI_ERR_UNSPECIFIED:
-                BTIF_TRACE_DEBUG1(" %s() Authentication fail ", __FUNCTION__);
+                BTIF_TRACE_DEBUG2(" %s() Authentication fail reason %d",
+                    __FUNCTION__, p_auth_cmpl->fail_reason);
                 if (pairing_cb.autopair_attempts  == 1)
                 {
                     BTIF_TRACE_DEBUG1("%s(): Adding device to blacklist ", __FUNCTION__);
@@ -1297,8 +1324,6 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                 {
                     /* Store Device as bonded in nvram */
                     btif_storage_add_bonded_device(&bd_addr, NULL, 0, 0);
-                    /* Initiate HID connection for Pointing Devices */
-                    btif_hh_connect(&bd_addr);
                 }
                 if (check_cod_hid(&bd_addr, COD_HID_MAJOR) || hid_uuid_present)
                 {
@@ -1336,6 +1361,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                 bt_property_t prop;
                 bt_bdaddr_t bd_addr;
                 char temp[256];
+                bt_status_t ret;
 
                 bta_gatt_convert_uuid16_to_uuid128(uuid.uu,p_data->disc_ble_res.service.uu.uuid16);
 
@@ -1355,6 +1381,10 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                 prop.type = BT_PROPERTY_UUIDS;
                 prop.val = uuid.uu;
                 prop.len = MAX_UUID_SIZE;
+
+                /* Also write this to the NVRAM */
+                ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
+                ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed", ret);
 
                 /* Send the event to the BTIF */
                 HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,

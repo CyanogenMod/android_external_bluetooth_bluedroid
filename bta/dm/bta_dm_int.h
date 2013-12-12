@@ -100,6 +100,7 @@ enum
     BTA_DM_API_BLE_CONN_PARAM_EVT,
     BTA_DM_API_BLE_SCAN_PARAM_EVT,
     BTA_DM_API_BLE_OBSERVE_EVT,
+    BTA_DM_API_BLE_OBSERVE_FILTER_EVT,
     BTA_DM_API_BLE_ADV_PARAM_EVT,
     BTA_DM_API_BLE_SET_ADV_CONFIG_EVT,
 #endif
@@ -533,6 +534,18 @@ typedef struct
     tBTA_DM_SEARCH_CBACK * p_cback;
 }tBTA_DM_API_BLE_OBSERVE;
 
+/* start/stop scan with filter */
+typedef struct
+{
+    BT_HDR                 hdr;
+    BOOLEAN                start;
+    UINT8                  duration;
+    int                    filtercnt;
+    UINT8                  scan_policy;
+    tBTA_DM_SEARCH_CBACK * p_cback;
+    tBTA_DM_BLE_SCAN_FILTER filters[1];
+}tBTA_DM_API_BLE_OBSERVE_WITH_FILTER;
+
 /* set adv parameter for BLE advertising */
 typedef struct
 {
@@ -661,6 +674,7 @@ typedef union
     tBTA_DM_API_LOCAL_PRIVACY           ble_local_privacy;
     tBTA_DM_API_BLE_ADV_PARAMS          ble_set_adv_params;
     tBTA_DM_API_SET_ADV_CONFIG          ble_set_adv_data;
+    tBTA_DM_API_BLE_OBSERVE_WITH_FILTER ble_observe_with_filter;
 #endif
 
     tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT set_afh_channel_assessment;
@@ -1022,6 +1036,7 @@ extern void bta_dm_ble_set_conn_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_scan_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_close_gatt_conn(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_observe (tBTA_DM_MSG *p_data);
+extern void bta_dm_ble_observe_with_filter(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_adv_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data);
 
