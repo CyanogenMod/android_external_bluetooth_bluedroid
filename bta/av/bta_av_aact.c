@@ -194,7 +194,6 @@ static const UINT16 bta_av_stream_evt_fail[] = {
 };
 
 void bta_av_stream_data_cback(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp, UINT8 m_pt);
-
 static void bta_av_stream0_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p_data);
 static void bta_av_stream1_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p_data);
 #if BTA_AV_NUM_STRS > 2
@@ -228,15 +227,20 @@ tAVDT_CTRL_CBACK * const bta_av_dt_cback[] =
 #endif
 };
 /***********************************************
-**  Function        bta_get_scb_handle
-**  Description....gives the registered AVDT handle.by checking with sep_type.
+**
+** Function         bta_get_scb_handle
+**
+** Description      gives the registered AVDT handle.by checking with sep_type.
+**
+**
+** Returns          void
 ***********************************************/
 UINT8  bta_av_get_scb_handle ( tBTA_AV_SCB *p_scb, UINT8 t_local_sep )
 {
     UINT8 xx =0;
     for (xx = 0; xx<BTA_AV_MAX_SEPS; xx++)
     {
-        if(p_scb->seps[xx].tsep == t_local_sep)
+        if (p_scb->seps[xx].tsep == t_local_sep)
             return (p_scb->seps[xx].av_handle);
     }
     APPL_TRACE_DEBUG0(" bta_av_get_scb_handle appropiate sep_type not found")
@@ -244,15 +248,20 @@ UINT8  bta_av_get_scb_handle ( tBTA_AV_SCB *p_scb, UINT8 t_local_sep )
 }
 
 /***********************************************
-**  Function        bta_av_get_scb_sep_type
-**  Description....gives the sep type by cross-checking with AVDT handle.
+**
+** Function         bta_av_get_scb_sep_type
+**
+** Description      gives the sep type by cross-checking with AVDT handle
+**
+**
+** Returns          void
 ***********************************************/
 UINT8  bta_av_get_scb_sep_type ( tBTA_AV_SCB *p_scb, UINT8 tavdt_handle)
 {
     UINT8 xx =0;
     for (xx = 0; xx<BTA_AV_MAX_SEPS; xx++)
     {
-        if(p_scb->seps[xx].av_handle == tavdt_handle)
+        if (p_scb->seps[xx].av_handle == tavdt_handle)
             return (p_scb->seps[xx].tsep);
     }
     APPL_TRACE_DEBUG0(" bta_av_get_scb_sep_type appropiate handle not found")
@@ -570,9 +579,7 @@ void bta_av_stream_data_cback(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp, UI
     p_pkt->event = BTA_AV_MEDIA_DATA_EVT;
     p_scb->seps[p_scb->sep_idx].p_app_data_cback(BTA_AV_MEDIA_DATA_EVT, (tBTA_AV_MEDIA*)p_pkt);
     GKI_freebuf(p_pkt);  /* a copy of packet had been delivered, we free this buffer */
-
 }
-
 
 /*******************************************************************************
 **
@@ -672,7 +679,6 @@ static void bta_av_stream5_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAV
 }
 #endif
 
-
 /*******************************************************************************
 **
 ** Function         bta_av_a2d_sdp_cback
@@ -732,7 +738,8 @@ static void bta_av_adjust_seps_idx(tBTA_AV_SCB *p_scb, UINT8 avdt_handle)
     {
         APPL_TRACE_DEBUG2("av_handle: %d codec_type: %d",
             p_scb->seps[xx].av_handle, p_scb->seps[xx].codec_type);
-        if((p_scb->seps[xx].av_handle && p_scb->codec_type == p_scb->seps[xx].codec_type)&&(p_scb->seps[xx].av_handle == avdt_handle))
+        if((p_scb->seps[xx].av_handle && p_scb->codec_type == p_scb->seps[xx].codec_type)
+            && (p_scb->seps[xx].av_handle == avdt_handle))
         {
             p_scb->sep_idx      = xx;
             p_scb->avdt_handle  = p_scb->seps[xx].av_handle;
@@ -1095,12 +1102,12 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     tAVDT_SEP_INFO       *p_info;
     tAVDT_CFG            *p_evt_cfg = &p_data->str_msg.cfg;
     UINT8   psc_mask = (p_evt_cfg->psc_mask | p_scb->cfg.psc_mask);
-    UINT8 local_sep;                                             /* sep type of local handle on which connection was received */
+    UINT8 local_sep;    /* sep type of local handle on which connection was received */
     UINT8 count = 0;
     tBTA_AV_STR_MSG  *p_msg = (tBTA_AV_STR_MSG *)p_data;
     BT_HDR *p_msg_media;
 
-    local_sep = bta_av_get_scb_sep_type(p_scb,p_msg->handle);
+    local_sep = bta_av_get_scb_sep_type(p_scb, p_msg->handle);
     p_scb->avdt_label = p_data->str_msg.msg.hdr.label;
     memcpy(p_scb->cfg.codec_info, p_evt_cfg->codec_info, AVDT_CODEC_SIZE);
     p_scb->codec_type = p_evt_cfg->codec_info[BTA_AV_CODEC_TYPE_IDX];
@@ -1127,10 +1134,11 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         p_info->media_type = p_scb->media_type;
         p_info->seid = p_data->str_msg.msg.config_ind.int_seid;
 
-        if(local_sep == AVDT_TSEP_SRC)
+        /* Sep type of Peer will be oppsite role to our local sep */
+        if (local_sep == AVDT_TSEP_SRC)
             p_info->tsep = AVDT_TSEP_SNK;
-        else if(local_sep == AVDT_TSEP_SNK)
-            p_info->tsep = AVDT_TSEP_SRC;   /* Sep type of Peer will be oppsite role to our local sep */
+        else if (local_sep == AVDT_TSEP_SNK)
+            p_info->tsep = AVDT_TSEP_SRC;
 
         p_scb->role      |= BTA_AV_ROLE_AD_ACP;
         p_scb->cur_psc_mask = p_evt_cfg->psc_mask;
@@ -1143,7 +1151,7 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         p_scb->sep_info_idx = 0;
         APPL_TRACE_DEBUG3("bta_av_config_ind: SEID: %d use_rc: %d cur_psc_mask:0x%x", p_info->seid, p_scb->use_rc, p_scb->cur_psc_mask);
         /*  in case of A2DP SINK this is the first time peer data is being sent to co functions */
-        if(local_sep == AVDT_TSEP_SNK)
+        if (local_sep == AVDT_TSEP_SNK)
         {
             p_scb->p_cos->setcfg(p_scb->hndl, p_scb->codec_type,
                              p_evt_cfg->codec_info,
@@ -1155,7 +1163,7 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
                              p_msg->handle);
             for(count =0; count < BTA_AV_MAX_SEPS; count ++)
             {
-                if(p_scb->seps[count].av_handle == p_msg->handle)
+                if (p_scb->seps[count].av_handle == p_msg->handle)
                     break;
             }
             p_scb->seps[count].p_app_data_cback(BTA_AV_MEDIA_SINK_CFG_EVT, (tBTA_AV_MEDIA*)p_evt_cfg->codec_info);
@@ -1263,7 +1271,7 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     /* we like this codec_type. find the sep_idx */
     local_sep = bta_av_get_scb_sep_type(p_scb,avdt_handle);
-    bta_av_adjust_seps_idx(p_scb,avdt_handle);
+    bta_av_adjust_seps_idx(p_scb, avdt_handle);
     APPL_TRACE_DEBUG2("bta_av_setconfig_rsp: sep_idx: %d cur_psc_mask:0x%x", p_scb->sep_idx, p_scb->cur_psc_mask);
     AVDT_ConfigRsp(p_scb->avdt_handle, p_scb->avdt_label, p_data->ci_setconfig.err_code,
                    p_data->ci_setconfig.category);
@@ -1290,7 +1298,7 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             /* if SBC is used by the SNK as INT, discover req is not sent in bta_av_config_ind.
                        * call disc_res now */
            /* this is called in A2DP SRC path only, In case of SINK we don't need it  */
-            if(local_sep == AVDT_TSEP_SRC)
+            if (local_sep == AVDT_TSEP_SRC)
                 p_scb->p_cos->disc_res(p_scb->hndl, num, num, p_scb->peer_addr);
         }
         else
@@ -1311,7 +1319,7 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             p_scb->sep_info[i].seid = p_seid[i-1];
         }
         /* only in case of local sep as SRC we need to look for other SEPs, In case of SINK we don't */
-        if(local_sep == AVDT_TSEP_SRC)
+        if (local_sep == AVDT_TSEP_SRC)
             bta_av_next_getcap(p_scb, p_data);
     }
 }
@@ -1385,9 +1393,9 @@ void bta_av_str_opened (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
         bta_ar_avdt_conn(BTA_ID_AV, open.bd_addr);
 #endif
-        if(p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC )
+        if (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC )
             open.sep = AVDT_TSEP_SNK;
-        else if(p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK )
+        else if (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK )
             open.sep = AVDT_TSEP_SRC;
 
         (*bta_av_cb.p_cback)(BTA_AV_OPEN_EVT, (tBTA_AV *) &open);
@@ -1754,9 +1762,9 @@ void bta_av_open_failed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         /* set the state back to initial state */
         bta_av_set_scb_sst_init(p_scb);
 
-        if(p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC )
+        if (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC )
             open.sep = AVDT_TSEP_SNK;
-        else if(p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK )
+        else if (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK )
             open.sep = AVDT_TSEP_SRC;
 
         (*bta_av_cb.p_cback)(BTA_AV_OPEN_EVT, (tBTA_AV *) &open);
@@ -1813,8 +1821,8 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         /* save copy of codec type and configuration */
         p_scb->codec_type = cfg.codec_info[BTA_AV_CODEC_TYPE_IDX];
         memcpy(&p_scb->cfg, &cfg, sizeof(tAVDT_CFG));
-        /* A2DP SINK does not call getcaps, consequently this will not be called in SINK path */
-        bta_av_adjust_seps_idx(p_scb,bta_av_get_scb_handle(p_scb,AVDT_TSEP_SRC));
+        /* A2DP SINK does not call getcaps, consequently this will not be called in SINK path. Connect from A2DP SINK is not going to happen*/
+        bta_av_adjust_seps_idx(p_scb, bta_av_get_scb_handle(p_scb, AVDT_TSEP_SRC));
         /* use only the services peer supports */
         cfg.psc_mask &= p_scb->p_cap->psc_mask;
         p_scb->cur_psc_mask = cfg.psc_mask;
@@ -2239,7 +2247,8 @@ void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         initiator = TRUE;
 
     /* for A2DP SINK we do not send get_caps */
-    if((p_scb->avdt_handle == p_scb->seps[p_scb->sep_idx].av_handle)&&(p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK))
+    if ((p_scb->avdt_handle == p_scb->seps[p_scb->sep_idx].av_handle)
+         &&(p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK))
     {
         p_scb->wait &= ~(BTA_AV_WAIT_ACP_CAPS_ON);
         APPL_TRACE_DEBUG1(" Local SEP type is SNK  new wait is 0x%x",p_scb->wait);
@@ -2436,9 +2445,9 @@ void bta_av_str_closed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         data.open.chnl   = p_scb->chnl;
         data.open.hndl   = p_scb->hndl;
 
-        if(p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC )
+        if (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC )
             data.open.sep = AVDT_TSEP_SNK;
-        else if(p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK )
+        else if (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK )
             data.open.sep = AVDT_TSEP_SRC;
 
         event = BTA_AV_OPEN_EVT;
@@ -2811,7 +2820,7 @@ void bta_av_rcfg_open (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         memcpy(p_scb->cfg.codec_info, p_scb->p_cap->codec_info, AVDT_CODEC_SIZE);
         /* we may choose to use a different SEP at reconfig.
          * adjust the sep_idx now */
-        bta_av_adjust_seps_idx(p_scb,bta_av_get_scb_handle(p_scb,AVDT_TSEP_SRC));
+        bta_av_adjust_seps_idx(p_scb, bta_av_get_scb_handle(p_scb, AVDT_TSEP_SRC));
 
         /* open the stream with the new config */
         p_scb->sep_info_idx = p_scb->rcfg_idx;

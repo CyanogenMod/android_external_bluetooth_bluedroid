@@ -591,7 +591,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                 &cs.cfg.num_protect, cs.cfg.protect_info, index) == TRUE)
             {
 
-#if( defined BTA_AVK_INCLUDED ) && (BTA_AVK_INCLUDED == TRUE)
+#ifdef BTA_AVK_INCLUDED
             if(index == 1)
             {
                 cs.tsep = AVDT_TSEP_SNK;
@@ -603,7 +603,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                 {
                     p_scb->seps[index].codec_type = codec_type;
 
-#if( defined BTA_AVK_INCLUDED ) && (BTA_AVK_INCLUDED == TRUE)
+#ifdef BTA_AVK_INCLUDED
                     p_scb->seps[index].tsep = cs.tsep;
                     if(cs.tsep == AVDT_TSEP_SNK)
                         p_scb->seps[index].p_app_data_cback = p_data->api_reg.p_app_data_cback;
@@ -627,7 +627,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                                   A2D_SUPF_PLAYER, bta_av_cb.sdp_a2d_handle);
                 bta_sys_add_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
 
-#if( defined BTA_AVK_INCLUDED ) && (BTA_AVK_INCLUDED == TRUE)
+#ifdef BTA_AVK_INCLUDED
                 bta_av_cb.sdp_a2d_snk_handle = SDP_CreateRecord();
                 A2D_AddRecord(UUID_SERVCLASS_AUDIO_SINK, p_service_name, NULL,
                                   A2D_SUPF_PLAYER, bta_av_cb.sdp_a2d_snk_handle);

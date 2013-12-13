@@ -509,6 +509,7 @@ void avdt_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested)
 void avdt_l2c_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
 {
     tAVDT_TC_TBL    *p_tbl;
+
     /* look up info for this channel */
     if ((p_tbl = avdt_ad_tc_tbl_by_lcid(lcid)) != NULL)
     {
@@ -516,6 +517,5 @@ void avdt_l2c_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
     }
     else /* prevent buffer leak */
         GKI_freebuf(p_buf);
-
 }
 

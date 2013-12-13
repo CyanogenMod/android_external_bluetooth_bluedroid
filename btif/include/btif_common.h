@@ -178,7 +178,6 @@ typedef struct
 
 bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_params,
                                     int param_len, tBTIF_COPY_CBACK *p_copy_cback);
-bt_status_t btif_media_transfer_context (BT_HDR *p_pkt);
 tBTA_SERVICE_MASK btif_get_enabled_services_mask(void);
 bt_status_t btif_enable_service(tBTA_SERVICE_ID service_id);
 bt_status_t btif_disable_service(tBTA_SERVICE_ID service_id);
