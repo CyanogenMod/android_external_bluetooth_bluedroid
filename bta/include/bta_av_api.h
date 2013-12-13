@@ -250,8 +250,11 @@ typedef UINT8 tBTA_AV_ERR;
 #define BTA_AV_REJECT_EVT       18      /* incoming connection rejected */
 #define BTA_AV_RC_FEAT_EVT      19      /* remote control channel peer supported features update */
 #define BTA_AV_BROWSE_MSG_EVT   20      /* Browse MSG EVT */
+#define BTA_AV_MEDIA_SINK_CFG_EVT    21      /* sending command to Media Task */
+#define BTA_AV_MEDIA_DATA_EVT   22      /* sending command to Media Task */
 /* Max BTA event */
-#define BTA_AV_MAX_EVT          21
+#define BTA_AV_MAX_EVT          23
+
 
 typedef UINT8 tBTA_AV_EVT;
 
@@ -283,6 +286,7 @@ typedef struct
     tBTA_AV_STATUS  status;
     BOOLEAN         starting;
     tBTA_AV_EDR     edr;        /* 0, if peer device does not support EDR */
+    UINT8           sep;        /*  sep type of peer device */
 } tBTA_AV_OPEN;
 
 /* data associated with BTA_AV_CLOSE_EVT */
@@ -457,6 +461,13 @@ typedef union
     tBTA_AV_RC_FEAT     rc_feat;
 } tBTA_AV;
 
+/* union of data associated with AV Media callback */
+typedef union
+{
+    BT_HDR     *p_data;
+    UINT8      *codec_info;
+} tBTA_AV_MEDIA;
+
 
 #define BTA_AVC_PACKET_LEN                  AVRC_PACKET_LEN
 #define BTA_VENDOR_DATA_OFFSET              6
@@ -475,6 +486,7 @@ typedef union
 
 /* AV callback */
 typedef void (tBTA_AV_CBACK)(tBTA_AV_EVT event, tBTA_AV *p_data);
+typedef void (tBTA_AV_DATA_CBACK)(tBTA_AV_EVT event, tBTA_AV_MEDIA *p_data);
 
 /* type for stream state machine action functions */
 typedef void (*tBTA_AV_ACT)(void *p_cb, void *p_data);
@@ -559,7 +571,7 @@ BTA_API void BTA_AvDisable(void);
 **
 *******************************************************************************/
 BTA_API void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name,
-                            UINT8 app_id);
+                            UINT8 app_id, tBTA_AV_DATA_CBACK  *p_data_cback);
 
 /*******************************************************************************
 **

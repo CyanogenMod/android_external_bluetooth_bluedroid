@@ -218,7 +218,7 @@
 #endif
 
 #ifndef BTA_AVK_INCLUDED
-#define BTA_AVK_INCLUDED FALSE
+#define BTA_AVK_INCLUDED TRUE
 #endif
 
 #ifndef BTA_PBS_INCLUDED
