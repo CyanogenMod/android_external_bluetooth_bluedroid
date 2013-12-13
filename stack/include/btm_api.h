@@ -790,6 +790,30 @@ typedef struct
     BD_ADDR     rem_bda;
 } tBTM_RSSI_RESULTS;
 
+/*  Structure and callback function signature for rssi monitor command complete
+ ** and rssi event report
+ */
+typedef struct {
+    UINT8    status;
+    UINT8    subcmd;
+    union {
+        struct {
+            signed char low;
+            signed char upper;
+            UINT8  alert;
+        } read_result;
+        UINT8 enable;
+    }detail;
+}tBTM_RSSI_MONITOR_CMD_CPL_CB_PARAM;
+
+typedef struct {
+    UINT8 rssi_event_type;
+    signed char  rssi_value;
+}tBTM_RSSI_MONITOR_EVENT_CB_PARAM;
+
+typedef void (*tBTM_RSSI_MONITOR_CMD_CPL_CB)(BD_ADDR remote_bda, tBTM_RSSI_MONITOR_CMD_CPL_CB_PARAM *param);
+typedef void (*tBTM_RSSI_MONITOR_EVENT_CB)(BD_ADDR remote_bda, tBTM_RSSI_MONITOR_EVENT_CB_PARAM *param);
+
 /* Structure returned with read current TX power event (in tBTM_CMPL_CB callback function)
 ** in response to BTM_ReadTxPower call.
 */
@@ -3286,6 +3310,25 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 **
 *******************************************************************************/
     BTM_API extern tBTM_STATUS BTM_ReadRSSI (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb);
+
+/*******************************************************************************
+**
+** Function
+**
+** Description      These functions are used to implement Rssi monitor on connection handle
+**
+** Returns          BTM_CMD_STARTED if command issued to controller.
+**                  BTM_NO_RESOURCES if couldn't allocate memory to issue command
+**                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
+**                  BTM_BUSY if command is already in progress
+**
+*******************************************************************************/
+    BTM_API extern tBTM_STATUS BTM_Write_Rssi_Monitor_Threshold(BD_ADDR remote_bda, char min, char max);
+    BTM_API extern tBTM_STATUS BTM_Read_Rssi_Monitor_Threshold(BD_ADDR remote_bda);
+    BTM_API extern tBTM_STATUS BTM_Enable_Rssi_Monitor(BD_ADDR remote_bda, int enable);
+    extern void btm_handle_rssi_monitor_event(UINT8 *p, UINT8 evt_len);
+    extern void btm_setup_rssi_threshold_callback(tBTM_RSSI_MONITOR_CMD_CPL_CB cmd_cpl_callback,
+                                                  tBTM_RSSI_MONITOR_EVENT_CB evt_callback);
 
 
 /*******************************************************************************

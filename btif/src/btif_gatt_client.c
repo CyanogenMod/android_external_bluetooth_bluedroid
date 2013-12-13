@@ -96,7 +96,8 @@ typedef enum {
 #define BTIF_GATT_MAX_OBSERVED_DEV 40
 
 #define BTIF_GATT_OBSERVE_EVT   0x1000
-#define BTIF_GATTC_RSSI_EVT     0x1001
+#define BTIF_LE_EXTENDED_OBSERVE_EVT 0x1001
+#define BTIF_GATTC_RSSI_EVT     0x1002
 
 /*******************************************************************************
 **  Local type definitions
@@ -544,6 +545,76 @@ static void bta_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_dat
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
+static void btif_le_extended_scan_upstreams_evt(uint16_t event, char* p_param)
+{
+    ALOGD("%s: Event %d", __FUNCTION__, event);
+
+    switch (event)
+    {
+        case BTIF_LE_EXTENDED_OBSERVE_EVT:
+        {
+            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
+            ALOGD("%s BTIF_LE_EXTENDED_OBSERVE_EVT", __FUNCTION__);
+            if (!btif_gattc_find_bdaddr(p_btif_cb->bd_addr.address))
+            {
+                btif_gattc_add_remote_bdaddr(p_btif_cb->bd_addr.address, p_btif_cb->addr_type);
+                btif_gattc_update_properties(p_btif_cb);
+            }
+
+            HAL_CBACK(bt_hal_cbacks, le_extended_scan_result_cb,
+                      &p_btif_cb->bd_addr, p_btif_cb->rssi, p_btif_cb->value);
+            break;
+        }
+        default:
+            BTIF_TRACE_WARNING2("%s : Unknown event 0x%x", __FUNCTION__, event);
+            break;
+    }
+    ALOGD("%s exit", __FUNCTION__);
+}
+
+void bta_le_extended_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data)
+{
+    btif_gattc_cb_t btif_cb;
+    uint8_t len;
+    ALOGD("%s: Event %d, Search result:%p", __FUNCTION__, (int)event, p_data);
+
+    switch (event)
+    {
+        case BTA_DM_INQ_RES_EVT:
+        {
+            ALOGD("%s BTA_DM_INQ_RES_EVT", __FUNCTION__);
+            bdcpy(btif_cb.bd_addr.address, p_data->inq_res.bd_addr);
+            btif_cb.device_type = p_data->inq_res.device_type;
+            btif_cb.rssi = p_data->inq_res.rssi;
+            btif_cb.addr_type = p_data->inq_res.ble_addr_type;
+            if (p_data->inq_res.p_eir)
+            {
+                memcpy(btif_cb.value, p_data->inq_res.p_eir, 62);
+                if (BTA_CheckEirData(p_data->inq_res.p_eir, BTM_EIR_COMPLETE_LOCAL_NAME_TYPE,
+                                      &len))
+                {
+                    p_data->inq_res.remt_name_not_required  = TRUE;
+                }
+            }
+        }
+        break;
+
+        case BTA_DM_INQ_CMPL_EVT:
+        {
+            BTIF_TRACE_DEBUG2("%s  BLE observe complete. Num Resp %d",
+                              __FUNCTION__,p_data->inq_cmpl.num_resps);
+            return;
+        }
+
+        default:
+            BTIF_TRACE_WARNING2("%s : Unknown event 0x%x", __FUNCTION__, event);
+            return;
+    }
+    btif_transfer_context(btif_le_extended_scan_upstreams_evt, BTIF_LE_EXTENDED_OBSERVE_EVT,
+                          (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+    ALOGD("%s exit", __FUNCTION__);
+}
+
 static void btm_read_rssi_cb (tBTM_RSSI_RESULTS *p_result)
 {
     btif_gattc_cb_t btif_cb;
@@ -597,11 +668,23 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
 
         case BTIF_GATTC_OPEN:
+        {
+            // Ensure device is in inquiry database
+            int addr_type = 0;
+            int device_type = 0;
+
+            if (btif_get_device_type(p_cb->bd_addr.address, &addr_type, &device_type) == TRUE
+                  && device_type != BT_DEVICE_TYPE_BREDR)
+                BTA_DmAddBleDevice(p_cb->bd_addr.address, addr_type, device_type);
+
+            // Mark background connections
             if (!p_cb->is_direct)
                 BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
 
+            // Connect!
             BTA_GATTC_Open(p_cb->client_if, p_cb->bd_addr.address, p_cb->is_direct);
             break;
+        }
 
         case BTIF_GATTC_CLOSE:
             // Disconnect established connections

@@ -428,20 +428,152 @@ BOOLEAN bta_gattc_enqueue(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     BOOLEAN in_q = FALSE;
 
-    if (p_clcb->p_q_cmd == NULL)
+    if (p_clcb->p_q_cmd == NULL && p_data)
     {
-        p_clcb->p_q_cmd = (tBTA_GATTC_DATA *)GKI_getbuf(sizeof(tBTA_GATTC_DATA));
-
-        if (p_data)
-            memcpy(p_clcb->p_q_cmd, p_data, sizeof(tBTA_GATTC_DATA));
+        UINT16 len;
+        switch (p_data->hdr.event)
+        {
+            case BTA_GATTC_API_SEARCH_EVT:
+            {
+                if (p_data->api_search.p_srvc_uuid)
+                {
+                    len = sizeof(tBTA_GATTC_API_SEARCH) + sizeof(tBT_UUID);
+                }
+                else
+                {
+                    len = sizeof(tBTA_GATTC_API_SEARCH);
+                }
+                p_clcb->p_q_cmd = (tBTA_GATTC_DATA *)GKI_getbuf(len);
+                if (p_clcb->p_q_cmd == NULL)
+                {
+                    APPL_TRACE_ERROR0("allocate buffer failed for p_q_cmd");
+                    return FALSE;
+                }
+                memcpy(p_clcb->p_q_cmd, p_data, sizeof(tBTA_GATTC_API_SEARCH));
+                if (p_data->api_search.p_srvc_uuid)
+                {
+                    tBTA_GATTC_API_SEARCH *p_buf;
+                    p_buf = &(p_clcb->p_q_cmd->api_search);
+                    p_buf->p_srvc_uuid = (tBT_UUID *)(p_buf + 1);
+                    memcpy(p_buf->p_srvc_uuid, p_data->api_search.p_srvc_uuid,
+                           sizeof(tBT_UUID));
+                }
+                break;
+            }
+            case BTA_GATTC_API_READ_EVT:
+            {
+                if (p_data->api_read.p_descr_type)
+                {
+                    len = sizeof(tBTA_GATT_ID) + sizeof(tBTA_GATTC_API_READ);
+                }
+                else
+                {
+                    len = sizeof(tBTA_GATTC_API_READ);
+                }
+                p_clcb->p_q_cmd = (tBTA_GATTC_DATA *)GKI_getbuf(len);
+                if (p_clcb->p_q_cmd == NULL)
+                {
+                    APPL_TRACE_ERROR0("allocate buffer failed for p_q_cmd");
+                    return FALSE;
+                }
+                memcpy(p_clcb->p_q_cmd, p_data, sizeof(tBTA_GATTC_API_READ));
+                if (p_data->api_read.p_descr_type)
+                {
+                    tBTA_GATTC_API_READ *p_buf;
+                    p_buf = &(p_clcb->p_q_cmd->api_read);
+                    p_buf->p_descr_type = (tBTA_GATT_ID *)(p_buf + 1);
+                    memcpy(p_buf->p_descr_type, p_data->api_read.p_descr_type,
+                           sizeof(tBTA_GATT_ID));
+                }
+                break;
+            }
+            case BTA_GATTC_API_WRITE_EVT:
+            {
+                tBTA_GATTC_API_WRITE  *p_buf;
+                len = sizeof(tBTA_GATTC_API_WRITE) + p_data->api_write.len;
+                if (p_data->api_write.p_descr_type)
+                {
+                    len += sizeof(tBTA_GATT_ID);
+                }
+                p_clcb->p_q_cmd = (tBTA_GATTC_DATA *)GKI_getbuf(len);
+                if (p_clcb->p_q_cmd == NULL)
+                {
+                    APPL_TRACE_ERROR0("allocate buffer failed for p_q_cmd");
+                    return FALSE;
+                }
+                memcpy(p_clcb->p_q_cmd, p_data, sizeof(tBTA_GATTC_API_WRITE));
+                p_buf = &(p_clcb->p_q_cmd->api_write);
+                if (p_data->api_write.p_descr_type)
+                {
+                    p_buf->p_descr_type = (tBTA_GATT_ID *)(p_buf + 1);
+                    memcpy(p_buf->p_descr_type, p_data->api_write.p_descr_type,
+                           sizeof(tBTA_GATT_ID));
+                    if (p_buf->len && p_buf->p_value)
+                    {
+                        p_buf->p_value  = (UINT8 *)(p_buf->p_descr_type + 1);
+                        memcpy(p_buf->p_value, p_data->api_write.p_value,
+                               p_data->api_write.len);
+                    }
+                }
+                else if (p_buf->len && p_buf->p_value)
+                {
+                    p_buf->p_value = (UINT8 *)(p_buf + 1);
+                    memcpy(p_buf->p_value, p_data->api_write.p_value,
+                           p_data->api_write.len);
+                }
+                break;
+            }
+            case BTA_GATTC_API_EXEC_EVT:
+            {
+                len = sizeof(tBTA_GATTC_API_EXEC);
+                p_clcb->p_q_cmd = (tBTA_GATTC_DATA *)GKI_getbuf(len);
+                if (p_clcb->p_q_cmd == NULL)
+                {
+                    APPL_TRACE_ERROR0("allocate buffer failed for p_q_cmd");
+                    return FALSE;
+                }
+                memcpy(p_clcb->p_q_cmd, p_data, len);
+                break;
+            }
+            case BTA_GATTC_API_READ_MULTI_EVT:
+            {
+                len = sizeof(tBTA_GATTC_API_READ_MULTI) +
+                      p_data->api_read_multi.num_attr * sizeof(tBTA_GATTC_ATTR_ID);
+                p_clcb->p_q_cmd = (tBTA_GATTC_DATA *)GKI_getbuf(len);
+                if (p_clcb->p_q_cmd == NULL)
+                {
+                    APPL_TRACE_ERROR0("allocate buffer failed for p_q_cmd");
+                    return FALSE;
+                }
+                memcpy(p_clcb->p_q_cmd, p_data, sizeof(tBTA_GATTC_API_READ_MULTI));
+                if (p_data->api_read_multi.num_attr &&
+                    p_data->api_read_multi.p_id_list)
+                {
+                    tBTA_GATTC_API_READ_MULTI *p_buf;
+                    p_buf = &(p_clcb->p_q_cmd->api_read_multi);
+                    p_buf->p_id_list = (tBTA_GATTC_ATTR_ID *)(p_buf + 1);
+                    memcpy(p_buf->p_id_list, p_data->api_read_multi.p_id_list,
+                        p_data->api_read_multi.num_attr * sizeof(tBTA_GATTC_ATTR_ID));
+                }
+                break;
+            }
+            default:
+                APPL_TRACE_ERROR1("queue unsupported command %d", p_data->hdr.event);
+                return FALSE;
+        }
 
         in_q = TRUE;
     }
-    else
+    else if (p_clcb->p_q_cmd)
     {
         APPL_TRACE_ERROR0("already has a pending command!!");
         /* skip the callback now. ----- need to send callback ? */
     }
+    else
+    {
+        APPL_TRACE_ERROR0("queue a null command");
+    }
+
     return in_q;
 }
 /*******************************************************************************

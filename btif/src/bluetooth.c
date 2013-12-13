@@ -47,17 +47,55 @@
 #define LOG_TAG "bluedroid"
 
 #include "btif_api.h"
+#include "bd.h"
 #include "bt_utils.h"
 
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
+#define BT_LE_EXTENDED_SCAN_START    0x0001
+#define BT_LE_EXTENDED_SCAN_STOP     0x0002
+#define BT_LE_LPP_WRITE_RSSI_THRESH  0x0003
+#define BT_LE_LPP_MONITOR_RSSI_START 0x0004
+#define BT_LE_LPP_MONITOR_RSSI_STOP  0x0005
+#define BT_LE_LPP_READ_RSSI_THRESH   0x0006
 
 #define is_profile(profile, str) ((strlen(str) == strlen(profile)) && strncmp((const char *)profile, str, strlen(str)) == 0)
+
+#define BT_LE_LPP_RSSI_MONITOR_CMD_CPL_EVT  0x1002
+#define BT_LE_LPP_RSSI_MONITOR_THRESH_EVT   0x1003
 
 /************************************************************************************
 **  Local type definitions
 ************************************************************************************/
+typedef struct
+{
+    int       entries;
+    uint8_t   scan_policy;
+    bt_le_service_t services[1];
+} __attribute__((packed)) bt_le_extended_scan_filter_cb_t;
+
+typedef struct
+{
+    bt_bdaddr_t remote_bda;
+    char        min_thresh;
+    char        max_thresh;
+    bool        enable;
+}__attribute__((packed)) bt_le_lpp_monitor_rssi_cb_t;
+
+typedef struct
+{
+    bt_bdaddr_t remote_bda;
+#define RSSI_MONITOR_CMD_CPL_EVT 0x01
+#define RSSI_MONITOR_THRESH_EVT  0x02
+    uint8_t  type;
+
+    union
+    {
+        tBTM_RSSI_MONITOR_CMD_CPL_CB_PARAM cmd_cpl_evt;
+        tBTM_RSSI_MONITOR_EVENT_CB_PARAM   rssi_thresh_evt;
+    } content;
+}bt_le_lpp_rssi_monitor_evt_cb_t;
 
 /************************************************************************************
 **  Static variables
@@ -139,6 +177,20 @@ static int init(bt_callbacks_t* callbacks )
     return BT_STATUS_SUCCESS;
 }
 
+static int initq(bt_callbacks_t* callbacks)
+{
+    ALOGI("initq");
+    if(interface_ready()==FALSE)
+        return BT_STATUS_NOT_READY; //halbacks have not been initialized for the interface yet, by the adapterservice
+    bt_hal_cbacks->le_extended_scan_result_cb    = callbacks->le_extended_scan_result_cb;
+    bt_hal_cbacks->le_lpp_write_rssi_thresh_cb   = callbacks->le_lpp_write_rssi_thresh_cb;
+    bt_hal_cbacks->le_lpp_read_rssi_thresh_cb    = callbacks->le_lpp_read_rssi_thresh_cb;
+    bt_hal_cbacks->le_lpp_enable_rssi_monitor_cb = callbacks->le_lpp_enable_rssi_monitor_cb;
+    bt_hal_cbacks->le_lpp_rssi_threshold_evt_cb  = callbacks->le_lpp_rssi_threshold_evt_cb;
+    return BT_STATUS_SUCCESS;
+}
+
+
 static int enable( void )
 {
     ALOGI("enable");
@@ -196,7 +248,6 @@ static int set_adapter_property(const bt_property_t *property)
     /* sanity check */
     if (interface_ready() == FALSE)
         return BT_STATUS_NOT_READY;
-
     return btif_set_adapter_property(property);
 }
 
@@ -403,9 +454,298 @@ int config_hci_snoop_log(uint8_t enable)
     return btif_config_hci_snoop_log(enable);
 }
 
+static void bt_handle_le_extended_scan(uint16_t event, char *p_param)
+{
+    ALOGD("%s: Event %d, Parameter %p enter", __FUNCTION__, event, p_param);
+    bt_le_extended_scan_filter_cb_t *p_cb = (bt_le_extended_scan_filter_cb_t*)p_param;
+    if(!p_cb)
+    {
+        ALOGE("%s param invalid", __FUNCTION__);
+        return;
+    }
+
+    switch(event)
+    {
+        case BT_LE_EXTENDED_SCAN_START:
+            ALOGD("%s: Start LE extended scan", __FUNCTION__);
+            {
+                tBTA_DM_BLE_SCAN_FILTER *p_filters = (tBTA_DM_BLE_SCAN_FILTER*)malloc(p_cb->entries * sizeof(tBTA_DM_BLE_SCAN_FILTER));
+                if (p_filters)
+                {
+                    int i = 0, j = 0, offset = 0, len = 0;
+                    memset(p_filters, 0, p_cb->entries * sizeof(tBTA_DM_BLE_SCAN_FILTER));
+                    for (i = 0; i < p_cb->entries; i++)
+                    {
+                        p_filters[i].type = ADV_DATA_FILTER;
+                        p_filters[i].filter.ad_data.adtype = p_cb->services[i].uuidtype;
+                        switch(p_cb->services[i].uuidtype)
+                        {
+                        case BTM_BLE_AD_TYPE_16SRV_CMPL:
+                        case BTM_BLE_AD_TYPE_SOL_SRV_UUID:
+                            offset = 2, len = 2;
+                            p_filters[i].filter.ad_data;
+                            break;
+                        case BTM_BLE_AD_TYPE_32SRV_CMPL:
+                            offset = 0, len = 4;
+                            break;
+                        case BTM_BLE_AD_TYPE_128SRV_CMPL:
+                        case BTM_BLE_AD_TYPE_128SOL_SRV_UUID:
+                            offset = 0, len = 16;
+                            break;
+                        default:
+                            ALOGE("%s: invalid type", __FUNCTION__);
+                            offset = 0, len = 0;
+                            break;
+                        }
+
+                        p_filters[i].filter.ad_data.len = len + 1; /* 1 is the length of ad type field*/
+                        memcpy(p_filters[i].filter.ad_data.content, &p_cb->services[i].uuidval.uu[16-offset-len], len);
+                    }
+                    extern void bta_le_extended_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data);
+                    BTA_DmBleObserve_With_Filter(TRUE, 0, p_filters, p_cb->entries, p_cb->scan_policy, bta_le_extended_scan_results_cb);
+               }
+               free(p_filters);
+            }
+            break;
+        case BT_LE_EXTENDED_SCAN_STOP:
+            ALOGD("%s: Stop LE extended scan", __FUNCTION__);
+            BTA_DmBleObserve_With_Filter(FALSE, 0, 0, 0, 0, 0);
+            break;
+        default:
+            ALOGE("%s: Event %d unexpected!!!", __FUNCTION__, event);
+            break;
+    }
+    return;
+}
+
+static bt_status_t bt_le_extended_scan(bt_le_service_t service_list[], int entries, uint8_t scan_policy, int start)
+{
+    bt_status_t status = BT_STATUS_PARM_INVALID;
+    bt_le_extended_scan_filter_cb_t *bt_le_extended_scan_param_cb = 0;
+    ALOGD("%s: start:%d, service list size:%d", __FUNCTION__, start, entries);
+    if(!service_list || entries <= 0)
+    {
+        ALOGE("%s parameter invalid", __FUNCTION__);
+        return BT_STATUS_PARM_INVALID;
+    }
+
+    status = BT_STATUS_NOMEM;
+    if((bt_le_extended_scan_param_cb = (bt_le_extended_scan_filter_cb_t*)malloc(sizeof(bt_le_extended_scan_filter_cb_t) + (entries - 1) * sizeof(bt_le_service_t))))
+    {
+        bt_le_extended_scan_param_cb->entries = entries;
+        bt_le_extended_scan_param_cb->scan_policy = scan_policy;
+        memcpy(bt_le_extended_scan_param_cb->services, service_list, entries*sizeof(bt_le_service_t));
+
+        status =  btif_transfer_context(bt_handle_le_extended_scan, start ? BT_LE_EXTENDED_SCAN_START : BT_LE_EXTENDED_SCAN_STOP,
+                                 (char*) bt_le_extended_scan_param_cb, sizeof(bt_le_extended_scan_filter_cb_t) + (entries - 1) * sizeof(bt_le_service_t), NULL);
+        free(bt_le_extended_scan_param_cb);
+    }
+    ALOGD("%s exit", __FUNCTION__);
+    return status;
+}
+
+static void bt_le_lpp_rssi_monitor_upstream_evt(uint16_t event, char* p_param)
+{
+    bt_le_lpp_rssi_monitor_evt_cb_t *p_cb = (bt_le_lpp_rssi_monitor_evt_cb_t*)p_param;
+    ALOGD("%s: Event %d", __FUNCTION__, event);
+    if(!p_cb)
+        return;
+    switch(event)
+    {
+    case BT_LE_LPP_RSSI_MONITOR_CMD_CPL_EVT:
+        switch(p_cb->content.cmd_cpl_evt.subcmd)
+        {
+        case WRITE_RSSI_MONITOR_THRESHOLD:
+            HAL_CBACK(bt_hal_cbacks, le_lpp_write_rssi_thresh_cb,
+                      &p_cb->remote_bda, p_cb->content.cmd_cpl_evt.status);
+            break;
+        case READ_RSSI_MONITOR_THRESHOLD:
+            HAL_CBACK(bt_hal_cbacks, le_lpp_read_rssi_thresh_cb,
+                      &p_cb->remote_bda, p_cb->content.cmd_cpl_evt.detail.read_result.low,
+                      p_cb->content.cmd_cpl_evt.detail.read_result.upper,
+                      p_cb->content.cmd_cpl_evt.detail.read_result.alert,
+                      p_cb->content.cmd_cpl_evt.status);
+
+            break;
+        case ENABLE_RSSI_MONITOR:
+            HAL_CBACK(bt_hal_cbacks, le_lpp_enable_rssi_monitor_cb,
+                      &p_cb->remote_bda, p_cb->content.cmd_cpl_evt.detail.enable,
+                      p_cb->content.cmd_cpl_evt.status);
+            break;
+        default:
+            break;
+        }
+        break;
+    case BT_LE_LPP_RSSI_MONITOR_THRESH_EVT:
+         ALOGD("%s rssi value = %d", __FUNCTION__, (int)(p_cb->content.rssi_thresh_evt.rssi_value));
+         HAL_CBACK(bt_hal_cbacks, le_lpp_rssi_threshold_evt_cb,
+                  &p_cb->remote_bda, p_cb->content.rssi_thresh_evt.rssi_event_type,
+                  p_cb->content.rssi_thresh_evt.rssi_value);
+        break;
+    default:
+        ALOGE("%s invalid event", __FUNCTION__);
+    }
+    ALOGD("%s exit", __FUNCTION__);
+}
+
+static void rssi_threshold_command_cb(BD_ADDR remote_bda, tBTM_RSSI_MONITOR_CMD_CPL_CB_PARAM *param)
+{
+    ALOGD("%s enter", __FUNCTION__);
+    if(remote_bda && param)
+    {
+        bt_le_lpp_rssi_monitor_evt_cb_t btif_cb;
+        memset(&btif_cb, 0, sizeof(btif_cb));
+        bdcpy(btif_cb.remote_bda.address, remote_bda);
+        btif_cb.type = RSSI_MONITOR_CMD_CPL_EVT;
+        btif_cb.content.cmd_cpl_evt = *param;
+        btif_transfer_context(bt_le_lpp_rssi_monitor_upstream_evt, BT_LE_LPP_RSSI_MONITOR_CMD_CPL_EVT,
+                                 (char*) &btif_cb, sizeof(btif_cb), NULL);
+    }
+    ALOGD("%s exit", __FUNCTION__);
+    return;
+}
+
+static void rssi_threshold_event_cb(BD_ADDR remote_bda, tBTM_RSSI_MONITOR_EVENT_CB_PARAM *param)
+{
+    ALOGD("%s enter", __FUNCTION__);
+    if(remote_bda&& param)
+    {
+        bt_le_lpp_rssi_monitor_evt_cb_t btif_cb;
+        memset(&btif_cb, 0, sizeof(btif_cb));
+        bdcpy(btif_cb.remote_bda.address, remote_bda);
+        btif_cb.type = RSSI_MONITOR_THRESH_EVT;
+        btif_cb.content.rssi_thresh_evt = *param;
+        btif_transfer_context(bt_le_lpp_rssi_monitor_upstream_evt, BT_LE_LPP_RSSI_MONITOR_THRESH_EVT,
+                                 (char*) &btif_cb, sizeof(btif_cb), NULL);
+    }
+    ALOGD("%s exit", __FUNCTION__);
+    return;
+}
+
+static void bt_le_handle_lpp_monitor_rssi(uint16_t event, char *p_param)
+{
+    static int initialized = 0;
+    tBTM_STATUS status = BTM_ILLEGAL_ACTION;
+    tBTM_RSSI_MONITOR_CMD_CPL_CB_PARAM error;
+    bt_le_lpp_monitor_rssi_cb_t *p_cb = (bt_le_lpp_monitor_rssi_cb_t*)p_param;
+    memset(&error, 0, sizeof(error));
+    ALOGD("%s enter", __FUNCTION__);
+    if(!p_cb)
+        return;
+
+    /* setup callback for command completion routine and event report */
+    if(!initialized)
+    {
+        ALOGD("%s setup callback for BTM Layer", __FUNCTION__);
+        btm_setup_rssi_threshold_callback(rssi_threshold_command_cb, rssi_threshold_event_cb);
+        initialized = 1;
+    }
+
+    switch(event)
+    {
+    case BT_LE_LPP_WRITE_RSSI_THRESH:
+        ALOGD("%s write rssi thrshold ", __FUNCTION__);
+        status = BTM_Write_Rssi_Monitor_Threshold(p_cb->remote_bda.address, p_cb->min_thresh, p_cb->max_thresh);
+
+        if (status != BTM_CMD_STARTED)
+        {
+            ALOGE("%s write rssi threshold fail", __FUNCTION__);
+            error.subcmd = WRITE_RSSI_MONITOR_THRESHOLD;
+            error.status = 1; /* 0 indicate success*/
+        }
+        break;
+    case BT_LE_LPP_MONITOR_RSSI_START:
+        ALOGD("%s starts monitoring rssi", __FUNCTION__);
+        status = BTM_Enable_Rssi_Monitor(p_cb->remote_bda.address, 1);
+
+        if (status != BTM_CMD_STARTED)
+        {
+            ALOGE("%s enable rssi monitor fail", __FUNCTION__);
+            error.subcmd = ENABLE_RSSI_MONITOR;
+            error.detail.enable = 1;
+            error.status = 1; /* 0 indicate success*/
+        }
+        break;
+    case BT_LE_LPP_MONITOR_RSSI_STOP:
+        ALOGD("%s stop monitoring rssi", __FUNCTION__);
+        status = BTM_Enable_Rssi_Monitor(p_cb->remote_bda.address, 0);
+
+        if (status != BTM_CMD_STARTED)
+        {
+            ALOGE("%s disable rssi monitor fail", __FUNCTION__);
+            error.subcmd = ENABLE_RSSI_MONITOR;
+            error.detail.enable = 0;
+            error.status = 1; /* 0 indicate success*/
+        }
+        break;
+    case BT_LE_LPP_READ_RSSI_THRESH:
+        ALOGD("%s read rssi threshold", __FUNCTION__);
+        status = BTM_Read_Rssi_Monitor_Threshold(p_cb->remote_bda.address);
+
+        if (status != BTM_CMD_STARTED)
+        {
+            ALOGE("%s read rssi threshold fail", __FUNCTION__);
+            error.subcmd = READ_RSSI_MONITOR_THRESHOLD;
+            error.status = 1; /* 0 indicate success*/
+        }
+        break;
+    default:
+        error.status = 1;
+        ALOGE("%s Unknown event!!", __FUNCTION__);
+        break;
+    }
+
+    if(status != BTM_CMD_STARTED)
+    {
+        BD_ADDR bda;
+        bdcpy(bda, p_cb->remote_bda.address);
+        rssi_threshold_command_cb(bda, &error);
+        ALOGE("%s Rssi Monitor command fails", __FUNCTION__);
+    }
+    ALOGD("%s exit", __FUNCTION__);
+    return;
+}
+
+static bt_status_t bt_le_lpp_write_rssi_threshold(const bt_bdaddr_t *remote_bda, char min, char max)
+{
+    bt_le_lpp_monitor_rssi_cb_t btif_cb;
+    memset(&btif_cb, 0, sizeof(bt_le_lpp_monitor_rssi_cb_t));
+    if(!remote_bda || min > max)
+        return BT_STATUS_PARM_INVALID;
+    bdcpy(btif_cb.remote_bda.address, remote_bda->address);
+    btif_cb.min_thresh = min;
+    btif_cb.max_thresh = max;
+    return btif_transfer_context(bt_le_handle_lpp_monitor_rssi, BT_LE_LPP_WRITE_RSSI_THRESH,
+                                (char*)&btif_cb, sizeof(bt_le_lpp_monitor_rssi_cb_t), NULL);
+}
+
+static bt_status_t bt_le_lpp_enable_rssi_monitor(const bt_bdaddr_t *remote_bda, int enable)
+{
+    bt_le_lpp_monitor_rssi_cb_t btif_cb;
+    memset(&btif_cb, 0, sizeof(bt_le_lpp_monitor_rssi_cb_t));
+    if(!remote_bda)
+        return BT_STATUS_PARM_INVALID;
+    bdcpy(btif_cb.remote_bda.address, remote_bda->address);
+    btif_cb.enable = enable;
+    return btif_transfer_context(bt_le_handle_lpp_monitor_rssi, enable?BT_LE_LPP_MONITOR_RSSI_START:BT_LE_LPP_MONITOR_RSSI_STOP,
+                                 (char*)&btif_cb, sizeof(bt_le_lpp_monitor_rssi_cb_t), NULL);
+}
+
+static bt_status_t bt_le_lpp_read_rssi_threshold(const bt_bdaddr_t *remote_bda)
+{
+    bt_le_lpp_monitor_rssi_cb_t btif_cb;
+    memset(&btif_cb, 0, sizeof(bt_le_lpp_monitor_rssi_cb_t));
+    if(!remote_bda)
+        return BT_STATUS_PARM_INVALID;
+    bdcpy(btif_cb.remote_bda.address, remote_bda->address);
+    return btif_transfer_context(bt_le_handle_lpp_monitor_rssi, BT_LE_LPP_READ_RSSI_THRESH,
+                                 (char*)&btif_cb, sizeof(bt_le_lpp_monitor_rssi_cb_t), NULL);
+}
+
 static const bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
+    initq,
     enable,
     disable,
     cleanup,
@@ -432,7 +772,11 @@ static const bt_interface_t bluetoothInterface = {
 #else
     NULL,
 #endif
-    config_hci_snoop_log
+    config_hci_snoop_log,
+    bt_le_extended_scan,
+    bt_le_lpp_write_rssi_threshold,
+    bt_le_lpp_enable_rssi_monitor,
+    bt_le_lpp_read_rssi_threshold,
 };
 
 const bt_interface_t* bluetooth__get_bluetooth_interface ()

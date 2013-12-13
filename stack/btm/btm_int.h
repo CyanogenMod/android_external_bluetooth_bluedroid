@@ -52,6 +52,10 @@ typedef char tBTM_LOC_BD_NAME[BTM_MAX_LOC_BD_NAME_LEN + 1];
 */
 #define BTM_MAX_SCN      PORT_MAX_RFC_PORTS
 
+/* Definition for number of the remote device role saved
+*/
+#define BTM_ROLE_DEVICE_NUM      4
+
 /* Define masks for supported and exception 2.0 ACL packet types
 */
 #define BTM_ACL_SUPPORTED_PKTS_MASK      (HCI_PKT_TYPES_MASK_DM1        | \
@@ -193,16 +197,18 @@ typedef struct
 
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE
     BOOLEAN                 no_disc_if_pair_fail;
-    BOOLEAN			        enable_test_mac_val;
+    BOOLEAN                 enable_test_mac_val;
     BT_OCTET8               test_mac;
-    BOOLEAN			        enable_test_local_sign_cntr;
-    UINT32			        test_local_sign_cntr;
+    BOOLEAN                 enable_test_local_sign_cntr;
+    UINT32                  test_local_sign_cntr;
 #endif
 
 #if BLE_INCLUDED == TRUE
     tBTM_CMPL_CB        *p_le_test_cmd_cmpl_cb;   /* Callback function to be called when
                                                   LE test mode command has been sent successfully */
 #endif
+    tBTM_RSSI_MONITOR_CMD_CPL_CB p_rssi_monitor_cmd_cpl_cb; /* for rssi monitor command complete */
+    tBTM_RSSI_MONITOR_EVENT_CB   p_rssi_monitor_event_cb; /* for rssi threshold event */
 
 #endif  /* BLE_INCLUDED */
 
@@ -898,6 +904,9 @@ typedef struct
     tBTM_PCM2_ACTION        pcm2_action;
 #endif
 
+    BD_ADDR previous_connected_remote_addr[BTM_ROLE_DEVICE_NUM];
+    UINT8   previous_connected_role[BTM_ROLE_DEVICE_NUM];
+    UINT8   front; /* front index of the role table */
 } tBTM_CB;
 
 

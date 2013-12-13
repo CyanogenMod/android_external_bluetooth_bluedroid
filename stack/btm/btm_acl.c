@@ -49,6 +49,52 @@ static void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read
 
 /*******************************************************************************
 **
+** Function         btm_save_remote_device_role
+**
+** Description      This function is to save remote device role
+**
+** Returns          void
+**
+*******************************************************************************/
+static void btm_save_remote_device_role(BD_ADDR bd_addr, UINT8 role)
+{
+    UINT8 i, j;
+    if (role == BTM_ROLE_UNDEFINED) return;
+
+    for (i = 0; i < BTM_ROLE_DEVICE_NUM; i++) {
+        if ((btm_cb.previous_connected_role[i] != BTM_ROLE_UNDEFINED) &&
+            (!bdcmp(bd_addr, btm_cb.previous_connected_remote_addr[i]))) {
+            break;
+        }
+    }
+
+    if (i < BTM_ROLE_DEVICE_NUM) {
+        UINT8 end;
+        if (i < btm_cb.front) {
+            for (j = i; j > 0; j--) {
+                bdcpy(btm_cb.previous_connected_remote_addr[j],
+                    btm_cb.previous_connected_remote_addr[j-1]);
+            }
+            bdcpy(btm_cb.previous_connected_remote_addr[0],
+                btm_cb.previous_connected_remote_addr[BTM_ROLE_DEVICE_NUM-1]);
+            end = BTM_ROLE_DEVICE_NUM-1;
+        } else {
+            end = i;
+        }
+
+        for (j = end; j > btm_cb.front; j--) {
+            bdcpy(btm_cb.previous_connected_remote_addr[j],
+                btm_cb.previous_connected_remote_addr[j-1]);
+        }
+    }
+
+    bdcpy(btm_cb.previous_connected_remote_addr[btm_cb.front], bd_addr);
+    btm_cb.previous_connected_role[btm_cb.front] = role;
+    btm_cb.front = (btm_cb.front + 1) % BTM_ROLE_DEVICE_NUM;
+}
+
+/*******************************************************************************
+**
 ** Function         btm_acl_init
 **
 ** Description      This function is called at BTM startup to initialize
@@ -158,6 +204,7 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
     {
         p->hci_handle = hci_handle;
         p->link_role  = link_role;
+        btm_save_remote_device_role(bda, link_role);
 #if BLE_INCLUDED == TRUE
         p->is_le_link = is_le_link;
 #endif
@@ -175,6 +222,7 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
             p->in_use            = TRUE;
             p->hci_handle        = hci_handle;
             p->link_role         = link_role;
+            btm_save_remote_device_role(bda, link_role);
             p->link_up_issued    = FALSE;
 
 #if BLE_INCLUDED == TRUE
@@ -250,6 +298,13 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
             if (p_dev_rec && is_le_link)
             {
                 btm_establish_continue(p);
+
+#if (!defined(BTA_SKIP_BLE_READ_REMOTE_FEAT) || BTA_SKIP_BLE_READ_REMOTE_FEAT == FALSE)
+                if (link_role == HCI_ROLE_MASTER)
+                {
+                    btsnd_hcic_ble_read_remote_feat(p->hci_handle);
+                }
+#endif
             }
             else
 #endif
@@ -2189,7 +2244,7 @@ void btm_acl_role_changed (UINT8 hci_status, BD_ADDR bd_addr, UINT8 new_role)
 
         /* Update cached value */
         p->link_role = new_role;
-
+        btm_save_remote_device_role(p_bda, new_role);
         /* Reload LSTO: link supervision timeout is reset in the LM after a role switch */
         if (new_role == BTM_ROLE_MASTER)
         {
@@ -2785,6 +2840,332 @@ tBTM_STATUS BTM_ReadRSSI (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
 
     /* If here, no BD Addr found */
     return(BTM_UNKNOWN_ADDR);
+}
+
+/*******************************************************************************
+**
+** Function         rssi_monitor_hci_cmd_complete
+**
+** Description      This function could be set up as a completion callback for the
+**                  rssi monitor related vendor specific command.
+**
+** Returns          void
+**
+*******************************************************************************/
+static void rssi_monitor_hci_cmd_complete(void *p_data)
+{
+    tBTM_VSC_CMPL *event = (tBTM_VSC_CMPL*)p_data;
+    UINT16        opcode, length;
+    UINT8         *stream, status, subcmd;
+    UINT16        conn_handle;
+    UINT8         acl_index;
+    BD_ADDR       remote_bda;
+    tBTM_RSSI_MONITOR_CMD_CPL_CB_PARAM param;
+
+    BTM_TRACE_EVENT1("%s enter", __FUNCTION__);
+    memset(&param, 0, sizeof(param));
+    if(event && (stream = (UINT8*)event->p_param_buf))
+    {
+        opcode = event->opcode;
+        length = event->param_len;
+        STREAM_TO_UINT8(status, stream);
+        STREAM_TO_UINT8(subcmd, stream);
+        STREAM_TO_UINT16(conn_handle, stream);
+        BTM_TRACE_EVENT5("%s: opcode: 0x%4x, status: 0x%2x, subcmd: 0x%2x, connection handle: 0x%4x",
+                         __FUNCTION__, opcode, status, subcmd, conn_handle);
+
+        param.status = status;
+        param.subcmd = subcmd;
+        /* get address from connection handle */
+        acl_index = btm_handle_to_acl_index(conn_handle);
+        if (acl_index < MAX_L2CAP_LINKS)
+        {
+            memcpy(remote_bda, btm_cb.acl_db[acl_index].remote_addr, sizeof(BD_ADDR));
+        }
+        else
+        {
+            BTM_TRACE_EVENT2("%s didn't find bd address for acl link: 0x%2x", __FUNCTION__, conn_handle);
+            return;
+        }
+
+        switch(subcmd)
+        {
+        case WRITE_RSSI_MONITOR_THRESHOLD:
+            BTM_TRACE_EVENT1("%s, event WRITE_RSSI_MONITOR_THRESHOLD command complete", __FUNCTION__);
+
+            if(btm_cb.devcb.p_rssi_monitor_cmd_cpl_cb)
+                btm_cb.devcb.p_rssi_monitor_cmd_cpl_cb(remote_bda, &param);
+            break;
+        case READ_RSSI_MONITOR_THRESHOLD:
+            BTM_TRACE_EVENT1("%s, event READ_RSSI_MONITOR_THRESHOLD command complete", __FUNCTION__);
+            if (HCI_SUCCESS == status)
+            {
+                signed char  low, upper;
+                UINT8        alert;
+                STREAM_TO_UINT8(low, stream);
+                STREAM_TO_UINT8(upper, stream);
+                STREAM_TO_UINT8(alert, stream);
+
+                param.detail.read_result.low   = low;
+                param.detail.read_result.upper = upper;
+                param.detail.read_result.alert = alert;
+
+                BTM_TRACE_EVENT4("%s read threshold result:0x%2x, 0x%2x, 0x%2x",
+                                 __FUNCTION__, low, upper, alert);
+
+            }
+
+            if(btm_cb.devcb.p_rssi_monitor_cmd_cpl_cb)
+                btm_cb.devcb.p_rssi_monitor_cmd_cpl_cb(remote_bda, &param);
+            break;
+        case ENABLE_RSSI_MONITOR:
+            BTM_TRACE_EVENT1("%s, event ENABLE_CONTROLLER_RSSI_MONITOR command complete", __FUNCTION__);
+            if (HCI_SUCCESS == status)
+            {
+                UINT8 enable;
+                STREAM_TO_UINT8(enable, stream);
+
+                param.detail.enable = enable;
+            }
+
+            if(btm_cb.devcb.p_rssi_monitor_cmd_cpl_cb)
+                btm_cb.devcb.p_rssi_monitor_cmd_cpl_cb(remote_bda, &param);
+            break;
+        default:
+            BTM_TRACE_EVENT0("Rssi Monitor invalid command");
+            break;
+        }
+    }
+    BTM_TRACE_EVENT1("%s exit", __FUNCTION__);
+}
+
+/*******************************************************************************
+**
+** Function         BTM_Write_Rssi_Monitor_Threshold
+**
+** Description      This function is called to write rssi threshold value,
+**                  when rssi < min, High Alerts
+**                  when  max < rssi < max, Mild Alerts
+**                  when rssi > max, No alerts
+**
+** Parameter        remote_bda: bluetooth address whose rssi is monitored
+**                  min, max: lower and upper threshold, min <= max
+**                  p_callback: the completion callback of the command
+**
+** Returns          tBTM_STATUS
+**
+*******************************************************************************/
+tBTM_STATUS BTM_Write_Rssi_Monitor_Threshold(BD_ADDR remote_bda, char min, char max)
+{
+    void      *p_buf = 0;
+    tACL_CONN *p_conn = 0;
+    UINT16    op_code = 0x03FF;
+    UINT8     sub_cmd = WRITE_RSSI_MONITOR_THRESHOLD;
+    UINT16    conn_handle = 0x0000;
+    UINT8     cmd[5], *p_cursor;
+    BTM_TRACE_API1("%s enter", __FUNCTION__);
+
+    /* Find the acl connection */
+    if (!remote_bda || !(p_conn = btm_bda_to_acl(remote_bda)))
+    {
+        BTM_TRACE_ERROR1("%s no ACL connection for address", __FUNCTION__);
+        return (BTM_UNKNOWN_ADDR);
+    }
+
+    /* p_buf is used to assemble HCI vendor specific command */
+    if (NULL == (p_buf = HCI_GET_CMD_BUF(sizeof(void*) + sizeof(cmd))))
+    {
+        BTM_TRACE_ERROR1("%s HCI_GET_CMD_BUF null memory allocated", __FUNCTION__);
+        return (BTM_NO_RESOURCES);
+    }
+
+    /* assemble command buffer*/
+    p_cursor = cmd;
+    *p_cursor++ = sub_cmd;
+    /* the connection handle is put in little endian*/
+    conn_handle = p_conn->hci_handle;
+    *p_cursor++ = (UINT8)(conn_handle & 0x00FF);
+    *p_cursor++ = (UINT8)((conn_handle>>8) & 0x00FF);
+    *p_cursor++ = min;
+    *p_cursor++ = max;
+
+    btsnd_hcic_vendor_spec_cmd(p_buf, op_code, sizeof(cmd), cmd, (void*)rssi_monitor_hci_cmd_complete);
+
+    BTM_TRACE_API1("%s exit", __FUNCTION__);
+    return (BTM_CMD_STARTED);
+}
+
+/*******************************************************************************
+**
+** Function         BTM_Read_Rssi_Monitor_Threshold
+**
+** Description      This function is called to read the rssi threshould settings
+**                  by sending hci vendor specific command, and the thrshould value
+**                  will be gotten as return parameters of the command
+**
+** Returns          tBTM_STATUS
+**
+*******************************************************************************/
+tBTM_STATUS BTM_Read_Rssi_Monitor_Threshold(BD_ADDR remote_bda)
+{
+    void      *p_buf = 0;
+    tACL_CONN *p_conn = 0;
+    UINT16    op_code = 0x03FF;
+    UINT8     sub_cmd = READ_RSSI_MONITOR_THRESHOLD;
+    UINT16    conn_handle = 0x0000;
+    UINT8     cmd[3], *p_cursor;
+    BTM_TRACE_API1("%s enter", __FUNCTION__);
+
+    /* Find acl connection */
+    if (!remote_bda || !(p_conn = btm_bda_to_acl(remote_bda)))
+    {
+        BTM_TRACE_ERROR1("%s no ACL connection for address", __FUNCTION__);
+        return (BTM_UNKNOWN_ADDR);
+    }
+
+    /* allocate buffer for HCI vendor specific command */
+    if (NULL == (p_buf = HCI_GET_CMD_BUF(sizeof(void*) + sizeof(cmd))))
+    {
+        BTM_TRACE_ERROR1("%s HCI_GET_CMD_BUF null memory allocated", __FUNCTION__);
+        return (BTM_NO_RESOURCES);
+    }
+
+    /* assemble command content */
+    p_cursor = cmd;
+    *p_cursor++ = sub_cmd;
+
+    /* the connection handle is put in little endian*/
+    conn_handle = p_conn->hci_handle;
+    *p_cursor++ = (UINT8)(conn_handle & 0x00FF);
+    *p_cursor++ = (UINT8)((conn_handle>>8) & 0x00FF);
+
+    btsnd_hcic_vendor_spec_cmd(p_buf, op_code, sizeof(cmd), cmd, (void*)rssi_monitor_hci_cmd_complete);
+
+    BTM_TRACE_API1("%s exit", __FUNCTION__);
+    return (BTM_CMD_STARTED);
+}
+
+/*******************************************************************************
+**
+** Function         BTM_Enable_Rssi_Monitor
+**
+** Description      This function is called to enable or disable rssi monitoring
+**
+** Parameters       remote_bda, the device whose rssi is monitored
+**                  enable, true or false
+**                  p_callback, the completion callback of hci vendor specific command
+**                  p_rssi_event_cb, rssi threshold event will be reported via this functiion to upper layer
+**
+** Returns          tBTM_STATUS
+**
+*******************************************************************************/
+tBTM_STATUS BTM_Enable_Rssi_Monitor(BD_ADDR remote_bda, int enable)
+{
+    void      *p_buf = 0;
+    tACL_CONN *p_conn = 0;
+    UINT16    op_code = 0x03FF;
+    UINT8     sub_cmd = ENABLE_RSSI_MONITOR;
+    UINT16    conn_handle = 0x0000;
+    UINT8     cmd[4], *p_cursor;
+    BTM_TRACE_API1("%s enter", __FUNCTION__);
+
+    /* find acl connection */
+    if (!remote_bda || !(p_conn = btm_bda_to_acl(remote_bda)))
+    {
+        BTM_TRACE_ERROR1("%s no ACL connection for address", __FUNCTION__);
+        return (BTM_UNKNOWN_ADDR);
+    }
+
+    /* allocate buffer for HCI vendor specific command */
+    if (NULL == (p_buf = HCI_GET_CMD_BUF(sizeof(void*) + sizeof(cmd))))
+    {
+        BTM_TRACE_ERROR1("%s HCI_GET_CMD_BUF null memory allocated", __FUNCTION__);
+        return (BTM_NO_RESOURCES);
+    }
+
+    /* assemble command content */
+    p_cursor = cmd;
+    *p_cursor++ = sub_cmd;
+    /* the connection handle is put in little endian*/
+    conn_handle = p_conn->hci_handle;
+    *p_cursor++ = (UINT8)(conn_handle & 0x00FF);
+    *p_cursor++ = (UINT8)((conn_handle>>8) & 0x00FF);
+    *p_cursor++ = (UINT8)(enable? 0x01:0x00);
+
+    btsnd_hcic_vendor_spec_cmd(p_buf, op_code, sizeof(cmd), cmd, (void*)rssi_monitor_hci_cmd_complete);
+
+    BTM_TRACE_API1("%s exit", __FUNCTION__);
+    return (BTM_CMD_STARTED);
+}
+
+/*******************************************************************************
+**
+** Function         btm_handle_rssi_monitor_event
+**
+** Description      This function is called to handle rssi event, it will relay
+**                  events to upper layer
+**
+** Parameters       p, event packet stream
+**                  evt_len, the length of p
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_handle_rssi_monitor_event(UINT8 *p, UINT8 evt_len)
+{
+    BTM_TRACE_EVENT1("%s enter", __FUNCTION__);
+    if (p)
+    {
+        UINT8   type;
+        UINT16  conn_handle;
+        UINT8   acl_index;
+        signed char   rssi;
+        BD_ADDR       remote_bda;
+        tBTM_RSSI_MONITOR_EVENT_CB_PARAM param;
+
+        STREAM_TO_UINT8(type, p);
+        STREAM_TO_UINT16(conn_handle, p);
+        STREAM_TO_UINT8(rssi, p);
+
+        param.rssi_event_type = type;
+        param.rssi_value = rssi;
+        /* convert from connection handle to bluetooth address*/
+        acl_index = btm_handle_to_acl_index(conn_handle);
+        if (acl_index < MAX_L2CAP_LINKS)
+        {
+            memcpy(remote_bda, btm_cb.acl_db[acl_index].remote_addr, sizeof(BD_ADDR));
+            if (btm_cb.devcb.p_rssi_monitor_event_cb)
+            {
+                btm_cb.devcb.p_rssi_monitor_event_cb(remote_bda, &param);
+            }
+        }
+        else
+        {
+            BTM_TRACE_ERROR2("%s didn't find bd address for acl link: 0x%2x", __FUNCTION__, conn_handle);
+        }
+    }
+
+    BTM_TRACE_EVENT1("%s exit", __FUNCTION__);
+}
+
+/*******************************************************************************
+**
+** Function         btm_setup_rssi_threshold_callback
+**
+** Description      This function is called to setup callback to btif layer
+**
+** Parameters       com_cpl_callback, called when rssi monitor related command
+**                                    is completed
+**                  evt_callback, called when rssi threshold event reported
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_setup_rssi_threshold_callback(tBTM_RSSI_MONITOR_CMD_CPL_CB cmd_cpl_callback,
+                                         tBTM_RSSI_MONITOR_EVENT_CB evt_callback)
+{
+    btm_cb.devcb.p_rssi_monitor_cmd_cpl_cb = cmd_cpl_callback;
+    btm_cb.devcb.p_rssi_monitor_event_cb = evt_callback;
 }
 
 /*******************************************************************************

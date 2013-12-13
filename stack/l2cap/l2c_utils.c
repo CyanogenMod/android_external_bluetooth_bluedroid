@@ -252,6 +252,8 @@ tL2C_LCB  *l2cu_find_lcb_by_bd_addr (BD_ADDR p_bd_addr)
 ** Function         l2cu_get_conn_role
 **
 ** Description      Determine the desired role (master or slave) of a link.
+**                  If it is the previous connected remote device, use the same
+**                  role as previous used role.
 **                  If already got a slave link, this one must be a master. If
 **                  already got at least 1 link where we are the master, make this
 **                  also a master.
@@ -259,8 +261,17 @@ tL2C_LCB  *l2cu_find_lcb_by_bd_addr (BD_ADDR p_bd_addr)
 ** Returns          HCI_ROLE_MASTER or HCI_ROLE_SLAVE
 **
 *******************************************************************************/
-UINT8 l2cu_get_conn_role (tL2C_LCB *p_this_lcb)
+UINT8 l2cu_get_conn_role (BD_ADDR bd_addr)
 {
+    UINT8 i;
+    for (i = 0; i < BTM_ROLE_DEVICE_NUM; i++) {
+        if ((btm_cb.previous_connected_role[i] != BTM_ROLE_UNDEFINED) &&
+            (!bdcmp(bd_addr, btm_cb.previous_connected_remote_addr[i]))) {
+            L2CAP_TRACE_WARNING1 ("l2cu_get_conn_role %d",
+                                  btm_cb.previous_connected_role[i]);
+            return btm_cb.previous_connected_role[i];
+        }
+    }
     return l2cb.desire_role;
 }
 
