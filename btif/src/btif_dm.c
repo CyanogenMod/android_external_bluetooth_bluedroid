@@ -2371,8 +2371,17 @@ bt_status_t btif_dm_start_discovery(void)
 bt_status_t btif_dm_cancel_discovery(void)
 {
     BTIF_TRACE_EVENT("%s", __FUNCTION__);
-    BTA_DmSearchCancel();
-    return BT_STATUS_SUCCESS;
+
+    if(BTM_IsInquiryActive() || (TRUE == BTM_IsRnrActive()) ||
+      (btif_dm_inquiry_in_progress == TRUE)) {
+        BTIF_TRACE_EVENT("%s : Inquiry is in progress", __FUNCTION__)
+        BTA_DmSearchCancel();
+        return BT_STATUS_SUCCESS;
+    }
+    else {
+        BTIF_TRACE_EVENT("%s : Inquiry not started", __FUNCTION__);
+        return BT_STATUS_FAIL;
+    }
 }
 
 /*******************************************************************************
@@ -2395,6 +2404,9 @@ bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr, int transport)
             bd2str((bt_bdaddr_t *) bd_addr, &bdstr), transport);
     if (pairing_cb.state != BT_BOND_STATE_NONE)
         return BT_STATUS_BUSY;
+
+    BTIF_TRACE_EVENT("%s : Cancel Inquiry", __FUNCTION__);
+    BTA_DmSearchCancel();
 
     btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_CREATE_BOND,
                           (char *)&create_bond_cb, sizeof(btif_dm_create_bond_cb_t), NULL);
