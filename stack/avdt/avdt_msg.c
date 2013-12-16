@@ -688,8 +688,12 @@ static UINT8 avdt_msg_prs_cfg(tAVDT_CFG *p_cfg, UINT8 *p, UINT16 len, UINT8* p_e
                 /* verify length */
                 AVDT_TRACE_WARNING2("psc_mask=0x%x elem_len=%d", p_cfg->psc_mask, elem_len);
                 if( ((0 == (p_cfg->psc_mask & (AVDT_PSC_RECOV|AVDT_PSC_REPORT))) && (elem_len != 3))
-                    || ((p_cfg->psc_mask & AVDT_PSC_RECOV) && (elem_len != 7))
-                    || ((p_cfg->psc_mask & AVDT_PSC_REPORT) && (elem_len != 5)) )
+                    || (((p_cfg->psc_mask & AVDT_PSC_REPORT) && !(p_cfg->psc_mask & AVDT_PSC_RECOV))
+                    && (elem_len != 5))
+                    || ((!(p_cfg->psc_mask & AVDT_PSC_REPORT) && (p_cfg->psc_mask & AVDT_PSC_RECOV))
+                    && (elem_len != 5))
+                    || (((p_cfg->psc_mask & AVDT_PSC_REPORT) && (p_cfg->psc_mask & AVDT_PSC_RECOV))
+                    && (elem_len != 7)) )
                 {
                     err = AVDT_ERR_MUX_FMT;
                     break;
