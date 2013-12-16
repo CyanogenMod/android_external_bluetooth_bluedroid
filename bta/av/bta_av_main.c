@@ -590,9 +590,27 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                 (*bta_av_a2d_cos.init)(&codec_type, cs.cfg.codec_info,
                 &cs.cfg.num_protect, cs.cfg.protect_info, index) == TRUE)
             {
+
+#ifdef BTA_AVK_INCLUDED
+            if(index == 1)
+            {
+                cs.tsep = AVDT_TSEP_SNK;
+                cs.p_data_cback = bta_av_stream_data_cback;
+            }
+                APPL_TRACE_DEBUG1(" SEP Type = %d",cs.tsep);
+#endif
                 if(AVDT_CreateStream(&p_scb->seps[index].av_handle, &cs) == AVDT_SUCCESS)
                 {
                     p_scb->seps[index].codec_type = codec_type;
+
+#ifdef BTA_AVK_INCLUDED
+                    p_scb->seps[index].tsep = cs.tsep;
+                    if(cs.tsep == AVDT_TSEP_SNK)
+                        p_scb->seps[index].p_app_data_cback = p_data->api_reg.p_app_data_cback;
+                    else
+                        p_scb->seps[index].p_app_data_cback = NULL; /* In case of A2DP SOURCE we don't need a callback to handle media packets */
+#endif
+
                     APPL_TRACE_DEBUG3("audio[%d] av_handle: %d codec_type: %d",
                         index, p_scb->seps[index].av_handle, p_scb->seps[index].codec_type);
                     index++;
@@ -609,6 +627,12 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                                   A2D_SUPF_PLAYER, bta_av_cb.sdp_a2d_handle);
                 bta_sys_add_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
 
+#ifdef BTA_AVK_INCLUDED
+                bta_av_cb.sdp_a2d_snk_handle = SDP_CreateRecord();
+                A2D_AddRecord(UUID_SERVCLASS_AUDIO_SINK, p_service_name, NULL,
+                                  A2D_SUPF_PLAYER, bta_av_cb.sdp_a2d_snk_handle);
+                bta_sys_add_uuid(UUID_SERVCLASS_AUDIO_SINK);
+#endif
                 /* start listening when A2DP is registered */
                 if (bta_av_cb.features & BTA_AV_FEAT_RCTG)
                     bta_av_rc_create(&bta_av_cb, AVCT_ACP, 0, BTA_AV_NUM_LINKS + 1);

@@ -480,7 +480,10 @@ void avdt_ad_tc_data_ind(tAVDT_TC_TBL *p_tbl, BT_HDR *p_buf)
             avdt_scb_event(p_scb, AVDT_SCB_TC_DATA_EVT, (tAVDT_SCB_EVT *) &p_buf);
         }
         else
+        {
             GKI_freebuf(p_buf);
+            AVDT_TRACE_ERROR0(" avdt_ad_tc_data_ind buffer freed");
+        }
     }
 }
 
