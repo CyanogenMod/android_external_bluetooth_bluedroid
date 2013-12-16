@@ -88,6 +88,7 @@
 #define BTIF_MEDIA_TASK_CMD_MBOX        TASK_MBOX_0     /* cmd mailbox  */
 #define BTIF_MEDIA_TASK_DATA_MBOX       TASK_MBOX_1     /* data mailbox  */
 
+
 /* BTIF media cmd event definition : BTIF_MEDIA_TASK_CMD */
 enum
 {
@@ -120,6 +121,7 @@ enum {
    (1000/TICKS_PER_SEC) (10) */
 
 #define BTIF_MEDIA_TIME_TICK                     (20 * BTIF_MEDIA_NUM_TICK)
+#define A2DP_DATA_READ_POLL_MS    (BTIF_MEDIA_TIME_TICK / 2)
 
 /* buffer pool */
 #define BTIF_MEDIA_AA_POOL_ID GKI_POOL_ID_3
@@ -553,7 +555,8 @@ static void btif_a2dp_data_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
             /*  read directly from media task from here on (keep callback for
                 connection events */
             UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_REG_REMOVE_ACTIVE_READSET, NULL);
-
+            UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_SET_READ_POLL_TMO,
+                       (void *)A2DP_DATA_READ_POLL_MS);
             /* Start the media task to encode SBC */
             btif_media_task_start_aa_req();
 
