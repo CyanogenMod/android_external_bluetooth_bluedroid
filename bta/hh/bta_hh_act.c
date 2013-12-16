@@ -221,7 +221,7 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
                 {
                     p_cb->app_id = 0;
                 }
-            } 
+            }
             else
             {
                 hdl = p_cb->hid_handle;
