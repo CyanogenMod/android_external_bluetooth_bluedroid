@@ -371,9 +371,17 @@ void handle_rc_features()
 {
     btrc_remote_features_t rc_features = BTRC_FEAT_NONE;
     bt_bdaddr_t rc_addr;
-    bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+    bt_bdaddr_t avdtp_addr;
+    bdstr_t addr1, addr2;
 
-    if (dev_blacklisted_for_absolute_volume(btif_rc_cb.rc_addr))
+    bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+    avdtp_addr = btif_av_get_addr();
+
+    BTIF_TRACE_DEBUG2("AVDTP Address : %s AVCTP address: %s",
+                       bd2str(&avdtp_addr, &addr1), bd2str(&rc_addr, &addr2));
+
+    if (dev_blacklisted_for_absolute_volume(btif_rc_cb.rc_addr) ||
+        bdcmp(avdtp_addr.address, rc_addr.address))
     {
         btif_rc_cb.rc_features &= ~BTA_AV_FEAT_ADV_CTRL;
     }
