@@ -5103,7 +5103,7 @@ void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data)
 
 #if ((defined BTA_GATT_INCLUDED) &&  (BTA_GATT_INCLUDED == TRUE))
 #ifndef BTA_DM_GATT_CLOSE_DELAY_TOUT
-#define BTA_DM_GATT_CLOSE_DELAY_TOUT    1000
+#define BTA_DM_GATT_CLOSE_DELAY_TOUT    3000
 #endif
 
 /*******************************************************************************
