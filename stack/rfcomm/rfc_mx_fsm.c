@@ -614,7 +614,9 @@ static void rfc_mx_conf_cnf (tRFC_MCB *p_mcb, tL2CAP_CFG_INFO *p_cfg)
         else
         {
             p_mcb->state = RFC_MX_STATE_WAIT_SABME;
-            rfc_timer_start (p_mcb, RFC_T2_TIMEOUT);
+            rfc_timer_start (p_mcb, RFCOMM_CONN_TIMEOUT); /* - increased from T2=20 to CONN=120
+                                                to allow the user more than 10 sec to type in the
+                                                pin which can be e.g. 16 digits */
         }
     }
 }
@@ -657,7 +659,9 @@ static void rfc_mx_conf_ind (tRFC_MCB *p_mcb, tL2CAP_CFG_INFO *p_cfg)
         else
         {
             p_mcb->state = RFC_MX_STATE_WAIT_SABME;
-            rfc_timer_start (p_mcb, RFC_T2_TIMEOUT);
+            rfc_timer_start (p_mcb, RFCOMM_CONN_TIMEOUT); /* - increased from T2=20 to CONN=120
+                                                to allow the user more than 10 sec to type in the
+                                                pin which can be e.g. 16 digits */
         }
     }
 }
