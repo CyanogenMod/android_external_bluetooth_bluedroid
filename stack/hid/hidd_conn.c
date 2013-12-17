@@ -466,6 +466,16 @@ static void hidd_l2cif_config_cfm(UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
         L2CA_ConfigReq(cid, &new_qos);
         return;
     }
+    else if (p_hcon->intr_cid == cid && p_cfg->result ==
+        L2CAP_CFG_UNKNOWN_OPTIONS)
+    {
+        // QoS not understood by remote device, try configuring without QoS
+
+        HIDD_TRACE_WARNING1("%s: config failed, retry without QoS", __FUNCTION__);
+
+        L2CA_ConfigReq(cid, &hd_cb.l2cap_cfg);
+        return;
+    }
     else if (p_cfg->result != L2CAP_CFG_OK)
     {
         HIDD_TRACE_WARNING1("%s: config failed, disconnecting", __FUNCTION__);
