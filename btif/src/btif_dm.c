@@ -1092,6 +1092,12 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             default:
                 status =  BT_STATUS_FAIL;
         }
+        /* Special Handling for HID Devices */
+        if (check_cod(&bd_addr, COD_HID_POINTING)) {
+            /* Remove Device as bonded in nvram as authentication failed */
+            BTIF_TRACE_DEBUG1("%s(): removing hid pointing device from nvram", __FUNCTION__);
+            btif_storage_remove_bonded_device(&bd_addr);
+        }
         bond_state_changed(status, &bd_addr, state);
     }
 }
