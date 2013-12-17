@@ -216,6 +216,35 @@ bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
 
 /*******************************************************************************
 **
+** Function         check_eir_is_remote_name_short
+**
+** Description      Check if remote name is shortened
+**
+** Returns          TRUE if remote name found
+**                  else FALSE
+**
+*******************************************************************************/
+static BOOLEAN check_eir_is_remote_name_short(tBTA_DM_SEARCH *p_search_data)
+{
+    UINT8 *p_eir_remote_name = NULL;
+    UINT8 remote_name_len = 0;
+
+    /* Check EIR for remote name and services */
+    if (p_search_data->inq_res.p_eir)
+    {
+        p_eir_remote_name = BTA_CheckEirData(p_search_data->inq_res.p_eir,
+                BTM_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
+
+        if (p_eir_remote_name)
+        {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+/*******************************************************************************
+**
 ** Function         check_eir_remote_name
 **
 ** Description      Check if remote name is in the EIR data
@@ -1176,10 +1205,18 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
                 }
                 else if (bdname.name[0])
                 {
-                    BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
-                                               BT_PROPERTY_BDNAME,
+                    if( (check_eir_is_remote_name_short(p_search_data) == TRUE) &&
+                        (btif_storage_is_device_bonded(&bdaddr) == TRUE) )
+                    {
+                        BTIF_TRACE_DEBUG1("%s Don't update about the device name ", __FUNCTION__);
+                    }
+                    else
+                    {
+                        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                                                   BT_PROPERTY_BDNAME,
                                                strlen((char *)bdname.name), &bdname);
-                    num_properties++;
+                        num_properties++;
+                    }
                 }
 
                 /* DEV_CLASS */

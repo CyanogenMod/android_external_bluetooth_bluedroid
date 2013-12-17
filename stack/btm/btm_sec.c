@@ -3979,7 +3979,16 @@ void btm_sec_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
 
     if (p_acl && p_acl->is_le_link)
     {
-        btm_ble_link_encrypted(p_dev_rec->bd_addr, encr_enable);
+        if(status == HCI_ERR_KEY_MISSING) {
+            if (SMP_Pair(p_dev_rec->bd_addr) == SMP_STARTED) {
+                BTM_TRACE_EVENT0 ("simple pairing started");
+                btm_cb.pairing_state = BTM_PAIR_STATE_WAIT_AUTH_COMPLETE;
+                p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
+            }
+        }
+        else {
+            btm_ble_link_encrypted(p_dev_rec->bd_addr, encr_enable);
+        }
         return;
     }
     else

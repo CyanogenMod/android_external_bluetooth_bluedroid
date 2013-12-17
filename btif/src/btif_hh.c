@@ -546,6 +546,15 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
     {
         btm_sec_set_hid_as_paired((p_dev->bd_addr).address, FALSE);
     }
+    //send hal call back to reset the profile conn state here
+    BTIF_TRACE_DEBUG0("sending hal cback to disconnect HH Device");
+    btif_hh_cb.status = BTIF_HH_DEV_DISCONNECTED;
+    p_dev->dev_status = BTHH_CONN_STATE_DISCONNECTED;
+    if (memcmp(&btif_hh_cb.connecting_dev_bd_addr, &(p_dev->bd_addr), BD_ADDR_LEN) == 0)
+    {
+        memset(&btif_hh_cb.connecting_dev_bd_addr, 0, BD_ADDR_LEN);
+    }
+    HAL_CBACK(bt_hh_callbacks, connection_state_cb,&(p_dev->bd_addr), p_dev->dev_status);
     p_dev->dev_status = BTHH_CONN_STATE_UNKNOWN;
     p_dev->dev_handle = BTA_HH_INVALID_HANDLE;
     if (btif_hh_cb.device_num > 0) {
