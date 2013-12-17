@@ -843,6 +843,31 @@ bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t *remote_bd_addr)
 
 /*******************************************************************************
 **
+** Function         btif_storage_is_device_bonded
+**
+** Description      BTIF storage API - checks if device present in bonded list
+**
+** Returns          TRUE if the device is bonded,
+**                  FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN btif_storage_is_device_bonded(bt_bdaddr_t *remote_bd_addr)
+{
+    bdstr_t bdstr;
+    bd2str(remote_bd_addr, &bdstr);
+    if((btif_config_exist("Remote", bdstr, "LinkKey")) &&
+       (btif_config_exist("Remote", bdstr, "LinkKeyType")))
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         btif_storage_load_bonded_devices
 **
 ** Description      BTIF storage API - Loads all the bonded devices from NVRAM
