@@ -54,6 +54,7 @@
 #include "btif_mce.h"
 #include "btif_profile_queue.h"
 #include "btif_config.h"
+#include "btif_sock_util.h"
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
@@ -71,6 +72,9 @@
 /************************************************************************************
 **  Local type definitions
 ************************************************************************************/
+
+static BOOLEAN bt_disabled = FALSE;
+pthread_mutex_t mutex_bt_disable;
 
 /* These type definitions are used when passing data from the HAL to BTIF context
 *  in the downstream path for the adapter and remote_device property APIs */
@@ -310,14 +314,23 @@ static void btif_task(UINT32 params)
          */
         if (event == BT_EVT_HARDWARE_INIT_FAIL)
         {
-            BTIF_TRACE_DEBUG0("btif_task: hardware init failed");
-            bte_main_disable();
-            btif_queue_release();
-            GKI_task_self_cleanup(BTIF_TASK);
-            bte_main_shutdown();
-            btif_dut_mode = 0;
-            btif_core_state = BTIF_CORE_STATE_DISABLED;
-            HAL_CBACK(bt_hal_cbacks,adapter_state_changed_cb,BT_STATE_OFF);
+            lock_slot(&mutex_bt_disable);
+            BTIF_TRACE_DEBUG0("btif_task: mutex_bt_disable lock");
+            if(bt_disabled == FALSE)
+            {
+                BTIF_TRACE_DEBUG0("btif_task: hardware init failed");
+                bte_main_disable();
+                btif_queue_release();
+                GKI_task_self_cleanup(BTIF_TASK);
+                bte_main_shutdown();
+                btif_dut_mode = 0;
+                btif_core_state = BTIF_CORE_STATE_DISABLED;
+                /*variable to avoid the double cleanup*/
+                bt_disabled = TRUE;
+                HAL_CBACK(bt_hal_cbacks,adapter_state_changed_cb,BT_STATE_OFF);
+            }
+            BTIF_TRACE_DEBUG0("btif_task: mutex_bt_disable unlock");
+            unlock_slot(&mutex_bt_disable);
             break;
         }
 
@@ -540,6 +553,9 @@ bt_status_t btif_enable_bluetooth(void)
 
     btif_core_state = BTIF_CORE_STATE_ENABLING;
 
+    bt_disabled = FALSE;
+
+    init_slot_lock(&mutex_bt_disable);
     /* Create the GKI tasks and run them */
     bte_main_enable();
 
@@ -758,21 +774,29 @@ bt_status_t btif_shutdown_bluetooth(void)
 
     btif_shutdown_pending = 0;
 
-    if (btif_core_state == BTIF_CORE_STATE_ENABLING)
+    lock_slot(&mutex_bt_disable);
+    if(bt_disabled == FALSE)
     {
-        // Java layer abort BT ENABLING, could be due to ENABLE TIMEOUT
-        // Direct call from cleanup()@bluetooth.c
-        // bring down HCI/Vendor lib
-        bte_main_disable();
-        btif_core_state = BTIF_CORE_STATE_DISABLED;
-        HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
+        /*variable to avoid the double cleanup*/
+        bt_disabled = TRUE;
+
+        if (btif_core_state == BTIF_CORE_STATE_ENABLING)
+        {
+            // Java layer abort BT ENABLING, could be due to ENABLE TIMEOUT
+            // Direct call from cleanup()@bluetooth.c
+            // bring down HCI/Vendor lib
+            bte_main_disable();
+            btif_core_state = BTIF_CORE_STATE_DISABLED;
+            HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
+        }
+
+        GKI_destroy_task(BTIF_TASK);
+        btif_queue_release();
+        bte_main_shutdown();
+
+        btif_dut_mode = 0;
     }
-
-    GKI_destroy_task(BTIF_TASK);
-    btif_queue_release();
-    bte_main_shutdown();
-
-    btif_dut_mode = 0;
+    unlock_slot(&mutex_bt_disable);
 
     BTIF_TRACE_DEBUG1("%s done", __FUNCTION__);
 
