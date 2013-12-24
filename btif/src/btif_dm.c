@@ -2655,6 +2655,11 @@ static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         }
     }
     bond_state_changed(status, &bd_addr, state);
+    if(state==BT_BOND_STATE_BONDED)
+    {
+        BTIF_TRACE_DEBUG1("%s, save keys immidiately",__FUNCTION__ );
+        btif_config_flush();
+    }
 }
 
 
