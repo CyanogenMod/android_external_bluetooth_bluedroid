@@ -324,9 +324,14 @@ static int add_maps_sdp(const char* p_service_name, int scn)
     UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
     BOOLEAN             status = FALSE;
     UINT32              sdp_handle = 0;
-    // TODO: To add support for EMAIL set below depending on the scn to either SMS or Email
-    const tBTA_MAPS_CFG *p_bta_maps_cfg = &bta_maps_cfg_sms;
-
+    const tBTA_MAPS_CFG *p_bta_maps_cfg;
+    if (!strncmp(p_service_name, "SMS/MMS Message Access", strlen("SMS/MMS Message Access"))) {
+        p_bta_maps_cfg = &bta_maps_cfg_sms;
+        APPL_TRACE_DEBUG1("add_maps_sdp for: %s", p_service_name);
+    } else if (!strncmp(p_service_name, "Email Message Access", strlen("Email Message Access"))) {
+        p_bta_maps_cfg = &bta_maps_cfg_email;
+        APPL_TRACE_DEBUG1("add_maps_sdp for: %s", p_service_name);
+    }
     APPL_TRACE_DEBUG2("add_maps_sdd:scn %d, service name %s", scn, p_service_name);
 
     if ((sdp_handle = SDP_CreateRecord()) == 0)
@@ -664,6 +669,7 @@ static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
     }
     else if (IS_UUID(UUID_MAPS_MAS,uuid))
     {
+        APPL_TRACE_DEBUG1("final_scn is %d",final_scn);
         handle = add_maps_sdp(name, final_scn); //MAP Server is always 19
     }
     else if (IS_UUID(UUID_FTP, uuid))

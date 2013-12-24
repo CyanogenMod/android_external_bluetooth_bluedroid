@@ -94,7 +94,6 @@ oi_sbc_decoder_vendor_interface_t *oi_sbc_decode_vnd_if = NULL;
  **  Constants
  *****************************************************************************/
 
-
 #ifndef AUDIO_CHANNEL_OUT_MONO
 #define AUDIO_CHANNEL_OUT_MONO 0x01
 #endif
@@ -230,7 +229,6 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 #define PACKET_PLAYED_PER_TICK_32 5
 #define PACKET_PLAYED_PER_TICK_16 3
 
-#define BTIF_MEDIA_VERBOSE_ENABLED
 
 #ifdef BTIF_MEDIA_VERBOSE_ENABLED
 #define VERBOSE(fmt, ...) \
@@ -290,6 +288,7 @@ typedef struct
     BOOLEAN is_edr_supported;
     BOOLEAN is_source;
     UINT8   frames_to_process;
+    BOOLEAN rx_audio_focus_gained;
 #endif
 
 } tBTIF_MEDIA_CB;
@@ -354,6 +353,8 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg);
 static void btif_media_task_aa_handle_start_decoding(void );
 #endif
 extern BOOLEAN btif_hf_is_call_idle();
+extern void btif_av_request_audio_focus(BOOLEAN enable);
+
 BOOLEAN btif_media_task_start_decoding_req(void);
 
 /*****************************************************************************
@@ -938,6 +939,7 @@ void btif_a2dp_on_idle(void)
         APPL_TRACE_DEBUG0("Reset to Source role");
         btif_media_cb.is_source = TRUE;
         btif_media_cb.rx_flush = TRUE;
+        btif_media_cb.rx_audio_focus_gained = FALSE;
     }
 #endif
 }
@@ -1209,6 +1211,13 @@ void btif_a2dp_set_tx_flush(BOOLEAN enable)
     btif_media_cb.tx_flush = enable;
 }
 
+/* when true media task discards any rx frames */
+void btif_a2dp_set_audio_focus_state(BOOLEAN is_enable)
+{
+    APPL_TRACE_EVENT1("## Audio_focus_state Rx %d ##", is_enable);
+    btif_media_cb.rx_audio_focus_gained = is_enable;
+}
+
 /*****************************************************************************
 **
 ** Function        btif_calc_pcmtime
@@ -1266,6 +1275,12 @@ static void btif_media_task_avk_handle_timer ( void )
     }
     else
     {
+        if (btif_media_cb.rx_audio_focus_gained == FALSE)
+        {
+            /* Send a Audio Focus Request */
+            btif_av_request_audio_focus(TRUE);
+            return;
+        }
         if (btif_media_cb.rx_flush == TRUE)
         {
             btif_media_flush_q(&(btif_media_cb.RxSbcQ));
@@ -2206,6 +2221,8 @@ static void btif_media_task_aa_handle_stop_decoding(void )
  *******************************************************************************/
 static void btif_media_task_aa_handle_start_decoding(void )
 {
+    if(btif_media_cb.is_rx_timer == TRUE)
+        return;
     btif_media_cb.is_rx_timer = TRUE;
     GKI_start_timer(BTIF_MEDIA_AVK_TASK_TIMER_ID, GKI_MS_TO_TICKS(BTIF_SINK_MEDIA_TIME_TICK), TRUE);
 }
@@ -2577,7 +2594,9 @@ UINT8 btif_media_sink_enque_buf(BT_HDR *p_pkt)
     if(btif_media_cb.rx_flush == TRUE) /* Flush enabled, do not enque*/
         return btif_media_cb.RxSbcQ.count;
     if(btif_media_cb.RxSbcQ.count == MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ)
-        return MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ;
+    {
+        GKI_freebuf(GKI_dequeue(&(btif_media_cb.RxSbcQ)));
+    }
 
     BTIF_TRACE_VERBOSE0("btif_media_sink_enque_buf + ");
     /* allocate and Queue this buffer */

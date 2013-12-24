@@ -170,6 +170,7 @@ extern bt_status_t btif_hd_execute_service(BOOLEAN b_enable);
 extern void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16);
 extern BOOLEAN btif_av_is_connected();
 extern void btif_av_close_update();
+extern void btif_av_move_idle(bt_bdaddr_t bd_addr);
 
 
 /******************************************************************************
@@ -1092,6 +1093,12 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             default:
                 status =  BT_STATUS_FAIL;
         }
+        /* Special Handling for HID Devices */
+        if (check_cod(&bd_addr, COD_HID_POINTING)) {
+            /* Remove Device as bonded in nvram as authentication failed */
+            BTIF_TRACE_DEBUG1("%s(): removing hid pointing device from nvram", __FUNCTION__);
+            btif_storage_remove_bonded_device(&bd_addr);
+        }
         bond_state_changed(status, &bd_addr, state);
     }
 }
@@ -1651,6 +1658,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 
         case BTA_DM_LINK_DOWN_EVT:
             bdcpy(bd_addr.address, p_data->link_down.bd_addr);
+            btif_av_move_idle(bd_addr);
             BTIF_TRACE_DEBUG0("BTA_DM_LINK_DOWN_EVT. Sending BT_ACL_STATE_DISCONNECTED");
             HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
                       &bd_addr, BT_ACL_STATE_DISCONNECTED);
