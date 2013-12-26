@@ -137,24 +137,25 @@ tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_CFG bta_dm_pm_cfg[] =
   {BTA_ID_JV,  BTA_ALL_APP_ID,      7},  /* reuse fts spec table */
   {BTA_ID_HL,  BTA_ALL_APP_ID,      8},  /* reuse fts spec table */
   {BTA_ID_PAN, BTUI_PAN_ID_PANU,    9},  /*  PANU spec table */
-  {BTA_ID_PAN, BTUI_PAN_ID_NAP,    10}   /* NAP spec table */
+  {BTA_ID_PAN, BTUI_PAN_ID_NAP,    10},   /* NAP spec table */
+  {BTA_ID_HS, BTA_ALL_APP_ID,      11}   /* HS spec table */
 #if BLE_INCLUDED == TRUE
-  ,{BTA_ID_GATTC,  BTA_ALL_APP_ID,   11}   /* gattc spec table */
-  ,{BTA_ID_GATTS,  BTA_ALL_APP_ID,   12}  /* gatts spec table */
+  ,{BTA_ID_GATTC,  BTA_ALL_APP_ID,   12}   /* gattc spec table */
+  ,{BTA_ID_GATTS,  BTA_ALL_APP_ID,   13}  /* gatts spec table */
 #endif
 };
 
 #if BLE_INCLUDED == TRUE /* add GATT PM entry for GATT over BR/EDR  */
 #ifdef BTE_SIM_APP      /* For Insight builds only, see the detail below */
-#define BTA_DM_NUM_PM_SPEC      (13 + 2)  /* additional two */
+#define BTA_DM_NUM_PM_SPEC      (14 + 2)  /* additional two */
 #else
-#define BTA_DM_NUM_PM_SPEC      13 /* additional JV*/
+#define BTA_DM_NUM_PM_SPEC      14 /* additional JV*/
 #endif
 #else
 #ifdef BTE_SIM_APP      /* For Insight builds only, see the detail below */
-#define BTA_DM_NUM_PM_SPEC      (11 + 2)  /* additional two */
+#define BTA_DM_NUM_PM_SPEC      (12 + 2)  /* additional two */
 #else
-#define BTA_DM_NUM_PM_SPEC      11  /* additional JV*/
+#define BTA_DM_NUM_PM_SPEC      12  /* additional JV*/
 #endif
 #endif
 
@@ -368,8 +369,25 @@ tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_SPEC bta_dm_pm_spec[BTA_DM_NUM_PM_SPEC] =
       {{BTA_DM_PM_ACTIVE,    0},   {BTA_DM_PM_NO_ACTION, 0}},    /* busy */
       {{BTA_DM_PM_NO_ACTION, 0},   {BTA_DM_PM_NO_ACTION, 0}}     /* mode change retry */
   }
+ },
+  /* HS */
+ {
+  (BTA_DM_PM_SNIFF | BTA_DM_PM_PARK),                           /* allow park & sniff */
+#if (BTM_SSR_INCLUDED == TRUE)
+  (BTA_DM_PM_SSR2),                                              /* the SSR entry */
+#endif
+  {
+      {{BTA_DM_PM_SNIFF,  7000},   {BTA_DM_PM_NO_ACTION, 0}},   /* conn open sniff  */
+      {{BTA_DM_PM_NO_PREF,   0},   {BTA_DM_PM_NO_ACTION, 0}},   /* conn close  */
+      {{BTA_DM_PM_NO_ACTION, 0},   {BTA_DM_PM_NO_ACTION, 0}},   /* app open */
+      {{BTA_DM_PM_NO_ACTION, 0},   {BTA_DM_PM_NO_ACTION, 0}},   /* app close */
+      {{BTA_DM_PM_SNIFF3, 7000},   {BTA_DM_PM_NO_ACTION, 0}},   /* sco open, active */
+      {{BTA_DM_PM_SNIFF,  7000},   {BTA_DM_PM_NO_ACTION, 0}},   /* sco close sniff  */
+      {{BTA_DM_PM_SNIFF,  7000},   {BTA_DM_PM_NO_ACTION, 0}},   /* idle */
+      {{BTA_DM_PM_ACTIVE,    0},   {BTA_DM_PM_NO_ACTION, 0}},   /* busy */
+      {{BTA_DM_PM_RETRY,  7000},   {BTA_DM_PM_NO_ACTION, 0}}    /* mode change retry */
+  }
  }
-
 #if BLE_INCLUDED == TRUE
     /* GATTC */
  ,{

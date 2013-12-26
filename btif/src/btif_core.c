@@ -1580,7 +1580,7 @@ void btif_data_profile_register(int value)
         property.val = &val;;
         property.len = (sizeof(int));
         /* Reset pending mode to None */
-        btif_pending_mode == BT_SCAN_MODE_NONE;
+        btif_pending_mode = BT_SCAN_MODE_NONE;
         btif_set_adapter_property(&property);
     }
 }

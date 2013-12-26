@@ -488,6 +488,7 @@ void btm_acl_update_busy_level (tBTM_BLI_EVENT event)
         case BTM_BLI_ACL_UP_EVT:
             BTM_TRACE_DEBUG0 ("BTM_BLI_ACL_UP_EVT");
             btm_cb.num_acl++;
+            busy_level = (UINT8)btm_cb.num_acl;
             break;
         case BTM_BLI_ACL_DOWN_EVT:
             if (btm_cb.num_acl)
@@ -499,38 +500,39 @@ void btm_acl_update_busy_level (tBTM_BLI_EVENT event)
             {
                 BTM_TRACE_ERROR0 ("BTM_BLI_ACL_DOWN_EVT issued, but num_acl already zero !!!");
             }
+            busy_level = (UINT8)btm_cb.num_acl;
             break;
         case BTM_BLI_PAGE_EVT:
             BTM_TRACE_DEBUG0 ("BTM_BLI_PAGE_EVT");
             btm_cb.is_paging = TRUE;
             evt.busy_level_flags= BTM_BL_PAGING_STARTED;
+            busy_level = BTM_BL_PAGING_STARTED;
             break;
         case BTM_BLI_PAGE_DONE_EVT:
             BTM_TRACE_DEBUG0 ("BTM_BLI_PAGE_DONE_EVT");
             btm_cb.is_paging = FALSE;
             evt.busy_level_flags = BTM_BL_PAGING_COMPLETE;
+            busy_level = BTM_BL_PAGING_COMPLETE;
             break;
         case BTM_BLI_INQ_EVT:
             BTM_TRACE_DEBUG0 ("BTM_BLI_INQ_EVT");
             btm_cb.is_inquiry = TRUE;
             evt.busy_level_flags = BTM_BL_INQUIRY_STARTED;
+            busy_level = BTM_BL_INQUIRY_STARTED;
             break;
         case BTM_BLI_INQ_CANCEL_EVT:
             BTM_TRACE_DEBUG0 ("BTM_BLI_INQ_CANCEL_EVT");
             btm_cb.is_inquiry = FALSE;
             evt.busy_level_flags = BTM_BL_INQUIRY_CANCELLED;
+            busy_level = BTM_BL_INQUIRY_COMPLETE;
             break;
         case BTM_BLI_INQ_DONE_EVT:
             BTM_TRACE_DEBUG0 ("BTM_BLI_INQ_DONE_EVT");
             btm_cb.is_inquiry = FALSE;
             evt.busy_level_flags = BTM_BL_INQUIRY_COMPLETE;
+            busy_level = BTM_BL_INQUIRY_COMPLETE;
             break;
     }
-
-    if (btm_cb.is_paging || btm_cb.is_inquiry)
-        busy_level = 10;
-    else
-        busy_level = (UINT8)btm_cb.num_acl;
 
     if (busy_level != btm_cb.busy_level)
     {
