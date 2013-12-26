@@ -357,7 +357,7 @@ const char* dump_hf_client_event(UINT16 event)
         CASE_RETURN_STR(BTA_HF_CLIENT_BTRH_EVT)
         CASE_RETURN_STR(BTA_HF_CLIENT_BSIR_EVT)
         CASE_RETURN_STR(BTA_HF_CLIENT_BINP_EVT)
-
+        CASE_RETURN_STR(BTA_HF_CLIENT_RING_INDICATION)
         default:
             return "UNKNOWN MSG ID";
      }
