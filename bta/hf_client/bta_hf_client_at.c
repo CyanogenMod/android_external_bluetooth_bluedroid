@@ -1737,6 +1737,11 @@ void bta_hf_client_send_at_bia(void)
     int i;
 
     APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    if (bta_hf_client_cb.scb.peer_version < HFP_VERSION_1_6)
+    {
+        APPL_TRACE_DEBUG0("Remote does not Support AT+BIA");
+        return;
+    }
 
     at_len = snprintf(buf, sizeof(buf), "AT+BIA=");
 
