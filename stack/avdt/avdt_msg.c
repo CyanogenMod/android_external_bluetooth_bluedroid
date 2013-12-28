@@ -1299,7 +1299,10 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
                 }
                 else if (sig != AVDT_SIG_DELAY_RPT)
                 {
-                    btu_start_timer(&p_ccb->timer_entry, BTU_TTYPE_AVDT_CCB_RET, avdt_cb.rcb.ret_tout);
+                    if ((sig == AVDT_SIG_START))
+                        btu_start_timer(&p_ccb->timer_entry, BTU_TTYPE_AVDT_CCB_RET, avdt_cb.rcb.sig_tout);
+                    else
+                        btu_start_timer(&p_ccb->timer_entry, BTU_TTYPE_AVDT_CCB_RET, avdt_cb.rcb.ret_tout);
                 }
             }
         }
