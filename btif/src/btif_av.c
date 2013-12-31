@@ -387,6 +387,13 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
         case BTIF_SM_EXIT_EVT:
             break;
 
+        case BTA_AV_REJECT_EVT:
+            BTIF_TRACE_DEBUG0(" Received  BTA_AV_REJECT_EVT ");
+            HAL_CBACK(bt_av_callbacks, connection_state_cb,
+                BTAV_CONNECTION_STATE_DISCONNECTED, &(btif_av_cb.peer_bda));
+            btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
+            break;
+
         case BTA_AV_OPEN_EVT:
         {
             tBTA_AV *p_bta_data = (tBTA_AV*)p_data;
