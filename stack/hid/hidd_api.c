@@ -524,7 +524,7 @@ tHID_STATUS HID_DevReportError(void)
 {
     HIDD_TRACE_API1("%s", __FUNCTION__);
 
-    return hidd_conn_send_data(0, HID_TRANS_HANDSHAKE, HID_PAR_HANDSHAKE_RSP_ERR_INVALID_PARAM,
+    return hidd_conn_send_data(0, HID_TRANS_HANDSHAKE, HID_PAR_HANDSHAKE_RSP_ERR_INVALID_REP_ID,
         0, 0, NULL);
 }
 

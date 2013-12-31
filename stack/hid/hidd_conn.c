@@ -721,7 +721,7 @@ static void hidd_l2cif_data_ind(UINT16 cid, BT_HDR *p_msg)
         break;
 
     case HID_TRANS_SET_PROTOCOL:
-        hd_cb.device.boot_mode = !!(param & HID_PAR_PROTOCOL_MASK);
+        hd_cb.device.boot_mode = !(param & HID_PAR_PROTOCOL_MASK);
         hd_cb.callback(hd_cb.device.addr, HID_DHOST_EVT_SET_PROTOCOL,
             param & HID_PAR_PROTOCOL_MASK, NULL);
         hidd_conn_send_data(0, HID_TRANS_HANDSHAKE, HID_PAR_HANDSHAKE_RSP_SUCCESS,
@@ -983,7 +983,7 @@ tHID_STATUS hidd_conn_send_data(UINT8 channel, UINT8 msg_type, UINT8 param,
     p_buf->len = 1; // start with header only
 
     // add report id prefix only if non-zero (which is reserved)
-    if (msg_type == HID_TRANS_DATA && data)
+    if (msg_type == HID_TRANS_DATA && (data || param == HID_PAR_REP_TYPE_OTHER))
     {
         *p_out = data; // report_id
         p_out++;

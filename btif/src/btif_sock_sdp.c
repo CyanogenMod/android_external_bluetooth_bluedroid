@@ -308,7 +308,7 @@ const tBTA_MAPS_CFG bta_maps_cfg_sms =
 {
     0,                  /* Mas id 0 is for SMS/MMS */
     "MAP SMS/MMS",
-    BTA_MAP_MSG_TYPE_SMS_GSM | BTA_MAP_MSG_TYPE_SMS_CDMA
+    BTA_MAP_MSG_TYPE_SMS_GSM | BTA_MAP_MSG_TYPE_SMS_CDMA | BTA_MAP_MSG_TYPE_MMS
 };
 const tBTA_MAPS_CFG bta_maps_cfg_email =
 {
