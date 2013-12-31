@@ -633,11 +633,11 @@ void bta_hf_client_sco_conn_open(tBTA_HF_CLIENT_DATA *p_data)
 
     if (bta_hf_client_cb.scb.negotiated_codec == BTM_SCO_CODEC_MSBC)
     {
-        bta_hf_client_cback_sco(BTA_HF_CLIENT_AUDIO_OPEN_EVT);
+        bta_hf_client_cback_sco(BTA_HF_CLIENT_AUDIO_MSBC_OPEN_EVT);
     }
     else
     {
-        bta_hf_client_cback_sco(BTA_HF_CLIENT_AUDIO_MSBC_OPEN_EVT);
+        bta_hf_client_cback_sco(BTA_HF_CLIENT_AUDIO_OPEN_EVT);
     }
 
     bta_hf_client_cb.scb.retry_with_sco_only = FALSE;
