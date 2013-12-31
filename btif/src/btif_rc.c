@@ -1929,6 +1929,10 @@ static bt_status_t get_folderitem_rsp(btrc_folder_list_entries_t *rsp)
             break;
         }
     }
+    if (avrc_rsp.get_items.item_count == 0) {
+        /*As per spec Send proper Error if no Music App is registered.*/
+        avrc_rsp.get_items.status = AVRC_STS_BAD_RANGE;
+    }
     avrc_rsp.get_items.p_item_list = item;
     app_sendbrowsemsg(IDX_GET_FOLDER_ITEMS_RSP ,&avrc_rsp);
     return BT_STATUS_SUCCESS;
