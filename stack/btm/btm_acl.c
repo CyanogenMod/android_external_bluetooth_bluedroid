@@ -312,6 +312,13 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                         p_dev_rec->sm4 |= BTM_SM4_KNOWN;
                     }
 
+                    // Retrieve remote name only if not already in progress by security module
+                    if (!(p_dev_rec->sec_state & BTM_SEC_STATE_GETTING_NAME))
+                    {
+                        btsnd_hcic_rmt_name_req (p->remote_addr, HCI_PAGE_SCAN_REP_MODE_R1,
+                            HCI_MANDATARY_PAGE_SCAN_MODE, 0);
+                    }
+
                     btm_establish_continue (p);
                     return;
                 }
@@ -1317,6 +1324,13 @@ void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read_pages)
     for (page_idx = 0; page_idx < num_read_pages; page_idx++)
     {
         btm_process_remote_ext_features_page (p_acl_cb, p_dev_rec, page_idx);
+    }
+
+    // Retrieve remote name only if not already in progress by security module
+    if (!(p_dev_rec->sec_state & BTM_SEC_STATE_GETTING_NAME))
+    {
+        btsnd_hcic_rmt_name_req (p_acl_cb->remote_addr, HCI_PAGE_SCAN_REP_MODE_R1,
+            HCI_MANDATARY_PAGE_SCAN_MODE, 0);
     }
 }
 
