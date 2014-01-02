@@ -939,7 +939,7 @@ void btif_a2dp_on_idle(void)
         APPL_TRACE_DEBUG0("Reset to Source role");
         btif_media_cb.is_source = TRUE;
         btif_media_cb.rx_flush = TRUE;
-        btif_media_cb.rx_audio_focus_gained = FALSE;
+        btif_media_cb.rx_audio_focus_gained = BTIF_MEDIA_AUDIOFOCUS_LOSS;
     }
 #endif
 }
@@ -1212,10 +1212,10 @@ void btif_a2dp_set_tx_flush(BOOLEAN enable)
 }
 
 /* when true media task discards any rx frames */
-void btif_a2dp_set_audio_focus_state(BOOLEAN is_enable)
+void btif_a2dp_set_audio_focus_state(btif_media_AudioFocus_state state)
 {
-    APPL_TRACE_EVENT1("## Audio_focus_state Rx %d ##", is_enable);
-    btif_media_cb.rx_audio_focus_gained = is_enable;
+    APPL_TRACE_EVENT1("## Audio_focus_state Rx %d ##", state);
+    btif_media_cb.rx_audio_focus_gained = state;
 }
 
 /*****************************************************************************
@@ -1275,15 +1275,21 @@ static void btif_media_task_avk_handle_timer ( void )
     }
     else
     {
-        if (btif_media_cb.rx_audio_focus_gained == FALSE)
-        {
-            /* Send a Audio Focus Request */
-            btif_av_request_audio_focus(TRUE);
-            return;
-        }
         if (btif_media_cb.rx_flush == TRUE)
         {
             btif_media_flush_q(&(btif_media_cb.RxSbcQ));
+            return;
+        }
+        if (btif_media_cb.rx_audio_focus_gained == BTIF_MEDIA_AUDIOFOCUS_LOSS_TRANSIENT)
+        {
+            APPL_TRACE_DEBUG0("Received Transient Focus Loss, Ignoring");
+            return;
+        }
+
+        if (btif_media_cb.rx_audio_focus_gained == BTIF_MEDIA_AUDIOFOCUS_LOSS)
+        {
+            /* Send a Audio Focus Request */
+            btif_av_request_audio_focus(TRUE);
             return;
         }
         num_frames_to_process = btif_media_cb.frames_to_process;
