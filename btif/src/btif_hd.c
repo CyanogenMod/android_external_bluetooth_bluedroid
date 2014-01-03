@@ -517,12 +517,12 @@ static bt_status_t send_report(bthd_report_type_t type, uint8_t id, uint16_t len
 **
 ** Function         report_error
 **
-** Description      Sends HANDSHAKE with error info for invalid SET_PROTOCOL
+** Description      Sends HANDSHAKE with error info for invalid SET_REPORT
 **
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-static bt_status_t report_error(void)
+static bt_status_t report_error(uint8_t error)
 {
     BTIF_TRACE_API1("%s", __FUNCTION__);
 
@@ -538,7 +538,7 @@ static bt_status_t report_error(void)
         return BT_STATUS_NOT_READY;
     }
 
-    BTA_HdReportError();
+    BTA_HdReportError(error);
 
     return BT_STATUS_SUCCESS;
 }

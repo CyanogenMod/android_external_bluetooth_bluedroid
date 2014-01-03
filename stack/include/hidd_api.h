@@ -201,18 +201,18 @@ HID_API extern tHID_STATUS HID_DevSetIncomingPolicy(BOOLEAN allow);
 **
 ** Function         HID_DevReportError
 **
-** Description
+** Description      Reports error for Set Report via HANDSHAKE
 **
 ** Returns          tHID_STATUS
 **
 *******************************************************************************/
-HID_API extern tHID_STATUS HID_DevReportError(void);
+HID_API extern tHID_STATUS HID_DevReportError(UINT8 error);
 
 /*******************************************************************************
 **
 ** Function         HID_DevGetDevice
 **
-** Description
+** Description      Returns the BD Address of virtually cabled device
 **
 ** Returns          tHID_STATUS
 **
@@ -223,7 +223,7 @@ HID_API extern tHID_STATUS HID_DevGetDevice(BD_ADDR *addr);
 **
 ** Function         HID_DevSetIncomingQos
 **
-** Description
+** Description      Sets Incoming QoS values for Interrupt L2CAP Channel
 **
 ** Returns          tHID_STATUS
 **
@@ -236,7 +236,7 @@ HID_API extern tHID_STATUS HID_DevSetIncomingQos(UINT8 service_type, UINT32 toke
 **
 ** Function         HID_DevSetOutgoingQos
 **
-** Description
+** Description      Sets Outgoing QoS values for Interrupt L2CAP Channel
 **
 ** Returns          tHID_STATUS
 **

@@ -515,16 +515,34 @@ tHID_STATUS HID_DevSetIncomingPolicy(BOOLEAN allow)
 **
 ** Function         HID_DevReportError
 **
-** Description
+** Description      Reports error for Set Report via HANDSHAKE
 **
 ** Returns          tHID_STATUS
 **
 *******************************************************************************/
-tHID_STATUS HID_DevReportError(void)
+tHID_STATUS HID_DevReportError(UINT8 error)
 {
-    HIDD_TRACE_API1("%s", __FUNCTION__);
+    UINT8 handshake_param;
 
-    return hidd_conn_send_data(0, HID_TRANS_HANDSHAKE, HID_PAR_HANDSHAKE_RSP_ERR_INVALID_REP_ID,
+    HIDD_TRACE_API2("%s: error = %d", __FUNCTION__, error);
+
+    switch (error)
+    {
+        case HID_PAR_HANDSHAKE_RSP_SUCCESS:
+        case HID_PAR_HANDSHAKE_RSP_NOT_READY:
+        case HID_PAR_HANDSHAKE_RSP_ERR_INVALID_REP_ID:
+        case HID_PAR_HANDSHAKE_RSP_ERR_UNSUPPORTED_REQ:
+        case HID_PAR_HANDSHAKE_RSP_ERR_INVALID_PARAM:
+        case HID_PAR_HANDSHAKE_RSP_ERR_UNKNOWN:
+        case HID_PAR_HANDSHAKE_RSP_ERR_FATAL:
+            handshake_param = error;
+            break;
+        default:
+            handshake_param = HID_PAR_HANDSHAKE_RSP_ERR_UNKNOWN;
+            break;
+    }
+
+    return hidd_conn_send_data(0, HID_TRANS_HANDSHAKE, handshake_param,
         0, 0, NULL);
 }
 
@@ -532,7 +550,7 @@ tHID_STATUS HID_DevReportError(void)
 **
 ** Function         HID_DevGetDevice
 **
-** Description
+** Description      Returns the BD Address of virtually cabled device
 **
 ** Returns          tHID_STATUS
 **
@@ -557,7 +575,7 @@ tHID_STATUS HID_DevGetDevice(BD_ADDR *addr)
 **
 ** Function         HID_DevSetIncomingQos
 **
-** Description
+** Description      Sets Incoming QoS values for Interrupt L2CAP Channel
 **
 ** Returns          tHID_STATUS
 **
@@ -584,7 +602,7 @@ tHID_STATUS HID_DevSetIncomingQos(UINT8 service_type, UINT32 token_rate,
 **
 ** Function         HID_DevSetOutgoingQos
 **
-** Description
+** Description      Sets Outgoing QoS values for Interrupt L2CAP Channel
 **
 ** Returns          tHID_STATUS
 **

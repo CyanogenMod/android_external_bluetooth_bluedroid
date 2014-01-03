@@ -292,7 +292,7 @@ BTA_API extern void BTA_HdDisconnect(void)
 **
 ** Function         BTA_HdAddDevice
 **
-** Description
+** Description      This function is called when a device is virtually cabled
 **
 ** Returns          void
 **
@@ -317,7 +317,7 @@ BTA_API extern void BTA_HdAddDevice(BD_ADDR addr)
 **
 ** Function         BTA_HdRemoveDevice
 **
-** Description
+** Description      This function is called when a device is virtually uncabled
 **
 ** Returns          void
 **
@@ -342,20 +342,21 @@ BTA_API extern void BTA_HdRemoveDevice(BD_ADDR addr)
 **
 ** Function         BTA_HdReportError
 **
-** Description
+** Description      This function is called when reporting error for set report
 **
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HdReportError(void)
+BTA_API extern void BTA_HdReportError(UINT8 error)
 {
-    BT_HDR *p_buf;
+    tBTA_HD_REPORT_ERR *p_buf;
 
     APPL_TRACE_API1("%s", __FUNCTION__);
 
-    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (tBTA_HD_REPORT_ERR *) GKI_getbuf(sizeof(tBTA_HD_REPORT_ERR))) != NULL)
     {
-        p_buf->event = BTA_HD_API_REPORT_ERROR_EVT;
+        p_buf->hdr.event = BTA_HD_API_REPORT_ERROR_EVT;
+        p_buf->error = error;
 
         bta_sys_sendmsg(p_buf);
     }

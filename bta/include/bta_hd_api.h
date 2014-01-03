@@ -242,7 +242,7 @@ BTA_API extern void BTA_HdDisconnect(void);
 **
 ** Function         BTA_HdAddDevice
 **
-** Description
+** Description      This function is called when a device is virtually cabled
 **
 ** Returns          void
 **
@@ -253,7 +253,7 @@ BTA_API extern void BTA_HdAddDevice(BD_ADDR addr);
 **
 ** Function         BTA_HdRemoveDevice
 **
-** Description
+** Description      This function is called when a device is virtually uncabled
 **
 ** Returns          void
 **
@@ -264,12 +264,12 @@ BTA_API extern void BTA_HdRemoveDevice(BD_ADDR addr);
 **
 ** Function         BTA_HdReportError
 **
-** Description
+** Description      This function is called when reporting error for set report
 **
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HdReportError(void);
+BTA_API extern void BTA_HdReportError(UINT8 error);
 
 #ifdef __cplusplus
 }
