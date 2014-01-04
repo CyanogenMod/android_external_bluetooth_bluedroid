@@ -338,6 +338,7 @@ static void bta_hf_client_handle_error(tBTA_HF_CLIENT_AT_RESULT_TYPE type, UINT1
 static void bta_hf_client_handle_ring()
 {
     APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    bta_hf_client_evt_val(BTA_HF_CLIENT_RING_INDICATION,0);
 }
 
 static void bta_hf_client_handle_brsf(UINT32 value)

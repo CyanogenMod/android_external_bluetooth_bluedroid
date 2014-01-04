@@ -874,7 +874,9 @@ static void btif_hf_client_upstreams_evt(UINT16 event, char* p_param)
         case BTA_HF_CLIENT_AUDIO_CLOSE_EVT:
             HAL_CBACK(bt_hf_client_callbacks, audio_state_cb, BTHF_CLIENT_AUDIO_STATE_DISCONNECTED, &btif_hf_client_cb.connected_bda);
             break;
-
+        case BTA_HF_CLIENT_RING_INDICATION:
+            HAL_CBACK(bt_hf_client_callbacks, ring_indication_cb);
+            break;
         default:
             BTIF_TRACE_WARNING2("%s: Unhandled event: %d", __FUNCTION__, event);
             break;
