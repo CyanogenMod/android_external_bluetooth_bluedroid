@@ -1852,6 +1852,30 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             break;
 #endif
 
+        case BTA_DM_REM_NAME_EVT:
+            BTIF_TRACE_DEBUG0("BTA_DM_REM_NAME_EVT");
+
+            /* remote name */
+            if (strlen((char *)p_data->rem_name_evt.bd_name) > 0)
+            {
+                bt_property_t properties[1];
+                bt_status_t status;
+
+                BTIF_TRACE_DEBUG1("name of device = %s", p_data->rem_name_evt.bd_name);
+                properties[0].type = BT_PROPERTY_BDNAME;
+                properties[0].val = p_data->rem_name_evt.bd_name;
+                properties[0].len = strlen((char *)p_data->rem_name_evt.bd_name);
+                bdcpy(bd_addr.address, p_data->rem_name_evt.bd_addr);
+
+                status = btif_storage_set_remote_device_property(&bd_addr, &properties[0]);
+                ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device property",
+                    status);
+                HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+                                 status, &bd_addr, 1, properties);
+            }
+
+            break;
+
         case BTA_DM_AUTHORIZE_EVT:
         case BTA_DM_SIG_STRENGTH_EVT:
         case BTA_DM_SP_RMT_OOB_EVT:
