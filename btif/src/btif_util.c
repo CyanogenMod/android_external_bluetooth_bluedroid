@@ -285,6 +285,7 @@ const char* dump_dm_event(UINT16 event)
         CASE_RETURN_STR(BTA_DM_BLE_AUTH_CMPL_EVT)
         CASE_RETURN_STR(BTA_DM_DEV_UNPAIRED_EVT)
         CASE_RETURN_STR(BTA_DM_HW_ERROR_EVT)
+        CASE_RETURN_STR(BTA_DM_REM_NAME_EVT)
 
         default:
             return "UNKNOWN DM EVENT";
@@ -357,7 +358,7 @@ const char* dump_hf_client_event(UINT16 event)
         CASE_RETURN_STR(BTA_HF_CLIENT_BTRH_EVT)
         CASE_RETURN_STR(BTA_HF_CLIENT_BSIR_EVT)
         CASE_RETURN_STR(BTA_HF_CLIENT_BINP_EVT)
-
+        CASE_RETURN_STR(BTA_HF_CLIENT_RING_INDICATION)
         default:
             return "UNKNOWN MSG ID";
      }
