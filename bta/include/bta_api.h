@@ -514,6 +514,7 @@ typedef UINT8 tBTA_SIG_STRENGTH_MASK;
 // btla-specific --
 #define BTA_DM_DEV_UNPAIRED_EVT         23
 #define BTA_DM_HW_ERROR_EVT             24      /* BT Chip H/W error */
+#define BTA_DM_REM_NAME_EVT             25      /* Remote name event */
 typedef UINT8 tBTA_DM_SEC_EVT;
 
 /* Structure associated with BTA_DM_ENABLE_EVT */
@@ -695,6 +696,13 @@ typedef struct
     UINT8           level_flags; /* indicates individual flags */
 } tBTA_DM_BUSY_LEVEL;
 
+/* Structure associated with BTA_DM_REM_NAME_EVT */
+typedef struct
+{
+    BD_ADDR         bd_addr;            /* BD address peer device. */
+    BD_NAME         bd_name;            /* Name of peer device. */
+} tBTA_DM_REM_NAME_EVT;
+
 #define BTA_IO_CAP_OUT      BTM_IO_CAP_OUT      /* DisplayOnly */
 #define BTA_IO_CAP_IO       BTM_IO_CAP_IO       /* DisplayYesNo */
 #define BTA_IO_CAP_IN       BTM_IO_CAP_IN       /* KeyboardOnly */
@@ -798,6 +806,7 @@ typedef union
     tBTA_DM_LINK_UP     link_up;       /* ACL connection down event */
     tBTA_DM_LINK_DOWN   link_down;       /* ACL connection down event */
     tBTA_DM_SIG_STRENGTH sig_strength;  /* rssi and link quality value */
+    tBTA_DM_REM_NAME_EVT rem_name_evt; /* remote name event */
     tBTA_DM_BUSY_LEVEL  busy_level;     /* System busy level */
     tBTA_DM_SP_CFM_REQ  cfm_req;        /* user confirm request */
     tBTA_DM_SP_KEY_NOTIF key_notif;     /* passkey notification */

@@ -1161,12 +1161,6 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
                              p_evt_cfg->protect_info,
                              AVDT_TSEP_SNK,
                              p_msg->handle);
-            for(count =0; count < BTA_AV_MAX_SEPS; count ++)
-            {
-                if (p_scb->seps[count].av_handle == p_msg->handle)
-                    break;
-            }
-            p_scb->seps[count].p_app_data_cback(BTA_AV_MEDIA_SINK_CFG_EVT, (tBTA_AV_MEDIA*)p_evt_cfg->codec_info);
         }
         else
         {
@@ -1273,6 +1267,12 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     local_sep = bta_av_get_scb_sep_type(p_scb,avdt_handle);
     bta_av_adjust_seps_idx(p_scb, avdt_handle);
     APPL_TRACE_DEBUG2("bta_av_setconfig_rsp: sep_idx: %d cur_psc_mask:0x%x", p_scb->sep_idx, p_scb->cur_psc_mask);
+    if ((AVDT_TSEP_SNK == local_sep) && (p_data->ci_setconfig.err_code == AVDT_SUCCESS) &&
+                                     (p_scb->seps[p_scb->sep_idx].p_app_data_cback != NULL))
+        p_scb->seps[p_scb->sep_idx].p_app_data_cback(BTA_AV_MEDIA_SINK_CFG_EVT,
+                                              (tBTA_AV_MEDIA*)p_scb->cfg.codec_info);
+
+
     AVDT_ConfigRsp(p_scb->avdt_handle, p_scb->avdt_label, p_data->ci_setconfig.err_code,
                    p_data->ci_setconfig.category);
 
@@ -1858,9 +1858,12 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 void bta_av_setconfig_rej (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_REJECT reject;
+    UINT8   avdt_handle = p_data->ci_setconfig.avdt_handle;
 
-    APPL_TRACE_DEBUG0("bta_av_setconfig_rej");
-    AVDT_ConfigRsp(p_data->str_msg.handle, p_data->str_msg.msg.hdr.label, AVDT_ERR_BAD_STATE, 0);
+    bta_av_adjust_seps_idx(p_scb, avdt_handle);
+    APPL_TRACE_DEBUG1("bta_av_setconfig_rej: sep_idx: %d",p_scb->sep_idx);
+    AVDT_ConfigRsp(p_scb->avdt_handle, p_scb->avdt_label, AVDT_ERR_UNSUP_CFG, 0);
+
     bdcpy(reject.bd_addr, p_data->str_msg.bd_addr);
     reject.hndl = p_scb->hndl;
     (*bta_av_cb.p_cback)(BTA_AV_REJECT_EVT, (tBTA_AV *) &reject);

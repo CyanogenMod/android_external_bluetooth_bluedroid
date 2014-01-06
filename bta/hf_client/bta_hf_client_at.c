@@ -87,6 +87,8 @@ static const tBTA_HF_CLIENT_INDICATOR bta_hf_client_indicators[BTA_HF_CLIENT_AT_
 #define BTA_HF_CLIENT_VGM_MIN   0
 #define BTA_HF_CLIENT_VGM_MAX  15
 
+int service_index = 0;
+BOOLEAN service_availability = TRUE;
 /* helper functions for handling AT commands queueing */
 
 static void bta_hf_client_clear_queued_at(void)
@@ -338,6 +340,7 @@ static void bta_hf_client_handle_error(tBTA_HF_CLIENT_AT_RESULT_TYPE type, UINT1
 static void bta_hf_client_handle_ring()
 {
     APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    bta_hf_client_evt_val(BTA_HF_CLIENT_RING_INDICATION,0);
 }
 
 static void bta_hf_client_handle_brsf(UINT32 value)
@@ -357,6 +360,10 @@ static void bta_hf_client_handle_cind_list_item(char *name, UINT32 min, UINT32 m
     /* look for a matching indicator on list of supported ones */
     for(i = 0; i < BTA_HF_CLIENT_AT_SUPPORTED_INDICATOR_COUNT; i++)
     {
+        if (strcmp(name,BTA_HF_CLIENT_INDICATOR_SERVICE) == 0)
+        {
+            service_index = index;
+        }
         /* look for a match - search one sign further than indicators name to check for string end */
         /* It will distinguish 'callheld' which could be matched by strncmp as 'call'.               */
         if (strncmp(name, bta_hf_client_indicators[i].name, bta_hf_client_indicators[i].namelen) != 0)
@@ -380,6 +387,17 @@ static void bta_hf_client_handle_cind_value(UINT32 index, UINT32 value)
         return;
     }
 
+    if (service_index == index)
+    {
+        if (value == 0)
+        {
+            service_availability = FALSE;
+        }
+        else
+        {
+            service_availability = TRUE;
+        }
+    }
     if (bta_hf_client_cb.scb.at_cb.indicator_lookup[index] == -1)
     {
         return;
@@ -1545,6 +1563,11 @@ void bta_hf_client_send_at_cops(BOOLEAN query)
 
     APPL_TRACE_DEBUG1("%s", __FUNCTION__);
 
+    if (!service_availability)
+    {
+        APPL_TRACE_DEBUG0("Skip AT+COPS no service");
+        return;
+    }
     if (query)
         buf = "AT+COPS?\r";
     else
@@ -1702,6 +1725,11 @@ void bta_hf_client_send_at_cnum(void)
 
     APPL_TRACE_DEBUG1("%s", __FUNCTION__);
 
+    if (!service_availability)
+    {
+        APPL_TRACE_DEBUG0("Skip AT+CNUM no Service");
+        return;
+    }
     buf = "AT+CNUM\r";
 
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_CNUM, buf, strlen(buf));
@@ -1737,6 +1765,11 @@ void bta_hf_client_send_at_bia(void)
     int i;
 
     APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    if (bta_hf_client_cb.scb.peer_version < HFP_VERSION_1_6)
+    {
+        APPL_TRACE_DEBUG0("Remote does not Support AT+BIA");
+        return;
+    }
 
     at_len = snprintf(buf, sizeof(buf), "AT+BIA=");
 

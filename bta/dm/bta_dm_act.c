@@ -42,6 +42,7 @@
 static void bta_dm_inq_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_inq_cmpl_cb (void * p_result);
 static void bta_dm_service_search_remname_cback (BD_ADDR bd_addr, DEV_CLASS dc, BD_NAME bd_name);
+static void bta_dm_rem_name_cback (BD_ADDR bd_addr, DEV_CLASS dc, BD_NAME bd_name);
 static void bta_dm_remname_cback (tBTM_REMOTE_DEV_NAME *p_remote_name);
 static void bta_dm_find_services ( BD_ADDR bd_addr);
 static void bta_dm_discover_next_device(void);
@@ -281,6 +282,9 @@ void bta_dm_enable(tBTA_DM_MSG *p_data)
     /* first, register our callback to SYS HW manager */
     bta_sys_hw_register( BTA_SYS_HW_BLUETOOTH, bta_dm_sys_hw_cback );
 
+    /* Register callback with btm layer for remote name */
+    BTM_SecAddRmtNameNotifyCallback(&bta_dm_rem_name_cback);
+
     /* make sure security callback is saved - if no callback, do not erase the previous one,
     it could be an error recovery mechanism */
     if( p_data->enable.p_sec_cback != NULL  )
@@ -458,6 +462,9 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
 
     /* disable all active subsystems */
     bta_sys_disable(BTA_SYS_HW_BLUETOOTH);
+
+    /* De-register callback with btm layer for remote name */
+    BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_rem_name_cback);
 
     BTM_SetDiscoverability(BTM_NON_DISCOVERABLE, 0, 0);
     BTM_SetConnectability(BTM_NON_CONNECTABLE, 0, 0);
@@ -2650,6 +2657,35 @@ static void bta_dm_inq_cmpl_cb (void * p_result)
 
     }
 
+
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_rem_name_cback
+**
+** Description      Remote name call back from BTM when remote name is retrieved successfully
+**
+** Returns          void
+**
+*******************************************************************************/
+static void bta_dm_rem_name_cback (BD_ADDR bd_addr, DEV_CLASS dc, BD_NAME bd_name)
+{
+    tBTA_DM_SEC             sec_event;
+
+    APPL_TRACE_DEBUG1("bta_dm_rem_name_cback name=<%s>", bd_name);
+
+    if (strlen((char*)bd_name) > (BD_NAME_LEN-1))
+    {
+        sec_event.rem_name_evt.bd_name[(BD_NAME_LEN-1)] = 0;
+    }
+    bdcpy(sec_event.rem_name_evt.bd_addr, bd_addr);
+    BCM_STRNCPY_S((char*)sec_event.rem_name_evt.bd_name, sizeof(BD_NAME), (char*)bd_name,
+        (BD_NAME_LEN-1));
+    if( bta_dm_cb.p_sec_cback )
+    {
+        bta_dm_cb.p_sec_cback(BTA_DM_REM_NAME_EVT, &sec_event);
+    }
 
 }
 

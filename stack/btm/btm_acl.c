@@ -255,7 +255,6 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
             /* if BR/EDR do something more */
             if (!is_le_link)
             {
-                btsnd_hcic_read_rmt_clk_offset (p->hci_handle);
                 btsnd_hcic_rmt_ver_req (p->hci_handle);
             }
             p_dev_rec = btm_find_dev_by_handle (hci_handle);
@@ -306,11 +305,7 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                 }
 #endif
             }
-            else
 #endif
-            {
-                btm_read_remote_features (p->hci_handle);
-            }
 
             /* read page 1 - on rmt feature event for buffer reasons */
             return;
@@ -1243,6 +1238,11 @@ void btm_read_remote_version_complete (UINT8 *p)
                 STREAM_TO_UINT8  (p_acl_cb->lmp_version, p);
                 STREAM_TO_UINT16 (p_acl_cb->manufacturer, p);
                 STREAM_TO_UINT16 (p_acl_cb->lmp_subversion, p);
+                if(!p_acl_cb->is_le_link)
+                {
+                    BTM_TRACE_DEBUG0("Calling btm_read_remote_features");
+                    btm_read_remote_features (p_acl_cb->hci_handle);
+                }
                 break;
             }
         }
@@ -1265,6 +1265,7 @@ void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read_pages)
     UINT16              handle = p_acl_cb->hci_handle;
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev_by_handle (handle);
     UINT8               page_idx;
+    UINT8             status;
 
     BTM_TRACE_DEBUG0 ("btm_process_remote_ext_features");
 
@@ -1282,6 +1283,13 @@ void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read_pages)
     for (page_idx = 0; page_idx < num_read_pages; page_idx++)
     {
         btm_process_remote_ext_features_page (p_acl_cb, p_dev_rec, page_idx);
+    }
+
+    if (!(p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN) || p_dev_rec->is_originator)
+    {
+        BTM_TRACE_DEBUG0 ("Calling Next Security Procedure");
+        if ((status = btm_sec_execute_procedure (p_dev_rec)) != BTM_CMD_STARTED)
+            btm_sec_dev_rec_cback_event (p_dev_rec, status);
     }
 }
 
@@ -1462,6 +1470,10 @@ void btm_read_remote_features_complete (UINT8 *p)
         return;
     }
 
+    /* Retrieve remote name of device */
+    btsnd_hcic_rmt_name_req (p_acl_cb->remote_addr, HCI_PAGE_SCAN_REP_MODE_R1,
+        HCI_MANDATARY_PAGE_SCAN_MODE, 0);
+
     /* Remote controller has no extended features. Process remote controller supported features
        (features page HCI_EXT_FEATURES_PAGE_0). */
     btm_process_remote_ext_features (p_acl_cb, 1);
@@ -1525,6 +1537,10 @@ void btm_read_remote_ext_features_complete (UINT8 *p)
     /* Reading of remote feature pages is complete */
     BTM_TRACE_DEBUG1("BTM reached last remote extended features page (%d)", page_num);
 
+    /* Retrieve remote name of device */
+    btsnd_hcic_rmt_name_req (p_acl_cb->remote_addr, HCI_PAGE_SCAN_REP_MODE_R1,
+        HCI_MANDATARY_PAGE_SCAN_MODE, 0);
+
     /* Process the pages */
     btm_process_remote_ext_features (p_acl_cb, (UINT8) (page_num + 1));
 
@@ -1557,6 +1573,10 @@ void btm_read_remote_ext_features_failed (UINT8 status, UINT16 handle)
     }
 
     p_acl_cb = &btm_cb.acl_db[acl_idx];
+
+    /* Retrieve remote name of device */
+    btsnd_hcic_rmt_name_req (p_acl_cb->remote_addr, HCI_PAGE_SCAN_REP_MODE_R1,
+        HCI_MANDATARY_PAGE_SCAN_MODE, 0);
 
     /* Process supported features only */
     btm_process_remote_ext_features (p_acl_cb, 1);
