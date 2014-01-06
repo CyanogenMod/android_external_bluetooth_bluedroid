@@ -989,6 +989,34 @@ UINT8 SDP_GetNumDiRecords( tSDP_DISCOVERY_DB *p_db )
 
 /*******************************************************************************
 **
+** Function         SDP_AttrStringCopy
+**
+** Description      This function copy given attribute to specified buffer as a string
+**
+** Returns          none
+**
+*******************************************************************************/
+static void SDP_AttrStringCopy(char *dst, tSDP_DISC_ATTR *p_attr, UINT16 dst_size)
+{
+    if ( dst == NULL ) return;
+    if ( p_attr )
+    {
+        UINT16 len = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
+        if ( len > dst_size - 1 )
+        {
+            len = dst_size - 1;
+        }
+        memcpy(dst, (char *)p_attr->attr_value.v.array, len);
+        dst[len] = '\0';
+    }
+    else
+    {
+        dst[0] = '\0';
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         SDP_GetDiRecord
 **
 ** Description      This function retrieves a remote device's DI record from
@@ -1028,27 +1056,16 @@ UINT16 SDP_GetDiRecord( UINT8 get_record_index, tSDP_DI_GET_RECORD *p_device_inf
 
         /* ClientExecutableURL is optional */
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_CLIENT_EXE_URL );
-        if ( p_curr_attr )
-            BCM_STRNCPY_S( p_device_info->rec.client_executable_url, sizeof(p_device_info->rec.client_executable_url),
-                           (char *)p_curr_attr->attr_value.v.array, SDP_MAX_ATTR_LEN );
-        else
-            p_device_info->rec.client_executable_url[0] = '\0';
+        SDP_AttrStringCopy( p_device_info->rec.client_executable_url, p_curr_attr,
+                            SDP_MAX_ATTR_LEN );
 
         /* Service Description is optional */
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_SERVICE_DESCRIPTION );
-        if ( p_curr_attr )
-            BCM_STRNCPY_S( p_device_info->rec.service_description, sizeof(p_device_info->rec.service_description),
-                           (char *)p_curr_attr->attr_value.v.array, SDP_MAX_ATTR_LEN );
-        else
-            p_device_info->rec.service_description[0] = '\0';
+        SDP_AttrStringCopy( p_device_info->rec.service_description, p_curr_attr, SDP_MAX_ATTR_LEN );
 
         /* DocumentationURL is optional */
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_DOCUMENTATION_URL );
-        if ( p_curr_attr )
-            BCM_STRNCPY_S( p_device_info->rec.documentation_url, sizeof(p_device_info->rec.documentation_url),
-                           (char *)p_curr_attr->attr_value.v.array, SDP_MAX_ATTR_LEN );
-        else
-            p_device_info->rec.documentation_url[0] = '\0';
+        SDP_AttrStringCopy( p_device_info->rec.documentation_url, p_curr_attr, SDP_MAX_ATTR_LEN );
 
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_SPECIFICATION_ID );
         if ( p_curr_attr )
