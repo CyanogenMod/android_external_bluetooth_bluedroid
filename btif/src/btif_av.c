@@ -39,6 +39,7 @@
 #include "gki.h"
 #include "bd.h"
 #include "btu.h"
+#include "bt_utils.h"
 
 /*****************************************************************************
 **  Constants & Macros
@@ -586,9 +587,17 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
 
             HAL_CBACK(bt_av_callbacks, audio_state_cb,
                 BTAV_AUDIO_STATE_STARTED, &(btif_av_cb.peer_bda));
+
+            /* increase the a2dp consumer task priority temporarily when start
+            ** audio playing, to avoid overflow the audio packet queue. */
+            adjust_priority_a2dp(TRUE);
+
             break;
 
         case BTIF_SM_EXIT_EVT:
+            /* restore the a2dp consumer task priority when stop audio playing. */
+            adjust_priority_a2dp(FALSE);
+
             break;
 
         case BTIF_AV_START_STREAM_REQ_EVT:
