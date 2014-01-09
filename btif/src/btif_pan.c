@@ -252,10 +252,10 @@ static bt_status_t btpan_disconnect(const bt_bdaddr_t *bd_addr)
     btpan_conn_t* conn = btpan_find_conn_addr(bd_addr->address);
     if(conn && conn->handle >= 0)
     {
-        BTA_PanClose(conn->handle);
         /* Inform the application that the disconnect has been initiated successfully */
         btif_transfer_context(btif_in_pan_generic_evt, BTIF_PAN_CB_DISCONNECTING,
                               (char *)bd_addr, sizeof(bt_bdaddr_t), NULL);
+        BTA_PanClose(conn->handle);
         return BT_STATUS_SUCCESS;
     }
     return BT_STATUS_FAIL;
@@ -439,6 +439,30 @@ btpan_conn_t* btpan_find_conn_addr(const BD_ADDR addr)
             return &btpan_cb.conns[i];
     return NULL;
 }
+
+static void btpan_close_conn(btpan_conn_t* conn)
+{
+    BTIF_TRACE_DEBUG1("btpan_close_conn: %p",conn);
+
+    if (conn && conn->state == PAN_STATE_OPEN)
+    {
+        BTIF_TRACE_DEBUG0("btpan_close_conn: PAN_STATE_OPEN");
+
+        conn->state = PAN_STATE_CLOSE;
+        btpan_cb.open_count--;
+
+        if (btpan_cb.open_count == 0)
+        {
+            destroy_tap_read_thread();
+            if (btpan_cb.tap_fd != -1)
+            {
+                btpan_tap_close(btpan_cb.tap_fd);
+                btpan_cb.tap_fd = -1;
+            }
+        }
+    }
+}
+
 static void btpan_cleanup_conn(btpan_conn_t* conn)
 {
     if(conn)
@@ -580,6 +604,7 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
                 btpan_conn_t* conn = btpan_find_conn_handle(p_data->close.handle);
 
                 ALOGI("%s: event = BTA_PAN_CLOSE_EVT handle %d", __FUNCTION__, p_data->close.handle);
+                btpan_close_conn(conn);
 
                 if(conn && conn->handle >= 0)
                 {
