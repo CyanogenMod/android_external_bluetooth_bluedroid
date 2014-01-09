@@ -1074,13 +1074,11 @@ void resume_sink()
 ** Returns          None
 **
 *******************************************************************************/
-static void audio_focus_status(int is_enable)
+static void audio_focus_status(int state)
 {
-    BTIF_TRACE_DEBUG1(" Audio Focus granted %d",is_enable);
-    if (is_enable == 1)
-        btif_a2dp_set_audio_focus_state(TRUE);
-    else
-        btif_a2dp_set_audio_focus_state(FALSE);
+    BTIF_TRACE_DEBUG1(" Audio Focus granted %d",state);
+
+    btif_a2dp_set_audio_focus_state(state);
 }
 
 static void allow_connection(int is_valid)
