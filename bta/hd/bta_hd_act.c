@@ -369,11 +369,12 @@ extern void bta_hd_send_report_act(tBTA_HD_DATA *p_data)
 *******************************************************************************/
 extern void bta_hd_report_error_act(tBTA_HD_DATA *p_data)
 {
+    tBTA_HD_REPORT_ERR *p_report = (tBTA_HD_REPORT_ERR *) p_data;
     tHID_STATUS ret;
 
-    APPL_TRACE_API1("%s", __FUNCTION__);
+    APPL_TRACE_API2("%s: error = %d", __FUNCTION__, p_report->error);
 
-    ret = HID_DevReportError();
+    ret = HID_DevReportError(p_report->error);
 
     if (ret != HID_SUCCESS)
     {
