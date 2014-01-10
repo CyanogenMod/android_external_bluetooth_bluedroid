@@ -2143,7 +2143,8 @@ bt_status_t btif_dm_cancel_discovery(void)
 {
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
 
-    if(BTM_IsInquiryActive() || (btif_dm_inquiry_in_progress == TRUE)) {
+    if(BTM_IsInquiryActive() || (TRUE == BTM_IsRnrActive()) ||
+      (btif_dm_inquiry_in_progress == TRUE)) {
         BTIF_TRACE_EVENT1("%s : Inquiry is in progress", __FUNCTION__)
         BTA_DmSearchCancel();
         return BT_STATUS_SUCCESS;

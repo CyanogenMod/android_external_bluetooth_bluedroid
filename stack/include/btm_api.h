@@ -2564,6 +2564,17 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 *******************************************************************************/
     BTM_API extern UINT16 BTM_IsInquiryActive (void);
 
+/*******************************************************************************
+**
+** Function         BTM_IsRnrActive
+**
+** Description      This function returns a current RNR status
+**
+** Returns          TRUE if RNR is active
+**                  FALSE incase RNR is not active
+**
+*******************************************************************************/
+    BTM_API extern UINT8 BTM_IsRnrActive(void);
 
 /*******************************************************************************
 **
