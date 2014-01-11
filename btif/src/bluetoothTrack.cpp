@@ -26,7 +26,7 @@ char outputFilename [50] = "/data/misc/bluedroid/output_sample.pcm";
 #endif
 
 struct BluetoothTrack {
-    android::AudioTrack* mTrack;
+    android::sp<android::AudioTrack> mTrack;
 };
 
 typedef struct BluetoothTrack BluetoothTrack;
@@ -61,7 +61,7 @@ int btCreateTrack(int trackFreq, int channelType)
 
 void btStartTrack()
 {
-    if ((track) && (track->mTrack))
+    if ((track != NULL) && (track->mTrack.get() != NULL))
     {
         track->mTrack->start();
     }
@@ -70,7 +70,7 @@ void btStartTrack()
 
 void btDeleteTrack()
 {
-    if ((track) && (track->mTrack))
+    if ((track != NULL) && (track->mTrack.get() != NULL))
     {
         delete track;
     }
@@ -85,7 +85,7 @@ void btDeleteTrack()
 
 void btPauseTrack()
 {
-    if ((track) && (track->mTrack))
+    if ((track != NULL) && (track->mTrack.get() != NULL))
     {
         track->mTrack->pause();
     }
@@ -93,7 +93,7 @@ void btPauseTrack()
 
 void btStopTrack()
 {
-    if ((track) && (track->mTrack))
+    if ((track != NULL) && (track->mTrack.get() != NULL))
     {
         track->mTrack->stop();
     }
@@ -102,7 +102,7 @@ void btStopTrack()
 int btWriteData(void *audioBuffer, int bufferlen)
 {
     int retval = -1;
-    if ((track) && (track->mTrack))
+    if ((track != NULL) && (track->mTrack.get() != NULL))
     {
 #if (defined(DUMP_PCM_DATA) && (DUMP_PCM_DATA == TRUE))
         if (outputPcmSampleFile)
