@@ -268,7 +268,7 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
             btif_config_set_int("Remote", bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_DEVTIME, (int)time(NULL));
             static const char* exclude_filter[] =
-                        {"LinkKey", "LE_KEY_PENC", "LE_KEY_PID", "LE_KEY_PCSRK", "LE_KEY_LENC", "LE_KEY_LCSRK"};
+                        {"Name", "LinkKey", "LE_KEY_PENC", "LE_KEY_PID", "LE_KEY_PCSRK", "LE_KEY_LENC", "LE_KEY_LCSRK"};
             btif_config_filter_remove("Remote", exclude_filter, sizeof(exclude_filter)/sizeof(char*),
                         BTIF_STORAGE_MAX_ALLOWED_REMOTE_DEVICE);
             break;
