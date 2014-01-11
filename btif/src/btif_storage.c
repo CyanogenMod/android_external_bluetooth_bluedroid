@@ -1226,6 +1226,8 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
 
     if(!btif_config_get_int("Remote", remote_bd_addr,"DevType", &device_type))
         return BT_STATUS_FAIL;
+    if(!btif_config_get_int("Remote", remote_bd_addr,"AddrType", &addr_type))
+        addr_type=0;//set PUBLIC_ADDR as default if not present in NVRAM
     if(device_type == BT_DEVICE_TYPE_BLE)
     {
             BTIF_TRACE_DEBUG2("%s %s found a BLE device", __FUNCTION__,remote_bd_addr);
