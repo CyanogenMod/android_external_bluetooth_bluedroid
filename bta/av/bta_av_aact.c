@@ -336,7 +336,9 @@ void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     /* for outgoing RC connection as INT/CT */
     if( (p_scb->rc_handle == BTA_AV_RC_HANDLE_NONE) &&
         /*(bta_av_cb.features & BTA_AV_FEAT_RCCT) &&*/
-        (p_scb->use_rc == TRUE || (p_scb->role & BTA_AV_ROLE_AD_ACP)) )
+        (p_scb->use_rc == TRUE || (p_scb->role & BTA_AV_ROLE_AD_ACP)) &&
+        /* Only in case of SRC initiate AVRCP Connection */
+        (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC) )
     {
         if ((p_scb->wait & BTA_AV_WAIT_ROLE_SW_BITS) == 0)
             bta_sys_start_timer(&p_scb->timer, BTA_AV_AVRC_TIMER_EVT, BTA_AV_RC_DISC_TIME_VAL);
@@ -1104,6 +1106,8 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     UINT8   psc_mask = (p_evt_cfg->psc_mask | p_scb->cfg.psc_mask);
     UINT8 local_sep;    /* sep type of local handle on which connection was received */
     UINT8 count = 0;
+    UINT8 i = 0;
+    UINT8 ret = 0;
     tBTA_AV_STR_MSG  *p_msg = (tBTA_AV_STR_MSG *)p_data;
     BT_HDR *p_msg_media;
 
@@ -1142,7 +1146,20 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
         p_scb->role      |= BTA_AV_ROLE_AD_ACP;
         p_scb->cur_psc_mask = p_evt_cfg->psc_mask;
-        if (bta_av_cb.features & BTA_AV_FEAT_RCTG)
+        if (local_sep == AVDT_TSEP_SNK)
+        {
+            for (i=0; i<BTA_AV_NUM_RCB; i++)
+            {
+                if ((bta_av_cb.rcb[i].handle != BTA_AV_RC_HANDLE_NONE) &&
+                    (bta_av_cb.rcb[i].status & BTA_AV_RC_CONN_MASK))
+                {
+                    ret = AVRC_Close(bta_av_cb.rcb[i].handle);
+                    APPL_TRACE_WARNING2(" Found existing AVRCP Connection %d returned %d",
+                                                            bta_av_cb.rcb[i].handle, ret);
+                }
+            }
+        }
+        if ((bta_av_cb.features & BTA_AV_FEAT_RCTG) && (local_sep != AVDT_TSEP_SNK))
             p_scb->use_rc = TRUE;
         else
             p_scb->use_rc = FALSE;
@@ -2934,7 +2951,8 @@ void bta_av_open_rc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         return;
     }
 
-    if(p_scb->use_rc == TRUE || (p_scb->role & BTA_AV_ROLE_AD_ACP) )
+    if (((p_scb->use_rc == TRUE) || (p_scb->role & BTA_AV_ROLE_AD_ACP)) &&
+                    (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC) )
     {
         if(bta_av_cb.disc)
         {

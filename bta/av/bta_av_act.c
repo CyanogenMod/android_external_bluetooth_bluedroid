@@ -51,6 +51,8 @@
 #define BTA_AV_ACP_SIG_TIME_VAL 2000
 #endif
 
+/* constant for scb state machine, need to check in avrcp*/
+#define AV_SCB_INIT_STATE 0
 static void bta_av_acp_sig_timer_cback (TIMER_LIST_ENT *p_tle);
 
 /*******************************************************************************
@@ -499,6 +501,15 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     for(i=0; i<BTA_AV_NUM_STRS; i++)
     {
         p_scb = p_cb->p_scb[i];
+        /*If SCB is created and it is Sink SCB, we don't need AVRCP Connection*/
+        if ((p_scb) && (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK)
+            && (p_scb->state > AV_SCB_INIT_STATE))
+        {
+            APPL_TRACE_WARNING0(" Has A2DP Sink, rejecting AVRCP ");
+            AVRC_Close(p_data->rc_conn_chg.handle);
+            return;
+        }
+
         if(p_scb && bdcmp(p_scb->peer_addr, p_data->rc_conn_chg.peer_addr) == 0)
         {
             p_scb->rc_handle = p_data->rc_conn_chg.handle;

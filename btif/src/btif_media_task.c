@@ -82,10 +82,6 @@
 OI_CODEC_SBC_DECODER_CONTEXT context;
 OI_UINT32 contextData[CODEC_DATA_WORDS(2, SBC_CODEC_FAST_FILTER_BUFFERS)];
 OI_INT16 pcmData[15*SBC_MAX_SAMPLES_PER_FRAME*SBC_MAX_CHANNELS];
-#if (defined(DEBUG_MEDIA_AV_FLOW) && (DEBUG_MEDIA_AV_FLOW == TRUE))
-FILE *outputpcmsamplefile;
-char outputfilename [50] = "/data/output_sample.pcm";
-#endif
 void *dlhandle = NULL;
 oi_sbc_decoder_vendor_interface_t *oi_sbc_decode_vnd_if = NULL;
 #endif
@@ -939,7 +935,7 @@ void btif_a2dp_on_idle(void)
         APPL_TRACE_DEBUG0("Reset to Source role");
         btif_media_cb.is_source = TRUE;
         btif_media_cb.rx_flush = TRUE;
-        btif_media_cb.rx_audio_focus_gained = FALSE;
+        btif_media_cb.rx_audio_focus_gained = BTIF_MEDIA_AUDIOFOCUS_LOSS;
     }
 #endif
 }
@@ -1212,10 +1208,10 @@ void btif_a2dp_set_tx_flush(BOOLEAN enable)
 }
 
 /* when true media task discards any rx frames */
-void btif_a2dp_set_audio_focus_state(BOOLEAN is_enable)
+void btif_a2dp_set_audio_focus_state(btif_media_AudioFocus_state state)
 {
-    APPL_TRACE_EVENT1("## Audio_focus_state Rx %d ##", is_enable);
-    btif_media_cb.rx_audio_focus_gained = is_enable;
+    APPL_TRACE_EVENT1("## Audio_focus_state Rx %d ##", state);
+    btif_media_cb.rx_audio_focus_gained = state;
 }
 
 /*****************************************************************************
@@ -1271,38 +1267,45 @@ static void btif_media_task_avk_handle_timer ( void )
     count = btif_media_cb.RxSbcQ.count;
     if (0 == count)
     {
-        APPL_TRACE_DEBUG0(" #### QUE  EMPTY ###");
+        APPL_TRACE_DEBUG0("  QUE  EMPTY ");
     }
     else
     {
-        if (btif_media_cb.rx_audio_focus_gained == FALSE)
-        {
-            /* Send a Audio Focus Request */
-            btif_av_request_audio_focus(TRUE);
-            return;
-        }
         if (btif_media_cb.rx_flush == TRUE)
         {
             btif_media_flush_q(&(btif_media_cb.RxSbcQ));
             return;
         }
+        if (btif_media_cb.rx_audio_focus_gained == BTIF_MEDIA_AUDIOFOCUS_LOSS_TRANSIENT)
+        {
+            APPL_TRACE_DEBUG0("Received Transient Focus Loss, Ignoring");
+            return;
+        }
+
+        if (btif_media_cb.rx_audio_focus_gained == BTIF_MEDIA_AUDIOFOCUS_LOSS)
+        {
+            /* Send a Audio Focus Request */
+            btif_av_request_audio_focus(TRUE);
+            return;
+        }
         num_frames_to_process = btif_media_cb.frames_to_process;
+        APPL_TRACE_DEBUG0(" Process Frames + ");
+
         do
         {
             p_msg = (tBT_SBC_HDR *)GKI_getfirst(&(btif_media_cb.RxSbcQ));
             if (p_msg == NULL)
                 return;
             num_sbc_frames  = p_msg->num_frames_to_be_processed; /* num of frames in Que Packets */
-            APPL_TRACE_DEBUG1(" Frames in Que_first packet %d",num_sbc_frames);
-            APPL_TRACE_DEBUG1(" Frames to be processed in this tick %d",num_frames_to_process);
-            APPL_TRACE_DEBUG1(" Num of Packets in Que %d",count);
+            APPL_TRACE_DEBUG1(" Frames left in topmost packet %d", num_sbc_frames);
+            APPL_TRACE_DEBUG1(" Remaining frames to process in tick %d", num_frames_to_process);
+            APPL_TRACE_DEBUG1(" Num of Packets in Que %d", btif_media_cb.RxSbcQ.count);
 
             if ( num_sbc_frames > num_frames_to_process) /*  Que Packet has more frames*/
             {
                  p_msg->num_frames_to_be_processed= num_frames_to_process;
                  btif_media_task_handle_inc_media(p_msg);
                  p_msg->num_frames_to_be_processed = num_sbc_frames - num_frames_to_process;
-                 p_msg->offset +=  oi_sbc_decode_vnd_if->OI_CODEC_SBC_CalculateFramelen(&(context.common.frameInfo))*num_frames_to_process;
                  num_frames_to_process = 0;
                  break;
             }
@@ -1311,11 +1314,16 @@ static void btif_media_task_avk_handle_timer ( void )
                 btif_media_task_handle_inc_media(p_msg);
                 p_msg = (tBT_SBC_HDR *)GKI_dequeue(&(btif_media_cb.RxSbcQ));
                 if( p_msg == NULL )
-                     APPL_TRACE_DEBUG0(" #### QUE  EMPTY ###");
+                {
+                     APPL_TRACE_ERROR0("Insufficient data in que ");
+                     break;
+                }
                 num_frames_to_process = num_frames_to_process - p_msg->num_frames_to_be_processed;
                 GKI_freebuf(p_msg);
             }
         }while(num_frames_to_process > 0);
+
+        APPL_TRACE_DEBUG0(" Process Frames - ");
     }
 }
 #endif
@@ -1609,8 +1617,7 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
     OI_INT16 *pcmDataPointer = pcmData; /*Will be overwritten on next packet receipt*/
     OI_STATUS status;
     int num_sbc_frames = p_msg->num_frames_to_be_processed;
-    UINT32 sbc_frame_len = oi_sbc_decode_vnd_if->OI_CODEC_SBC_CalculateFramelen
-                            (&context.common.frameInfo)*num_sbc_frames;
+    UINT32 sbc_frame_len = p_msg->len - 1;
     int retwriteAudioTrack = 0;
     availPcmBytes = 2*sizeof(pcmData);
 
@@ -1632,14 +1639,11 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
         APPL_TRACE_DEBUG3("pcmDataPointer: 0x%x first_pcm_byte: 0x%x numPcmBytes: 0x%x", pcmDataPointer, *pcmDataPointer, pcmBytes);
         availPcmBytes -= pcmBytes;
         pcmDataPointer += pcmBytes/2;
+        p_msg->offset += (p_msg->len - 1) - sbc_frame_len;
+        p_msg->len = sbc_frame_len + 1;
     }
+
     retwriteAudioTrack = btWriteData((void*)pcmData, (2*sizeof(pcmData) - availPcmBytes));
-#if (defined(DEBUG_MEDIA_AV_FLOW) && (DEBUG_MEDIA_AV_FLOW == TRUE))
-    if (outputpcmsamplefile)
-    {
-        fwrite ((OI_INT8 *)pcmData,1,(2*sizeof(pcmData) - availPcmBytes),outputpcmsamplefile);
-    }
-#endif
 }
 #endif
 
@@ -2243,6 +2247,10 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
     tA2D_STATUS a2d_status;
     tA2D_SBC_CIE sbc_cie;
     OI_STATUS       status;
+    UINT32          freq_multiple; /* frequency multiple for 20ms of data */
+    UINT32          num_blocks;
+    UINT32          num_subbands;
+    UINT32          num_channel;
 
     APPL_TRACE_DEBUG6("btif_media_task_aa_handle_decoder_reset p_codec_info[%x:%x:%x:%x:%x:%x]",
             p_buf->codec_info[1], p_buf->codec_info[2], p_buf->codec_info[3],
@@ -2259,9 +2267,6 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
     APPL_TRACE_DEBUG0("Reset to sink role");
     btif_load_decoder_library();
     status = oi_sbc_decode_vnd_if->OI_CODEC_SBC_DecoderReset(&context, contextData, sizeof(contextData), 2, 2, FALSE);
-    #if (defined(DEBUG_MEDIA_AV_FLOW) && (DEBUG_MEDIA_AV_FLOW == TRUE))
-    outputpcmsamplefile = fopen(outputfilename, "ab");
-    #endif
     if (!OI_SUCCESS(status)) {
         APPL_TRACE_ERROR1("OI_CODEC_SBC_DecoderReset failed with error code %d\n", status);
     }
@@ -2271,66 +2276,103 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
         return;
     }
 
-    if (sbc_cie.samp_freq == A2D_SBC_IE_SAMP_FREQ_16)
+    switch(sbc_cie.samp_freq)
     {
-        APPL_TRACE_DEBUG1("\tsamp_freq:%d (16000)", sbc_cie.samp_freq);
-        btif_media_cb.frames_to_process = PACKET_PLAYED_PER_TICK_16;
+        case A2D_SBC_IE_SAMP_FREQ_16:
+            APPL_TRACE_DEBUG1("\tsamp_freq:%d (16000)", sbc_cie.samp_freq);
+            freq_multiple = 16*20;
+            break;
+        case A2D_SBC_IE_SAMP_FREQ_32:
+            APPL_TRACE_DEBUG1("\tsamp_freq:%d (32000)", sbc_cie.samp_freq);
+            freq_multiple = 32*20;
+            break;
+        case A2D_SBC_IE_SAMP_FREQ_44:
+            APPL_TRACE_DEBUG1("\tsamp_freq:%d (44100)", sbc_cie.samp_freq);
+            freq_multiple = 441*2;
+            break;
+        case A2D_SBC_IE_SAMP_FREQ_48:
+            APPL_TRACE_DEBUG1("\tsamp_freq:%d (48000)", sbc_cie.samp_freq);
+            freq_multiple = 48*20;
+            break;
+        default:
+            APPL_TRACE_DEBUG0(" Unknown Frequency ");
+            break;
     }
-    else  if (sbc_cie.samp_freq == A2D_SBC_IE_SAMP_FREQ_32)
+
+    switch(sbc_cie.ch_mode)
     {
-        APPL_TRACE_DEBUG1("\tsamp_freq:%d (32000)", sbc_cie.samp_freq);
-        btif_media_cb.frames_to_process = PACKET_PLAYED_PER_TICK_32;
+        case A2D_SBC_IE_CH_MD_MONO:
+            APPL_TRACE_DEBUG1("\tch_mode:%d (Mono)", sbc_cie.ch_mode);
+            break;
+        case A2D_SBC_IE_CH_MD_DUAL:
+            APPL_TRACE_DEBUG1("\tch_mode:%d (DUAL)", sbc_cie.ch_mode);
+            break;
+        case A2D_SBC_IE_CH_MD_STEREO:
+            APPL_TRACE_DEBUG1("\tch_mode:%d (STEREO)", sbc_cie.ch_mode);
+            break;
+        case A2D_SBC_IE_CH_MD_JOINT:
+            APPL_TRACE_DEBUG1("\tch_mode:%d (JOINT)", sbc_cie.ch_mode);
+            break;
+        default:
+            APPL_TRACE_DEBUG0(" Unknown Mode ");
+            break;
     }
-    else  if (sbc_cie.samp_freq == A2D_SBC_IE_SAMP_FREQ_44)
+
+    switch(sbc_cie.block_len)
     {
-        APPL_TRACE_DEBUG1("\tsamp_freq:%d (44.100)", sbc_cie.samp_freq);
-        btif_media_cb.frames_to_process = PACKET_PLAYED_PER_TICK_44;
+        case A2D_SBC_IE_BLOCKS_4:
+            APPL_TRACE_DEBUG1("\tblock_len:%d (4)", sbc_cie.block_len);
+            num_blocks = 4;
+            break;
+        case A2D_SBC_IE_BLOCKS_8:
+            APPL_TRACE_DEBUG1("\tblock_len:%d (8)", sbc_cie.block_len);
+            num_blocks = 8;
+            break;
+        case A2D_SBC_IE_BLOCKS_12:
+            APPL_TRACE_DEBUG1("\tblock_len:%d (12)", sbc_cie.block_len);
+            num_blocks = 12;
+            break;
+        case A2D_SBC_IE_BLOCKS_16:
+            APPL_TRACE_DEBUG1("\tblock_len:%d (16)", sbc_cie.block_len);
+            num_blocks = 16;
+            break;
+        default:
+            APPL_TRACE_DEBUG0(" Unknown BlockLen ");
+            break;
     }
-    else  if (sbc_cie.samp_freq == A2D_SBC_IE_SAMP_FREQ_48)
+
+    switch(sbc_cie.num_subbands)
     {
-        APPL_TRACE_DEBUG1("\tsamp_freq:%d (48000)", sbc_cie.samp_freq);
-        btif_media_cb.frames_to_process = PACKET_PLAYED_PER_TICK_48;
+        case A2D_SBC_IE_SUBBAND_4:
+            APPL_TRACE_DEBUG1("\tnum_subbands:%d (4)", sbc_cie.num_subbands);
+            num_subbands = 4;
+            break;
+        case A2D_SBC_IE_SUBBAND_8:
+            APPL_TRACE_DEBUG1("\tnum_subbands:%d (8)", sbc_cie.num_subbands);
+            num_subbands = 8;
+            break;
+        default:
+            APPL_TRACE_DEBUG0(" Unknown SubBands ");
+            break;
     }
-    else
-    {    APPL_TRACE_DEBUG1("\tBAD samp_freq:%d", sbc_cie.samp_freq);}
 
-    if (sbc_cie.ch_mode == A2D_SBC_IE_CH_MD_MONO)
-    {    APPL_TRACE_DEBUG1("\tch_mode:%d (Mono)", sbc_cie.ch_mode);}
-    else  if (sbc_cie.ch_mode == A2D_SBC_IE_CH_MD_DUAL)
-    {    APPL_TRACE_DEBUG1("\tch_mode:%d (Dual)", sbc_cie.ch_mode);}
-    else  if (sbc_cie.ch_mode == A2D_SBC_IE_CH_MD_STEREO)
-    {    APPL_TRACE_DEBUG1("\tch_mode:%d (Stereo)", sbc_cie.ch_mode);}
-    else  if (sbc_cie.ch_mode == A2D_SBC_IE_CH_MD_JOINT)
-    {    APPL_TRACE_DEBUG1("\tch_mode:%d (Joint)", sbc_cie.ch_mode);}
-    else
-    {    APPL_TRACE_DEBUG1("\tBAD ch_mode:%d", sbc_cie.ch_mode);}
-
-    if (sbc_cie.block_len == A2D_SBC_IE_BLOCKS_4)
-    {    APPL_TRACE_DEBUG1("\tblock_len:%d (4)", sbc_cie.block_len);}
-    else  if (sbc_cie.block_len == A2D_SBC_IE_BLOCKS_8)
-    {    APPL_TRACE_DEBUG1("\tblock_len:%d (8)", sbc_cie.block_len);}
-    else  if (sbc_cie.block_len == A2D_SBC_IE_BLOCKS_12)
-    {    APPL_TRACE_DEBUG1("\tblock_len:%d (12)", sbc_cie.block_len);}
-    else  if (sbc_cie.block_len == A2D_SBC_IE_BLOCKS_16)
-    {    APPL_TRACE_DEBUG1("\tblock_len:%d (16)", sbc_cie.block_len);}
-    else
-    {    APPL_TRACE_DEBUG1("\tBAD block_len:%d", sbc_cie.block_len);}
-
-    if (sbc_cie.num_subbands == A2D_SBC_IE_SUBBAND_4)
-    {    APPL_TRACE_DEBUG1("\tnum_subbands:%d (4)", sbc_cie.num_subbands);}
-    else  if (sbc_cie.num_subbands == A2D_SBC_IE_SUBBAND_8)
-    {    APPL_TRACE_DEBUG1("\tnum_subbands:%d (8)", sbc_cie.num_subbands);}
-    else
-    {    APPL_TRACE_DEBUG1("\tBAD num_subbands:%d", sbc_cie.num_subbands);}
-
-    if (sbc_cie.alloc_mthd == A2D_SBC_IE_ALLOC_MD_S)
-    {    APPL_TRACE_DEBUG1("\talloc_mthd:%d (SNR)", sbc_cie.alloc_mthd);}
-    else  if (sbc_cie.alloc_mthd == A2D_SBC_IE_ALLOC_MD_L)
-    {    APPL_TRACE_DEBUG1("\talloc_mthd:%d (Loundess)", sbc_cie.alloc_mthd);}
-    else
-    {    APPL_TRACE_DEBUG1("\tBAD alloc_mthd:%d", sbc_cie.alloc_mthd);}
+    switch(sbc_cie.alloc_mthd)
+    {
+        case A2D_SBC_IE_ALLOC_MD_S:
+            APPL_TRACE_DEBUG1("\talloc_mthd:%d (SNR)", sbc_cie.alloc_mthd);
+            break;
+        case A2D_SBC_IE_ALLOC_MD_L:
+            APPL_TRACE_DEBUG1("\talloc_mthd:%d (Loudness)", sbc_cie.alloc_mthd);
+            break;
+        default:
+            APPL_TRACE_DEBUG0(" Unknown Allocation Method");
+            break;
+    }
 
     APPL_TRACE_DEBUG2("\tBit pool Min:%d Max:%d", sbc_cie.min_bitpool, sbc_cie.max_bitpool);
+
+    btif_media_cb.frames_to_process = ((freq_multiple)/(num_blocks*num_subbands)) + 1;
+    APPL_TRACE_DEBUG1(" Frames to be processed in 20 ms %d",btif_media_cb.frames_to_process);
 }
 #endif
 
