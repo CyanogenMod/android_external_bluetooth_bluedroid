@@ -671,6 +671,22 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             }
             break;
 
+        case BTIF_AV_CONNECT_REQ_EVT:
+            if (memcmp ((bt_bdaddr_t*)p_data, &(btif_av_cb.peer_bda),
+                sizeof(btif_av_cb.peer_bda)) == 0)
+            {
+                BTIF_TRACE_WARNING0("Btif moved to opened by incoming request");
+                BTIF_TRACE_WARNING0("Ignore BTIF_AV_CONNECT_REQ_EVT for same device");
+
+            }
+            else
+            {
+                BTIF_TRACE_WARNING0("Moved to opened by Other Incoming Conn req");
+                HAL_CBACK(bt_av_callbacks, connection_state_cb,
+                            BTAV_CONNECTION_STATE_DISCONNECTED, (bt_bdaddr_t*)p_data);
+            }
+            break;
+
         CHECK_RC_EVENT(event, p_data);
 
         default:
@@ -1074,13 +1090,11 @@ void resume_sink()
 ** Returns          None
 **
 *******************************************************************************/
-static void audio_focus_status(int is_enable)
+static void audio_focus_status(int state)
 {
-    BTIF_TRACE_DEBUG1(" Audio Focus granted %d",is_enable);
-    if (is_enable == 1)
-        btif_a2dp_set_audio_focus_state(TRUE);
-    else
-        btif_a2dp_set_audio_focus_state(FALSE);
+    BTIF_TRACE_DEBUG1(" Audio Focus granted %d",state);
+
+    btif_a2dp_set_audio_focus_state(state);
 }
 
 static void allow_connection(int is_valid)

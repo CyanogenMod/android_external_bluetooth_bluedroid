@@ -110,6 +110,12 @@ typedef struct
     BD_ADDR addr;
 } tBTA_HD_DEVICE_CTRL;
 
+typedef struct
+{
+    BT_HDR  hdr;
+    UINT8 error;
+} tBTA_HD_REPORT_ERR;
+
 /* union of all event data types */
 typedef union
 {
@@ -118,6 +124,7 @@ typedef union
     tBTA_HD_REGISTER_APP  register_app;
     tBTA_HD_SEND_REPORT   send_report;
     tBTA_HD_DEVICE_CTRL   device_ctrl;
+    tBTA_HD_REPORT_ERR    report_err;
 } tBTA_HD_DATA;
 
 typedef struct

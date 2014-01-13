@@ -134,6 +134,7 @@ LOCAL_SHARED_LIBRARIES := \
     libbt-hci \
     libbt-utils \
     libdl \
+    libutils \
     libmedia
 
 #LOCAL_WHOLE_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_stack libbt-brcm_bta
