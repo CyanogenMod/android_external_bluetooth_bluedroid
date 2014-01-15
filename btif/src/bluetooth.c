@@ -670,7 +670,6 @@ static void rssi_threshold_event_cb(BD_ADDR remote_bda, tBTM_RSSI_MONITOR_EVENT_
 
 static void bt_le_handle_lpp_monitor_rssi(uint16_t event, char *p_param)
 {
-    static int initialized = 0;
     tBTM_STATUS status = BTM_ILLEGAL_ACTION;
     tBTM_RSSI_MONITOR_CMD_CPL_CB_PARAM error;
     bt_le_lpp_monitor_rssi_cb_t *p_cb = (bt_le_lpp_monitor_rssi_cb_t*)p_param;
@@ -680,12 +679,8 @@ static void bt_le_handle_lpp_monitor_rssi(uint16_t event, char *p_param)
         return;
 
     /* setup callback for command completion routine and event report */
-    if(!initialized)
-    {
-        ALOGD("%s setup callback for BTM Layer", __FUNCTION__);
-        btm_setup_rssi_threshold_callback(rssi_threshold_command_cb, rssi_threshold_event_cb);
-        initialized = 1;
-    }
+    ALOGD("%s setup callback for BTM Layer", __FUNCTION__);
+    btm_setup_rssi_threshold_callback(rssi_threshold_command_cb, rssi_threshold_event_cb);
 
     switch(event)
     {
