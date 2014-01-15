@@ -563,6 +563,11 @@ void bta_av_stream_data_cback(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp, UI
 {
     int index = 0;
     tBTA_AV_SCB         *p_scb ;
+    if (p_pkt == NULL )
+    {
+        APPL_TRACE_ERROR0("bta_av_stream_data_cback: Not a valid packet");
+        return;
+    }
     APPL_TRACE_DEBUG3("bta_av_stream_data_cback avdt_handle: %d pkt_len=0x%x  ofst = 0x%x", handle,p_pkt->len,p_pkt->offset);
     APPL_TRACE_DEBUG1(" Number of frames 0x%x",*((UINT8*)(p_pkt + 1) + p_pkt->offset));
     APPL_TRACE_DEBUG1("Sequence Number 0x%x",p_pkt->layer_specific);
@@ -570,11 +575,15 @@ void bta_av_stream_data_cback(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp, UI
     for(index = 0; index < BTA_AV_NUM_STRS;index ++ )
     {
         p_scb = bta_av_cb.p_scb[index];
-        if((p_scb->avdt_handle == handle)&&(p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK))
+        if (p_scb == NULL)
+            continue;
+        if ((p_scb->avdt_handle == handle) && (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK)
+                                                             && (p_scb->state == BTA_AV_OPEN_SST))
             break;
     }
     if(index == BTA_AV_NUM_STRS) /* cannot find correct handler */
     {
+        APPL_TRACE_ERROR0("bta_av_stream_data_cback: Could not find matching Streaming Channel");
         GKI_freebuf(p_pkt);
         return;
     }
