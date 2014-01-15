@@ -197,11 +197,11 @@ void bte_main_enable()
 
     lpm_enabled = FALSE;
 
-    bte_hci_enable();
-
     GKI_create_task((TASKPTR)btu_task, BTU_TASK, BTE_BTU_TASK_STR,
                     (UINT16 *) ((UINT8 *)bte_btu_stack + BTE_BTU_STACK_SIZE),
                     sizeof(bte_btu_stack));
+
+    bte_hci_enable();
 
     GKI_run(0);
 }
