@@ -1646,6 +1646,8 @@ void btm_establish_continue (tACL_CONN *p_acl_cb)
                 BTM_SetLinkPolicy (p_acl_cb->remote_addr, &btm_cb.btm_def_link_policy);
         }
 #endif
+    if(p_acl_cb->link_up_issued == FALSE)
+    {
         p_acl_cb->link_up_issued = TRUE;
 
         /* If anyone cares, tell him database changed */
@@ -1685,6 +1687,7 @@ void btm_establish_continue (tACL_CONN *p_acl_cb)
 
 #endif
 
+    }
 }
 
 

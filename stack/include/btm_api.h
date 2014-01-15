@@ -1242,7 +1242,8 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_SEC_SERVICE_FIRST_EMPTY     51
 
 #ifndef BTM_SEC_MAX_SERVICES
-#define BTM_SEC_MAX_SERVICES            65
+/* accomadate client profiles also */
+#define BTM_SEC_MAX_SERVICES            70
 #endif
 
 /************************************************************************************************
