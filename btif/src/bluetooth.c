@@ -463,6 +463,19 @@ int dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len)
     return btif_dut_mode_send(opcode, buf, len);
 }
 
+#if HCI_RAW_CMD_INCLUDED == TRUE
+int hci_cmd_send(uint16_t opcode, uint8_t* buf, uint8_t len)
+{
+    ALOGI("hci_cmd_send");
+
+    /* sanity check */
+    if (interface_ready() == FALSE)
+        return BT_STATUS_NOT_READY;
+
+    return btif_hci_cmd_send(opcode, buf, len);
+}
+#endif
+
 #if BLE_INCLUDED == TRUE
 int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len)
 {
@@ -800,6 +813,11 @@ static const bt_interface_t bluetoothInterface = {
     get_profile_interface,
     dut_mode_configure,
     dut_mode_send,
+#if HCI_RAW_CMD_INCLUDED == TRUE
+    hci_cmd_send,
+#else
+    NULL,
+#endif
 #if BLE_INCLUDED == TRUE
     le_test_mode,
 #else
