@@ -327,6 +327,17 @@ bt_status_t btif_dut_mode_send(uint16_t opcode, uint8_t *buf, uint8_t len);
 
 /*******************************************************************************
 **
+** Function         btif_hci_cmd_send
+**
+** Description      Sends a HCI Raw command to the controller
+**
+** Returns          BT_STATUS_SUCCESS on success
+**
+*******************************************************************************/
+bt_status_t btif_hci_cmd_send(uint16_t opcode, uint8_t *buf, uint8_t len);
+
+/*******************************************************************************
+**
 ** Function         btif_le_test_mode
 **
 ** Description     Sends a HCI BLE Test command to the Controller
