@@ -765,7 +765,13 @@ void bta_gattc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     bta_gattc_clcb_dealloc(p_clcb);
 
     if (p_data->hdr.event == BTA_GATTC_API_CLOSE_EVT)
+    {
         cb_data.close.status = GATT_Disconnect(p_data->hdr.layer_specific);
+    }
+    else if (p_data->hdr.event == BTA_GATTC_INT_DISCONN_EVT)
+    {
+        cb_data.close.status = p_data->int_conn.reason;
+    }
 
     if(p_cback)
         (* p_cback)(BTA_GATTC_CLOSE_EVT,   (tBTA_GATTC *)&cb_data);
