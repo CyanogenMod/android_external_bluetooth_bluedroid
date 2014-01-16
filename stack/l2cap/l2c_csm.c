@@ -426,7 +426,7 @@ static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
         p_ccb->chnl_state = CST_W4_L2CA_CONNECT_RSP;
 
         /* Wait for the info resp in next state before sending connect ind (if needed) */
-        if (!p_ccb->p_lcb->w4_info_rsp)
+        if ((!p_ccb->p_lcb->w4_info_rsp)||(BT_PSM_SDP == p_ccb->p_rcb->psm))
         {
             /* Don't need to get info from peer or already retrieved so continue */
             btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CONNECT_TOUT);

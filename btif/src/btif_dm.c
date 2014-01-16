@@ -1077,6 +1077,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
                 break;
 
             case HCI_ERR_PAIRING_NOT_ALLOWED:
+                btif_storage_remove_bonded_device(&bd_addr);
                 status = BT_STATUS_AUTH_REJECTED;
                 break;
 

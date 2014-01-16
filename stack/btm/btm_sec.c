@@ -3437,7 +3437,7 @@ False-positive: evt_data.bd_addr is set at the beginning with:     STREAM_TO_BDA
             p_dev_rec->p_cur_service &&
             (p_dev_rec->p_cur_service->security_flags & BTM_SEC_OUT_AUTHENTICATE))
         {
-            evt_data.auth_req = (p_dev_rec->p_cur_service->security_flags & BTM_SEC_OUT_MITM) ? BTM_AUTH_SP_YES : BTM_AUTH_SP_NO;
+            evt_data.auth_req = (p_dev_rec->p_cur_service->security_flags & BTM_SEC_OUT_MITM) ? BTM_AUTH_SPGB_YES : BTM_AUTH_SPGB_NO;
         }
     }
 
@@ -3965,6 +3965,7 @@ void btm_sec_auth_complete (UINT16 handle, UINT8 status)
     /* for random timeout because only slave should receive the result */
     if ((status == HCI_ERR_LMP_ERR_TRANS_COLLISION) || (status == HCI_ERR_DIFF_TRANSACTION_COLLISION))
     {
+        btm_sec_change_pairing_state (BTM_PAIR_STATE_WAIT_PIN_REQ);
         btm_sec_auth_collision(handle);
         return;
     }

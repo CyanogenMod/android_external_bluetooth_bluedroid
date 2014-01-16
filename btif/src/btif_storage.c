@@ -253,8 +253,8 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
             strncpy(value, (char*)prop->val, prop->len);
             value[prop->len]='\0';
             btif_config_set_str("Remote", bdstr, BTIF_STORAGE_PATH_REMOTE_ALIASE, value);
-            /* save friendly name immediately */
-            btif_config_save();
+            /* save remote friendly name immediately */
+            btif_config_flush();
             break;
         case BT_PROPERTY_ADAPTER_SCAN_MODE:
             btif_config_set_int("Local", "Adapter",
@@ -809,12 +809,12 @@ bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t *remote_bd_addr)
     bd2str(remote_bd_addr, &bdstr);
     BTIF_TRACE_DEBUG("in bd addr:%s", bdstr);
     int ret = 1;
-    if(btif_config_exist("Remote", bdstr, "LinkKeyType"))
-        ret &= btif_config_remove("Remote", bdstr, "LinkKeyType");
-    if(btif_config_exist("Remote", bdstr, "PinLength"))
-        ret &= btif_config_remove("Remote", bdstr, "PinLength");
     if(btif_config_exist("Remote", bdstr, "LinkKey"))
         ret &= btif_config_remove("Remote", bdstr, "LinkKey");
+    if(btif_config_exist("Remote", bdstr, "PinLength"))
+        ret &= btif_config_remove("Remote", bdstr, "PinLength");
+    if(btif_config_exist("Remote", bdstr, "LinkKeyType"))
+        ret &= btif_config_remove("Remote", bdstr, "LinkKeyType");
     /* write bonded info immediately */
     btif_config_flush();
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
