@@ -1616,7 +1616,7 @@ and USER_HW_DISABLE_API macros */
 
 /* The MTU size for the L2CAP configuration. */
 #ifndef SDP_MTU_SIZE
-#define SDP_MTU_SIZE                256
+#define SDP_MTU_SIZE                672
 #endif
 
 /* The flush timeout for the L2CAP configuration. */
