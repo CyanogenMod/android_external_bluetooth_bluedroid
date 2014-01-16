@@ -30,6 +30,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf_client.h>
 #include <stdlib.h>
+#include <cutils/properties.h>
 
 #define LOG_TAG "BTIF_HF_CLIENT"
 #include "btif_common.h"
@@ -70,6 +71,9 @@
 **  Static variables
 ************************************************************************************/
 static bthf_client_callbacks_t *bt_hf_client_callbacks = NULL;
+char   btif_hf_client_version[PROPERTY_VALUE_MAX];
+static UINT32 btif_hf_client_features = 0;
+
 
 #define CHECK_BTHF_CLIENT_INIT() if (bt_hf_client_callbacks == NULL)\
     {\
@@ -222,11 +226,10 @@ static bt_status_t connect_int( bt_bdaddr_t *bd_addr )
 
 static bt_status_t connect( bt_bdaddr_t *bd_addr )
 {
+    BTIF_TRACE_EVENT1("HFP Client version is  %s", btif_hf_client_version);
     CHECK_BTHF_CLIENT_INIT();
-    if (btif_hf_client_cb.handle)
-        return  btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int,BTIF_QUEUE_CONNECT_EVT);
-    else
-        return  btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int,BTIF_QUEUE_PENDING_CONECT_EVT);
+    return btif_queue_connect(UUID_SERVCLASS_HF_HANDSFREE, bd_addr, connect_int,BTIF_QUEUE_CONNECT_EVT);
+
 }
 
 /*******************************************************************************
@@ -871,7 +874,9 @@ static void btif_hf_client_upstreams_evt(UINT16 event, char* p_param)
         case BTA_HF_CLIENT_AUDIO_CLOSE_EVT:
             HAL_CBACK(bt_hf_client_callbacks, audio_state_cb, BTHF_CLIENT_AUDIO_STATE_DISCONNECTED, &btif_hf_client_cb.connected_bda);
             break;
-
+        case BTA_HF_CLIENT_RING_INDICATION:
+            HAL_CBACK(bt_hf_client_callbacks, ring_indication_cb);
+            break;
         default:
             BTIF_TRACE_WARNING2("%s: Unhandled event: %d", __FUNCTION__, event);
             break;
@@ -912,12 +917,28 @@ bt_status_t btif_hf_client_execute_service(BOOLEAN b_enable)
 {
     BTIF_TRACE_EVENT2("%s enable:%d", __FUNCTION__, b_enable);
 
+    property_get("ro.bluetooth.hfp.ver", btif_hf_client_version, "1.5");
+
      if (b_enable)
      {
           /* Enable and register with BTA-HFClient */
           BTA_HfClientEnable(bte_hf_client_evt);
-          BTA_HfClientRegister(BTIF_HF_CLIENT_SECURITY, BTIF_HF_CLIENT_FEATURES,
-                               BTIF_HF_CLIENT_SERVICE_NAME);
+          if (strcmp(btif_hf_client_version, "1.6") == 0)
+          {
+              BTIF_TRACE_EVENT1("Support Codec Nego. %d ", BTIF_HF_CLIENT_FEATURES);
+              BTA_HfClientRegister(BTIF_HF_CLIENT_SECURITY, BTIF_HF_CLIENT_FEATURES,
+                      BTIF_HF_CLIENT_SERVICE_NAME);
+          }
+          else
+          {
+              BTIF_TRACE_EVENT0("No Codec Nego Supported");
+              btif_hf_client_features = BTIF_HF_CLIENT_FEATURES;
+              btif_hf_client_features = btif_hf_client_features & (~BTA_HF_CLIENT_FEAT_CODEC);
+              BTIF_TRACE_EVENT1("btif_hf_client_features is   %d", btif_hf_client_features);
+              BTA_HfClientRegister(BTIF_HF_CLIENT_SECURITY, btif_hf_client_features,
+                      BTIF_HF_CLIENT_SERVICE_NAME);
+          }
+
      }
      else
      {

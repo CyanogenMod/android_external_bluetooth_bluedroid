@@ -65,6 +65,7 @@
 #define MAX_LABEL 16
 #define MAX_TRANSACTIONS_PER_SESSION 16
 #define MAX_CMD_QUEUE_LEN 11
+#define PLAY_STATUS_PLAYING 1
 
 #define CHECK_RC_CONNECTED                                                                  \
     BTIF_TRACE_DEBUG1("## %s ##", __FUNCTION__);                                            \
@@ -370,9 +371,17 @@ void handle_rc_features()
 {
     btrc_remote_features_t rc_features = BTRC_FEAT_NONE;
     bt_bdaddr_t rc_addr;
-    bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+    bt_bdaddr_t avdtp_addr;
+    bdstr_t addr1, addr2;
 
-    if (dev_blacklisted_for_absolute_volume(btif_rc_cb.rc_addr))
+    bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+    avdtp_addr = btif_av_get_addr();
+
+    BTIF_TRACE_DEBUG2("AVDTP Address : %s AVCTP address: %s",
+                       bd2str(&avdtp_addr, &addr1), bd2str(&rc_addr, &addr2));
+
+    if (dev_blacklisted_for_absolute_volume(btif_rc_cb.rc_addr) ||
+        bdcmp(avdtp_addr.address, rc_addr.address))
     {
         btif_rc_cb.rc_features &= ~BTA_AV_FEAT_ADV_CTRL;
     }
@@ -1806,6 +1815,12 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
     {
         case BTRC_EVT_PLAY_STATUS_CHANGED:
             avrc_rsp.reg_notif.param.play_status = p_param->play_status;
+            /* Clear remote suspend flag, as remote device issues
+             * suspend within 3s after pause, and DUT within 3s
+             * initiates Play
+            */
+            if (avrc_rsp.reg_notif.param.play_status == PLAY_STATUS_PLAYING)
+                btif_av_clear_remote_suspend_flag();
             break;
         case BTRC_EVT_TRACK_CHANGE:
             memcpy(&(avrc_rsp.reg_notif.param.track), &(p_param->track), sizeof(btrc_uid_t));
@@ -1913,6 +1928,10 @@ static bt_status_t get_folderitem_rsp(btrc_folder_list_entries_t *rsp)
                 return BT_STATUS_UNHANDLED;
             break;
         }
+    }
+    if (avrc_rsp.get_items.item_count == 0) {
+        /*As per spec Send proper Error if no Music App is registered.*/
+        avrc_rsp.get_items.status = AVRC_STS_BAD_RANGE;
     }
     avrc_rsp.get_items.p_item_list = item;
     app_sendbrowsemsg(IDX_GET_FOLDER_ITEMS_RSP ,&avrc_rsp);

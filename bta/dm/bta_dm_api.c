@@ -1856,4 +1856,25 @@ BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
 #endif
 }
 
+BTA_API extern void BTA_DmBleObserve_With_Filter(BOOLEAN start, UINT8 duration, tBTA_DM_BLE_SCAN_FILTER filters[],
+                                                  int entries, UINT8 scan_policy, tBTA_DM_SEARCH_CBACK *p_results_cb)
+{
+    tBTA_DM_API_BLE_OBSERVE_WITH_FILTER  *p_msg = 0;
+    APPL_TRACE_API2("%s: start = %d enter\n", __FUNCTION__, start);
+    if (entries >= 0 &&
+        (p_msg = (tBTA_DM_API_BLE_OBSERVE_WITH_FILTER*) GKI_getbuf (sizeof(tBTA_DM_API_BLE_OBSERVE_WITH_FILTER) + (entries - 1) * sizeof(tBTA_DM_BLE_SCAN_FILTER))))
+    {
+        memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_OBSERVE_WITH_FILTER) + (entries - 1) * sizeof(tBTA_DM_BLE_SCAN_FILTER));
+
+        p_msg->hdr.event = BTA_DM_API_BLE_OBSERVE_FILTER_EVT;
+        p_msg->start = start;
+        p_msg->duration = duration;
+        p_msg->scan_policy = scan_policy;
+        p_msg->filtercnt = entries;
+        memcpy(p_msg->filters, filters, entries * sizeof(tBTA_DM_BLE_SCAN_FILTER));
+        p_msg->p_cback = p_results_cb;
+        bta_sys_sendmsg(p_msg);
+    }
+    APPL_TRACE_API1("%s exit\n", __FUNCTION__);
+}
 

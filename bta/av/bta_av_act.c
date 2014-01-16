@@ -1035,6 +1035,14 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         av.browse_msg.p_msg = &p_data->rc_msg.msg;
 
         evt = bta_av_proc_browse_cmd(&rc_rsp, &p_data->rc_msg);
+        if (evt == 0)
+        {
+            APPL_TRACE_ERROR0("Browse PDU not supported");
+            rc_rsp.rsp.pdu    = AVRC_PDU_GENERAL_REJECT;
+            rc_rsp.rsp.status = AVRC_STS_BAD_CMD;
+            ctype = 0;
+            AVRC_BldBrowseResponse(0, &rc_rsp, &p_pkt);
+        }
     }
 #endif
 #if (AVRC_METADATA_INCLUDED == TRUE)
@@ -1502,7 +1510,9 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
                          * The following function shall send the event and start the recurring timer
                          */
                         bta_av_sig_timer(NULL);
-
+                        APPL_TRACE_DEBUG0("Re-start timer for AVDTP service");
+                        bta_sys_conn_open(BTA_ID_AV, p_cb->p_scb[xx]->app_id,
+                                p_cb->p_scb[xx]->peer_addr);
                         /* Possible collision : need to avoid outgoing processing while the timer is running */
                         p_cb->p_scb[xx]->coll_mask = BTA_AV_COLL_INC_TMR;
 
@@ -1541,6 +1551,13 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
             /* clean up ssm  */
             for(xx=0; xx < BTA_AV_NUM_STRS; xx++)
             {
+
+                if ((p_cb->p_scb[xx]) &&
+                        (bdcmp(p_cb->p_scb[xx]->peer_addr, p_data->str_msg.bd_addr) == 0) )
+                {
+                    APPL_TRACE_DEBUG0("Closing timer for AVDTP service");
+                    bta_sys_conn_close(BTA_ID_AV, p_cb->p_scb[xx]->app_id,p_cb->p_scb[xx]->peer_addr);
+                }
                 mask = 1 << (xx + 1);
                 if ((mask & p_lcb->conn_msk) && (p_cb->p_scb[xx]) &&
                     (bdcmp(p_cb->p_scb[xx]->peer_addr, p_data->str_msg.bd_addr) == 0))
@@ -2052,6 +2069,11 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
 #endif
                 bta_av_del_sdp_rec(&p_cb->sdp_a2d_handle);
                 bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
+
+#ifdef BTA_AVK_INCLUDED
+                bta_av_del_sdp_rec(&p_cb->sdp_a2d_snk_handle);
+                bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SINK);
+#endif
             }
         }
         else

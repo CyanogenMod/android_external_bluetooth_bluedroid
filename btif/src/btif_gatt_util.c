@@ -271,6 +271,11 @@ static BOOLEAN btif_gatt_is_link_encrypted (BD_ADDR bd_addr)
 
 static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_STATUS result)
 {
+    if (result == BTA_BUSY)
+    {
+        ALOGE("%s: callback called with status busy. No Action.", __FUNCTION__);
+        return;
+    }
     if (result != BTA_SUCCESS)
     {
         bt_bdaddr_t bda;

@@ -42,6 +42,7 @@
 static void bta_dm_inq_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_inq_cmpl_cb (void * p_result);
 static void bta_dm_service_search_remname_cback (BD_ADDR bd_addr, DEV_CLASS dc, BD_NAME bd_name);
+static void bta_dm_rem_name_cback (BD_ADDR bd_addr, DEV_CLASS dc, BD_NAME bd_name);
 static void bta_dm_remname_cback (tBTM_REMOTE_DEV_NAME *p_remote_name);
 static void bta_dm_find_services ( BD_ADDR bd_addr);
 static void bta_dm_discover_next_device(void);
@@ -281,6 +282,9 @@ void bta_dm_enable(tBTA_DM_MSG *p_data)
     /* first, register our callback to SYS HW manager */
     bta_sys_hw_register( BTA_SYS_HW_BLUETOOTH, bta_dm_sys_hw_cback );
 
+    /* Register callback with btm layer for remote name */
+    BTM_SecAddRmtNameNotifyCallback(&bta_dm_rem_name_cback);
+
     /* make sure security callback is saved - if no callback, do not erase the previous one,
     it could be an error recovery mechanism */
     if( p_data->enable.p_sec_cback != NULL  )
@@ -458,6 +462,9 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
 
     /* disable all active subsystems */
     bta_sys_disable(BTA_SYS_HW_BLUETOOTH);
+
+    /* De-register callback with btm layer for remote name */
+    BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_rem_name_cback);
 
     BTM_SetDiscoverability(BTM_NON_DISCOVERABLE, 0, 0);
     BTM_SetConnectability(BTM_NON_CONNECTABLE, 0, 0);
@@ -1300,7 +1307,7 @@ void bta_dm_search_cancel (tBTA_DM_MSG *p_data)
 
     tBTA_DM_MSG * p_msg;
 
-    if(BTM_IsInquiryActive())
+    if(BTM_IsInquiryActive() || (bta_dm_search_cb.state == BTA_DM_SEARCH_ACTIVE))
     {
         BTM_CancelInquiry();
         bta_dm_search_cancel_notify(NULL);
@@ -2186,6 +2193,12 @@ void bta_dm_search_cancel_transac_cmpl(tBTA_DM_MSG *p_data)
     }
 
     bta_dm_search_cancel_notify(NULL);
+
+    if(bta_dm_search_cb.p_search_queue)
+    {
+        bta_sys_sendmsg(bta_dm_search_cb.p_search_queue);
+        bta_dm_search_cb.p_search_queue = NULL;
+    }
 }
 
 
@@ -2644,6 +2657,35 @@ static void bta_dm_inq_cmpl_cb (void * p_result)
 
     }
 
+
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_rem_name_cback
+**
+** Description      Remote name call back from BTM when remote name is retrieved successfully
+**
+** Returns          void
+**
+*******************************************************************************/
+static void bta_dm_rem_name_cback (BD_ADDR bd_addr, DEV_CLASS dc, BD_NAME bd_name)
+{
+    tBTA_DM_SEC             sec_event;
+
+    APPL_TRACE_DEBUG1("bta_dm_rem_name_cback name=<%s>", bd_name);
+
+    if (strlen((char*)bd_name) > (BD_NAME_LEN-1))
+    {
+        sec_event.rem_name_evt.bd_name[(BD_NAME_LEN-1)] = 0;
+    }
+    bdcpy(sec_event.rem_name_evt.bd_addr, bd_addr);
+    BCM_STRNCPY_S((char*)sec_event.rem_name_evt.bd_name, sizeof(BD_NAME), (char*)bd_name,
+        (BD_NAME_LEN-1));
+    if( bta_dm_cb.p_sec_cback )
+    {
+        bta_dm_cb.p_sec_cback(BTA_DM_REM_NAME_EVT, &sec_event);
+    }
 
 }
 
@@ -4550,7 +4592,7 @@ void bta_dm_encrypt_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
             break;
     }
 
-    APPL_TRACE_DEBUG2("bta_dm_encrypt_cback status =%d p_callback=0x%x", bta_status, p_callback);
+    APPL_TRACE_DEBUG3("bta_dm_encrypt_cback status =%d result=0x%x p_callback=0x%x", bta_status, result, p_callback);
 
     if (p_callback)
     {
@@ -4575,13 +4617,6 @@ void bta_dm_set_encryption (tBTA_DM_MSG *p_data)
         APPL_TRACE_ERROR0("bta_dm_set_encryption callback is not provided");
         return;
     }
-
-    if (bta_dm_cb.p_encrypt_cback)
-    {
-        (*p_data->set_encryption.p_callback)(p_data->set_encryption.bd_addr, BTA_BUSY);
-        return;
-    }
-
 
     bta_dm_cb.p_encrypt_cback = p_data->set_encryption.p_callback;
     bta_dm_cb.sec_act         = p_data->set_encryption.sec_act;
@@ -5045,6 +5080,37 @@ void bta_dm_ble_observe (tBTA_DM_MSG *p_data)
         BTM_BleObserve(FALSE, 0, NULL,NULL );
     }
 }
+
+void bta_dm_ble_observe_with_filter(tBTA_DM_MSG *p_data)
+{
+    tBTM_STATUS status;
+    APPL_TRACE_API2("%s Parameter %p enter\n", __FUNCTION__, p_data);
+    if(p_data && p_data->ble_observe_with_filter.start)
+    {
+        /* save call back to report scan results */
+        bta_dm_search_cb.p_scan_cback = p_data->ble_observe_with_filter.p_cback;
+        if((status = BTM_BleObserve_With_Filter(TRUE, p_data->ble_observe_with_filter.duration, p_data->ble_observe_with_filter.filters,
+                                                 p_data->ble_observe_with_filter.filtercnt, p_data->ble_observe_with_filter.scan_policy,
+                                                 bta_dm_observe_results_cb, bta_dm_observe_cmpl_cb)) != BTM_SUCCESS)
+        {
+            tBTA_DM_SEARCH  data;
+            APPL_TRACE_WARNING2(" %s BTM_BleObserve_With_Filter  failed. status %d",__FUNCTION__,status);
+            data.inq_cmpl.num_resps = 0;
+            if (bta_dm_search_cb.p_scan_cback)
+            {
+                bta_dm_search_cb.p_scan_cback(BTA_DM_INQ_CMPL_EVT, &data);
+            }
+        }
+    }
+    else
+    {
+        bta_dm_search_cb.p_scan_cback = NULL;
+        BTM_BleObserve_With_Filter(FALSE, 0, 0, 0, 0, NULL, NULL);
+    }
+
+    APPL_TRACE_API2("%s Parameter %p exit\n", __FUNCTION__, p_data);
+}
+
 /*******************************************************************************
 **
 ** Function         bta_dm_ble_set_scan_params
@@ -5079,7 +5145,7 @@ void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data)
 
 #if ((defined BTA_GATT_INCLUDED) &&  (BTA_GATT_INCLUDED == TRUE))
 #ifndef BTA_DM_GATT_CLOSE_DELAY_TOUT
-#define BTA_DM_GATT_CLOSE_DELAY_TOUT    1000
+#define BTA_DM_GATT_CLOSE_DELAY_TOUT    3000
 #endif
 
 /*******************************************************************************

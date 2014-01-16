@@ -135,6 +135,9 @@ tHID_STATUS hidh_conn_disconnect (UINT8 dhandle)
     {
         p_hcon->conn_state = HID_CONN_STATE_DISCONNECTING;
 
+        /* Set l2cap idle timeout to 0 (so ACL link is disconnected
+         * immediately after last channel is closed) */
+        L2CA_SetIdleTimeoutByBdAddr(hh_cb.devices[dhandle].addr, 0);
         /* Disconnect both interrupt and control channels */
         if (p_hcon->intr_cid)
             L2CA_DisconnectReq (p_hcon->intr_cid);
@@ -389,7 +392,8 @@ static void hidh_l2cif_connect_cfm (UINT16 l2cap_cid, UINT16 result)
     if ((p_hcon == NULL)
      || (!(p_hcon->conn_flags & HID_CONN_FLAGS_IS_ORIG))
      || ((l2cap_cid == p_hcon->ctrl_cid) && (p_hcon->conn_state != HID_CONN_STATE_CONNECTING_CTRL))
-     || ((l2cap_cid == p_hcon->intr_cid) && (p_hcon->conn_state != HID_CONN_STATE_CONNECTING_INTR)))
+     || ((l2cap_cid == p_hcon->intr_cid) && (p_hcon->conn_state != HID_CONN_STATE_CONNECTING_INTR)
+     && (p_hcon->conn_state != HID_CONN_STATE_DISCONNECTING)))
     {
         HIDH_TRACE_WARNING1 ("HID-Host Rcvd unexpected conn cnf, CID 0x%x ", l2cap_cid);
         return;

@@ -197,16 +197,18 @@ typedef struct
 
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE
     BOOLEAN                 no_disc_if_pair_fail;
-    BOOLEAN			        enable_test_mac_val;
+    BOOLEAN                 enable_test_mac_val;
     BT_OCTET8               test_mac;
-    BOOLEAN			        enable_test_local_sign_cntr;
-    UINT32			        test_local_sign_cntr;
+    BOOLEAN                 enable_test_local_sign_cntr;
+    UINT32                  test_local_sign_cntr;
 #endif
 
 #if BLE_INCLUDED == TRUE
     tBTM_CMPL_CB        *p_le_test_cmd_cmpl_cb;   /* Callback function to be called when
                                                   LE test mode command has been sent successfully */
 #endif
+    tBTM_RSSI_MONITOR_CMD_CPL_CB p_rssi_monitor_cmd_cpl_cb; /* for rssi monitor command complete */
+    tBTM_RSSI_MONITOR_EVENT_CB   p_rssi_monitor_event_cb; /* for rssi threshold event */
 
 #endif  /* BLE_INCLUDED */
 
@@ -1099,6 +1101,8 @@ extern tBTM_STATUS  btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm,
 extern tBTM_STATUS  btm_sec_mx_access_request (BD_ADDR bd_addr, UINT16 psm, BOOLEAN is_originator,
                                         UINT32 mx_proto_id, UINT32 mx_chan_id,
                                         tBTM_SEC_CALLBACK *p_callback, void *p_ref_data);
+
+extern  tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec);
 extern void  btm_sec_conn_req (UINT8 *bda, UINT8 *dc);
 extern void btm_create_conn_cancel_complete (UINT8 *p);
 extern void btm_proc_lsto_evt(UINT16 handle, UINT16 timeout);

@@ -1605,6 +1605,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             p_scb->signal_ind = p_result->data.str[6] - '0';
             p_scb->roam_ind = p_result->data.str[8] - '0';
             p_scb->battchg_ind = p_result->data.str[10] - '0';
+            p_scb->callheld_ind = p_result->data.str[12] - '0';
             APPL_TRACE_DEBUG2("cind call:%d callsetup:%d", p_scb->call_ind, p_scb->callsetup_ind);
 
             bta_ag_send_result(p_scb, code, p_result->data.str, 0);

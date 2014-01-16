@@ -1,5 +1,7 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ *  Not a Contribution.
  *  Copyright (C) 2003-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,19 +88,20 @@ typedef UINT8 tBTA_STATUS;
 #define BTA_MN_SERVICE_ID       26          /* Message Notification Service */
 #define BTA_HDP_SERVICE_ID      27          /* Health Device Profile */
 #define BTA_PCE_SERVICE_ID      28          /* PhoneBook Access Client*/
+#define BTA_HIDD_SERVICE_ID     29          /* HID Device */
 
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
 /* BLE profile service ID */
-#define BTA_BLE_SERVICE_ID      29          /* GATT profile */
+#define BTA_BLE_SERVICE_ID      30          /* GATT profile */
 
 // btla-specific ++
-#define BTA_USER_SERVICE_ID     30          /* User requested UUID */
+#define BTA_USER_SERVICE_ID     31          /* User requested UUID */
 
-#define BTA_MAX_SERVICE_ID      31
+#define BTA_MAX_SERVICE_ID      32
 // btla-specific --
 #else
-#define BTA_USER_SERVICE_ID     29          /* User requested UUID */
-#define BTA_MAX_SERVICE_ID      30
+#define BTA_USER_SERVICE_ID     30          /* User requested UUID */
+#define BTA_MAX_SERVICE_ID      31
 #endif
 /* service IDs (BTM_SEC_SERVICE_FIRST_EMPTY + 1) to (BTM_SEC_MAX_SERVICES - 1)
  * are used by BTA JV */
@@ -137,22 +140,23 @@ typedef UINT8 tBTA_SERVICE_ID;
 #define BTA_MN_SERVICE_MASK         0x04000000  /* Message Notification Profile */
 #define BTA_HL_SERVICE_MASK         0x08000000  /* Health Device Profile */
 #define BTA_PCE_SERVICE_MASK        0x10000000  /* Phone Book Client */
+#define BTA_HIDD_SERVICE_MASK       0x20000000  /* HID Device */
 
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
-#define BTA_BLE_SERVICE_MASK        0x20000000  /* GATT based service */
+#define BTA_BLE_SERVICE_MASK        0x40000000  /* GATT based service */
 // btla-specific ++
-#define BTA_USER_SERVICE_MASK       0x40000000  /* Message Notification Profile */
+#define BTA_USER_SERVICE_MASK       0x80000000  /* Message Notification Profile */
 // btla-specific --
 #else
 // btla-specific ++
-#define BTA_USER_SERVICE_MASK       0x20000000  /* Message Notification Profile */
+#define BTA_USER_SERVICE_MASK       0x40000000  /* Message Notification Profile */
 // btla-specific --
 #endif
 
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
-#define BTA_ALL_SERVICE_MASK        0x3FFFFFFF  /* All services supported by BTA. */
+#define BTA_ALL_SERVICE_MASK        0x7FFFFFFF  /* All services supported by BTA. */
 #else
-#define BTA_ALL_SERVICE_MASK        0x1FFFFFFF  /* All services supported by BTA. */
+#define BTA_ALL_SERVICE_MASK        0x3FFFFFFF  /* All services supported by BTA. */
 #endif
 
 typedef UINT32 tBTA_SERVICE_MASK;
@@ -510,6 +514,7 @@ typedef UINT8 tBTA_SIG_STRENGTH_MASK;
 // btla-specific --
 #define BTA_DM_DEV_UNPAIRED_EVT         23
 #define BTA_DM_HW_ERROR_EVT             24      /* BT Chip H/W error */
+#define BTA_DM_REM_NAME_EVT             25      /* Remote name event */
 typedef UINT8 tBTA_DM_SEC_EVT;
 
 /* Structure associated with BTA_DM_ENABLE_EVT */
@@ -691,6 +696,13 @@ typedef struct
     UINT8           level_flags; /* indicates individual flags */
 } tBTA_DM_BUSY_LEVEL;
 
+/* Structure associated with BTA_DM_REM_NAME_EVT */
+typedef struct
+{
+    BD_ADDR         bd_addr;            /* BD address peer device. */
+    BD_NAME         bd_name;            /* Name of peer device. */
+} tBTA_DM_REM_NAME_EVT;
+
 #define BTA_IO_CAP_OUT      BTM_IO_CAP_OUT      /* DisplayOnly */
 #define BTA_IO_CAP_IO       BTM_IO_CAP_IO       /* DisplayYesNo */
 #define BTA_IO_CAP_IN       BTM_IO_CAP_IN       /* KeyboardOnly */
@@ -794,6 +806,7 @@ typedef union
     tBTA_DM_LINK_UP     link_up;       /* ACL connection down event */
     tBTA_DM_LINK_DOWN   link_down;       /* ACL connection down event */
     tBTA_DM_SIG_STRENGTH sig_strength;  /* rssi and link quality value */
+    tBTA_DM_REM_NAME_EVT rem_name_evt; /* remote name event */
     tBTA_DM_BUSY_LEVEL  busy_level;     /* System busy level */
     tBTA_DM_SP_CFM_REQ  cfm_req;        /* user confirm request */
     tBTA_DM_SP_KEY_NOTIF key_notif;     /* passkey notification */
@@ -1902,6 +1915,8 @@ BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
                                            tBTA_DM_SEARCH_CBACK *p_results_cb);
 
 
+BTA_API extern void BTA_DmBleObserve_With_Filter(BOOLEAN start, UINT8 duration, tBTA_DM_BLE_SCAN_FILTER filters[],
+                                                   int entries, UINT8 scan_policy, tBTA_DM_SEARCH_CBACK *p_results_cb);
 #endif
 
 // btla-specific ++

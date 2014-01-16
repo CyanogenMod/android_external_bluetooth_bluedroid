@@ -386,6 +386,13 @@ static int logging(bt_hc_logging_state_t state, char *p_path)
     return BT_HC_STATUS_SUCCESS;
 }
 
+static void ssr_cleanup (void) {
+    BTHCDBG("ssr_cleanup");
+    /* Calling vendor-specific part */
+    if (bt_vnd_if)
+        bt_vnd_if->ssr_cleanup();
+}
+
 
 /** Closes the interface */
 static void cleanup( void )
@@ -439,7 +446,8 @@ static const bt_hc_interface_t bluetoothHCLibInterface = {
     transmit_buf,
     set_rxflow,
     logging,
-    cleanup
+    cleanup,
+    ssr_cleanup
 };
 
 

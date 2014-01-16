@@ -91,6 +91,7 @@ typedef struct
     UINT32                  device_num;
     btif_hh_added_device_t  added_devices[BTIF_HH_MAX_ADDED_DEV];
     btif_hh_device_t        *p_curr_dev;
+    bt_bdaddr_t             connecting_dev_bd_addr;
 } btif_hh_cb_t;
 
 

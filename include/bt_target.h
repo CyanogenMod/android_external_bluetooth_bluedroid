@@ -26,6 +26,10 @@
 #endif
 #include "data_types.h"
 
+#ifndef BT_CLEAN_TURN_ON_DISABLED
+#define BT_CLEAN_TURN_ON_DISABLED 1
+#endif
+
 
 #ifndef BTIF_HSAG_SERVICE_NAME
 #define BTIF_HSAG_SERVICE_NAME  ("Headset Gateway")
@@ -82,6 +86,10 @@
 /* This feature is used to update any QCOM related changes in the stack*/
 #ifndef BLUETOOTH_QCOM_SW
 #define BLUETOOTH_QCOM_SW FALSE
+#endif
+
+#ifndef BTA_BLE_SKIP_CONN_UPD
+#define BTA_BLE_SKIP_CONN_UPD FALSE
 #endif
 
 #ifndef BTUI_OPS_FORMATS
@@ -190,7 +198,7 @@
 #endif
 
 #ifndef BTA_HD_INCLUDED
-#define BTA_HD_INCLUDED FALSE
+#define BTA_HD_INCLUDED TRUE
 #endif
 
 #ifndef BTA_HH_INCLUDED
@@ -217,9 +225,7 @@
 #define BTA_AV_VDP_INCLUDED FALSE
 #endif
 
-#ifndef BTA_AVK_INCLUDED
-#define BTA_AVK_INCLUDED FALSE
-#endif
+/* defined BTA_AVK_INCLUDED in Android.mk file based on target selected*/
 
 #ifndef BTA_PBS_INCLUDED
 #define BTA_PBS_INCLUDED FALSE
@@ -578,7 +584,7 @@
 /* Number of ACL buffers to assign to LE
    if the HCI buffer pool is shared with BR/EDR */
 #ifndef L2C_DEF_NUM_BLE_BUF_SHARED
-#define L2C_DEF_NUM_BLE_BUF_SHARED      1
+#define L2C_DEF_NUM_BLE_BUF_SHARED      2
 #endif
 
 /* Used by BTM when it sends HCI commands to the controller. */
@@ -762,6 +768,8 @@ BT_API extern void bte_main_hci_send (BT_HDR *p_msg, UINT16 event);
 #if (HCISU_H4_INCLUDED == TRUE)
 BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #endif
+
+BT_API extern void bte_ssr_cleanup(void);
 
 #ifdef __cplusplus
 }
@@ -1311,7 +1319,7 @@ and USER_HW_DISABLE_API macros */
 
 /* Whether link wants to be the master or the slave. */
 #ifndef L2CAP_DESIRED_LINK_ROLE
-#define L2CAP_DESIRED_LINK_ROLE     HCI_ROLE_SLAVE
+#define L2CAP_DESIRED_LINK_ROLE     HCI_ROLE_MASTER
 #endif
 
 /* Include Non-Flushable Packet Boundary Flag feature of Lisbon */
@@ -3773,6 +3781,11 @@ The maximum number of payload octets that the local device can receive in a sing
 /* When TRUE indicates that an application task is to be run */
 #ifndef APPL_INCLUDED
 #define APPL_INCLUDED                TRUE
+#endif
+
+/* TEST_APP_INTERFACE */
+#ifndef TEST_APP_INTERFACE
+#define TEST_APP_INTERFACE          TRUE
 #endif
 
 /* When TRUE remote terminal code included (RPC MUST be included) */

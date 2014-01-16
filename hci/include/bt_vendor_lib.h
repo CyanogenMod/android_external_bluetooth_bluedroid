@@ -155,6 +155,10 @@ typedef enum {
  *      specific epilog process once it has been done.
  */
     BT_VND_OP_EPILOG,
+
+    BT_VND_OP_ANT_USERIAL_OPEN,
+
+    BT_VND_OP_ANT_USERIAL_CLOSE,
 } bt_vendor_opcode_t;
 
 /** Power on/off control states */
@@ -335,6 +339,11 @@ typedef struct {
 
     /** Closes the interface */
     void  (*cleanup)(void);
+
+    /** SSR cleanup is used in HW reset cases
+     * which would cloese all the client channels
+     * and turns off the chip*/
+    void  (*ssr_cleanup)(void);
 } bt_vendor_interface_t;
 
 

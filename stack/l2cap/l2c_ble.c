@@ -190,7 +190,8 @@ BOOLEAN L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, BOOLEAN enable)
                 (UINT16) ((p_dev_rec->conn_params.supervision_tout != BTM_BLE_CONN_PARAM_UNDEF) ? p_dev_rec->conn_params.supervision_tout : BTM_BLE_CONN_TIMEOUT_DEF),
                 0, 0);
         }
-        p_lcb->upd_disabled = UPD_DISABLED;
+        if(p_lcb->upd_disabled!=UPD_PENDING)
+            p_lcb->upd_disabled = UPD_DISABLED;
     }
 
     return (TRUE);
@@ -333,6 +334,7 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
     p_lcb->link_role  = HCI_ROLE_MASTER;
     p_lcb->is_ble_link = TRUE;
 
+#if (!defined(BTA_BLE_SKIP_CONN_UPD) || BTA_BLE_SKIP_CONN_UPD == FALSE)
     /* If there are any preferred connection parameters, set them now */
     if ( (p_dev_rec->conn_params.min_conn_int     >= BTM_BLE_CONN_INT_MIN ) &&
          (p_dev_rec->conn_params.min_conn_int     <= BTM_BLE_CONN_INT_MAX ) &&
@@ -358,7 +360,7 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
                                            p_dev_rec->conn_params.supervision_tout,
                                            0, 0);
     }
-
+#endif
     /* Tell BTM Acl management about the link */
     btm_acl_created (bda, NULL, p_dev_rec->sec_bd_name, handle, p_lcb->link_role, TRUE);
 
