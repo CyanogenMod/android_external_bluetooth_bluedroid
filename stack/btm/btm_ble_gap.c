@@ -1145,6 +1145,10 @@ void btm_ble_read_remote_name_cmpl(BOOLEAN status, BD_ADDR bda, UINT16 length, c
     BD_NAME bd_name;
 
     memset(bd_name, 0, (BD_NAME_LEN + 1));
+    if (length > BD_NAME_LEN)
+    {
+        length = BD_NAME_LEN;
+    }
     memcpy((UINT8*)bd_name, p_name, length);
 
     if ((!status) || (length==0))
