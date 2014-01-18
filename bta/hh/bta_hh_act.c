@@ -168,11 +168,8 @@ void bta_hh_disc_cmpl(void)
         status = BTA_HH_ERR;
 
 #if (BTA_HH_LE_INCLUDED == TRUE)
-    if (!bta_hh_cb.w4_disable)
-    {
-        bta_hh_le_deregister();
-        return;
-    }
+    bta_hh_le_deregister();
+    return;
 #endif
 
     bta_hh_cleanup_disable(status);
