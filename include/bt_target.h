@@ -26,10 +26,6 @@
 #endif
 #include "data_types.h"
 
-#ifndef BT_CLEAN_TURN_ON_DISABLED
-#define BT_CLEAN_TURN_ON_DISABLED 1
-#endif
-
 
 #ifndef BTIF_HSAG_SERVICE_NAME
 #define BTIF_HSAG_SERVICE_NAME  ("Headset Gateway")
