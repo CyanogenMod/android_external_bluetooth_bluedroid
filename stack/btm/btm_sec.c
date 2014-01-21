@@ -2939,7 +2939,7 @@ void btm_sec_rmt_name_request_complete (UINT8 *p_bd_addr, UINT8 *p_bd_name, UINT
         /* Notify all clients waiting for name to be resolved */
         for (i = 0;i < BTM_SEC_MAX_RMT_NAME_CALLBACKS; i++)
         {
-            if (btm_cb.p_rmt_name_callback[i])
+            if (btm_cb.p_rmt_name_callback[i] && p_bd_addr)
                 (*btm_cb.p_rmt_name_callback[i])(p_bd_addr, p_dev_rec->dev_class,
                                                  p_dev_rec->sec_bd_name);
         }
@@ -2953,7 +2953,7 @@ void btm_sec_rmt_name_request_complete (UINT8 *p_bd_addr, UINT8 *p_bd_name, UINT
         /* Notify all clients waiting for name to be resolved even if not found so clients can continue */
         for (i = 0;i < BTM_SEC_MAX_RMT_NAME_CALLBACKS; i++)
         {
-            if (btm_cb.p_rmt_name_callback[i])
+            if (btm_cb.p_rmt_name_callback[i] && p_bd_addr)
                 (*btm_cb.p_rmt_name_callback[i])(p_bd_addr, dev_class, (UINT8 *)"");
         }
 
