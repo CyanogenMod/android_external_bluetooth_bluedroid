@@ -314,8 +314,10 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
          {
              /* check if define in gki_int.h is correct for this compile environment! */
              policy = GKI_LINUX_BASE_POLICY;
-#if (GKI_LINUX_BASE_POLICY!=GKI_SCHED_NORMAL)
+#if (GKI_LINUX_BASE_POLICY != GKI_SCHED_NORMAL)
              param.sched_priority = GKI_LINUX_BASE_PRIORITY - task_id - 2;
+#else
+             param.sched_priority = 0;
 #endif
          }
          pthread_setschedparam(gki_cb.os.thread_id[task_id], policy, &param);
