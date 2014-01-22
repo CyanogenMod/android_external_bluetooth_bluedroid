@@ -2021,12 +2021,14 @@ static void btm_hci_vs_event_handler(UINT8 evt_len, UINT8 *p)
     BTM_TRACE_EVENT2("%s vendor specific sub event: 0x%2x", __FUNCTION__, vs_sub_event);
     switch(vs_sub_event)
     {
+#if BLE_INCLUDED == TRUE
     case 0xFF:
         {
             BTM_TRACE_EVENT1("%s processing rssi threshold event", __FUNCTION__);
             btm_handle_rssi_monitor_event(p, evt_len - 1);
         }
         break;
+#endif
     default:
         BTM_TRACE_EVENT2("%s do not handle this vendor specific event with vs_opcode: 0x%2x", __FUNCTION__, vs_sub_event);
         break;

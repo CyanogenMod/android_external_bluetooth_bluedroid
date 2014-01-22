@@ -1856,6 +1856,7 @@ BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
 #endif
 }
 
+#if BLE_INCLUDED == TRUE
 BTA_API extern void BTA_DmBleObserve_With_Filter(BOOLEAN start, UINT8 duration, tBTA_DM_BLE_SCAN_FILTER filters[],
                                                   int entries, UINT8 scan_policy, tBTA_DM_SEARCH_CBACK *p_results_cb)
 {
@@ -1877,4 +1878,5 @@ BTA_API extern void BTA_DmBleObserve_With_Filter(BOOLEAN start, UINT8 duration, 
     }
     APPL_TRACE_API1("%s exit\n", __FUNCTION__);
 }
+#endif
 
