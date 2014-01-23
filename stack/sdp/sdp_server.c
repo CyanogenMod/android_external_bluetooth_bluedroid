@@ -97,6 +97,10 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
 #define SDP_TEXT_BAD_CONT_INX   NULL
 #endif
 
+#ifndef SDP_TEXT_BAD_MAX_RECORDS_LIST
+#define SDP_TEXT_BAD_MAX_RECORDS_LIST   NULL
+#endif
+
 /*******************************************************************************
 **
 ** Function         sdp_server_handle_client_req
@@ -193,6 +197,14 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
 
     if (max_replies > SDP_MAX_RECORDS)
         max_replies = SDP_MAX_RECORDS;
+
+
+    if ((!p_req) || (p_req > p_req_end))
+    {
+        sdpu_build_n_send_error (p_ccb, trans_num, SDP_INVALID_REQ_SYNTAX, SDP_TEXT_BAD_MAX_RECORDS_LIST);
+        return;
+    }
+
 
     /* Get a list of handles that match the UUIDs given to us */
     for (num_rsp_handles = 0; num_rsp_handles < max_replies; )
