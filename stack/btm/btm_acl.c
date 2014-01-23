@@ -1392,12 +1392,15 @@ void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read_pages)
     }
 #endif
 
-    // Retrieve remote name only if not already in progress by security module
-    if (!(p_dev_rec->sec_state & BTM_SEC_STATE_GETTING_NAME))
+    if (p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN)
     {
-        btsnd_hcic_rmt_name_req (p_acl_cb->remote_addr, HCI_PAGE_SCAN_REP_MODE_R1,
-            HCI_MANDATARY_PAGE_SCAN_MODE, 0);
+        /* Name is know, unset it so that name is retrieved again
+         * from security procedure. This will ensure, that if remote device
+         * has updated its name since last connection, we will have
+         * update name of remote device. */
+        p_dev_rec->sec_flags &= ~BTM_SEC_NAME_KNOWN;
     }
+
     if (!(p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN) || p_dev_rec->is_originator)
     {
         BTM_TRACE_DEBUG ("Calling Next Security Procedure");
