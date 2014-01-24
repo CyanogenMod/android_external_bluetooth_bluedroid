@@ -620,7 +620,6 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             if (btif_av_cb.sep == SEP_SRC)
             {
                 btif_a2dp_set_rx_flush(FALSE); /*  remove flush state, ready for streaming*/
-                btif_media_task_start_decoding_req();
             }
 
             /* change state to started, send acknowledgement if start is pending */
@@ -752,6 +751,9 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
                 btif_a2dp_set_tx_flush(TRUE);
             }
 
+            if (btif_av_cb.sep == SEP_SRC)
+                btif_a2dp_set_rx_flush(TRUE);
+
             BTA_AvStop(TRUE);
             break;
 
@@ -882,7 +884,8 @@ static void bte_av_media_callback(tBTA_AV_EVT event, tBTA_AV_MEDIA *p_data)
     if (event == BTA_AV_MEDIA_DATA_EVT)/* Switch to BTIF_MEDIA context */
     {
         state= btif_sm_get_state(btif_av_cb.sm_handle);
-        if (state == BTIF_AV_STATE_STARTED) /* send SBC packets only in Started State */
+        if ( (state == BTIF_AV_STATE_STARTED) || /* send SBC packets only in Started State */
+             (state == BTIF_AV_STATE_OPENED) )
         {
             que_len = btif_media_sink_enque_buf((BT_HDR *)p_data);
             BTIF_TRACE_DEBUG1(" Packets in Que %d",que_len);
