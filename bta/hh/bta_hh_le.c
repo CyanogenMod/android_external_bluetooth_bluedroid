@@ -2767,12 +2767,6 @@ static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
             break;
 
         case BTA_GATTC_DEREG_EVT: /* 1 */
-            if (bta_hh_cb.cnt_num && bta_hh_cb.w4_disable)
-            {
-                APPL_TRACE_EVENT0("bta_hh_gattc_callback: Active connections "
-                    "not calling bta_hh_cleanup_disable");
-                break;
-            }
             bta_hh_cleanup_disable(p_data->reg_oper.status);
             break;
 
