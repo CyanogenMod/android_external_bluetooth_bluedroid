@@ -37,11 +37,12 @@
 #define WP_HCI_CMD_ENABLE_DATA       0x19
 #define WP_HCI_CMD_GET_CURRENT_LIMIT 0x1A
 #define WP_HCI_CMD_GET_CHARGE_OUTPUT 0x1B
+#define WP_HCI_CMD_ENABLE_POWER      0x1C
 
 #define WP_HCI_EVENT_ALERT    0x15
 #define WP_HCI_EVENT_DATA     0x16
 #define WP_HCI_EVENT_POWER_ON 0x17
 
-
+void enable_power_apply(bool enable, bool on);
 
 #endif /*_WIPOWER_CONSTANTS_H_*/

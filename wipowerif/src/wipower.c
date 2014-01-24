@@ -48,18 +48,70 @@ pthread_cond_t signal_cv;
 #define WIP_LOG_TAG "wipower"
 #define HCI_EVENT_WAIT_TIMEOUT 2
 
+/*1 seconds timeout*/
+#define WIPOWER_DATA_IDLE_TIMEOUT (1000)
+
 wipower_callbacks_t *wipower_hal_cbacks = NULL;
 wipower_dyn_data_t wipower_dyn_data;
 
 unsigned char gStatus;
 wipower_state_t gState;
 unsigned char gCurrentLimit;
+timer_t  wp_data_timer;
 
+char power_removal_event[] = {0x17, 0x00};
+void dispatch_wp_events (UINT16 len, char* p_param);
 
+static void wp_data_timeout() {
+    ALOGI("%s",__FUNCTION__);
+    int len = 2;
 
+    /*Imitate the power removal event as part of the
+     * timeout so that App layer disconnect GATT*/
+    /*Event is part of payload, Length used as Event*/
+    btif_transfer_context(dispatch_wp_events, (UINT16)len,
+          (char*)power_removal_event, len, NULL);
 
+}
 
+static void wipower_data_timer_stop()
+{
+    int status;
+    struct itimerspec ts;
+    ALOGE("%s",__FUNCTION__);
 
+    ts.it_value.tv_sec = 0;
+    ts.it_value.tv_nsec = 0;
+    ts.it_interval.tv_sec = 0;
+    ts.it_interval.tv_nsec = 0;
+
+    status = timer_settime(wp_data_timer, 0, &ts, 0);
+    if(status == -1)
+         ALOGE("%s:Failed to stop wp data timer",__FUNCTION__);
+    else if(status == 0)
+         ALOGI("%s: wp data timer Stopped",__FUNCTION__);
+}
+
+static void wipower_data_timer_start()
+{
+    int status;
+    struct itimerspec ts;
+    uint32_t timeout_ms;
+
+    ALOGI("%s",__FUNCTION__);
+
+    timeout_ms = WIPOWER_DATA_IDLE_TIMEOUT;
+    ts.it_value.tv_sec = timeout_ms/1000;
+    ts.it_value.tv_nsec = 1000000*(timeout_ms%1000);
+    ts.it_interval.tv_sec = 0;
+    ts.it_interval.tv_nsec = 0;
+
+    status = timer_settime(wp_data_timer, 0, &ts, 0);
+    if (status == -1)
+         ALOGE("%s:Failed to set wack timer",__FUNCTION__);
+
+    ALOGI("%s:set timer passed: %d",__FUNCTION__, status);
+}
 
 void dispatch_enable_event (UINT16 event, char* p_param) {
     ALOGI("%s->", __func__);
@@ -179,6 +231,22 @@ void enable_data_cb(tBTM_VSC_CMPL *p1) {
     }
 }
 
+void enable_power_cb(tBTM_VSC_CMPL *p1) {
+    ALOGI("%s->", __func__);
+    gStatus = 0xFF;
+    unsigned char status = 0x00;
+
+    if (p1->param_len) {
+        status = p1->p_param_buf[p1->param_len-2];
+
+        ALOGI("%s: %x", __func__, status);
+
+        if (status == 0) {
+                gStatus = 0x00;
+        }
+    }
+}
+
 void dispatch_wp_events (UINT16 len, char* p_param) {
     ALOGI("%s->", __func__);
 
@@ -208,6 +276,8 @@ void dispatch_wp_events (UINT16 len, char* p_param) {
             } else {
                 ALOGE("wipower_hal_cbacks not registered");
             }
+            wipower_data_timer_stop();
+            wipower_data_timer_start();
         }
 
     } break;
@@ -217,10 +287,15 @@ void dispatch_wp_events (UINT16 len, char* p_param) {
         } else {
             unsigned char alert = p_param[1];
             if (wipower_hal_cbacks) {
-                //wipower_hal_cbacks->wipower_alert(alert);
+                wipower_hal_cbacks->wipower_power_event(alert);
                 ALOGE("wp power-on event forwarded to app layer");
             } else {
                 ALOGE("wipower_hal_cbacks not registered");
+            }
+
+            if(alert == 0x01) {
+                /*Disable this event now*/
+                enable_power_apply(0x00, 0x01);
             }
         }
 
@@ -236,11 +311,11 @@ void wp_events(UINT8 len, UINT8 *p) {
 
     /*Event is part of payload, Length used as Event*/
     btif_transfer_context(dispatch_wp_events, (UINT16)len,
-          (char*)p, sizeof(p), NULL);
+          (char*)p, len, NULL);
 }
 
-/** Enable Bluetooth. */
-int enable(wipower_callbacks_t *wp_callbacks, bool enable)
+/** Enable Wireless charging/Start Wireless charging */
+int enable(bool enable)
 {
     UINT8 en[2];
     ALOGI("enable: %d", enable);
@@ -252,11 +327,6 @@ int enable(wipower_callbacks_t *wp_callbacks, bool enable)
     } else {
         en[1]= 0;
     }
-    wipower_hal_cbacks = wp_callbacks;
-
-    //Register VS Event
-    tBTM_STATUS res = BTM_RegisterForVSEvents(wp_events, enable);
-    ALOGI("res of BTM_RegisterForVSEvents %d", res);
 
     BTA_DmVendorSpecificCommand(WP_HCI_VS_CMD, 2, en, enable_cb);
 
@@ -279,7 +349,7 @@ int set_current_limit(short value)
     if (gStatus == 0) {
         status = 0;
     }
-
+    status = 0;
     ALOGI("set_current_limit: Status %x", status);
     return status;
 }
@@ -342,6 +412,9 @@ int enable_data_notify(bool enable)
 {
     UINT8 en[2];
     int status = -1;
+    struct sigevent se;
+    int ret;
+
     ALOGI("%s:%d", __func__, enable);
 
     en[0] = WP_HCI_CMD_ENABLE_DATA;
@@ -356,14 +429,69 @@ int enable_data_notify(bool enable)
     status = gStatus;
 
     ALOGI("enable_data_notify: Status %x", status);
+
+    if (enable) {
+        se.sigev_notify_function = wp_data_timeout;
+        se.sigev_notify = SIGEV_THREAD;
+        se.sigev_value.sival_ptr = &wp_data_timer;
+        se.sigev_notify_attributes = NULL;
+
+        ret = timer_create(CLOCK_MONOTONIC, &se, &wp_data_timer);
+        if (ret < 0) {
+            ALOGE("%s: Error while creating timer", __func__);
+            return -1;
+        }
+    }
+    else {
+        ALOGI("enable power apply as part disable data");
+        enable_power_apply(0x01, 0x01);
+        timer_delete(wp_data_timer);
+    }
+
     return status;
+}
+
+void enable_power_apply(bool enable, bool on)
+{
+    UINT8 en[3];
+    ALOGE("%s:%d", __func__, enable);
+
+    en[0] = WP_HCI_CMD_ENABLE_POWER;
+    if (enable) {
+        en[1] = 1;
+    } else {
+        en[1] = 0;
+    }
+
+    en[2] = on;
+
+    BTA_DmVendorSpecificCommand(WP_HCI_VS_CMD, 3, en, enable_power_cb);
+}
+
+int init(wipower_callbacks_t *wp_callbacks) {
+    bool enable = true;
+    int ret = 0;
+
+    wipower_hal_cbacks = wp_callbacks;
+
+    /*enable power apply trigger for hw*/
+    enable_power_apply(0x01, 0x01);
+
+    tBTM_STATUS res = BTM_RegisterForVSEvents(wp_events, enable);
+    if (res != BTM_SUCCESS) {
+        ALOGI("Failure of BTM_RegisterForVSEvents %d", res);
+        ret = -1;
+    }
+
+    return ret;
 }
 
 static const wipower_interface_t wipowerInterface = {
     sizeof(wipowerInterface),
-    /** Enable Bluetooth. */
+    /* Initialize wipower module*/
+    init,
+    /** Enable wireless charging */
     enable,
-    /** Disable Bluetooth. */
     set_current_limit,
     get_current_limit,
     get_state,
