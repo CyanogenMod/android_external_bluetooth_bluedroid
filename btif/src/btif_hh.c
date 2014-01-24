@@ -878,14 +878,28 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 BTIF_TRACE_WARNING1("Error: cannot find device with handle %d", p_data->dev_status.handle);
             }
             break;
-        case BTA_HH_GET_RPT_EVT:
+        case BTA_HH_GET_RPT_EVT: {
+            BT_HDR *hdr = p_data->hs_data.rsp_data.p_rpt_data;
+            UINT8 *data = NULL;
+            UINT16 len = 0;
+
             BTIF_TRACE_DEBUG2("BTA_HH_GET_RPT_EVT: status = %d, handle = %d",
                  p_data->hs_data.status, p_data->hs_data.handle);
-            p_dev = btif_hh_find_connected_dev_by_handle(p_data->conn.handle);
-            HAL_CBACK(bt_hh_callbacks, get_report_cb,(bt_bdaddr_t*) &(p_dev->bd_addr), (bthh_status_t) p_data->hs_data.status,
-                (uint8_t*) p_data->hs_data.rsp_data.p_rpt_data, BT_HDR_SIZE);
+            /* p_rpt_data in HANDSHAKE response case */
+            if (hdr) {
+                data = (UINT8 *)(hdr + 1) + hdr->offset;
+                len = hdr->len;
+            }
+            p_dev = btif_hh_find_connected_dev_by_handle(p_data->hs_data.handle);
+            if (p_dev) {
+                HAL_CBACK(bt_hh_callbacks, get_report_cb,
+                          (bt_bdaddr_t*) &(p_dev->bd_addr),
+                          (bthh_status_t) p_data->hs_data.status, data, len);
+            } else {
+                BTIF_TRACE_WARNING1("Error: cannot find device with handle %d", p_data->hs_data.handle);
+            }
             break;
-
+        }
         case BTA_HH_SET_RPT_EVT:
             BTIF_TRACE_DEBUG2("BTA_HH_SET_RPT_EVT: status = %d, handle = %d",
             p_data->dev_status.status, p_data->dev_status.handle);
@@ -1477,6 +1491,7 @@ static bt_status_t get_protocol (bt_bdaddr_t *bd_addr, bthh_protocol_mode_t prot
 
     p_dev = btif_hh_find_connected_dev_by_bda(bd_addr);
     if (p_dev != NULL) {
+
         BTA_HhGetProtoMode(p_dev->dev_handle);
     }
     else {
