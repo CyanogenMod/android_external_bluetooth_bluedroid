@@ -322,26 +322,35 @@ static inline rfc_slot_t* create_srv_accept_rfc_slot(rfc_slot_t* srv_rs, const b
                                         int open_handle, int new_listen_handle)
 {
     rfc_slot_t *accept_rs = alloc_rfc_slot(addr, srv_rs->service_name, srv_rs->service_uuid, srv_rs->scn, 0, FALSE);
-    clear_slot_flag(&accept_rs->f);
-    accept_rs->f.server = FALSE;
-    accept_rs->f.connected = TRUE;
-    accept_rs->security = srv_rs->security;
-    accept_rs->mtu = srv_rs->mtu;
-    accept_rs->role = srv_rs->role;
-    accept_rs->rfc_handle = open_handle;
-    accept_rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(open_handle);
-     //now update listen rfc_handle of server slot
-    srv_rs->rfc_handle = new_listen_handle;
-    srv_rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(new_listen_handle);
-    BTIF_TRACE_DEBUG4("create_srv_accept__rfc_slot(open_handle: 0x%x, new_listen_handle:"
-            "0x%x) accept_rs->rfc_handle:0x%x, srv_rs_listen->rfc_handle:0x%x"
-      ,open_handle, new_listen_handle, accept_rs->rfc_port_handle, srv_rs->rfc_port_handle);
-    asrt(accept_rs->rfc_port_handle != srv_rs->rfc_port_handle);
-  //now swap the slot id
-    uint32_t new_listen_id = accept_rs->id;
-    accept_rs->id = srv_rs->id;
-    srv_rs->id = new_listen_id;
-    return accept_rs;
+    if( accept_rs)
+    {
+        clear_slot_flag(&accept_rs->f);
+        accept_rs->f.server = FALSE;
+        accept_rs->f.connected = TRUE;
+        accept_rs->security = srv_rs->security;
+        accept_rs->mtu = srv_rs->mtu;
+        accept_rs->role = srv_rs->role;
+        accept_rs->rfc_handle = open_handle;
+        accept_rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(open_handle);
+        //now update listen rfc_handle of server slot
+        srv_rs->rfc_handle = new_listen_handle;
+        srv_rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(new_listen_handle);
+        BTIF_TRACE_DEBUG4("create_srv_accept__rfc_slot(open_handle: 0x%x, new_listen_handle:"
+                "0x%x) accept_rs->rfc_handle:0x%x, srv_rs_listen->rfc_handle:0x%x"
+                ,open_handle, new_listen_handle, accept_rs->rfc_port_handle, srv_rs->rfc_port_handle);
+        asrt(accept_rs->rfc_port_handle != srv_rs->rfc_port_handle);
+        //now swap the slot id
+        uint32_t new_listen_id = accept_rs->id;
+        accept_rs->id = srv_rs->id;
+        srv_rs->id = new_listen_id;
+
+        return accept_rs;
+    }
+    else
+    {
+        APPL_TRACE_ERROR1(" accept_rs is NULL %s", __FUNCTION__);
+        return NULL;
+    }
 }
 bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_uuid, int channel,
                             int* sock_fd, int flags)
