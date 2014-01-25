@@ -1935,6 +1935,22 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
     APPL_TRACE_DEBUG3("btif_media_task_enc_update : minmtu %d, maxbp %d minbp %d",
             pUpdateAudio->MinMtuSize, pUpdateAudio->MaxBitPool, pUpdateAudio->MinBitPool);
 
+    if (!pstrEncParams->s16NumOfSubBands)
+    {
+        APPL_TRACE_ERROR0("Error: SubBands are set to 0, resetting to Max");
+        pstrEncParams->s16NumOfSubBands = SBC_MAX_NUM_OF_SUBBANDS;
+    }
+    if (!pstrEncParams->s16NumOfBlocks)
+    {
+        APPL_TRACE_ERROR0("Error: Blocks are set to 0, resetting to Max");
+        pstrEncParams->s16NumOfBlocks = SBC_MAX_NUM_OF_BLOCKS;
+    }
+    if (!pstrEncParams->s16NumOfChannels)
+    {
+        APPL_TRACE_ERROR0("Error: Channels are set to 0, resetting to Max");
+        pstrEncParams->s16NumOfChannels = SBC_MAX_NUM_OF_CHANNELS;
+    }
+
     /* Only update the bitrate and MTU size while timer is running to make sure it has been initialized */
     //if (btif_media_cb.is_tx_timer)
     {
@@ -2576,17 +2592,30 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
             APPL_TRACE_DEBUG1("num of frames calculated as per available pcm data =  %u", result);
             if(btif_av_is_peer_edr())
             {
-                nof = btif_media_cb.TxNumSBCFrames;
-                if (nof < result)
+                if (!btif_media_cb.TxNumSBCFrames)
                 {
-                    noi = result / nof; // number of iterations would vary
-                    result = nof;
+                    APPL_TRACE_ERROR0("Error: TxNumSBCFrames not updated, update from here");
+                    btif_media_cb.TxNumSBCFrames = check_for_max_number_of_frames_per_packet();
+                }
+                nof = btif_media_cb.TxNumSBCFrames;
+                if(!nof) {
+                    APPL_TRACE_ERROR0("Error: Num frames not updated, stick to calculated values");
+                    nof = result;
+                    noi = 1;
                 }
                 else
                 {
-                    noi = 1; // number of iterations is 1
-                    APPL_TRACE_DEBUG0("reducing number of frames as per available pcm data");
-                    nof = result;
+                    if (nof < result)
+                    {
+                        noi = result / nof; // number of iterations would vary
+                        result = nof;
+                    }
+                    else
+                    {
+                        noi = 1; // number of iterations is 1
+                        APPL_TRACE_DEBUG0("reducing number of frames as per available pcm data");
+                        nof = result;
+                    }
                 }
             }
             else
