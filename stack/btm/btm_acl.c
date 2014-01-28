@@ -1240,11 +1240,11 @@ void btm_read_remote_version_complete (UINT8 *p)
                 STREAM_TO_UINT16 (p_acl_cb->lmp_subversion, p);
 #if BLE_INCLUDED == TRUE
                 if(!p_acl_cb->is_le_link)
+#endif
                 {
                     BTM_TRACE_DEBUG0("Calling btm_read_remote_features");
                     btm_read_remote_features (p_acl_cb->hci_handle);
                 }
-#endif
                 break;
             }
         }
