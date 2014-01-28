@@ -1702,6 +1702,28 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             btif_dm_auth_cmpl_evt(&p_data->auth_cmpl);
             break;
 
+        case BTA_DM_BLE_ADV_ENABLE_EVT:
+            BTIF_TRACE_EVENT3("btif_dm_upstreams_evt:BTA_DM_BLE_ADV_ENABLE_EVT: enable:%d, advType: %d, islimited= %d",p_data->adv_enable.advEnable, p_data->adv_enable.advType, p_data->adv_enable.isLimited);
+            if( p_data->adv_enable.advEnable)
+            {
+                if(p_data->adv_enable.advType == 0 && p_data->adv_enable.isLimited)//UND, LIMITED
+                {
+                    HAL_CBACK(bt_hal_cbacks, le_adv_enable_cb, p_data->adv_enable.advEnable, BLE_ADV_IND_LIMITED_CONNECTABLE);
+                }
+                else if(p_data->adv_enable.advType == 0 && !p_data->adv_enable.isLimited)//UND, GENERAL
+                {
+                    HAL_CBACK(bt_hal_cbacks, le_adv_enable_cb, p_data->adv_enable.advEnable, BLE_ADV_IND_GENERAL_CONNECTABLE);
+                }
+                else if(p_data->adv_enable.advType == 1)//DIR, LIMITED
+                {
+                    HAL_CBACK(bt_hal_cbacks, le_adv_enable_cb, p_data->adv_enable.advEnable, BLE_ADV_DIR_CONNECTABLE);
+                }
+            }
+            else
+            {
+                HAL_CBACK(bt_hal_cbacks, le_adv_enable_cb, p_data->adv_enable.advEnable, BLE_ADV_MODE_NONE);
+            }
+
         case BTA_DM_BOND_CANCEL_CMPL_EVT:
             if (pairing_cb.state == BT_BOND_STATE_BONDING)
             {
