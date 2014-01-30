@@ -224,6 +224,7 @@ void btm_ble_clear_white_list (void)
 {
     BTM_TRACE_EVENT ("btm_ble_clear_white_list");
     btsnd_hcic_ble_clear_white_list();
+    memset(&btm_cb.ble_ctr_cb.bg_dev_list, 0, (sizeof(tBTM_LE_BG_CONN_DEV)*BTM_BLE_MAX_BG_CONN_DEV_NUM));
 }
 
 /*******************************************************************************

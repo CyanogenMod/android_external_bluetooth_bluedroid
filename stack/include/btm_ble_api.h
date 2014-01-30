@@ -771,6 +771,20 @@ BTM_API extern BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   conn_type,
 *******************************************************************************/
 BTM_API extern BOOLEAN BTM_BleUpdateBgConnDev(BOOLEAN add_remove, BD_ADDR   remote_bda);
 
+/*******************************************************************************
+**
+** Function         BTM_BleClearBgConnDev
+**
+** Description      This function is called to clear the whitelist,
+**                  end any pending whitelist connections,
+*                   and reset the local bg device list.
+**
+** Parameters       void
+**
+** Returns          void
+**
+*******************************************************************************/
+BTM_API extern void BTM_BleClearBgConnDev(void);
 
 /********************************************************
 **
