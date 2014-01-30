@@ -36,6 +36,8 @@
 #endif
 #if (BLE_INCLUDED == TRUE)
 #include "gattdefs.h"
+#include "gatt_int.h"
+#include "bd.h"
 
 #define BTM_BLE_NAME_SHORT                  0x01
 #define BTM_BLE_NAME_CMPL                   0x02
@@ -568,6 +570,15 @@ BOOLEAN BTM_BleUpdateBgConnDev(BOOLEAN add_remove, BD_ADDR   remote_bda)
     BOOLEAN ret = TRUE;
     UINT8   dev_wl_type = BTM_BLE_WL_INIT;
     BTM_TRACE_EVENT0 (" BTM_BleUpdateBgConnDev");
+
+    if(bdcmpany(remote_bda) == 0)
+    {
+       /* cancel any pending connection and clear whitelist */
+        btm_ble_start_auto_conn(FALSE);
+        btm_ble_clear_white_list();
+        gatt_reset_bgdev_list();
+        return ret;
+    }
 
     /* update white list */
     ret = btm_update_bg_conn_list(add_remove, remote_bda, &dev_wl_type);
