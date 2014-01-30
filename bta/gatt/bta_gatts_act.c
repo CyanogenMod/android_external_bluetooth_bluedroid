@@ -612,11 +612,7 @@ void bta_gatts_send_rsp (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 **
 ** Function         bta_gatts_indicate_handle
 **
-<<<<<<< HEAD
-** Description      GATTS indicate handel value
-=======
 ** Description      GATTS send handle value indication or notification.
->>>>>>> 6ea30bf... LE: UPF 45 bug fixes
 **
 ** Returns          none.
 **
