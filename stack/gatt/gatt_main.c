@@ -66,6 +66,7 @@ static const tL2CAP_APPL_INFO dyn_info =
     gatt_l2cif_disconnect_cfm_cback,
     NULL,
     gatt_l2cif_data_ind_cback,
+    NULL,
     NULL
 } ;
 
