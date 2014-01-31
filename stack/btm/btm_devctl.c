@@ -1120,7 +1120,7 @@ void btm_reset_ctrlr_complete ()
     btu_stop_timer (&btm_cb.devcb.reset_timer);
 
     /* find the highest feature page number which contains non-zero bits */
-    for (i = HCI_EXT_FEATURES_PAGE_MAX; i >= 0; i--)
+    for (i = HCI_EXT_FEATURES_PAGE_MAX; ; i--)
     {
         for (j = 0; j < HCI_FEATURE_BYTES_PER_PAGE; j++)
         {
