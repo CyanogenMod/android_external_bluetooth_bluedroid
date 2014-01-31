@@ -5772,7 +5772,7 @@ BOOLEAN btm_sec_is_le_capable_dev (BD_ADDR bda)
 ** Returns          TRUE - found a bonded device
 **
 *******************************************************************************/
-BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_DEV_REC *p_rec)
+BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_DEV_REC **p_rec)
 {
     BOOLEAN found= FALSE;
 
@@ -5791,7 +5791,7 @@ BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_D
         if (p_dev_rec->ble.key_type || (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN))
         {
             *p_found_idx = i;
-            p_rec = p_dev_rec;
+            *p_rec = p_dev_rec;
             break;
         }
     }
