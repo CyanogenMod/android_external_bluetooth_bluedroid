@@ -539,10 +539,10 @@ void avdt_scb_event(tAVDT_SCB *p_scb, UINT8 event, tAVDT_SCB_EVT *p_data)
     state_table = avdt_scb_st_tbl[p_scb->state];
 
     /* set next state */
-    if (p_scb->state != state_table[event][AVDT_SCB_NEXT_STATE])
+    if (p_scb->state != state_table[event][AVDT_SCB_NEXT_STATE]) {
         BTTRC_AVDT_SCB_STATE(state_table[event][AVDT_SCB_NEXT_STATE]);
-    p_scb->state = state_table[event][AVDT_SCB_NEXT_STATE];
-
+        p_scb->state = state_table[event][AVDT_SCB_NEXT_STATE];
+    }
 
     /* execute action functions */
     for (i = 0; i < AVDT_SCB_ACTIONS; i++)
