@@ -908,6 +908,7 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
 err_open:
     free(out);
     *stream_out = NULL;
+    a2dp_dev->output = NULL;
     ERROR("failed");
     return ret;
 }
@@ -937,8 +938,10 @@ static int adev_set_parameters(struct audio_hw_device *dev, const char *kvpairs)
     int retval = 0;
 
     if (out == NULL)
+    {
+        ERROR("ERROR: set param called even when stream out is null");
         return retval;
-
+    }
     INFO("state %d", out->state);
 
     retval = out->stream.common.set_parameters((struct audio_stream *)out, kvpairs);
