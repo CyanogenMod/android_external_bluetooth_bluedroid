@@ -1662,7 +1662,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
         BT_TRACE_1(TRACE_LAYER_HCI, TRACE_TYPE_ERROR,
                   "Num consecutive HCI Cmd tout =%d Restarting BT process",num_hci_cmds_timed_out);
         bte_ssr_cleanup();
-        usleep(10000); /* 10 milliseconds */
+        usleep(20000); /* 20 milliseconds */
         /* Killing the process to force a restart as part of fault tolerance */
         kill(getpid(), SIGKILL);
     }
