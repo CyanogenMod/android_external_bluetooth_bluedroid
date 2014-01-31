@@ -114,8 +114,7 @@ BOOLEAN avrc_is_valid_player_attrib_value(UINT8 attrib, UINT8 value)
          break;
     }
 
-    if (attrib >= AVRC_PLAYER_SETTING_LOW_MENU_EXT &&
-       attrib <= AVRC_PLAYER_SETTING_HIGH_MENU_EXT)
+    if (attrib >= AVRC_PLAYER_SETTING_LOW_MENU_EXT)
        result = TRUE;
 
     if (!result)
@@ -140,7 +139,7 @@ BOOLEAN AVRC_IsValidPlayerAttr(UINT8 attr)
     BOOLEAN result=FALSE;
 
     if ( (attr >= AVRC_PLAYER_SETTING_EQUALIZER && attr <= AVRC_PLAYER_SETTING_SCAN) ||
-         (attr >= AVRC_PLAYER_SETTING_LOW_MENU_EXT && attr <= AVRC_PLAYER_SETTING_HIGH_MENU_EXT) )
+         (attr >= AVRC_PLAYER_SETTING_LOW_MENU_EXT) )
     {
        result = TRUE;
     }
