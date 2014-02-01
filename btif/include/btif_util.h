@@ -23,6 +23,7 @@
 
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf.h>
+#include <hardware/bt_multi_hf.h>
 #include <utils/Log.h>
 #include <sys/time.h>
 

@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf.h>
+#include <hardware/bt_multi_hf.h>
 #include <hardware/bt_hf_client.h>
 #include <hardware/bt_av.h>
 #include <hardware/bt_sock.h>
@@ -116,11 +117,16 @@ bt_callbacks_t *bt_hal_cbacks = NULL;
 /************************************************************************************
 **  Externs
 ************************************************************************************/
+BOOLEAN is_multi_hf_supported = FALSE;
 
 /* list all extended interfaces here */
 
 /* handsfree profile */
 extern bthf_interface_t *btif_hf_get_interface();
+
+/* handsfree profile- multihf */
+extern btmultihf_interface_t *btif_multihf_get_interface();
+
 /* handsfree profile - client */
 extern bthf_client_interface_t *btif_hf_client_get_interface();
 /* advanced audio profile */
@@ -376,6 +382,11 @@ static int ssp_reply(const bt_bdaddr_t *bd_addr, bt_ssp_variant_t variant,
     return btif_dm_ssp_reply(bd_addr, variant, accept, passkey);
 }
 
+BOOLEAN btif_is_multi_hf_supported()
+{
+    return is_multi_hf_supported;
+}
+
 static const void* get_profile_interface (const char *profile_id)
 {
     ALOGI("get_profile_interface %s", profile_id);
@@ -386,10 +397,19 @@ static const void* get_profile_interface (const char *profile_id)
 
     /* check for supported profile interfaces */
     if (is_profile(profile_id, BT_PROFILE_HANDSFREE_ID))
+    {
+        is_multi_hf_supported = FALSE;
         return btif_hf_get_interface();
+    }
 
     if (is_profile(profile_id, BT_PROFILE_HANDSFREE_CLIENT_ID))
         return btif_hf_client_get_interface();
+
+    if (is_profile(profile_id, BT_PROFILE_MULTI_HANDSFREE_ID))
+    {
+        is_multi_hf_supported = TRUE;
+        return btif_multihf_get_interface();
+    }
 
     if (is_profile(profile_id, BT_PROFILE_SOCKETS_ID))
         return btif_sock_get_interface();
