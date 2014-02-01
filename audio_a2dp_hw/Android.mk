@@ -5,7 +5,7 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES:= \
 	audio_a2dp_hw.c
 
-LOCAL_C_INCLUDES+= .
+LOCAL_C_INCLUDES+= . $(LOCAL_PATH)/../utils/include
 
 LOCAL_SHARED_LIBRARIES := \
 	libcutils liblog

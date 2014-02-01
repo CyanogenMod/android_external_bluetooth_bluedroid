@@ -98,6 +98,7 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/../hcis/patchram \
                    $(LOCAL_PATH)/../udrv/include \
                    $(LOCAL_PATH)/../brcm/include \
+                   $(LOCAL_PATH)/../utils/include \
                    $(bdroid_C_INCLUDES) \
 
 
