@@ -464,7 +464,19 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         case BTIF_GATT_OBSERVE_EVT:
         {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
-            if (p_btif_cb->addr_type != BLE_ADDR_RANDOM)
+            uint8_t remote_name_len;
+            uint8_t *p_eir_remote_name=NULL;
+
+            p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+                                         BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
+
+            if(p_eir_remote_name == NULL)
+            {
+                p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+                                BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
+            }
+
+            if ((p_btif_cb->addr_type != BLE_ADDR_RANDOM) || (p_eir_remote_name))
             {
                if (!btif_gattc_find_bdaddr(p_btif_cb->bd_addr.address))
                {
