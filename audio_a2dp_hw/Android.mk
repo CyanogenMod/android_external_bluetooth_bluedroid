@@ -2,6 +2,8 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
+LOCAL_C_FLAGS := -Werror
+
 LOCAL_SRC_FILES:= \
 	audio_a2dp_hw.c
 
