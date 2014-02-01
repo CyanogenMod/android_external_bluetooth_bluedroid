@@ -39,6 +39,10 @@
 #include "utl.h"
 #include <string.h>
 
+#if (GAP_INCLUDED == TRUE)
+#include "gap_api.h"
+#endif
+
 static void bta_dm_inq_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_inq_cmpl_cb (void * p_result);
 static void bta_dm_service_search_remname_cback (BD_ADDR bd_addr, DEV_CLASS dc, BD_NAME bd_name);
