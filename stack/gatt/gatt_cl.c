@@ -402,7 +402,7 @@ void gatt_send_prepare_write(tGATT_TCB  *p_tcb, tGATT_CLCB *p_clcb)
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_find_type_value_rsp (tGATT_CLCB *p_clcb, UINT16 len, UINT8 *p_data)
+static void gatt_process_find_type_value_rsp (tGATT_CLCB *p_clcb, UINT16 len, UINT8 *p_data)
 {
     tGATT_DISC_RES      result;
     UINT8               *p = p_data;
