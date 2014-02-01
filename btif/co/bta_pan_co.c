@@ -35,7 +35,7 @@
 #include "btif_pan_internal.h"
 #include "bd.h"
 #include <string.h>
-
+#include "btif_util.h"
 
 /*******************************************************************************
 **
@@ -218,6 +218,9 @@ void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
 *******************************************************************************/
 void bta_pan_co_rx_path(UINT16 handle, UINT8 app_id)
 {
+    UNUSED(handle);
+    UNUSED(app_id);
+
     BTIF_TRACE_API0("bta_pan_co_rx_path not used");
 }
 
@@ -238,7 +241,17 @@ void bta_pan_co_tx_write(UINT16 handle, UINT8 app_id, BD_ADDR src, BD_ADDR dst,
                                 UINT16 protocol, UINT8 *p_data,
                                 UINT16 len, BOOLEAN ext, BOOLEAN forward)
 {
-     BTIF_TRACE_API0("bta_pan_co_tx_write not used");
+    UNUSED(handle);
+    UNUSED(app_id);
+    UNUSED(src);
+    UNUSED(dst);
+    UNUSED(protocol);
+    UNUSED(p_data);
+    UNUSED(len);
+    UNUSED(ext);
+    UNUSED(forward);
+
+    BTIF_TRACE_API0("bta_pan_co_tx_write not used");
 }
 
 /*******************************************************************************
@@ -258,6 +271,15 @@ void  bta_pan_co_tx_writebuf(UINT16 handle, UINT8 app_id, BD_ADDR src,
                                     BD_ADDR dst, UINT16 protocol, BT_HDR *p_buf,
                                     BOOLEAN ext, BOOLEAN forward)
 {
+    UNUSED(handle);
+    UNUSED(app_id);
+    UNUSED(src);
+    UNUSED(dst);
+    UNUSED(protocol);
+    UNUSED(p_buf);
+    UNUSED(ext);
+    UNUSED(forward);
+
     BTIF_TRACE_API0("bta_pan_co_tx_writebuf not used");
 }
 
@@ -277,6 +299,10 @@ void  bta_pan_co_tx_writebuf(UINT16 handle, UINT8 app_id, BD_ADDR src,
 *******************************************************************************/
 void bta_pan_co_rx_flow(UINT16 handle, UINT8 app_id, BOOLEAN enable)
 {
+    UNUSED(handle);
+    UNUSED(app_id);
+    UNUSED(enable);
+
     BTIF_TRACE_API1("bta_pan_co_rx_flow, enabled:%d, not used", enable);
 }
 
@@ -292,6 +318,12 @@ void bta_pan_co_rx_flow(UINT16 handle, UINT8 app_id, BOOLEAN enable)
 void bta_pan_co_pfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STATUS result,
                                     UINT16 len, UINT8 *p_filters)
 {
+    UNUSED(handle);
+    UNUSED(indication);
+    UNUSED(result);
+    UNUSED(len);
+    UNUSED(p_filters);
+
     BTIF_TRACE_API0("bta_pan_co_pfilt_ind");
 }
 
@@ -307,6 +339,12 @@ void bta_pan_co_pfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STATUS res
 void bta_pan_co_mfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STATUS result,
                                     UINT16 len, UINT8 *p_filters)
 {
+    UNUSED(handle);
+    UNUSED(indication);
+    UNUSED(result);
+    UNUSED(len);
+    UNUSED(p_filters);
+
     BTIF_TRACE_API0("bta_pan_co_mfilt_ind");
 }
 

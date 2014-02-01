@@ -33,6 +33,7 @@
 #include "bt_hci_bdroid.h"
 #include "hci.h"
 #include "userial.h"
+#include "bt_utils.h"
 
 /******************************************************************************
 **  Externs
@@ -87,6 +88,7 @@ static void fwcfg_cb(bt_vendor_op_result_t result)
 ******************************************************************************/
 static void scocfg_cb(bt_vendor_op_result_t result)
 {
+    UNUSED(result);
     /* Continue rest of postload process*/
     p_hci_if->get_acl_max_len();
 }
@@ -178,6 +180,7 @@ static uint8_t xmit_cb(uint16_t opcode, void *p_buf, tINT_CMD_CBACK p_cback)
 ******************************************************************************/
 static void epilog_cb(bt_vendor_op_result_t result)
 {
+    UNUSED(result);
     bthc_signal_event(HC_EVENT_EXIT);
 }
 

@@ -21,6 +21,7 @@
 #include "avrc_api.h"
 #include "avrc_defs.h"
 #include "avrc_int.h"
+#include "bt_utils.h"
 
 /*****************************************************************************
 **  Global data
@@ -39,7 +40,7 @@
 **                  Otherwise, the error code defined by AVRCP 1.4
 **
 *******************************************************************************/
-static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR *p_msg, tAVRC_RESPONSE *p_result, UINT8 *p_buf, UINT16 buf_len)
+static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR *p_msg, tAVRC_RESPONSE *p_result)
 {
     tAVRC_STS  status = AVRC_STS_NO_ERROR;
     UINT8   *p = p_msg->p_vendor_data;
@@ -117,13 +118,15 @@ tAVRC_STS AVRC_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, UINT8 *
 {
     tAVRC_STS  status = AVRC_STS_INTERNAL_ERR;
     UINT16  id;
+    UNUSED(p_buf);
+    UNUSED(buf_len);
 
     if (p_msg && p_result)
     {
         switch (p_msg->hdr.opcode)
         {
         case AVRC_OP_VENDOR:     /*  0x00    Vendor-dependent commands */
-            status = avrc_pars_vendor_rsp(&p_msg->vendor, p_result, p_buf, buf_len);
+            status = avrc_pars_vendor_rsp(&p_msg->vendor, p_result);
             break;
 
         case AVRC_OP_PASS_THRU:  /*  0x7C    panel subunit opcode */
@@ -139,7 +142,7 @@ tAVRC_STS AVRC_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, UINT8 *
             break;
         }
         p_result->rsp.opcode = p_msg->hdr.opcode;
-    p_result->rsp.status = status;
+        p_result->rsp.status = status;
     }
     return status;
 }

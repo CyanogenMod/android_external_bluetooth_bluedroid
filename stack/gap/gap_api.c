@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "bt_target.h"
+#include "bt_utils.h"
 #include "gap_int.h"
 #include "btm_int.h"
 #include "gki.h"
@@ -683,6 +684,10 @@ UINT16 GAP_GetNextInquiryResult(tGAP_INQ_RESULTS *p_results)
 UINT16 GAP_ReadLocalDeviceInfo(UINT8 *name, BD_ADDR *addr, tGAP_LMP_VERSION *verinfo,
                                tGAP_LMP_FEATURES *features)
 {
+    UNUSED(name);
+    UNUSED(addr);
+    UNUSED(verinfo);
+    UNUSED(features);
     return (GAP_UNSUPPORTED);
 }
 

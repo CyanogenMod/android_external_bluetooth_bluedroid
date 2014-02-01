@@ -121,6 +121,7 @@ void bta_hl_dch_echo_test(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
     tBTA_HL_APP_CB      *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
     tBTA_HL_MCL_CB      *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
     tBTA_HL_MDL_CB      *p_dcb  = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
+    UNUSED(p_data);
 
 #if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG0("bta_hl_dch_echo_test");

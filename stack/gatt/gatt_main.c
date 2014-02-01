@@ -31,6 +31,7 @@
 #include "l2c_api.h"
 #include "btm_int.h"
 #include "btm_ble_int.h"
+#include "bt_utils.h"
 
 /* Configuration flags. */
 #define GATT_L2C_CFG_IND_DONE   (1<<0)
@@ -508,6 +509,7 @@ static void gatt_l2cif_connect_ind_cback (BD_ADDR  bd_addr, UINT16 lcid, UINT16 
     UINT8       result = L2CAP_CONN_OK;
     tL2CAP_CFG_INFO cfg;
     tGATT_TCB       *p_tcb = gatt_find_tcb_by_addr(bd_addr);
+    UNUSED(psm);
 
     GATT_TRACE_ERROR1("Connection indication cid = %d", lcid);
     /* new connection ? */
@@ -767,6 +769,7 @@ void gatt_l2cif_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
 {
     tGATT_TCB       *p_tcb;
     UINT16          reason;
+    UNUSED(result);
 
     /* look up clcb for this channel */
     if ((p_tcb = gatt_find_tcb_by_cid(lcid)) != NULL)

@@ -31,6 +31,7 @@
 #include <string.h>
 #include "port_api.h"
 #include "sdp_api.h"
+#include "utl.h"
 
 /*****************************************************************************
 **  Constants
@@ -714,6 +715,8 @@ tBTA_JV_STATUS BTA_JvGetServicesLength(BOOLEAN inc_hdr, UINT16 *p_services_len)
 *******************************************************************************/
 INT32 BTA_JvGetServicesResult(BOOLEAN inc_hdr, UINT8 **TLVs)
 {
+    UNUSED(inc_hdr);
+    UNUSED(TLVs);
 #if 0
     INT32 num_services = -1;
     UINT8   *p, *np, *op, type;
@@ -860,6 +863,11 @@ tBTA_JV_STATUS BTA_JvCreateRecordByUser(void *user_data)
 tBTA_JV_STATUS BTA_JvUpdateRecord(UINT32 handle, UINT16 *p_ids,
     UINT8 **p_values, INT32 *p_value_sizes, INT32 array_len)
 {
+    UNUSED(handle);
+    UNUSED(p_ids);
+    UNUSED(p_values);
+    UNUSED(p_value_sizes);
+    UNUSED(array_len);
 #if 0
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_UPDATE_RECORD *p_msg;
@@ -1145,6 +1153,11 @@ on
 *******************************************************************************/
 tBTA_JV_STATUS BTA_JvL2capRead(UINT32 handle, UINT32 req_id, UINT8 *p_data, UINT16 len)
 {
+    UNUSED(handle);
+    UNUSED(req_id);
+    UNUSED(p_data);
+    UNUSED(len);
+
 #if 0
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
 #if SDP_FOR_JV_INCLUDED == TRUE
@@ -1208,6 +1221,10 @@ tBTA_JV_STATUS BTA_JvL2capRead(UINT32 handle, UINT32 req_id, UINT8 *p_data, UINT
 *******************************************************************************/
 tBTA_JV_STATUS BTA_JvL2capReceive(UINT32 handle, UINT32 req_id, UINT8 *p_data, UINT16 len)
 {
+    UNUSED(handle);
+    UNUSED(req_id);
+    UNUSED(p_data);
+    UNUSED(len);
 #if 0
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_L2CAP_RECEIVE evt_data;
@@ -1256,6 +1273,8 @@ tBTA_JV_STATUS BTA_JvL2capReceive(UINT32 handle, UINT32 req_id, UINT8 *p_data, U
 *******************************************************************************/
 tBTA_JV_STATUS BTA_JvL2capReady(UINT32 handle, UINT32 *p_data_size)
 {
+    UNUSED(handle);
+    UNUSED(p_data_size);
 #if 0
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
 

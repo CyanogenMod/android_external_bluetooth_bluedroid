@@ -275,6 +275,7 @@ static void btif_task(UINT32 params)
 {
     UINT16   event;
     BT_HDR   *p_msg;
+    UNUSED(params);
 
     BTIF_TRACE_DEBUG0("btif task starting");
 
@@ -821,6 +822,7 @@ static bt_status_t btif_disassociate_evt(void)
 *******************************************************************************/
 static void btif_dut_mode_cback( tBTM_VSC_CMPL *p )
 {
+    UNUSED(p);
     /* For now nothing to be done. */
 }
 

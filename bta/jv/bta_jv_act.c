@@ -379,6 +379,7 @@ static tBTA_JV_STATUS bta_jv_free_rfc_cb(tBTA_JV_RFC_CB *p_cb, tBTA_JV_PCB *p_pc
 *******************************************************************************/
 tBTA_JV_STATUS bta_jv_free_l2c_cb(tBTA_JV_L2C_CB *p_cb)
 {
+    UNUSED(p_cb);
 #if 0
     tBTA_JV_STATUS status = BTA_JV_SUCCESS;
 
@@ -733,6 +734,8 @@ void bta_jv_enable(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 void bta_jv_disable (tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
+
     APPL_TRACE_ERROR0("bta_jv_disable not used");
 #if 0
     int i;
@@ -823,6 +826,8 @@ void bta_jv_set_discoverability (tBTA_JV_MSG *p_data)
 *******************************************************************************/
 void bta_jv_get_local_device_addr(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
+
     BTM_ReadLocalDeviceAddr((tBTM_CMPL_CB *)bta_jv_get_local_device_addr_cback);
 }
 
@@ -839,6 +844,7 @@ void bta_jv_get_local_device_name(tBTA_JV_MSG *p_data)
 {
     tBTA_JV evt_data;
     char *name;
+    UNUSED(p_data);
 
     BTM_ReadLocalDeviceName(&name);
     evt_data.p_name = (UINT8*)name;
@@ -896,6 +902,8 @@ void bta_jv_set_service_class (tBTA_JV_MSG *p_data)
 *******************************************************************************/
 static void bta_jv_sec_cback (BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
 {
+    UNUSED(p_ref_data);
+
     tBTA_JV_SET_ENCRYPTION  set_enc;
     if(bta_jv_cb.p_dm_cback)
     {
@@ -932,6 +940,7 @@ void bta_jv_set_encryption(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 void bta_jv_get_scn(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
 #if 0
     UINT8   scn;
     scn = BTM_AllocateSCN();
@@ -1144,6 +1153,7 @@ void bta_jv_cancel_discovery(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 void bta_jv_get_services_length(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
 #if 0
     tBTA_JV_SERVICES_LEN    evt_data;
     UINT8   *p, *np, *op, type;
@@ -1201,6 +1211,7 @@ void bta_jv_get_services_length(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 void bta_jv_service_select(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
 #if 0
     tBTA_JV_SERVICE_SEL     serv_sel;
     tSDP_DISC_REC *p_rec, *p_tmp;
@@ -1283,6 +1294,7 @@ void bta_jv_create_record(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 void bta_jv_update_record(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
 #if 0
     tBTA_JV_API_UPDATE_RECORD *ur = &(p_data->update_record);
     tBTA_JV_UPDATE_RECORD   evt_data;
@@ -1346,6 +1358,7 @@ void bta_jv_update_record(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 void bta_jv_add_attribute(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
 #if 0
     tBTA_JV_API_ADD_ATTRIBUTE *aa = &(p_data->add_attr);
     tBTA_JV_ADD_ATTR   evt_data;
@@ -1392,6 +1405,7 @@ void bta_jv_add_attribute(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 void bta_jv_delete_attribute(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
 #if 0
     tBTA_JV_API_ADD_ATTRIBUTE *da = &(p_data->add_attr);
     tBTA_JV_DELETE_ATTR   evt_data;
@@ -1444,6 +1458,8 @@ void bta_jv_delete_record(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 static void bta_jv_l2cap_client_cback(UINT16 gap_handle, UINT16 event)
 {
+    UNUSED(gap_handle);
+    UNUSED(event);
 #if 0
     tBTA_JV_L2C_CB  *p_cb = &bta_jv_cb.l2c_cb[gap_handle];
     tBTA_JV     evt_data;
@@ -1573,6 +1589,7 @@ static void bta_jv_sdp_cback(UINT16 result)
 *******************************************************************************/
 void bta_jv_l2cap_connect(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
 #if 0
     tBTA_JV_L2C_CB      *p_cb;
     tBTA_JV_L2CAP_CL_INIT  evt_data;
@@ -1648,6 +1665,7 @@ void bta_jv_l2cap_connect(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 void bta_jv_l2cap_close(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
 #if 0
     tBTA_JV_L2CAP_CLOSE  evt_data;
     tBTA_JV_API_L2CAP_CLOSE *cc = &(p_data->l2cap_close);
@@ -1675,6 +1693,8 @@ void bta_jv_l2cap_close(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 static void bta_jv_l2cap_server_cback(UINT16 gap_handle, UINT16 event)
 {
+    UNUSED(gap_handle);
+    UNUSED(event);
 #if 0
     tBTA_JV_L2C_CB  *p_cb = &bta_jv_cb.l2c_cb[gap_handle];
     tBTA_JV evt_data;
@@ -1734,6 +1754,7 @@ static void bta_jv_l2cap_server_cback(UINT16 gap_handle, UINT16 event)
 *******************************************************************************/
 void bta_jv_l2cap_start_server(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
 #if 0
     tBTA_JV_L2C_CB      *p_cb;
     UINT8   sec_id;
@@ -1800,6 +1821,7 @@ void bta_jv_l2cap_start_server(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 void bta_jv_l2cap_stop_server(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
 #if 0
     tBTA_JV_L2C_CB      *p_cb;
     tBTA_JV_L2CAP_CLOSE  evt_data;
@@ -1834,6 +1856,7 @@ void bta_jv_l2cap_stop_server(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 void bta_jv_l2cap_read(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
 #if 0
     tBTA_JV_L2CAP_READ evt_data;
     tBTA_JV_API_L2CAP_READ *rc = &(p_data->l2cap_read);
@@ -1877,6 +1900,7 @@ void bta_jv_l2cap_read(tBTA_JV_MSG *p_data)
 *******************************************************************************/
 void bta_jv_l2cap_write(tBTA_JV_MSG *p_data)
 {
+    UNUSED(p_data);
 #if 0
     tBTA_JV_L2CAP_WRITE evt_data;
     tBTA_JV_API_L2CAP_WRITE *ls = &(p_data->l2cap_write);

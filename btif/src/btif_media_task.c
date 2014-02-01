@@ -66,7 +66,6 @@
 #include "btif_av.h"
 #include "btif_sm.h"
 #include "btif_util.h"
-#include "bt_utils.h"
 
 /*****************************************************************************
  **  Constants
@@ -526,6 +525,8 @@ static void btif_recv_ctrl_data(void)
 
 static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
 {
+    UNUSED(ch_id);
+
     APPL_TRACE_DEBUG1("A2DP-CTRL-CHANNEL EVENT %s", dump_uipc_event(event));
 
     switch(event)
@@ -553,6 +554,8 @@ static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
 
 static void btif_a2dp_data_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
 {
+    UNUSED(ch_id);
+
     APPL_TRACE_DEBUG1("BTIF MEDIA (A2DP-DATA) EVENT %s", dump_uipc_event(event));
 
     switch(event)
@@ -1115,6 +1118,7 @@ int btif_media_task(void *p)
 {
     UINT16 event;
     BT_HDR *p_msg;
+    UNUSED(p);
 
     VERBOSE("================ MEDIA TASK STARTING ================");
 
@@ -1438,6 +1442,8 @@ BOOLEAN btif_media_task_aa_tx_flush_req(void)
  *******************************************************************************/
 static void btif_media_task_aa_tx_flush(BT_HDR *p_msg)
 {
+    UNUSED(p_msg);
+
     /* Flush all enqueued GKI music buffers (encoded) */
     APPL_TRACE_DEBUG0("btif_media_task_aa_tx_flush");
 

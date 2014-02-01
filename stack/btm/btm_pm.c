@@ -40,7 +40,7 @@
 #include "btm_int.h"
 #include "l2c_int.h"
 #include "hcidefs.h"
-
+#include "bt_utils.h"
 
 #if BTM_PWR_MGR_INCLUDED == TRUE
 
@@ -923,6 +923,7 @@ void btm_pm_proc_ssr_evt (UINT8 *p, UINT16 evt_len)
     tBTM_PM_MCB *p_cb;
     tACL_CONN   *p_acl=NULL;
     UINT16      use_ssr = TRUE;
+    UNUSED(evt_len);
 
     STREAM_TO_UINT8 (status, p);
 

@@ -250,6 +250,7 @@ UINT8 g_disc_raw_data_buf[MAX_DISC_RAW_DATA_BUF];
 #if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&(BTA_EIR_CANNED_UUID_LIST != TRUE)
 static void bta_dm_app_ready_timer_cback (TIMER_LIST_ENT *p_tle)
 {
+    UNUSED(p_tle);
     bta_dm_set_eir (NULL);
 }
 #else
@@ -457,6 +458,8 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
 *******************************************************************************/
 void bta_dm_disable (tBTA_DM_MSG *p_data)
 {
+    UNUSED(p_data);
+
     /* Set l2cap idle timeout to 0 (so BTE immediately disconnects ACL link after last channel is closed) */
     L2CA_SetIdleTimeoutByBdAddr((UINT8 *)BT_BD_ANY, 0);
 
@@ -508,7 +511,7 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 static void bta_dm_disable_timer_cback (TIMER_LIST_ENT *p_tle)
 {
-
+    UNUSED(p_tle);
     UINT8 i;
 
     APPL_TRACE_EVENT0(" bta_dm_disable_timer_cback  ");
@@ -1137,6 +1140,7 @@ void bta_dm_passkey_cancel(tBTA_DM_MSG *p_data)
 #if (BTM_OOB_INCLUDED == TRUE)
 void bta_dm_loc_oob(tBTA_DM_MSG *p_data)
 {
+    UNUSED(p_data);
     BTM_ReadLocalOobData();
 }
 
@@ -1254,7 +1258,7 @@ void bta_dm_search_start (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_search_cancel (tBTA_DM_MSG *p_data)
 {
-
+    UNUSED(p_data);
     tBTA_DM_MSG * p_msg;
 
     if(BTM_IsInquiryActive())
@@ -2011,6 +2015,7 @@ void bta_dm_search_result (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 static void bta_dm_search_timer_cback (TIMER_LIST_ENT *p_tle)
 {
+    UNUSED(p_tle);
 
     APPL_TRACE_EVENT0(" bta_dm_search_timer_cback  ");
     bta_dm_search_cb.wait_disc = FALSE;
@@ -2032,6 +2037,7 @@ static void bta_dm_search_timer_cback (TIMER_LIST_ENT *p_tle)
 *******************************************************************************/
 void bta_dm_free_sdp_db (tBTA_DM_MSG *p_data)
 {
+    UNUSED(p_data);
     if(bta_dm_search_cb.p_sdp_db)
     {
         GKI_freebuf(bta_dm_search_cb.p_sdp_db);
@@ -2093,7 +2099,7 @@ void bta_dm_queue_disc (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_search_clear_queue (tBTA_DM_MSG *p_data)
 {
-
+    UNUSED(p_data);
     if(bta_dm_search_cb.p_search_queue)
     {
         GKI_freebuf(bta_dm_search_cb.p_search_queue);
@@ -2114,7 +2120,7 @@ void bta_dm_search_clear_queue (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_search_cancel_cmpl (tBTA_DM_MSG *p_data)
 {
-
+    UNUSED(p_data);
     if(bta_dm_search_cb.p_search_queue)
     {
         bta_sys_sendmsg(bta_dm_search_cb.p_search_queue);
@@ -2135,7 +2141,7 @@ void bta_dm_search_cancel_cmpl (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_search_cancel_transac_cmpl(tBTA_DM_MSG *p_data)
 {
-
+    UNUSED(p_data);
     if(bta_dm_search_cb.p_sdp_db)
     {
         GKI_freebuf(bta_dm_search_cb.p_sdp_db);
@@ -2157,6 +2163,7 @@ void bta_dm_search_cancel_transac_cmpl(tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_search_cancel_notify (tBTA_DM_MSG *p_data)
 {
+    UNUSED(p_data);
     if (bta_dm_search_cb.p_search_cback)
     {
         bta_dm_search_cb.p_search_cback(BTA_DM_SEARCH_CANCEL_CMPL_EVT, NULL);
@@ -2617,6 +2624,7 @@ static void bta_dm_service_search_remname_cback (BD_ADDR bd_addr, DEV_CLASS dc, 
 {
     tBTM_REMOTE_DEV_NAME    rem_name;
     tBTM_STATUS             btm_status;
+    UNUSED(dc);
 
     APPL_TRACE_DEBUG1("bta_dm_service_search_remname_cback name=<%s>", bd_name);
 
@@ -2712,6 +2720,8 @@ static UINT8 bta_dm_authorize_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NA
 {
     tBTA_DM_SEC sec_event;
     UINT8       index = 1;
+    UNUSED(service_name);
+    UNUSED(is_originator);
 
     bdcpy(sec_event.authorize.bd_addr, bd_addr);
     memcpy(sec_event.authorize.dev_class, dev_class, DEV_CLASS_LEN);
@@ -2876,6 +2886,8 @@ static UINT8  bta_dm_link_key_request_cback (BD_ADDR bd_addr, LINK_KEY key)
     API. If BTM doesn't have the link key in it's
     data base, that's because application doesn't
     it */
+    UNUSED(bd_addr);
+    UNUSED(key);
 
     return BTM_NOT_AUTHORIZED;
 }
@@ -2899,6 +2911,7 @@ static UINT8  bta_dm_new_link_key_cback(BD_ADDR bd_addr, DEV_CLASS dev_class,
     tBTA_DM_SEC sec_event;
     tBTA_DM_AUTH_CMPL *p_auth_cmpl;
     UINT8             event;
+    UNUSED(dev_class);
 
     memset (&sec_event, 0, sizeof(tBTA_DM_SEC));
 
@@ -2945,8 +2958,8 @@ static UINT8  bta_dm_new_link_key_cback(BD_ADDR bd_addr, DEV_CLASS dev_class,
 *******************************************************************************/
 static UINT8 bta_dm_authentication_complete_cback(BD_ADDR bd_addr, DEV_CLASS dev_class,BD_NAME bd_name, int result)
 {
-
     tBTA_DM_SEC sec_event;
+    UNUSED(dev_class);
 
     if(result != BTM_SUCCESS)
     {
@@ -3111,6 +3124,7 @@ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
 static void bta_dm_local_name_cback(UINT8 *p_name)
 {
     tBTA_DM_SEC sec_event;
+    UNUSED(p_name);
 
     BTM_GetLocalDeviceAddr(sec_event.enable.bd_addr);
     sec_event.enable.status = BTA_SUCCESS;
@@ -3156,7 +3170,7 @@ void bta_dm_signal_strength(tBTA_DM_MSG *p_data)
 *******************************************************************************/
 static void bta_dm_signal_strength_timer_cback (TIMER_LIST_ENT *p_tle)
 {
-
+    UNUSED(p_tle);
     UINT8 i;
 
     if(bta_dm_cb.signal_strength_mask & BTA_SIG_STRENGTH_RSSI_MASK)
@@ -3282,6 +3296,7 @@ static void bta_dm_acl_change_cback (BD_ADDR p_bda, DEV_CLASS p_dc, BD_NAME p_bd
 *******************************************************************************/
 static void bta_dm_rs_cback (tBTM_ROLE_SWITCH_CMPL *p1)
 {
+    UNUSED(p1);
     APPL_TRACE_WARNING1("bta_dm_rs_cback:%d", bta_dm_cb.rs_event);
     if(bta_dm_cb.rs_event == BTA_DM_API_SEARCH_EVT)
     {
@@ -3550,6 +3565,7 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
 *******************************************************************************/
 static void bta_dm_disable_conn_down_timer_cback (TIMER_LIST_ENT *p_tle)
 {
+    UNUSED(p_tle);
     tBTA_SYS_HW_MSG *sys_enable_event;
 
     /* disable the power managment module */
@@ -3747,6 +3763,7 @@ static BOOLEAN bta_dm_dev_blacklisted_for_switch (BD_ADDR remote_bd_addr)
 *******************************************************************************/
 static void bta_dm_delay_role_switch_cback(TIMER_LIST_ENT *p_tle)
 {
+    UNUSED(p_tle);
     APPL_TRACE_EVENT0("bta_dm_delay_role_switch_cback: initiating Delayed RS");
     bta_dm_adjust_roles (FALSE);
 }
@@ -4439,6 +4456,7 @@ void bta_dm_eir_update_uuid(UINT16 uuid16, BOOLEAN adding)
 *******************************************************************************/
 void bta_dm_enable_test_mode(tBTA_DM_MSG *p_data)
 {
+    UNUSED(p_data);
     BTM_EnableTestMode();
 }
 
@@ -4454,6 +4472,7 @@ void bta_dm_enable_test_mode(tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_disable_test_mode(tBTA_DM_MSG *p_data)
 {
+    UNUSED(p_data);
     BTM_DeviceReset(NULL);
 }
 
@@ -4490,6 +4509,7 @@ void bta_dm_encrypt_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
 {
     tBTA_STATUS   bta_status = BTA_SUCCESS;
     tBTA_DM_ENCRYPT_CBACK *p_callback = bta_dm_cb.p_encrypt_cback;
+    UNUSED(p_ref_data);
 
     bta_dm_cb.p_encrypt_cback = NULL;
     switch (result)
@@ -5256,6 +5276,8 @@ static void bta_dm_gatt_disc_complete(UINT16 conn_id, tBTA_GATT_STATUS status)
 *******************************************************************************/
 void bta_dm_close_gatt_conn(tBTA_DM_MSG *p_data)
 {
+    UNUSED(p_data);
+
     if (bta_dm_search_cb.conn_id != BTA_GATT_INVALID_CONN_ID)
         BTA_GATTC_Close(bta_dm_search_cb.conn_id);
 

@@ -33,6 +33,7 @@
 #include "bta_gattc_ci.h"
 #include "gki.h"
 #include "bd.h"
+#include "utl.h"
 
 /*******************************************************************************
 **
@@ -52,6 +53,7 @@ void bta_gattc_ci_cache_open(BD_ADDR server_bda, UINT16 evt, tBTA_GATT_STATUS st
                              UINT16 conn_id)
 {
     tBTA_GATTC_CI_EVT  *p_evt;
+    UNUSED(server_bda);
 
     if ((p_evt = (tBTA_GATTC_CI_EVT *) GKI_getbuf(sizeof(tBTA_GATTC_CI_EVT))) != NULL)
     {
@@ -84,6 +86,7 @@ void bta_gattc_ci_cache_load(BD_ADDR server_bda, UINT16 evt, UINT16 num_attr,
                              UINT16 conn_id)
 {
     tBTA_GATTC_CI_LOAD  *p_evt;
+    UNUSED(server_bda);
 
     if ((p_evt = (tBTA_GATTC_CI_LOAD *) GKI_getbuf(sizeof(tBTA_GATTC_CI_LOAD))) != NULL)
     {
@@ -124,6 +127,7 @@ void bta_gattc_ci_cache_save(BD_ADDR server_bda, UINT16 evt, tBTA_GATT_STATUS st
                              UINT16 conn_id)
 {
     tBTA_GATTC_CI_EVT  *p_evt;
+    UNUSED(server_bda);
 
     if ((p_evt = (tBTA_GATTC_CI_EVT *) GKI_getbuf(sizeof(tBTA_GATTC_CI_EVT))) != NULL)
     {

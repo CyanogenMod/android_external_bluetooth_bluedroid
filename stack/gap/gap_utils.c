@@ -18,6 +18,7 @@
 
 #include <string.h>
 #include "bt_target.h"
+#include "bt_utils.h"
 #include "gap_int.h"
 
 /*****************************************************************************/
@@ -116,6 +117,7 @@ void gap_inq_results_cb(tBTM_INQ_RESULTS *p_results, UINT8 *p_eir)
 {
     tGAP_INFO   *p_cb;
     UINT8        index;
+    UNUSED(p_eir);
 
     GAP_TRACE_EVENT6 ("GAP Inquiry Results Callback (bdaddr [%02x%02x%02x%02x%02x%02x])",
                 p_results->remote_bd_addr[0], p_results->remote_bd_addr[1],
@@ -305,6 +307,8 @@ UINT16 gap_find_local_addr_by_name (const tBTM_BD_NAME devname, BD_ADDR bd_addr)
 
     return (GAP_EOINQDB);
 #else
+    UNUSED(devname);
+    UNUSED(bd_addr);
     /* No data available because we are not automatically saving the data */
     return (GAP_NO_DATA_AVAIL);
 #endif

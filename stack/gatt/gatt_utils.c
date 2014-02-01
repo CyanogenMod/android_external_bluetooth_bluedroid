@@ -22,6 +22,7 @@
  *
  ******************************************************************************/
 #include "bt_target.h"
+#include "bt_utils.h"
 
 #if BLE_INCLUDED == TRUE
     #include <string.h>
@@ -477,6 +478,8 @@ void gatt_update_last_pri_srv_info(tGATT_SRV_LIST_INFO *p_list)
 *******************************************************************************/
 void gatts_update_srv_list_elem(UINT8 i_sreg, UINT16 handle, BOOLEAN is_primary)
 {
+    UNUSED(handle);
+
     gatt_cb.srv_list[i_sreg].in_use         = TRUE;
     gatt_cb.srv_list[i_sreg].i_sreg    = i_sreg;
     gatt_cb.srv_list[i_sreg].s_hdl          = gatt_cb.sr_reg[i_sreg].s_hdl;
@@ -1299,6 +1302,7 @@ UINT8 gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
 void gatt_sr_get_sec_info(BD_ADDR rem_bda, BOOLEAN le_conn, UINT8 *p_sec_flag, UINT8 *p_key_size)
 {
     UINT8           sec_flag = 0;
+    UNUSED(le_conn);
 
     BTM_GetSecurityFlags(rem_bda, &sec_flag);
 

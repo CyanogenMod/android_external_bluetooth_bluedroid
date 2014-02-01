@@ -181,6 +181,7 @@ static void bta_av_del_sdp_rec(UINT32 *p_sdp_handle)
 static void bta_av_avrc_sdp_cback(UINT16 status)
 {
     BT_HDR *p_msg;
+    UNUSED(status);
 
     if ((p_msg = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
@@ -202,6 +203,7 @@ static void bta_av_rc_ctrl_cback(UINT8 handle, UINT8 event, UINT16 result, BD_AD
 {
     tBTA_AV_RC_CONN_CHG *p_msg;
     UINT16 msg_event = 0;
+    UNUSED(result);
 
 #if (defined(BTA_AV_MIN_DEBUG_TRACES) && BTA_AV_MIN_DEBUG_TRACES == TRUE)
     APPL_TRACE_EVENT2("rc_ctrl handle: %d event=0x%x", handle, event);
@@ -688,6 +690,8 @@ void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 *******************************************************************************/
 void bta_av_rc_free_rsp (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
+    UNUSED(p_cb);
+
     GKI_freebuf (p_data->api_meta_rsp.p_pkt);
 }
 
@@ -702,6 +706,8 @@ void bta_av_rc_free_rsp (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 *******************************************************************************/
 void bta_av_rc_free_msg (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
+    UNUSED(p_cb);
+    UNUSED(p_data);
 }
 
 
@@ -1362,6 +1368,7 @@ void bta_av_disable(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     BT_HDR  hdr;
     UINT16  xx;
+    UNUSED(p_data);
 
     p_cb->disabling = TRUE;
 
@@ -1519,6 +1526,7 @@ void bta_av_sig_timer(tBTA_AV_DATA *p_data)
     UINT8   mask;
     tBTA_AV_LCB *p_lcb = NULL;
     tBTA_AV_PEND pend;
+    UNUSED(p_data);
 
     APPL_TRACE_DEBUG0("bta_av_sig_timer");
     for(xx=0; xx<BTA_AV_NUM_LINKS; xx++)
@@ -1689,6 +1697,7 @@ void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
     tBTA_AV_RC_FEAT rc_feat;
     UINT8               rc_handle;
     tBTA_AV_FEAT        peer_features;  /* peer features mask */
+    UNUSED(p_data);
 
     APPL_TRACE_DEBUG1("bta_av_rc_disc_done disc:x%x", p_cb->disc);
     if (!p_cb->disc)

@@ -31,6 +31,7 @@
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "rfc_int.h"
+#include "bt_utils.h"
 
 
 /*
@@ -87,6 +88,7 @@ void rfcomm_l2cap_if_init (void)
 void RFCOMM_ConnectInd (BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
 {
     tRFC_MCB *p_mcb = rfc_alloc_multiplexer_channel(bd_addr, FALSE);
+    UNUSED(psm);
 
     if ((p_mcb)&&(p_mcb->state != RFC_MX_STATE_IDLE))
     {
@@ -257,6 +259,7 @@ void RFCOMM_ConfigCnf (UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 *******************************************************************************/
 void RFCOMM_QoSViolationInd (BD_ADDR bd_addr)
 {
+    UNUSED(bd_addr);
 }
 
 

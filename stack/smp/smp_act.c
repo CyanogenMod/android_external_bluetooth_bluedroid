@@ -17,6 +17,7 @@
  ******************************************************************************/
 
 #include "bt_target.h"
+#include "bt_utils.h"
 
 #if SMP_INCLUDED == TRUE
 
@@ -83,6 +84,8 @@ void smp_send_app_cback(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tSMP_EVT_DATA   cb_data;
     tSMP_STATUS callback_rc;
+    UNUSED(p_data);
+
     SMP_TRACE_DEBUG1 ("smp_send_app_cback p_cb->cb_evt=%d", p_cb->cb_evt );
     if (p_cb->p_callback && p_cb->cb_evt != 0)
     {
@@ -147,6 +150,8 @@ void smp_send_pair_fail(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 void smp_send_pair_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev (p_cb->pairing_bda);
+    UNUSED(p_data);
+
     SMP_TRACE_DEBUG0 ("smp_send_pair_req  ");
 
 #if BLE_INCLUDED == TRUE
@@ -170,6 +175,8 @@ void smp_send_pair_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_send_pair_rsp(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
+    UNUSED(p_data);
+
     SMP_TRACE_DEBUG0 ("smp_send_pair_rsp  ");
 
     p_cb->loc_i_key &= p_cb->peer_i_key;
@@ -187,6 +194,8 @@ void smp_send_pair_rsp(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_send_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
+    UNUSED(p_data);
+
     SMP_TRACE_DEBUG0 ("smp_send_confirm  ");
     smp_send_cmd(SMP_OPCODE_CONFIRM, p_cb);
 }
@@ -196,6 +205,8 @@ void smp_send_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_send_init(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
+    UNUSED(p_data);
+
     SMP_TRACE_DEBUG0 ("smp_send_init  ");
 
 #if SMP_CONFORMANCE_TESTING == TRUE
@@ -215,6 +226,7 @@ void smp_send_init(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 void smp_send_enc_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tBTM_LE_LENC_KEYS   le_key;
+    UNUSED(p_data);
 
     SMP_TRACE_DEBUG1 ("smp_send_enc_info  p_cb->loc_enc_size = %d", p_cb->loc_enc_size);
     smp_update_key_mask (p_cb, SMP_SEC_KEY_TYPE_ENC, FALSE);
@@ -238,6 +250,8 @@ void smp_send_enc_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_send_id_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
+    UNUSED(p_data);
+
     SMP_TRACE_DEBUG0 ("smp_send_id_info  ");
     smp_update_key_mask (p_cb, SMP_SEC_KEY_TYPE_ID, FALSE);
 
@@ -255,6 +269,8 @@ void smp_send_id_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 void smp_send_csrk_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tBTM_LE_KEY_VALUE   key;
+    UNUSED(p_data);
+
     SMP_TRACE_DEBUG0 ("smp_send_csrk_info ");
     smp_update_key_mask (p_cb, SMP_SEC_KEY_TYPE_CSRK, FALSE);
 
@@ -614,6 +630,8 @@ void smp_start_enc(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_proc_discard(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
+    UNUSED(p_data);
+
     SMP_TRACE_DEBUG0 ("smp_proc_discard ");
     smp_reset_control_value(p_cb);
 }
@@ -623,6 +641,8 @@ void smp_proc_discard(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_proc_release_delay(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
+    UNUSED(p_data);
+
     SMP_TRACE_DEBUG0 ("smp_proc_release_delay ");
     btu_stop_timer (&p_cb->rsp_timer_ent);
     btu_start_timer (&p_cb->rsp_timer_ent, BTU_TTYPE_SMP_PAIRING_CMD,
@@ -635,6 +655,8 @@ void smp_proc_release_delay(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_proc_release_delay_tout(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
+    UNUSED(p_data);
+
     SMP_TRACE_DEBUG0 ("smp_proc_release_delay_tout ");
     btu_stop_timer (&p_cb->rsp_timer_ent);
     smp_proc_pairing_cmpl(p_cb);
@@ -750,6 +772,7 @@ void smp_decide_asso_model(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     UINT8 int_evt = 0;
     tSMP_KEY key;
     tSMP_INT_DATA   *p = NULL;
+    UNUSED(p_data);
 
     SMP_TRACE_DEBUG3 ("smp_decide_asso_model p_cb->peer_io_caps = %d p_cb->loc_io_caps = %d \
                        p_cb->peer_auth_req = %02x",
@@ -847,6 +870,8 @@ void smp_decide_asso_model(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_proc_io_rsp(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
+    UNUSED(p_data);
+
     SMP_TRACE_DEBUG0 ("smp_proc_io_rsp ");
     if (p_cb->flags & SMP_PAIR_FLAGS_WE_STARTED_DD)
     {
@@ -887,9 +912,11 @@ void smp_pairing_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_pair_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
+    UNUSED(p_data);
+
     SMP_TRACE_DEBUG0 ("smp_pair_terminate ");
 
-        p_cb->status = SMP_CONN_TOUT;
+    p_cb->status = SMP_CONN_TOUT;
 
     smp_proc_pairing_cmpl(p_cb);
 }
@@ -914,11 +941,12 @@ void smp_delay_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 /*******************************************************************************
 ** Function         smp_idle_terminate
-** Description      This function calledin idle state to determine to send authentication
+** Description      This function called in idle state to determine to send authentication
 **                  complete or not.
 *******************************************************************************/
 void smp_idle_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
+    UNUSED(p_data);
     if (p_cb->flags & SMP_PAIR_FLAGS_WE_STARTED_DD)
     {
         SMP_TRACE_DEBUG0("Pairing terminated at IDLE state.");

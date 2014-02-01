@@ -423,13 +423,16 @@ const bt_interface_t* bluetooth__get_bluetooth_interface ()
 
 static int close_bluetooth_stack(struct hw_device_t* device)
 {
+    UNUSED(device);
     cleanup();
     return 0;
 }
 
 static int open_bluetooth_stack (const struct hw_module_t* module, char const* name,
-struct hw_device_t** abstraction)
+                                 struct hw_device_t** abstraction)
 {
+    UNUSED(name);
+
     bluetooth_device_t *stack = malloc(sizeof(bluetooth_device_t) );
     memset(stack, 0, sizeof(bluetooth_device_t) );
     stack->common.tag = HARDWARE_DEVICE_TAG;

@@ -22,6 +22,7 @@
  *
  ******************************************************************************/
 #include "bt_target.h"
+#include "bt_utils.h"
 
 #if BLE_INCLUDED == TRUE
 #include <string.h>
@@ -163,6 +164,7 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
     BOOLEAN     status = FALSE;
     tGATT_PENDING_ENC_CLCB  *p_buf;
     UINT16       count;
+    UNUSED(p_ref_data);
 
     GATT_TRACE_DEBUG0("gatt_enc_cmpl_cback");
     if ((p_tcb = gatt_find_tcb_by_addr(bd_addr)) != NULL)

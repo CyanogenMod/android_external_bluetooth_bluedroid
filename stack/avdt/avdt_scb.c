@@ -26,6 +26,7 @@
 #include <string.h>
 #include "data_types.h"
 #include "bt_target.h"
+#include "bt_utils.h"
 #include "avdt_api.h"
 #include "avdtc_api.h"
 #include "avdt_int.h"
@@ -647,6 +648,7 @@ void avdt_scb_dealloc(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 #if AVDT_MULTIPLEXING == TRUE
     void *p_buf;
 #endif
+    UNUSED(p_data);
 
     AVDT_TRACE_DEBUG1("avdt_scb_dealloc hdl=%d", avdt_scb_to_hdl(p_scb));
     btu_stop_timer(&p_scb->timer_entry);

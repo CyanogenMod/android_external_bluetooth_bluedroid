@@ -166,6 +166,7 @@ BTU_API UINT32 btu_task (UINT32 param)
     UINT8            i;
     UINT16           mask;
     BOOLEAN          handled;
+    UNUSED(param);
 
 #if (defined(HCISU_H4_INCLUDED) && HCISU_H4_INCLUDED == TRUE)
     /* wait an event that HCISU is ready */

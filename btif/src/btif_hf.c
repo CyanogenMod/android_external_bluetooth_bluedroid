@@ -452,6 +452,8 @@ static void bte_hf_evt(tBTA_AG_EVT event, tBTA_AG *p_data)
 *******************************************************************************/
 static void btif_in_hf_generic_evt(UINT16 event, char *p_param)
 {
+    UNUSED(p_param);
+
     BTIF_TRACE_EVENT2("%s: event=%d", __FUNCTION__, event);
     switch (event) {
         case BTIF_HFP_CB_AUDIO_CONNECTING:

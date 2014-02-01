@@ -631,6 +631,7 @@ static UINT8 bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
 {
     UINT8   retval = 0;
     INT16   idx = -1;
+    UNUSED(p_scb);
 
     if (p_s[1] != 0)
     {
@@ -1747,6 +1748,9 @@ void bta_ag_setcodec(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     {
         APPL_TRACE_ERROR1("bta_ag_setcodec error: unsupported codec type %d", codec_type);
     }
+#else
+    UNUSED(p_scb);
+    UNUSED(p_data);
 #endif
 }
 
@@ -1801,6 +1805,8 @@ void bta_ag_send_bcs(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 *******************************************************************************/
 void bta_ag_send_ring(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
+    UNUSED(p_data);
+
 #if defined(BTA_AG_MULTI_RESULT_INCLUDED) && (BTA_AG_MULTI_RESULT_INCLUDED == TRUE)
     tBTA_AG_MULTI_RESULT_CB m_res_cb;
 
