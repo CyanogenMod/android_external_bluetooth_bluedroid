@@ -402,7 +402,7 @@ void gatt_send_prepare_write(tGATT_TCB  *p_tcb, tGATT_CLCB *p_clcb)
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_find_type_value_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT16 len, UINT8 *p_data)
+void gatt_process_find_type_value_rsp (tGATT_CLCB *p_clcb, UINT16 len, UINT8 *p_data)
 {
     tGATT_DISC_RES      result;
     UINT8               *p = p_data;
@@ -445,8 +445,7 @@ void gatt_process_find_type_value_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UIN
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_read_info_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op_code,
-                                UINT16 len, UINT8 *p_data)
+static void gatt_process_read_info_rsp(tGATT_CLCB *p_clcb, UINT16 len, UINT8 *p_data)
 {
     tGATT_DISC_RES  result;
     UINT8   *p = p_data, uuid_len = 0, type;
@@ -501,8 +500,7 @@ void gatt_process_read_info_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op_c
 ** Returns          void.
 **
 *******************************************************************************/
-void gatt_proc_disc_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 opcode,
-                              UINT16 handle, UINT8 reason)
+static void gatt_proc_disc_error_rsp(tGATT_CLCB *p_clcb, UINT8 opcode, UINT8 reason)
 {
     tGATT_STATUS    status = (tGATT_STATUS) reason;
 
@@ -538,8 +536,7 @@ void gatt_proc_disc_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 opcode
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op_code,
-                            UINT16 len, UINT8 *p_data)
+static void gatt_process_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 *p_data)
 {
     UINT8   opcode, reason, * p= p_data;
     UINT16  handle;
@@ -552,7 +549,7 @@ void gatt_process_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op_code,
 
     if (p_clcb->operation == GATTC_OPTYPE_DISCOVERY)
     {
-        gatt_proc_disc_error_rsp(p_tcb, p_clcb, opcode, handle, reason);
+        gatt_proc_disc_error_rsp(p_clcb, opcode, reason);
     }
     else
     {
@@ -924,8 +921,8 @@ void gatt_process_read_by_type_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_read_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,  UINT8 op_code,
-                           UINT16 len, UINT8 *p_data)
+static void gatt_process_read_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,
+                                  UINT16 len, UINT8 *p_data)
 {
     UINT16      offset = p_clcb->counter;
     UINT8       * p= p_data;
@@ -1169,7 +1166,7 @@ void gatt_client_handle_server_rsp (tGATT_TCB *p_tcb, UINT8 op_code,
         switch (op_code)
         {
             case GATT_RSP_ERROR:
-                gatt_process_error_rsp(p_tcb, p_clcb, op_code, len, p_data);
+                gatt_process_error_rsp(p_tcb, p_clcb, p_data);
                 break;
 
             case GATT_RSP_MTU:       /* 2 bytes mtu */
@@ -1177,7 +1174,7 @@ void gatt_client_handle_server_rsp (tGATT_TCB *p_tcb, UINT8 op_code,
                 break;
 
             case GATT_RSP_FIND_INFO:
-                gatt_process_read_info_rsp(p_tcb, p_clcb, op_code, len, p_data);
+                gatt_process_read_info_rsp(p_clcb, len, p_data);
                 break;
 
             case GATT_RSP_READ_BY_TYPE:
@@ -1188,11 +1185,11 @@ void gatt_client_handle_server_rsp (tGATT_TCB *p_tcb, UINT8 op_code,
             case GATT_RSP_READ:
             case GATT_RSP_READ_BLOB:
             case GATT_RSP_READ_MULTI:
-                gatt_process_read_rsp(p_tcb, p_clcb, op_code, len, p_data);
+                gatt_process_read_rsp(p_tcb, p_clcb, len, p_data);
                 break;
 
             case GATT_RSP_FIND_TYPE_VALUE: /* disc service with UUID */
-                gatt_process_find_type_value_rsp(p_tcb, p_clcb, len, p_data);
+                gatt_process_find_type_value_rsp(p_clcb, len, p_data);
                 break;
 
             case GATT_RSP_WRITE:
