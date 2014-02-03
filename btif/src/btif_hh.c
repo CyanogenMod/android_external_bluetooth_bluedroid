@@ -1020,7 +1020,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
         case BTA_HH_GET_RPT_EVT:
             BTIF_TRACE_DEBUG2("BTA_HH_GET_RPT_EVT: status = %d, handle = %d",
                  p_data->hs_data.status, p_data->hs_data.handle);
-            p_dev = btif_hh_find_connected_dev_by_handle(p_data->conn.handle);
+            p_dev = btif_hh_find_connected_dev_by_handle(p_data->hs_data.handle);
             HAL_CBACK(bt_hh_callbacks, get_report_cb,(bt_bdaddr_t*) &(p_dev->bd_addr), (bthh_status_t) p_data->hs_data.status,
                 (uint8_t*) p_data->hs_data.rsp_data.p_rpt_data, BT_HDR_SIZE);
             break;
@@ -1037,7 +1037,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             break;
 
         case BTA_HH_GET_PROTO_EVT:
-            p_dev = btif_hh_find_connected_dev_by_handle(p_data->dev_status.handle);
+            p_dev = btif_hh_find_connected_dev_by_handle(p_data->hs_data.handle);
             BTIF_TRACE_WARNING4("BTA_HH_GET_PROTO_EVT: status = %d, handle = %d, proto = [%d], %s",
                  p_data->hs_data.status, p_data->hs_data.handle,
                  p_data->hs_data.rsp_data.proto_mode,
@@ -1056,7 +1056,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             BTIF_TRACE_DEBUG3("BTA_HH_GET_IDLE_EVT: handle = %d, status = %d, rate = %d",
                  p_data->hs_data.handle, p_data->hs_data.status,
                  p_data->hs_data.rsp_data.idle_rate);
-            p_dev = btif_hh_find_connected_dev_by_handle(p_data->conn.handle);
+            p_dev = btif_hh_find_connected_dev_by_handle(p_data->hs_data.handle);
             HAL_CBACK(bt_hh_callbacks, idle_time_cb,(bt_bdaddr_t*) &(p_dev->bd_addr), (bthh_status_t) p_data->hs_data.status,
                 p_data->hs_data.rsp_data.idle_rate);
             break;
