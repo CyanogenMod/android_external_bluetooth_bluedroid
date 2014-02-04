@@ -63,7 +63,8 @@ enum
     BTM_SCO_BAD_LENGTH,                 /* 16 Bad SCO over HCI data length */
     BTM_SUCCESS_NO_SECURITY,            /* 17 security passed, no security set  */
     BTM_FAILED_ON_SECURITY ,             /* 18 security failed                   */
-    BTM_REPEATED_ATTEMPTS               /* 19 repeated attempts for LE security requests */
+    BTM_REPEATED_ATTEMPTS,               /* 19 repeated attempts for LE security requests */
+    BTM_BAD_RF                            /*20 Event status is 0x3E or 62*/
 };
 typedef UINT8 tBTM_STATUS;
 
