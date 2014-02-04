@@ -4001,6 +4001,11 @@ void btm_sec_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
                 p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
             }
         }
+        else if(!encr_enable)
+        {
+            BTM_TRACE_DEBUG1 ("btm_sec_encrypt_change: failure. status:",status);
+            btm_ble_encryption_failure(p_dev_rec->bd_addr,status);
+        }
         else {
             btm_ble_link_encrypted(p_dev_rec->bd_addr, encr_enable);
         }
