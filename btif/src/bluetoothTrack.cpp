@@ -36,12 +36,13 @@ BluetoothTrack *track = NULL;
 int btCreateTrack(int trackFreq, int channelType)
 {
     int ret = -1;
-    track = new BluetoothTrack;
+    if (track == NULL)
+        track = new BluetoothTrack;
     track->mTrack = NULL;
     track->mTrack = new android::AudioTrack(AUDIO_STREAM_MUSIC, trackFreq, AUDIO_FORMAT_PCM_16_BIT,
             channelType, 0, (audio_output_flags_t)0, NULL, NULL, 0, 0, android::AudioTrack::TRANSFER_SYNC);
     if (track->mTrack == NULL) {
-                delete track;
+        delete track;
         track = NULL;
         return ret;
     }
@@ -71,6 +72,7 @@ void btDeleteTrack()
 {
     if ((track != NULL) && (track->mTrack.get() != NULL))
     {
+        track->mTrack.clear();
         delete track;
         track = NULL;
     }
