@@ -201,6 +201,11 @@ static int initq(bt_callbacks_t* callbacks)
     bt_hal_cbacks->le_lpp_rssi_threshold_evt_cb  = callbacks->le_lpp_rssi_threshold_evt_cb;
     return BT_STATUS_SUCCESS;
 }
+#else
+static int initq(bt_callbacks_t* callbacks)
+{
+    return BT_STATUS_NOT_READY;
+}
 #endif
 
 
@@ -782,11 +787,7 @@ static bt_status_t bt_le_lpp_read_rssi_threshold(const bt_bdaddr_t *remote_bda)
 static const bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
-#if BLE_INCLUDED == TRUE
     initq,
-#else
-    NULL,
-#endif
     enable,
     disable,
     cleanup,
