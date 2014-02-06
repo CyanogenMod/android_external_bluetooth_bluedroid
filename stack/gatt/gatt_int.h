@@ -78,6 +78,8 @@ typedef UINT8 tGATT_SEC_ACTION;
 
 /* wait for ATT cmd response timeout value */
 #define GATT_WAIT_FOR_RSP_TOUT       30
+#define GATT_WAIT_FOR_DISC_RSP_TOUT  5
+#define GATT_REQ_RETRY_LIMIT         2
 
 /* characteristic descriptor type */
 #define GATT_DESCR_EXT_DSCPTOR   1    /* Characteristic Extended Properties */
@@ -360,7 +362,6 @@ typedef struct
     UINT8            ind_count;
 
     tGATT_CMD_Q       cl_cmd_q[GATT_CL_MAX_LCB];
-    TIMER_LIST_ENT    rsp_timer_ent;        /* peer response timer */
     TIMER_LIST_ENT    ind_ack_timer_ent;    /* local app confirm to indication timer */
     UINT8             pending_cl_req;
     UINT8             next_slot_inq;    /* index of next available slot in queue */
@@ -397,6 +398,8 @@ typedef struct
     BOOLEAN                 first_read_blob_after_read;
     tGATT_READ_INC_UUID128  read_uuid128;
     BOOLEAN                 in_use;
+    TIMER_LIST_ENT          rsp_timer_ent;  /* peer response timer */
+    UINT8                   retry_count;
 } tGATT_CLCB;
 
 typedef struct
@@ -556,7 +559,7 @@ extern BOOLEAN gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid, UINT16 len, UINT8 **p_
 extern UINT8 gatt_build_uuid_to_stream(UINT8 **p_dst, tBT_UUID uuid);
 extern BOOLEAN gatt_uuid_compare(tBT_UUID src, tBT_UUID tar);
 extern void gatt_sr_get_sec_info(BD_ADDR rem_bda, BOOLEAN le_conn, UINT8 *p_sec_flag, UINT8 *p_key_size);
-extern void gatt_start_rsp_timer(tGATT_TCB    *p_tcb);
+extern void gatt_start_rsp_timer(UINT16 clcb_idx);
 extern void gatt_start_conf_timer(tGATT_TCB    *p_tcb);
 extern void gatt_rsp_timeout(TIMER_LIST_ENT *p_tle);
 extern void gatt_ind_ack_timeout(TIMER_LIST_ENT *p_tle);
