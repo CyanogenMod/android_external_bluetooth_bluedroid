@@ -495,7 +495,7 @@ UINT8 attp_cl_send_cmd(tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 cmd_code, BT_HDR
                 /* do not enq cmd if handle value confirmation or set request */
                 if (cmd_code != GATT_HANDLE_VALUE_CONF && cmd_code != GATT_CMD_WRITE)
                 {
-                    gatt_start_rsp_timer (p_tcb);
+                    gatt_start_rsp_timer (clcb_idx);
                     gatt_cmd_enq(p_tcb, clcb_idx, FALSE, cmd_code, NULL);
                 }
             }

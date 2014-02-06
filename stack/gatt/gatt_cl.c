@@ -1096,7 +1096,7 @@ BOOLEAN gatt_cl_send_next_cmd_inq(tGATT_TCB *p_tcb)
             /* dequeue the request if is write command or sign write */
             if (p_cmd->op_code != GATT_CMD_WRITE && p_cmd->op_code != GATT_SIGN_CMD_WRITE)
             {
-                gatt_start_rsp_timer (p_tcb);
+                gatt_start_rsp_timer (p_cmd->clcb_idx);
             }
             else
             {
@@ -1153,7 +1153,10 @@ void gatt_client_handle_server_rsp (tGATT_TCB *p_tcb, UINT8 op_code,
             return;
         }
         else
-            btu_stop_timer (&p_tcb->rsp_timer_ent);
+        {
+            btu_stop_timer (&p_clcb->rsp_timer_ent);
+            p_clcb->retry_count = 0;
+        }
     }
     /* the size of the message may not be bigger than the local max PDU size*/
     /* The message has to be smaller than the agreed MTU, len does not count op_code */

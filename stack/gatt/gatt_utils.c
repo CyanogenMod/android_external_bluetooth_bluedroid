@@ -1116,11 +1116,18 @@ BOOLEAN gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, UINT16 uuid_size, UINT8 *
 ** Returns          TRUE if command sent, otherwise FALSE.
 **
 *******************************************************************************/
-void gatt_start_rsp_timer(tGATT_TCB    *p_tcb)
+void gatt_start_rsp_timer(UINT16 clcb_idx)
 {
-    p_tcb->rsp_timer_ent.param  = (TIMER_PARAM_TYPE)p_tcb;
-    btu_start_timer (&p_tcb->rsp_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_RSP,
-                     GATT_WAIT_FOR_RSP_TOUT);
+    tGATT_CLCB *p_clcb = &gatt_cb.clcb[clcb_idx];
+    UINT32 timeout = GATT_WAIT_FOR_RSP_TOUT;
+    p_clcb->rsp_timer_ent.param  = (TIMER_PARAM_TYPE)p_clcb;
+    if (p_clcb->operation == GATTC_OPTYPE_DISCOVERY &&
+        p_clcb->op_subtype == GATT_DISC_SRVC_ALL)
+    {
+        timeout = GATT_WAIT_FOR_DISC_RSP_TOUT;
+    }
+    btu_start_timer (&p_clcb->rsp_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_RSP,
+                     timeout);
 }
 /*******************************************************************************
 **
@@ -1165,8 +1172,32 @@ void gatt_start_ind_ack_timer(tGATT_TCB *p_tcb)
 *******************************************************************************/
 void gatt_rsp_timeout(TIMER_LIST_ENT *p_tle)
 {
+    tGATT_CLCB *p_clcb = (tGATT_CLCB *)p_tle->param;
+    if (p_clcb == NULL || p_clcb->p_tcb == NULL)
+    {
+        GATT_TRACE_WARNING0("gatt_rsp_timeout clcb is already deleted");
+        return;
+    }
+    if (p_clcb->operation == GATTC_OPTYPE_DISCOVERY &&
+        p_clcb->op_subtype == GATT_DISC_SRVC_ALL &&
+        p_clcb->retry_count < GATT_REQ_RETRY_LIMIT)
+    {
+        UINT8 rsp_code;
+        GATT_TRACE_WARNING0("gatt_rsp_timeout retry discovery primary service");
+        if (p_clcb != gatt_cmd_dequeue(p_clcb->p_tcb, &rsp_code))
+        {
+            GATT_TRACE_ERROR0("gatt_rsp_timeout command queue out of sync, disconnect");
+        }
+        else
+        {
+            p_clcb->retry_count++;
+            gatt_act_discovery(p_clcb);
+            return;
+        }
+    }
+
     GATT_TRACE_WARNING0("gatt_rsp_timeout disconnecting...");
-    gatt_disconnect (((tGATT_TCB *)p_tle->param)->peer_bda);
+    gatt_disconnect (p_clcb->p_tcb->peer_bda);
 }
 
 /*******************************************************************************
@@ -2073,6 +2104,7 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
 
     operation =  p_clcb->operation;
     conn_id = p_clcb->conn_id;
+    btu_stop_timer(&p_clcb->rsp_timer_ent);
 
     gatt_clcb_dealloc(p_clcb);
 
@@ -2114,6 +2146,7 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason)
             p_clcb = &gatt_cb.clcb[i];
             if (p_clcb->in_use && p_clcb->p_tcb == p_tcb)
             {
+                btu_stop_timer(&p_clcb->rsp_timer_ent);
                 GATT_TRACE_DEBUG2 ("found p_clcb conn_id=%d clcb_idx=%d", p_clcb->conn_id, p_clcb->clcb_idx);
                 if (p_clcb->operation != GATTC_OPTYPE_NONE)
                     gatt_end_operation(p_clcb, GATT_ERROR, NULL);
@@ -2123,7 +2156,6 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason)
             }
         }
 
-        btu_stop_timer (&p_tcb->rsp_timer_ent);
         btu_stop_timer (&p_tcb->ind_ack_timer_ent);
         btu_stop_timer (&p_tcb->conf_timer_ent);
         gatt_free_pending_ind(p_tcb);

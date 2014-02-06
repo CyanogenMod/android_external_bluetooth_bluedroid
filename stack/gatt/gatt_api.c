@@ -1285,6 +1285,7 @@ void GATT_Deregister (tGATT_IF gatt_if)
                     (p_clcb->p_reg->gatt_if == gatt_if) &&
                     (p_clcb->p_tcb->tcb_idx == p_tcb->tcb_idx))
                 {
+                    btu_stop_timer(&p_clcb->rsp_timer_ent);
                     gatt_clcb_dealloc (p_clcb);
                     break;
                 }
