@@ -933,6 +933,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                                    // HID device number.
                     BTA_HhClose(p_data->conn.handle);
                     HAL_CBACK(bt_hh_callbacks, connection_state_cb, (bt_bdaddr_t*) &p_data->conn.bda,BTHH_CONN_STATE_DISCONNECTED);
+                    break;
                 }
                 else if (p_dev->fd < 0) {
                     BTIF_TRACE_WARNING0("BTA_HH_OPEN_EVT: Error, failed to find the uhid driver...");
