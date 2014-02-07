@@ -214,7 +214,7 @@ static int accept_server_socket(int sfd)
     struct sockaddr_un remote;
     struct pollfd pfd;
     int fd;
-    int len = sizeof(struct sockaddr_un);
+    socklen_t len = sizeof(struct sockaddr_un);
 
     BTIF_TRACE_EVENT1("accept fd %d", sfd);
 
