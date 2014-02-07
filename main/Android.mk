@@ -51,8 +51,11 @@ LOCAL_SRC_FILES += \
 	../btif/src/btif_util.c \
         ../btif/src/btif_sock_l2cap.c\
         ../btif/src/btif_l2cap.c \
-        ../btif/src/btif_sdp.c \
         ../wipowerif/src/wipower.c \
+        ../btif/src/btif_gatt_qual.c \
+        ../btif/src/btif_gap.c \
+        ../btif/src/btif_smp.c \
+        ../btif/src/btif_sdp.c
 
 # callouts
 LOCAL_SRC_FILES += \

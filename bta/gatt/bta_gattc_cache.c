@@ -686,18 +686,20 @@ static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_sr
 {
     tBTA_GATTC_ATTR_REC *p_rec = NULL;
 
-    if (-- p_srvc_cb->total_char > 0)
+    if((p_srvc_cb->total_char != 0) && (-- p_srvc_cb->total_char > 0))
     {
         p_rec = p_srvc_cb->p_srvc_list + (++ p_srvc_cb->cur_char_idx);
         /* add the next characteristic into cache */
-        bta_gattc_add_attr_to_cache (p_srvc_cb,
+        if(p_rec != NULL)  {
+           bta_gattc_add_attr_to_cache (p_srvc_cb,
                                      p_rec->s_handle,
                                      &p_rec->uuid,
                                      p_rec->property,
                                      BTA_GATTC_ATTR_TYPE_CHAR);
 
-        /* start discoverying next characteristic for char descriptor */
-        bta_gattc_start_disc_char_dscp(conn_id, p_srvc_cb);
+           /* start discoverying next characteristic for char descriptor */
+           bta_gattc_start_disc_char_dscp(conn_id, p_srvc_cb);
+        }
     }
     else
     /* all characteristic has been explored, start with next service if any */
