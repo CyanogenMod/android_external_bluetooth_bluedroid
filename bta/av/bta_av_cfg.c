@@ -38,7 +38,11 @@ const UINT32  bta_av_meta_caps_co_ids[] = {
 };
 
 /* AVRCP cupported categories */
+#if (AVRC_CTLR_INCLUDED == TRUE)
+#define BTA_AV_RC_SUPF_CT       (AVRC_SUPF_CT_CAT1 | AVRC_SUPF_CT_CAT2)
+#else
 #define BTA_AV_RC_SUPF_CT       (AVRC_SUPF_CT_CAT2)
+#endif
 
 /* Added to modify
 **	1. flush timeout

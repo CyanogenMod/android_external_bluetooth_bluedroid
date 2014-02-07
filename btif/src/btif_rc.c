@@ -423,6 +423,9 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
     bt_status_t result = BT_STATUS_SUCCESS;
     int i;
     char bd_str[18];
+#if (AVRC_CTLR_INCLUDED == TRUE)
+    bt_bdaddr_t rc_addr;
+#endif
 
     if(p_rc_open->status == BTA_AV_SUCCESS)
     {
@@ -443,12 +446,20 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
         {
             init_uinput();
         }
+#if (AVRC_CTLR_INCLUDED == TRUE)
+        bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+        HAL_CBACK(bt_rc_callbacks, connection_state_cb, 1, &rc_addr);
+#endif
     }
     else
     {
         BTIF_TRACE_ERROR2("%s Connect failed with error code: %d",
             __FUNCTION__, p_rc_open->status);
         btif_rc_cb.rc_connected = FALSE;
+#if (AVRC_CTLR_INCLUDED == TRUE)
+        bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+        HAL_CBACK(bt_rc_callbacks, connection_state_cb, 0, &rc_addr);
+#endif
     }
 }
 
@@ -462,6 +473,9 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
  ***************************************************************************/
 void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
 {
+#if (AVRC_CTLR_INCLUDED == TRUE)
+    bt_bdaddr_t rc_addr;
+#endif
     BTIF_TRACE_DEBUG2("%s: rc_handle: %d", __FUNCTION__, p_rc_close->rc_handle);
 
     btif_rc_cb.rc_handle = 0;
@@ -473,6 +487,13 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
     btif_rc_cb.rc_volume=MAX_VOLUME;
     init_all_transactions();
     close_uinput();
+#if (AVRC_CTLR_INCLUDED == TRUE)
+    bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+#endif
+    memset(btif_rc_cb.rc_addr, 0, sizeof(BD_ADDR));
+#if (AVRC_CTLR_INCLUDED == TRUE)
+    HAL_CBACK(bt_rc_callbacks, connection_state_cb, 0, &rc_addr);
+#endif
 }
 
 /***************************************************************************
@@ -573,6 +594,61 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
     if (key_map[i].name == NULL)
         BTIF_TRACE_ERROR3("%s AVRCP: unknown button 0x%02X %s", __FUNCTION__,
                         p_remote_cmd->rc_id, status);
+}
+
+/***************************************************************************
+ *  Function       handle_rc_passthrough_rsp
+ *
+ *  - Argument:    tBTA_AV_REMOTE_RSP passthrough command response
+ *
+ *  - Description: Remote control passthrough response handler
+ *
+ ***************************************************************************/
+void handle_rc_passthrough_rsp ( tBTA_AV_REMOTE_RSP *p_remote_rsp)
+{
+#if (AVRC_CTLR_INCLUDED == TRUE)
+    const char *status;
+    if (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG)
+    {
+        int key_state;
+        if (p_remote_rsp->key_state == AVRC_STATE_RELEASE)
+        {
+            status = "released";
+            key_state = 1;
+        }
+        else
+        {
+            status = "pressed";
+            key_state = 0;
+        }
+
+        BTIF_TRACE_DEBUG3("%s: rc_id=%d status=%s", __FUNCTION__, p_remote_rsp->rc_id, status);
+
+        switch (p_remote_rsp->rc_id)
+        {
+            case BTA_AV_RC_PLAY:
+            case BTA_AV_RC_PAUSE:
+            case BTA_AV_RC_VOL_UP:
+            case BTA_AV_RC_VOL_DOWN:
+            case BTA_AV_RC_STOP:
+            {
+                release_transaction(p_remote_rsp->label);
+                HAL_CBACK(bt_rc_callbacks, passthrough_rsp_cb, p_remote_rsp->rc_id, key_state);
+                return;
+            }
+            default:
+                BTIF_TRACE_ERROR3("%s AVRCP: not implemented button 0x%02X %s", __FUNCTION__,
+                        p_remote_rsp->rc_id, status);
+        }
+
+    }
+    else
+    {
+        BTIF_TRACE_ERROR1("%s DUT does not support AVRCP controller role", __FUNCTION__);
+    }
+#else
+    BTIF_TRACE_ERROR1("%s AVRCP controller role is not enabled", __FUNCTION__);
+#endif
 }
 
 void handle_uid_changed_notification(tBTA_AV_META_MSG *pmeta_msg, tAVRC_COMMAND *pavrc_command)
@@ -707,20 +783,29 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
         {
             BTIF_TRACE_DEBUG1("Peer_features:%x", p_data->rc_open.peer_features);
             handle_rc_connect( &(p_data->rc_open) );
-        }break;
-
+        }
+        break;
         case BTA_AV_RC_CLOSE_EVT:
         {
             handle_rc_disconnect( &(p_data->rc_close) );
-        }break;
-
+        }
+        break;
         case BTA_AV_REMOTE_CMD_EVT:
         {
-            BTIF_TRACE_DEBUG2("rc_id:0x%x key_state:%d", p_data->remote_cmd.rc_id,
+            BTIF_TRACE_DEBUG2("CMD: rc_id:0x%x key_state:%d", p_data->remote_cmd.rc_id,
                                p_data->remote_cmd.key_state);
             handle_rc_passthrough_cmd( (&p_data->remote_cmd) );
         }
         break;
+#if (AVRC_CTLR_INCLUDED == TRUE)
+        case BTA_AV_REMOTE_RSP_EVT:
+        {
+            BTIF_TRACE_DEBUG2("RSP: rc_id:0x%x key_state:%d", p_data->remote_rsp.rc_id,
+                               p_data->remote_rsp.key_state);
+            handle_rc_passthrough_rsp( (&p_data->remote_rsp) );
+        }
+        break;
+#endif
         case BTA_AV_RC_FEAT_EVT:
         {
             BTIF_TRACE_DEBUG1("Peer_features:%x", p_data->rc_feat.peer_features);
@@ -1479,6 +1564,42 @@ static void cleanup()
 }
 
 
+static bt_status_t send_passthrough_cmd(uint8_t key_code, uint8_t key_state)
+{
+    tAVRC_STS status = BT_STATUS_UNSUPPORTED;
+#if (AVRC_CTLR_INCLUDED == TRUE)
+    CHECK_RC_CONNECTED
+    rc_transaction_t *p_transaction=NULL;
+    BTIF_TRACE_DEBUG3("%s: key-code: %d, key-state: %d", __FUNCTION__,
+                                                    key_code, key_state);
+    if (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG)
+    {
+        tAVRC_MSG_PASS avrc_cmd;
+        bt_status_t tran_status = get_transaction(&p_transaction);
+        if(BT_STATUS_SUCCESS == tran_status && NULL != p_transaction)
+        {
+            BTA_AvRemoteCmd(btif_rc_cb.rc_handle, p_transaction->lbl,
+                (tBTA_AV_RC)key_code, (tBTA_AV_STATE)key_state);
+            status =  BT_STATUS_SUCCESS;
+            BTIF_TRACE_DEBUG1("%s: succesfully sent passthrough command to BTA", __FUNCTION__);
+        }
+        else
+        {
+            status =  BT_STATUS_FAIL;
+            BTIF_TRACE_DEBUG1("%s: error in fetching transaction", __FUNCTION__);
+        }
+    }
+    else
+    {
+        status =  BT_STATUS_FAIL;
+        BTIF_TRACE_DEBUG1("%s: feature not supported", __FUNCTION__);
+    }
+#else
+    BTIF_TRACE_DEBUG1("%s: feature not enabled", __FUNCTION__);
+#endif
+    return status;
+}
+
 static const btrc_interface_t bt_rc_interface = {
     sizeof(bt_rc_interface),
     init,
@@ -1492,6 +1613,7 @@ static const btrc_interface_t bt_rc_interface = {
     NULL, /* set_player_app_value_rsp */
     register_notification_rsp,
     set_volume,
+    send_passthrough_cmd,
     cleanup,
 };
 
