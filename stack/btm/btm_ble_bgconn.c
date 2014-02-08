@@ -80,26 +80,26 @@ BOOLEAN btm_add_dev_to_controller (BOOLEAN to_add, BD_ADDR bd_addr, UINT8 attr)
 
         if (to_add)
         {
-            if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_PUBLIC || !BTM_BLE_IS_RESOLVE_BDA(bd_addr))
-            {
-                started = btsnd_hcic_ble_add_white_list (p_dev_rec->ble.ble_addr_type, bd_addr);
-            }
             if (memcmp(p_dev_rec->ble.static_addr, bd_addr, BD_ADDR_LEN) != 0 &&
                 memcmp(p_dev_rec->ble.static_addr, dummy_bda, BD_ADDR_LEN) != 0)
             {
                  started = btsnd_hcic_ble_add_white_list (p_dev_rec->ble.static_addr_type, p_dev_rec->ble.static_addr);
             }
+            else
+            {
+                started = btsnd_hcic_ble_add_white_list (p_dev_rec->ble.ble_addr_type, bd_addr);
+            }
         }
         else
         {
-            if (!BTM_BLE_IS_RESOLVE_BDA(bd_addr))
-            {
-                    started = btsnd_hcic_ble_remove_from_white_list (p_dev_rec->ble.ble_addr_type, bd_addr);
-            }
             if (memcmp(p_dev_rec->ble.static_addr, dummy_bda, BD_ADDR_LEN) != 0 &&
                 memcmp(p_dev_rec->ble.static_addr, bd_addr, BD_ADDR_LEN) != 0)
             {
                     started = btsnd_hcic_ble_remove_from_white_list (p_dev_rec->ble.static_addr_type, p_dev_rec->ble.static_addr);
+            }
+            else
+            {
+                    started = btsnd_hcic_ble_remove_from_white_list (p_dev_rec->ble.ble_addr_type, bd_addr);
             }
         }
     }    /* if not a known device, shall we add it? */

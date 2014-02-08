@@ -1003,6 +1003,9 @@ void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
 tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr)
 {
     tBTA_DM_API_REMOVE_DEVICE *p_msg;
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+    BTA_GATTC_CancelOpen(0, bd_addr, FALSE);
+#endif
 
     if ((p_msg = (tBTA_DM_API_REMOVE_DEVICE *) GKI_getbuf(sizeof(tBTA_DM_API_REMOVE_DEVICE))) != NULL)
     {
