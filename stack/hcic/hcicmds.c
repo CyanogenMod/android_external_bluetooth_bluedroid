@@ -1364,6 +1364,7 @@ BOOLEAN btsnd_hcic_change_name (BD_NAME name)
         return (FALSE);
 
     pp = (UINT8 *)(p + 1);
+    memset(pp, 0, HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_CHANGE_NAME);
 
     p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_CHANGE_NAME;
     p->offset = 0;
