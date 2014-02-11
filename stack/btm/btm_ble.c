@@ -22,6 +22,9 @@
  *  security functions.
  *
  ******************************************************************************/
+#include "bt_target.h"
+
+#if BLE_INCLUDED == TRUE
 
 #include <string.h>
 
@@ -64,7 +67,6 @@ extern void gatt_notify_enc_cmpl(BD_ADDR bd_addr);
 BOOLEAN BTM_SecAddBleDevice (BD_ADDR bd_addr, BD_NAME bd_name, tBT_DEVICE_TYPE dev_type,
                              tBLE_ADDR_TYPE addr_type)
 {
-#if BLE_INCLUDED == TRUE
     tBTM_SEC_DEV_REC  *p_dev_rec;
     UINT8               i = 0;
     tBTM_INQ_INFO      *p_info=NULL;
@@ -133,7 +135,6 @@ BOOLEAN BTM_SecAddBleDevice (BD_ADDR bd_addr, BD_NAME bd_name, tBT_DEVICE_TYPE d
                           p_info->results.device_type, p_info->results.ble_addr_type);
     }
 
-#endif
     return(TRUE);
 }
 
@@ -154,7 +155,7 @@ BOOLEAN BTM_SecAddBleDevice (BD_ADDR bd_addr, BD_NAME bd_name, tBT_DEVICE_TYPE d
 *******************************************************************************/
 BOOLEAN BTM_SecAddBleKey (BD_ADDR bd_addr, tBTM_LE_KEY_VALUE *p_le_key, tBTM_LE_KEY_TYPE key_type)
 {
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if SMP_INCLUDED == TRUE
     tBTM_SEC_DEV_REC  *p_dev_rec;
     BTM_TRACE_DEBUG0 ("BTM_SecAddBleKey");
     p_dev_rec = btm_find_dev (bd_addr);
@@ -201,7 +202,6 @@ BOOLEAN BTM_SecAddBleKey (BD_ADDR bd_addr, tBTM_LE_KEY_VALUE *p_le_key, tBTM_LE_
 *******************************************************************************/
 void BTM_BleLoadLocalKeys(UINT8 key_type, tBTM_BLE_LOCAL_KEYS *p_key)
 {
-#if BLE_INCLUDED == TRUE
     tBTM_DEVCB *p_devcb = &btm_cb.devcb;
     BTM_TRACE_DEBUG0 ("BTM_BleLoadLocalKeys");
     if (p_key != NULL)
@@ -221,7 +221,6 @@ void BTM_BleLoadLocalKeys(UINT8 key_type, tBTM_BLE_LOCAL_KEYS *p_key)
                 break;
         }
     }
-#endif
 }
 
 /*******************************************************************************
@@ -239,9 +238,7 @@ void BTM_GetDeviceEncRoot (BT_OCTET16 er)
 {
     BTM_TRACE_DEBUG0 ("BTM_GetDeviceEncRoot");
 
-#if BLE_INCLUDED == TRUE
     memcpy (er, btm_cb.devcb.er, BT_OCTET16_LEN);
-#endif
 }
 
 /*******************************************************************************
@@ -259,9 +256,7 @@ void BTM_GetDeviceIDRoot (BT_OCTET16 irk)
 {
     BTM_TRACE_DEBUG0 ("BTM_GetDeviceIDRoot ");
 
-#if BLE_INCLUDED == TRUE
     memcpy (irk, btm_cb.devcb.id_keys.irk, BT_OCTET16_LEN);
-#endif
 }
 
 /*******************************************************************************
@@ -276,10 +271,8 @@ void BTM_GetDeviceIDRoot (BT_OCTET16 irk)
 *******************************************************************************/
 void BTM_GetDeviceDHK (BT_OCTET16 dhk)
 {
-#if BLE_INCLUDED == TRUE
     BTM_TRACE_DEBUG0 ("BTM_GetDeviceDHK");
     memcpy (dhk, btm_cb.devcb.id_keys.dhk, BT_OCTET16_LEN);
-#endif
 }
 
 /*******************************************************************************
@@ -294,7 +287,6 @@ void BTM_GetDeviceDHK (BT_OCTET16 dhk)
 *******************************************************************************/
 void BTM_ReadConnectionAddr (BD_ADDR remote_bda, BD_ADDR local_conn_addr, tBLE_ADDR_TYPE *p_addr_type)
 {
-#if BLE_INCLUDED == TRUE
     tACL_CONN       *p_acl = btm_bda_to_acl(remote_bda);
 
     if (p_acl == NULL)
@@ -307,9 +299,8 @@ void BTM_ReadConnectionAddr (BD_ADDR remote_bda, BD_ADDR local_conn_addr, tBLE_A
 
     BTM_TRACE_DEBUG2 ("BTM_ReadConnectionAddr address type: %d addr: 0x%02x",
                     p_acl->conn_addr_type, p_acl->conn_addr[0]);
-
-#endif
 }
+
 /*******************************************************************************
 **
 ** Function         BTM_IsBleConnection
@@ -322,7 +313,6 @@ void BTM_ReadConnectionAddr (BD_ADDR remote_bda, BD_ADDR local_conn_addr, tBLE_A
 *******************************************************************************/
 BOOLEAN BTM_IsBleConnection (UINT16 conn_handle)
 {
-#if (BLE_INCLUDED == TRUE)
     UINT8                xx;
     tACL_CONN            *p;
 
@@ -335,9 +325,6 @@ BOOLEAN BTM_IsBleConnection (UINT16 conn_handle)
     p = &btm_cb.acl_db[xx];
 
     return(p->is_le_link);
-#else
-    return FALSE;
-#endif
 }
 
 /*******************************************************************************
@@ -353,7 +340,6 @@ BOOLEAN BTM_IsBleConnection (UINT16 conn_handle)
 BOOLEAN BTM_ReadRemoteConnectionAddr(BD_ADDR pseudo_addr, BD_ADDR conn_addr, tBLE_ADDR_TYPE *p_addr_type)
 {
     BOOLEAN         st = TRUE;
-#if BLE_INCLUDED == TRUE
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(pseudo_addr);
 
     memcpy(conn_addr, pseudo_addr, BD_ADDR_LEN);
@@ -361,7 +347,6 @@ BOOLEAN BTM_ReadRemoteConnectionAddr(BD_ADDR pseudo_addr, BD_ADDR conn_addr, tBL
     {
         *p_addr_type = p_dev_rec->ble.ble_addr_type;
     }
-#endif
     return st;
 }
 /*******************************************************************************
@@ -379,7 +364,7 @@ BOOLEAN BTM_ReadRemoteConnectionAddr(BD_ADDR pseudo_addr, BD_ADDR conn_addr, tBL
 *******************************************************************************/
 void BTM_SecurityGrant(BD_ADDR bd_addr, UINT8 res)
 {
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if SMP_INCLUDED == TRUE
     tSMP_STATUS res_smp = (res == BTM_SUCCESS) ? SMP_SUCCESS : SMP_REPEATED_ATTEMPTS;
     BTM_TRACE_DEBUG0 ("BTM_SecurityGrant");
     SMP_SecurityGrant(bd_addr, res_smp);
@@ -402,7 +387,7 @@ void BTM_SecurityGrant(BD_ADDR bd_addr, UINT8 res)
 *******************************************************************************/
 void BTM_BlePasskeyReply (BD_ADDR bd_addr, UINT8 res, UINT32 passkey)
 {
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if SMP_INCLUDED == TRUE
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev (bd_addr);
     tSMP_STATUS      res_smp = (res == BTM_SUCCESS) ? SMP_SUCCESS : SMP_PASSKEY_ENTRY_FAIL;
 
@@ -432,7 +417,7 @@ void BTM_BlePasskeyReply (BD_ADDR bd_addr, UINT8 res, UINT32 passkey)
 *******************************************************************************/
 void BTM_BleOobDataReply(BD_ADDR bd_addr, UINT8 res, UINT8 len, UINT8 *p_data)
 {
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if SMP_INCLUDED == TRUE
     tSMP_STATUS res_smp = (res == BTM_SUCCESS) ? SMP_SUCCESS : SMP_OOB_FAIL;
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev (bd_addr);
 
@@ -463,7 +448,7 @@ void BTM_BleOobDataReply(BD_ADDR bd_addr, UINT8 res, UINT8 len, UINT8 *p_data)
 *******************************************************************************/
 void BTM_BleSetConnScanParams (UINT16 scan_interval, UINT16 scan_window)
 {
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if SMP_INCLUDED == TRUE
     tBTM_BLE_CB *p_ble_cb = &btm_cb.ble_ctr_cb;
     BOOLEAN     new_param = FALSE;
 
@@ -517,7 +502,6 @@ void BTM_BleSetPrefConnParams (BD_ADDR bd_addr,
                                UINT16 min_conn_int, UINT16 max_conn_int,
                                UINT16 slave_latency, UINT16 supervision_tout)
 {
-#if BLE_INCLUDED == TRUE
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev (bd_addr);
 
     BTM_TRACE_API4 ("BTM_BleSetPrefConnParams min: %u  max: %u  latency: %u  \
@@ -566,7 +550,6 @@ void BTM_BleSetPrefConnParams (BD_ADDR bd_addr,
     {
         BTM_TRACE_ERROR0("Illegal Connection Parameters");
     }
-#endif  /* BLE_INCLUDED */
 }
 
 /*******************************************************************************
@@ -583,7 +566,6 @@ void BTM_BleSetPrefConnParams (BD_ADDR bd_addr,
 *******************************************************************************/
 void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type, tBLE_ADDR_TYPE *p_addr_type)
 {
-#if BLE_INCLUDED == TRUE
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev (remote_bda);
     tBTM_INQ_INFO     *p_inq_info = BTM_InqDbRead(remote_bda);
 
@@ -616,12 +598,7 @@ void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type, tBLE_ADDR
     }
 
     BTM_TRACE_DEBUG2 ("btm_find_dev_type - device_type = %d addr_type = %d", *p_dev_type , *p_addr_type);
-#endif
-
-    return;
 }
-
-#if BLE_INCLUDED == TRUE
 
 /*******************************************************************************
 **
@@ -684,13 +661,9 @@ void BTM_BleTestEnd(tBTM_CMPL_CB *p_cmd_cmpl_cback)
      }
 }
 
-#endif
-
 /*******************************************************************************
 ** Internal Functions
 *******************************************************************************/
-#if BLE_INCLUDED == TRUE
-
 void btm_ble_test_command_complete(UINT8 *p)
 {
     tBTM_CMPL_CB   *p_cb = btm_cb.devcb.p_le_test_cmd_cmpl_cb;
@@ -715,13 +688,11 @@ void btm_ble_test_command_complete(UINT8 *p)
 *******************************************************************************/
 BOOLEAN BTM_IsBleLink (BD_ADDR bd_addr)
 {
-#if (BLE_INCLUDED == TRUE)
     tACL_CONN         *p;
     BTM_TRACE_DEBUG0 ("BTM_IsBleLink");
     if ((p = btm_bda_to_acl(bd_addr)) != NULL)
         return p->is_le_link;
     else
-#endif
         return FALSE;
 }
 /*******************************************************************************
@@ -742,9 +713,7 @@ BOOLEAN BTM_UseLeLink (BD_ADDR bd_addr)
 
     if ((p = btm_bda_to_acl(bd_addr)) != NULL)
     {
-#if (BLE_INCLUDED == TRUE)
         use_le = (p->is_le_link);
-#endif
     }
     else
     {
@@ -1725,8 +1694,6 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
 }
 
     #endif  /* SMP_INCLUDED */
-#endif  /* BLE_INCLUDED */
-
 
 /*******************************************************************************
 **
@@ -1748,7 +1715,7 @@ BOOLEAN BTM_BleDataSignature (BD_ADDR bd_addr, UINT8 *p_text, UINT16 len,
                               BLE_SIGNATURE signature)
 {
     BOOLEAN     ret = FALSE;
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if SMP_INCLUDED == TRUE
     tBTM_SEC_DEV_REC    *p_rec = btm_find_dev (bd_addr);
     UINT8   *p_buf, *pp;
 
@@ -1847,7 +1814,7 @@ BOOLEAN BTM_BleDataSignature (BD_ADDR bd_addr, UINT8 *p_text, UINT16 len,
             }
         }
     }
-#endif  /* BLE_INCLUDED */
+#endif  /* SMP_INCLUDED */
     return ret;
 }
 
@@ -1870,7 +1837,7 @@ BOOLEAN BTM_BleVerifySignature (BD_ADDR bd_addr, UINT8 *p_orig, UINT16 len, UINT
                                 UINT8 *p_comp)
 {
     BOOLEAN             verified = FALSE;
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if SMP_INCLUDED == TRUE
     tBTM_SEC_DEV_REC    *p_rec = btm_find_dev (bd_addr);
     UINT8               p_mac[BTM_CMAC_TLEN_SIZE];
 
@@ -1899,11 +1866,10 @@ BOOLEAN BTM_BleVerifySignature (BD_ADDR bd_addr, UINT8 *p_orig, UINT16 len, UINT
             }
         }
     }
-#endif  /* BLE_INCLUDED */
+#endif  /* SMP_INCLUDED */
     return verified;
 }
 
-#if BLE_INCLUDED == TRUE
 /*******************************************************************************
 **  Utility functions for LE device IR/ER generation
 *******************************************************************************/
@@ -2241,6 +2207,5 @@ void btm_set_random_address(BD_ADDR random_bda)
 
 }
 #endif /* BTM_BLE_CONFORMANCE_TESTING */
-
 
 #endif /* BLE_INCLUDED */
