@@ -34,6 +34,7 @@
 #include "l2c_api.h"
 #include "hcidefs.h"
 #include "btm_api.h"
+#include "bta_sys.h"
 
 
 /*******************************************************************************

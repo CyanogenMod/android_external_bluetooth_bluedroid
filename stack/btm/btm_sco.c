@@ -33,6 +33,7 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "hcidefs.h"
+#include "bt_utils.h"
 
 #if BTM_SCO_INCLUDED == TRUE
 
@@ -93,7 +94,11 @@ void btm_sco_flush_sco_data(UINT16 sco_inx)
                 GKI_freebuf (p_buf);
         }
     }
+#else
+    UNUSED(sco_inx);
 #endif
+#else
+    UNUSED(sco_inx);
 #endif
 }
 /*******************************************************************************
@@ -382,6 +387,8 @@ tBTM_STATUS BTM_WriteScoData (UINT16 sco_inx, BT_HDR *p_buf)
     return (status);
 
 #else
+    UNUSED(sco_inx);
+    UNUSED(p_buf);
     return (BTM_NO_RESOURCES);
 #endif
 }

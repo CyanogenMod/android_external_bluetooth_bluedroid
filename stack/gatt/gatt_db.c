@@ -114,7 +114,6 @@ tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db)
 **
 *******************************************************************************/
 static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR16 *p_attr,
-                                                 UINT16 offset,
                                                  BOOLEAN read_long,
                                                  tGATT_SEC_FLAG sec_flag,
                                                  UINT8 key_size)
@@ -223,7 +222,7 @@ static tGATT_STATUS read_attr_value (void *p_attr,
                       offset,
                       read_long);
 
-    status = gatts_check_attr_readability((tGATT_ATTR16 *)p_attr, offset, read_long, sec_flag, key_size);
+    status = gatts_check_attr_readability((tGATT_ATTR16 *)p_attr, read_long, sec_flag, key_size);
 
     if (p_attr16->uuid_type == GATT_ATTR_UUID_TYPE_16)
         uuid16 = p_attr16->uuid;
@@ -672,7 +671,7 @@ tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db,
         {
             if (p_attr->handle == handle)
             {
-                status = gatts_check_attr_readability (p_attr, 0,
+                status = gatts_check_attr_readability (p_attr,
                                                        is_long,
                                                        sec_flag, key_size);
                 break;

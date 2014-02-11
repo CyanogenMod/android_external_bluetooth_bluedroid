@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "bt_target.h"
+#include "bt_utils.h"
 #include "btm_api.h"
 #include "btm_int.h"
 #include "mca_api.h"
@@ -118,6 +119,7 @@ static void mca_sec_check_complete_orig (BD_ADDR bd_addr, void *p_ref_data, UINT
 {
     tMCA_TC_TBL     *p_tbl = (tMCA_TC_TBL *)p_ref_data;
     tL2CAP_CFG_INFO cfg;
+    UNUSED(bd_addr);
 
     MCA_TRACE_DEBUG1("mca_sec_check_complete_orig res: %d", res);
 

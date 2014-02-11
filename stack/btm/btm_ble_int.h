@@ -289,6 +289,7 @@ extern void btm_ble_increment_sign_ctr(BD_ADDR bd_addr, BOOLEAN is_local );
 extern BOOLEAN btm_get_local_div (BD_ADDR bd_addr, UINT16 *p_div);
 extern BOOLEAN btm_ble_get_enc_key_type(BD_ADDR bd_addr, UINT8 *p_key_types);
 
+extern void btm_ble_test_command_complete(UINT8 *p);
 extern void btm_ble_rand_enc_complete (UINT8 *p, UINT16 op_code, tBTM_RAND_ENC_CB *p_enc_cplt_cback);
 extern void btm_sec_save_le_key(BD_ADDR bd_addr, tBTM_LE_KEY_TYPE key_type, tBTM_LE_KEY_VALUE *p_keys, BOOLEAN pass_to_application);
 extern void btm_ble_update_sec_key_size(BD_ADDR bd_addr, UINT8 enc_key_size);

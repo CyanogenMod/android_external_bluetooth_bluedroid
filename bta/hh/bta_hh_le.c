@@ -29,6 +29,7 @@
 #include "bta_gatt_api.h"
 #include "srvc_api.h"
 #include "btm_int.h"
+#include "utl.h"
 
 #ifndef BTA_HH_LE_RECONN
 #define BTA_HH_LE_RECONN    TRUE
@@ -1213,6 +1214,7 @@ void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS resu
 {
     UINT8   idx = bta_hh_find_cb(bd_addr);
     tBTA_HH_DEV_CB *p_dev_cb;
+    UNUSED(p_ref_data);
 
     APPL_TRACE_ERROR0("bta_hh_le_encrypt_cback");
 
@@ -1239,6 +1241,8 @@ void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS resu
 *******************************************************************************/
 void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
 {
+    UNUSED(p_buf);
+
     if (p_cb->status == BTA_HH_OK)
     {
         /*  discovery has been done for HID service */
@@ -1296,6 +1300,7 @@ void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
 {
     UINT8           sec_flag=0;
     tBTM_SEC_DEV_REC  *p_dev_rec;
+    UNUSED(p_buf);
 
     p_dev_rec = btm_find_dev(p_cb->addr);
     if (p_dev_rec)
@@ -1640,6 +1645,9 @@ static void bta_hh_le_search_hid_included(tBTA_HH_DEV_CB *p_dev_cb)
 *******************************************************************************/
 void bta_hh_read_battery_level_cmpl(UINT8 status, tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_data)
 {
+    UNUSED(status);
+    UNUSED(p_data);
+
     p_dev_cb->hid_srvc[p_dev_cb->cur_srvc_index].expl_incl_srvc = TRUE;
     bta_hh_le_srvc_expl_srvc(p_dev_cb);
 }

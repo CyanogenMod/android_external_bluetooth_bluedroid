@@ -26,6 +26,7 @@
 #include <string.h>
 #include "data_types.h"
 #include "bt_target.h"
+#include "bt_utils.h"
 #include "avdt_api.h"
 #include "avdtc_api.h"
 #include "avdt_int.h"
@@ -103,6 +104,8 @@ void avdt_scb_hdl_abort_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_hdl_abort_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_scb);
+    UNUSED(p_data);
     return;
 }
 
@@ -167,6 +170,8 @@ void avdt_scb_hdl_getconfig_cmd(tAVDT_SCB *p_scb,tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_hdl_getconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_scb);
+    UNUSED(p_data);
     return;
 }
 
@@ -215,6 +220,8 @@ void avdt_scb_hdl_open_rej(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_hdl_open_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     /* initiate opening of trans channels for this SEID */
     p_scb->role = AVDT_OPEN_INT;
     avdt_ad_open_req(AVDT_CHAN_MEDIA, p_scb->p_ccb, p_scb, AVDT_INT);
@@ -668,6 +675,8 @@ void avdt_scb_hdl_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_drop_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_scb);
+
     GKI_freebuf(p_data->p_pkt);
     AVDT_TRACE_WARNING0("Dropped incoming media packet");
 }
@@ -874,6 +883,7 @@ void avdt_scb_hdl_setconfig_rej(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 void avdt_scb_hdl_setconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_EVT_HDR   single;
+    UNUSED(p_data);
 
     if (p_scb->p_ccb != NULL)
     {
@@ -898,6 +908,8 @@ void avdt_scb_hdl_setconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_hdl_start_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     (*p_scb->cs.p_ctrl_cback)(avdt_scb_to_hdl(p_scb),
                               p_scb->p_ccb ? p_scb->p_ccb->peer_addr : NULL,
                               AVDT_START_IND_EVT,
@@ -934,6 +946,8 @@ void avdt_scb_hdl_start_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_hdl_suspend_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     (*p_scb->cs.p_ctrl_cback)(avdt_scb_to_hdl(p_scb),
                               p_scb->p_ccb ? p_scb->p_ccb->peer_addr : NULL,
                               AVDT_SUSPEND_IND_EVT,
@@ -1344,6 +1358,7 @@ void avdt_scb_hdl_write_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 void avdt_scb_snd_abort_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_EVT_HDR   hdr;
+    UNUSED(p_data);
 
     if (p_scb->p_ccb != NULL)
     {
@@ -1366,6 +1381,8 @@ void avdt_scb_snd_abort_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_snd_abort_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_scb);
+
     avdt_msg_send_rsp(avdt_ccb_by_idx(p_data->msg.hdr.ccb_idx), AVDT_SIG_ABORT,
                       &p_data->msg);
 }
@@ -1382,6 +1399,7 @@ void avdt_scb_snd_abort_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 void avdt_scb_snd_close_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_EVT_HDR   hdr;
+    UNUSED(p_data);
 
     p_scb->role = AVDT_CLOSE_INT;
 
@@ -1452,6 +1470,7 @@ void avdt_scb_snd_close_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 void avdt_scb_snd_getconfig_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_EVT_HDR   hdr;
+    UNUSED(p_data);
 
     hdr.seid = p_scb->peer_seid;
 
@@ -1484,6 +1503,7 @@ void avdt_scb_snd_getconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 void avdt_scb_snd_open_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_EVT_HDR   hdr;
+    UNUSED(p_data);
 
     hdr.seid = p_scb->peer_seid;
 
@@ -1696,6 +1716,8 @@ void avdt_scb_snd_setconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_snd_tc_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
 #if AVDT_REPORTING == TRUE
     if(p_scb->curr_cfg.psc_mask & AVDT_PSC_REPORT)
         avdt_ad_close_req(AVDT_CHAN_REPORT, p_scb->p_ccb, p_scb);
@@ -1716,6 +1738,7 @@ void avdt_scb_snd_tc_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 void avdt_scb_cb_err(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_CTRL          avdt_ctrl;
+    UNUSED(p_data);
 
     /* set error code and parameter */
     avdt_ctrl.hdr.err_code = AVDT_ERR_BAD_STATE;
@@ -1755,6 +1778,8 @@ void avdt_scb_cong_state(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_rej_state(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_scb);
+
     p_data->msg.hdr.err_code = AVDT_ERR_BAD_STATE;
     p_data->msg.hdr.err_param = 0;
     avdt_msg_send_rej(avdt_ccb_by_idx(p_data->msg.hdr.ccb_idx),
@@ -1773,6 +1798,8 @@ void avdt_scb_rej_state(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_rej_in_use(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_scb);
+
     p_data->msg.hdr.err_code = AVDT_ERR_IN_USE;
     p_data->msg.hdr.err_param = 0;
     avdt_msg_send_rej(avdt_ccb_by_idx(p_data->msg.hdr.ccb_idx),
@@ -1791,6 +1818,8 @@ void avdt_scb_rej_in_use(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_rej_not_in_use(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_scb);
+
     p_data->msg.hdr.err_code = AVDT_ERR_NOT_IN_USE;
     p_data->msg.hdr.err_param = 0;
     avdt_msg_send_rej(avdt_ccb_by_idx(p_data->msg.hdr.ccb_idx),
@@ -1808,6 +1837,8 @@ void avdt_scb_rej_not_in_use(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_set_remove(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     p_scb->remove = TRUE;
 }
 
@@ -1866,6 +1897,7 @@ void avdt_scb_clr_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 #if AVDT_MULTIPLEXING == TRUE
     BT_HDR          *p_frag;
 #endif
+    UNUSED(p_data);
 
     /* set error code and parameter */
     avdt_ctrl.hdr.err_code = AVDT_ERR_BAD_STATE;
@@ -1930,6 +1962,7 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     UINT8   res = AVDT_AD_SUCCESS;
     tAVDT_SCB_EVT data;
 #endif
+    UNUSED(p_data);
 
     avdt_ctrl.hdr.err_code = 0;
 
@@ -2003,6 +2036,8 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_tc_timer(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     btu_start_timer(&p_scb->timer_entry, BTU_TTYPE_AVDT_SCB_TC, AVDT_SCB_TC_DISC_TOUT);
 }
 
@@ -2017,6 +2052,8 @@ void avdt_scb_tc_timer(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_clr_vars(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     p_scb->in_use = FALSE;
     p_scb->p_ccb = NULL;
     p_scb->peer_seid = 0;

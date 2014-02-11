@@ -638,6 +638,7 @@ static void on_cli_rfc_connect(tBTA_JV_RFCOMM_OPEN *p_open, uint32_t id)
 }
 static void on_rfc_close(tBTA_JV_RFCOMM_CLOSE * p_close, uint32_t id)
 {
+    UNUSED(p_close);
     lock_slot(&slot_lock);
     rfc_slot_t* rs = find_rfc_slot_by_id(id);
     if(rs)
@@ -653,6 +654,8 @@ static void on_rfc_close(tBTA_JV_RFCOMM_CLOSE * p_close, uint32_t id)
 }
 static void on_rfc_write_done(tBTA_JV_RFCOMM_WRITE *p, uint32_t id)
 {
+    UNUSED(p);
+
     lock_slot(&slot_lock);
     rfc_slot_t* rs = find_rfc_slot_by_id(id);
     if(rs && !rs->f.outgoing_congest)

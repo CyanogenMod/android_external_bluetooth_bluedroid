@@ -389,6 +389,8 @@ int btpan_tap_open()
 int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 proto, const char* buf,
                     UINT16 len, BOOLEAN ext, BOOLEAN forward)
 {
+    UNUSED(ext);
+    UNUSED(forward);
     if(tap_fd != -1)
     {
         tETH_HDR eth_hdr;
@@ -606,6 +608,9 @@ static void btpan_tap_fd_signaled(int fd, int type, int flags, uint32_t user_id)
 {
     char packet[MAX_PACKET_SIZE];
     tETH_HDR eth_hdr;
+    UNUSED(type);
+    UNUSED(user_id);
+
     if(flags & SOCK_THREAD_FD_EXCEPTION)
     {
         BTIF_TRACE_ERROR1("pan tap fd:%d exception", fd);

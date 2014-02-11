@@ -23,6 +23,7 @@
  ******************************************************************************/
 
 #include "bt_target.h"
+#include "bt_utils.h"
 
 #if BLE_INCLUDED == TRUE
 #include <string.h>
@@ -262,6 +263,7 @@ tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
                                       tGATT_STATUS status, tGATTS_RSP *p_msg)
 {
     tGATT_STATUS    ret_code = GATT_SUCCESS;
+    UNUSED(trans_id);
 
     GATT_TRACE_DEBUG1("gatt_sr_process_app_rsp gatt_if=%d", gatt_if);
 
@@ -326,7 +328,7 @@ tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_exec_write_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, UINT8 *p_data)
+static void gatt_process_exec_write_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT8 *p_data)
 {
     UINT8   *p = p_data, flag, i = 0;
     UINT32  trans_id = 0;
@@ -525,7 +527,7 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
 *******************************************************************************/
 static tGATT_STATUS gatt_build_primary_service_rsp (BT_HDR *p_msg, tGATT_TCB *p_tcb,
                                                     UINT8 op_code, UINT16 s_hdl,
-                                                    UINT16 e_hdl, UINT8 *p_data, tBT_UUID value)
+                                                    UINT16 e_hdl, tBT_UUID value)
 {
     tGATT_STATUS    status = GATT_NOT_FOUND;
     UINT8           handle_len =4, *p ;
@@ -784,7 +786,7 @@ void gatts_process_primary_service_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 l
                 else
                 {
                     memset(p_msg, 0, msg_len);
-                    reason = gatt_build_primary_service_rsp (p_msg, p_tcb, op_code, s_hdl, e_hdl, p_data, value);
+                    reason = gatt_build_primary_service_rsp (p_msg, p_tcb, op_code, s_hdl, e_hdl, value);
                 }
             }
         }
@@ -1169,7 +1171,7 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
 **
 *******************************************************************************/
 static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, UINT8 op_code,
-                                   UINT16 handle, UINT16 len, UINT8 *p_data)
+                                   UINT16 handle, UINT8 *p_data)
 {
     UINT16          buf_len = (UINT16)(sizeof(BT_HDR) + p_tcb->payload_size + L2CAP_MIN_OFFSET);
     tGATT_STATUS    reason;
@@ -1285,7 +1287,7 @@ void gatts_process_attribute_req (tGATT_TCB *p_tcb, UINT8 op_code,
                         {
                             case GATT_REQ_READ: /* read char/char descriptor value */
                             case GATT_REQ_READ_BLOB:
-                                gatts_process_read_req(p_tcb, p_rcb, op_code, handle, len, p);
+                                gatts_process_read_req(p_tcb, p_rcb, op_code, handle, p);
                                 break;
 
                             case GATT_REQ_WRITE: /* write char/char descriptor value */
@@ -1502,7 +1504,7 @@ void gatt_server_handle_client_req (tGATT_TCB *p_tcb, UINT8 op_code,
                 break;
 
             case GATT_REQ_EXEC_WRITE:
-                gatt_process_exec_write_req (p_tcb, op_code, len, p_data);
+                gatt_process_exec_write_req (p_tcb, op_code, p_data);
                 break;
 
             case GATT_REQ_READ_MULTI:

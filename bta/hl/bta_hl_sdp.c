@@ -23,7 +23,7 @@
 
 #include "sdp_api.h"
 #include "bta_hl_int.h"
-
+#include "utl.h"
 
 /*******************************************************************************
 **
@@ -164,11 +164,7 @@ BOOLEAN bta_hl_add_sup_feature_list (UINT32 handle, UINT16 num_elem,
 **
 **  Purpose:     Register an HDP application with SDP
 **
-**  Parameters:  p_cb           - Pointer to MA instance control block
-**               p_service_name - MA server name
-**               inst_id        - MAS instance ID
-**               msg_type       - Supported message type(s)
-**
+**  Parameters:
 **
 **  Returns:     void
 **
@@ -189,6 +185,7 @@ tBTA_HL_STATUS bta_hl_sdp_update (UINT8 app_id)
     tBTA_HL_APP_CB                  *p_cb = BTA_HL_GET_APP_CB_PTR(0);
     BOOLEAN                         result = TRUE;
     tBTA_HL_STATUS                  status = BTA_HL_STATUS_OK;
+    UNUSED(app_id);
 
     if ((p_cb->sup_feature.app_role_mask == BTA_HL_MDEP_ROLE_MASK_SOURCE) &&
         (!p_cb->sup_feature.advertize_source_sdp))

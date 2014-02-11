@@ -2029,11 +2029,12 @@ bt_status_t btif_dm_pin_reply( const bt_bdaddr_t *bd_addr, uint8_t accept,
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-
 bt_status_t btif_dm_ssp_reply(const bt_bdaddr_t *bd_addr,
                                  bt_ssp_variant_t variant, uint8_t accept,
                                  uint32_t passkey)
 {
+    UNUSED(passkey);
+
     if (variant == BT_SSP_VARIANT_PASSKEY_ENTRY)
     {
         /* This is not implemented in the stack.

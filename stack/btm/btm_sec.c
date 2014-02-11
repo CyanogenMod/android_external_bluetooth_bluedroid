@@ -28,6 +28,7 @@
 #include "btu.h"
 #include "btm_int.h"
 #include "l2c_int.h"
+#include "bt_utils.h"
 
 #if (BT_USE_TRACES == TRUE && BT_TRACE_VERBOSE == FALSE)
 /* needed for sprintf() */
@@ -432,6 +433,13 @@ BOOLEAN BTM_SetUCDSecurityLevel (BOOLEAN is_originator, char *p_name, UINT8 serv
     return(btm_sec_set_security_level (conn_type, p_name, service_id,
                                        sec_level, psm, mx_proto_id, mx_chan_id));
 #else
+    UNUSED(is_originator);
+    UNUSED(p_name);
+    UNUSED(service_id);
+    UNUSED(sec_level);
+    UNUSED(psm);
+    UNUSED(mx_proto_id);
+    UNUSED(mx_chan_id);
     return FALSE;
 #endif
 }
@@ -842,6 +850,7 @@ UINT8 BTM_SecClrUCDService (UINT8 service_id)
 
     return(num_cleared);
 #else
+    UNUSED(service_id);
     return(0);
 #endif
 }
@@ -4039,6 +4048,7 @@ BOOLEAN btm_sec_create_conn (BD_ADDR bda, UINT16 packet_types,
 static void btm_sec_connect_after_reject_timeout (TIMER_LIST_ENT *p_tle)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_cb.p_collided_dev_rec;
+    UNUSED(p_tle);
 
     BTM_TRACE_EVENT0 ("btm_sec_connect_after_reject_timeout()");
     btm_cb.sec_collision_tle.param = 0;
@@ -4655,6 +4665,7 @@ static void btm_sec_pairing_timeout (TIMER_LIST_ENT *p_tle)
 #endif
 #endif
     UINT8   name[2];
+    UNUSED(p_tle);
 
     p_cb->pairing_tle.param = 0;
 /* Coverity: FALSE-POSITIVE error from Coverity tool. Please do NOT remove following comment. */
@@ -5357,6 +5368,7 @@ static tBTM_SEC_SERV_REC *btm_sec_find_mx_serv (UINT8 is_originator, UINT16 psm,
 static void btm_sec_collision_timeout (TIMER_LIST_ENT *p_tle)
 {
     tBTM_STATUS status;
+    UNUSED(p_tle);
 
     BTM_TRACE_EVENT0 ("btm_sec_collision_timeout()");
     btm_cb.sec_collision_tle.param = 0;
@@ -5772,7 +5784,7 @@ BOOLEAN btm_sec_is_le_capable_dev (BD_ADDR bda)
 ** Returns          TRUE - found a bonded device
 **
 *******************************************************************************/
-BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_DEV_REC *p_rec)
+BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_DEV_REC **p_rec)
 {
     BOOLEAN found= FALSE;
 
@@ -5791,7 +5803,7 @@ BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_D
         if (p_dev_rec->ble.key_type || (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN))
         {
             *p_found_idx = i;
-            p_rec = p_dev_rec;
+            *p_rec = p_dev_rec;
             break;
         }
     }

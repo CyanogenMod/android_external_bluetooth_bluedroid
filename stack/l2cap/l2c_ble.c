@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include "bt_target.h"
+#include "bt_utils.h"
 #include "l2cdefs.h"
 #include "l2c_int.h"
 #include "btu.h"
@@ -426,6 +427,10 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
 {
     tL2C_LCB            *p_lcb;
     tBTM_SEC_DEV_REC    *p_dev_rec;
+    UNUSED(type);
+    UNUSED(conn_interval);
+    UNUSED(conn_latency);
+    UNUSED(conn_timeout);
 
     /* See if we have a link control block for the remote device */
     p_lcb = l2cu_find_lcb_by_bd_addr (bda);

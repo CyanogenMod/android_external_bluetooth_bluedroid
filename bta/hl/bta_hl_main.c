@@ -770,9 +770,9 @@ static void bta_hl_api_register(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 *******************************************************************************/
 static void bta_hl_api_deregister(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
-
     UINT8           app_idx;
     tBTA_HL_APP_CB  *p_acb;
+    UNUSED(p_cb);
 
     if (bta_hl_find_app_idx_using_handle(p_data->api_dereg.app_handle, &app_idx))
     {
@@ -802,6 +802,7 @@ static void bta_hl_api_cch_open(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     UINT8           app_idx, mcl_idx;
     tBTA_HL_APP_CB  *p_acb;
     tBTA_HL_MCL_CB  *p_mcb;
+    UNUSED(p_cb);
 
     if (bta_hl_find_app_idx_using_handle(p_data->api_cch_open.app_handle, &app_idx))
     {
@@ -900,6 +901,7 @@ static void bta_hl_api_cch_close(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     UINT8           app_idx, mcl_idx;
     tBTA_HL_APP_CB  *p_acb;
     tBTA_HL_MCL_CB  *p_mcb;
+    UNUSED(p_cb);
 
     if (bta_hl_find_mcl_idx_using_handle(p_data->api_cch_close.mcl_handle, &app_idx,  &mcl_idx))
     {
@@ -961,10 +963,11 @@ static void bta_hl_api_dch_open(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     tBTA_HL_STATUS              status = BTA_HL_STATUS_OK;
     UINT8                       app_idx, mcl_idx, mdl_idx;
     tBTA_HL_APP_CB              *p_acb;
-    tBTA_HL_MCL_CB              *p_mcb;
+    tBTA_HL_MCL_CB              *p_mcb = NULL;
     tBTA_HL_MDL_CB              *p_dcb;
     tBTA_HL_MDEP_CFG            *p_mdep_cfg;
     UINT8                       mdep_cfg_idx;
+    UNUSED(p_cb);
 
     if (bta_hl_find_mcl_idx_using_handle(p_data->api_dch_open.mcl_handle, &app_idx, &mcl_idx))
     {
@@ -1116,7 +1119,7 @@ static void bta_hl_api_dch_close(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     tBTA_HL_APP_CB  *p_acb;
     tBTA_HL_MCL_CB  *p_mcb;
     tBTA_HL_MDL_CB  *p_dcb;
-
+    UNUSED(p_cb);
 
     if (bta_hl_find_mdl_idx_using_handle(p_data->api_dch_close.mdl_handle, &app_idx, &mcl_idx, &mdl_idx ))
     {
@@ -1183,11 +1186,12 @@ static void bta_hl_api_dch_reconnect(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     tBTA_HL_STATUS  status = BTA_HL_STATUS_OK;
     UINT8           app_idx, mcl_idx, mdl_idx;
     tBTA_HL_APP_CB  *p_acb;
-    tBTA_HL_MCL_CB  *p_mcb;
+    tBTA_HL_MCL_CB  *p_mcb = NULL;
     tBTA_HL_MDL_CB  *p_dcb;
     UINT8           mdep_cfg_idx;
     UINT8           mdl_cfg_idx;
     tBTA_HL_MDEP_CFG            *p_mdep_cfg;
+    UNUSED(p_cb);
 
     if (bta_hl_find_mcl_idx_using_handle(p_data->api_dch_reconnect.mcl_handle, &app_idx, &mcl_idx))
     {
@@ -1323,10 +1327,10 @@ static void bta_hl_api_dch_echo_test(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     tBTA_HL_STATUS      status = BTA_HL_STATUS_OK;
     UINT8               app_idx, mcl_idx, mdl_idx;
     tBTA_HL_APP_CB      *p_acb;
-    tBTA_HL_MCL_CB      *p_mcb;
+    tBTA_HL_MCL_CB      *p_mcb = NULL;
     tBTA_HL_MDL_CB      *p_dcb;
     tBTA_HL_ECHO_CFG    *p_echo_cfg;
-
+    UNUSED(p_cb);
 
     if (bta_hl_find_mcl_idx_using_handle(p_data->api_dch_echo_test.mcl_handle, &app_idx,  &mcl_idx))
     {
@@ -1457,7 +1461,7 @@ static void bta_hl_api_sdp_query(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     UINT8           app_idx, mcl_idx;
     tBTA_HL_APP_CB  *p_acb;
     tBTA_HL_MCL_CB  *p_mcb;
-
+    UNUSED(p_cb);
 
     if (bta_hl_find_app_idx_using_handle(p_data->api_sdp_query.app_handle, &app_idx))
     {
@@ -1564,6 +1568,7 @@ static void bta_hl_sdp_query_results(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     tBTA_HL_SDP_OPER    sdp_oper;
     UINT16              event;
     BOOLEAN             release_sdp_buf=FALSE;
+    UNUSED(p_cb);
 
     event = p_data->hdr.event;
     sdp_oper = p_mcb->sdp_oper;
@@ -1638,6 +1643,7 @@ static void bta_hl_api_delete_mdl(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     UINT8           app_idx, mcl_idx;
     tBTA_HL_APP_CB  *p_acb;
     tBTA_HL_MCL_CB  *p_mcb;
+    UNUSED(p_cb);
 
     if (bta_hl_find_mcl_idx_using_handle(p_data->api_delete_mdl.mcl_handle, &app_idx, &mcl_idx ))
     {
@@ -1728,6 +1734,7 @@ static void bta_hl_mca_delete_mdl_cfm(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     tBTA_HL_MCL_CB  *p_mcb;
     BOOLEAN         send_cfm_evt = TRUE;
     tBTA_HL_APP_CB  *p_acb;
+    UNUSED(p_cb);
 
     if (bta_hl_find_mcl_idx_using_handle(p_data->mca_evt.mcl_handle, &app_idx, &mcl_idx))
     {
@@ -1805,8 +1812,9 @@ static void bta_hl_mca_delete_mdl_ind(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     tMCA_EVT_HDR    *p_delete_ind = &p_data->mca_evt.mca_data.delete_ind;
     tBTA_HL_MCL_CB  *p_mcb;
     tBTA_HL_MDL_CB  *p_dcb;
-    BOOLEAN         send_ind_evt = TRUE;
+    BOOLEAN         send_ind_evt = FALSE;
     tBTA_HL_APP_CB  *p_acb;
+    UNUSED(p_cb);
 
     if (bta_hl_find_mcl_idx_using_handle(p_data->mca_evt.mcl_handle, &app_idx, &mcl_idx) )
     {
@@ -1862,14 +1870,13 @@ static void bta_hl_mca_delete_mdl_ind(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 *******************************************************************************/
 static void bta_hl_api_dch_abort(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
-
     tBTA_HL_STATUS  status = BTA_HL_STATUS_OK;
     UINT8           app_idx, mcl_idx, mdl_idx;
     tBTA_HL_APP_CB  *p_acb;
     tBTA_HL_MCL_CB  *p_mcb;
     tBTA_HL_MDL_CB  *p_dcb;
     tBTA_HL         evt_data;
-
+    UNUSED(p_cb);
 
     if (bta_hl_find_mcl_idx_using_handle(p_data->api_dch_abort.mcl_handle, &app_idx, &mcl_idx ))
     {

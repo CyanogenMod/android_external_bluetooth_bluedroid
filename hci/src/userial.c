@@ -241,6 +241,7 @@ static void *userial_read_thread(void *arg)
     int rx_length = 0;
     HC_BT_HDR *p_buf = NULL;
     uint8_t *p;
+    UNUSED(arg);
 
     USERIALDBG("Entering userial_read_thread()");
     prctl(PR_SET_NAME, (unsigned long)"userial_read", 0, 0, 0);
@@ -432,6 +433,7 @@ uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
     uint16_t total_len = 0;
     uint16_t copy_len = 0;
     uint8_t *p_data = NULL;
+    UNUSED(msg_id);
 
     do
     {
@@ -484,6 +486,7 @@ uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
 uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
 {
     int ret, total = 0;
+    UNUSED(msg_id);
 
     while(len != 0)
     {
@@ -546,6 +549,8 @@ void userial_close(void)
 *******************************************************************************/
 void userial_ioctl(userial_ioctl_op_t op, void *p_data)
 {
+    UNUSED(p_data);
+
     switch(op)
     {
         case USERIAL_OP_RXFLOW_ON:

@@ -22,6 +22,7 @@
 #include "bta_sys.h"
 #include "bta_dm_co.h"
 #include "bta_dm_ci.h"
+#include "bt_utils.h"
 #if (BTM_OOB_INCLUDED == TRUE)
 #include "btif_dm.h"
 #endif
@@ -46,6 +47,9 @@ tBTE_APPL_CFG bte_appl_cfg = { 0x5, 0x4, 0x7, 0x7, 0x10 };
 *******************************************************************************/
 BOOLEAN bta_dm_co_get_compress_memory(tBTA_SYS_ID id, UINT8 **memory_p, UINT32 *memory_size)
 {
+    UNUSED(id);
+    UNUSED(memory_p);
+    UNUSED(memory_size);
     return TRUE;
 }
 
@@ -67,6 +71,7 @@ BOOLEAN bta_dm_co_get_compress_memory(tBTA_SYS_ID id, UINT8 **memory_p, UINT32 *
 void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap, tBTA_OOB_DATA *p_oob_data,
                       tBTA_AUTH_REQ *p_auth_req, BOOLEAN is_orig)
 {
+    UNUSED(bd_addr);
 #if (BTM_OOB_INCLUDED == TRUE)
     btif_dm_set_oob_for_io_req(p_oob_data);
 #endif
@@ -94,6 +99,10 @@ void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap, tBTA_OOB_DATA *p_o
 void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
                       tBTA_OOB_DATA oob_data, tBTA_AUTH_REQ auth_req)
 {
+    UNUSED(bd_addr);
+    UNUSED(io_cap);
+    UNUSED(oob_data);
+    UNUSED(auth_req);
 }
 
 /*******************************************************************************
@@ -111,6 +120,8 @@ void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
 *******************************************************************************/
 void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, BOOLEAN *p_upgrade )
 {
+    UNUSED(bd_addr);
+    UNUSED(p_upgrade);
 }
 
 #if (BTM_OOB_INCLUDED == TRUE)
@@ -334,6 +345,7 @@ void bta_dm_co_le_io_key_req(BD_ADDR bd_addr, UINT8 *p_max_key_size,
                              tBTA_LE_KEY_TYPE *p_init_key,
                              tBTA_LE_KEY_TYPE  *p_resp_key )
 {
+    UNUSED(bd_addr);
     BTIF_TRACE_ERROR0("##################################");
     BTIF_TRACE_ERROR0("bta_dm_co_le_io_key_req: only setting max size to 16");
     BTIF_TRACE_ERROR0("##################################");
@@ -389,6 +401,7 @@ void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
                           tBTA_LE_KEY_TYPE *p_init_key,
                           tBTA_LE_KEY_TYPE  *p_resp_key )
 {
+    UNUSED(bd_addr);
     /* if OOB is not supported, this call-out function does not need to do anything
      * otherwise, look for the OOB data associated with the address and set *p_oob_data accordingly
      * If the answer can not be obtained right away,

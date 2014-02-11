@@ -25,6 +25,7 @@
 #include <string.h>
 #include "data_types.h"
 #include "bt_target.h"
+#include "bt_utils.h"
 #include "gki.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
@@ -53,6 +54,8 @@ tAVCT_CB avct_cb;
 *******************************************************************************/
 void AVCT_Register(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask)
 {
+    UNUSED(mtu_br);
+
     AVCT_TRACE_API0("AVCT_Register");
 
     /* register PSM with L2CAP */
@@ -289,6 +292,8 @@ UINT16 AVCT_CreateBrowse (UINT8 handle, UINT8 role)
 
     return result;
 #else
+    UNUSED(handle);
+    UNUSED(role);
     return AVCT_NO_RESOURCES;
 #endif
 }
@@ -326,6 +331,7 @@ UINT16 AVCT_RemoveBrowse (UINT8 handle)
     }
     return result;
 #else
+    UNUSED(handle);
     return AVCT_NO_RESOURCES;
 #endif
 }
@@ -350,6 +356,8 @@ UINT16 AVCT_GetBrowseMtu (UINT8 handle)
     {
         peer_mtu = p_ccb->p_bcb->peer_mtu;
     }
+#else
+    UNUSED(handle);
 #endif
     return peer_mtu;
 }

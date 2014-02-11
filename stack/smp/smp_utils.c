@@ -26,6 +26,7 @@
 #if SMP_INCLUDED == TRUE
 
 #include "bt_types.h"
+#include "bt_utils.h"
 #include <string.h>
 #include <ctype.h>
 #include "hcidefs.h"
@@ -151,6 +152,7 @@ void smp_rsp_timeout(TIMER_LIST_ENT *p_tle)
 {
     tSMP_CB   *p_cb = &smp_cb;
     UINT8 failure = SMP_RSP_TIMEOUT;
+    UNUSED(p_tle);
 
     SMP_TRACE_EVENT1("smp_rsp_timeout state:%d", p_cb->state);
 
@@ -207,6 +209,8 @@ static BT_HDR * smp_build_confirm_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 {
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
+    UNUSED(cmd_code);
+
     SMP_TRACE_EVENT0("smp_build_confirm_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_CONFIRM_CMD_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
@@ -232,6 +236,8 @@ static BT_HDR * smp_build_rand_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 {
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
+    UNUSED(cmd_code);
+
     SMP_TRACE_EVENT0("smp_build_rand_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_INIT_CMD_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
@@ -257,6 +263,8 @@ static BT_HDR * smp_build_encrypt_info_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 {
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
+    UNUSED(cmd_code);
+
     SMP_TRACE_EVENT0("smp_build_encrypt_info_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_ENC_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
@@ -282,6 +290,8 @@ static BT_HDR * smp_build_master_id_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 {
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
+    UNUSED(cmd_code);
+
     SMP_TRACE_EVENT0("smp_build_master_id_cmd ");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_MASTER_ID_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
@@ -309,6 +319,9 @@ static BT_HDR * smp_build_identity_info_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
     BT_OCTET16  irk;
+    UNUSED(cmd_code);
+    UNUSED(p_cb);
+
     SMP_TRACE_EVENT0("smp_build_identity_info_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_ID_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
@@ -337,7 +350,8 @@ static BT_HDR * smp_build_id_addr_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
     BD_ADDR     static_addr;
-
+    UNUSED(cmd_code);
+    UNUSED(p_cb);
 
     SMP_TRACE_EVENT0("smp_build_id_addr_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_ID_ADDR_SIZE + L2CAP_MIN_OFFSET)) != NULL)
@@ -367,6 +381,7 @@ static BT_HDR * smp_build_signing_info_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 {
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
+    UNUSED(cmd_code);
 
     SMP_TRACE_EVENT0("smp_build_signing_info_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_SIGN_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
@@ -393,6 +408,8 @@ static BT_HDR * smp_build_pairing_fail(UINT8 cmd_code, tSMP_CB *p_cb)
 {
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
+    UNUSED(cmd_code);
+
     SMP_TRACE_EVENT0("smp_build_pairing_fail");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_PAIR_FAIL_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
@@ -418,6 +435,8 @@ static BT_HDR * smp_build_security_request(UINT8 cmd_code, tSMP_CB *p_cb)
 {
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
+    UNUSED(cmd_code);
+
     SMP_TRACE_EVENT0("smp_build_security_request");
 
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + 2 + L2CAP_MIN_OFFSET)) != NULL)

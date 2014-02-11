@@ -25,6 +25,7 @@
 #include <string.h>
 #include "data_types.h"
 #include "bt_target.h"
+#include "bt_utils.h"
 #include "avdt_api.h"
 #include "avdtc_api.h"
 #include "avdt_int.h"
@@ -74,6 +75,7 @@ static void avdt_sec_check_complete_term (BD_ADDR bd_addr, void *p_ref_data, UIN
     tAVDT_CCB       *p_ccb = NULL;
     tL2CAP_CFG_INFO cfg;
     tAVDT_TC_TBL    *p_tbl;
+    UNUSED(p_ref_data);
 
     AVDT_TRACE_DEBUG1("avdt_sec_check_complete_term res: %d", res);
     if (!bd_addr)
@@ -130,6 +132,7 @@ static void avdt_sec_check_complete_orig (BD_ADDR bd_addr, void *p_ref_data, UIN
     tAVDT_CCB       *p_ccb = NULL;
     tL2CAP_CFG_INFO cfg;
     tAVDT_TC_TBL    *p_tbl;
+    UNUSED(p_ref_data);
 
     AVDT_TRACE_DEBUG1("avdt_sec_check_complete_orig res: %d", res);
     if (bd_addr)
@@ -174,6 +177,7 @@ void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
     UINT16          result;
     tL2CAP_CFG_INFO cfg;
     tBTM_STATUS rc;
+    UNUSED(psm);
 
     /* do we already have a control channel for this peer? */
     if ((p_ccb = avdt_ccb_by_bd(bd_addr)) == NULL)

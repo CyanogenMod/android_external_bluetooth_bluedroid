@@ -26,6 +26,7 @@
 
 #include "data_types.h"
 #include "bt_types.h"
+#include "bt_utils.h"
 
 /*******************************************************************************
 **  Constants & Macros

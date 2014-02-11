@@ -247,6 +247,8 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
     struct sched_param param;
     int policy, ret = 0;
     pthread_attr_t attr1;
+    UNUSED(stack);
+    UNUSED(stacksize);
 
     GKI_TRACE( "GKI_create_task %x %d %s %x %d", (int)task_entry, (int)task_id,
             (char*) taskname, (int) stack, (int)stacksize);
@@ -617,6 +619,7 @@ void* timer_thread(void *arg)
     int restart;
     tGKI_OS         *p_os = &gki_cb.os;
     int  *p_run_cond = &p_os->no_timer_suspend;
+    (void)arg;
 
     /* Indicate that tick is just starting */
     restart = 1;
@@ -783,11 +786,12 @@ void GKI_freeze()
 **
 *******************************************************************************/
 
-void GKI_run (void *p_task_id)
+void GKI_run (void * p_task_id)
 {
     struct timespec delay;
     int err;
     volatile int * p_run_cond = &gki_cb.os.no_timer_suspend;
+    UNUSED(p_task_id);
 
 #ifndef GKI_NO_TICK_STOP
     /* adjust btld scheduling scheme now */
@@ -1404,8 +1408,8 @@ void GKI_os_free (void *p_mem)
 *******************************************************************************/
 UINT8 GKI_suspend_task (UINT8 task_id)
 {
+    UNUSED(task_id);
     GKI_TRACE("GKI_suspend_task %d - NOT implemented", task_id);
-
 
     GKI_TRACE("GKI_suspend_task %d done", task_id);
 
@@ -1430,8 +1434,8 @@ UINT8 GKI_suspend_task (UINT8 task_id)
 *******************************************************************************/
 UINT8 GKI_resume_task (UINT8 task_id)
 {
+    UNUSED(task_id);
     GKI_TRACE("GKI_resume_task %d - NOT implemented", task_id);
-
 
     GKI_TRACE("GKI_resume_task %d done", task_id);
 
