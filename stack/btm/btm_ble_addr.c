@@ -28,10 +28,10 @@
 #include "hcimsgs.h"
 #include "btu.h"
 #include "btm_int.h"
-#include "btm_ble_int.h"
 #include "gap_api.h"
 
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
+#include "btm_ble_int.h"
 #include "smp_api.h"
 #define BTM_BLE_PRIVATE_ADDR_INT    900           /* 15 minutes minimum for
                                                    random address refreshing */

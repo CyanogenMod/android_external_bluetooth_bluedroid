@@ -165,6 +165,8 @@ void bta_hh_update_di_info(tBTA_HH_DEV_CB *p_cb, UINT16 vendor_id, UINT16 produc
     p_cb->dscp_info.version       =   version;
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
     p_cb->dscp_info.flag          =   flag;
+#else
+    UNUSED(flag);
 #endif
 }
 /*******************************************************************************

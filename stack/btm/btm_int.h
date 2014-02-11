@@ -488,8 +488,6 @@ typedef struct
     UINT32              local_counter;  /* local sign counter for sending signed write cmd*/
 }tBTM_SEC_BLE_KEYS;
 
-#endif  /* BLE_INCLUDED */
-
 typedef struct
 {
     tBLE_ADDR_TYPE      ble_addr_type;  /* LE device type: public or random address */
@@ -501,6 +499,8 @@ typedef struct
     tBTM_SEC_BLE_KEYS   keys;           /* LE device security info in slave rode */
 #endif
 } tBTM_SEC_BLE;
+
+#endif  /* BLE_INCLUDED */
 
 /*
 ** Define structure for Security Device Record.
