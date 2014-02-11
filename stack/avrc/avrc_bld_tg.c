@@ -21,6 +21,7 @@
 #include "avrc_api.h"
 #include "avrc_defs.h"
 #include "avrc_int.h"
+#include "bt_utils.h"
 
 /*****************************************************************************
 **  Global data
@@ -276,6 +277,9 @@ static tAVRC_STS avrc_bld_get_cur_app_setting_value_rsp (tAVRC_GET_CUR_APP_VALUE
 *******************************************************************************/
 static tAVRC_STS avrc_bld_set_app_setting_value_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 {
+    UNUSED(p_rsp);
+    UNUSED(p_pkt);
+
     /* nothing to be added. */
     AVRC_TRACE_API0("avrc_bld_set_app_setting_value_rsp");
     return AVRC_STS_NO_ERROR;
@@ -401,6 +405,9 @@ static tAVRC_STS avrc_bld_get_app_setting_value_text_rsp (tAVRC_GET_APP_ATTR_TXT
 *******************************************************************************/
 static tAVRC_STS avrc_bld_inform_charset_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 {
+    UNUSED(p_rsp);
+    UNUSED(p_pkt);
+
     /* nothing to be added. */
     AVRC_TRACE_API0("avrc_bld_inform_charset_rsp");
     return AVRC_STS_NO_ERROR;
@@ -419,6 +426,9 @@ static tAVRC_STS avrc_bld_inform_charset_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 *******************************************************************************/
 static tAVRC_STS avrc_bld_inform_battery_status_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 {
+    UNUSED(p_rsp);
+    UNUSED(p_pkt);
+
     /* nothing to be added. */
     AVRC_TRACE_API0("avrc_bld_inform_battery_status_rsp");
     return AVRC_STS_NO_ERROR;
@@ -653,6 +663,9 @@ static tAVRC_STS avrc_bld_notify_rsp (tAVRC_REG_NOTIF_RSP *p_rsp, BT_HDR *p_pkt)
 *******************************************************************************/
 static tAVRC_STS avrc_bld_next_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 {
+    UNUSED(p_rsp);
+    UNUSED(p_pkt);
+
     /* nothing to be added. */
     AVRC_TRACE_API0("avrc_bld_next_rsp");
     return AVRC_STS_NO_ERROR;
@@ -800,6 +813,7 @@ tAVRC_STS AVRC_BldResponse( UINT8 handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_pkt
     tAVRC_STS status = AVRC_STS_BAD_PARAM;
     BT_HDR *p_pkt;
     BOOLEAN alloc = FALSE;
+    UNUSED(handle);
 
     if (!p_rsp || !pp_pkt)
     {

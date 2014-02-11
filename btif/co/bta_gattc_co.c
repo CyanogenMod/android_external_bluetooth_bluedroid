@@ -20,6 +20,7 @@
 #include "gki.h"
 #include "bta_gattc_co.h"
 #include "bta_gattc_ci.h"
+#include "btif_util.h"
 
 #if( defined BLE_INCLUDED ) && (BLE_INCLUDED == TRUE)
 #if( defined BTA_GATT_INCLUDED ) && (BTA_GATT_INCLUDED == TRUE)
@@ -47,6 +48,7 @@
 void bta_gattc_co_cache_open(BD_ADDR server_bda, UINT16 evt, UINT16 conn_id, BOOLEAN to_save)
 {
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
+    UNUSED(to_save);
 
     /* open NV cache and send call in */
     bta_gattc_ci_cache_open(server_bda, evt, status, conn_id);
@@ -72,6 +74,7 @@ void bta_gattc_co_cache_load(BD_ADDR server_bda, UINT16 evt, UINT16 start_index,
     UINT16              num_attr = 0;
     tBTA_GATTC_NV_ATTR  attr[BTA_GATTC_NV_LOAD_MAX];
     tBTA_GATT_STATUS    status = BTA_GATT_MORE;
+    UNUSED(start_index);
 
     bta_gattc_ci_cache_load(server_bda, evt, num_attr, attr, status, conn_id);
 }
@@ -95,6 +98,9 @@ void bta_gattc_co_cache_save (BD_ADDR server_bda, UINT16 evt, UINT16 num_attr,
                               tBTA_GATTC_NV_ATTR *p_attr_list, UINT16 attr_index, UINT16 conn_id)
 {
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
+    UNUSED(num_attr);
+    UNUSED(p_attr_list);
+    UNUSED(attr_index);
 
     bta_gattc_ci_cache_save(server_bda, evt, status, conn_id);
 }
@@ -114,6 +120,8 @@ void bta_gattc_co_cache_save (BD_ADDR server_bda, UINT16 evt, UINT16 num_attr,
 *******************************************************************************/
 void bta_gattc_co_cache_close(BD_ADDR server_bda, UINT16 conn_id)
 {
+    UNUSED(server_bda);
+    UNUSED(conn_id);
     /* close NV when server cache is done saving or loading,
        does not need to do anything for now on Insight */
 }
@@ -132,6 +140,7 @@ void bta_gattc_co_cache_close(BD_ADDR server_bda, UINT16 conn_id)
 *******************************************************************************/
 void bta_gattc_co_cache_reset(BD_ADDR server_bda)
 {
+    UNUSED(server_bda);
 }
 
 #endif

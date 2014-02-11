@@ -334,6 +334,8 @@ void bta_ag_disc_acp_res(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 *******************************************************************************/
 void bta_ag_disc_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
+    UNUSED(p_data);
+
     /* reopen registered servers */
     bta_ag_start_servers(p_scb, p_scb->reg_services);
 
@@ -371,6 +373,8 @@ void bta_ag_open_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 *******************************************************************************/
 void bta_ag_rfc_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
+    UNUSED(p_data);
+
     /* reinitialize stuff */
     p_scb->conn_handle = 0;
     p_scb->conn_service = 0;
@@ -405,6 +409,7 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     tBTA_AG_HDR    close;
     tBTA_SERVICE_MASK services;
     int i, num_active_conn = 0;
+    UNUSED(p_data);
 
 #ifdef  _WIN32_WCE
     /* The BTE RFCOMM automatically removes the connection when closed, but BTW does not */
@@ -637,6 +642,7 @@ void bta_ag_rfc_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     UINT16  len;
     char    buf[BTA_AG_RFC_READ_MAX];
+    UNUSED(p_data);
 
     memset(buf, 0, BTA_AG_RFC_READ_MAX);
 
@@ -796,6 +802,7 @@ void bta_ag_post_sco_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 void bta_ag_svc_conn_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     tBTA_AG_CONN evt;
+    UNUSED(p_data);
 
     if (!p_scb->svc_conn)
     {
@@ -856,6 +863,8 @@ void bta_ag_ci_rx_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 *******************************************************************************/
 void bta_ag_rcvd_slc_ready(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
+    UNUSED(p_data);
+
     APPL_TRACE_DEBUG1("bta_ag_rcvd_slc_ready: handle = %d", bta_ag_scb_to_idx(p_scb));
 
     if (bta_ag_cb.parse_mode == BTA_AG_PASS_THROUGH)

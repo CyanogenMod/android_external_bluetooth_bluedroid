@@ -488,6 +488,8 @@ const tBTA_DM_EIR_CONF bta_dm_eir_cfg =
     NULL,   /* flags for EIR */
     0,      /* length of manufacturer specific in bytes */
     NULL,   /* manufacturer specific */
+    0,      /* length of additional data in bytes */
+    NULL    /* additional data */
 };
 tBTA_DM_EIR_CONF *p_bta_dm_eir_cfg = (tBTA_DM_EIR_CONF*)&bta_dm_eir_cfg;
 #endif

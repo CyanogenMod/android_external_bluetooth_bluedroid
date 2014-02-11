@@ -55,6 +55,7 @@
 
 #include "bt_hci_bdroid.h"
 #include "utils.h"
+#include "bt_utils.h"
 
 #ifndef BTSNOOP_DBG
 #define BTSNOOP_DBG FALSE
@@ -478,6 +479,7 @@ static void ext_parser_detached(void)
 
 static void interruptFn (int sig)
 {
+    UNUSED(sig);
     ALOGD("interruptFn");
     pthread_exit(0);
 }
@@ -489,6 +491,7 @@ static void ext_parser_thread(void* param)
     sigset_t sigSet;
     sigemptyset (&sigSet);
     sigaddset (&sigSet, sig);
+    UNUSED(param);
 
     ALOGD("ext_parser_thread");
 

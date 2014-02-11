@@ -33,6 +33,7 @@
 #include "smp_api.h"
 #include "l2c_int.h"
 #include "gap_api.h"
+#include "bt_utils.h"
 
 #if SMP_INCLUDED == TRUE
 extern BOOLEAN AES_CMAC ( BT_OCTET16 key, UINT8 *input, UINT16 length, UINT16 tlen, UINT8 *p_signature);
@@ -1507,6 +1508,7 @@ void btm_ble_connected (UINT8 *bda, UINT16 handle, UINT8 enc_mode, UINT8 role,
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev (bda);
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
+    UNUSED(addr_matched);
 
     BTM_TRACE_EVENT0 ("btm_ble_connected");
 
@@ -1568,6 +1570,7 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
     BD_ADDR     bda;
     UINT16      conn_interval, conn_latency, conn_timeout;
     BOOLEAN     match = FALSE;
+    UNUSED(evt_len);
 
     STREAM_TO_UINT8   (status, p);
     STREAM_TO_UINT16   (handle, p);

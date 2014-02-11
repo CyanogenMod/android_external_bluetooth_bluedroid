@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "bt_target.h"
+#include "bt_utils.h"
 #if SMP_INCLUDED == TRUE
     #include "smp_int.h"
     #include "smp_api.h"
@@ -284,6 +285,7 @@ void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, UINT8 len, UINT8 *p_data
     tSMP_CB *p_cb = & smp_cb;
     UINT8   failure = SMP_OOB_FAIL;
     tSMP_KEY        key;
+    UNUSED(bd_addr);
 
     SMP_TRACE_EVENT2 ("SMP_OobDataReply State: %d  res:%d",
                       smp_cb.state, res);

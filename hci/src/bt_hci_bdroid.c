@@ -125,6 +125,7 @@ void bthc_signal_event(uint16_t event)
 *******************************************************************************/
 static void epilog_wait_timeout(union sigval arg)
 {
+    UNUSED(arg);
     ALOGI("...epilog_wait_timeout...");
     bthc_signal_event(HC_EVENT_EXIT);
 }
@@ -299,9 +300,10 @@ static int lpm(bt_hc_low_power_event_t event)
 }
 
 
-/** Called prio to stack initialization */
+/** Called prior to stack initialization */
 static void preload(TRANSAC transac)
 {
+    UNUSED(transac);
     BTHCDBG("preload");
     bthc_signal_event(HC_EVENT_PRELOAD);
 }
@@ -310,14 +312,17 @@ static void preload(TRANSAC transac)
 /** Called post stack initialization */
 static void postload(TRANSAC transac)
 {
+    UNUSED(transac);
     BTHCDBG("postload");
     bthc_signal_event(HC_EVENT_POSTLOAD);
 }
 
 
 /** Transmit frame */
-static int transmit_buf(TRANSAC transac, char *p_buf, int len)
+static int transmit_buf(TRANSAC transac, char * p_buf, int len)
 {
+    UNUSED(p_buf);
+    UNUSED(len);
     utils_enqueue(&tx_q, (void *) transac);
 
     bthc_signal_event(HC_EVENT_TX);
@@ -427,6 +432,7 @@ static void *bt_hc_worker_thread(void *arg)
 {
     uint16_t events;
     HC_BT_HDR *p_msg, *p_next_msg;
+    UNUSED(arg);
 
     ALOGI("bt_hc_worker_thread started");
     prctl(PR_SET_NAME, (unsigned long)"bt_hc_worker", 0, 0, 0);
@@ -506,7 +512,7 @@ static void *bt_hc_worker_thread(void *arg)
             utils_lock();
             p_next_msg = tx_q.p_first;
             while (p_next_msg && sending_msg_count <
-                            (int)sizeof(sending_msg_que)/sizeof(sending_msg_que[0]))
+		   (int)(sizeof(sending_msg_que)/sizeof(sending_msg_que[0])))
             {
                 if ((p_next_msg->event & MSG_EVT_MASK)==MSG_STACK_TO_HC_HCI_CMD)
                 {

@@ -53,6 +53,7 @@ BOOLEAN bta_hl_set_ctrl_psm_for_dch(UINT8 app_idx, UINT8 mcl_idx,
 {
     tBTA_HL_MCL_CB *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
     BOOLEAN success = TRUE, update_ctrl_psm = FALSE;
+    UNUSED(mdl_idx);
 
     if (p_mcb->sdp.num_recs)
     {
@@ -1353,7 +1354,7 @@ BOOLEAN  bta_hl_find_non_active_mdl_cfg(UINT8 app_idx, UINT8 start_mdl_cfg_idx,
 **
 ** Function      bta_hl_find_mdl_cfg_idx
 **
-** Description  This function finds an available MDL configiration index
+** Description  This function finds an available MDL configuration index
 **
 ** Returns      BOOLEAN - TRUE found
 **                        FALSE not found
@@ -1367,7 +1368,7 @@ BOOLEAN  bta_hl_find_avail_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
     BOOLEAN             found=FALSE;
     UINT8               first_mdl_cfg_idx, second_mdl_cfg_idx, older_mdl_cfg_idx;
     BOOLEAN             done;
-
+    UNUSED(mcl_idx);
 
     for (i=0; i< BTA_HL_NUM_MDL_CFGS; i++)
     {

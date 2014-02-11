@@ -49,6 +49,7 @@
 #include "btif_config_util.h"
 #include "btif_sock_thread.h"
 #include "btif_sock_util.h"
+#include "btif_util.h"
 
 //#define UNIT_TEST
 #define CFG_PATH "/data/misc/bluedroid/"
@@ -781,6 +782,10 @@ static void load_cfg()
 }
 static void cfg_cmd_callback(int cmd_fd, int type, int size, uint32_t user_id)
 {
+    UNUSED(cmd_fd);
+    UNUSED(size);
+    UNUSED(user_id);
+
   //bdld("cmd type:%d, size:%d", type, size);
     switch(type)
     {

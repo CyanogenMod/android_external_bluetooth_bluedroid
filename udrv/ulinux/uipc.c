@@ -50,6 +50,7 @@
 
 #include <cutils/sockets.h>
 #include "audio_a2dp_hw.h"
+#include "bt_utils.h"
 
 /*****************************************************************************
 **  Constants & Macros
@@ -518,6 +519,7 @@ static void uipc_read_task(void *arg)
 {
     int ch_id;
     int result;
+    UNUSED(arg);
 
     prctl(PR_SET_NAME, (unsigned long)"uipc-main", 0, 0, 0);
 
@@ -608,6 +610,8 @@ void uipc_stop_main_server_thread(void)
 
 UDRV_API void UIPC_Init(void *p_data)
 {
+    UNUSED(p_data);
+
     BTIF_TRACE_DEBUG0("UIPC_Init");
 
     memset(&uipc_main, 0, sizeof(tUIPC_MAIN));
@@ -702,6 +706,8 @@ UDRV_API void UIPC_Close(tUIPC_CH_ID ch_id)
  *******************************************************************************/
 UDRV_API BOOLEAN UIPC_SendBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg)
 {
+    UNUSED(p_msg);
+
     BTIF_TRACE_DEBUG1("UIPC_SendBuf : ch_id %d NOT IMPLEMENTED", ch_id);
 
     UIPC_LOCK();
@@ -726,6 +732,7 @@ UDRV_API BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf,
         UINT16 msglen)
 {
     int n;
+    UNUSED(msg_evt);
 
     BTIF_TRACE_DEBUG2("UIPC_Send : ch_id:%d %d bytes", ch_id, msglen);
 
@@ -752,6 +759,8 @@ UDRV_API BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf,
  *******************************************************************************/
 UDRV_API void UIPC_ReadBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg)
 {
+    UNUSED(p_msg);
+
     BTIF_TRACE_DEBUG1("UIPC_ReadBuf : ch_id:%d NOT IMPLEMENTED", ch_id);
 
     UIPC_LOCK();
@@ -774,6 +783,7 @@ UDRV_API UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UI
     int n_read = 0;
     int fd = uipc_main.ch[ch_id].fd;
     struct pollfd pfd;
+    UNUSED(p_msg_evt);
 
     if (ch_id >= UIPC_CH_NUM)
     {

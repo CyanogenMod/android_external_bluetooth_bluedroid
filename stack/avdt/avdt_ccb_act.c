@@ -26,6 +26,7 @@
 #include <string.h>
 #include "data_types.h"
 #include "bt_target.h"
+#include "bt_utils.h"
 #include "avdt_api.h"
 #include "avdtc_api.h"
 #include "avdt_int.h"
@@ -86,6 +87,8 @@ static void avdt_ccb_clear_ccb(tAVDT_CCB *p_ccb)
 *******************************************************************************/
 void avdt_ccb_chan_open(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     BTM_SetOutService(p_ccb->peer_addr, BTM_SEC_SERVICE_AVDTP, AVDT_CHAN_SIG);
     avdt_ad_open_req(AVDT_CHAN_SIG, p_ccb, NULL, AVDT_INT);
 }
@@ -103,6 +106,8 @@ void avdt_ccb_chan_open(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_chan_close(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     /* close the transport channel used by this CCB */
     avdt_ad_close_req(AVDT_CHAN_SIG, p_ccb, NULL);
 }
@@ -122,6 +127,7 @@ void avdt_ccb_chk_close(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     int         i;
     tAVDT_SCB   *p_scb = &avdt_cb.scb[0];
+    UNUSED(p_data);
 
     /* see if there are any active scbs associated with this ccb */
     for (i = 0; i < AVDT_NUM_SEPS; i++, p_scb++)
@@ -666,6 +672,7 @@ void avdt_ccb_clear_cmds(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     int             i;
     tAVDT_SCB       *p_scb = &avdt_cb.scb[0];
     UINT8           err_code = AVDT_ERR_CONNECT;
+    UNUSED(p_data);
 
     /* clear the ccb */
     avdt_ccb_clear_ccb(p_ccb);
@@ -754,6 +761,8 @@ void avdt_ccb_cmd_fail(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_free_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     if (p_ccb->p_curr_cmd != NULL)
     {
         GKI_freebuf(p_ccb->p_curr_cmd);
@@ -838,6 +847,7 @@ void avdt_ccb_ret_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 void avdt_ccb_snd_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     BT_HDR  *p_msg;
+    UNUSED(p_data);
 
     /* do we have commands to send?  send next command;  make sure we're clear;
     ** not congested, not sending fragment, not waiting for response
@@ -870,6 +880,7 @@ void avdt_ccb_snd_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 void avdt_ccb_snd_msg(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     BT_HDR      *p_msg;
+    UNUSED(p_data);
 
     /* if not congested */
     if (!p_ccb->cong)
@@ -911,6 +922,8 @@ void avdt_ccb_snd_msg(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_set_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     p_ccb->reconn = TRUE;
 }
 
@@ -926,6 +939,8 @@ void avdt_ccb_set_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_clr_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     p_ccb->reconn = FALSE;
 }
 
@@ -944,6 +959,7 @@ void avdt_ccb_clr_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 void avdt_ccb_chk_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     UINT8   err_code = AVDT_ERR_CONNECT;
+    UNUSED(p_data);
 
     if (p_ccb->reconn)
     {
@@ -977,6 +993,8 @@ void avdt_ccb_chk_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_chk_timer(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     if (p_ccb->timer_entry.event == BTU_TTYPE_AVDT_CCB_IDLE)
     {
         btu_stop_timer(&p_ccb->timer_entry);
@@ -1036,6 +1054,8 @@ void avdt_ccb_set_disconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_do_disconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
+    UNUSED(p_data);
+
     /* clear any pending commands */
     avdt_ccb_clear_cmds(p_ccb, NULL);
 
@@ -1058,6 +1078,7 @@ void avdt_ccb_ll_closed(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     tAVDT_CTRL_CBACK    *p_cback;
     BD_ADDR             bd_addr;
     tAVDT_CTRL          avdt_ctrl;
+    UNUSED(p_data);
 
     /* clear any pending commands */
     avdt_ccb_clear_cmds(p_ccb, NULL);

@@ -25,6 +25,7 @@
 #include "gki.h"
 #include "bd.h"
 #include "bta_gatts_co.h"
+#include "btif_util.h"
 
 /*****************************************************************************
 **  Local type definitions
@@ -202,6 +203,8 @@ void btif_gatts_add_bonded_dev_from_nv(BD_ADDR bda)
 *******************************************************************************/
 void bta_gatts_co_update_handle_range(BOOLEAN is_add, tBTA_GATTS_HNDL_RANGE *p_hndl_range)
 {
+    UNUSED(is_add);
+    UNUSED(p_hndl_range);
 }
 
 /*******************************************************************************
@@ -225,6 +228,10 @@ BOOLEAN bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
                              tBTA_GATTS_SRV_CHG_REQ *p_req,
                              tBTA_GATTS_SRV_CHG_RSP *p_rsp)
 {
+    UNUSED(cmd);
+    UNUSED(p_req);
+    UNUSED(p_rsp);
+
     return FALSE;
 }
 
@@ -243,7 +250,10 @@ BOOLEAN bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
 BOOLEAN bta_gatts_co_load_handle_range(UINT8 index,
                                        tBTA_GATTS_HNDL_RANGE *p_handle_range)
 {
-   return FALSE;
+    UNUSED(index);
+    UNUSED(p_handle_range);
+
+    return FALSE;
 }
 #endif
 #endif

@@ -43,6 +43,7 @@
 
 #include <hardware/hardware.h>
 #include "audio_a2dp_hw.h"
+#include "bt_utils.h"
 
 #define LOG_TAG "audio_a2dp_hw"
 /* #define LOG_NDEBUG 0 */
@@ -150,6 +151,8 @@ static void ts_log(char *tag, int val, struct timespec *pprev_opt)
     static struct timespec prev = {0,0};
     unsigned long long now_us;
     unsigned long long diff_us;
+    UNUSED(tag);
+    UNUSED(val);
 
     clock_gettime(CLOCK_MONOTONIC, &now);
 
@@ -543,6 +546,7 @@ static audio_format_t out_get_format(const struct audio_stream *stream)
 
 static int out_set_format(struct audio_stream *stream, audio_format_t format)
 {
+    UNUSED(format);
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
     DEBUG("setting format not yet supported (0x%x)", format);
     return -ENOSYS;
@@ -551,8 +555,6 @@ static int out_set_format(struct audio_stream *stream, audio_format_t format)
 static int out_standby(struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-    int retval = 0;
-
     int retVal = 0;
 
     FNLOG();
@@ -570,6 +572,7 @@ static int out_standby(struct audio_stream *stream)
 
 static int out_dump(const struct audio_stream *stream, int fd)
 {
+    UNUSED(fd);
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
     FNLOG();
     return 0;
@@ -631,6 +634,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
 
 static char * out_get_parameters(const struct audio_stream *stream, const char *keys)
 {
+    UNUSED(keys);
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
     FNLOG();
@@ -659,6 +663,10 @@ static uint32_t out_get_latency(const struct audio_stream_out *stream)
 static int out_set_volume(struct audio_stream_out *stream, float left,
                           float right)
 {
+    UNUSED(stream);
+    UNUSED(left);
+    UNUSED(right);
+
     FNLOG();
 
     /* volume controlled in audioflinger mixer (digital) */
@@ -671,18 +679,27 @@ static int out_set_volume(struct audio_stream_out *stream, float left,
 static int out_get_render_position(const struct audio_stream_out *stream,
                                    uint32_t *dsp_frames)
 {
+    UNUSED(stream);
+    UNUSED(dsp_frames);
+
     FNLOG();
     return -EINVAL;
 }
 
 static int out_add_audio_effect(const struct audio_stream *stream, effect_handle_t effect)
 {
+    UNUSED(stream);
+    UNUSED(effect);
+
     FNLOG();
     return 0;
 }
 
 static int out_remove_audio_effect(const struct audio_stream *stream, effect_handle_t effect)
 {
+    UNUSED(stream);
+    UNUSED(effect);
+
     FNLOG();
     return 0;
 }
@@ -693,54 +710,76 @@ static int out_remove_audio_effect(const struct audio_stream *stream, effect_han
 
 static uint32_t in_get_sample_rate(const struct audio_stream *stream)
 {
+    UNUSED(stream);
+
     FNLOG();
     return 8000;
 }
 
 static int in_set_sample_rate(struct audio_stream *stream, uint32_t rate)
 {
+    UNUSED(stream);
+    UNUSED(rate);
+
     FNLOG();
     return 0;
 }
 
 static size_t in_get_buffer_size(const struct audio_stream *stream)
 {
+    UNUSED(stream);
+
     FNLOG();
     return 320;
 }
 
 static uint32_t in_get_channels(const struct audio_stream *stream)
 {
+    UNUSED(stream);
+
     FNLOG();
     return AUDIO_CHANNEL_IN_MONO;
 }
 
 static audio_format_t in_get_format(const struct audio_stream *stream)
 {
+    UNUSED(stream);
+
     FNLOG();
     return AUDIO_FORMAT_PCM_16_BIT;
 }
 
 static int in_set_format(struct audio_stream *stream, audio_format_t format)
 {
+    UNUSED(stream);
+    UNUSED(format);
+
     FNLOG();
     return 0;
 }
 
 static int in_standby(struct audio_stream *stream)
 {
+    UNUSED(stream);
+
     FNLOG();
     return 0;
 }
 
 static int in_dump(const struct audio_stream *stream, int fd)
 {
+    UNUSED(stream);
+    UNUSED(fd);
+
     FNLOG();
     return 0;
 }
 
 static int in_set_parameters(struct audio_stream *stream, const char *kvpairs)
 {
+    UNUSED(stream);
+    UNUSED(kvpairs);
+
     FNLOG();
     return 0;
 }
@@ -748,12 +787,18 @@ static int in_set_parameters(struct audio_stream *stream, const char *kvpairs)
 static char * in_get_parameters(const struct audio_stream *stream,
                                 const char *keys)
 {
+    UNUSED(stream);
+    UNUSED(keys);
+
     FNLOG();
     return strdup("");
 }
 
 static int in_set_gain(struct audio_stream_in *stream, float gain)
 {
+    UNUSED(stream);
+    UNUSED(gain);
+
     FNLOG();
     return 0;
 }
@@ -761,24 +806,36 @@ static int in_set_gain(struct audio_stream_in *stream, float gain)
 static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
                        size_t bytes)
 {
+    UNUSED(stream);
+    UNUSED(buffer);
+    UNUSED(bytes);
+
     FNLOG();
     return bytes;
 }
 
 static uint32_t in_get_input_frames_lost(struct audio_stream_in *stream)
 {
+    UNUSED(stream);
+
     FNLOG();
     return 0;
 }
 
 static int in_add_audio_effect(const struct audio_stream *stream, effect_handle_t effect)
 {
+    UNUSED(stream);
+    UNUSED(effect);
+
     FNLOG();
     return 0;
 }
 
 static int in_remove_audio_effect(const struct audio_stream *stream, effect_handle_t effect)
 {
+    UNUSED(stream);
+    UNUSED(effect);
+
     FNLOG();
 
     return 0;
@@ -796,6 +853,9 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     struct a2dp_stream_out *out;
     int ret = 0;
     int i;
+    UNUSED(handle);
+    UNUSED(devices);
+    UNUSED(flags);
 
     INFO("opening output");
 
@@ -908,6 +968,7 @@ static char * adev_get_parameters(const struct audio_hw_device *dev,
                                   const char *keys)
 {
     struct str_parms *parms;
+    UNUSED(dev);
 
     FNLOG();
 
@@ -931,6 +992,9 @@ static int adev_init_check(const struct audio_hw_device *dev)
 
 static int adev_set_voice_volume(struct audio_hw_device *dev, float volume)
 {
+    UNUSED(dev);
+    UNUSED(volume);
+
     FNLOG();
 
     return -ENOSYS;
@@ -938,6 +1002,9 @@ static int adev_set_voice_volume(struct audio_hw_device *dev, float volume)
 
 static int adev_set_master_volume(struct audio_hw_device *dev, float volume)
 {
+    UNUSED(dev);
+    UNUSED(volume);
+
     FNLOG();
 
     return -ENOSYS;
@@ -945,6 +1012,9 @@ static int adev_set_master_volume(struct audio_hw_device *dev, float volume)
 
 static int adev_set_mode(struct audio_hw_device *dev, int mode)
 {
+    UNUSED(dev);
+    UNUSED(mode);
+
     FNLOG();
 
     return 0;
@@ -952,6 +1022,9 @@ static int adev_set_mode(struct audio_hw_device *dev, int mode)
 
 static int adev_set_mic_mute(struct audio_hw_device *dev, bool state)
 {
+    UNUSED(dev);
+    UNUSED(state);
+
     FNLOG();
 
     return -ENOSYS;
@@ -959,6 +1032,9 @@ static int adev_set_mic_mute(struct audio_hw_device *dev, bool state)
 
 static int adev_get_mic_mute(const struct audio_hw_device *dev, bool *state)
 {
+    UNUSED(dev);
+    UNUSED(state);
+
     FNLOG();
 
     return -ENOSYS;
@@ -967,6 +1043,9 @@ static int adev_get_mic_mute(const struct audio_hw_device *dev, bool *state)
 static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev,
                                          const struct audio_config *config)
 {
+    UNUSED(dev);
+    UNUSED(config);
+
     FNLOG();
 
     return 320;
@@ -981,6 +1060,9 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
     struct a2dp_audio_device *ladev = (struct a2dp_audio_device *)dev;
     struct a2dp_stream_in *in;
     int ret;
+    UNUSED(handle);
+    UNUSED(devices);
+    UNUSED(config);
 
     FNLOG();
 
@@ -1017,6 +1099,9 @@ err_open:
 static void adev_close_input_stream(struct audio_hw_device *dev,
                                    struct audio_stream_in *in)
 {
+    UNUSED(dev);
+    UNUSED(in);
+
     FNLOG();
 
     return;
@@ -1024,6 +1109,9 @@ static void adev_close_input_stream(struct audio_hw_device *dev,
 
 static int adev_dump(const audio_hw_device_t *device, int fd)
 {
+    UNUSED(device);
+    UNUSED(fd);
+
     FNLOG();
 
     return 0;

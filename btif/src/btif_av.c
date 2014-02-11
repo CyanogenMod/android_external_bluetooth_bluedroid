@@ -202,6 +202,7 @@ const char *dump_av_sm_event_name(btif_av_sm_event_t event)
 static void btif_initiate_av_open_tmr_hdlr(TIMER_LIST_ENT *tle)
 {
     BD_ADDR peer_addr;
+    UNUSED(tle);
 
     /* is there at least one RC connection - There should be */
     if (btif_rc_get_connected_peer(peer_addr)) {

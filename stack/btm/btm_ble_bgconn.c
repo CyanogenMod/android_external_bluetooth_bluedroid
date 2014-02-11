@@ -29,7 +29,7 @@
 #include "btm_int.h"
 #include "l2c_int.h"
 #include "hcimsgs.h"
-
+#include "bt_utils.h"
 
 #ifndef BTM_BLE_SCAN_PARAM_TOUT
 #define BTM_BLE_SCAN_PARAM_TOUT      50    /* 50 seconds */
@@ -73,6 +73,7 @@ BOOLEAN btm_add_dev_to_controller (BOOLEAN to_add, BD_ADDR bd_addr, UINT8 attr)
     BOOLEAN             started = FALSE;
     BD_ADDR             dummy_bda = {0};
     tBT_DEVICE_TYPE dev_type;
+    UNUSED(attr);
 
     if (p_dev_rec != NULL &&
         p_dev_rec->device_type == BT_DEVICE_TYPE_BLE)
@@ -227,6 +228,8 @@ void btm_ble_clear_white_list_complete(UINT8 *p_data, UINT16 evt_len)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
     UINT8       status;
+    UNUSED(evt_len);
+
     BTM_TRACE_EVENT0 ("btm_ble_clear_white_list_complete");
     STREAM_TO_UINT8  (status, p_data);
 
@@ -259,6 +262,8 @@ void btm_ble_add_2_white_list_complete(UINT8 status)
 void btm_ble_remove_from_white_list_complete(UINT8 *p, UINT16 evt_len)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
+    UNUSED(evt_len);
+
     BTM_TRACE_EVENT0 ("btm_ble_remove_from_white_list_complete");
     if (*p == HCI_SUCCESS)
     {
@@ -299,6 +304,7 @@ BOOLEAN btm_update_bg_conn_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 *p_attr_t
     tBTM_LE_BG_CONN_DEV     *p_bg_dev = &p_cb->bg_dev_list[0], *p_next, *p_cur;
     UINT8                   i, j;
     BOOLEAN             ret = FALSE;
+    UNUSED(p_attr_tag);
 
     BTM_TRACE_EVENT0 ("btm_update_bg_conn_list");
 

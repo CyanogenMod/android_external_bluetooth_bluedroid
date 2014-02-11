@@ -27,6 +27,7 @@
 #include <stdio.h>
 
 #include "bt_target.h"
+#include "bt_utils.h"
 #include "gki.h"
 #include "l2cdefs.h"
 #include "hcidefs.h"
@@ -244,6 +245,8 @@ BOOLEAN SDP_ServiceSearchAttributeRequest2 (UINT8 *p_bd_addr, tSDP_DISCOVERY_DB 
 #if SDP_CLIENT_ENABLED == TRUE
 void SDP_SetIdleTimeout (BD_ADDR addr, UINT16 timeout)
 {
+    UNUSED(addr);
+    UNUSED(timeout);
 }
 #endif
 

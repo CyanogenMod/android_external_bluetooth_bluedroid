@@ -30,7 +30,7 @@
 #include "btif_hh.h"
 #include "bta_api.h"
 #include "bta_hh_api.h"
-
+#include "btif_util.h"
 
 
 const char *dev_path = "/dev/uhid";
@@ -365,6 +365,7 @@ void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len, tBTA_HH_PROTO_MO
                     UINT8 sub_class, UINT8 ctry_code, BD_ADDR peer_addr, UINT8 app_id)
 {
     btif_hh_device_t *p_dev;
+    UNUSED(peer_addr);
 
     APPL_TRACE_DEBUG6("%s: dev_handle = %d, subclass = 0x%02X, mode = %d, "
          "ctry_code = %d, app_id = %d",

@@ -17,7 +17,7 @@
  ******************************************************************************/
 
 #include "bt_target.h"
-
+#include "bt_utils.h"
 #include "gatt_api.h"
 #include "gatt_int.h"
 #include "srvc_eng_int.h"
@@ -230,6 +230,7 @@ UINT8 srvc_eng_process_read_req (UINT8 clcb_idx, tGATT_READ_REQ *p_data, tGATTS_
 UINT8 srvc_eng_process_write_req (UINT8 clcb_idx, tGATT_WRITE_REQ *p_data, tGATTS_RSP *p_rsp, tGATT_STATUS *p_status)
 {
     UINT8       act = SRVC_ACT_RSP;
+    UNUSED(p_rsp);
 
     if (dis_valid_handle_range(p_data->handle))
     {
@@ -342,6 +343,8 @@ static void srvc_eng_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATU
 static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
                                         BOOLEAN connected, tGATT_DISCONN_REASON reason)
 {
+    UNUSED(gatt_if);
+
     GATT_TRACE_EVENT5 ("srvc_eng_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",
                        (bda[0]<<24)+(bda[1]<<16)+(bda[2]<<8)+bda[3],
                        (bda[4]<<8)+bda[5], connected, conn_id, reason);

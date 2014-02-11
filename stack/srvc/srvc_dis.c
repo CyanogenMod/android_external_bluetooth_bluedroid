@@ -17,7 +17,7 @@
  ******************************************************************************/
 
 #include "bt_target.h"
-
+#include "bt_utils.h"
 #include "gatt_api.h"
 #include "gatt_int.h"
 #include "srvc_eng_int.h"
@@ -76,6 +76,8 @@ BOOLEAN dis_valid_handle_range(UINT16 handle)
 *******************************************************************************/
 UINT8 dis_write_attr_value(tGATT_WRITE_REQ * p_data, tGATT_STATUS *p_status)
 {
+    UNUSED(p_data);
+
     *p_status = GATT_WRITE_NOT_PERMIT;
     return SRVC_ACT_RSP;
 }
@@ -90,6 +92,7 @@ UINT8 dis_read_attr_value (UINT8 clcb_idx, UINT16 handle, tGATT_VALUE *p_value,
     UINT16          offset = p_value->offset;
     UINT8           act = SRVC_ACT_RSP;
     tGATT_STATUS    st = GATT_NOT_FOUND;
+    UNUSED(clcb_idx);
 
     for (i = 0; i < DIS_MAX_CHAR_NUM; i ++, p_db_attr ++)
     {

@@ -18,6 +18,7 @@
 
 
 #include "bt_target.h"
+#include "bt_utils.h"
 #include "btu.h"
 #include "gap_int.h"
 #include "l2cdefs.h"
@@ -801,6 +802,7 @@ static void gap_checks_con_flags (tGAP_CCB    *p_ccb)
 static void gap_sec_check_complete (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
 {
     tGAP_CCB *p_ccb = (tGAP_CCB *)p_ref_data;
+    UNUSED(bd_addr);
 
     GAP_TRACE_EVENT3 ("gap_sec_check_complete conn_state:%d, conn_flags:0x%x, status:%d",
         p_ccb->con_state, p_ccb->con_flags, res);

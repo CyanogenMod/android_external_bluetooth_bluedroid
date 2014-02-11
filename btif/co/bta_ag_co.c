@@ -21,6 +21,7 @@
 #include "bta_ag_api.h"
 #include "bta_ag_co.h"
 #include "bte_appl.h"
+#include "bt_utils.h"
 
 #define LOG_TAG "BTA_AG_CO: "
 
@@ -74,6 +75,7 @@ void bta_ag_co_init(void)
 *******************************************************************************/
 void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state)
 {
+    UNUSED(app_id);
     BTIF_TRACE_DEBUG2("bta_ag_co_audio_state: handle %d, state %d", handle, state);
 }
 
@@ -127,6 +129,7 @@ void bta_ag_co_data_close(UINT16 handle)
  *******************************************************************************/
 void bta_ag_co_tx_write(UINT16 handle, UINT8 * p_data, UINT16 len)
 {
-   BTIF_TRACE_DEBUG2( "bta_ag_co_tx_write: handle: %d, len: %d", handle, len );
+    UNUSED(p_data);
+    BTIF_TRACE_DEBUG2( "bta_ag_co_tx_write: handle: %d, len: %d", handle, len );
 }
 

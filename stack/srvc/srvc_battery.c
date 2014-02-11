@@ -17,7 +17,7 @@
  ******************************************************************************/
 
 #include "bt_target.h"
-
+#include "bt_utils.h"
 #include "gatt_api.h"
 #include "gatt_int.h"
 #include "srvc_eng_int.h"
@@ -115,10 +115,11 @@ UINT8 battery_s_read_attr_value (UINT8 clcb_idx, UINT16 handle, tGATT_VALUE *p_v
     tBA_INST    *p_inst = &battery_cb.battery_inst[0];
     tGATT_STATUS    st = GATT_NOT_FOUND;
     UINT8       act = SRVC_ACT_RSP;
+    UNUSED(p_value);
 
-        for (i = 0; i < BA_MAX_INT_NUM; i ++, p_inst ++)
-        {
-            /* read battery level */
+    for (i = 0; i < BA_MAX_INT_NUM; i ++, p_inst ++)
+    {
+        /* read battery level */
         if (handle == p_inst->ba_level_hdl ||
             handle == p_inst->clt_cfg_hdl ||
             handle == p_inst->rpt_ref_hdl ||
@@ -164,6 +165,7 @@ UINT8 battery_s_read_attr_value (UINT8 clcb_idx, UINT16 handle, tGATT_VALUE *p_v
 *******************************************************************************/
 BOOLEAN battery_gatt_c_read_ba_req(UINT16 conn_id)
 {
+    UNUSED(conn_id);
     return TRUE;
 }
 
@@ -179,6 +181,10 @@ BOOLEAN battery_gatt_c_read_ba_req(UINT16 conn_id)
 void battery_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
                               tGATT_STATUS status, tGATT_CL_COMPLETE *p_data)
 {
+    UNUSED(p_clcb);
+    UNUSED(op);
+    UNUSED(status);
+    UNUSED(p_data);
 }
 
 
@@ -395,6 +401,7 @@ void Battery_Notify (UINT8 app_id, BD_ADDR remote_bda, UINT8 battery_level)
 *******************************************************************************/
 BOOLEAN Battery_ReadBatteryLevel(BD_ADDR peer_bda)
 {
+    UNUSED(peer_bda);
     /* to be implemented */
     return TRUE;
 }

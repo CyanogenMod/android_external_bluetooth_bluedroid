@@ -33,6 +33,7 @@
 #include "bta_hh_api.h"
 #include "bta_hh_int.h"
 #include "l2c_api.h"
+#include "utl.h"
 
 /*****************************************************************************
 **  Constants
@@ -305,12 +306,13 @@ void BTA_HhSendCtrl(UINT8 dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type)
 *******************************************************************************/
 void BTA_HhSendData(UINT8 dev_handle, BD_ADDR dev_bda, BT_HDR  *p_data)
 {
+    UNUSED(dev_bda);
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
-        if (p_data->layer_specific != BTA_HH_RPTT_OUTPUT)
-        {
-            APPL_TRACE_ERROR0("ERROR! Wrong report type! Write Command only valid for output report!");
-            return;
-        }
+    if (p_data->layer_specific != BTA_HH_RPTT_OUTPUT)
+    {
+        APPL_TRACE_ERROR0("ERROR! Wrong report type! Write Command only valid for output report!");
+        return;
+    }
 #endif
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_DATA, (UINT8)p_data->layer_specific, 0, 0, p_data);
 }
