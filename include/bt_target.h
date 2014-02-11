@@ -264,7 +264,15 @@
 #endif
 
 #ifndef BTA_GATT_INCLUDED
+#if BLE_INCLUDED == TRUE
 #define BTA_GATT_INCLUDED TRUE
+#else
+#define BTA_GATT_INCLUDED FALSE
+#endif
+#endif
+
+#if BTA_GATT_INCLUDED == TRUE && BLE_INCLUDED == FALSE
+#error "can't have GATT without BLE"
 #endif
 
 #ifndef BTA_DISABLE_DELAY
@@ -1465,7 +1473,15 @@ and USER_HW_DISABLE_API macros */
 **
 ******************************************************************************/
 #ifndef SMP_INCLUDED
+#if BLE_INCLUDED == TRUE
 #define SMP_INCLUDED         TRUE
+#else
+#define SMP_INCLUDED         FALSE
+#endif
+#endif
+
+#if SMP_INCLUDED == TRUE && BLE_INCLUDED == FALSE
+#error "can't have SMP without BLE"
 #endif
 
 #ifndef SMP_DEBUG
