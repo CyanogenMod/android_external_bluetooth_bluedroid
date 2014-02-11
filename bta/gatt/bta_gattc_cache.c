@@ -35,6 +35,7 @@
 #include "sdpdefs.h"
 #include "bta_gattc_int.h"
 #include "btm_api.h"
+#include "btm_ble_api.h"
 
 static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb);
 static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb);
