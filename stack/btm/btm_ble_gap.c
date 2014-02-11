@@ -27,6 +27,7 @@
 #include <stddef.h>
 
 #include "bt_types.h"
+#include "bt_utils.h"
 #include "btu.h"
 #include "btm_int.h"
 #include "hcimsgs.h"
@@ -85,7 +86,10 @@ void BTM_BleReset(void)
 *******************************************************************************/
 BOOLEAN BTM_BleUpdateAdvWhitelist(BOOLEAN add_remove, BD_ADDR remote_bda)
 {
-        return FALSE;
+    UNUSED(add_remove);
+    UNUSED(remote_bda);
+
+    return FALSE;
 }
 
 /*******************************************************************************
@@ -279,6 +283,8 @@ void BTM_RegisterScanReqEvt(tBTM_BLE_SCAN_REQ_CBACK   *p_scan_req_cback)
         tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
         p_cb->p_scan_req_cback = p_scan_req_cback;
     }
+#else
+    UNUSED(p_scan_req_cback);
 #endif
 }
 
@@ -1391,6 +1397,7 @@ void btm_ble_cache_adv_data(tBTM_INQ_RESULTS *p_cur, UINT8 data_len, UINT8 *p, U
     tBTM_BLE_INQ_CB     *p_le_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
     UINT8 *p_cache;
     UINT8 length;
+    UNUSED(p_cur);
 
     /* cache adv report/scan response data */
     if (evt_type != BTM_BLE_SCAN_RSP_EVT)
@@ -1619,6 +1626,7 @@ void btm_send_sel_conn_callback(BD_ADDR remote_bda, UINT8 evt_type, UINT8 *p_dat
 {
     UINT8   data_len, len;
     UINT8   *p_dev_name, remname[31] = {0};
+    UNUSED(addr_type);
 
     if (btm_cb.ble_ctr_cb.p_select_cback == NULL ||
         /* non-connectable device */
@@ -2032,6 +2040,8 @@ void btm_ble_update_mode_operation(UINT8 link_role, BD_ADDR bd_addr, BOOLEAN con
     tACL_CONN   *pa = &btm_cb.acl_db[0];
     UINT16       xx;
     UINT8        dev_role = link_role;
+    UNUSED(bd_addr);
+    UNUSED(conn_cancel);
 
     BTM_TRACE_DEBUG1("btm_ble_update_mode_operation adv_mode = %d", btm_cb.ble_ctr_cb.inq_var.adv_mode );
 

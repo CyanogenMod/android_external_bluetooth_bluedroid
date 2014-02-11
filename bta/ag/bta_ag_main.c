@@ -28,6 +28,7 @@
 #include "bta_ag_co.h"
 #include "bta_ag_int.h"
 #include "bd.h"
+#include "utl.h"
 
 /*****************************************************************************
 ** Constants and types
@@ -586,6 +587,8 @@ void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
 {
     UINT16  handle;
     tBTA_AG_SCB *p_scb;
+    UNUSED(status);
+    UNUSED(app_id);
 
     /* Check if we have opening scb for the peer device. */
     handle = bta_ag_idx_by_bdaddr (peer_addr);

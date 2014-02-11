@@ -689,6 +689,7 @@ static BOOLEAN bta_gattc_srvc_in_list(tBTA_GATTC_SERV *p_srvc_cb, UINT16 s_handl
     tBTA_GATTC_ATTR_REC *p_rec = NULL;
     UINT8   i;
     BOOLEAN exist_srvc = FALSE;
+    UNUSED(uuid);
 
     if (!GATT_HANDLE_IS_VALID(s_handle) || !GATT_HANDLE_IS_VALID(e_handle))
     {

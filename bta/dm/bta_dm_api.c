@@ -31,6 +31,7 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include <string.h>
+#include "utl.h"
 
 /*****************************************************************************
 **  Constants
@@ -207,7 +208,7 @@ void BTA_DmSetDeviceName(char *p_name)
     {
         p_msg->hdr.event = BTA_DM_API_SET_NAME_EVT;
         /* truncate the name if needed */
-        BCM_STRNCPY_S(p_msg->name, sizeof(p_msg->name), p_name, BD_NAME_LEN-1);
+        BCM_STRNCPY_S((char *)p_msg->name, sizeof(p_msg->name), p_name, BD_NAME_LEN-1);
         p_msg->name[BD_NAME_LEN-1]=0;
 
         bta_sys_sendmsg(p_msg);
@@ -1715,8 +1716,8 @@ void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services, t
 *******************************************************************************/
 void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, BOOLEAN privacy_enable)
 {
-#if BLE_INCLUDED == TRUE
-#endif
+    UNUSED(bd_addr);
+    UNUSED(privacy_enable);
 }
 
 
@@ -1733,8 +1734,7 @@ void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, BOOLEAN privacy_enable)
 *******************************************************************************/
 void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable)
 {
-#if BLE_INCLUDED == TRUE
-#endif
+    UNUSED(privacy_enable);
 }
 
 

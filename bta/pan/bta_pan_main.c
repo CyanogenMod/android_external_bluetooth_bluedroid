@@ -34,6 +34,7 @@
 #include "bta_pan_api.h"
 #include "bta_pan_int.h"
 #include "bd.h"
+#include "utl.h"
 
 /*****************************************************************************
 ** Constants and types
@@ -265,6 +266,8 @@ static void bta_pan_api_enable(tBTA_PAN_DATA *p_data)
 *******************************************************************************/
 static void bta_pan_api_disable(tBTA_PAN_DATA *p_data)
 {
+    UNUSED(p_data);
+
     bta_pan_disable();
 }
 

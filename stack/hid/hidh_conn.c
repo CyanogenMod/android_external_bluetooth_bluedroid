@@ -41,6 +41,7 @@
 
 #include "hidh_api.h"
 #include "hidh_int.h"
+#include "bt_utils.h"
 
 static UINT8 find_conn_by_cid (UINT16 cid);
 static void hidh_conn_retry (UINT8 dhandle);
@@ -163,6 +164,7 @@ tHID_STATUS hidh_conn_disconnect (UINT8 dhandle)
 void hidh_sec_check_complete_term (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
 {
     tHID_HOST_DEV_CTB *p_dev= (tHID_HOST_DEV_CTB *) p_ref_data;
+    UNUSED(bd_addr);
 
     if( res == BTM_SUCCESS && p_dev->conn.conn_state == HID_CONN_STATE_SECURITY )
     {
@@ -320,6 +322,7 @@ void hidh_sec_check_complete_orig (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
     UINT32 cb_res = HID_ERR_AUTH_FAILED;
 #endif
     UINT32 reason;
+    UNUSED(bd_addr);
 
     dhandle = ((UINT32)p_dev - (UINT32)&(hh_cb.devices[0]))/ sizeof(tHID_HOST_DEV_CTB);
     if( res == BTM_SUCCESS && p_dev->conn.conn_state == HID_CONN_STATE_SECURITY )
@@ -654,6 +657,7 @@ static void hidh_l2cif_disconnect_cfm (UINT16 l2cap_cid, UINT16 result)
 {
     UINT8 dhandle;
     tHID_CONN    *p_hcon = NULL;
+    UNUSED(result);
 
     /* Find CCB based on CID */
     if( (dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES )

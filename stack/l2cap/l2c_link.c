@@ -30,6 +30,7 @@
 
 #include "gki.h"
 #include "bt_types.h"
+#include "bt_utils.h"
 #include "hcimsgs.h"
 #include "l2cdefs.h"
 #include "l2c_int.h"
@@ -949,7 +950,9 @@ UINT8 l2c_link_pkts_rcvd (UINT16 *num_pkts, UINT16 *handles)
             num_found++;
         }
     }
-
+#else
+    UNUSED(num_pkts);
+    UNUSED(handles);
 #endif
 
     return (num_found);

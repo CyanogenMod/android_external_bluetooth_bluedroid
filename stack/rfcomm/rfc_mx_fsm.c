@@ -31,6 +31,7 @@
 #include "port_int.h"
 #include "l2c_api.h"
 #include "rfc_int.h"
+#include "bt_utils.h"
 
 #define L2CAP_SUCCESS   0
 #define L2CAP_ERROR     1
@@ -308,6 +309,8 @@ void rfc_mx_sm_state_configure (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 *******************************************************************************/
 void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 {
+    UNUSED(p_data);
+
     RFCOMM_TRACE_EVENT1 ("rfc_mx_sm_sabme_wait_ua - evt:%d", event);
     switch (event)
     {
@@ -436,6 +439,8 @@ void rfc_mx_sm_state_wait_sabme (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 *******************************************************************************/
 void rfc_mx_sm_state_connected (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 {
+    UNUSED(p_data);
+
     RFCOMM_TRACE_EVENT1 ("rfc_mx_sm_state_connected - evt:%d", event);
 
     switch (event)

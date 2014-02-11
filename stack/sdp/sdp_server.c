@@ -29,6 +29,7 @@
 
 #include "gki.h"
 #include "bt_types.h"
+#include "bt_utils.h"
 #include "btu.h"
 
 #include "l2cdefs.h"
@@ -177,6 +178,7 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
     tSDP_RECORD    *p_rec = NULL;
     BT_HDR         *p_buf;
     BOOLEAN         is_cont = FALSE;
+    UNUSED(p_req_end);
 
     p_req = sdpu_extract_uid_seq (p_req, param_len, &uid_seq);
 
@@ -565,6 +567,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     BOOLEAN         maxxed_out = FALSE, is_cont = FALSE;
     UINT8           *p_seq_start;
     UINT16          seq_len, attr_len;
+    UNUSED(p_req_end);
 
     /* Extract the UUID sequence to search for */
     p_req = sdpu_extract_uid_seq (p_req, param_len, &uid_seq);

@@ -1442,6 +1442,8 @@ static bt_status_t get_idle_time(bt_bdaddr_t *bd_addr)
 *******************************************************************************/
 static bt_status_t set_idle_time (bt_bdaddr_t *bd_addr, uint8_t idle_time)
 {
+    UNUSED(idle_time);
+
     CHECK_BTHH_INIT();
     btif_hh_device_t *p_dev;
     BD_ADDR* bda = (BD_ADDR*) bd_addr;
@@ -1480,6 +1482,7 @@ static bt_status_t get_protocol (bt_bdaddr_t *bd_addr, bthh_protocol_mode_t prot
     CHECK_BTHH_INIT();
     btif_hh_device_t *p_dev;
     BD_ADDR* bda = (BD_ADDR*) bd_addr;
+    UNUSED(protocolMode);
 
     BTIF_TRACE_DEBUG6(" addr = %02X:%02X:%02X:%02X:%02X:%02X",
          (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
@@ -1649,7 +1652,6 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
         //TODO
         hex_bytes_filled = ascii_2_hex(report, len, hexbuf);
         ALOGI("Hex bytes filled, hex value: %d", hex_bytes_filled);
-
         if (hex_bytes_filled) {
             UINT8* pbuf_data;
             pbuf_data = (UINT8*) (p_dev->p_buf + 1) + p_dev->p_buf->offset;

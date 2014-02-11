@@ -26,6 +26,7 @@
 #include <string.h>
 #include "data_types.h"
 #include "bt_target.h"
+#include "bt_utils.h"
 #include "avdt_api.h"
 #include "avdtc_api.h"
 #include "avdt_int.h"
@@ -539,10 +540,10 @@ void avdt_scb_event(tAVDT_SCB *p_scb, UINT8 event, tAVDT_SCB_EVT *p_data)
     state_table = avdt_scb_st_tbl[p_scb->state];
 
     /* set next state */
-    if (p_scb->state != state_table[event][AVDT_SCB_NEXT_STATE])
+    if (p_scb->state != state_table[event][AVDT_SCB_NEXT_STATE]) {
         BTTRC_AVDT_SCB_STATE(state_table[event][AVDT_SCB_NEXT_STATE]);
-    p_scb->state = state_table[event][AVDT_SCB_NEXT_STATE];
-
+        p_scb->state = state_table[event][AVDT_SCB_NEXT_STATE];
+    }
 
     /* execute action functions */
     for (i = 0; i < AVDT_SCB_ACTIONS; i++)
@@ -647,6 +648,7 @@ void avdt_scb_dealloc(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 #if AVDT_MULTIPLEXING == TRUE
     void *p_buf;
 #endif
+    UNUSED(p_data);
 
     AVDT_TRACE_DEBUG1("avdt_scb_dealloc hdl=%d", avdt_scb_to_hdl(p_scb));
     btu_stop_timer(&p_scb->timer_entry);

@@ -103,6 +103,10 @@ static char * format_uuid(tBT_UUID bt_uuid, char *str_buf)
 static void btif_test_connect_cback(tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
                                     BOOLEAN connected, tGATT_DISCONN_REASON reason)
 {
+    UNUSED(gatt_if);
+    UNUSED(bda);
+    UNUSED(reason);
+
     ALOGD("%s: conn_id=%d, connected=%d", __FUNCTION__, conn_id, connected);
     test_cb.conn_id = connected ? conn_id : 0;
 }
@@ -137,6 +141,7 @@ static void btif_test_discovery_result_cback(UINT16 conn_id, tGATT_DISC_TYPE dis
                                            tGATT_DISC_RES *p_data)
 {
     char    str_buf[50];
+    UNUSED(conn_id);
 
     ALOGD("------ GATT Discovery result %-22s -------", disc_name[disc_type]);
     ALOGD("      Attribute handle: 0x%04x (%d)", p_data->handle, p_data->handle);
@@ -188,6 +193,8 @@ static void btif_test_discovery_complete_cback(UINT16 conn_id,
                                                tGATT_DISC_TYPE disc_type,
                                                tGATT_STATUS status)
 {
+    UNUSED(conn_id);
+    UNUSED(disc_type);
     ALOGD("%s: status=%d", __FUNCTION__, status);
 }
 

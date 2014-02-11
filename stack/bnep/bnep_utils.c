@@ -29,6 +29,7 @@
 #include "bnep_int.h"
 #include "btu.h"
 #include "btm_int.h"
+#include "bt_utils.h"
 
 
 /********************************************************************************/
@@ -1213,6 +1214,7 @@ void bnep_sec_check_complete (BD_ADDR bd_addr, void *p_ref_data, UINT8 result)
     tBNEP_CONN      *p_bcb = (tBNEP_CONN *)p_ref_data;
     UINT16          resp_code = BNEP_SETUP_CONN_OK;
     BOOLEAN         is_role_change;
+    UNUSED(bd_addr);
 
     BNEP_TRACE_EVENT1 ("BNEP security callback returned result %d", result);
     if (p_bcb->con_flags & BNEP_FLAGS_CONN_COMPLETED)

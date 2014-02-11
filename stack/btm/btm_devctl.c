@@ -29,6 +29,7 @@
 #include <stddef.h>
 
 #include "bt_types.h"
+#include "bt_utils.h"
 #include "hcimsgs.h"
 #include "btu.h"
 #include "btm_int.h"
@@ -729,6 +730,7 @@ void btm_read_hci_buf_size_complete (UINT8 *p, UINT16 evt_len)
     UINT16      lm_num_acl_bufs;
     UINT16      lm_num_sco_bufs;
     UINT16      acl_buf_size;
+    UNUSED(evt_len);
 
     STREAM_TO_UINT8  (status, p);
     if (status == HCI_SUCCESS)
@@ -790,8 +792,9 @@ void btm_read_ble_buf_size_complete (UINT8 *p, UINT16 evt_len)
 {
     UINT8       status;
     UINT16      lm_num_le_bufs;
+    UNUSED(evt_len);
 
-     BTM_TRACE_DEBUG0("btm_read_ble_buf_size_complete ");
+    BTM_TRACE_DEBUG0("btm_read_ble_buf_size_complete ");
     STREAM_TO_UINT8  (status, p);
     if (status == HCI_SUCCESS)
     {
@@ -823,6 +826,7 @@ void btm_read_ble_buf_size_complete (UINT8 *p, UINT16 evt_len)
 void btm_read_ble_local_supported_features_complete (UINT8 *p, UINT16 evt_len)
 {
     UINT8       status;
+    UNUSED(evt_len);
 
     BTM_TRACE_DEBUG0("btm_read_ble_local_supported_features_complete ");
 
@@ -860,8 +864,9 @@ void btm_read_ble_local_supported_features_complete (UINT8 *p, UINT16 evt_len)
 void btm_read_white_list_size_complete(UINT8 *p, UINT16 evt_len)
 {
     UINT8       status;
+    UNUSED(evt_len);
 
-     BTM_TRACE_DEBUG0("btm_read_white_list_size_complete ");
+    BTM_TRACE_DEBUG0("btm_read_white_list_size_complete ");
     STREAM_TO_UINT8  (status, p);
 
     if (status == HCI_SUCCESS)
@@ -888,6 +893,7 @@ void btm_read_local_version_complete (UINT8 *p, UINT16 evt_len)
 {
     tBTM_VERSION_INFO   *p_vi = &btm_cb.devcb.local_version;
     UINT8                status;
+    UNUSED(evt_len);
 
 #ifdef BTA_PRM_CHECK_FW_VER
     if(BTA_PRM_CHECK_FW_VER(p))
@@ -1120,7 +1126,7 @@ void btm_reset_ctrlr_complete ()
     btu_stop_timer (&btm_cb.devcb.reset_timer);
 
     /* find the highest feature page number which contains non-zero bits */
-    for (i = HCI_EXT_FEATURES_PAGE_MAX; i >= 0; i--)
+    for (i = HCI_EXT_FEATURES_PAGE_MAX; ; i--)
     {
         for (j = 0; j < HCI_FEATURE_BYTES_PER_PAGE; j++)
         {
@@ -1326,6 +1332,7 @@ void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len)
 {
     tBTM_DEVCB     *p_devcb = &btm_cb.devcb;
     UINT8           status;
+    UNUSED(evt_len);
 
     btu_stop_timer (&p_devcb->reset_timer);
 
@@ -1369,6 +1376,7 @@ void btm_read_local_ext_features_complete (UINT8 *p, UINT16 evt_len)
     UINT8           status;
     UINT8           page_number;
     UINT8           page_number_max;
+    UNUSED(evt_len);
 
     btu_stop_timer (&btm_cb.devcb.reset_timer);
 
@@ -1644,6 +1652,7 @@ void btm_read_local_name_complete (UINT8 *p, UINT16 evt_len)
 {
     tBTM_CMPL_CB   *p_cb = btm_cb.devcb.p_rln_cmpl_cb;
     UINT8           status;
+    UNUSED(evt_len);
 
     btu_stop_timer (&btm_cb.devcb.rln_timer);
 
@@ -1708,6 +1717,7 @@ tBTM_STATUS BTM_ReadLocalDeviceAddr (tBTM_CMPL_CB *p_cb)
 void btm_read_local_addr_complete (UINT8 *p, UINT16 evt_len)
 {
     UINT8           status;
+    UNUSED(evt_len);
 
     STREAM_TO_UINT8  (status, p);
 

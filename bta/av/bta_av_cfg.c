@@ -110,6 +110,10 @@ const tBTA_AV_CFG bta_av_cfg =
     BTA_AV_RC_PASS_RSP_CODE,/* the default response code for pass through commands */
     bta_av_meta_caps_co_ids,/* the metadata Get Capabilities response for company id */
     bta_av_meta_caps_evt_ids,/* the the metadata Get Capabilities response for event id */
+    NULL,                   /* the action function table for VDP stream */
+    NULL,                   /* action function to register VDP */
+    {0},                    /* Default AVRCP controller name */
+    {0},                    /* Default AVRCP target name */
 };
 
 tBTA_AV_CFG *p_bta_av_cfg = (tBTA_AV_CFG *) &bta_av_cfg;

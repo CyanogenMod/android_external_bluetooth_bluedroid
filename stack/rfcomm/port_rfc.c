@@ -32,6 +32,7 @@
 #include "btm_api.h"
 #include "port_int.h"
 #include "rfc_int.h"
+#include "bt_utils.h"
 
 /*
 ** Local function definitions
@@ -581,6 +582,7 @@ void PORT_PortNegInd (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars,
 void PORT_PortNegCnf (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars, UINT16 result)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
+    UNUSED(p_pars);
 
     RFCOMM_TRACE_EVENT0 ("PORT_PortNegCnf");
 
@@ -682,6 +684,7 @@ void PORT_ControlCnf (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
     UINT32 event = 0;
+    UNUSED(p_pars);
 
     RFCOMM_TRACE_EVENT0 ("PORT_ControlCnf");
 

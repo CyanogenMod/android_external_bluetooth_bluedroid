@@ -33,6 +33,7 @@
 #include "port_int.h"
 #include "rfc_int.h"
 #include "btu.h"
+#include "bt_utils.h"
 
 #include <string.h>
 
@@ -352,6 +353,7 @@ void rfcomm_process_timeout (TIMER_LIST_ENT  *p_tle)
 void rfc_sec_check_complete (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
 {
     tPORT *p_port = (tPORT *)p_ref_data;
+    UNUSED(bd_addr);
 
     /* Verify that PORT is still waiting for Security to complete */
     if (!p_port->in_use

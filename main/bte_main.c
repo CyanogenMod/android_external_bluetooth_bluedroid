@@ -36,6 +36,7 @@
 #include "bte.h"
 #include "bta_api.h"
 #include "bt_hci_lib.h"
+#include "bt_utils.h"
 
 /*******************************************************************************
 **  Constants & Macros
@@ -337,6 +338,8 @@ static void bte_hci_disable(void)
 *******************************************************************************/
 static void preload_wait_timeout(union sigval arg)
 {
+    UNUSED(arg);
+
     APPL_TRACE_ERROR2("...preload_wait_timeout (retried:%d/max-retry:%d)...",
                         preload_retry_cb.retry_counts,
                         PRELOAD_MAX_RETRY_ATTEMPTS);
@@ -559,8 +562,9 @@ void bte_main_post_reset_init()
 ******************************************************************************/
 static void preload_cb(TRANSAC transac, bt_hc_preload_result_t result)
 {
-    APPL_TRACE_EVENT1("HC preload_cb %d [0:SUCCESS 1:FAIL]", result);
+    UNUSED(transac);
 
+    APPL_TRACE_EVENT1("HC preload_cb %d [0:SUCCESS 1:FAIL]", result);
 
     if (result == BT_HC_PRELOAD_SUCCESS)
     {
@@ -583,6 +587,8 @@ static void preload_cb(TRANSAC transac, bt_hc_preload_result_t result)
 ******************************************************************************/
 static void postload_cb(TRANSAC transac, bt_hc_postload_result_t result)
 {
+    UNUSED(transac);
+
     APPL_TRACE_EVENT1("HC postload_cb %d", result);
 }
 
@@ -663,6 +669,8 @@ static char *alloc(int size)
 ******************************************************************************/
 static int dealloc(TRANSAC transac, char *p_buf)
 {
+    UNUSED(p_buf);
+
     GKI_freebuf(transac);
     return BT_HC_STATUS_SUCCESS;
 }
@@ -690,6 +698,8 @@ static int dealloc(TRANSAC transac, char *p_buf)
 static int data_ind(TRANSAC transac, char *p_buf, int len)
 {
     BT_HDR *p_msg = (BT_HDR *) transac;
+    UNUSED(p_buf);
+    UNUSED(len);
 
     /*
     APPL_TRACE_DEBUG2("HC data_ind event=0x%04X (len=%d)", p_msg->event, len);
@@ -719,9 +729,9 @@ static int data_ind(TRANSAC transac, char *p_buf, int len)
 ** Returns          bt_hc_status_t
 **
 ******************************************************************************/
-static int tx_result(TRANSAC transac, char *p_buf, \
-                      bt_hc_transmit_result_t result)
+static int tx_result(TRANSAC transac, char *p_buf, bt_hc_transmit_result_t result)
 {
+    UNUSED(p_buf);
     /*
     APPL_TRACE_DEBUG2("HC tx_result %d (event=%04X)", result, \
                       ((BT_HDR *)transac)->event);
