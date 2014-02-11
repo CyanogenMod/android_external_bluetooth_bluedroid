@@ -1237,6 +1237,8 @@ void bta_dmexecutecallback (tBTA_DM_EXEC_CBACK* p_callback, void * p_param)
     }
 }
 
+#if BLE_INCLUDED == TRUE
+
 /*******************************************************************************
 **
 ** Function         BTA_DmAddBleKey
@@ -1736,7 +1738,7 @@ void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable)
 {
     UNUSED(privacy_enable);
 }
-
+#endif
 
 /*******************************************************************************
 **
@@ -1811,6 +1813,7 @@ void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev)
     }
 }
 
+#if BLE_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         BTA_DmBleObserve
@@ -1848,5 +1851,4 @@ BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
     }
 #endif
 }
-
-
+#endif

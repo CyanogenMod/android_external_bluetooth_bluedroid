@@ -82,8 +82,10 @@ extern bthh_interface_t *btif_hh_get_interface();
 extern bthl_interface_t *btif_hl_get_interface();
 /*pan*/
 extern btpan_interface_t *btif_pan_get_interface();
+#if BLE_INCLUDED == TRUE
 /* gatt */
 extern btgatt_interface_t *btif_gatt_get_interface();
+#endif
 /* avrc */
 extern btrc_interface_t *btif_rc_get_interface();
 
