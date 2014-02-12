@@ -1645,6 +1645,11 @@ void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
 
         bta_sys_sendmsg(p_msg);
     }
+#else
+    UNUSED(bd_addr);
+    UNUSED(p_services);
+    UNUSED(p_cback);
+    UNUSED(sdp_search);
 #endif
 
 }
@@ -1701,6 +1706,10 @@ void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services, t
 
         bta_sys_sendmsg(p_msg);
     }
+#else
+    UNUSED(p_dm_inq);
+    UNUSED(p_services);
+    UNUSED(p_cback);
 #endif
 }
 

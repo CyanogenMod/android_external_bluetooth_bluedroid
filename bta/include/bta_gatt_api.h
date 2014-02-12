@@ -29,9 +29,9 @@
 #include "gatt_api.h"
 
 #ifndef     BTA_GATT_INCLUDED
+#warning BTA_GATT_INCLUDED not defined
 #define     BTA_GATT_INCLUDED     FALSE
 #endif
-
 
 #if ((BLE_INCLUDED == FALSE) && (BTA_GATT_INCLUDED == TRUE))
 #undef BTA_GATT_INCLUDED
