@@ -1431,16 +1431,27 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
 
         case BTA_DM_DISC_CMPL_EVT:
         {
-             /* fixme */
+            int device_type;
+            bt_bdaddr_t bd_addr;
+            bdstr_t bdstr;
+            bdcpy(bd_addr.address, ble_service_search_in_progress.bdaddr.address);
+            bd2str(&bd_addr, &bdstr);
+            //check if this a non LE device
+            if(!btif_config_get_int("Remote", (char const *)&bdstr,"DevType", &device_type) || device_type != BT_DEVICE_TYPE_BLE)
+            {
+                ble_service_search_in_progress.search_in_progress=FALSE;
+                ble_service_search_in_progress.hogp_present=FALSE;
+                BTIF_TRACE_DEBUG2("%s: DISC_CMPL_EVT:device_type:%d,not an LE device",  __FUNCTION__, device_type);
+                return;
+            }
+            BTIF_TRACE_DEBUG2("%s: DISC_CMPL_EVT:device_type:%d",  __FUNCTION__, device_type);
             if(ble_service_search_in_progress.search_in_progress && !ble_service_search_in_progress.hogp_present)
             {
                 //retrieve value from the config file and send it using HAL call back
                 bt_property_t prop;
-                bt_bdaddr_t bd_addr;
                 bt_status_t ret;
                 uint32_t num_uuids;
                 bt_uuid_t remote_uuids[BT_MAX_NUM_UUIDS];
-                bdcpy(bd_addr.address, ble_service_search_in_progress.bdaddr.address);
 
                 prop.type = BT_PROPERTY_UUIDS;
                 prop.len = sizeof(remote_uuids);
