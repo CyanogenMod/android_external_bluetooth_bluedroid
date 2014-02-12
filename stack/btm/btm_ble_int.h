@@ -284,6 +284,8 @@ extern tBTM_STATUS btm_ble_set_encryption (BD_ADDR bd_addr, void *p_ref_data, UI
 extern void btm_ble_ltk_request(UINT16 handle, UINT8 rand[8], UINT16 ediv);
 extern BOOLEAN btm_ble_start_encrypt(BD_ADDR bda, BOOLEAN use_stk, BT_OCTET16 stk);
 extern void btm_ble_link_encrypted(BD_ADDR bd_addr, UINT8 encr_enable);
+extern void btm_ble_encryption_failure(BD_ADDR bd_addr,UINT8 status);
+
 #endif
 
 /* LE device management functions */

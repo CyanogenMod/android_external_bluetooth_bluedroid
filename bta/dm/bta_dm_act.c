@@ -4719,6 +4719,9 @@ void bta_dm_encrypt_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
         case BTM_BUSY:
             bta_status = BTA_BUSY;
             break;
+        case BTM_BAD_RF:
+            bta_status = BTA_BAD_RF;
+            break;
         default:
             bta_status = BTA_FAILURE;
             break;
