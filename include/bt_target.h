@@ -263,18 +263,6 @@
 #define BTA_JV_INCLUDED FALSE
 #endif
 
-#ifndef BTA_GATT_INCLUDED
-#if BLE_INCLUDED == TRUE
-#define BTA_GATT_INCLUDED TRUE
-#else
-#define BTA_GATT_INCLUDED FALSE
-#endif
-#endif
-
-#if BTA_GATT_INCLUDED == TRUE && BLE_INCLUDED == FALSE
-#error "can't have GATT without BLE"
-#endif
-
 #ifndef BTA_DISABLE_DELAY
 #define BTA_DISABLE_DELAY 200 /* in milliseconds */
 #endif
@@ -1424,6 +1412,18 @@ and USER_HW_DISABLE_API macros */
 ** ATT/GATT Protocol/Profile Settings
 **
 ******************************************************************************/
+#ifndef BTA_GATT_INCLUDED
+#if BLE_INCLUDED == TRUE
+#define BTA_GATT_INCLUDED TRUE
+#else
+#define BTA_GATT_INCLUDED FALSE
+#endif
+#endif
+
+#if BTA_GATT_INCLUDED == TRUE && BLE_INCLUDED == FALSE
+#error "can't have GATT without BLE"
+#endif
+
 #ifndef ATT_INCLUDED
 #define ATT_INCLUDED         TRUE
 #endif
