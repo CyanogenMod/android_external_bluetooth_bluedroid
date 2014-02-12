@@ -880,7 +880,7 @@ UDRV_API extern BOOLEAN UIPC_Ioctl(tUIPC_CH_ID ch_id, UINT32 request, void *para
             break;
 
         case UIPC_SET_READ_POLL_TMO:
-            uipc_main.ch[ch_id].read_poll_tmo_ms = (int)param;
+            uipc_main.ch[ch_id].read_poll_tmo_ms = (intptr_t)param;
             BTIF_TRACE_EVENT2("UIPC_SET_READ_POLL_TMO : CH %d, TMO %d ms", ch_id, uipc_main.ch[ch_id].read_poll_tmo_ms );
             break;
 

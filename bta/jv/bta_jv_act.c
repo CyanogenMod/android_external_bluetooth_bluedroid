@@ -285,8 +285,8 @@ static tBTA_JV_STATUS bta_jv_free_rfc_cb(tBTA_JV_RFC_CB *p_cb, tBTA_JV_PCB *p_pc
         return BTA_JV_FAILURE;
     }
     APPL_TRACE_DEBUG6("bta_jv_free_sr_rfc_cb: max_sess:%d, curr_sess:%d, p_pcb:%p, user:"
-            "%d, state:%d, jv handle: 0x%x" ,p_cb->max_sess, p_cb->curr_sess, p_pcb,
-            (int)p_pcb->user_data, p_pcb->state, p_pcb->handle);
+            "%p, state:%d, jv handle: 0x%x" ,p_cb->max_sess, p_cb->curr_sess, p_pcb,
+            p_pcb->user_data, p_pcb->state, p_pcb->handle);
 
     if (p_cb->curr_sess <= 0)
         return BTA_JV_SUCCESS;
@@ -296,32 +296,32 @@ static tBTA_JV_STATUS bta_jv_free_rfc_cb(tBTA_JV_RFC_CB *p_cb, tBTA_JV_PCB *p_pc
     case BTA_JV_ST_CL_CLOSING:
     case BTA_JV_ST_SR_CLOSING:
         APPL_TRACE_WARNING4("bta_jv_free_sr_rfc_cb: return on closing, port state:%d, "
-                "scn:%d, p_pcb:%p, user_data:%d", p_pcb->state, p_cb->scn, p_pcb,
-                (int)p_pcb->user_data);
+                "scn:%d, p_pcb:%p, user_data:%p", p_pcb->state, p_cb->scn, p_pcb,
+                p_pcb->user_data);
         status = BTA_JV_FAILURE;
         return status;
     case BTA_JV_ST_CL_OPEN:
     case BTA_JV_ST_CL_OPENING:
         APPL_TRACE_DEBUG3("bta_jv_free_sr_rfc_cb: state: %d, scn:%d,"
-                          " user_data:%d", p_pcb->state, p_cb->scn, (int)p_pcb->user_data);
+                          " user_data:%p", p_pcb->state, p_cb->scn, p_pcb->user_data);
         p_pcb->state = BTA_JV_ST_CL_CLOSING;
         break;
     case BTA_JV_ST_SR_LISTEN:
         p_pcb->state = BTA_JV_ST_SR_CLOSING;
         remove_server = TRUE;
         APPL_TRACE_DEBUG2("bta_jv_free_sr_rfc_cb: state: BTA_JV_ST_SR_LISTEN, scn:%d,"
-                " user_data:%d", p_cb->scn, (int)p_pcb->user_data);
+                " user_data:%p", p_cb->scn, p_pcb->user_data);
         break;
     case BTA_JV_ST_SR_OPEN:
         p_pcb->state = BTA_JV_ST_SR_CLOSING;
         APPL_TRACE_DEBUG2("bta_jv_free_sr_rfc_cb: state: BTA_JV_ST_SR_OPEN, scn:%d,"
-                " user_data:%d", p_cb->scn, (int)p_pcb->user_data);
+                " user_data:%p", p_cb->scn, p_pcb->user_data);
         break;
     default:
         APPL_TRACE_WARNING6("bta_jv_free_sr_rfc_cb():failed, ignore port state:%d, scn:"
-                "%d, p_pcb:%p, jv handle: 0x%x, port_handle: %d, user_data:%d",
+                "%d, p_pcb:%p, jv handle: 0x%x, port_handle: %d, user_data:%p",
                 p_pcb->state, p_cb->scn, p_pcb, p_pcb->handle, p_pcb->port_handle,
-                (int)p_pcb->user_data);
+                p_pcb->user_data);
         status = BTA_JV_FAILURE;
         break;
     }
