@@ -23,6 +23,7 @@
  *
  ******************************************************************************/
 
+#include "bt_target.h"
 #include "bt_types.h"
 #include "gki.h"
 #include "bd.h"
@@ -385,7 +386,9 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
         {
             BTM_BleLoadLocalKeys(BTA_BLE_LOCAL_KEY_TYPE_ID, (tBTM_BLE_LOCAL_KEYS *)&id_key);
         }
+#if ((defined BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE))
         bta_dm_search_cb.conn_id = BTA_GATT_INVALID_CONN_ID;
+#endif
 #endif
 
         BTM_SecRegister((tBTM_APPL_INFO*)&bta_security);
