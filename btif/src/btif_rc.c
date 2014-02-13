@@ -467,6 +467,7 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
     btif_rc_cb.rc_handle = 0;
     btif_rc_cb.rc_connected = FALSE;
     memset(btif_rc_cb.rc_addr, 0, sizeof(BD_ADDR));
+    memset(btif_rc_cb.rc_notif, 0, sizeof(btif_rc_cb.rc_notif));
     btif_rc_cb.rc_features = 0;
     btif_rc_cb.rc_vol_label=MAX_LABEL;
     btif_rc_cb.rc_volume=MAX_VOLUME;
@@ -1226,6 +1227,11 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
     tAVRC_RESPONSE avrc_rsp;
     CHECK_RC_CONNECTED
     BTIF_TRACE_EVENT2("## %s ## event_id:%s", __FUNCTION__, dump_rc_notification_event_id(event_id));
+    if (btif_rc_cb.rc_notif[event_id-1].bNotify == FALSE)
+    {
+        BTIF_TRACE_ERROR1("Avrcp Event id not registered: event_id = %x", event_id);
+        return BT_STATUS_NOT_READY;
+    }
     memset(&(avrc_rsp.reg_notif), 0, sizeof(tAVRC_REG_NOTIF_RSP));
     avrc_rsp.reg_notif.event_id = event_id;
 
