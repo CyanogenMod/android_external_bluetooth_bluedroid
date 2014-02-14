@@ -1699,6 +1699,7 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
     }
 
     retwriteAudioTrack = btWriteData((void*)pcmData, (2*sizeof(pcmData) - availPcmBytes));
+    APPL_TRACE_LATENCY_AUDIO1("Written to audio, seq number %d", p_msg->layer_specific);
 }
 #endif
 

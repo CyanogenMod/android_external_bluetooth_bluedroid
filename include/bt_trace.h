@@ -132,7 +132,8 @@
 
 /* LayerIDs for BT APP */
 #define BTTRC_ID_BTAPP                     87
-#define BTTRC_ID_BT_PROTOCOL               88         /* this is a temporary solution to allow dynamic
+#define BTTRC_ID_LATENCY_AUDIO             88
+#define BTTRC_ID_BT_PROTOCOL               89         /* this is a temporary solution to allow dynamic
                                                          enable/disable of BT_PROTOCOL_TRACE */
 #define BTTRC_ID_MAX_ID                    BTTRC_ID_BT_PROTOCOL
 // btla-specific --
@@ -142,7 +143,7 @@ typedef UINT8 tBTTRC_LAYER_ID;
 /* Trace type definitions. Note that these are mutually exclusive in a trace. This
 means that any trace can be either error,warning,api,event or dbg */
 #define BTTRC_TYPE_ERROR                   0x01       /* Traces for error situation */
-#define BTTRC_TYPE_WARNING	               0x02       /* Traces for warning situation */
+#define BTTRC_TYPE_WARNING                 0x02       /* Traces for warning situation */
 #define BTTRC_TYPE_API                     0x04       /* Traces for API */
 #define BTTRC_TYPE_EVENT                   0x08       /* Traces for EVENT */
 #define BTTRC_TYPE_ACTION                  0x10       /* Traces for Action functions */
@@ -4447,6 +4448,7 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 #if (BT_TRACE_BTIF == TRUE)
 
 extern UINT8 btif_trace_level;
+extern UINT8 audio_latency_trace_level;
 
 /* define traces for application */
 #define BTIF_TRACE_ERROR0(m)                    {if (btif_trace_level >= BT_TRACE_LEVEL_ERROR) LogMsg_0(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_ERROR, (m));}
@@ -4533,6 +4535,20 @@ extern UINT8 btif_trace_level;
 #define BTIF_TRACE_VERBOSE6(m,p1,p2,p3,p4,p5,p6)  {if (btif_trace_level >= BT_TRACE_LEVEL_VERBOSE) LogMsg_6(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
                                                         (m), (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4), (UINT32)(p5), (UINT32)(p6));}
 
+#define BTIF_TRACE_IMP0(m)                        { LogMsg_0(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, (m));}
+#define BTIF_TRACE_IMP1(m,p1)                     { LogMsg_1(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1));}
+#define BTIF_TRACE_IMP2(m,p1,p2)                  { LogMsg_2(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1), (UINT32)(p2));}
+#define BTIF_TRACE_IMP3(m,p1,p2,p3)               { LogMsg_3(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1), (UINT32)(p2), (UINT32)(p3));}
+#define BTIF_TRACE_IMP4(m,p1,p2,p3,p4)            { LogMsg_4(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4));}
+#define BTIF_TRACE_IMP5(m,p1,p2,p3,p4,p5)         { LogMsg_5(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4), (UINT32)(p5));}
+#define BTIF_TRACE_IMP6(m,p1,p2,p3,p4,p5,p6)      { LogMsg_6(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4), (UINT32)(p5), (UINT32)(p6));}
+
 #else
 /* define traces for Application */
 
@@ -4564,6 +4580,7 @@ extern UINT8 btif_trace_level;
 #define BTIF_TRACE_API5(m,p1,p2,p3,p4,p5)
 #define BTIF_TRACE_API6(m,p1,p2,p3,p4,p5,p6)
 
+
 #define BTIF_TRACE_EVENT0(m)
 #define BTIF_TRACE_EVENT1(m,p1)
 #define BTIF_TRACE_EVENT2(m,p1,p2)
@@ -4571,6 +4588,7 @@ extern UINT8 btif_trace_level;
 #define BTIF_TRACE_EVENT4(m,p1,p2,p3,p4)
 #define BTIF_TRACE_EVENT5(m,p1,p2,p3,p4,p5)
 #define BTIF_TRACE_EVENT6(m,p1,p2,p3,p4,p5,p6)
+
 
 #define BTIF_TRACE_DEBUG0(m)
 #define BTIF_TRACE_DEBUG1(m,p1)
@@ -4583,8 +4601,6 @@ extern UINT8 btif_trace_level;
 #define BTIF_TRACE_DEBUG8(m,p1,p2,p3,p4,p5,p6,p7,p8)
 
 
-
-
 #define BTIF_TRACE_VERBOSE0(m)
 #define BTIF_TRACE_VERBOSE1(m,p1)
 #define BTIF_TRACE_VERBOSE2(m,p1,p2)
@@ -4592,6 +4608,15 @@ extern UINT8 btif_trace_level;
 #define BTIF_TRACE_VERBOSE4(m,p1,p2,p3,p4)
 #define BTIF_TRACE_VERBOSE5(m,p1,p2,p3,p4,p5)
 #define BTIF_TRACE_VERBOSE6(m,p1,p2,p3,p4,p5,p6)
+
+
+#define BTIF_TRACE_IMP0(m)
+#define BTIF_TRACE_IMP1(m,p1)
+#define BTIF_TRACE_IMP2(m,p1,p2)
+#define BTIF_TRACE_IMP3(m,p1,p2,p3)
+#define BTIF_TRACE_IMP4(m,p1,p2,p3,p4)
+#define BTIF_TRACE_IMP5(m,p1,p2,p3,p4,p5)
+#define BTIF_TRACE_IMP6(m,p1,p2,p3,p4,p5,p6)
 
 #endif
 
@@ -4690,6 +4715,23 @@ extern UINT8 btif_trace_level;
     LogMsg_6(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, (m), \
     (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4), (UINT32)(p5), (UINT32)(p6));}
 
+#define APPL_TRACE_IMP0(m)                    { LogMsg_0(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, (m));}
+#define APPL_TRACE_IMP1(m,p1)                 { LogMsg_1(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1));}
+#define APPL_TRACE_IMP2(m,p1,p2)              { LogMsg_2(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1), (UINT32)(p2));}
+#define APPL_TRACE_IMP3(m,p1,p2,p3)           { LogMsg_3(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1), (UINT32)(p2), (UINT32)(p3));}
+#define APPL_TRACE_IMP4(m,p1,p2,p3,p4)        { LogMsg_4(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4));}
+#define APPL_TRACE_IMP5(m,p1,p2,p3,p4,p5)     { LogMsg_5(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4), (UINT32)(p5));}
+#define APPL_TRACE_IMP6(m,p1,p2,p3,p4,p5,p6)  { LogMsg_6(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1), (UINT32)(p2), (UINT32)(p3), (UINT32)(p4), (UINT32)(p5), (UINT32)(p6));}
+
+#define APPL_TRACE_LATENCY_AUDIO1(m,p1)       {if (audio_latency_trace_level >= BT_TRACE_LEVEL_VERBOSE) LogMsg_1(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, \
+                                                        (m), (UINT32)(p1));}
+
 #else
 /* define traces for Application */
 
@@ -4740,6 +4782,16 @@ extern UINT8 btif_trace_level;
 #define APPL_TRACE_VERBOSE4(m,p1,p2,p3,p4)
 #define APPL_TRACE_VERBOSE5(m,p1,p2,p3,p4,p5)
 #define APPL_TRACE_VERBOSE6(m,p1,p2,p3,p4,p5,p6)
+
+#define APPL_TRACE_IMP0(m)
+#define APPL_TRACE_IMP1(m,p1)
+#define APPL_TRACE_IMP2(m,p1,p2)
+#define APPL_TRACE_IMP3(m,p1,p2,p3)
+#define APPL_TRACE_IMP4(m,p1,p2,p3,p4)
+#define APPL_TRACE_IMP5(m,p1,p2,p3,p4,p5)
+#define APPL_TRACE_IMP6(m,p1,p2,p3,p4,p5,p6)
+
+#define APPL_TRACE_LATENCY_AUDIO1(m,p1)
 
 #endif
 
