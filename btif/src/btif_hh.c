@@ -857,12 +857,6 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             p_dev = btif_hh_find_connected_dev_by_handle(p_data->dev_status.handle);
             if (p_dev != NULL) {
                 BTIF_TRACE_DEBUG2("%s: uhid fd = %d", __FUNCTION__, p_dev->fd);
-                if (p_dev->fd >= 0){
-                    UINT8 hidreport[9];
-                    memset(hidreport,0,9);
-                    hidreport[0]=1;
-                    bta_hh_co_write(p_dev->fd , hidreport, sizeof(hidreport));
-                }
                 if(p_dev->vup_timer_active)
                 {
                     btif_hh_stop_vup_timer(&(p_dev->bd_addr));
