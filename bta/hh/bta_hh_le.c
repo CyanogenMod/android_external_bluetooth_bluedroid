@@ -1406,6 +1406,9 @@ void bta_hh_le_search_result(tBTA_GATTC_SRVC_RES *p_srvc_result)
             {
                 /* found HID primamry service */
                 /* TODO: proceed to find battery and device info */
+                if(bta_hh_le_add_hid_srvc_entry(p_dev_cb, 0))//make sure srvc_indx=0 is enabled
+                    APPL_TRACE_DEBUG0("bta_hh_le_search_result: hid_srvc[indx=0] enabled");
+
                 if (bta_hh_le_add_hid_srvc_entry(p_dev_cb, p_dev_cb->total_srvc))
                     p_dev_cb->total_srvc ++;
                 APPL_TRACE_DEBUG1("num of hid service: %d", p_dev_cb->total_srvc);
