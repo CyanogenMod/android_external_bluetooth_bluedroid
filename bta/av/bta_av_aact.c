@@ -2323,15 +2323,15 @@ void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         p_scb->q_tag = BTA_AV_Q_TAG_START;
     }
 
-    if (p_scb->wait & BTA_AV_WAIT_ACP_CAPS_ON)
-    {
-        p_scb->wait |= BTA_AV_WAIT_ACP_CAPS_STARTED;
-    }
-
     if (p_scb->wait)
     {
-        APPL_TRACE_DEBUG2("wait:x%x q_tag:%d- not started", p_scb->wait, p_scb->q_tag);
-        return;
+        APPL_TRACE_ERROR2("wait:x%x q_tag:%d- not started", p_scb->wait, p_scb->q_tag);
+        /* Clear first bit of p_scb->wait and not to return from this point else
+         * HAL layer gets blocked. And if there is delay in Get Capability response as
+         * first bit of p_scb->wait is cleared hence it ensures bt_av_start_ok is not called
+         * again from bta_av_save_caps.
+        */
+        p_scb->wait &= ~BTA_AV_WAIT_ACP_CAPS_ON;
     }
 
     /* tell role manager to check M/S role */
