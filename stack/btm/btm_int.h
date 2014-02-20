@@ -278,6 +278,14 @@ typedef struct
 } tINQ_DB_ENT;
 
 
+enum
+{
+    INQ_NONE,
+    INQ_LE_OBSERVE,
+    INQ_GENERAL
+};
+typedef UINT8 tBTM_INQ_TYPE;
+
 typedef struct
 {
     tBTM_CMPL_CB *p_remname_cmpl_cb;
@@ -295,6 +303,7 @@ typedef struct
     UINT16           inq_scan_period;
     UINT16           inq_scan_type;
     UINT16           page_scan_type;        /* current page scan type */
+    tBTM_INQ_TYPE    scan_type;
 
     BD_ADDR          remname_bda;           /* Name of bd addr for active remote name request */
 #define BTM_RMT_NAME_INACTIVE       0
@@ -305,6 +314,8 @@ typedef struct
 
     tBTM_CMPL_CB    *p_inq_cmpl_cb;
     tBTM_INQ_RESULTS_CB *p_inq_results_cb;
+    tBTM_CMPL_CB    *p_inq_ble_cmpl_cb;     /*completion callback exclusively for LE Observe*/
+    tBTM_INQ_RESULTS_CB *p_inq_ble_results_cb;/*results callback exclusively for LE observe*/
     tBTM_CMPL_CB    *p_inqfilter_cmpl_cb;   /* Called (if not NULL) after inquiry filter completed */
     tBTM_INQ_DB_CHANGE_CB *p_inq_change_cb; /* Inquiry database changed callback    */
     UINT32           inq_counter;           /* Counter incremented each time an inquiry completes */
