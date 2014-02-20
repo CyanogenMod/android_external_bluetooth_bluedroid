@@ -1165,7 +1165,7 @@ static void bta_ag_sco_event(tBTA_AG_SCB *p_scb, UINT8 event)
                     bta_ag_remove_sco(p_sco->p_xfer_scb, FALSE);
 
 #if (BTM_WBS_INCLUDED == TRUE )
-                    if (p_scb->peer_codecs != BTA_AG_CODEC_NONE)
+                    if (p_sco->p_xfer_scb->peer_codecs != BTA_AG_CODEC_NONE)
                     {
                         /* start codec negotiation */
                         p_sco->state = BTA_AG_SCO_CODEC_ST;
