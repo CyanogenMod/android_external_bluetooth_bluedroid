@@ -1226,6 +1226,7 @@ static bt_status_t src_connect_sink(bt_bdaddr_t *bd_addr)
     BTIF_TRACE_EVENT("%s", __FUNCTION__);
     CHECK_BTAV_INIT();
 
+     btif_queue_remove_connect(UUID_SERVCLASS_AUDIO_SOURCE, BTIF_QUEUE_CHECK_CONNECT_REQ);
 
     return btif_queue_connect(UUID_SERVCLASS_AUDIO_SOURCE, bd_addr, connect_int);
 }
@@ -1235,6 +1236,7 @@ static bt_status_t sink_connect_src(bt_bdaddr_t *bd_addr)
     BTIF_TRACE_EVENT("%s", __FUNCTION__);
     CHECK_BTAV_INIT();
 
+    btif_queue_remove_connect(UUID_SERVCLASS_AUDIO_SINK, BTIF_QUEUE_CHECK_CONNECT_REQ);
 
     return btif_queue_connect(UUID_SERVCLASS_AUDIO_SINK, bd_addr, connect_int);
 

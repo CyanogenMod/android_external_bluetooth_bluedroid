@@ -11,6 +11,7 @@ typedef struct list_t list_t;
 
 typedef void (*list_free_cb)(void *data);
 typedef bool (*list_iter_cb)(void *data);
+typedef bool (*list_iter_cb_ext)(void *data, void *cb_data);
 
 // Lifecycle.
 list_t *list_new(list_free_cb callback);
@@ -31,6 +32,7 @@ void list_clear(list_t *list);
 
 // Iteration.
 void list_foreach(const list_t *list, list_iter_cb callback);
+void list_foreach_ext(const list_t *list, list_iter_cb_ext callback, void *cb_data);
 
 list_node_t *list_begin(const list_t *list);
 list_node_t *list_end(const list_t *list);
