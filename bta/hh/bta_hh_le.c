@@ -2285,6 +2285,7 @@ void bta_hh_le_open_fail(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         utl_freebuf((void **)&p_hid_srvc->rpt_map);
         memset(p_hid_srvc, 0, sizeof(tBTA_HH_LE_HID_SRVC));
     }
+    p_cb->total_srvc = 0;
 
     /* Report OPEN fail event */
     (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn_dat);
