@@ -40,6 +40,18 @@
 #define BTA_HH_SSR_MIN_TOUT_DEF     2
 #endif
 
+#ifndef BTA_HH_SSR_MAX_LATENCY_OPTIMAL
+#define BTA_HH_SSR_MAX_LATENCY_OPTIMAL  360 /* 225 ms*/
+#endif
+
+#ifndef BTA_HH_SSR_MAX_LATENCY_ZERO
+#define BTA_HH_SSR_MAX_LATENCY_ZERO     0
+#endif
+
+#ifndef BTA_HH_SSR_DISABLE_SSR
+#define BTA_HH_SSR_DISABLE_SSR     1
+#endif
+
 /* BTA HID Host callback events */
 #define BTA_HH_ENABLE_EVT       0       /* HH enabled */
 #define BTA_HH_DISABLE_EVT      1       /* HH disabled */
