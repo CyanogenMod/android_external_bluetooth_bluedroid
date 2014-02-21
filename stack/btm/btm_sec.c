@@ -3997,6 +3997,11 @@ void btm_sec_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
         if(status == HCI_ERR_KEY_MISSING) {
             btm_sec_dev_rec_cback_event (p_dev_rec, HCI_ERR_KEY_MISSING);
         }
+        else if(!encr_enable)
+        {
+            BTM_TRACE_DEBUG1 ("btm_sec_encrypt_change: failure. status:",status);
+            btm_ble_encryption_failure(p_dev_rec->bd_addr,status);
+        }
         else {
             btm_ble_link_encrypted(p_dev_rec->bd_addr, encr_enable);
         }
