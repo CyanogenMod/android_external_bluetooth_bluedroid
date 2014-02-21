@@ -286,9 +286,24 @@ static int a2dp_command(struct a2dp_stream_out *out, char cmd)
     if (recv(out->ctrl_fd, &ack, 1, MSG_NOSIGNAL) < 0)
     {
         ERROR("ack failed (%s)", strerror(errno));
-        skt_disconnect(out->ctrl_fd);
-        out->ctrl_fd = AUDIO_SKT_DISCONNECTED;
-        return -1;
+        if (errno == EINTR)
+        {
+            /* retry again */
+            if (recv(out->ctrl_fd, &ack, 1, MSG_NOSIGNAL) < 0)
+            {
+               ERROR("ack failed (%s)", strerror(errno));
+               skt_disconnect(out->ctrl_fd);
+               out->ctrl_fd = AUDIO_SKT_DISCONNECTED;
+               return -1;
+            }
+        }
+        else
+        {
+               skt_disconnect(out->ctrl_fd);
+               out->ctrl_fd = AUDIO_SKT_DISCONNECTED;
+               return -1;
+
+        }
     }
 
     DEBUG("A2DP COMMAND %s DONE STATUS %d", dump_a2dp_ctrl_event(cmd), ack);
