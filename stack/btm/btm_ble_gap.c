@@ -153,7 +153,7 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
     tBTM_BLE_INQ_CB *p_inq = &btm_cb.ble_ctr_cb.inq_var;
     tBTM_STATUS     status = BTM_NO_RESOURCES;
 
-    BTM_TRACE_EVENT0 ("BTM_BleObserve ");
+    BTM_TRACE_EVENT1 ("BTM_BleObserve : scan_type:%d",btm_cb.btm_inq_vars.scan_type);
 
     if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
         return BTM_ILLEGAL_VALUE;
@@ -162,10 +162,22 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
     {
         /* shared inquiry database, do not allow observe if any inquiry is active */
         if (btm_cb.btm_inq_vars.inq_active || p_inq->proc_mode != BTM_BLE_INQUIRY_NONE)
-            return BTM_BUSY;
-
-        btm_cb.btm_inq_vars.p_inq_results_cb = p_results_cb;
-        btm_cb.btm_inq_vars.p_inq_cmpl_cb = p_cmpl_cb;
+        {
+            /*check if an interleave scan is already in progress*/
+            if(btm_cb.btm_inq_vars.scan_type == INQ_GENERAL
+                && btm_cb.btm_inq_vars.p_inq_results_cb != NULL)
+            {
+                BTM_TRACE_EVENT0 ("BTM_BleObserve general inq in progress, redirecting the results");
+                btm_cb.btm_inq_vars.p_inq_ble_results_cb = p_results_cb;
+                btm_cb.btm_inq_vars.p_inq_ble_cmpl_cb = p_cmpl_cb;
+                return BTM_SUCCESS;
+            }
+            else
+                return BTM_BUSY;
+        }
+        btm_cb.btm_inq_vars.scan_type = INQ_LE_OBSERVE;
+        btm_cb.btm_inq_vars.p_inq_ble_results_cb = p_results_cb;
+        btm_cb.btm_inq_vars.p_inq_ble_cmpl_cb = p_cmpl_cb;
         p_inq->scan_type = (p_inq->scan_type == BTM_BLE_SCAN_MODE_NONE) ? BTM_BLE_SCAN_MODE_ACTI: p_inq->scan_type;
 
         /* allow config scanning type */
@@ -190,10 +202,19 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
             }
         }
     }
-    else if (p_inq->proc_mode == BTM_BLE_OBSERVE)
+    else/*start = 0*/
     {
-        btm_cb.btm_inq_vars.inq_active &= ~BTM_LE_OBSERVE_ACTIVE;
-        btm_ble_stop_scan();
+        if(btm_cb.btm_inq_vars.scan_type == INQ_GENERAL)
+        {
+            //Dont stop the scan. Just nullify the cbs
+            btm_cb.btm_inq_vars.p_inq_ble_results_cb = NULL;
+            btm_cb.btm_inq_vars.p_inq_ble_cmpl_cb = NULL;
+        }
+        else if (p_inq->proc_mode == BTM_BLE_OBSERVE)
+        {
+            btm_cb.btm_inq_vars.inq_active &= ~BTM_LE_OBSERVE_ACTIVE;
+            btm_ble_stop_scan();
+        }
     }
 
     return status;
@@ -1540,6 +1561,8 @@ BOOLEAN btm_ble_update_inq_result(tINQ_DB_ENT *p_i, UINT8 addr_type, UINT8 evt_t
     if ((btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI &&
          (evt_type == BTM_BLE_CONNECT_EVT || evt_type == BTM_BLE_DISCOVER_EVT)))
     {
+        BTM_TRACE_DEBUG1("btm_ble_update_inq_result scan_rsp=false, to_report=false,\
+                              scan_type_active=%d", btm_cb.ble_ctr_cb.inq_var.scan_type);
         p_i->scan_rsp = FALSE;
         to_report = FALSE;
     }
@@ -1669,6 +1692,8 @@ void btm_ble_process_adv_pkt (UINT8 *p_data)
          btm_cb.ble_ctr_cb.p_select_cback == NULL))
         return;
 
+    BTM_TRACE_DEBUG6("btm_ble_process_adv_pkt:bda= %0x:%0x:%0x:%0x:%0x:%0x",
+                                     bda[0],bda[1],bda[2],bda[3],bda[4],bda[5]);
     btm_ble_process_adv_pkt_cont(bda, addr_type, evt_type, p);
 }
 
@@ -1688,9 +1713,12 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
 {
     tINQ_DB_ENT          *p_i;
     BOOLEAN              to_report = FALSE;
+    BOOLEAN              to_report_LE = TRUE; //var for reporting to LE observe
     tBTM_INQUIRY_VAR_ST  *p_inq = &btm_cb.btm_inq_vars;
     tBTM_INQ_RESULTS_CB  *p_inq_results_cb = p_inq->p_inq_results_cb;
+    tBTM_INQ_RESULTS_CB  *p_inq_ble_results_cb = p_inq->p_inq_ble_results_cb;
     tBTM_BLE_INQ_CB      *p_le_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
+    BTM_TRACE_DEBUG2("btm_ble_process_adv_pkt_cont: addr_type: %d, evt_type: %d", addr_type, evt_type);
 
     p_i = btm_inq_db_find (bda);
 
@@ -1710,11 +1738,10 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
         }
         else
         {
-            /* if yes, skip it */
-            return; /* assumption: one result per event */
+            to_report = FALSE;
         }
     }
-    else /* not been processed int his round */
+    else /* not been processed in this round */
     {
         to_report = TRUE;
     }
@@ -1722,33 +1749,31 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
     /* If existing entry, use that, else get  a new one (possibly reusing the oldest) */
     if (p_i == NULL)
     {
-        if (btm_ble_is_discoverable(bda, evt_type, p))
+        if ((p_i = btm_inq_db_new (bda)) != NULL)
         {
-            if ((p_i = btm_inq_db_new (bda)) != NULL)
-            {
-                p_inq->inq_cmpl_info.num_resp++;
-                to_report = TRUE;
-            }
-            else
-                return;
+            p_inq->inq_cmpl_info.num_resp++;
+        }
+        else
+            return;
+
+        if (to_report && btm_ble_is_discoverable(bda, evt_type, p))
+        {
+            to_report = TRUE;
         }
         else
         {
             BTM_TRACE_ERROR0("discard adv pkt");
-            return;
+            to_report = FALSE;
         }
     }
     else if (p_i->inq_count != p_inq->inq_counter) /* first time seen in this inquiry */
     {
         p_inq->inq_cmpl_info.num_resp++;
     }
-
     /* update the LE device information in inquiry database */
+    to_report_LE = btm_ble_update_inq_result(p_i, addr_type, evt_type, p);
     if (to_report)
-    {
-        to_report = btm_ble_update_inq_result(p_i, addr_type, evt_type, p);
-    }
-
+        to_report = to_report_LE;
 #if BTM_USE_INQ_RESULTS_FILTER == TRUE
     /* If the number of responses found and limited, issue a cancel inquiry */
     if (p_inq->inqparms.max_resps &&
@@ -1776,6 +1801,8 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
     }
 #endif
 
+    BTM_TRACE_DEBUG2("btm_ble_process_adv_pkt_cont: to_report =%d, to_report_le=%d",
+                                                               to_report, to_report_LE);
     /* background connection in selective connection mode */
     if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_SELECTIVE)
     {
@@ -1787,9 +1814,13 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
             BTM_TRACE_DEBUG0("None LE device, can not initiate selective connection");
         }
     }
-    else if (p_inq_results_cb && to_report)
+    else if (to_report || to_report_LE)
     {
-        (p_inq_results_cb)((tBTM_INQ_RESULTS *) &p_i->inq_info.results, p_le_inq_cb->adv_data_cache);
+        if(p_inq_results_cb && to_report)
+            (p_inq_results_cb)((tBTM_INQ_RESULTS *) &p_i->inq_info.results, p_le_inq_cb->adv_data_cache);
+        if(p_inq_ble_results_cb && to_report_LE)
+            (p_inq_ble_results_cb)((tBTM_INQ_RESULTS *) &p_i->inq_info.results,
+                                                      p_le_inq_cb->adv_data_cache);
     }
 }
 
