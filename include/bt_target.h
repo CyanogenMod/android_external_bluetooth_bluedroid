@@ -876,7 +876,6 @@ and USER_HW_DISABLE_API macros */
 
 #if (BLUETOOTH_QCOM_SW == TRUE) /* Enable WBS only under this flag.*/
 #define BTM_WBS_INCLUDED            TRUE
-#define BLUETOOTH_QCOM_SW           TRUE
 #define BTC_INCLUDED                TRUE
 #else
 /* Includes WBS if TRUE */
