@@ -1218,6 +1218,11 @@ void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS resu
     tBTA_HH_DEV_CB *p_dev_cb;
 
     APPL_TRACE_ERROR0("bta_hh_le_encrypt_cback");
+    if(result == HCI_ERR_KEY_MISSING) {
+        APPL_TRACE_ERROR0("HCI_ERR_KEY_MISSING");
+        BTA_DmRemoveDevice(bd_addr);
+        return;
+    }
 
     if (idx != BTA_HH_IDX_INVALID)
         p_dev_cb = &bta_hh_cb.kdev[idx];
@@ -1406,6 +1411,9 @@ void bta_hh_le_search_result(tBTA_GATTC_SRVC_RES *p_srvc_result)
             {
                 /* found HID primamry service */
                 /* TODO: proceed to find battery and device info */
+                if(bta_hh_le_add_hid_srvc_entry(p_dev_cb, 0))//make sure srvc_indx=0 is enabled
+                    APPL_TRACE_DEBUG0("bta_hh_le_search_result: hid_srvc[indx=0] enabled");
+
                 if (bta_hh_le_add_hid_srvc_entry(p_dev_cb, p_dev_cb->total_srvc))
                     p_dev_cb->total_srvc ++;
                 APPL_TRACE_DEBUG1("num of hid service: %d", p_dev_cb->total_srvc);
@@ -2285,6 +2293,7 @@ void bta_hh_le_open_fail(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         utl_freebuf((void **)&p_hid_srvc->rpt_map);
         memset(p_hid_srvc, 0, sizeof(tBTA_HH_LE_HID_SRVC));
     }
+    p_cb->total_srvc = 0;
 
     /* Report OPEN fail event */
     (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn_dat);
@@ -2767,12 +2776,6 @@ static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
             break;
 
         case BTA_GATTC_DEREG_EVT: /* 1 */
-            if (bta_hh_cb.cnt_num && bta_hh_cb.w4_disable)
-            {
-                APPL_TRACE_EVENT0("bta_hh_gattc_callback: Active connections "
-                    "not calling bta_hh_cleanup_disable");
-                break;
-            }
             bta_hh_cleanup_disable(p_data->reg_oper.status);
             break;
 

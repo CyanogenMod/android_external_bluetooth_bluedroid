@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  *
  *  Copyright (C) 2003-2012 Broadcom Corporation
  *
@@ -54,6 +54,7 @@ static UINT8 bta_dm_new_link_key_cback(BD_ADDR bd_addr, DEV_CLASS dev_class, BD_
 static UINT8 bta_dm_authentication_complete_cback(BD_ADDR bd_addr, DEV_CLASS dev_class,BD_NAME bd_name, int result);
 static void bta_dm_local_name_cback(BD_ADDR bd_addr);
 static BOOLEAN bta_dm_check_av(UINT16 event);
+static void bta_dm_set_services(void);
 #if (BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
 static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data);
 #else
@@ -107,6 +108,7 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data);
     #endif
 static void bta_dm_observe_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_observe_cmpl_cb (void * p_result);
+static void bta_dm_le_visibility_cback(UINT8 event, UINT8 advenable, UINT8 islimited);
 
 #ifndef BTA_DM_BLE_ADV_CHNL_MAP
 #define BTA_DM_BLE_ADV_CHNL_MAP (BTM_BLE_ADV_CHNL_37|BTM_BLE_ADV_CHNL_38|BTM_BLE_ADV_CHNL_39)
@@ -252,6 +254,20 @@ static void bta_dm_app_ready_timer_cback (TIMER_LIST_ENT *p_tle)
 #else
 #define bta_dm_app_ready_timer_cback (x)
 #endif
+
+
+static void bta_dm_le_visibility_cback(UINT8 event, UINT8 advenable, UINT8 islimited)
+{
+    tBTA_DM_SEC sec_event;
+    memset(&sec_event.adv_enable, 0, sizeof ( tBTA_DM_ADV_ENABLE_CMPL));
+
+    sec_event.adv_enable.advEnable=advenable;
+    sec_event.adv_enable.advType=event;
+    sec_event.adv_enable.isLimited=islimited;
+    APPL_TRACE_WARNING3("bta_dm_le_visibility_cback, event=%d, advenable: %d, is_limited=%d", event, advenable, islimited);
+    if(bta_dm_cb.p_sec_cback)
+        bta_dm_cb.p_sec_cback(BTA_DM_BLE_ADV_ENABLE_EVT, &sec_event);
+}
 
 /*******************************************************************************
 **
@@ -473,6 +489,11 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
     bta_dm_disable_search_and_disc();
     bta_dm_cb.disabling = TRUE;
 
+#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
+    BD_ADDR dummy_bda;
+    bdsetany(dummy_bda);
+    BTM_BleUpdateBgConnDev(FALSE,dummy_bda);
+#endif
 
     if(BTM_GetNumAclLinks()==0)
     {
@@ -607,6 +628,108 @@ void bta_dm_set_visibility (tBTA_DM_MSG *p_data)
     if (p_data->set_visibility.pair_mode != BTA_DM_IGNORE || p_data->set_visibility.conn_paired_only != BTA_DM_IGNORE)
         BTM_SetPairableMode((BOOLEAN)(!(bta_dm_cb.disable_pair_mode)),bta_dm_cb.conn_paired_only);
 
+}
+
+
+
+/*******************************************************************************
+**
+** Function         bta_dm_set_visibility
+**
+** Description      Sets discoverability, connectability  for LE devices
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_dm_set_ble_visibility (tBTA_DM_MSG *p_data)
+{
+    bta_dm_set_services();
+    //set the adv directed mode
+    BTM_BleSetConnMode(p_data->set_LEvisibility.is_directed);
+    btm_ble_set_visibility((UINT16)p_data->set_LEvisibility.conn_mode, (UINT16) p_data->set_LEvisibility.disc_mode, (tBTM_BLE_ADV_ENABLE_CBACK *)bta_dm_le_visibility_cback);
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_set_advData_Mask
+**
+** Description      set data masks for adv and scan resp
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_dm_set_advData_Mask(tBTA_DM_MSG *p_data)
+{
+    tBTM_BLE_AD_MASK dMask=0;
+    if(p_data->ble_set_adv_mask.maskType==BTA_DM_ADV_MASK)
+        BTM_SetAdvDataMask(p_data->ble_set_adv_mask.mask);
+    else if(p_data->ble_set_adv_mask.maskType==BTA_DM_SCAN_RESP_MASK)
+        BTM_SetScanRespMask(p_data->ble_set_adv_mask.mask);
+}
+
+
+/*******************************************************************************
+**
+** Function         bta_dm_set_services
+**
+** Description      function to set the services to be displayed in adv
+**                       is being currently called internally only
+**
+** Returns          void
+**
+*******************************************************************************/
+
+static void bta_dm_set_services(void)
+{
+    APPL_TRACE_API0("bta_dm_set_services");
+    UINT16 *servuuid;
+    UINT16 lCount=0;
+
+    GATTS_RetrieveServiceList(&servuuid, &lCount);
+    APPL_TRACE_API1("Service Count received: %d",lCount);
+    APPL_TRACE_API1("First Service Retrieved a uuid: 0x%0x",*servuuid);
+
+    BTM_SetAdvServices(servuuid,lCount);
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_set_adv_data
+**
+** Description      This function sets the manufacturer specific data
+**                  for adv data and scan response data
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+
+void bta_dm_set_adv_data(tBTA_DM_MSG *p_data)
+{
+    APPL_TRACE_API0("bta_dm_set_adv_data");
+    if(p_data->ble_set_adv_data.data_mask & BTM_BLE_AD_BIT_MANU)
+        BTM_SetManuData(p_data->ble_set_adv_data.p_adv_cfg->manu.p_val,p_data->ble_set_adv_data.p_adv_cfg->manu.len);
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_set_service_data
+**
+** Description      This function sets the manufacturer specific data
+**                  for adv data and scan response data
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+
+void bta_dm_set_service_data(tBTA_DM_MSG *p_data)
+{
+    APPL_TRACE_API0("bta_dm_set_service_data");
+    if(p_data->ble_set_adv_data.data_mask & BTM_BLE_AD_BIT_SERVICE_DATA)
+        BTM_SetServiceData(p_data->ble_set_adv_data.p_adv_cfg->service_data.p_val,p_data->ble_set_adv_data.p_adv_cfg->service_data.len);
 }
 
 
@@ -1967,6 +2090,8 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
 void bta_dm_search_cmpl (tBTA_DM_MSG *p_data)
 {
     APPL_TRACE_DEBUG0("bta_dm_search_cmpl");
+    tBTA_DM_SEARCH   result;
+
 
 #if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
     utl_freebuf((void **)&bta_dm_search_cb.p_srvc_uuid);
@@ -1975,7 +2100,10 @@ void bta_dm_search_cmpl (tBTA_DM_MSG *p_data)
     if (p_data->hdr.layer_specific == BTA_DM_API_DI_DISCOVER_EVT)
         bta_dm_di_disc_cmpl(p_data);
     else
-        bta_dm_search_cb.p_search_cback(BTA_DM_DISC_CMPL_EVT, NULL);
+    {
+        bdcpy (result.disc_ble_res.bd_addr, bta_dm_search_cb.peer_bdaddr);
+        bta_dm_search_cb.p_search_cback(BTA_DM_DISC_CMPL_EVT, &result);
+    }
 }
 
 /*******************************************************************************
@@ -2887,6 +3015,8 @@ static void bta_dm_pinname_cback (void *p_data)
     {
         /* Retrieved saved device class and bd_addr */
         bdcpy(sec_event.pin_req.bd_addr, bta_dm_cb.pin_bd_addr);
+        /* Retrieve the secure flag of pairing also */
+        sec_event.pin_req.secure = bta_dm_cb.secure;
         BTA_COPY_DEVICE_CLASS(sec_event.pin_req.dev_class, bta_dm_cb.pin_dev_class);
 
         if (p_result && p_result->status == BTM_SUCCESS)
@@ -2929,6 +3059,8 @@ static UINT8 bta_dm_pin_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_
     if (bd_name[0] == 0)
     {
         bta_dm_cb.pin_evt = BTA_DM_PIN_REQ_EVT;
+        /* Store the secure flag of pairing */
+        bta_dm_cb.secure = secure;
         bdcpy(bta_dm_cb.pin_bd_addr, bd_addr);
         BTA_COPY_DEVICE_CLASS(bta_dm_cb.pin_dev_class, dev_class);
         if ((BTM_ReadRemoteDeviceName(bd_addr, bta_dm_pinname_cback)) == BTM_CMD_STARTED)
@@ -4587,6 +4719,9 @@ void bta_dm_encrypt_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
         case BTM_BUSY:
             bta_status = BTA_BUSY;
             break;
+        case BTM_BAD_RF:
+            bta_status = BTA_BAD_RF;
+            break;
         default:
             bta_status = BTA_FAILURE;
             break;
@@ -5031,6 +5166,36 @@ void bta_dm_ble_set_conn_params (tBTA_DM_MSG *p_data)
 
 /*******************************************************************************
 **
+** Function         bta_dm_ble_set_conn_params
+**
+** Description      This function set the preferred adv parameters.
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_set_adv_params (tBTA_DM_MSG *p_data)
+{
+    APPL_TRACE_DEBUG0("bta_dm_ble_set_adv_params Entry");
+
+    if(bdcmp(p_data->ble_set_adv_params.p_dir_bda->bda, bd_addr_null))
+    {
+        //BTM_BleSetConnMode(TRUE);
+        APPL_TRACE_DEBUG0("BD_addr for direct mode is not null");
+    }
+    else
+    {
+        //BTM_BleSetConnMode(FALSE);
+        APPL_TRACE_DEBUG0("BD_addr for direct mode is  null");
+    }
+    BTM_BleSetAdvParams(p_data->ble_set_adv_params.adv_int_min,
+                             p_data->ble_set_adv_params.adv_int_max,
+                             p_data->ble_set_adv_params.p_dir_bda,
+                             BTM_BLE_DEFAULT_ADV_CHNL_MAP);
+}
+
+
+/*******************************************************************************
+**
 ** Function         bta_dm_ble_set_scan_params
 **
 ** Description      This function set the preferred connection scan parameters.
@@ -5113,22 +5278,6 @@ void bta_dm_ble_observe_with_filter(tBTA_DM_MSG *p_data)
 
 /*******************************************************************************
 **
-** Function         bta_dm_ble_set_scan_params
-**
-** Description      This function set the adv parameters.
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_dm_ble_set_adv_params (tBTA_DM_MSG *p_data)
-{
-    BTM_BleSetAdvParams(p_data->ble_set_adv_params.adv_int_min,
-                        p_data->ble_set_adv_params.adv_int_max,
-                        p_data->ble_set_adv_params.p_dir_bda,
-                        BTA_DM_BLE_ADV_CHNL_MAP);
-}
-/*******************************************************************************
-**
 ** Function         bta_dm_ble_set_adv_config
 **
 ** Description      This function set the customized ADV data configuration
@@ -5145,7 +5294,7 @@ void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data)
 
 #if ((defined BTA_GATT_INCLUDED) &&  (BTA_GATT_INCLUDED == TRUE))
 #ifndef BTA_DM_GATT_CLOSE_DELAY_TOUT
-#define BTA_DM_GATT_CLOSE_DELAY_TOUT    3000
+#define BTA_DM_GATT_CLOSE_DELAY_TOUT    30000
 #endif
 
 /*******************************************************************************

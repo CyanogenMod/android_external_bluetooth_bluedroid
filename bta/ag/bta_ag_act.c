@@ -402,7 +402,7 @@ void bta_ag_rfc_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 *******************************************************************************/
 void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
-    tBTA_AG_HDR    close;
+    tBTA_AG_CLOSE    close;
     tBTA_SERVICE_MASK services;
     int i, num_active_conn = 0;
 
@@ -431,13 +431,14 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     bta_sys_stop_timer(&p_scb->cn_timer);
 #endif
 
-    close.handle = bta_ag_scb_to_idx(p_scb);
-    close.app_id = p_scb->app_id;
+    close.hdr.handle = bta_ag_scb_to_idx(p_scb);
+    close.hdr.app_id = p_scb->app_id;
+    bdcpy(close.bd_addr, p_scb->peer_addr);
 
     bta_sys_conn_close(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
 
     /* call close call-out */
-    bta_ag_co_data_close(close.handle);
+    bta_ag_co_data_close(close.hdr.handle);
 
     /* call close cback */
     (*bta_ag_cb.p_cback)(BTA_AG_CLOSE_EVT, (tBTA_AG *) &close);
@@ -822,6 +823,7 @@ void bta_ag_svc_conn_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
         evt.hdr.handle = bta_ag_scb_to_idx(p_scb);
         evt.hdr.app_id = p_scb->app_id;
         evt.peer_feat = p_scb->peer_features;
+        bdcpy(evt.bd_addr, p_scb->peer_addr);
 #if (BTM_WBS_INCLUDED == TRUE )
         evt.peer_codec  = p_scb->peer_codecs;
 #endif

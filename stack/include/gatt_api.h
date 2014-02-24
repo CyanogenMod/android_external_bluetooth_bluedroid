@@ -730,6 +730,9 @@ extern "C"
                                                 UINT16 svc_inst, UINT16 num_handles, BOOLEAN is_pri);
 
 
+    GATT_API extern BOOLEAN GATTS_RetrieveServiceList(UINT16 **p_l,UINT16* count);
+
+
 /*******************************************************************************
 **
 ** Function         GATTS_AddIncludeService

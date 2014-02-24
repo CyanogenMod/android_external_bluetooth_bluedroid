@@ -215,10 +215,10 @@ typedef struct
 #define BTM_BLE_AD_BIT_SIGN_DATA       (0x0001 << 9)
 #define BTM_BLE_AD_BIT_SERVICE_128SOL  (0x0001 << 10)
 #define BTM_BLE_AD_BIT_APPEARANCE      (0x0001 << 11)
-#define BTM_BLE_AD_BIT_PUBLIC_ADDR      (0x0001 << 12)
-#define BTM_BLE_AD_BIT_RANDOM_ADDR      (0x0001 << 13)
+#define BTM_BLE_AD_BIT_PUBLIC_ADDR     (0x0001 << 12)
+#define BTM_BLE_AD_BIT_RANDOM_ADDR     (0x0001 << 13)
 
-#define BTM_BLE_AD_BIT_PROPRIETARY     (0x0001 << 15)
+#define BTM_BLE_AD_BIT_VS_DATA         (0x0001 << 15)
 
 typedef  UINT16  tBTM_BLE_AD_MASK;
 
@@ -263,6 +263,13 @@ typedef struct
 
 typedef struct
 {
+    UINT8       adv_type;
+    UINT8       len;
+    UINT8       *p_val;     /* number of len byte */
+}tBTM_BLE_SERVICE_DATA;
+
+typedef struct
+{
     UINT8       len;
     UINT8      *p_val;
 }tBTM_BLE_MANU;
@@ -278,16 +285,17 @@ typedef struct
 {
     UINT8                   num_elem;
     tBTM_BLE_PROP_ELEM      *p_elem;
-}tBTM_BLE_PROPRIETARY;
+}tBTM_BLE_VS_DATA;
 
 typedef struct
 {
     tBTM_BLE_MANU           manu;           /* manufactuer data */
     tBTM_BLE_INT_RANGE      int_range;      /* slave prefered conn interval range */
     tBTM_BLE_SERVICE        services;       /* services */
+    tBTM_BLE_SERVICE_DATA   service_data;
     UINT8                   flag;
     UINT16                  appearance;
-    tBTM_BLE_PROPRIETARY    *p_proprietary;
+    tBTM_BLE_VS_DATA        *vs_data;
 }tBTM_BLE_ADV_DATA;
 
 /* LE scan filters*/
@@ -331,6 +339,15 @@ enum
     BTM_BLE_CONN_SELECTIVE
 };
 typedef UINT8   tBTM_BLE_CONN_TYPE;
+#if BLE_INCLUDED
+enum
+{
+    BTM_BLE_ADV_MASK,      /*Mask for advertisements*/
+    BTM_BLE_SCAN_RESP_MASK /* Mask for the scan response data*/
+};
+typedef UINT8 tBTM_BLE_ADV_MASK;
+#endif
+
 
 typedef BOOLEAN (tBTM_BLE_SEL_CBACK)(BD_ADDR random_bda,     UINT8 *p_remote_name);
 
@@ -341,6 +358,8 @@ typedef void (tBTM_BLE_VERIFY_CBACK)(void *p_ref_data, BOOLEAN match);
 typedef void (tBTM_BLE_RANDOM_SET_CBACK) (BD_ADDR random_bda);
 
 typedef void (tBTM_BLE_SCAN_REQ_CBACK)(BD_ADDR remote_bda, tBLE_ADDR_TYPE addr_type, UINT8 adv_evt);
+
+typedef void (tBTM_BLE_ADV_ENABLE_CBACK)(UINT8 event, UINT8 advenable, UINT8 islimited);
 
 /*****************************************************************************
 **  EXTERNAL FUNCTION DECLARATIONS
@@ -399,6 +418,34 @@ BTM_API extern BOOLEAN BTM_SecAddBleKey (BD_ADDR bd_addr, tBTM_LE_KEY_VALUE *p_l
 BTM_API extern tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max,
                                 tBLE_BD_ADDR *p_dir_bda, tBTM_BLE_ADV_CHNL_MAP chnl_map);
 
+
+/*******************************************************************************
+**
+** Function         BTM_SetAdvDataMask
+**
+** Description      This function is called to set advertising mask.
+**
+** Parameters:       dmask.
+**
+** Returns          void
+**
+*******************************************************************************/
+BTM_API extern void BTM_SetAdvDataMask(UINT16 dmask);
+
+
+/*******************************************************************************
+**
+** Function         BTM_SetScanRespMask
+**
+** Description      This function is called to set scan resp mask.
+**
+** Parameters:       dmask.
+**
+** Returns          void
+**
+*******************************************************************************/
+BTM_API extern void BTM_SetScanRespMask(UINT16 dmask);
+
 /*******************************************************************************
 **
 ** Function         BTM_BleWriteAdvData
@@ -412,6 +459,56 @@ BTM_API extern tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_in
 *******************************************************************************/
 BTM_API extern tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK  data_mask,
                                                tBTM_BLE_ADV_DATA *p_data);
+
+/*******************************************************************************
+**
+** Function         BTM_SetManuData
+**
+** Description      This function is called to set Manufacturer specific data
+**
+** Parameters       data, length
+**
+** Returns          null
+**
+*******************************************************************************/
+
+BTM_API extern void BTM_SetManuData(UINT8 *p_buff, INT8 length);
+
+
+/*******************************************************************************
+**
+** Function         BTM_SetServiceData
+**
+** Description      This function is called to set service data
+**
+** Parameters       data, length
+**
+** Returns          null
+**
+*******************************************************************************/
+
+BTM_API extern void BTM_SetServiceData(UINT8 *p_buff, INT8 length);
+
+
+
+
+/*******************************************************************************
+**
+** Function         BTM_SetAdvServices
+**
+** Description      This function is called to set the advertised uuids
+**
+** Parameters       uuids buffer, length
+**
+** Returns          null
+**
+*******************************************************************************/
+
+BTM_API extern void BTM_SetAdvServices(UINT16 *p_uuids, UINT16 length);
+
+
+BTM_API extern void btm_ble_set_visibility(UINT16 conn_mode, UINT16 disc_mode, tBTM_BLE_ADV_ENABLE_CBACK *p_cb);
+
 
 /*******************************************************************************
 **

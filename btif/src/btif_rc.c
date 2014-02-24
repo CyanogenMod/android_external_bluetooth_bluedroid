@@ -238,6 +238,7 @@ static btrc_callbacks_t *bt_rc_callbacks = NULL;
 /*****************************************************************************
 **  Externs
 ******************************************************************************/
+extern BOOLEAN btif_multihf_call_terminated_recently();
 extern BOOLEAN btif_hf_call_terminated_recently();
 extern BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
 

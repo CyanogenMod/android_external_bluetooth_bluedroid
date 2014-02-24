@@ -52,6 +52,9 @@ static void bta_dm_pm_set_sniff_policy(tBTA_DM_PEER_DEVICE *p_dev, BOOLEAN bDisa
 static void bta_dm_pm_ssr(BD_ADDR peer_addr);
 #endif
 
+/* Sniff interval for active ESCO and HID connection */
+#define SNIFF_INTERVAL_ACTIVE_HID_ESCO 12
+
 tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
 
 
@@ -314,16 +317,20 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
     **     This will handle the case where HID connects when SCO already active
     */
     if ( (btm_status == BTM_SUCCESS) &&
-         ( ((status == BTA_SYS_SCO_OPEN) || (status == BTA_SYS_SCO_CLOSE)) ||
-           ((status == BTA_SYS_CONN_OPEN) && (id == BTA_ID_HH) && bta_dm_pm_is_sco_active()) ) )
+        (((status == BTA_SYS_SCO_OPEN) || (status == BTA_SYS_SCO_CLOSE)) ||
+        ((status == BTA_SYS_CONN_OPEN) && (id == BTA_ID_HH) && bta_dm_pm_is_sco_active())) &&
+        (BTM_ReadEScoLinkTxInterval(BTM_FIRST_ACTIVE_SCO_INDEX) < SNIFF_INTERVAL_ACTIVE_HID_ESCO))
     {
-        BOOLEAN bScoActive;
-        if (status == BTA_SYS_CONN_OPEN)
-            bScoActive = TRUE;
-        else
-            bScoActive = (status == BTA_SYS_SCO_OPEN);
 
-        bta_dm_pm_hid_check(bScoActive);
+          BOOLEAN bScoActive;
+          if (status == BTA_SYS_CONN_OPEN)
+              bScoActive = TRUE;
+          else
+              bScoActive = (status == BTA_SYS_SCO_OPEN);
+
+          APPL_TRACE_DEBUG1("bta_dm_pm_cback: bta_dm_pm_hid_check with bScoActive = %d",
+                  bScoActive);
+          bta_dm_pm_hid_check(bScoActive);
     }
 
 }

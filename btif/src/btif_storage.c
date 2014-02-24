@@ -75,6 +75,7 @@
 #define BTIF_STORAGE_PATH_REMOTE_HIDINFO "HidInfo"
 #define BTIF_STORAGE_KEY_ADAPTER_NAME "Name"
 #define BTIF_STORAGE_KEY_ADAPTER_SCANMODE "ScanMode"
+#define BTIF_STORAGE_KEY_ADAPTER_ADVMODE "AdvMode"
 #define BTIF_STORAGE_KEY_ADAPTER_DISC_TIMEOUT "DiscoveryTimeout"
 
 
@@ -268,7 +269,7 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
             btif_config_set_int("Remote", bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_DEVTIME, (int)time(NULL));
             static const char* exclude_filter[] =
-                        {"LinkKey", "LE_KEY_PENC", "LE_KEY_PID", "LE_KEY_PCSRK", "LE_KEY_LENC", "LE_KEY_LCSRK"};
+                        {"Name", "LinkKey", "LE_KEY_PENC", "LE_KEY_PID", "LE_KEY_PCSRK", "LE_KEY_LENC", "LE_KEY_LCSRK"};
             btif_config_filter_remove("Remote", exclude_filter, sizeof(exclude_filter)/sizeof(char*),
                         BTIF_STORAGE_MAX_ALLOWED_REMOTE_DEVICE);
             break;
@@ -293,6 +294,10 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
         case BT_PROPERTY_ADAPTER_SCAN_MODE:
             btif_config_set_int("Local", "Adapter",
                                 BTIF_STORAGE_KEY_ADAPTER_SCANMODE, *(int*)prop->val);
+            break;
+        case BT_PROPERTY_ADAPTER_BLE_ADV_MODE:
+            btif_config_set_int("Local", "Adapter",
+                                BTIF_STORAGE_KEY_ADAPTER_ADVMODE, *(int*)prop->val);
             break;
         case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
             btif_config_set_int("Local", "Adapter",
@@ -409,6 +414,11 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
            if(prop->len >= (int)sizeof(int))
                 ret = btif_config_get_int("Local", "Adapter",
                                           BTIF_STORAGE_KEY_ADAPTER_SCANMODE, (int*)prop->val);
+           break;
+        case BT_PROPERTY_ADAPTER_BLE_ADV_MODE:
+           if(prop->len >= (int)sizeof(int))
+                ret = btif_config_get_int("Local", "Adapter",
+                                          BTIF_STORAGE_KEY_ADAPTER_ADVMODE, (int*)prop->val);
            break;
         case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
            if(prop->len >= (int)sizeof(int))

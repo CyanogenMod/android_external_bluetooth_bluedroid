@@ -63,7 +63,8 @@ enum
     BTM_SCO_BAD_LENGTH,                 /* 16 Bad SCO over HCI data length */
     BTM_SUCCESS_NO_SECURITY,            /* 17 security passed, no security set  */
     BTM_FAILED_ON_SECURITY ,             /* 18 security failed                   */
-    BTM_REPEATED_ATTEMPTS               /* 19 repeated attempts for LE security requests */
+    BTM_REPEATED_ATTEMPTS,               /* 19 repeated attempts for LE security requests */
+    BTM_BAD_RF                            /*20 Event status is 0x3E or 62*/
 };
 typedef UINT8 tBTM_STATUS;
 
@@ -113,8 +114,8 @@ typedef struct
 /* Structure returned with HCI Raw Command complete callback */
 typedef struct
 {
-    UINT16  opcode;
-    UINT16  param_len;
+    UINT8  event_code;
+    UINT8  param_len;
     UINT8   *p_param_buf;
 } tBTM_RAW_CMPL;
 
@@ -196,6 +197,9 @@ typedef UINT8 (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 #define BTM_BLE_CONNECTABLE          0x0100
 #define BTM_BLE_MAX_CONNECTABLE      BTM_BLE_CONNECTABLE
 #define BTM_BLE_CONNECTABLE_MASK    (BTM_BLE_NON_CONNECTABLE | BTM_BLE_CONNECTABLE)
+
+#define BTM_BLE_IGNORE           0xFF
+
 
 /* Inquiry modes
  * Note: These modes are associated with the inquiry active values (BTM_*ACTIVE) */
@@ -1268,7 +1272,8 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_SEC_SERVICE_FIRST_EMPTY     54
 
 #ifndef BTM_SEC_MAX_SERVICES
-#define BTM_SEC_MAX_SERVICES            65
+/* accomadate client profiles also */
+#define BTM_SEC_MAX_SERVICES            70
 #endif
 
 /************************************************************************************************

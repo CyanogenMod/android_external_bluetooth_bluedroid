@@ -1914,6 +1914,9 @@ tBTM_STATUS BTM_Hci_Raw_Command(UINT16 opcode, UINT8 param_len,
                               UINT8 *p_param_buf, tBTM_RAW_CMPL_CB *p_cb)
 {
     void *p_buf;
+#if HCI_RAW_CMD_INCLUDED == TRUE
+    tBTM_DEVCB  *p_devcb = &btm_cb.devcb;
+#endif
 
     BTM_TRACE_EVENT2 ("BTM: BTM_Hci_Raw_Command: Opcode: 0x%04X, ParamLen: %i.",
                       opcode, param_len);
@@ -1926,8 +1929,17 @@ tBTM_STATUS BTM_Hci_Raw_Command(UINT16 opcode, UINT8 param_len,
         btsnd_hcic_raw_cmd (p_buf, opcode, param_len, p_param_buf, (void *)p_cb);
 
         /* Return value */
+#if HCI_RAW_CMD_INCLUDED == TRUE
+        if (p_cb != NULL) {
+            if(p_cb != (p_devcb->p_hci_evt_cb)) {
+                p_devcb->p_hci_evt_cb = p_cb;
+            }
+            return BTM_CMD_STARTED;
+        }
+#else
         if (p_cb != NULL)
             return BTM_CMD_STARTED;
+#endif
         else
             return BTM_SUCCESS;
     }
@@ -1977,6 +1989,33 @@ tBTM_STATUS BTM_VendorSpecificCommand(UINT16 opcode, UINT8 param_len,
 
 }
 
+#if HCI_RAW_CMD_INCLUDED == TRUE
+/*******************************************************************************
+**
+** Function         btm_hci_event
+**
+** Description      This function is called when HCI event is received
+**                  from the HCI layer.
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_hci_event(UINT8 *p, UINT8 event_code, UINT8 param_len)
+{
+    tBTM_DEVCB     *p_devcb = &btm_cb.devcb;
+    tBTM_RAW_CMPL  raw_cplt_params;
+
+    /* If there was a callback address for raw cmd complete, call it */
+    if (p_devcb->p_hci_evt_cb)
+    {
+        /* Pass paramters to the callback function */
+        raw_cplt_params.event_code = event_code;   /* Number of bytes in return info */
+        raw_cplt_params.param_len = param_len;    /* Number of bytes in return info */
+        raw_cplt_params.p_param_buf = p;
+        (p_devcb->p_hci_evt_cb) (&raw_cplt_params);  /* Call the cmd complete callback function */
+    }
+}
+#endif
 
 /*******************************************************************************
 **

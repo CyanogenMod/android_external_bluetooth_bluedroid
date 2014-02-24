@@ -1059,7 +1059,7 @@ and USER_HW_DISABLE_API macros */
 
 /* The number of SCO links. */
 #ifndef BTM_MAX_SCO_LINKS
-#define BTM_MAX_SCO_LINKS           2
+#define BTM_MAX_SCO_LINKS           3
 #endif
 
 /* The preferred type of SCO links (2-eSCO, 0-SCO). */
@@ -1424,6 +1424,10 @@ and USER_HW_DISABLE_API macros */
 #else
 #define TIMER_PARAM_TYPE    UINT32
 #endif
+#endif
+
+#ifndef HCI_RAW_CMD_INCLUDED
+#define HCI_RAW_CMD_INCLUDED    TRUE
 #endif
 
 /******************************************************************************
