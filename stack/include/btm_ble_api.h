@@ -276,8 +276,8 @@ typedef struct
     tBTM_BLE_MANU           manu;			/* manufactuer data */
     tBTM_BLE_INT_RANGE      int_range;      /* slave prefered conn interval range */
     tBTM_BLE_SERVICE        services;       /* services */
-    UINT8                   flag;
     UINT16                  appearance;
+    UINT8                   flag;
     tBTM_BLE_PROPRIETARY    *p_proprietary;
 }tBTM_BLE_ADV_DATA;
 

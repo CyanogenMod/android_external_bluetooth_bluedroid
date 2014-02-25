@@ -840,7 +840,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
 
         case BTIF_GATTC_LISTEN:
-#ifdef BLE_PERIPHERAL_MODE_SUPPORT
+#if (defined(BLE_PERIPHERAL_MODE_SUPPORT) && (BLE_PERIPHERAL_MODE_SUPPORT == TRUE))
             BTA_GATTC_Listen(p_cb->client_if, p_cb->start, NULL);
 #else
             BTA_DmBleBroadcast(p_cb->start);
@@ -1107,6 +1107,10 @@ static bt_status_t btif_gattc_set_adv_data(int client_if, bool set_scan_rsp, boo
             }
         }
     }
+
+#if (defined(BLE_PERIPHERAL_ADV_NAME) && (BLE_PERIPHERAL_ADV_NAME == TRUE))
+    btif_cb.adv_data.mask |= BTM_BLE_AD_BIT_DEV_NAME;
+#endif
 
     return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SET_ADV_DATA,
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
