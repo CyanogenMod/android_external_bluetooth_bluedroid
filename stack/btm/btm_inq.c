@@ -873,9 +873,11 @@ tBTM_STATUS BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms, tBTM_INQ_RESULTS_CB *p
             BTM_TRACE_API0("BTM_StartInquiry: LE observe in progress");
             p_inq->scan_type = INQ_GENERAL;
             p_inq->inq_active = BTM_INQUIRY_INACTIVE;
+#if BLE_INCLUDED == TRUE
             btm_cb.ble_ctr_cb.inq_var.scan_type = BTM_BLE_SCAN_MODE_NONE;
             btm_cb.ble_ctr_cb.inq_var.proc_mode = BTM_BLE_INQUIRY_NONE;
             btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_DISABLE, BTM_BLE_DUPLICATE_ENABLE);
+#endif
         }
         else
         {
@@ -2510,12 +2512,14 @@ void btm_process_inq_complete (UINT8 status, UINT8 mode)
     if(p_inq->inqparms.mode == 0 && p_inq->scan_type == INQ_GENERAL)//this inquiry is complete
     {
         p_inq->scan_type = INQ_NONE;
+#if BLE_INCLUDED == TRUE
         /* check if the LE observe is pending */
         if(p_inq->p_inq_ble_results_cb != NULL)
         {
             BTM_TRACE_DEBUG0("BTM Inq Compl: resuming a pending LE scan");
             BTM_BleObserve(1,0, p_inq->p_inq_ble_results_cb, p_inq->p_inq_ble_cmpl_cb);
         }
+#endif
     }
 #if (BTM_INQ_DEBUG == TRUE)
     BTM_TRACE_DEBUG3 ("inq_active:0x%x state:%d inqfilt_active:%d",

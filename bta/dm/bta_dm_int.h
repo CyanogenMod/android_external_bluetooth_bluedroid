@@ -184,6 +184,7 @@ typedef struct
     BOOLEAN         is_directed;
 } tBTA_DM_API_SET_BLE_VISIBILITY;
 
+#if BLE_INCLUDED == TRUE
 /* data type for BTA_DM_API_BLE_ADVDATA_MASK_EVT */
 typedef struct
 {
@@ -191,6 +192,7 @@ typedef struct
     tBTA_DM_ADV_MASK    maskType;
     UINT16              mask;
 }tBTA_DM_API_BLE_ADVDATA_MASK;
+#endif
 
 /* data type for BTA_DM_API_SET_AFH_CHANNELS_EVT */
 typedef struct

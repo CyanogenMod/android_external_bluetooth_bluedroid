@@ -631,7 +631,7 @@ void bta_dm_set_visibility (tBTA_DM_MSG *p_data)
 }
 
 
-
+#if BLE_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         bta_dm_set_visibility
@@ -668,7 +668,7 @@ void bta_dm_set_advData_Mask(tBTA_DM_MSG *p_data)
     else if(p_data->ble_set_adv_mask.maskType==BTA_DM_SCAN_RESP_MASK)
         BTM_SetScanRespMask(p_data->ble_set_adv_mask.mask);
 }
-
+#endif
 
 /*******************************************************************************
 **
@@ -694,6 +694,7 @@ static void bta_dm_set_services(void)
     BTM_SetAdvServices(servuuid,lCount);
 }
 
+#if BLE_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         bta_dm_set_adv_data
@@ -731,7 +732,7 @@ void bta_dm_set_service_data(tBTA_DM_MSG *p_data)
     if(p_data->ble_set_adv_data.data_mask & BTM_BLE_AD_BIT_SERVICE_DATA)
         BTM_SetServiceData(p_data->ble_set_adv_data.p_adv_cfg->service_data.p_val,p_data->ble_set_adv_data.p_adv_cfg->service_data.len);
 }
-
+#endif
 
 /*******************************************************************************
 **

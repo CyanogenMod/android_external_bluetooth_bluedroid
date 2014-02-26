@@ -1379,7 +1379,7 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
                 storage_req_id = BTIF_CORE_STORAGE_ADAPTER_WRITE;
             }
             break;
-
+#if BLE_INCLUDED == TRUE
         case BT_PROPERTY_ADAPTER_BLE_ADV_MODE:
             {
                 bt_ble_adv_mode_t mode = *(bt_scan_mode_t*)property->val;
@@ -1422,6 +1422,7 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
                 storage_req_id = BTIF_CORE_STORAGE_ADAPTER_WRITE;
             }
             break;
+#endif
         case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
             {
                 /* Nothing to do beside store the value in NV.  Java
@@ -1540,7 +1541,7 @@ bt_status_t btif_set_remote_device_property(bt_bdaddr_t *remote_addr,
                                  btif_in_storage_request_copy_cb);
 }
 
-
+#if BLE_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         btif_set_le_adv_params
@@ -1667,7 +1668,7 @@ bt_status_t btif_set_le_service_data(uint8_t *p_buff, uint8_t len)
     BTA_DmSetServiceData(p_buff, len);
     return BT_STATUS_SUCCESS;
 }
-
+#endif
 
 /*******************************************************************************
 **

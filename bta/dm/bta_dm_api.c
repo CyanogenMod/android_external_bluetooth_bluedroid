@@ -247,7 +247,7 @@ void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 p
 
 }
 
-
+#if BLE_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         BTA_DmSetBLEVisibility
@@ -301,7 +301,6 @@ void BTA_DmSetBLEAdvMask(UINT16 datamask)
     }
 }
 
-
 /*******************************************************************************
 **
 ** Function         BTA_DmSetBLEScanRespMask
@@ -325,7 +324,6 @@ void BTA_DmSetBLEScanRespMask(UINT16 datamask)
         bta_sys_sendmsg(p_msg);
     }
 }
-
 
 /*******************************************************************************
 **
@@ -431,7 +429,7 @@ void BTA_DmSetServiceData(UINT8 *p_buff, UINT8 len)
         bta_sys_sendmsg(p_msg);
     }
 }
-
+#endif
 
 
 /*******************************************************************************
