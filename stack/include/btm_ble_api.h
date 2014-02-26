@@ -446,6 +446,7 @@ BTM_API extern void BTM_SetAdvDataMask(UINT16 dmask);
 *******************************************************************************/
 BTM_API extern void BTM_SetScanRespMask(UINT16 dmask);
 
+#if BLE_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         BTM_BleWriteAdvData
@@ -459,6 +460,7 @@ BTM_API extern void BTM_SetScanRespMask(UINT16 dmask);
 *******************************************************************************/
 BTM_API extern tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK  data_mask,
                                                tBTM_BLE_ADV_DATA *p_data);
+#endif
 
 /*******************************************************************************
 **
