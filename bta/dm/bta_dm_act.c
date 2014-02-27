@@ -38,6 +38,7 @@
 #include "l2c_api.h"
 #include "wbt_api.h"
 #include "utl.h"
+#include "gap_api.h"    /* For GAP_BleReadPeerPrefConnParams */
 #include <string.h>
 
 #if (GAP_INCLUDED == TRUE)
