@@ -37,6 +37,9 @@
 #include "btm_api.h"
 #include "btm_int.h"
 
+extern void btm_process_cancel_complete(UINT8 status, UINT8 mode);
+extern void btm_ble_test_command_complete(UINT8 *p);
+
 // btla-specific ++
 #define LOG_TAG "BTLD"
 #if (defined(ANDROID_APP_INCLUDED) && (ANDROID_APP_INCLUDED == TRUE) && (!defined(LINUX_NATIVE)) )

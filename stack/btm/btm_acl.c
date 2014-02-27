@@ -37,6 +37,7 @@
 #include "btm_int.h"
 #include "l2c_int.h"
 #include "hcidefs.h"
+#include "bd.h" /* bdcmp, bdcpy */
 
 static void btm_establish_continue (tACL_CONN *p_acl_cb);
 static void btm_read_remote_features (UINT16 handle);
