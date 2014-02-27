@@ -6,6 +6,7 @@ LOCAL_SRC_FILES:= \
 	audio_a2dp_hw.c
 
 LOCAL_C_INCLUDES+= . $(LOCAL_PATH)/../utils/include
+LOCAL_CFLAGS := -Wno-unused-parameter
 
 LOCAL_SHARED_LIBRARIES := \
 	libcutils liblog
