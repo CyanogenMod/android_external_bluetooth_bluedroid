@@ -195,7 +195,7 @@ static int skt_connect(struct a2dp_stream_out *out, char *path)
     struct sockaddr_un remote;
     int len;
 
-    INFO("connect to %s (sz %d)", path, out->buffer_sz);
+    INFO("connect to %s (sz %zu)", path, out->buffer_sz);
 
     skt_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
 
