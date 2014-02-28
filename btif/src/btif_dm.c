@@ -2007,8 +2007,16 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
         case BTA_DM_REM_NAME_EVT:
             BTIF_TRACE_DEBUG("BTA_DM_REM_NAME_EVT");
 
-            /* remote name */
-            if (strlen((char *)p_data->rem_name_evt.bd_name) > 0)
+            bt_bdname_t alias;
+            bt_property_t prop[1];
+            uint32_t num_properties = 0;
+            memset(&alias, 0, sizeof(alias));
+            bdcpy(bd_addr.address, p_data->rem_name_evt.bd_addr);
+            BTIF_DM_GET_REMOTE_PROP(&bd_addr, BT_PROPERTY_REMOTE_FRIENDLY_NAME,
+                    &alias, sizeof(alias), prop[num_properties]);
+
+           /* Update Remote device name only when the Alias name is not present */
+            if ((alias.name[0] == '\0') && (strlen((char *)p_data->rem_name_evt.bd_name) > 0))
             {
                 bt_property_t properties[1];
                 bt_status_t status;
