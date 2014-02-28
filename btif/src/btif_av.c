@@ -142,6 +142,7 @@ extern void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data);
 extern BOOLEAN btif_rc_get_connected_peer(BD_ADDR peer_addr);
 extern void btif_rc_check_handle_pending_play (BD_ADDR peer_addr, BOOLEAN bSendToApp);
 extern BOOLEAN btif_hf_is_call_idle();
+extern BOOLEAN btif_multihf_is_call_idle();
 
 /*****************************************************************************
 ** Local helper functions
@@ -269,6 +270,8 @@ static void btif_initiate_av_open_tmr_hdlr(TIMER_LIST_ENT *tle)
 
 static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
 {
+    tBTA_AV *p_bta_data;
+
     BTIF_TRACE_DEBUG3("%s event:%s flags %x", __FUNCTION__,
                      dump_av_sm_event_name(event), btif_av_cb.flags);
 
@@ -302,6 +305,38 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
              BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
                     TRUE, BTA_SEC_NONE);
              btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
+             break;
+
+        case BTA_AV_OPEN_EVT:
+             /* We get this event in Idle State if Signalling channel was not closed
+              * only Streaming channel was closed, and stream setup process was initiated
+              */
+             p_bta_data = (tBTA_AV*)p_data;
+             BTIF_TRACE_DEBUG2("status:%d, edr 0x%x", p_bta_data->open.status,
+                               p_bta_data->open.edr);
+
+             if (p_bta_data->open.status == BTA_AV_SUCCESS)
+             {
+                  btif_av_cb.edr = p_bta_data->open.edr;
+                  if (p_bta_data->open.edr & BTA_AV_EDR_3MBPS)
+                  {
+                      BTIF_TRACE_DEBUG0("remote supports 3 mbps");
+                      btif_av_cb.edr_3mbps = TRUE;
+                  }
+
+                  if (p_bta_data->open.sep == AVDT_TSEP_SRC)
+                     btif_av_cb.sep = SEP_SRC;
+                  else if (p_bta_data->open.sep == AVDT_TSEP_SNK)
+                      btif_av_cb.sep = SEP_SNK;
+
+                  bdcpy(btif_av_cb.peer_bda.address, ((tBTA_AV*)p_data)->open.bd_addr);
+
+                  /* inform the application of the event */
+                  HAL_CBACK(bt_av_callbacks, connection_state_cb,
+                        BTAV_CONNECTION_STATE_CONNECTED, &(btif_av_cb.peer_bda));
+                  /* change state to open/idle based on the status */
+                  btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENED);
+             }
              break;
 
         case BTA_AV_PENDING_EVT:
@@ -597,7 +632,8 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
                 return TRUE;
 
             /* if remote tries to start a2dp when call is in progress, suspend it right away */
-            if ((!(btif_av_cb.flags & BTIF_AV_FLAG_PENDING_START)) && (!btif_hf_is_call_idle())) {
+            if ((!(btif_av_cb.flags & BTIF_AV_FLAG_PENDING_START)) &&
+                                    (!btif_multihf_is_call_idle())) {
                 BTIF_TRACE_EVENT1("%s: trigger suspend as call is in progress!!", __FUNCTION__);
                 btif_dispatch_sm_event(BTIF_AV_SUSPEND_STREAM_REQ_EVT, NULL, 0);
             }

@@ -910,7 +910,8 @@ void smp_delay_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     btu_stop_timer (&p_cb->rsp_timer_ent);
 
     /* if remote user terminate connection and host did not cancel the pairing, finish SMP pairing as normal */
-    if (p_data->reason == HCI_ERR_PEER_USER && p_cb->status !=SMP_PAIR_FAIL_UNKNOWN)
+    if (p_data->reason == HCI_ERR_PEER_USER && p_cb->status !=SMP_PAIR_FAIL_UNKNOWN
+            && p_cb->status != SMP_PASSKEY_ENTRY_FAIL)
         p_cb->status = SMP_SUCCESS;
     else
         p_cb->status = SMP_CONN_TOUT;

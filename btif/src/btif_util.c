@@ -28,6 +28,7 @@
  ***********************************************************************************/
 
 #include <hardware/bluetooth.h>
+#include <hardware/bt_multi_hf.h>
 #include <hardware/bt_hf.h>
 #include <hardware/bt_av.h>
 #include <netinet/in.h>
@@ -285,6 +286,7 @@ const char* dump_dm_event(UINT16 event)
         CASE_RETURN_STR(BTA_DM_BLE_AUTH_CMPL_EVT)
         CASE_RETURN_STR(BTA_DM_DEV_UNPAIRED_EVT)
         CASE_RETURN_STR(BTA_DM_HW_ERROR_EVT)
+        CASE_RETURN_STR(BTA_DM_BLE_ADV_ENABLE_EVT)
         CASE_RETURN_STR(BTA_DM_REM_NAME_EVT)
 
         default:

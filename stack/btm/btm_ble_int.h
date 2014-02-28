@@ -132,9 +132,11 @@ typedef struct
 
     tBTM_BLE_LOCAL_ADV_DATA   adv_data;
     tBTM_BLE_ADV_CHNL_MAP     adv_chnl_map;
+    tBTM_BLE_ADV_DATA         adv_data_input; /* input by the user to be used to create the tBTM_BLE_LOCAL_ADV_DATA*/
 
     TIMER_LIST_ENT   inq_timer_ent;
     BOOLEAN          scan_rsp;
+    UINT16           scanResp_mask;
     UINT8            state;             /* Current state that the inquiry process is in */
     INT8             tx_power;
 } tBTM_BLE_INQ_CB;
@@ -243,6 +245,7 @@ typedef struct
 #ifdef BTM_BLE_PC_ADV_TEST_MODE
     tBTM_BLE_SCAN_REQ_CBACK *p_scan_req_cback;
 #endif
+    tBTM_BLE_ADV_ENABLE_CBACK *p_adv_enable_cback;
 
 } tBTM_BLE_CB;
 
@@ -281,6 +284,8 @@ extern tBTM_STATUS btm_ble_set_encryption (BD_ADDR bd_addr, void *p_ref_data, UI
 extern void btm_ble_ltk_request(UINT16 handle, UINT8 rand[8], UINT16 ediv);
 extern BOOLEAN btm_ble_start_encrypt(BD_ADDR bda, BOOLEAN use_stk, BT_OCTET16 stk);
 extern void btm_ble_link_encrypted(BD_ADDR bd_addr, UINT8 encr_enable);
+extern void btm_ble_encryption_failure(BD_ADDR bd_addr,UINT8 status);
+
 #endif
 
 /* LE device management functions */

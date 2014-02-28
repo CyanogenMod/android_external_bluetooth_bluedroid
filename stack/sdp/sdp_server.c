@@ -104,6 +104,10 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
 #define SDP_TEXT_BAD_CONT_INX   NULL
 #endif
 
+#ifndef SDP_TEXT_BAD_MAX_RECORDS_LIST
+#define SDP_TEXT_BAD_MAX_RECORDS_LIST   NULL
+#endif
+
 /****************************************************************************
 **
 ** Function         sdp_dev_blacklistted_for_avrcp15
@@ -258,6 +262,14 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
 
     if (max_replies > SDP_MAX_RECORDS)
         max_replies = SDP_MAX_RECORDS;
+
+
+    if ((!p_req) || (p_req > p_req_end))
+    {
+        sdpu_build_n_send_error (p_ccb, trans_num, SDP_INVALID_REQ_SYNTAX, SDP_TEXT_BAD_MAX_RECORDS_LIST);
+        return;
+    }
+
 
     /* Get a list of handles that match the UUIDs given to us */
     for (num_rsp_handles = 0; num_rsp_handles < max_replies; )
@@ -467,8 +479,14 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
             return;
         }
         /* Get a scratch buffer to store response */
-        if (!p_ccb->rsp_list)
+        if (!p_ccb->rsp_list || (GKI_get_buf_size(p_ccb->rsp_list) < max_list_len))
         {
+            /* Free and reallocate if the earlier allocated buffer is small */
+            if (p_ccb->rsp_list)
+            {
+                GKI_freebuf (p_ccb->rsp_list);
+            }
+
             p_ccb->rsp_list = (UINT8 *)GKI_getbuf (max_list_len);
             if (p_ccb->rsp_list == NULL)
             {
@@ -736,8 +754,14 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
             return;
         }
         /* Get a scratch buffer to store response */
-        if (!p_ccb->rsp_list)
+        if (!p_ccb->rsp_list || (GKI_get_buf_size(p_ccb->rsp_list) < max_list_len))
         {
+            /* Free and reallocate if the earlier allocated buffer is small */
+            if (p_ccb->rsp_list)
+            {
+                GKI_freebuf (p_ccb->rsp_list);
+            }
+
             p_ccb->rsp_list = (UINT8 *)GKI_getbuf (max_list_len);
             if (p_ccb->rsp_list == NULL)
             {

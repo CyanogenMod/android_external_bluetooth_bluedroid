@@ -1287,6 +1287,15 @@ void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read_pages)
         btm_process_remote_ext_features_page (p_acl_cb, p_dev_rec, page_idx);
     }
 
+    if (p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN)
+    {
+        /* Name is know, unset it so that name is retrieved again
+         * from security procedure. This will ensure, that if remote device
+         * has updated its name since last connection, we will have
+         * update name of remote device. */
+        p_dev_rec->sec_flags &= ~BTM_SEC_NAME_KNOWN;
+    }
+
     if (!(p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN) || p_dev_rec->is_originator)
     {
         BTM_TRACE_DEBUG0 ("Calling Next Security Procedure");
@@ -1472,10 +1481,6 @@ void btm_read_remote_features_complete (UINT8 *p)
         return;
     }
 
-    /* Retrieve remote name of device */
-    btsnd_hcic_rmt_name_req (p_acl_cb->remote_addr, HCI_PAGE_SCAN_REP_MODE_R1,
-        HCI_MANDATARY_PAGE_SCAN_MODE, 0);
-
     /* Remote controller has no extended features. Process remote controller supported features
        (features page HCI_EXT_FEATURES_PAGE_0). */
     btm_process_remote_ext_features (p_acl_cb, 1);
@@ -1539,10 +1544,6 @@ void btm_read_remote_ext_features_complete (UINT8 *p)
     /* Reading of remote feature pages is complete */
     BTM_TRACE_DEBUG1("BTM reached last remote extended features page (%d)", page_num);
 
-    /* Retrieve remote name of device */
-    btsnd_hcic_rmt_name_req (p_acl_cb->remote_addr, HCI_PAGE_SCAN_REP_MODE_R1,
-        HCI_MANDATARY_PAGE_SCAN_MODE, 0);
-
     /* Process the pages */
     btm_process_remote_ext_features (p_acl_cb, (UINT8) (page_num + 1));
 
@@ -1575,10 +1576,6 @@ void btm_read_remote_ext_features_failed (UINT8 status, UINT16 handle)
     }
 
     p_acl_cb = &btm_cb.acl_db[acl_idx];
-
-    /* Retrieve remote name of device */
-    btsnd_hcic_rmt_name_req (p_acl_cb->remote_addr, HCI_PAGE_SCAN_REP_MODE_R1,
-        HCI_MANDATARY_PAGE_SCAN_MODE, 0);
 
     /* Process supported features only */
     btm_process_remote_ext_features (p_acl_cb, 1);
@@ -1617,30 +1614,33 @@ static void btm_establish_continue (tACL_CONN *p_acl_cb)
             BTM_SetLinkPolicy (p_acl_cb->remote_addr, &btm_cb.btm_def_link_policy);
     }
 #endif
-    p_acl_cb->link_up_issued = TRUE;
-
-    /* If anyone cares, tell him database changed */
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
-    if (btm_cb.p_bl_changed_cb)
+    if(p_acl_cb->link_up_issued == FALSE)
     {
-        evt_data.event = BTM_BL_CONN_EVT;
-        evt_data.conn.p_bda = p_acl_cb->remote_addr;
-        evt_data.conn.p_bdn = p_acl_cb->remote_name;
-        evt_data.conn.p_dc  = p_acl_cb->remote_dc;
-        evt_data.conn.p_features = p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0];
+        p_acl_cb->link_up_issued = TRUE;
+
+        /* If anyone cares, tell him database changed */
+#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
+        if (btm_cb.p_bl_changed_cb)
+        {
+            evt_data.event = BTM_BL_CONN_EVT;
+            evt_data.conn.p_bda = p_acl_cb->remote_addr;
+            evt_data.conn.p_bdn = p_acl_cb->remote_name;
+            evt_data.conn.p_dc  = p_acl_cb->remote_dc;
+            evt_data.conn.p_features = p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0];
 
 
-        (*btm_cb.p_bl_changed_cb)(&evt_data);
-    }
-    btm_acl_update_busy_level (BTM_BLI_ACL_UP_EVT);
+            (*btm_cb.p_bl_changed_cb)(&evt_data);
+        }
+        btm_acl_update_busy_level (BTM_BLI_ACL_UP_EVT);
 #else
-    if (btm_cb.p_acl_changed_cb)
-        (*btm_cb.p_acl_changed_cb) (p_acl_cb->remote_addr,
-                                    p_acl_cb->remote_dc,
-                                    p_acl_cb->remote_name,
-                                    p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0],
-                                    TRUE);
+        if (btm_cb.p_acl_changed_cb)
+            (*btm_cb.p_acl_changed_cb) (p_acl_cb->remote_addr,
+                    p_acl_cb->remote_dc,
+                    p_acl_cb->remote_name,
+                    p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0],
+                    TRUE);
 #endif
+    }
 }
 
 
@@ -3319,7 +3319,18 @@ void btm_read_tx_power_complete (UINT8 *p, BOOLEAN is_ble)
 
     /* If there was a callback registered for read rssi, call it */
     btm_cb.devcb.p_tx_power_cmpl_cb = NULL;
+    /* this is been added to get adv tx power for LE*/
+    if(!p_cb)
+    {
+        BTM_TRACE_API0("btm_read_tx_power_complete without callback");
+#if BLE_INCLUDED == TRUE
+        STREAM_TO_UINT8  (results.hci_status, p);
+        STREAM_TO_UINT8 (results.tx_power, p);
+        btm_cb.ble_ctr_cb.inq_var.tx_power=results.tx_power;
+        BTM_TRACE_API1("btm_read_tx_power_complete assigned value: %d",results.tx_power);
+#endif
 
+    }
     if (p_cb)
     {
         STREAM_TO_UINT8  (results.hci_status, p);

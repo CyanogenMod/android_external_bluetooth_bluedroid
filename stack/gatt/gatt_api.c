@@ -121,6 +121,32 @@ BOOLEAN  GATTS_NVRegister (tGATT_APPL_INFO *p_cb_info)
     return status;
 }
 
+BOOLEAN GATTS_RetrieveServiceList(UINT16 **p_l,UINT16* count)
+{
+    tGATT_HDL_LIST_INFO *p_list_info = &gatt_cb.hdl_list_info;
+    int servCount = p_list_info->count;
+    tGATT_HDL_LIST_ELEM     *p_temp = NULL;
+    int xx = 0;
+
+    UINT16 *p_srvList = (UINT16*) malloc (sizeof(UINT16) * servCount);
+    memset(p_srvList, 0, sizeof(UINT16) * servCount);
+
+    GATT_TRACE_API1("NA Service Count ?: %d", servCount);
+    *p_l= p_list_info->p_first->asgn_range.svc_uuid.uu.uuid16;
+    p_temp=p_list_info->p_first;
+
+    while(p_temp && xx < servCount)
+    {
+        p_srvList[xx++] = p_temp->asgn_range.svc_uuid.uu.uuid16;
+        GATT_TRACE_API1("in the loop, found uuid: 0x%0x", p_srvList[xx - 1]);
+        p_temp = p_temp->p_next;
+    }
+    *count = xx;
+    *p_l = p_srvList;
+    return TRUE;
+}
+
+
 /*******************************************************************************
 **
 ** Function         GATTS_CreateService
