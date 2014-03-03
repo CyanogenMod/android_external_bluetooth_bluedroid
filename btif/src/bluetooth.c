@@ -246,6 +246,12 @@ static void cleanup( void )
     return;
 }
 
+static void ssrcleanup(void)
+{
+    btif_ssr_cleanup();
+    return;
+}
+
 static int get_adapter_properties(void)
 {
     /* sanity check */
@@ -842,6 +848,7 @@ static const bt_interface_t bluetoothInterface = {
     enable,
     disable,
     cleanup,
+    ssrcleanup,
     get_adapter_properties,
     get_adapter_property,
     set_adapter_property,

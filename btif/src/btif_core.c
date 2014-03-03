@@ -814,6 +814,15 @@ bt_status_t btif_shutdown_bluetooth(void)
     return BT_STATUS_SUCCESS;
 }
 
+/*******************************************************************************
+Function       btif_ssrcleanup
+Description   Trigger SSR when Disable timeout occured
+
+*******************************************************************************/
+void btif_ssr_cleanup(void)
+{
+  bte_ssr_cleanup();
+}
 
 /*******************************************************************************
 **
