@@ -336,6 +336,7 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
                   /* change state to open/idle based on the status */
                   btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENED);
              }
+             btif_queue_advance();
              break;
 
         case BTA_AV_PENDING_EVT:
@@ -1505,5 +1506,6 @@ void btif_av_move_idle(bt_bdaddr_t bd_addr)
         HAL_CBACK(bt_av_callbacks, connection_state_cb,
                   BTAV_CONNECTION_STATE_DISCONNECTED, &(btif_av_cb.peer_bda));
         btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
+        btif_queue_advance();
     }
 }
