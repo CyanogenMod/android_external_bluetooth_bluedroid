@@ -1031,6 +1031,21 @@ BTA_API extern void BTA_GATTC_Refresh(BD_ADDR remote_bda);
 BTA_API extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR target_bda);
 
 /*******************************************************************************
+**
+** Function         BTA_GATTC_Broadcast
+**
+** Description      Start broadcasting (non-connectable advertisements)
+**
+** Parameters       client_if: client interface.
+**                  start: to start or stop listening for connection
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, BOOLEAN start);
+
+
+/*******************************************************************************
 **  BTA GATT Server API
 ********************************************************************************/
 
