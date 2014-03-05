@@ -249,6 +249,29 @@ static void toggle_os_keylockstates(int fd, int changedlockstates)
 
 /*******************************************************************************
 **
+** Function         create_pbuf
+**
+** Description      Helper function to create p_buf for send_data or set_report
+**
+*******************************************************************************/
+static BT_HDR *create_pbuf(UINT16 len, UINT8 *data)
+{
+    BT_HDR* p_buf = GKI_getbuf((UINT16) (len + BTA_HH_MIN_OFFSET + sizeof(BT_HDR)));
+
+    if (p_buf) {
+        UINT8* pbuf_data;
+
+        p_buf->len = len;
+        p_buf->offset = BTA_HH_MIN_OFFSET;
+
+        pbuf_data = (UINT8*) (p_buf + 1) + p_buf->offset;
+        memcpy(pbuf_data, data, len);
+    }
+    return p_buf;
+}
+
+/*******************************************************************************
+**
 ** Function         update_keyboard_lockstates
 **
 ** Description      Sends a report to the keyboard to set the lock states of keys
@@ -258,30 +281,20 @@ static void update_keyboard_lockstates(btif_hh_device_t *p_dev)
 {
     UINT8 len = 2;  /* reportid + 1 byte report*/
     BD_ADDR* bda;
+    BT_HDR* p_buf;
+    UINT8 data[] = {0x01, /* report id */
+                    btif_hh_keylockstates}; /* keystate */
 
     /* Set report for other keyboards */
     BTIF_TRACE_EVENT3("%s: setting report on dev_handle %d to 0x%x",
          __FUNCTION__, p_dev->dev_handle, btif_hh_keylockstates);
 
-    if (p_dev->p_buf != NULL) {
-        GKI_freebuf(p_dev->p_buf);
-    }
     /* Get SetReport buffer */
-    p_dev->p_buf = GKI_getbuf((UINT16) (len + BTA_HH_MIN_OFFSET +
-        sizeof(BT_HDR)));
-    if (p_dev->p_buf != NULL) {
-        p_dev->p_buf->len = len;
-        p_dev->p_buf->offset = BTA_HH_MIN_OFFSET;
-        p_dev->p_buf->layer_specific = BTA_HH_RPTT_OUTPUT;
-
-        /* LED status updated by data event */
-        UINT8 *pbuf_data  = (UINT8 *)(p_dev->p_buf + 1)
-            + p_dev->p_buf->offset;
-        pbuf_data[0]=0x01; /*report id */
-        pbuf_data[1]=btif_hh_keylockstates; /*keystate*/
+    p_buf = create_pbuf(len, data);
+    if (p_buf != NULL) {
+        p_buf->layer_specific = BTA_HH_RPTT_OUTPUT;
         bda = (BD_ADDR*) (&p_dev->bd_addr);
-        BTA_HhSendData(p_dev->dev_handle, *bda,
-            p_dev->p_buf);
+        BTA_HhSendData(p_dev->dev_handle, *bda, p_buf);
     }
 }
 
@@ -545,10 +558,6 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
     else {
         BTIF_TRACE_WARNING1("%s: device_num = 0", __FUNCTION__);
     }
-    if (p_dev->p_buf != NULL) {
-        GKI_freebuf(p_dev->p_buf);
-        p_dev->p_buf = NULL;
-    }
 
     p_dev->hh_keep_polling = 0;
     p_dev->hh_poll_thread_id = -1;
@@ -720,35 +729,15 @@ void btif_hh_disconnect(bt_bdaddr_t *bd_addr)
 ** Returns          void
 **
 *******************************************************************************/
-
 void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type, UINT16 size,
                             UINT8* report)
 {
-    UINT8  hexbuf[20];
-    UINT16 len = size;
-    int i = 0;
-    if (p_dev->p_buf != NULL) {
-        GKI_freebuf(p_dev->p_buf);
-    }
-    p_dev->p_buf = GKI_getbuf((UINT16) (len + BTA_HH_MIN_OFFSET + sizeof(BT_HDR)));
-    if (p_dev->p_buf == NULL) {
-        APPL_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, len = %d", __FUNCTION__, len);
+    BT_HDR* p_buf = create_pbuf(size, report);
+    if (p_buf == NULL) {
+        APPL_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, size = %d", __FUNCTION__, size);
         return;
     }
-
-    p_dev->p_buf->len = len;
-    p_dev->p_buf->offset = BTA_HH_MIN_OFFSET;
-
-    //Build a SetReport data buffer
-    memset(hexbuf, 0, 20);
-    for(i=0; i<len; i++)
-        hexbuf[i] = report[i];
-
-    UINT8* pbuf_data;
-    pbuf_data = (UINT8*) (p_dev->p_buf + 1) + p_dev->p_buf->offset;
-    memcpy(pbuf_data, hexbuf, len);
-    BTA_HhSetReport(p_dev->dev_handle, r_type, p_dev->p_buf);
-
+    BTA_HhSetReport(p_dev->dev_handle, r_type, p_buf);
 }
 
 /*****************************************************************************
@@ -897,12 +886,6 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
         case BTA_HH_SET_RPT_EVT:
             BTIF_TRACE_DEBUG2("BTA_HH_SET_RPT_EVT: status = %d, handle = %d",
             p_data->dev_status.status, p_data->dev_status.handle);
-            p_dev = btif_hh_find_connected_dev_by_handle(p_data->dev_status.handle);
-            if (p_dev != NULL && p_dev->p_buf != NULL) {
-                BTIF_TRACE_DEBUG0("Freeing buffer..." );
-                GKI_freebuf(p_dev->p_buf);
-                p_dev->p_buf = NULL;
-            }
             break;
 
         case BTA_HH_GET_PROTO_EVT:
@@ -1630,33 +1613,22 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
         UINT8  hexbuf[200];
         UINT16 len = (strlen(report) + 1) / 2;
 
-        if (p_dev->p_buf != NULL) {
-            GKI_freebuf(p_dev->p_buf);
-        }
-        p_dev->p_buf = GKI_getbuf((UINT16) (len + BTA_HH_MIN_OFFSET + sizeof(BT_HDR)));
-        if (p_dev->p_buf == NULL) {
-            BTIF_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, len = %d", __FUNCTION__, len);
-            return BT_STATUS_FAIL;
-        }
-
-        p_dev->p_buf->len = len;
-        p_dev->p_buf->offset = BTA_HH_MIN_OFFSET;
-
         /* Build a SetReport data buffer */
         memset(hexbuf, 0, 200);
         //TODO
         hex_bytes_filled = ascii_2_hex(report, len, hexbuf);
         ALOGI("Hex bytes filled, hex value: %d", hex_bytes_filled);
         if (hex_bytes_filled) {
-            UINT8* pbuf_data;
-            pbuf_data = (UINT8*) (p_dev->p_buf + 1) + p_dev->p_buf->offset;
-            memcpy(pbuf_data, hexbuf, hex_bytes_filled);
-            BTA_HhSetReport(p_dev->dev_handle, reportType, p_dev->p_buf);
+            BT_HDR* p_buf = create_pbuf(hex_bytes_filled, hexbuf);
+            if (p_buf == NULL) {
+                BTIF_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, len = %d",
+                                  __FUNCTION__, hex_bytes_filled);
+                return BT_STATUS_FAIL;
+            }
+            BTA_HhSetReport(p_dev->dev_handle, reportType, p_buf);
         }
         return BT_STATUS_SUCCESS;
     }
-
-
 }
 
 /*******************************************************************************
@@ -1696,29 +1668,20 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
         UINT8  hexbuf[200];
         UINT16 len = (strlen(data) + 1) / 2;
 
-        if (p_dev->p_buf != NULL) {
-            GKI_freebuf(p_dev->p_buf);
-        }
-        p_dev->p_buf = GKI_getbuf((UINT16) (len + BTA_HH_MIN_OFFSET + sizeof(BT_HDR)));
-        if (p_dev->p_buf == NULL) {
-            BTIF_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, len = %d", __FUNCTION__, len);
-            return BT_STATUS_FAIL;
-        }
-
-        p_dev->p_buf->len = len;
-        p_dev->p_buf->offset = BTA_HH_MIN_OFFSET;
-
         /* Build a SetReport data buffer */
         memset(hexbuf, 0, 200);
         hex_bytes_filled = ascii_2_hex(data, len, hexbuf);
         BTIF_TRACE_ERROR2("Hex bytes filled, hex value: %d, %d", hex_bytes_filled, len);
 
         if (hex_bytes_filled) {
-            UINT8* pbuf_data;
-            pbuf_data = (UINT8*) (p_dev->p_buf + 1) + p_dev->p_buf->offset;
-            memcpy(pbuf_data, hexbuf, hex_bytes_filled);
-            p_dev->p_buf->layer_specific = BTA_HH_RPTT_OUTPUT;
-            BTA_HhSendData(p_dev->dev_handle, *bda, p_dev->p_buf);
+            BT_HDR* p_buf = create_pbuf(hex_bytes_filled, hexbuf);
+            if (p_buf == NULL) {
+                BTIF_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, len = %d",
+                                  __FUNCTION__, hex_bytes_filled);
+                return BT_STATUS_FAIL;
+            }
+            p_buf->layer_specific = BTA_HH_RPTT_OUTPUT;
+            BTA_HhSendData(p_dev->dev_handle, *bda, p_buf);
             return BT_STATUS_SUCCESS;
         }
 
