@@ -513,12 +513,12 @@ tSDP_DISC_REC *SDP_FindServiceInDb (tSDP_DISCOVERY_DB *p_db, UINT16 service_uuid
 
                     if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE)
                      && (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == 2) ) {
-                        printf("SDP_FindServiceInDb - p_sattr value = 0x%x serviceuuid = 0x%x\r\n", p_sattr->attr_value.v.u16, service_uuid);
+                        SDP_TRACE_DEBUG2("SDP_FindServiceInDb - p_sattr value = 0x%x serviceuuid = 0x%x\r\n", p_sattr->attr_value.v.u16, service_uuid);
                         if(service_uuid == UUID_SERVCLASS_HDP_PROFILE)
                         {
                             if( (p_sattr->attr_value.v.u16==UUID_SERVCLASS_HDP_SOURCE) || ( p_sattr->attr_value.v.u16==UUID_SERVCLASS_HDP_SINK))
                             {
-                                printf("SDP_FindServiceInDb found HDP source or sink\n" );
+                                SDP_TRACE_DEBUG0("SDP_FindServiceInDb found HDP source or sink\n" );
                                 return (p_rec);
                             }
                         }
@@ -686,14 +686,14 @@ tSDP_DISC_REC *SDP_FindServiceUUIDInDb (tSDP_DISCOVERY_DB *p_db, tBT_UUID *p_uui
                     if (SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE)
                     {
 
-                        printf("uuid len=%d ", p_uuid->len);
+                        SDP_TRACE_DEBUG1("uuid len=%d ", p_uuid->len);
                         if (p_uuid->len == 2)
                         {
-                            printf("uuid=0x%x \n", p_uuid->uu.uuid16);
+                            SDP_TRACE_DEBUG1("uuid=0x%x \n", p_uuid->uu.uuid16);
                         }
                         else
                         {
-                            printf("\n");
+                            SDP_TRACE_DEBUG0("\n");
                         }
 
                         if (sdpu_compare_uuid_with_attr (p_uuid, p_sattr))
