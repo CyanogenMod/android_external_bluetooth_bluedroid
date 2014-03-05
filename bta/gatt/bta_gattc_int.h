@@ -69,6 +69,7 @@ enum
     BTA_GATTC_API_REG_EVT,
     BTA_GATTC_API_DEREG_EVT,
     BTA_GATTC_API_LISTEN_EVT,
+    BTA_GATTC_API_BROADCAST_EVT,
     BTA_GATTC_API_DISABLE_EVT,
     BTA_GATTC_ENC_CMPL_EVT
 };
@@ -484,6 +485,7 @@ extern void bta_gattc_send_open_cback( tBTA_GATTC_RCB *p_clreg, tBTA_GATT_STATUS
 extern void bta_gattc_process_api_refresh(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
 #if BLE_INCLUDED == TRUE
 extern void bta_gattc_listen(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
+extern void bta_gattc_broadcast(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
 #endif
 /* utility functions */
 extern tBTA_GATTC_CLCB * bta_gattc_find_clcb_by_cif (UINT8 client_if, BD_ADDR remote_bda);
