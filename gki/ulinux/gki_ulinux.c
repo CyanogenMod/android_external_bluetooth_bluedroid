@@ -97,8 +97,6 @@ static int                  shutdown_timer = 0;
 **  Local type definitions
 ******************************************************************************/
 
-#define pthread_cond_timedwait_monotonic pthread_cond_timedwait
-
 typedef struct
 {
     UINT8 task_id;          /* GKI task id */
@@ -266,8 +264,12 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
     gki_cb.com.OSWaitEvt[task_id]   = 0;
 
     /* Initialize mutex and condition variable objects for events and timeouts */
+    pthread_condattr_t cond_attr;
+    pthread_condattr_init(&cond_attr);
+    pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
+
     pthread_mutex_init(&gki_cb.os.thread_evt_mutex[task_id], NULL);
-    pthread_cond_init (&gki_cb.os.thread_evt_cond[task_id], NULL);
+    pthread_cond_init (&gki_cb.os.thread_evt_cond[task_id], &cond_attr);
     pthread_mutex_init(&gki_cb.os.thread_timeout_mutex[task_id], NULL);
     pthread_cond_init (&gki_cb.os.thread_timeout_cond[task_id], NULL);
 
@@ -944,9 +946,8 @@ UINT16 GKI_wait (UINT16 flag, UINT32 timeout)
             }
             abstime.tv_sec += sec;
 
-            pthread_cond_timedwait_monotonic(&gki_cb.os.thread_evt_cond[rtask],
+            pthread_cond_timedwait(&gki_cb.os.thread_evt_cond[rtask],
                     &gki_cb.os.thread_evt_mutex[rtask], &abstime);
-
         }
         else
         {
