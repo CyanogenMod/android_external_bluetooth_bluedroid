@@ -804,13 +804,6 @@ void gatt_process_read_by_type_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 
             STREAM_TO_UINT16(record_value.incl_service.s_handle, p);
             STREAM_TO_UINT16(record_value.incl_service.e_handle, p);
 
-            if (!GATT_HANDLE_IS_VALID(record_value.incl_service.s_handle) ||
-                !GATT_HANDLE_IS_VALID(record_value.incl_service.e_handle))
-            {
-                gatt_end_operation(p_clcb, GATT_INVALID_HANDLE, NULL);
-                return;
-            }
-
             if(value_len == 6)
             {
                 STREAM_TO_UINT16(record_value.incl_service.service_type.uu.uuid16, p);
