@@ -2237,6 +2237,12 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
             p_cur->dev_class[2]       = dc[2];
             p_cur->clock_offset       = clock_offset  | BTM_CLOCK_OFFSET_VALID;
 
+            BTM_TRACE_WARNING ("btm_process_inq_results: BDA: %02x-%02x-%02x-%02x-%02x-%02x",
+                        bda[0], bda[1], bda[2],bda[3], bda[4], bda[5]);
+
+            BTM_TRACE_WARNING ("btm_process_inq_results: Dev class: %02x-%02x-%02x",
+                        p_cur->dev_class[0], p_cur->dev_class[1], p_cur->dev_class[2]);
+
             p_i->time_of_resp = GKI_get_tick_count ();
 
             if (p_i->inq_count != p_inq->inq_counter)

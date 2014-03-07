@@ -214,7 +214,7 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
     tACL_CONN        *p;
     UINT8             xx;
 
-    BTM_TRACE_DEBUG ("btm_acl_created hci_handle=%d link_role=%d  transport=%d",
+    BTM_TRACE_WARNING ("btm_acl_created hci_handle=%d link_role=%d  transport=%d",
                       hci_handle,link_role, transport);
     /* Ensure we don't have duplicates */
     p = btm_bda_to_acl(bda, transport);
@@ -624,6 +624,10 @@ tBTM_STATUS BTM_GetRole (BD_ADDR remote_bd_addr, UINT8 *p_role)
 
     /* Get the current role */
     *p_role = p->link_role;
+    BTM_TRACE_WARNING ("BTM: Local device role : 0x%02x", *p_role );
+    BTM_TRACE_WARNING ("BTM: RemBdAddr: %02x%02x%02x%02x%02x%02x",
+                         remote_bd_addr[0], remote_bd_addr[1], remote_bd_addr[2], remote_bd_addr[3],
+                         remote_bd_addr[4], remote_bd_addr[5]);
     return(BTM_SUCCESS);
 }
 
@@ -660,9 +664,6 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, UINT8 new_role, tBTM_CMPL_CB
 #if (BT_USE_TRACES == TRUE)
     BD_ADDR_PTR  p_bda;
 #endif
-    BTM_TRACE_API ("BTM_SwitchRole BDA: %02x-%02x-%02x-%02x-%02x-%02x",
-                    remote_bd_addr[0], remote_bd_addr[1], remote_bd_addr[2],
-                    remote_bd_addr[3], remote_bd_addr[4], remote_bd_addr[5]);
 
     /* Make sure the local device supports switching */
     if (!(HCI_SWITCH_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0])))
@@ -778,6 +779,12 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, UINT8 new_role, tBTM_CMPL_CB
         btm_cb.devcb.switch_role_ref_data.hci_status = HCI_ERR_UNSUPPORTED_VALUE;
         btm_cb.devcb.p_switch_role_cb = p_cb;
     }
+    BTM_TRACE_WARNING ("BTM_SwitchRole BDA: %02x-%02x-%02x-%02x-%02x-%02x",
+                    remote_bd_addr[0], remote_bd_addr[1], remote_bd_addr[2],
+                    remote_bd_addr[3], remote_bd_addr[4], remote_bd_addr[5]);
+
+    BTM_TRACE_WARNING ("Requested New Role: %d", new_role);
+
     return(BTM_CMD_STARTED);
 }
 
@@ -1295,6 +1302,11 @@ void btm_read_remote_version_complete (UINT8 *p)
                 STREAM_TO_UINT8  (p_acl_cb->lmp_version, p);
                 STREAM_TO_UINT16 (p_acl_cb->manufacturer, p);
                 STREAM_TO_UINT16 (p_acl_cb->lmp_subversion, p);
+                BTM_TRACE_WARNING ("btm_read_remote_version_complete: BDA: %02x-%02x-%02x-%02x-%02x-%02x",
+                            p_acl_cb->remote_addr[0], p_acl_cb->remote_addr[1], p_acl_cb->remote_addr[2],
+                            p_acl_cb->remote_addr[3], p_acl_cb->remote_addr[4], p_acl_cb->remote_addr[5]);
+                BTM_TRACE_WARNING ("btm_read_remote_version_complete lmp_version %d manufacturer %d lmp_subversion %d",
+                                         p_acl_cb->lmp_version,p_acl_cb->manufacturer, p_acl_cb->lmp_subversion);
                 break;
             }
         }
@@ -1381,6 +1393,10 @@ void btm_process_remote_ext_features_page (tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC
                 l2cu_resubmit_pending_sec_req (p_dev_rec->bd_addr);
             }
         }
+        BTM_TRACE_WARNING ("btm_process_remote_ext_features_page 0: BDA: %02x-%02x-%02x-%02x-%02x-%02x",
+                        p_dev_rec->bd_addr[0], p_dev_rec->bd_addr[1], p_dev_rec->bd_addr[2],
+                        p_dev_rec->bd_addr[3], p_dev_rec->bd_addr[4], p_dev_rec->bd_addr[5]);
+
         break;
 
     /* Extended Page 1 */
@@ -1399,12 +1415,17 @@ void btm_process_remote_ext_features_page (tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC
             p_dev_rec->sm4 = BTM_SM4_KNOWN;
         }
 
-        BTM_TRACE_API ("ext_features_complt page_num:%d f[0]:x%02x, sm4:%x, pend:%d",
+        BTM_TRACE_WARNING ("ext_features_complt page_num:%d f[0]:x%02x, sm4:%x, pend:%d",
                         HCI_EXT_FEATURES_PAGE_1, *(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_1]),
                         p_dev_rec->sm4, req_pend);
 
         if (req_pend)
             l2cu_resubmit_pending_sec_req (p_dev_rec->bd_addr);
+
+        BTM_TRACE_WARNING ("btm_process_remote_ext_features_page 1: BDA: %02x-%02x-%02x-%02x-%02x-%02x",
+                        p_dev_rec->bd_addr[0], p_dev_rec->bd_addr[1], p_dev_rec->bd_addr[2],
+                        p_dev_rec->bd_addr[3], p_dev_rec->bd_addr[4], p_dev_rec->bd_addr[5]);
+
 
         break;
 
@@ -2334,6 +2355,10 @@ void btm_acl_role_changed (UINT8 hci_status, BD_ADDR bd_addr, UINT8 new_role)
 #endif
 
     BTM_TRACE_DEBUG ("btm_acl_role_changed");
+    BTM_TRACE_WARNING ("btm_acl_role_changed: BDA: %02x-%02x-%02x-%02x-%02x-%02x",
+                p_bda[0], p_bda[1], p_bda[2], p_bda[3], p_bda[4], p_bda[5]);
+    BTM_TRACE_WARNING ("btm_acl_role_changed: New role: %d", new_role);
+
     /* Ignore any stray events */
     if (p == NULL)
     {

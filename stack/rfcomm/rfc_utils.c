@@ -381,7 +381,7 @@ void rfc_port_closed (tPORT *p_port)
 {
     tRFC_MCB *p_mcb = p_port->rfc.p_mcb;
 
-    RFCOMM_TRACE_DEBUG ("rfc_port_closed");
+    RFCOMM_TRACE_WARNING ("rfc_port_closed");
 
     rfc_port_timer_stop (p_port);
 
@@ -441,6 +441,7 @@ void rfc_dec_credit (tPORT *p_port)
     {
         if (p_port->credit_tx > 0)
             p_port->credit_tx--;
+        RFCOMM_TRACE_EVENT ("rfc_dec_credit:%d", p_port->credit_tx);
 
         if (p_port->credit_tx == 0)
             p_port->tx.peer_fc = TRUE;
