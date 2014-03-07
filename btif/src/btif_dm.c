@@ -175,6 +175,8 @@ extern int btif_hh_connect(bt_bdaddr_t *bd_addr);
 extern BOOLEAN btif_hh_check_if_sdp_required(bt_bdaddr_t *bd_addr);
 extern bt_status_t btif_hd_execute_service(BOOLEAN b_enable);
 extern void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16);
+extern BOOLEAN btif_hf_is_connected();
+extern void btif_hf_close_update();
 extern BOOLEAN btif_av_is_connected();
 extern void btif_av_close_update();
 extern void btif_av_move_idle(bt_bdaddr_t bd_addr);
@@ -1787,6 +1789,12 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             BTIF_TRACE_ERROR0("Received H/W Error. ");
             /* Flush storage data */
             btif_config_flush();
+            //checking hfp is connected
+            if (btif_hf_is_connected())
+            {
+                BTIF_TRACE_DEBUG0("HFP Connection is Active disconnect before kill");
+                btif_hf_close_update();
+            }
             //checking weather music is palyed or not
             if (btif_av_is_connected())
             {
