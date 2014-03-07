@@ -868,16 +868,20 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
 
             BTIF_TRACE_DEBUG2("BTA_HH_GET_RPT_EVT: status = %d, handle = %d",
                  p_data->hs_data.status, p_data->hs_data.handle);
-            /* p_rpt_data in HANDSHAKE response case */
-            if (hdr) {
-                data = (UINT8 *)(hdr + 1) + hdr->offset;
-                len = hdr->len;
-            }
             p_dev = btif_hh_find_connected_dev_by_handle(p_data->hs_data.handle);
             if (p_dev) {
-                HAL_CBACK(bt_hh_callbacks, get_report_cb,
-                          (bt_bdaddr_t*) &(p_dev->bd_addr),
-                          (bthh_status_t) p_data->hs_data.status, data, len);
+                /* p_rpt_data is NULL in HANDSHAKE response case */
+                if (hdr) {
+                    data = (UINT8 *)(hdr + 1) + hdr->offset;
+                    len = hdr->len;
+                    HAL_CBACK(bt_hh_callbacks, get_report_cb,
+                              (bt_bdaddr_t*) &(p_dev->bd_addr),
+                              (bthh_status_t) p_data->hs_data.status, data, len);
+                } else {
+                    HAL_CBACK(bt_hh_callbacks, handshake_cb,
+                              (bt_bdaddr_t*) &(p_dev->bd_addr),
+                              (bthh_status_t) p_data->hs_data.status);
+                }
             } else {
                 BTIF_TRACE_WARNING1("Error: cannot find device with handle %d", p_data->hs_data.handle);
             }
@@ -886,6 +890,12 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
         case BTA_HH_SET_RPT_EVT:
             BTIF_TRACE_DEBUG2("BTA_HH_SET_RPT_EVT: status = %d, handle = %d",
             p_data->dev_status.status, p_data->dev_status.handle);
+            p_dev = btif_hh_find_connected_dev_by_handle(p_data->dev_status.handle);
+            if (p_dev != NULL) {
+                HAL_CBACK(bt_hh_callbacks, handshake_cb,
+                          (bt_bdaddr_t*) &(p_dev->bd_addr),
+                          (bthh_status_t) p_data->hs_data.status);
+            }
             break;
 
         case BTA_HH_GET_PROTO_EVT:
@@ -895,13 +905,27 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                  p_data->hs_data.rsp_data.proto_mode,
                  (p_data->hs_data.rsp_data.proto_mode == BTA_HH_PROTO_RPT_MODE) ? "Report Mode" :
                  (p_data->hs_data.rsp_data.proto_mode == BTA_HH_PROTO_BOOT_MODE) ? "Boot Mode" : "Unsupported");
-            HAL_CBACK(bt_hh_callbacks, protocol_mode_cb,(bt_bdaddr_t*) &(p_dev->bd_addr), (bthh_status_t)p_data->hs_data.status,
-                             (bthh_protocol_mode_t) p_data->hs_data.rsp_data.proto_mode);
+            if (p_data->hs_data.rsp_data.proto_mode != BTA_HH_PROTO_UNKNOWN) {
+                HAL_CBACK(bt_hh_callbacks, protocol_mode_cb,
+                          (bt_bdaddr_t*) &(p_dev->bd_addr),
+                          (bthh_status_t)p_data->hs_data.status,
+                          (bthh_protocol_mode_t) p_data->hs_data.rsp_data.proto_mode);
+            } else {
+                HAL_CBACK(bt_hh_callbacks, handshake_cb,
+                          (bt_bdaddr_t*) &(p_dev->bd_addr),
+                          (bthh_status_t)p_data->hs_data.status);
+            }
             break;
 
         case BTA_HH_SET_PROTO_EVT:
             BTIF_TRACE_DEBUG2("BTA_HH_SET_PROTO_EVT: status = %d, handle = %d",
                  p_data->dev_status.status, p_data->dev_status.handle);
+            p_dev = btif_hh_find_connected_dev_by_handle(p_data->dev_status.handle);
+            if (p_dev) {
+                HAL_CBACK(bt_hh_callbacks, handshake_cb,
+                          (bt_bdaddr_t*)&(p_dev->bd_addr),
+                          (bthh_status_t)p_data->hs_data.status);
+            }
             break;
 
         case BTA_HH_GET_IDLE_EVT:
@@ -1617,7 +1641,7 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
         memset(hexbuf, 0, 200);
         //TODO
         hex_bytes_filled = ascii_2_hex(report, len, hexbuf);
-        ALOGI("Hex bytes filled, hex value: %d", hex_bytes_filled);
+        BTIF_TRACE_DEBUG1("Hex bytes filled, hex value: %d", hex_bytes_filled);
         if (hex_bytes_filled) {
             BT_HDR* p_buf = create_pbuf(hex_bytes_filled, hexbuf);
             if (p_buf == NULL) {
