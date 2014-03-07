@@ -153,7 +153,7 @@ static void l2c_csm_closed (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 #if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT2 ("L2CAP - LCID: 0x%04x  st: CLOSED  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
 #else
-    L2CAP_TRACE_EVENT1 ("L2CAP - st: CLOSED evt: %d", event);
+    L2CAP_TRACE_WARNING1 ("L2CAP - st: CLOSED evt: %d", event);
 #endif
 
     switch (event)
@@ -306,7 +306,7 @@ static void l2c_csm_orig_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
 #if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT2 ("L2CAP - LCID: 0x%04x  st: ORIG_W4_SEC_COMP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
 #else
-    L2CAP_TRACE_EVENT1 ("L2CAP - st: ORIG_W4_SEC_COMP evt: %d", event);
+    L2CAP_TRACE_WARNING1 ("L2CAP - st: ORIG_W4_SEC_COMP evt: %d", event);
 #endif
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
@@ -398,7 +398,7 @@ static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
 #if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT2 ("L2CAP - LCID: 0x%04x  st: TERM_W4_SEC_COMP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
 #else
-    L2CAP_TRACE_EVENT1 ("L2CAP - st: TERM_W4_SEC_COMP evt: %d", event);
+    L2CAP_TRACE_WARNING1 ("L2CAP - st: TERM_W4_SEC_COMP evt: %d", event);
 #endif
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
@@ -519,7 +519,7 @@ static void l2c_csm_w4_l2cap_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p
 #if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT2 ("L2CAP - LCID: 0x%04x  st: W4_L2CAP_CON_RSP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
 #else
-    L2CAP_TRACE_EVENT1 ("L2CAP - st: W4_L2CAP_CON_RSP evt: %d", event);
+    L2CAP_TRACE_WARNING1 ("L2CAP - st: W4_L2CAP_CON_RSP evt: %d", event);
 #endif
 
     switch (event)
@@ -623,9 +623,8 @@ static void l2c_csm_w4_l2ca_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p_
 #if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT2 ("L2CAP - LCID: 0x%04x  st: W4_L2CA_CON_RSP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
 #else
-    L2CAP_TRACE_EVENT1 ("L2CAP - st: W4_L2CA_CON_RSP evt: %d", event);
+    L2CAP_TRACE_WARNING1 ("L2CAP - st: W4_L2CA_CON_RSP evt: %d", event);
 #endif
-
     switch (event)
     {
     case L2CEVT_LP_DISCONNECT_IND:                  /* Link was disconnected */
@@ -710,7 +709,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 #if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT2 ("L2CAP - LCID: 0x%04x  st: CONFIG  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
 #else
-    L2CAP_TRACE_EVENT1 ("L2CAP - st: CONFIG evt: %d", event);
+    L2CAP_TRACE_WARNING1 ("L2CAP - st: CONFIG evt: %d", event);
 #endif
 
     switch (event)
@@ -1091,7 +1090,7 @@ static void l2c_csm_w4_l2cap_disconnect_rsp (tL2C_CCB *p_ccb, UINT16 event, void
 #if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT2 ("L2CAP - LCID: 0x%04x  st: W4_L2CAP_DISC_RSP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
 #else
-    L2CAP_TRACE_EVENT1 ("L2CAP - st: W4_L2CAP_DISC_RSP evt: %d", event);
+    L2CAP_TRACE_WARNING1 ("L2CAP - st: W4_L2CAP_DISC_RSP evt: %d", event);
 #endif
 
     switch (event)
@@ -1151,9 +1150,8 @@ static void l2c_csm_w4_l2ca_disconnect_rsp (tL2C_CCB *p_ccb, UINT16 event, void 
 #if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT2 ("L2CAP - LCID: 0x%04x  st: W4_L2CA_DISC_RSP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
 #else
-    L2CAP_TRACE_EVENT1 ("L2CAP - st: W4_L2CA_DISC_RSP evt: %d", event);
+    L2CAP_TRACE_WARNING1 ("L2CAP - st: W4_L2CA_DISC_RSP evt: %d", event);
 #endif
-
     switch (event)
     {
     case L2CEVT_LP_DISCONNECT_IND:                  /* Link was disconnected */
