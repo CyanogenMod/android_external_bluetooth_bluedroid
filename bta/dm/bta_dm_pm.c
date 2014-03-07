@@ -570,6 +570,17 @@ static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index)
     if(mode != BTM_PM_MD_SNIFF)
 #endif
     {
+#if (BTM_SSR_INCLUDED == TRUE)
+        /* Dont initiate Sniff if controller has alreay accepted
+         * remote sniff params. This avoid sniff loop issue with
+         * some agrresive headsets who use sniff latencies more than
+         * DUT supported range of Sniff intervals.*/
+        if ((mode == BTM_PM_MD_SNIFF) && (p_peer_dev->info & BTA_DM_DI_ACP_SNIFF))
+        {
+            APPL_TRACE_DEBUG0("bta_dm_pm_sniff: already in remote initiate sniff");
+            return TRUE;
+        }
+#endif
         /* if the current mode is not sniff, issue the sniff command.
          * If sniff, but SSR is not used in this link, still issue the command */
         memcpy(&pwr_md, &p_bta_dm_pm_md[index], sizeof (tBTM_PM_PWR_MD));
