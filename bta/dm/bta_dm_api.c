@@ -1510,6 +1510,60 @@ void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv
         bta_sys_sendmsg(p_msg);
     }
 }
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleSetScanRsp
+**
+** Description      This function is called to override the BTA scan response.
+**
+** Parameters       Pointer to User defined ADV data structure
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg)
+{
+    tBTA_DM_API_SET_ADV_CONFIG  *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_SET_ADV_CONFIG *) GKI_getbuf(sizeof(tBTA_DM_API_SET_ADV_CONFIG))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_SET_SCAN_RSP_EVT;
+		p_msg->data_mask = data_mask;
+        p_msg->p_adv_cfg = p_adv_cfg;
+
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleBroadcast
+**
+** Description      This function starts or stops LE broadcasting.
+**
+** Parameters       start: start or stop broadcast.
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmBleBroadcast (BOOLEAN start)
+{
+    tBTA_DM_API_BLE_OBSERVE   *p_msg;
+
+    APPL_TRACE_API1("BTA_DmBleBroadcast: start = %d ", start);
+
+    if ((p_msg = (tBTA_DM_API_BLE_OBSERVE *) GKI_getbuf(sizeof(tBTA_DM_API_BLE_OBSERVE))) != NULL)
+    {
+        memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_OBSERVE));
+
+        p_msg->hdr.event = BTA_DM_API_BLE_BROADCAST_EVT;
+        p_msg->start = start;
+
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
 #endif
 /*******************************************************************************
 **
