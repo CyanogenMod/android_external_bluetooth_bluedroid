@@ -28,6 +28,7 @@
 #include "bta_hh_co.h"
 #include "bta_gatt_api.h"
 #include "srvc_api.h"
+#include "btm_int.h"
 
 #ifndef BTA_HH_LE_RECONN
 #define BTA_HH_LE_RECONN    TRUE
@@ -1260,6 +1261,28 @@ void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
         bta_hh_le_api_disc_act(p_cb);
 
 }
+
+/*******************************************************************************
+**
+** Function         bta_hh_le_notify_enc_cmpl
+**
+** Description      process GATT encryption complete event
+**
+** Returns
+**
+*******************************************************************************/
+void bta_hh_le_notify_enc_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
+{
+    if (p_cb == NULL || p_cb->security_pending == FALSE ||
+        p_buf == NULL || p_buf->le_enc_cmpl.client_if != bta_hh_cb.gatt_if)
+    {
+        return;
+    }
+
+    p_cb->security_pending = FALSE;
+    bta_hh_start_security(p_cb, NULL);
+}
+
 /*******************************************************************************
 **
 ** Function         bta_hh_start_security
@@ -1272,6 +1295,19 @@ void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
 void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
 {
     UINT8           sec_flag=0;
+    tBTM_SEC_DEV_REC  *p_dev_rec;
+
+    p_dev_rec = btm_find_dev(p_cb->addr);
+    if (p_dev_rec)
+    {
+        if (p_dev_rec->sec_state == BTM_SEC_STATE_ENCRYPTING ||
+            p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING)
+        {
+            /* if security collision happened, wait for encryption done */
+            p_cb->security_pending = TRUE;
+            return;
+        }
+    }
 
     /* verify bond */
     BTM_GetSecurityFlags(p_cb->addr, &sec_flag);
@@ -1375,7 +1411,7 @@ void bta_hh_le_close(tBTA_GATTC_CLOSE * p_data)
         p_buf->reason               = p_data->reason;
 
         p_dev_cb->conn_id           = BTA_GATT_INVALID_CONN_ID;
-
+        p_dev_cb->security_pending  = FALSE;
         bta_sys_sendmsg(p_buf);
     }
 }
@@ -2714,7 +2750,9 @@ static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 
         case BTA_GATTC_OPEN_EVT: /* 2 */
             p_dev_cb = bta_hh_le_find_dev_cb_by_bda(p_data->open.remote_bda);
-            bta_hh_sm_execute(p_dev_cb, BTA_HH_GATT_OPEN_EVT, (tBTA_HH_DATA *)&p_data->open);
+            if (p_dev_cb) {
+                bta_hh_sm_execute(p_dev_cb, BTA_HH_GATT_OPEN_EVT, (tBTA_HH_DATA *)&p_data->open);
+            }
             break;
 
         case BTA_GATTC_READ_CHAR_EVT: /* 3 */
@@ -2756,6 +2794,15 @@ static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
         case BTA_GATTC_NOTIF_EVT: /* 10 */
             bta_hh_le_input_rpt_notify(&p_data->notify);
             break;
+
+        case BTA_GATTC_ENC_CMPL_CB_EVT: /* 17 */
+            p_dev_cb = bta_hh_le_find_dev_cb_by_bda(p_data->enc_cmpl.remote_bda);
+            if (p_dev_cb) {
+                bta_hh_sm_execute(p_dev_cb, BTA_HH_GATT_ENC_CMPL_EVT,
+                              (tBTA_HH_DATA *)&p_data->enc_cmpl);
+            }
+            break;
+
         default:
             break;
     }
