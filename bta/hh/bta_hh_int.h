@@ -201,7 +201,7 @@ typedef struct
 }tBTA_HH_LE_RPT;
 
 #ifndef BTA_HH_LE_RPT_MAX
-#define BTA_HH_LE_RPT_MAX       10
+#define BTA_HH_LE_RPT_MAX       20
 #endif
 
 typedef struct
