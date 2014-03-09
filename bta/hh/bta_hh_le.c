@@ -638,6 +638,8 @@ void bta_hh_le_read_rpt_ref_descr(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT *p_rp
 
     while (p_rpt != NULL)
     {
+        if (!p_rpt->in_use) break;
+
         if (p_rpt->rpt_type == BTA_HH_RPTT_INPUT)
         {
             /* is battery report */
@@ -718,9 +720,10 @@ void bta_hh_le_save_rpt_ref(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT  *p_rpt,
 #endif
     }
 
-    if (p_rpt->index < BTA_HH_LE_RPT_MAX)
+    if (p_rpt->index < BTA_HH_LE_RPT_MAX - 1)
         p_rpt ++;
-
+    else
+        p_rpt = NULL;
     /* read next report reference descriptor  */
     bta_hh_le_read_rpt_ref_descr(p_dev_cb, p_rpt);
 
