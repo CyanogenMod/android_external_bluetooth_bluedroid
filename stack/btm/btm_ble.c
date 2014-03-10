@@ -1591,7 +1591,28 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
         role = HCI_ROLE_UNKNOWN;
 
         if (status == HCI_ERR_DIRECTED_ADVERTISING_TIMEOUT)
+        {
             btm_ble_dir_adv_tout();
+        }
+        /* this is to work around broadcom firmware problem to handle
+         * unsolicited command complete event for HCI_LE_Create_Connection_Cancel
+         * and LE connection complete event with status error code (0x2)
+         * unknown connection identifier from bluetooth controller
+         * the workaround is to release the HCI connection to avoid out of sync
+         * with bluetooth controller, which cause BT can't be turned off.
+        */
+        else if ((status == HCI_ERR_NO_CONNECTION) &&
+                 (btm_ble_get_conn_st() != BLE_CONN_CANCEL))
+        {
+            tL2C_LCB    *p_lcb;
+            handle = HCID_GET_HANDLE (handle);
+            p_lcb = l2cu_find_lcb_by_handle (handle);
+            if (p_lcb != NULL)
+            {
+                l2c_link_hci_disc_comp (handle, HCI_ERR_PEER_USER);
+                btm_sec_disconnected (handle, HCI_ERR_PEER_USER);
+            }
+        }
     }
 
     btm_ble_set_conn_st(BLE_CONN_IDLE);
