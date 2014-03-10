@@ -197,6 +197,7 @@ static tGATT_CBACK btif_test_callbacks =
     btif_test_command_complete_cback,
     btif_test_discovery_result_cback,
     btif_test_discovery_complete_cback,
+    NULL,
     NULL
 };
 

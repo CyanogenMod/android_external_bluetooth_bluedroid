@@ -48,7 +48,8 @@ static tGATT_CBACK gatt_profile_cback =
     NULL,
     NULL,
     NULL,
-    gatt_profile_request_cback
+    gatt_profile_request_cback,
+    NULL
 } ;
 
 /*******************************************************************************
