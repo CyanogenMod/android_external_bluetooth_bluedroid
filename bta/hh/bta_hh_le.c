@@ -37,7 +37,7 @@
 
 #define BTA_HH_LE_RPT_TYPE_VALID(x)     ((x) <= BTA_LE_HID_RPT_FEATURE && (x)>=BTA_LE_HID_RPT_INPUT)
 
-#define BTA_HH_LE_RPT_INST_ID_MAP(s,c)  (UINT8)(((s)<<4)||(c))
+#define BTA_HH_LE_RPT_INST_ID_MAP(s,c)  (UINT8)(((s)<<4)|(c))
 #define BTA_HH_LE_RPT_GET_SRVC_INST_ID(x)  (UINT8)(x  >> 4)
 #define BTA_HH_LE_RPT_GET_RPT_INST_ID(x)  (UINT8)(x & 0x0f)
 
@@ -1087,7 +1087,7 @@ void bta_hh_le_expl_rpt(tBTA_HH_DEV_CB *p_dev_cb,
                                           p_char_id->char_id.inst_id,
                                           prop) == NULL)
         {
-            APPL_TRACE_ERROR0("Add report entry failed !!!")
+            APPL_TRACE_ERROR0("Add report entry failed !!!");
             break;
         }
 
@@ -1128,7 +1128,7 @@ void bta_hh_le_expl_boot_rpt(tBTA_HH_DEV_CB *p_dev_cb, UINT16 char_uuid,
                                       prop) == NULL)
 
     {
-        APPL_TRACE_ERROR0("Add report entry failed !!!")
+        APPL_TRACE_ERROR0("Add report entry failed !!!");
     }
 
     return;
