@@ -199,7 +199,7 @@ static void hex_dump(char *msg, void *data, int size, int trunc)
         if (n%16 == 1) {
             /* store address for this line */
             snprintf(addrstr, sizeof(addrstr), "%.4x",
-               ((unsigned int)p-(unsigned int)data) );
+               (unsigned int)((uintptr_t)p-(uintptr_t)data) );
         }
 
         c = *p;

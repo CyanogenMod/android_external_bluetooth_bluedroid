@@ -37,6 +37,7 @@
 #include "l2c_api.h"
 #include "wbt_api.h"
 #include "utl.h"
+#include "gap_api.h"    /* For GAP_BleReadPeerPrefConnParams */
 #include <string.h>
 
 static void bta_dm_inq_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);

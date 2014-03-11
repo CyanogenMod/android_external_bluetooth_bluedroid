@@ -34,7 +34,7 @@
 #include "l2c_api.h"
 #include "hcidefs.h"
 #include "btm_api.h"
-
+#include "bta_sys.h"    /* For bta_sys_add_uuid and bta_sys_remove_uuid */
 
 /*******************************************************************************
 **
