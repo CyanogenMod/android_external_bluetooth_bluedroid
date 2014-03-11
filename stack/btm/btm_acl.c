@@ -179,6 +179,59 @@ UINT8 btm_handle_to_acl_index (UINT16 hci_handle)
     /* If here, no BD Addr found */
     return(xx);
 }
+
+#if BTM_BLE_PRIVACY_SPT == TRUE
+/*******************************************************************************
+**
+** Function         btm_ble_get_acl_remote_addr
+**
+** Description      This function reads the active remote address used for the
+**                  connection.
+**
+** Returns          success return TRUE, otherwise FALSE.
+**
+*******************************************************************************/
+BOOLEAN btm_ble_get_acl_remote_addr(tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR conn_addr,
+                                    tBLE_ADDR_TYPE *p_addr_type)
+{
+#if BLE_INCLUDED == TRUE
+    BOOLEAN         st = TRUE;
+
+    if (p_dev_rec == NULL)
+    {
+        BTM_TRACE_ERROR0("btm_ble_get_acl_remote_addr can not find device with matching address");
+        return FALSE;
+    }
+
+    switch (p_dev_rec->ble.active_addr_type)
+    {
+    case BTM_BLE_ADDR_PSEUDO:
+        memcpy(conn_addr, p_dev_rec->bd_addr, BD_ADDR_LEN);
+        * p_addr_type = p_dev_rec->ble.ble_addr_type;
+        break;
+
+    case BTM_BLE_ADDR_RRA:
+        memcpy(conn_addr, p_dev_rec->ble.cur_rand_addr, BD_ADDR_LEN);
+        * p_addr_type = BLE_ADDR_RANDOM;
+        break;
+
+    case BTM_BLE_ADDR_STATIC:
+        memcpy(conn_addr, p_dev_rec->ble.static_addr, BD_ADDR_LEN);
+        * p_addr_type = p_dev_rec->ble.static_addr_type;
+        break;
+
+    default:
+        BTM_TRACE_ERROR1("Unknown active address: %d", p_dev_rec->ble.active_addr_type);
+        st = FALSE;
+        break;
+    }
+
+    return st;
+#else
+    return FALSE;
+#endif
+}
+#endif
 /*******************************************************************************
 **
 ** Function         btm_acl_created
@@ -298,6 +351,10 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
             /* If here, features are not known yet */
             if (p_dev_rec && is_le_link)
             {
+#if BTM_BLE_PRIVACY_SPT == TRUE
+                btm_ble_get_acl_remote_addr (p_dev_rec, p->active_remote_addr,
+                    &p->active_remote_addr_type);
+#endif
                 btm_establish_continue(p);
 
 #if (!defined(BTA_SKIP_BLE_READ_REMOTE_FEAT) || BTA_SKIP_BLE_READ_REMOTE_FEAT == FALSE)

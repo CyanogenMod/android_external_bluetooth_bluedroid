@@ -288,6 +288,49 @@ void BTM_RegisterScanReqEvt(tBTM_BLE_SCAN_REQ_CBACK   *p_scan_req_cback)
 #endif
 }
 
+#if BTM_BLE_PRIVACY_SPT == TRUE
+/*******************************************************************************
+**
+** Function         btm_ble_resolve_random_addr_on_adv
+**
+** Description      resolve random address complete callback.
+**
+** Returns          void
+**
+*******************************************************************************/
+static void btm_ble_resolve_random_addr_on_adv(void * p_rec, void *p)
+{
+    tBTM_SEC_DEV_REC    *match_rec = (tBTM_SEC_DEV_REC *) p_rec;
+    UINT8       addr_type = BLE_ADDR_RANDOM;
+    BD_ADDR     bda;
+    UINT8       *pp = (UINT8 *)p + 1;
+    UINT8           evt_type;
+
+    BTM_TRACE_EVENT0 ("btm_ble_resolve_random_addr_on_adv ");
+
+    STREAM_TO_UINT8    (evt_type, pp);
+    STREAM_TO_UINT8    (addr_type, pp);
+    STREAM_TO_BDADDR   (bda, pp);
+
+    if (match_rec)
+    {
+        BTM_TRACE_ERROR0("Random match");
+        match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
+        memcpy(match_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
+        memcpy(bda, match_rec->bd_addr, BD_ADDR_LEN);
+        addr_type = match_rec->ble.ble_addr_type;
+    }
+    else
+    {
+        BTM_TRACE_ERROR0("Random unmatch");
+    }
+
+    btm_ble_process_adv_pkt_cont(bda, addr_type, evt_type, pp);
+
+    return;
+}
+#endif
+
 /*******************************************************************************
 **
 ** Function         BTM_BleSetBgConnType
@@ -1676,6 +1719,9 @@ void btm_ble_process_adv_pkt (UINT8 *p_data)
     BD_ADDR             bda;
     UINT8               evt_type = 0, *p = p_data;
     UINT8               addr_type = 0;
+#if (defined BTM_BLE_PRIVACY_SPT && BTM_BLE_PRIVACY_SPT == TRUE)
+    BOOLEAN             match = FALSE;
+#endif
 
     /* always get one device at a time */
     p ++;
@@ -1702,7 +1748,19 @@ void btm_ble_process_adv_pkt (UINT8 *p_data)
          btm_cb.ble_ctr_cb.p_select_cback == NULL))
         return;
 
-    btm_ble_process_adv_pkt_cont(bda, addr_type, evt_type, p);
+#if (defined BTM_BLE_PRIVACY_SPT && BTM_BLE_PRIVACY_SPT == TRUE)
+#if SMP_INCLUDED == TRUE
+    /* always do RRA resolution on host */
+    if (!match && BTM_BLE_IS_RESOLVE_BDA(bda))
+    {
+        btm_ble_resolve_random_addr(bda, btm_ble_resolve_random_addr_on_adv, p_data);
+    }
+    else
+#endif
+#endif
+    {
+        btm_ble_process_adv_pkt_cont(bda, addr_type, evt_type, p);
+    }
 }
 
 /*******************************************************************************

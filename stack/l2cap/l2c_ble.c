@@ -616,6 +616,14 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
     init_addr_type = p_lcb->ble_addr_type;
     memcpy(init_addr, p_lcb->remote_bd_addr, BD_ADDR_LEN);
 
+#if BTM_BLE_PRIVACY_SPT == TRUE
+    if (p_dev_rec->ble.active_addr_type == BTM_BLE_ADDR_RRA)
+    {
+        init_addr_type = BLE_ADDR_RANDOM;
+        memcpy(init_addr, p_dev_rec->ble.cur_rand_addr, BD_ADDR_LEN);
+    }
+#endif
+
     if (!btsnd_hcic_ble_create_ll_conn (scan_int,/* UINT16 scan_int      */
                                         scan_win, /* UINT16 scan_win      */
                                         FALSE,                   /* UINT8 white_list     */
