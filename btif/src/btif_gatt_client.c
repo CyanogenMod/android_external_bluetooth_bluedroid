@@ -463,10 +463,31 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         case BTIF_GATT_OBSERVE_EVT:
         {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
-            if (!btif_gattc_find_bdaddr(p_btif_cb->bd_addr.address))
+            uint8_t remote_name_len;
+            uint8_t *p_eir_remote_name=NULL;
+
+            p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+                                         BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
+
+            if(p_eir_remote_name == NULL)
             {
-                btif_gattc_add_remote_bdaddr(p_btif_cb->bd_addr.address, p_btif_cb->addr_type);
-                btif_gattc_update_properties(p_btif_cb);
+                p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+                                BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
+            }
+
+            if ((p_btif_cb->addr_type != BLE_ADDR_RANDOM) || (p_eir_remote_name))
+            {
+               if (!btif_gattc_find_bdaddr(p_btif_cb->bd_addr.address))
+               {
+                  static const char* exclude_filter[] =
+                        {"LinkKey", "LE_KEY_PENC", "LE_KEY_PID", "LE_KEY_PCSRK", "LE_KEY_LENC", "LE_KEY_LCSRK"};
+
+                  btif_gattc_add_remote_bdaddr(p_btif_cb->bd_addr.address, p_btif_cb->addr_type);
+                  btif_gattc_update_properties(p_btif_cb);
+                  btif_config_filter_remove("Remote", exclude_filter, sizeof(exclude_filter)/sizeof(char*),
+                  BTIF_STORAGE_MAX_ALLOWED_REMOTE_DEVICE);
+               }
+
             }
             HAL_CBACK(bt_gatt_callbacks, client->scan_result_cb,
                       &p_btif_cb->bd_addr, p_btif_cb->rssi, p_btif_cb->value);
