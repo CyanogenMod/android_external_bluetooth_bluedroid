@@ -35,6 +35,9 @@
 #include "btm_ble_api.h"
 #include "smp_api.h"
 #include "l2c_int.h"
+#if (defined BLE_BRCM_INCLUDED && BLE_BRCM_INCLUDED == TRUE)
+#include "brcm_ble.h"
+#endif
 #include "gap_api.h"
 #include "bt_utils.h"
 
@@ -341,12 +344,24 @@ BOOLEAN BTM_ReadRemoteConnectionAddr(BD_ADDR pseudo_addr, BD_ADDR conn_addr, tBL
 {
     BOOLEAN         st = TRUE;
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(pseudo_addr);
+#if BTM_BLE_PRIVACY_SPT == TRUE
+    tACL_CONN       *p = btm_bda_to_acl (pseudo_addr);
 
+    if (p == NULL)
+    {
+        BTM_TRACE_ERROR0("BTM_ReadRemoteConnectionAddr can not find matching address");
+        return FALSE;
+    }
+
+    memcpy(conn_addr, p->active_remote_addr, BD_ADDR_LEN);
+    *p_addr_type = p->active_remote_addr_type;
+#else
     memcpy(conn_addr, pseudo_addr, BD_ADDR_LEN);
     if (p_dev_rec != NULL)
     {
         *p_addr_type = p_dev_rec->ble.ble_addr_type;
     }
+#endif
     return st;
 }
 /*******************************************************************************
@@ -1462,6 +1477,61 @@ UINT8 btm_ble_io_capabilities_req(tBTM_SEC_DEV_REC *p_dev_rec, tBTM_LE_IO_REQ *p
     return callback_rc;
 }
 
+#if (BTM_BLE_PRIVACY_SPT == TRUE )
+/*******************************************************************************
+**
+** Function         btm_ble_resolve_random_addr_on_conn_cmpl
+**
+** Description      resolve random address complete on connection complete event.
+**
+** Returns          void
+**
+*******************************************************************************/
+static void btm_ble_resolve_random_addr_on_conn_cmpl(void * p_rec, void *p_data)
+{
+    UINT8   *p = (UINT8 *)p_data;
+    tBTM_SEC_DEV_REC    *match_rec = (tBTM_SEC_DEV_REC *) p_rec;
+    UINT8       role, status, bda_type;
+    UINT16      handle;
+    BD_ADDR     bda;
+    UINT16      conn_interval, conn_latency, conn_timeout;
+    BOOLEAN     match = FALSE;
+
+    STREAM_TO_UINT8   (status, p);
+    STREAM_TO_UINT16   (handle, p);
+    STREAM_TO_UINT8    (role, p);
+    STREAM_TO_UINT8    (bda_type, p);
+    STREAM_TO_BDADDR   (bda, p);
+    STREAM_TO_UINT16   (conn_interval, p);
+    STREAM_TO_UINT16   (conn_latency, p);
+    STREAM_TO_UINT16   (conn_timeout, p);
+
+    handle = HCID_GET_HANDLE (handle);
+
+    BTM_TRACE_EVENT0 ("btm_ble_resolve_random_addr_master_cmpl");
+
+    if (match_rec)
+    {
+        BTM_TRACE_ERROR0("Random match");
+        match = TRUE;
+        match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
+        memcpy(match_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
+        memcpy(bda, match_rec->bd_addr, BD_ADDR_LEN);
+    }
+    else
+    {
+        BTM_TRACE_ERROR0("Random unmatch");
+    }
+
+    btm_ble_connected(bda, handle, HCI_ENCRYPT_MODE_DISABLED, role, bda_type, match);
+
+    l2cble_conn_comp (handle, role, bda, bda_type, conn_interval,
+                      conn_latency, conn_timeout);
+
+    return;
+}
+#endif
+
 /*******************************************************************************
 **
 ** Function         btm_ble_connected
@@ -1516,8 +1586,17 @@ void btm_ble_connected (UINT8 *bda, UINT16 handle, UINT8 enc_mode, UINT8 role,
     p_dev_rec->hci_handle = handle;
     p_dev_rec->ble.ble_addr_type = addr_type;
 
+    p_dev_rec->role_master = FALSE;
     if (role == HCI_ROLE_MASTER)
         p_dev_rec->role_master = TRUE;
+
+#if (defined BTM_BLE_PRIVACY_SPT && BTM_BLE_PRIVACY_SPT == TRUE)
+    if (!addr_matched)
+        p_dev_rec->ble.active_addr_type = BTM_BLE_ADDR_PSEUDO;
+
+    if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_RANDOM && !addr_matched)
+        memcpy(p_dev_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
+#endif
 
     if (role == HCI_ROLE_SLAVE)
         p_cb->inq_var.adv_mode  = BTM_BLE_ADV_DISABLE;
@@ -1534,6 +1613,9 @@ void btm_ble_connected (UINT8 *bda, UINT16 handle, UINT8 enc_mode, UINT8 role,
 ******************************************************************************/
 void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
 {
+#if (BTM_BLE_PRIVACY_SPT == TRUE )
+    UINT8       *p_data = p;
+#endif
     UINT8       role, status, bda_type;
     UINT16      handle;
     BD_ADDR     bda;
@@ -1549,14 +1631,25 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
 
     if (status == 0)
     {
-        STREAM_TO_UINT16   (conn_interval, p);
-        STREAM_TO_UINT16   (conn_latency, p);
-        STREAM_TO_UINT16   (conn_timeout, p);
-        handle = HCID_GET_HANDLE (handle);
+#if (BTM_BLE_PRIVACY_SPT == TRUE )
+        /* possiblly receive connection complete with resolvable random on
+           slave role while the device has been paired */
+        if (!match && BTM_BLE_IS_RESOLVE_BDA(bda))
+        {
+            btm_ble_resolve_random_addr(bda, btm_ble_resolve_random_addr_on_conn_cmpl, p_data);
+        }
+        else
+#endif
+        {
+            STREAM_TO_UINT16   (conn_interval, p);
+            STREAM_TO_UINT16   (conn_latency, p);
+            STREAM_TO_UINT16   (conn_timeout, p);
+            handle = HCID_GET_HANDLE (handle);
 
-        btm_ble_connected(bda, handle, HCI_ENCRYPT_MODE_DISABLED, role, bda_type, match);
-        l2cble_conn_comp (handle, role, bda, bda_type, conn_interval,
+            btm_ble_connected(bda, handle, HCI_ENCRYPT_MODE_DISABLED, role, bda_type, match);
+            l2cble_conn_comp (handle, role, bda, bda_type, conn_interval,
                               conn_latency, conn_timeout);
+        }
     }
     else
     {
