@@ -1082,10 +1082,15 @@ bt_status_t is_src( bt_bdaddr_t *bd_addr )
         BTIF_TRACE_DEBUG0(" Current Peer is SRC");
         return BT_STATUS_SUCCESS;
     }
-    else
+    else if (btif_av_cb.sep == SEP_SNK)
     {
         BTIF_TRACE_DEBUG0(" Current Peer is SNK");
         return BT_STATUS_FAIL;
+    }
+    else
+    {
+        BTIF_TRACE_DEBUG0(" Stream not opened till now");
+        return BT_STATUS_NOT_READY;
     }
 }
 
