@@ -1008,7 +1008,15 @@ uint16_t hci_mct_receive_acl_msg(void)
                 /* ACL data lengths are 16-bits */
                 msg_len = p_cb->preload_buffer[3];
                 msg_len = (msg_len << 8) + p_cb->preload_buffer[2];
-
+                if(msg_len == 0) {
+                    p_cb->rcv_state = MCT_RX_NEWMSG_ST;
+                    continue_fetch_looping = FALSE;
+                    break;
+                } else if (msg_len <= 2) {
+                    p_cb->rcv_len = msg_len;
+                    p_cb->rcv_state = MCT_RX_IGNORE_ST;
+                    break;
+                }
                 if (msg_len && (p_cb->preload_count == 4))
                 {
                     /* Check if this is a start packet */
