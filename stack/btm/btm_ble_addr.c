@@ -287,7 +287,7 @@ static BOOLEAN btm_ble_match_random_bda(UINT16 rec_index)
     {
         p_dev_rec = &btm_cb.sec_dev_rec[rec_index];
 
-        BTM_TRACE_ERROR2("sec_flags = %02x device_type = %d", p_dev_rec->sec_flags, p_dev_rec->device_type);
+        BTM_TRACE_DEBUG2("sec_flags = %02x device_type = %d", p_dev_rec->sec_flags, p_dev_rec->device_type);
 
         if ((p_dev_rec->device_type == BT_DEVICE_TYPE_BLE) &&
             (p_dev_rec->ble.key_type & BTM_LE_KEY_PID))
