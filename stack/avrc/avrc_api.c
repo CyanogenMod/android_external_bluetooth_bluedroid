@@ -923,8 +923,8 @@ UINT16 AVRC_Open(UINT8 *p_handle, tAVRC_CONN_CB *p_ccb, BD_ADDR_PTR peer_addr)
         memset(&avrc_cb.rcb[*p_handle], 0, sizeof(tAVRC_RASM_CB));
 #endif
     }
-    AVRC_TRACE_DEBUG4("AVRC_Open role: %d, control:%d status:%d, handle:%d", cc.role, cc.control,
-        status, *p_handle);
+    BTIF_TRACE_IMP5(" %s AVRC_Open role: %d, control:%d status:%d, handle:%d",
+                __FUNCTION__, cc.role, cc.control, status, *p_handle);
 
     return status;
 }

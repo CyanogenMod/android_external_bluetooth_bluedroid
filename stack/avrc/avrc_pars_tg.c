@@ -325,7 +325,8 @@ tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result, UINT8 *p_
         p_result->cmd.opcode = p_msg->hdr.opcode;
         p_result->cmd.status = status;
     }
-    AVRC_TRACE_DEBUG1("AVRC_ParsCommand() return status:0x%x", status);
+    BTIF_TRACE_IMP2("AVRC_ParsCommand() return status:0x%x",
+            __FUNCTION__, status);
     return status;
 }
 
