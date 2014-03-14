@@ -553,6 +553,9 @@ static bt_status_t connect_int( bt_bdaddr_t *bd_addr )
 static bt_status_t connect( bt_bdaddr_t *bd_addr )
 {
     CHECK_BTHF_INIT();
+
+    btif_queue_remove_connect(UUID_SERVCLASS_AG_HANDSFREE, BTIF_QUEUE_CHECK_CONNECT_REQ);
+
    if(btif_hf_cb.handle)
        return btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int, BTIF_QUEUE_CONNECT_EVT);
     else

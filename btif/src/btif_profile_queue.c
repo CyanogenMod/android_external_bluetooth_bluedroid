@@ -101,6 +101,40 @@ static bt_status_t queue_int_connect_next()
     return (*(btif_connect_cb_t*)p_head->p_cb)(&p_head->bda);
 }
 
+static void queue_check_connect(connect_node_t *p_param)
+{
+    BTIF_TRACE_VERBOSE2("%s, UUID : 0x%x", __FUNCTION__, p_param->uuid);
+    connect_node_t *p_head = connect_queue;
+    connect_node_t *p_temp = p_head;
+    if (connect_queue == NULL)
+        return;
+    // need to delete whole list in case of single node.
+    if (p_head != NULL && connect_queue->p_next == NULL)
+    {
+        if ((p_param->uuid == p_head->uuid))
+        {
+            BTIF_TRACE_VERBOSE0("Matched Connect req with uuid for single node");
+            connect_queue = connect_queue->p_next;
+            GKI_freebuf(p_head);
+            return;
+        }
+    }
+    // parse list for common node and delete that node
+    while (p_head != NULL && connect_queue->p_next != NULL)
+    {
+        if ((p_param->uuid == p_head->uuid))
+        {
+            BTIF_TRACE_VERBOSE0("Matched Connect req with uuid");
+            // delete this node
+            p_temp->p_next = p_head->p_next;
+            GKI_freebuf(p_head);
+            break;
+        }
+        p_temp = p_head;
+        p_head = p_head->p_next;
+    }
+}
+
 static void queue_int_handle_evt(UINT16 event, char *p_param)
 {
 
@@ -117,6 +151,9 @@ static void queue_int_handle_evt(UINT16 event, char *p_param)
         case BTIF_QUEUE_PENDING_CONECT_EVT:
             queue_int_add((connect_node_t*)p_param);
             return;
+            break;
+        case BTIF_QUEUE_CHECK_CONNECT_REQ:
+            queue_check_connect((connect_node_t*)p_param);
             break;
         default:
             BTIF_TRACE_VERBOSE0("BTIF_QUEUE_PENDING_CONECT_ADVANCE_EVT");
@@ -201,5 +238,24 @@ void btif_queue_release()
     }
 
     connect_queue = NULL;
+}
+/*******************************************************************************
+**
+** Function         btif_queue_remove_connect
+**
+** Description      Remove connection request from connect Queue
+**                  when connect request for same UUID is received
+**                  from app.
+**
+** Returns          void
+**
+*******************************************************************************/
+void btif_queue_remove_connect(uint16_t uuid, uint8_t check_connect_req)
+{
+    connect_node_t node;
+    memset(&node, 0, sizeof(connect_node_t));
+    node.uuid = uuid;
+    btif_transfer_context(queue_int_handle_evt, check_connect_req,
+                      (char*)&node, sizeof(connect_node_t), NULL);
 }
 
