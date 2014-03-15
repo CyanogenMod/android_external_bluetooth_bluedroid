@@ -216,7 +216,7 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
    layers we might need to temporarily buffer up data */
 
 /* 24 frames is equivalent to 6.89*24*2.9 ~= 480 ms @ 44.1 khz, 20 ms mediatick */
-#define MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ 50
+#define MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ 24
 
 //#define BTIF_MEDIA_VERBOSE_ENABLED
 /* In case of A2DP SINK, we will delay start by 5 AVDTP Packets*/

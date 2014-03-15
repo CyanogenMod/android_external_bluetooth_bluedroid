@@ -193,7 +193,6 @@ const char *dump_av_sm_event_name(btif_av_sm_event_t event)
         CASE_RETURN_STR(BTIF_AV_SUSPEND_STREAM_REQ_EVT)
         CASE_RETURN_STR(BTIF_AV_RECONFIGURE_REQ_EVT)
         CASE_RETURN_STR(BTIF_AV_REQUEST_AUDIO_FOCUS_EVT)
-        CASE_RETURN_STR(BTA_AV_SM_PRIORITY_EVT)
 
         default: return "UNKNOWN_EVENT";
    }
@@ -372,11 +371,6 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             // Only for AVDTP connection request move to opening state
             if (event == BTA_AV_PENDING_EVT)
                 btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
-            btif_dispatch_sm_event(BTA_AV_SM_PRIORITY_EVT, NULL, 0);
-
-            break;
-
-        case BTA_AV_SM_PRIORITY_EVT:
             HAL_CBACK(bt_av_callbacks, connection_priority_cb, &(btif_av_cb.peer_bda));
             break;
 
@@ -430,9 +424,7 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
 
         case BTIF_SM_EXIT_EVT:
             break;
-        case BTA_AV_SM_PRIORITY_EVT:
-            HAL_CBACK(bt_av_callbacks, connection_priority_cb, &(btif_av_cb.peer_bda));
-            break;
+
         case BTA_AV_REJECT_EVT:
             BTIF_TRACE_DEBUG0(" Received  BTA_AV_REJECT_EVT ");
             HAL_CBACK(bt_av_callbacks, connection_state_cb,

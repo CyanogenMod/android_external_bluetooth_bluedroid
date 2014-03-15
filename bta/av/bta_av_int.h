@@ -457,6 +457,7 @@ typedef union
 /* Bitmap for collision, coll_mask */
 #define BTA_AV_COLL_INC_TMR             0x01 /* Timer is running for incoming L2C connection */
 #define BTA_AV_COLL_API_CALLED          0x02 /* API open was called while incoming timer is running */
+#define BTA_AV_COLL_SETCONFIG_IND    0x04 /* SetConfig indication has been called by remote */
 
 /* type for AV stream control block */
 typedef struct
