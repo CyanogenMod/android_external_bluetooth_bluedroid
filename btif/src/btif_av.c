@@ -1009,6 +1009,9 @@ static bt_status_t connect_int(bt_bdaddr_t *bd_addr)
 static bt_status_t connect(bt_bdaddr_t *bd_addr)
 {
     CHECK_BTAV_INIT();
+
+    btif_queue_remove_connect(UUID_SERVCLASS_AUDIO_SOURCE, BTIF_QUEUE_CHECK_CONNECT_REQ);
+
     if(btif_av_cb.bta_handle)
        return btif_queue_connect(UUID_SERVCLASS_AUDIO_SOURCE, bd_addr, connect_int, BTIF_QUEUE_CONNECT_EVT);
     else
@@ -1079,10 +1082,15 @@ bt_status_t is_src( bt_bdaddr_t *bd_addr )
         BTIF_TRACE_DEBUG0(" Current Peer is SRC");
         return BT_STATUS_SUCCESS;
     }
-    else
+    else if (btif_av_cb.sep == SEP_SNK)
     {
         BTIF_TRACE_DEBUG0(" Current Peer is SNK");
         return BT_STATUS_FAIL;
+    }
+    else
+    {
+        BTIF_TRACE_DEBUG0(" Stream not opened till now");
+        return BT_STATUS_NOT_READY;
     }
 }
 

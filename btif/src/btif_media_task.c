@@ -221,6 +221,7 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 //#define BTIF_MEDIA_VERBOSE_ENABLED
 /* In case of A2DP SINK, we will delay start by 5 AVDTP Packets*/
 #define MAX_A2DP_DELAYED_START_FRAME_COUNT 5
+#define MAX_A2DP_AV_SYNC_FRAME_COUNT 1
 #define PACKET_PLAYED_PER_TICK_48 8
 #define PACKET_PLAYED_PER_TICK_44 7
 #define PACKET_PLAYED_PER_TICK_32 5
@@ -1308,7 +1309,10 @@ static void btif_media_task_avk_handle_timer ( void )
             btif_av_request_audio_focus(TRUE);
             return;
         }
-        num_frames_to_process = btif_media_cb.frames_to_process;
+        if (btif_media_cb.RxSbcQ.count > 3)
+            num_frames_to_process = 2* btif_media_cb.frames_to_process;
+        else
+            num_frames_to_process = btif_media_cb.frames_to_process;
         APPL_TRACE_DEBUG0(" Process Frames + ");
 
         do
@@ -2720,7 +2724,7 @@ UINT8 btif_media_sink_enque_buf(BT_HDR *p_pkt)
         p_msg->num_frames_to_be_processed = (*((UINT8*)(p_msg + 1) + p_msg->offset)) & 0x0f;
         BTIF_TRACE_VERBOSE1("btif_media_sink_enque_buf + ", p_msg->num_frames_to_be_processed);
         GKI_enqueue(&(btif_media_cb.RxSbcQ), p_msg);
-        if(btif_media_cb.RxSbcQ.count == MAX_A2DP_DELAYED_START_FRAME_COUNT)
+        if(btif_media_cb.RxSbcQ.count == MAX_A2DP_AV_SYNC_FRAME_COUNT)
         {
             BTIF_TRACE_DEBUG0(" Initiate Decoding ");
             btif_media_task_start_decoding_req();

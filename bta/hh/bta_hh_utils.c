@@ -49,6 +49,48 @@ static const UINT8 bta_hh_mod_key_mask[BTA_HH_MOD_MAX_KEY] =
     BTA_HH_KB_GUI_MASK
 };
 
+/* hid_black_addr_prefix_for_ssr & hid_ssr_max_lat_list_for_iot are used
+   to fix IOP issues of sniff subrate feature */
+static const UINT8 hid_black_addr_prefix_for_ssr[][3] = {
+    {0x00, 0x1B, 0xDC} // ISSC
+};
+
+static const UINT16 hid_ssr_max_lat_list_for_iot[] = {
+    0x0012 // ISSC
+};
+
+
+/*******************************************************************************
+**      Function       dev_blacklisted_for_sniff_subrate
+**
+**      Description    It's used to update SSR parameter such as max latency,
+**                     If device is found in HID blacklist.
+**
+**      Returns        None
+*******************************************************************************/
+static void dev_blacklisted_for_sniff_subrate(BD_ADDR peer_dev, UINT16 *ssr_max_lat)
+{
+    UINT16 old_ssr_max_lat = *ssr_max_lat;
+    int i;
+    int blacklist_size =
+            sizeof(hid_black_addr_prefix_for_ssr)/sizeof(hid_black_addr_prefix_for_ssr[0]);
+    for (i = 0; i < blacklist_size; i++) {
+        if (hid_black_addr_prefix_for_ssr[i][0] == peer_dev[0] &&
+            hid_black_addr_prefix_for_ssr[i][1] == peer_dev[1] &&
+            hid_black_addr_prefix_for_ssr[i][2] == peer_dev[2]) {
+            APPL_TRACE_WARNING6("%02x:%02x:%02x:%02x:%02x:%02x is in blacklist for SSR",
+                    peer_dev[0], peer_dev[1], peer_dev[2], peer_dev[3], peer_dev[4], peer_dev[5]);
+
+            *ssr_max_lat = hid_ssr_max_lat_list_for_iot[i];
+            APPL_TRACE_WARNING2("Max latency is changed from %d to %d", old_ssr_max_lat,
+                        *ssr_max_lat);
+            return;
+        }
+    }
+    APPL_TRACE_DEBUG6("%02x:%02x:%02x:%02x:%02x:%02x is not in blacklist for SSR",
+            peer_dev[0], peer_dev[1], peer_dev[2], peer_dev[3], peer_dev[4], peer_dev[5]);
+}
+
 
 /*******************************************************************************
 **
@@ -196,6 +238,8 @@ void bta_hh_add_device_to_list(tBTA_HH_DEV_CB *p_cb, UINT8 handle,
     p_cb->app_id    = app_id;
 
     p_cb->dscp_info.ssr_max_latency = ssr_max_latency;
+    dev_blacklisted_for_sniff_subrate(p_cb->addr, &(p_cb->dscp_info.ssr_max_latency));
+
     p_cb->dscp_info.ssr_min_tout    = ssr_min_tout;
 
     /* store report descriptor info */
