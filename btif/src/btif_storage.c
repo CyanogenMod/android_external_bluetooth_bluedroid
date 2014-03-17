@@ -280,6 +280,8 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
                                 BTIF_STORAGE_PATH_REMOTE_NAME, value);
             else btif_config_set_str("Local", "Adapter",
                                 BTIF_STORAGE_KEY_ADAPTER_NAME, value);
+            /* save name immediately */
+            btif_config_save();
             break;
         case BT_PROPERTY_REMOTE_FRIENDLY_NAME:
             strncpy(value, (char*)prop->val, prop->len);

@@ -1148,6 +1148,35 @@ static int get_remote_features()
 
 /*******************************************************************************
 **
+** Function         btif_hf_is_connected
+**
+** Description      Checks if hf is connected
+**
+** Returns          BOOLEAN
+**
+*******************************************************************************/
+BOOLEAN btif_hf_is_connected(void)
+{
+    return is_connected(NULL);
+}
+
+/*******************************************************************************
+**
+** Function         btif_hf_close_update
+**
+** Description      close audio and update to application layer
+**
+** Returns          boolean
+**
+*******************************************************************************/
+void btif_hf_close_update(void)
+{
+   btif_hf_cb.state = BTHF_CONNECTION_STATE_DISCONNECTED;
+   HAL_CBACK(bt_hf_callbacks, connection_state_cb, btif_hf_cb.state, &btif_hf_cb.connected_bda);
+}
+
+/*******************************************************************************
+**
 ** Function         btif_hf_is_call_idle
 **
 ** Description      returns true if no call is in progress
