@@ -49,7 +49,7 @@
 #define BTA_NO_RESOURCES        4
 #define BTA_WRONG_MODE          5
 #define BTA_BAD_RF              6
-
+#define BTA_TIMEOUT             7
 typedef UINT8 tBTA_STATUS;
 
 /*
