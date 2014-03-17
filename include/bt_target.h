@@ -3601,7 +3601,7 @@ Range: Minimum 12000 (12 secs) when supporting PBF.
 #endif
 
 #ifndef SDP_AVRCP_1_5
-#define SDP_AVRCP_1_5               TRUE
+#define SDP_AVRCP_1_5               FALSE
 
 #if  SDP_AVRCP_1_5    == TRUE
 #ifndef AVCT_BROWSE_INCLUDED
