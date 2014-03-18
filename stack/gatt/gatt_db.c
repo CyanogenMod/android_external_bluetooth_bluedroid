@@ -32,6 +32,7 @@
 #include <string.h>
 #include "gatt_int.h"
 #include "l2c_api.h"
+#include "btm_int.h"
 
 /********************************************************************************
 **              L O C A L    F U N C T I O N     P R O T O T Y P E S            *
@@ -329,6 +330,9 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
     UINT16      len = 0;
     UINT8       *p = (UINT8 *)(p_rsp + 1) + p_rsp->len + L2CAP_MIN_OFFSET;
     tBT_UUID    attr_uuid;
+#if (defined(BLE_DELAY_REQUEST_ENC) && (BLE_DELAY_REQUEST_ENC == TRUE))
+    UINT8       flag;
+#endif
 
     if (p_db && p_db->p_attr_list)
     {
@@ -393,6 +397,26 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
         }
     }
 
+#if (defined(BLE_DELAY_REQUEST_ENC) && (BLE_DELAY_REQUEST_ENC == TRUE))
+    if (BTM_GetSecurityFlags(p_tcb->peer_bda, &flag))
+    {
+        if ((p_tcb->att_lcid == L2CAP_ATT_CID) && (status == GATT_PENDING) &&
+            (type.uu.uuid16 == GATT_UUID_GAP_DEVICE_NAME))
+        {
+            if ((flag & (BTM_SEC_LINK_KEY_KNOWN | BTM_SEC_FLAG_ENCRYPTED)) ==
+                 BTM_SEC_LINK_KEY_KNOWN)
+            {
+                tACL_CONN         *p;
+                p = btm_bda_to_acl(p_tcb->peer_bda);
+                if ((p != NULL) && (p->link_role == BTM_ROLE_MASTER))
+                {
+                    tBTM_BLE_SEC_ACT sec_act = BTM_BLE_SEC_ENCRYPT;
+                    btm_ble_set_encryption(p_tcb->peer_bda, &sec_act, p->link_role);
+                }
+            }
+        }
+    }
+#endif
     return status;
 }
 
