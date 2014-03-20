@@ -949,7 +949,7 @@ void smp_link_encrypted(BD_ADDR bda, UINT8 encr_enable)
 {
     tSMP_CB *p_cb = &smp_cb;
 
-    SMP_TRACE_DEBUG1 ("smp_link_encrypted encr_enable=%d",encr_enable);
+    SMP_TRACE_DEBUG2 ("smp_link_encrypted encr_enable=%d, p_cb-state=%d",encr_enable, p_cb->state);
 
     if (memcmp(&smp_cb.pairing_bda[0], bda, BD_ADDR_LEN) == 0)
     {
@@ -962,6 +962,12 @@ void smp_link_encrypted(BD_ADDR bda, UINT8 encr_enable)
         }
 
         smp_sm_event(&smp_cb, SMP_ENCRYPTED_EVT, &encr_enable);
+    }
+    else if(encr_enable && p_cb->state == SMP_ST_IDLE)/*encryption without pairing case*/
+    {
+        memcpy(&p_cb->pairing_bda[0], bda, BD_ADDR_LEN);
+        p_cb->state = SMP_ST_RELEASE_DELAY;
+        smp_sm_event(&smp_cb, SMP_RELEASE_DELAY_EVT, &encr_enable);
     }
 }
 /*******************************************************************************
