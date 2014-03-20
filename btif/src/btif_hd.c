@@ -43,6 +43,8 @@
 #include "btif_storage.h"
 #include "btif_hd.h"
 
+extern BOOLEAN bta_dm_check_if_only_hd_connected(BD_ADDR peer_addr);
+
 /* HD request events */
 typedef enum
 {
@@ -206,8 +208,16 @@ static void btif_hd_upstreams_evt(UINT16 event, char* p_param)
         case BTA_HD_VC_UNPLUG_EVT:
             HAL_CBACK(bt_hd_callbacks, connection_state_cb, (bt_bdaddr_t*) &p_data->conn.bda,
                 BTHD_CONN_STATE_DISCONNECTED);
-
-            BTA_DmRemoveDevice((UINT8 *) &p_data->conn.bda);
+            if (bta_dm_check_if_only_hd_connected(p_data->conn.bda)) {
+                BTIF_TRACE_DEBUG1("%s: Removing bonding as only HID profile connected",
+                    __FUNCTION__);
+                BTA_DmRemoveDevice((UINT8 *) &p_data->conn.bda);
+            } else {
+                bt_bdaddr_t *bd_addr = (bt_bdaddr_t*)&p_data->conn.bda;
+                BTIF_TRACE_DEBUG1("%s: Only removing HID data as some other profiles "
+                    "connected", __FUNCTION__);
+                btif_hd_remove_device(*bd_addr);
+            }
             HAL_CBACK(bt_hd_callbacks, vc_unplug_cb);
             break;
 
