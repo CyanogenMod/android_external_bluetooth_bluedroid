@@ -47,7 +47,7 @@ LOCAL_SRC_FILES += \
 	../btif/src/btif_sock_util.c \
 	../btif/src/btif_storage.c \
 	../btif/src/btif_util.c \
-    ../btif/src/bluetoothTrack.cpp
+	../btif/src/bluetoothTrack.cpp.c
 
 # callouts
 LOCAL_SRC_FILES += \
@@ -98,6 +98,7 @@ LOCAL_C_INCLUDES += . \
 	$(LOCAL_PATH)/../hci/include\
 	$(LOCAL_PATH)/../vnd/include \
 	$(LOCAL_PATH)/../embdrv/sbc/encoder/include \
+	$(LOCAL_PATH)/../embdrv/sbc/decoder/include \
 	$(LOCAL_PATH)/../audio_a2dp_hw \
 	$(LOCAL_PATH)/../utils/include \
 	$(bdroid_C_INCLUDES) \
