@@ -493,6 +493,14 @@ typedef struct
     tBLE_ADDR_TYPE      ble_addr_type;  /* LE device type: public or random address */
     tBLE_ADDR_TYPE      static_addr_type;   /* static address type */
     BD_ADDR             static_addr;    /* static address */
+#if BTM_BLE_PRIVACY_SPT == TRUE
+    BD_ADDR             cur_rand_addr;  /* current random address */
+
+#define BTM_BLE_ADDR_PSEUDO         0   /* address index device record */
+#define BTM_BLE_ADDR_RRA            1   /* cur_rand_addr */
+#define BTM_BLE_ADDR_STATIC         2   /* static_addr  */
+    UINT8               active_addr_type;
+#endif
 
 #if SMP_INCLUDED == TRUE
     tBTM_LE_KEY_TYPE    key_type;       /* bit mask of valid key types in record */
