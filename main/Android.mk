@@ -98,6 +98,7 @@ LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../hci/include\
 	$(LOCAL_PATH)/../vnd/include \
 	$(LOCAL_PATH)/../embdrv/sbc/encoder/include \
+	$(LOCAL_PATH)/../embdrv/sbc/decoder/include \
 	$(LOCAL_PATH)/../audio_a2dp_hw \
 	$(LOCAL_PATH)/../utils/include \
 	$(bdroid_C_INCLUDES) \
@@ -132,7 +133,7 @@ LOCAL_SHARED_LIBRARIES := \
     libbt-utils
 
 #LOCAL_WHOLE_STATIC_LIBRARIES := libbt-brcm_gki libbt-brcm_stack libbt-brcm_bta
-LOCAL_STATIC_LIBRARIES := libosi libbt-brcm_gki libbt-brcm_bta libbt-brcm_stack libtinyxml2
+LOCAL_STATIC_LIBRARIES := libosi libbt-brcm_gki libbt-brcm_bta libbt-brcm_stack libtinyxml2 libbt-qcom_sbc_decoder
 
 LOCAL_MODULE := bluetooth.default
 LOCAL_MODULE_RELATIVE_PATH := hw

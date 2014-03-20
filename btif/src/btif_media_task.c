@@ -80,8 +80,6 @@
 OI_CODEC_SBC_DECODER_CONTEXT context;
 OI_UINT32 contextData[CODEC_DATA_WORDS(2, SBC_CODEC_FAST_FILTER_BUFFERS)];
 OI_INT16 pcmData[15*SBC_MAX_SAMPLES_PER_FRAME*SBC_MAX_CHANNELS];
-void *dlhandle = NULL;
-oi_sbc_decoder_vendor_interface_t *oi_sbc_decode_vnd_if = NULL;
 #endif
 
 /*****************************************************************************
@@ -313,7 +311,17 @@ static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event);
 static void btif_a2dp_encoder_update(void);
 const char* dump_media_event(UINT16 event);
 #ifdef BTA_AVK_INCLUDED
-void btif_load_decoder_library();
+extern OI_STATUS OI_CODEC_SBC_DecodeFrame(OI_CODEC_SBC_DECODER_CONTEXT *context,
+                                          const OI_BYTE **frameData,
+                                          unsigned long *frameBytes,
+                                          OI_INT16 *pcmData,
+                                          unsigned long *pcmBytes);
+extern OI_STATUS OI_CODEC_SBC_DecoderReset(OI_CODEC_SBC_DECODER_CONTEXT *context,
+                                           unsigned long *decoderData,
+                                           unsigned long decoderDataBytes,
+                                           OI_UINT8 maxChannels,
+                                           OI_UINT8 pcmStride,
+                                           OI_BOOL enhanced);
 #endif
 static void btif_media_flush_q(BUFFER_Q *p_q);
 static void btif_media_task_aa_handle_stop_decoding(void );
@@ -1563,8 +1571,10 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
     for(count = 0; count < num_sbc_frames && sbc_frame_len != 0; count ++)
     {
         pcmBytes = availPcmBytes;
-        status = oi_sbc_decode_vnd_if->OI_CODEC_SBC_DecodeFrame(&context, (const OI_BYTE**)&sbc_start_frame,
-                                                        &sbc_frame_len, pcmDataPointer, &pcmBytes);
+        status = OI_CODEC_SBC_DecodeFrame(&context, (const OI_BYTE**)&sbc_start_frame,
+                                                        (OI_UINT32 *)&sbc_frame_len,
+                                                        (OI_INT16 *)pcmDataPointer,
+                                                        (OI_UINT32 *)&pcmBytes);
         if (!OI_SUCCESS(status)) {
             APPL_TRACE_ERROR1("Decoding failure: %d\n", status);
             break;
@@ -2172,13 +2182,6 @@ static void btif_media_task_aa_handle_clear_track (void)
     APPL_TRACE_DEBUG0("btif_media_task_aa_handle_clear_track");
     btStopTrack();
     btDeleteTrack();
-    if (dlhandle)
-    {
-        APPL_TRACE_DEBUG0("Unload Decoder lib");
-        dlclose(dlhandle);
-        dlhandle = NULL;
-        oi_sbc_decode_vnd_if = NULL;
-    }
 }
 
 /*******************************************************************************
@@ -2196,10 +2199,9 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
     tA2D_STATUS a2d_status;
     tA2D_SBC_CIE sbc_cie;
     OI_STATUS       status;
-    UINT32          freq_multiple; /* frequency multiple for 20ms of data */
-    UINT32          num_blocks;
-    UINT32          num_subbands;
-    UINT32          num_channel;
+    UINT32          freq_multiple = 48*20; /* frequency multiple for 20ms of data , initialize with 48K*/
+    UINT32          num_blocks = 16;
+    UINT32          num_subbands = 8;
 
     APPL_TRACE_DEBUG6("btif_media_task_aa_handle_decoder_reset p_codec_info[%x:%x:%x:%x:%x:%x]",
             p_buf->codec_info[1], p_buf->codec_info[2], p_buf->codec_info[3],
@@ -2214,8 +2216,7 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
     btif_media_cb.is_source = FALSE;
     btif_media_cb.rx_flush = FALSE;
     APPL_TRACE_DEBUG0("Reset to sink role");
-    btif_load_decoder_library();
-    status = oi_sbc_decode_vnd_if->OI_CODEC_SBC_DecoderReset(&context, contextData, sizeof(contextData), 2, 2, FALSE);
+    status = OI_CODEC_SBC_DecoderReset(&context, contextData, sizeof(contextData), 2, 2, FALSE);
     if (!OI_SUCCESS(status)) {
         APPL_TRACE_ERROR1("OI_CODEC_SBC_DecoderReset failed with error code %d\n", status);
     }
@@ -2970,22 +2971,3 @@ void dump_codec_info(unsigned char *p_codec)
 
 }
 
-#ifdef BTA_AVK_INCLUDED
-void btif_load_decoder_library()
-{
-    dlhandle = dlopen("liboi_sbc_decoder.so", RTLD_NOW);
-    APPL_TRACE_DEBUG0("Load decoder library");
-    if (!dlhandle)
-    {
-        APPL_TRACE_ERROR0("!!! Failed to load oi_sbc_decoder.so !!!");
-        return;
-    }
-
-    oi_sbc_decode_vnd_if = (oi_sbc_decoder_vendor_interface_t *) dlsym(dlhandle, "OI_SBC_DECODER_VENDOR_LIB_INTERFACE");
-    if (!oi_sbc_decode_vnd_if)
-    {
-        APPL_TRACE_ERROR0("!!! Failed to get oi sbc decode vendor interface !!!");
-        return;
-    }
-}
-#endif
