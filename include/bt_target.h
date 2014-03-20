@@ -1407,6 +1407,10 @@ and USER_HW_DISABLE_API macros */
 #define LOCAL_BLE_CONTROLLER_ID         (1)
 #endif
 
+#ifndef BTM_BLE_PRIVACY_SPT
+#define BTM_BLE_PRIVACY_SPT      TRUE
+#endif
+
 /******************************************************************************
 **
 ** ATT/GATT Protocol/Profile Settings
