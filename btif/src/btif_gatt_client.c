@@ -843,7 +843,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 #if (defined(BLE_PERIPHERAL_MODE_SUPPORT) && (BLE_PERIPHERAL_MODE_SUPPORT == TRUE))
             BTA_GATTC_Listen(p_cb->client_if, p_cb->start, NULL);
 #else
-            BTA_DmBleBroadcast(p_cb->start);
+            BTA_GATTC_Broadcast(p_cb->client_if, p_cb->start);
 #endif
             break;
 

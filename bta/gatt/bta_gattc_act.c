@@ -2156,5 +2156,27 @@ void bta_gattc_listen(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
         }
     }
 }
+
+/*******************************************************************************
+**
+** Function         bta_gattc_broadcast
+**
+** Description      Start or stop broadcasting
+**
+** Returns          void
+**
+********************************************************************************/
+void bta_gattc_broadcast(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
+{
+    tBTA_GATTC_RCB      *p_clreg = bta_gattc_cl_get_regcb(p_msg->api_listen.client_if);
+    tBTA_GATTC          cb_data;
+    (void)(p_cb);
+
+    cb_data.reg_oper.client_if = p_msg->api_listen.client_if;
+    cb_data.reg_oper.status = BTM_BleBroadcast(p_msg->api_listen.start);
+
+    if (p_clreg && p_clreg->p_cback)
+        (*p_clreg->p_cback)(BTA_GATTC_LISTEN_EVT, &cb_data);
+}
 #endif
 #endif
