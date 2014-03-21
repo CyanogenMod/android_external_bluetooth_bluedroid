@@ -38,6 +38,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hcimsgs.h"
 #include <cutils/log.h>
 #include <sys/socket.h>
+#include <sys/prctl.h>
 #include <cutils/sockets.h>
 #include <pthread.h>
 #include <netinet/in.h>
@@ -352,6 +353,8 @@ static void btc_thread(void *param)
     int  fd = 0, status = 0;
     int  evtlen = BTC_MAX_LEN;
     char event[BTC_MAX_LEN] = {0};
+
+    prctl(PR_SET_NAME, (unsigned long)"btc_thread", 0, 0, 0);
     hci_event_sock = -1;
     ALOGV("%s: btc_thread ", __func__);
     fd = btc_accept("btc_hci");

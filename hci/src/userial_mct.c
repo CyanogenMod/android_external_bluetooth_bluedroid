@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <sys/socket.h>
+#include <sys/prctl.h>
 #ifdef QCOM_WCN_SSR
 #include <termios.h>
 #include <sys/ioctl.h>
@@ -156,6 +157,7 @@ static void *userial_read_thread(void *arg)
     rx_flow_on = TRUE;
     userial_running = 1;
 
+    prctl(PR_SET_NAME, (unsigned long)"bt_userial_mct", 0, 0, 0);
     raise_priority_a2dp(TASK_HIGH_USERIAL_READ);
 
     while (userial_running)

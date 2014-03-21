@@ -26,6 +26,7 @@
 
 #include <errno.h>
 #include <pthread.h>
+#include <utils/Log.h>
 #include <time.h>
 #include "bt_hci_bdroid.h"
 #include "utils.h"
@@ -270,6 +271,7 @@ void utils_delay (uint32_t timeout)
     delay.tv_sec = timeout / 1000;
     delay.tv_nsec = 1000 * 1000 * (timeout%1000);
 
+    ALOGE("utils_delay : %d **", timeout);
     /* [u]sleep can't be used because it uses SIGALRM */
     do {
         err = nanosleep(&delay, &delay);
