@@ -929,6 +929,8 @@ static void gatts_process_mtu_req (tGATT_TCB *p_tcb, UINT16 len, UINT8 *p_data)
         else
             p_tcb->payload_size = mtu;
 
+        GATT_TRACE_ERROR1("MTU request PDU with MTU size %d", p_tcb->payload_size);
+
         if ((p_buf = attp_build_sr_msg(p_tcb, GATT_RSP_MTU, (tGATT_SR_MSG *) &p_tcb->payload_size)) != NULL)
         {
             attp_send_sr_msg (p_tcb, p_buf);
