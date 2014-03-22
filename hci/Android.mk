@@ -7,6 +7,7 @@ LOCAL_SRC_FILES := \
         src/lpm.c \
         src/bt_hw.c \
         src/btsnoop.c \
+        src/btsnoop_net.c \
         src/utils.c
 
 ifeq ($(BLUETOOTH_HCI_USE_MCT),true)

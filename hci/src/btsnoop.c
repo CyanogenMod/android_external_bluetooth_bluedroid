@@ -34,6 +34,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <stdbool.h>
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -67,10 +68,16 @@
 #define SNOOPDBG(param, ...) {}
 #endif
 
-#define HCIT_TYPE_COMMAND   1
-#define HCIT_TYPE_ACL_DATA  2
-#define HCIT_TYPE_SCO_DATA  3
-#define HCIT_TYPE_EVENT     4
+typedef enum {
+  kCommandPacket = 1,
+  kAclPacket = 2,
+  kScoPacket = 3,
+  kEventPacket = 4
+} packet_type;
+
+void btsnoop_net_init();
+void btsnoop_net_cleanup();
+void btsnoop_net_write(const void *data, size_t length);
 
 /* file descriptor of the BT snoop file (by default, -1 means disabled) */
 int hci_btsnoop_fd = -1;
@@ -259,117 +266,78 @@ static int btsnoop_log_close(void)
 }
 
 /*******************************************************************************
- ** Function          btsnoop_write
  **
- ** Description       Function used to write the actual data to the log
+ ** Function         btsnoop_write
  **
- ** Returns           none
+ ** Description      Writes raw bytes to the BTSNOOP sinks.
+ **
+ ** Returns          None
 *******************************************************************************/
+static void btsnoop_write(const void *data, size_t length) {
+    if (hci_btsnoop_fd != -1) {
+        write(hci_btsnoop_fd, data, length);
+    }
+    btsnoop_net_write(data, length);
+}
 
-void btsnoop_write(uint8_t *p, uint32_t flags, const uint8_t *ptype, uint32_t len)
-{
-    uint32_t value, value_hi;
+/*******************************************************************************
+ **
+ ** Function         btsnoop_write_packet
+ **
+ ** Description      Writes a single HCI packet to BTSNOOP sinks.
+ **
+ ** Returns          None
+*******************************************************************************/
+static void btsnoop_write_packet(packet_type type,
+                                 const uint8_t *packet,
+                                 bool is_received) {
+    int length_he;
+    int length;
+    int flags;
+    int drops = 0;
+    switch (type) {
+        case kCommandPacket:
+            length_he = packet[2] + 4;
+            flags = 2;
+            break;
+        case kAclPacket:
+            length_he = (packet[3] << 8) + packet[2] + 5;
+            flags = is_received;
+            break;
+        case kScoPacket:
+            length_he = packet[2] + 4;
+            flags = is_received;
+            break;
+        case kEventPacket:
+            length_he = packet[1] + 3;
+            flags = 3;
+            break;
+    }
+
+    uint32_t time_hi, time_lo;
     struct timeval tv;
-    struct iovec io[3];
-    uint32_t header[6];
-
-    /* store the length in both original and included fields */
-    header[0] = l_to_be(len + 1);
-    header[1] = header[0];
-    /* flags: data can be sent or received */
-    header[2] = l_to_be(flags);
-    /* drops: none */
-    header[3] = 0;
-    /* time */
     gettimeofday(&tv, NULL);
-    tv_to_btsnoop_ts(&header[5], &header[4], &tv);
-    header[4] = l_to_be(header[4]);
-    header[5] = l_to_be(header[5]);
+    tv_to_btsnoop_ts(&time_lo, &time_hi, &tv);
 
-    io[0].iov_base = header;
-    io[0].iov_len = sizeof(header);
+    length = l_to_be(length_he);
+    flags = l_to_be(flags);
+    drops = l_to_be(drops);
+    time_hi = l_to_be(time_hi);
+    time_lo = l_to_be(time_lo);
 
-    io[1].iov_base = (void*)ptype;
-    io[1].iov_len = 1;
+    /* since these display functions are called from different contexts */
+    utils_lock();
 
-    io[2].iov_base = p;
-    io[2].iov_len = len;
+    btsnoop_write(&length, 4);
+    btsnoop_write(&length, 4);
+    btsnoop_write(&flags, 4);
+    btsnoop_write(&drops, 4);
+    btsnoop_write(&time_hi, 4);
+    btsnoop_write(&time_lo, 4);
+    btsnoop_write(&type, 1);
+    btsnoop_write(packet, length_he - 1);
 
-    (void) writev(hci_btsnoop_fd, io, 3);
-}
-
-/*******************************************************************************
- **
- ** Function         btsnoop_hci_cmd
- **
- ** Description      Function to add a command in the BTSNOOP file
- **
- ** Returns          None
-*******************************************************************************/
-void btsnoop_hci_cmd(uint8_t *p)
-{
-    const uint8_t cmd = HCIT_TYPE_COMMAND;
-    int plen;
-    SNOOPDBG("btsnoop_hci_cmd: fd = %d", hci_btsnoop_fd);
-    plen = (int) p[2] + 3;
-    btsnoop_write(p, 2, &cmd, plen);
-}
-
-
-/*******************************************************************************
- **
- ** Function         btsnoop_hci_evt
- **
- ** Description      Function to add a event in the BTSNOOP file
- **
- ** Returns          None
-*******************************************************************************/
-void btsnoop_hci_evt(uint8_t *p)
-{
-    const uint8_t evt = HCIT_TYPE_EVENT;
-    int plen;
-    SNOOPDBG("btsnoop_hci_evt: fd = %d", hci_btsnoop_fd);
-    plen = (int) p[1] + 2;
-
-    btsnoop_write(p, 3, &evt, plen);
-}
-
-/*******************************************************************************
- **
- ** Function         btsnoop_sco_data
- **
- ** Description      Function to add a SCO data packet in the BTSNOOP file
- **
- ** Returns          None
-*******************************************************************************/
-void btsnoop_sco_data(uint8_t *p, uint8_t is_rcvd)
-{
-    const uint8_t sco = HCIT_TYPE_SCO_DATA;
-    int plen;
-    SNOOPDBG("btsnoop_sco_data: fd = %d", hci_btsnoop_fd);
-    plen = (int) p[2] + 3;
-
-    btsnoop_write(p, is_rcvd, &sco, plen);
-}
-
-/*******************************************************************************
- **
- ** Function         btsnoop_acl_data
- **
- ** Description      Function to add an ACL data packet in the BTSNOOP file
- **
- ** Returns          None
-*******************************************************************************/
-void btsnoop_acl_data(uint8_t *p, uint8_t is_rcvd)
-{
-    const uint8_t acl = HCIT_TYPE_ACL_DATA;
-    int plen;
-
-    SNOOPDBG("btsnoop_acl_data: fd = %d", hci_btsnoop_fd);
-
-    plen = (((int) p[3]) << 8) + ((int) p[2]) +4;
-
-    btsnoop_write(p, is_rcvd, &acl, plen);
+    utils_unlock();
 }
 
 /********************************************************************************
@@ -433,7 +401,7 @@ static int ext_parser_accept(int port)
     s = accept(s_listen, (struct sockaddr *) &cliaddr, &clilen);
 
     if (s < 0)
-{
+    {
         perror("accept");
         return -1;
     }
@@ -528,7 +496,9 @@ void btsnoop_init(void)
     if (pthread_create(&thread_id, NULL,
                        (void*)ext_parser_thread,NULL)!=0)
       perror("pthread_create");
+
 #endif
+    btsnoop_net_init();
 }
 
 void btsnoop_open(char *p_path)
@@ -549,6 +519,7 @@ void btsnoop_close(void)
 
 void btsnoop_cleanup (void)
 {
+    btsnoop_net_cleanup();
 #if defined(BTSNOOP_EXT_PARSER_INCLUDED) && (BTSNOOP_EXT_PARSER_INCLUDED == TRUE)
     ALOGD("btsnoop_cleanup");
     pthread_kill(thread_id, SIGUSR2);
@@ -605,24 +576,22 @@ void btsnoop_capture(HC_BT_HDR *p_buf, uint8_t is_rcvd)
     {
         case MSG_HC_TO_STACK_HCI_EVT:
             SNOOPDBG("TYPE : EVT");
-            btsnoop_hci_evt(p);
+            btsnoop_write_packet(kEventPacket, p, false);
             break;
         case MSG_HC_TO_STACK_HCI_ACL:
         case MSG_STACK_TO_HC_HCI_ACL:
             SNOOPDBG("TYPE : ACL");
-            btsnoop_acl_data(p, is_rcvd);
+            btsnoop_write_packet(kAclPacket, p, is_rcvd);
             break;
         case MSG_HC_TO_STACK_HCI_SCO:
         case MSG_STACK_TO_HC_HCI_SCO:
             SNOOPDBG("TYPE : SCO");
-            btsnoop_sco_data(p, is_rcvd);
+            btsnoop_write_packet(kScoPacket, p, is_rcvd);
             break;
         case MSG_STACK_TO_HC_HCI_CMD:
             SNOOPDBG("TYPE : CMD");
-            btsnoop_hci_cmd(p);
+            btsnoop_write_packet(kCommandPacket, p, true);
             break;
     }
 #endif // BTSNOOPDISP_INCLUDED
 }
-
-
