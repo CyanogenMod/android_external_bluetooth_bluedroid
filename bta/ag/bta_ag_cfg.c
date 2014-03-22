@@ -40,7 +40,7 @@
 #endif
 
 #ifndef BTA_AG_CONN_TIMEOUT
-#define BTA_AG_CONN_TIMEOUT     5000
+#define BTA_AG_CONN_TIMEOUT     10000
 #endif
 
 #ifndef BTA_AG_SCO_PKT_TYPES
