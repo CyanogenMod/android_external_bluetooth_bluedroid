@@ -69,7 +69,8 @@ static UINT16 bta_gattc_opcode_to_int_evt[] =
 {
     BTA_GATTC_API_READ_EVT,
     BTA_GATTC_API_WRITE_EVT,
-    BTA_GATTC_API_EXEC_EVT
+    BTA_GATTC_API_EXEC_EVT,
+    BTA_GATTC_API_CFG_MTU_EVT
 };
 
 #if (BT_TRACE_VERBOSE == TRUE)
@@ -349,7 +350,8 @@ void bta_gattc_process_api_open (tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
                 bta_gattc_send_open_cback(p_clreg,
                                           BTA_GATT_NO_RESOURCES,
                                           p_msg->api_conn.remote_bda,
-                                          BTA_GATT_INVALID_CONN_ID);
+                                          BTA_GATT_INVALID_CONN_ID,
+                                          0);
             }
         }
         else
@@ -473,7 +475,8 @@ void bta_gattc_open_error(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     bta_gattc_send_open_cback(p_clcb->p_rcb,
                               BTA_GATT_OK,
                               p_clcb->bda,
-                              p_clcb->bta_conn_id);
+                              p_clcb->bta_conn_id,
+                              0);
 }
 /*******************************************************************************
 **
@@ -491,7 +494,8 @@ void bta_gattc_open_fail(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     bta_gattc_send_open_cback(p_clcb->p_rcb,
                               BTA_GATT_ERROR,
                               p_clcb->bda,
-                              p_clcb->bta_conn_id);
+                              p_clcb->bta_conn_id,
+                              0);
 
     /* open failure, remove clcb */
     bta_gattc_clcb_dealloc(p_clcb);
@@ -579,7 +583,7 @@ void bta_gattc_init_bk_conn(tBTA_GATTC_API_OPEN *p_data, tBTA_GATTC_RCB *p_clreg
     /* open failure, report OPEN_EVT */
     if (status != BTA_GATT_OK)
     {
-        bta_gattc_send_open_cback(p_clreg, status, p_data->remote_bda, BTA_GATT_INVALID_CONN_ID);
+        bta_gattc_send_open_cback(p_clreg, status, p_data->remote_bda, BTA_GATT_INVALID_CONN_ID, 0);
     }
 }
 /*******************************************************************************
@@ -687,6 +691,10 @@ void bta_gattc_conn(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 
         p_clcb->p_srcb->connected = TRUE;
+
+        if (p_clcb->p_srcb->mtu == 0)
+            p_clcb->p_srcb->mtu = GATT_DEF_BLE_MTU_SIZE;
+
         /* start database cache if needed */
         if (p_clcb->p_srcb->p_srvc_cache == NULL ||
             p_clcb->p_srcb->state != BTA_GATTC_SERV_IDLE)
@@ -719,7 +727,8 @@ void bta_gattc_conn(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
             bta_gattc_send_open_cback(p_clcb->p_rcb,
                                       BTA_GATT_OK,
                                       p_clcb->bda,
-                                      p_clcb->bta_conn_id);
+                                      p_clcb->bta_conn_id,
+                                      p_clcb->p_srcb->mtu);
         }
     }
 /*******************************************************************************
@@ -876,6 +885,38 @@ void bta_gattc_restart_discover(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data
 
     p_clcb->status      = BTA_GATT_CANCEL;
     p_clcb->auto_update = BTA_GATTC_DISC_WAITING;
+}
+
+/*******************************************************************************
+**
+** Function         bta_gattc_cfg_mtu
+**
+** Description      Configure MTU size on the GATT connection.
+**
+** Returns          None.
+**
+*******************************************************************************/
+void bta_gattc_cfg_mtu(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
+{
+    tBTA_GATTC_OP_CMPL  op_cmpl;
+    tBTA_GATT_STATUS    status;
+
+    if (bta_gattc_enqueue(p_clcb, p_data))
+    {
+        status = GATTC_ConfigureMTU (p_clcb->bta_conn_id, p_data->api_mtu.mtu);
+
+        /* if failed, return callback here */
+        if (status != GATT_SUCCESS && status != GATT_CMD_STARTED)
+        {
+            memset(&op_cmpl, 0, sizeof(tBTA_GATTC_OP_CMPL));
+
+            op_cmpl.status  = status;
+            op_cmpl.op_code = GATTC_OPTYPE_CONFIG;
+            op_cmpl.p_cmpl  = NULL;
+
+            bta_gattc_sm_execute(p_clcb, BTA_GATTC_OP_CMPL_EVT, (tBTA_GATTC_DATA *)&op_cmpl);
+        }
+    }
 }
 /*******************************************************************************
 **
@@ -1352,6 +1393,35 @@ void bta_gattc_exec_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
     ( *p_clcb->p_rcb->p_cback)(BTA_GATTC_EXEC_EVT,  &cb_data);
 
 }
+
+/*******************************************************************************
+**
+** Function         bta_gattc_cfg_mtu_cmpl
+**
+** Description      configure MTU operation complete
+**
+** Returns          None.
+**
+*******************************************************************************/
+void bta_gattc_cfg_mtu_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
+{
+    tBTA_GATTC          cb_data;
+
+    utl_freebuf((void **)&p_clcb->p_q_cmd);
+
+
+    if (p_data->p_cmpl  &&  p_data->status == BTA_GATT_OK)
+        p_clcb->p_srcb->mtu  = p_data->p_cmpl->mtu;
+
+    /* configure MTU complete, callback */
+    p_clcb->status          = p_data->status;
+    cb_data.cfg_mtu.conn_id = p_clcb->bta_conn_id;
+    cb_data.cfg_mtu.status  = p_data->status;
+    cb_data.cfg_mtu.mtu     = p_clcb->p_srcb->mtu;
+
+    (*p_clcb->p_rcb->p_cback) (BTA_GATTC_CFG_MTU_EVT,  &cb_data);
+
+}
 /*******************************************************************************
 **
 ** Function         bta_gattc_op_cmpl
@@ -1409,11 +1479,9 @@ void  bta_gattc_op_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 
         else if (op == GATTC_OPTYPE_EXE_WRITE)
             bta_gattc_exec_cmpl(p_clcb, &p_data->op_cmpl);
-        /*
-        else if (op == GATTC_OPTYPE_CONFIG) // API to be added
-        {
-        }
-       */
+
+        else if (op == GATTC_OPTYPE_CONFIG)
+            bta_gattc_cfg_mtu_cmpl(p_clcb, &p_data->op_cmpl);
     }
 }
 /*******************************************************************************
