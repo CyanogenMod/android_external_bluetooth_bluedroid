@@ -116,6 +116,7 @@ typedef UINT8 tBTA_GATT_STATUS;
 #define BTA_GATTC_SRVC_CHG_EVT      15  /* service change event */
 #define BTA_GATTC_LISTEN_EVT        16  /* listen event */
 #define BTA_GATTC_ENC_CMPL_CB_EVT   17  /* encryption complete callback event */
+#define BTA_GATTC_CFG_MTU_EVT       18  /* configure MTU complete event */
 
 typedef UINT8 tBTA_GATTC_EVT;
 
@@ -311,6 +312,12 @@ typedef struct
     tBTA_GATT_SRVC_ID   service_uuid;
 }tBTA_GATTC_SRVC_RES;
 
+typedef struct
+{
+    UINT16              conn_id;
+    tBTA_GATT_STATUS    status;
+    UINT16              mtu;
+}tBTA_GATTC_CFG_MTU;
 
 typedef struct
 {
@@ -318,6 +325,7 @@ typedef struct
     UINT16              conn_id;
     tBTA_GATTC_IF       client_if;
     BD_ADDR             remote_bda;
+    UINT16              mtu;
 }tBTA_GATTC_OPEN;
 
 typedef struct
@@ -371,6 +379,7 @@ typedef union
     tBTA_GATTC_NOTIFY       notify;           /* notification/indication event data */
     tBTA_GATTC_ENC_CMPL_CB  enc_cmpl;
     BD_ADDR                 remote_bda;     /* service change event */
+    tBTA_GATTC_CFG_MTU      cfg_mtu;        /* configure MTU operation */
 } tBTA_GATTC;
 
 /* GATTC enable callback function */
@@ -1044,6 +1053,21 @@ BTA_API extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_
 *******************************************************************************/
 BTA_API extern void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, BOOLEAN start);
 
+
+/*******************************************************************************
+**
+** Function         BTA_GATTC_ConfigureMTU
+**
+** Description      Configure the MTU size in the GATT channel. This can be done
+**                  only once per connection.
+**
+** Parameters       conn_id: connection ID.
+**                  mtu: desired MTU size to use.
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 
 /*******************************************************************************
 **  BTA GATT Server API
