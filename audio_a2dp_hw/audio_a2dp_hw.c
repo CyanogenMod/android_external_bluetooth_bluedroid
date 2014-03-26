@@ -583,7 +583,8 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
     struct str_parms *parms;
     char keyval[16];
-    int retval = 0;
+    int retval;
+    int status = 0;
 
     INFO("state %d", out->state);
 
@@ -612,7 +613,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
         if (strcmp(keyval, "true") == 0)
         {
             if (out->state == AUDIO_A2DP_STATE_STARTED)
-                retval = suspend_audio_datapath(out, false);
+                status = suspend_audio_datapath(out, false);
         }
         else
         {
@@ -622,14 +623,13 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
             if (out->state == AUDIO_A2DP_STATE_SUSPENDED)
                 out->state = AUDIO_A2DP_STATE_STANDBY;
             /* Irrespective of the state, return 0 */
-            retval = 0;
         }
     }
 
     pthread_mutex_unlock(&out->lock);
     str_parms_destroy(parms);
 
-    return retval;
+    return status;
 }
 
 static char * out_get_parameters(const struct audio_stream *stream, const char *keys)
