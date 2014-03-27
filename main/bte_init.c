@@ -35,6 +35,10 @@
 #include "port_api.h"
 #endif
 
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+#include "l2c_sock_api.h"
+#endif
+
 #if (defined(TCS_INCLUDED) && TCS_INCLUDED == TRUE)
 #include "tcs_api.h"
 #endif
@@ -348,6 +352,10 @@ BT_API void BTE_InitStack(void)
     BPP_Init();
 #endif  /* BPP */
 #endif  /* OBX */
+
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+L2C_SOCK_Init();
+#endif
 
 
 #endif  /* RFCOMM Included */

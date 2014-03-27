@@ -145,6 +145,9 @@ LOCAL_SRC_FILES:= \
     ./l2cap/l2c_csm.c \
     ./l2cap/l2c_link.c \
     ./l2cap/l2c_ble.c \
+    ./l2cap/l2c_sock_api.c \
+    ./l2cap/l2c_sock_fsm.c \
+    ./l2cap/l2c_sock_l2cap_if.c \
     ./gap/gap_api.c \
     ./gap/gap_ble.c \
     ./gap/gap_conn.c \

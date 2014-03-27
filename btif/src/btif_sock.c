@@ -38,6 +38,9 @@
 #include "bta_api.h"
 #include "btif_sock_thread.h"
 #include "btif_sock_rfc.h"
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+#include "btif_sock_l2cap.h"
+#endif
 
 static bt_status_t btsock_listen(btsock_type_t type, const char* service_name,
                                 const uint8_t* uuid, int channel, int* sock_fd, int flags);
@@ -79,7 +82,12 @@ bt_status_t btif_sock_init()
         BTIF_TRACE_DEBUG("btsock initializing...");
         btsock_thread_init();
         int handle = btsock_thread_create(btsock_signaled, NULL);
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+        if(handle >= 0 && (btsock_rfc_init(handle) == BT_STATUS_SUCCESS) &&
+                           (btsock_l2c_init(handle) == BT_STATUS_SUCCESS))
+#else
         if(handle >= 0 && btsock_rfc_init(handle) == BT_STATUS_SUCCESS)
+#endif
         {
             BTIF_TRACE_DEBUG("btsock successfully initialized");
             return BT_STATUS_SUCCESS;
@@ -91,6 +99,9 @@ bt_status_t btif_sock_init()
 void btif_sock_cleanup()
 {
     btsock_rfc_cleanup();
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+    btsock_l2c_cleanup();
+#endif
     BTIF_TRACE_DEBUG("leaving");
 }
 
@@ -110,8 +121,12 @@ static bt_status_t btsock_listen(btsock_type_t type, const char* service_name,
             status = btsock_rfc_listen(service_name, service_uuid, channel, sock_fd, flags);
             break;
         case BTSOCK_L2CAP:
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+            status = btsock_l2c_listen(service_name, service_uuid, channel, sock_fd, flags);
+#else
             BTIF_TRACE_ERROR("bt l2cap socket type not supported, type:%d", type);
             status = BT_STATUS_UNSUPPORTED;
+#endif
             break;
         case BTSOCK_SCO:
             BTIF_TRACE_ERROR("bt sco socket not supported, type:%d", type);
@@ -173,8 +188,12 @@ static bt_status_t btsock_set_sockopt(btsock_type_t type, int channel, btsock_op
             status = btsock_rfc_set_sockopt(channel, option_name, option_value, option_len);
             break;
         case BTSOCK_L2CAP:
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+            status = btsock_l2c_set_sockopt(channel, option_name, option_value, option_len);
+#else
             BTIF_TRACE_ERROR("bt l2cap socket type not supported, type:%d", type);
             status = BT_STATUS_UNSUPPORTED;
+#endif
             break;
         case BTSOCK_SCO:
             BTIF_TRACE_ERROR("bt sco socket not supported, type:%d", type);
@@ -205,8 +224,12 @@ static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type
             status = btsock_rfc_connect(bd_addr, uuid, channel, sock_fd, flags);
             break;
         case BTSOCK_L2CAP:
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+            status = btsock_l2c_connect(bd_addr, uuid, channel, sock_fd, flags);
+#else
             BTIF_TRACE_ERROR("bt l2cap socket type not supported, type:%d", type);
             status = BT_STATUS_UNSUPPORTED;
+#endif
             break;
         case BTSOCK_SCO:
             BTIF_TRACE_ERROR("bt sco socket not supported, type:%d", type);
@@ -227,7 +250,11 @@ static void btsock_signaled(int fd, int type, int flags, uint32_t user_id)
             btsock_rfc_signaled(fd, flags, user_id);
             break;
         case BTSOCK_L2CAP:
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+            btsock_l2c_signaled(fd, flags, user_id);
+#else
             BTIF_TRACE_ERROR("bt l2cap socket type not supported, fd:%d, flags:%d", fd, flags);
+#endif
             break;
         case BTSOCK_SCO:
             BTIF_TRACE_ERROR("bt sco socket type not supported, fd:%d, flags:%d", fd, flags);

@@ -366,6 +366,20 @@ SDP_API extern BOOLEAN SDP_FindServiceUUIDInRec_128bit(tSDP_DISC_REC *p_rec, tBT
 *******************************************************************************/
 SDP_API extern tSDP_DISC_REC *SDP_FindServiceInDb_128bit(tSDP_DISCOVERY_DB *p_db,
                                                        tSDP_DISC_REC *p_start_rec);
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+/*******************************************************************************
+**
+** Function         SDP_FindL2CapPsmInRec
+**
+** Description      This function looks at a specific discovery record for the
+**                  l2cap psm, and pulls out the GOEP l2cap psm.
+**
+** Returns          TRUE if found, FALSE if not
+**                  If found, GOEP l2cap psm that were passed in are filled in.
+**
+*******************************************************************************/
+BOOLEAN SDP_FindL2CapPsmInRec (tSDP_DISC_REC *p_rec, UINT16 *p_l2c_psm);
+#endif
 
 /*******************************************************************************
 **

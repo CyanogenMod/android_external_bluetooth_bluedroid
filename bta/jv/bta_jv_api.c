@@ -113,6 +113,34 @@ void BTA_JvDisable(void)
     }
 }
 
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+/*******************************************************************************
+**
+** Function         BTA_JvRegisterL2cCback
+**
+** Description      Registers the L2c callback
+**
+** Returns          void
+**
+*******************************************************************************/
+
+tBTA_JV_STATUS BTA_JvRegisterL2cCback(tBTA_JV_DM_CBACK *p_cback)
+{
+    tBTA_JV_API_REG_L2C_CBACK *p_buf;
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+
+    APPL_TRACE_API( "BTA_JvRegisterL2cCback");
+    if (p_cback && (p_buf = (tBTA_JV_API_REG_L2C_CBACK *) GKI_getbuf(sizeof(tBTA_JV_API_REG_L2C_CBACK))) != NULL)
+    {
+        p_buf->hdr.event = BTA_JV_API_L2CAP_REG_CBACK_EVT;
+        p_buf->p_cback = p_cback;
+        bta_sys_sendmsg(p_buf);
+        status = BTA_JV_SUCCESS;
+    }
+    return(status);
+}
+#endif
+
 /*******************************************************************************
 **
 ** Function         BTA_JvIsEnable
@@ -1017,9 +1045,18 @@ INT32 BTA_JvReadRecord(UINT32 handle, UINT8 *p_data, INT32 *p_data_len)
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
+
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask,
+                           tBTA_JV_ROLE role, UINT16 remote_psm, UINT16 rx_mtu,
+                           BD_ADDR peer_bd_addr, tBTA_JV_L2CAP_CBACK *p_cback,
+                           void* user_data)
+#else
 tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask,
                            tBTA_JV_ROLE role, UINT16 remote_psm, UINT16 rx_mtu,
                            BD_ADDR peer_bd_addr, tBTA_JV_L2CAP_CBACK *p_cback)
+
+#endif
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_L2CAP_CONNECT *p_msg;
@@ -1033,6 +1070,9 @@ tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask,
         p_msg->role         = role;
         p_msg->remote_psm   = remote_psm;
         p_msg->rx_mtu       = rx_mtu;
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+        p_msg->user_data    = user_data;
+#endif
         memcpy(p_msg->peer_bd_addr, peer_bd_addr, sizeof(BD_ADDR));
         p_msg->p_cback      = p_cback;
         bta_sys_sendmsg(p_msg);
@@ -1052,7 +1092,11 @@ tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle, void *user_data)
+#else
 tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle)
+#endif
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_L2CAP_CLOSE *p_msg;
@@ -1063,6 +1107,9 @@ tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle)
     {
         p_msg->hdr.event = BTA_JV_API_L2CAP_CLOSE_EVT;
         p_msg->handle = handle;
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+        p_msg->user_data = user_data;
+#endif
         p_msg->p_cb = &bta_jv_cb.l2c_cb[handle];
         bta_sys_sendmsg(p_msg);
         status = BTA_JV_SUCCESS;
@@ -1085,9 +1132,15 @@ tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle)
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+                           UINT16 local_psm, UINT16 rx_mtu,
+                           tBTA_JV_L2CAP_CBACK *p_cback, void* user_data)
+#else
 tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
                            UINT16 local_psm, UINT16 rx_mtu,
                            tBTA_JV_L2CAP_CBACK *p_cback)
+#endif
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_L2CAP_SERVER *p_msg;
@@ -1102,6 +1155,9 @@ tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
         p_msg->local_psm = local_psm;
         p_msg->rx_mtu = rx_mtu;
         p_msg->p_cback = p_cback;
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+        p_msg->user_data    = user_data;
+#endif
         bta_sys_sendmsg(p_msg);
         status = BTA_JV_SUCCESS;
     }
@@ -1120,7 +1176,11 @@ tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+tBTA_JV_STATUS BTA_JvL2capStopServer(UINT32 handle, void* user_data)
+#else
 tBTA_JV_STATUS BTA_JvL2capStopServer(UINT16 local_psm)
+#endif
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_L2CAP_SERVER *p_msg;
@@ -1129,7 +1189,11 @@ tBTA_JV_STATUS BTA_JvL2capStopServer(UINT16 local_psm)
     if ((p_msg = (tBTA_JV_API_L2CAP_SERVER *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_SERVER))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_L2CAP_STOP_SERVER_EVT;
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+        p_msg->user_data = user_data; //caller's private data
+#else
         p_msg->local_psm = local_psm;
+#endif
         bta_sys_sendmsg(p_msg);
         status = BTA_JV_SUCCESS;
     }
@@ -1314,7 +1378,11 @@ tBTA_JV_STATUS BTA_JvL2capReady(UINT32 handle, UINT32 *p_data_size)
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+tBTA_JV_STATUS BTA_JvL2capWrite(UINT32 handle, UINT32 req_id)
+#else
 tBTA_JV_STATUS BTA_JvL2capWrite(UINT32 handle, UINT32 req_id, UINT8 *p_data, UINT16 len)
+#endif
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_L2CAP_WRITE *p_msg;
@@ -1326,9 +1394,11 @@ tBTA_JV_STATUS BTA_JvL2capWrite(UINT32 handle, UINT32 req_id, UINT8 *p_data, UIN
         p_msg->hdr.event = BTA_JV_API_L2CAP_WRITE_EVT;
         p_msg->handle = handle;
         p_msg->req_id = req_id;
+#if !(defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
         p_msg->p_data = p_data;
-        p_msg->p_cb = &bta_jv_cb.l2c_cb[handle];
         p_msg->len = len;
+#endif
+        p_msg->p_cb = &bta_jv_cb.l2c_cb[handle];
         bta_sys_sendmsg(p_msg);
         status = BTA_JV_SUCCESS;
     }

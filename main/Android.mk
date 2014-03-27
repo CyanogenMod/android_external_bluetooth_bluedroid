@@ -46,7 +46,8 @@ LOCAL_SRC_FILES += \
 	../btif/src/btif_sock_thread.c \
 	../btif/src/btif_sock_util.c \
 	../btif/src/btif_storage.c \
-	../btif/src/btif_util.c
+	../btif/src/btif_util.c \
+    ../btif/src/btif_sock_l2cap.c
 
 # callouts
 LOCAL_SRC_FILES += \

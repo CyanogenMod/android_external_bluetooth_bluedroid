@@ -241,7 +241,7 @@ POOL_ID 9 is a public pool meant for large buffer needs such as SDP_DB
 */
 // btla-specific ++
 #ifndef GKI_NUM_FIXED_BUF_POOLS
-#define GKI_NUM_FIXED_BUF_POOLS     10
+#define GKI_NUM_FIXED_BUF_POOLS     11
 #endif
 
 /* The buffer pool usage mask. */
@@ -253,7 +253,7 @@ POOL_ID 9 is a public pool meant for large buffer needs such as SDP_DB
 
 /* The number of fixed and dynamic buffer pools */
 #ifndef GKI_NUM_TOTAL_BUF_POOLS
-#define GKI_NUM_TOTAL_BUF_POOLS     10
+#define GKI_NUM_TOTAL_BUF_POOLS     11
 #endif
 
 /* The following is intended to be a reserved pool for L2CAP

@@ -390,6 +390,10 @@ void *GKI_getbuf (UINT16 size)
         GKI_exception (GKI_ERROR_BUF_SIZE_TOOBIG, "getbuf: Size is too big");
         return (NULL);
     }
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+    if(i == GKI_POOL_ID_10)
+        return NULL;
+#endif
 
     /* Make sure the buffers aren't disturbed til finished with allocation */
     GKI_disable();
@@ -475,6 +479,36 @@ void *GKI_getpoolbuf (UINT8 pool_id)
     Q = &p_cb->freeq[pool_id];
     if(Q->cur_cnt < Q->total)
     {
+
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+#if (defined(OBX_OVER_L2C_DYNAMIC_POOL_ENABLED) && OBX_OVER_L2C_DYNAMIC_POOL_ENABLED == TRUE)
+        UINT32          *magic;
+        if(pool_id == GKI_POOL_ID_10)
+        {
+            void* p_mem = GKI_os_malloc((Q->size + BUFFER_PADDING_SIZE));
+
+            if(p_mem)
+            {
+                p_hdr = (BUFFER_HDR_T *)p_mem;
+                p_hdr->task_id = GKI_INVALID_TASK;
+                p_hdr->q_id    = pool_id;
+                p_hdr->status  = BUF_STATUS_UNLINKED;
+                magic        = (UINT32 *)((UINT8 *)p_hdr + BUFFER_HDR_SIZE + Q->size);
+                *magic       = MAGIC_NO;
+                p_hdr->p_next = NULL;
+                p_hdr->Type    = 0;
+
+                if(++Q->cur_cnt > Q->max_cnt)
+                    Q->max_cnt = Q->cur_cnt;
+
+                GKI_enable();
+
+                return ((void *) ((UINT8 *)p_hdr + BUFFER_HDR_SIZE));
+            }
+        }
+#endif
+#endif
+
 // btla-specific ++
 #ifdef GKI_USE_DEFERED_ALLOC_BUF_POOLS
         if(Q->p_first == 0 && gki_alloc_free_queue(pool_id) != TRUE)
@@ -549,6 +583,23 @@ void GKI_freebuf (void *p_buf)
     }
 
     GKI_disable();
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+#if (defined(OBX_OVER_L2C_DYNAMIC_POOL_ENABLED) && OBX_OVER_L2C_DYNAMIC_POOL_ENABLED == TRUE)
+    if(p_hdr->q_id == GKI_POOL_ID_10)
+    {
+        Q  = &gki_cb.com.freeq[p_hdr->q_id];
+
+        GKI_os_free(p_hdr);
+
+        if (Q->cur_cnt > 0)
+            Q->cur_cnt--;
+
+        GKI_enable();
+
+        return;
+    }
+#endif
+#endif
 
     /*
     ** Release the buffer

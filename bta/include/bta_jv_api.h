@@ -81,6 +81,11 @@ enum
 };
 typedef UINT16 tBTA_JV_DISC;
 
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+#define RFCOMM_MASK (0x0100)
+#define L2CAP_MASK  (0x0200)
+#endif
+
 /* Security Mode (BTA_JvGetSecurityMode) */
 #define BTA_JV_SEC_MODE_UNDEFINED   BTM_SEC_MODE_UNDEFINED  /* 0 */
 #define BTA_JV_SEC_MODE_NONE        BTM_SEC_MODE_NONE       /* 1 */
@@ -173,8 +178,14 @@ typedef UINT8 tBTA_JV_CONN_STATE;
 #define BTA_JV_RFCOMM_READ_EVT      31 /* the result for BTA_JvRfcommRead */
 #define BTA_JV_RFCOMM_WRITE_EVT     32 /* the result for BTA_JvRfcommWrite*/
 #define BTA_JV_RFCOMM_SRV_OPEN_EVT  33 /* open status of Server RFCOMM connection */
-#define BTA_JV_MAX_EVT              34 /* max number of JV events */
 
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+#define BTA_JV_L2CAP_REG_CBACK_EVT  34  /* Register L2CAP callback*/
+#define BTA_JV_L2CAP_SRV_OPEN_EVT   35 /* open status of Server RFCOMM connection */
+#define BTA_JV_MAX_EVT              36 /* max number of JV events */
+#else
+#define BTA_JV_MAX_EVT              34 /* max number of JV events */
+#endif
 typedef UINT16 tBTA_JV_EVT;
 
 /* data associated with BTA_JV_SET_DISCOVER_EVT */
@@ -189,6 +200,9 @@ typedef struct
 {
     tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
     int scn;                    /* channel # */
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+    UINT16 psm;                    /* channel for the l2cap */
+#endif
 } tBTA_JV_DISCOVERY_COMP;
 
 /* data associated with BTA_JV_SET_ENCRYPTION_EVT */
@@ -249,6 +263,18 @@ typedef struct
     BD_ADDR         rem_bda;    /* The peer address */
     INT32           tx_mtu;     /* The transmit MTU */
 } tBTA_JV_L2CAP_OPEN;
+
+
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+/* data associated with BTA_JV_L2CAP_SRV_OPEN_EVT */
+typedef struct
+{
+    tBTA_JV_STATUS  status;             /* Whether the operation succeeded or failed. */
+    UINT32          handle;             /* The connection handle */
+    UINT32          new_listen_handle;  /* The new listen handle */
+    BD_ADDR         rem_bda;            /* The peer address */
+} tBTA_JV_L2CAP_SRV_OPEN;
+#endif
 
 /* data associated with BTA_JV_L2CAP_CLOSE_EVT */
 typedef struct
@@ -427,6 +453,9 @@ typedef union
     tBTA_JV_ADD_ATTR        add_attr;       /* BTA_JV_ADD_ATTR_EVT */
     tBTA_JV_DELETE_ATTR     del_attr;       /* BTA_JV_DELETE_ATTR_EVT */
     tBTA_JV_L2CAP_OPEN      l2c_open;       /* BTA_JV_L2CAP_OPEN_EVT */
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+    tBTA_JV_L2CAP_SRV_OPEN  l2c_srv_open;   /* BTA_JV_L2CAP_SRV_OPEN_EVT */
+#endif
     tBTA_JV_L2CAP_CLOSE     l2c_close;      /* BTA_JV_L2CAP_CLOSE_EVT */
     tBTA_JV_L2CAP_START     l2c_start;      /* BTA_JV_L2CAP_START_EVT */
     tBTA_JV_L2CAP_CL_INIT   l2c_cl_init;    /* BTA_JV_L2CAP_CL_INIT_EVT */
@@ -452,8 +481,11 @@ typedef void (tBTA_JV_DM_CBACK)(tBTA_JV_EVT event, tBTA_JV *p_data, void * user_
 typedef void* (tBTA_JV_RFCOMM_CBACK)(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data);
 
 /* JAVA L2CAP interface callback */
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+typedef void* (tBTA_JV_L2CAP_CBACK)(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data);
+#else
 typedef void (tBTA_JV_L2CAP_CBACK)(tBTA_JV_EVT event, tBTA_JV *p_data);
-
+#endif
 /* JV configuration structure */
 typedef struct
 {
@@ -486,6 +518,20 @@ extern "C"
 **
 *******************************************************************************/
 BTA_API extern tBTA_JV_STATUS BTA_JvEnable(tBTA_JV_DM_CBACK *p_cback);
+
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+/*******************************************************************************
+**
+** Function         BTA_JvRegisterL2cCback
+**
+** Description      Registers the L2cap callback.
+**
+** Returns          BTA_JV_SUCCESS if successful.
+**                  BTA_JV_FAIL if internal failure.
+**
+*******************************************************************************/
+BTA_API extern tBTA_JV_STATUS BTA_JvRegisterL2cCback(tBTA_JV_DM_CBACK *p_cback);
+#endif
 
 /*******************************************************************************
 **
@@ -933,9 +979,16 @@ BTA_API extern INT32 BTA_JvReadRecord(UINT32 handle, UINT8 *p_data, INT32 *p_dat
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+BTA_API extern tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask,
+                           tBTA_JV_ROLE role,  UINT16 remote_psm, UINT16 rx_mtu,
+                           BD_ADDR peer_bd_addr, tBTA_JV_L2CAP_CBACK *p_cback,
+                           void* user_data);
+#else
 BTA_API extern tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask,
                            tBTA_JV_ROLE role,  UINT16 remote_psm, UINT16 rx_mtu,
                            BD_ADDR peer_bd_addr, tBTA_JV_L2CAP_CBACK *p_cback);
+#endif
 
 /*******************************************************************************
 **
@@ -947,7 +1000,11 @@ BTA_API extern tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+BTA_API extern tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle, void *user_data);
+#else
 BTA_API extern tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle);
+#endif
 
 /*******************************************************************************
 **
@@ -963,10 +1020,15 @@ BTA_API extern tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+BTA_API extern tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+                           UINT16 local_psm, UINT16 rx_mtu,
+                           tBTA_JV_L2CAP_CBACK *p_cback, void* user_data);
+#else
 BTA_API extern tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
                            UINT16 local_psm, UINT16 rx_mtu,
                            tBTA_JV_L2CAP_CBACK *p_cback);
-
+#endif
 /*******************************************************************************
 **
 ** Function         BTA_JvL2capStopServer
@@ -978,7 +1040,11 @@ BTA_API extern tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+BTA_API extern tBTA_JV_STATUS BTA_JvL2capStopServer(UINT32 handle, void* user_data);
+#else
 BTA_API extern tBTA_JV_STATUS BTA_JvL2capStopServer(UINT16 local_psm);
+#endif
 
 /*******************************************************************************
 **
@@ -1036,8 +1102,12 @@ BTA_API extern tBTA_JV_STATUS BTA_JvL2capReady(UINT32 handle, UINT32 *p_data_siz
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+BTA_API extern tBTA_JV_STATUS BTA_JvL2capWrite(UINT32 handle, UINT32 req_id);
+#else
 BTA_API extern tBTA_JV_STATUS BTA_JvL2capWrite(UINT32 handle, UINT32 req_id,
-                                               UINT8 *p_data, UINT16 len);
+                                                UINT8 *p_data, UINT16 len);
+#endif
 
 /*******************************************************************************
 **

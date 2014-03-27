@@ -29,6 +29,7 @@
 #include "bta_jv_api.h"
 #include "rfcdefs.h"
 #include "port_api.h"
+#include "bt_target.h"
 
 /*****************************************************************************
 **  Constants
@@ -70,6 +71,9 @@ enum
     BTA_JV_API_RFCOMM_WRITE_EVT,
     BTA_JV_API_SET_PM_PROFILE_EVT,
     BTA_JV_API_PM_STATE_CHANGE_EVT,
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+    BTA_JV_API_L2CAP_REG_CBACK_EVT,
+#endif
     BTA_JV_MAX_INT_EVT
 };
 
@@ -83,6 +87,15 @@ typedef struct
     BT_HDR          hdr;
     tBTA_JV_DM_CBACK   *p_cback;
 } tBTA_JV_API_ENABLE;
+
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+/* data type for BTA_JV_API_L2CAP_REG_CBACK_EVT */
+typedef struct
+{
+    BT_HDR          hdr;
+    tBTA_JV_DM_CBACK   *p_cback;
+} tBTA_JV_API_REG_L2C_CBACK;
+#endif
 
 /* data type for BTA_JV_API_SET_DISCOVERABILITY_EVT */
 typedef struct
@@ -194,6 +207,13 @@ typedef struct
     UINT32              handle;     /* the handle reported to java app (same as gap handle) */
     BOOLEAN             cong;       /* TRUE, if congested */
     tBTA_JV_PM_CB      *p_pm_cb;    /* ptr to pm control block, NULL: unused */
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+    BOOLEAN             is_server;  /* denotes client or serverconnection */
+    BOOLEAN             in_use;     /* denotes current slot is in use or not */
+    UINT32              sock_handle; /* the handle reported from Core stack layer */
+    BD_ADDR             peer_bd_addr;
+    void                *user_data; /* piggyback caller's private data*/
+#endif
 } tBTA_JV_L2C_CB;
 
 #define BTA_JV_RFC_HDL_MASK         0xFF
@@ -236,6 +256,9 @@ typedef struct
     UINT16          rx_mtu;
     BD_ADDR         peer_bd_addr;
     tBTA_JV_L2CAP_CBACK *p_cback;
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+    void            *user_data;
+#endif
 } tBTA_JV_API_L2CAP_CONNECT;
 
 /* data type for BTA_JV_API_L2CAP_SERVER_EVT */
@@ -247,6 +270,9 @@ typedef struct
     UINT16              local_psm;
     UINT16              rx_mtu;
     tBTA_JV_L2CAP_CBACK *p_cback;
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+    void            *user_data;
+#endif
 } tBTA_JV_API_L2CAP_SERVER;
 
 /* data type for BTA_JV_API_L2CAP_CLOSE_EVT */
@@ -255,6 +281,9 @@ typedef struct
     BT_HDR          hdr;
     UINT32          handle;
     tBTA_JV_L2C_CB  *p_cb;
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+    void            *user_data;
+#endif
 } tBTA_JV_API_L2CAP_CLOSE;
 
 /* data type for BTA_JV_API_L2CAP_READ_EVT */
@@ -275,8 +304,10 @@ typedef struct
     UINT32              handle;
     UINT32              req_id;
     tBTA_JV_L2C_CB      *p_cb;
+#if !(defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
     UINT8               *p_data;
     UINT16              len;
+#endif
 } tBTA_JV_API_L2CAP_WRITE;
 
 /* data type for BTA_JV_API_RFCOMM_CONNECT_EVT */
@@ -395,6 +426,9 @@ typedef union
     /* GKI event buffer header */
     BT_HDR                          hdr;
     tBTA_JV_API_ENABLE              enable;
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+    tBTA_JV_API_REG_L2C_CBACK       reg_l2c_cback;
+#endif
     tBTA_JV_API_SET_DISCOVERABILITY set_discoverability;
     tBTA_JV_API_GET_REMOTE_NAME     get_rmt_name;
     tBTA_JV_API_SET_SERVICE_CLASS   set_service;
@@ -449,6 +483,11 @@ typedef struct
     tSDP_UUID               uuid;                           /* current uuid of sdp discovery*/
     void                    *user_data;                     /* piggyback user data*/
     tBTA_JV_PM_CB           pm_cb[BTA_JV_PM_MAX_NUM];       /* PM on a per JV handle bases */
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+    tBTA_JV_DM_CBACK        *p_l2c_cback;
+    BD_ADDR                 sdp_bd_addr;                    /* current Bd addr of sdp discovery*/
+    BOOLEAN                 sdp_sucessful;                  /* status of sdp discovery*/
+#endif
 } tBTA_JV_CB;
 
 enum
@@ -508,5 +547,8 @@ extern void bta_jv_rfcomm_read (tBTA_JV_MSG *p_data);
 extern void bta_jv_rfcomm_write (tBTA_JV_MSG *p_data);
 extern void bta_jv_set_pm_profile (tBTA_JV_MSG *p_data);
 extern void bta_jv_change_pm_state(tBTA_JV_MSG *p_data);
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+extern void bta_jv_l2cap_reg_cback (tBTA_JV_MSG *p_data);
+#endif
 
 #endif /* BTA_JV_INT_H */

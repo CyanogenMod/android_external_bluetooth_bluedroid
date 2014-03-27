@@ -227,6 +227,7 @@ typedef struct
 #define BT_PSM_AVCTP_13                 0x001B /* Advanced Control - Browsing */
 #define BT_PSM_UDI_CP                   0x001D /* Unrestricted Digital Information Profile C-Plane  */
 #define BT_PSM_ATT                      0x001F /* Attribute Protocol  */
+#define BT_PSM_OPP_1_2                  0x1487 /* OPP PSM for the obex over L2CAP */
 
 
 /* These macros extract the HCI opcodes from a buffer

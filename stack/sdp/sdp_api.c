@@ -857,6 +857,42 @@ BOOLEAN SDP_FindAddProtoListsElemInRec (tSDP_DISC_REC *p_rec, UINT16 layer_uuid,
     return(FALSE);
 }
 
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+/*******************************************************************************
+**
+** Function         SDP_FindL2CapPsmInRec
+**
+** Description      This function looks at a specific discovery record for the
+**                  l2cap psm, and pulls out the GOEP l2cap psm.
+**
+** Returns          TRUE if found, FALSE if not
+**                  If found, GOEP l2cap psm that were passed in are filled in.
+**
+*******************************************************************************/
+BOOLEAN SDP_FindL2CapPsmInRec (tSDP_DISC_REC *p_rec, UINT16 *p_l2c_psm)
+{
+#if SDP_CLIENT_ENABLED == TRUE
+    tSDP_DISC_ATTR  *p_attr;
+
+    p_attr = p_rec->p_first_attr;
+    while (p_attr)
+    {
+        /* Find the profile descriptor list */
+        if ((p_attr->attr_id == ATTR_ID_OBX_OVR_L2CAP_PSM)
+                && (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE)
+                && (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2))
+        {
+            *p_l2c_psm = p_attr->attr_value.v.u16;
+            return(TRUE);
+        }
+        p_attr = p_attr->p_next_attr;
+    }
+#endif  /* CLIENT_ENABLED == TRUE */
+
+    /* If here, no match found */
+    return(FALSE);
+}
+#endif
 
 /*******************************************************************************
 **
