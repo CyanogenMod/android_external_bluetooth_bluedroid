@@ -68,6 +68,7 @@ static tGATT_CBACK gap_cback =
     NULL,
     NULL,
     gap_ble_s_attr_request_cback,
+    NULL,
     NULL
 };
 

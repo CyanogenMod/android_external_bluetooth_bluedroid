@@ -275,7 +275,7 @@ void gatt_act_write (tGATT_CLCB *p_clcb, UINT8 sec_act)
     else
         rt = GATT_INTERNAL_ERROR;
 
-    if ((rt != GATT_SUCCESS  && rt != GATT_CMD_STARTED)
+    if ((rt != GATT_SUCCESS  && rt != GATT_CMD_STARTED && rt != GATT_CONGESTED)
         || (rt != GATT_CMD_STARTED && p_clcb->op_subtype == GATT_WRITE_NO_RSP))
     {
         if (rt != GATT_SUCCESS)
@@ -1102,15 +1102,17 @@ BOOLEAN gatt_cl_send_next_cmd_inq(tGATT_TCB *p_tcb)
     BOOLEAN     sent = FALSE;
     UINT8       rsp_code;
     tGATT_CLCB   *p_clcb = NULL;
+    tGATT_STATUS att_ret = GATT_SUCCESS;
 
     while (!sent &&
            p_tcb->pending_cl_req != p_tcb->next_slot_inq &&
            p_cmd->to_send && p_cmd->p_cmd != NULL)
     {
-        sent = attp_send_msg_to_L2CAP(p_tcb, p_cmd->p_cmd);
+        att_ret = attp_send_msg_to_l2cap(p_tcb, p_cmd->p_cmd);
 
-        if (sent)
+        if (att_ret == GATT_SUCCESS || att_ret == GATT_CONGESTED)
         {
+            sent = TRUE;
             p_cmd->to_send = FALSE;
             p_cmd->p_cmd = NULL;
 
@@ -1124,10 +1126,12 @@ BOOLEAN gatt_cl_send_next_cmd_inq(tGATT_TCB *p_tcb)
                 p_clcb = gatt_cmd_dequeue(p_tcb, &rsp_code);
 
                 /* if no ack needed, keep sending */
-                sent = FALSE;
+                if (att_ret == GATT_SUCCESS)
+                    sent = FALSE;
+
                 p_cmd = &p_tcb->cl_cmd_q[p_tcb->pending_cl_req];
                 /* send command complete callback here */
-                gatt_end_operation(p_clcb, GATT_SUCCESS, NULL);
+                gatt_end_operation(p_clcb, att_ret, NULL);
             }
         }
         else

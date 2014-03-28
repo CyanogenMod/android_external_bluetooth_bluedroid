@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2008-2012 Broadcom Corporation
+ *  Copyright (C) 2008-2014 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ BT_HDR *attp_build_exec_write_cmd (UINT8 op_code, UINT8 flag)
     BT_HDR      *p_buf = NULL;
     UINT8       *p;
 
-    if ((p_buf = (BT_HDR *)GKI_getbuf((UINT16)(sizeof(BT_HDR) + 10 + L2CAP_MIN_OFFSET))) != NULL)
+    if ((p_buf = (BT_HDR *)GKI_getpoolbuf(GATT_BUF_POOL_ID)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -347,12 +347,12 @@ BT_HDR *attp_build_value_cmd (UINT16 payload_size, UINT8 op_code, UINT16 handle,
 
 /*******************************************************************************
 **
-** Function         attp_send_msg_to_L2CAP
+** Function         attp_send_msg_to_l2cap
 **
 ** Description      Send message to L2CAP.
 **
 *******************************************************************************/
-BOOLEAN  attp_send_msg_to_L2CAP(tGATT_TCB *p_tcb, BT_HDR *p_toL2CAP)
+tGATT_STATUS attp_send_msg_to_l2cap(tGATT_TCB *p_tcb, BT_HDR *p_toL2CAP)
 {
     UINT16      l2cap_ret;
 
@@ -366,13 +366,14 @@ BOOLEAN  attp_send_msg_to_L2CAP(tGATT_TCB *p_tcb, BT_HDR *p_toL2CAP)
     {
         GATT_TRACE_ERROR("ATT   failed to pass msg:0x%0x to L2CAP",
             *((UINT8 *)(p_toL2CAP + 1) + p_toL2CAP->offset));
-        GKI_freebuf(p_toL2CAP);
-        return FALSE;
+        return GATT_INTERNAL_ERROR;
     }
-    else
+    else if (l2cap_ret == L2CAP_DW_CONGESTED)
     {
-        return TRUE;
+        GATT_TRACE_DEBUG("ATT congested, message accepted");
+        return GATT_CONGESTED;
     }
+    return GATT_SUCCESS;
 }
 
 /*******************************************************************************
@@ -459,11 +460,7 @@ tGATT_STATUS attp_send_sr_msg (tGATT_TCB *p_tcb, BT_HDR *p_msg)
         if (p_msg != NULL)
         {
             p_msg->offset = L2CAP_MIN_OFFSET;
-
-            if (attp_send_msg_to_L2CAP (p_tcb, p_msg))
-                cmd_sent = GATT_SUCCESS;
-            else
-                cmd_sent = GATT_INTERNAL_ERROR;
+            cmd_sent = attp_send_msg_to_l2cap (p_tcb, p_msg);
         }
     }
     return cmd_sent;
@@ -475,22 +472,26 @@ tGATT_STATUS attp_send_sr_msg (tGATT_TCB *p_tcb, BT_HDR *p_msg)
 **
 ** Description      Send a ATT command or enqueue it.
 **
-** Returns          TRUE if command sent, otherwise FALSE.
+** Returns          GATT_SUCCESS if command sent
+**                  GATT_CONGESTED if command sent but channel congested
+**                  GATT_CMD_STARTED if command queue up in GATT
+**                  GATT_ERROR if command sending failure
 **
 *******************************************************************************/
-UINT8 attp_cl_send_cmd(tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 cmd_code, BT_HDR *p_cmd)
+tGATT_STATUS attp_cl_send_cmd(tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 cmd_code, BT_HDR *p_cmd)
 {
-    UINT8       att_ret = GATT_SUCCESS;
+    tGATT_STATUS att_ret = GATT_SUCCESS;
 
     if (p_tcb != NULL)
     {
         cmd_code &= ~GATT_AUTH_SIGN_MASK;
 
+        /* no pending request or value confirmation */
         if (p_tcb->pending_cl_req == p_tcb->next_slot_inq ||
             cmd_code == GATT_HANDLE_VALUE_CONF)
         {
-            /* no penindg request or value confirmation */
-            if (attp_send_msg_to_L2CAP(p_tcb, p_cmd))
+            att_ret = attp_send_msg_to_l2cap(p_tcb, p_cmd);
+            if (att_ret == GATT_CONGESTED || att_ret == GATT_SUCCESS)
             {
                 /* do not enq cmd if handle value confirmation or set request */
                 if (cmd_code != GATT_HANDLE_VALUE_CONF && cmd_code != GATT_CMD_WRITE)
@@ -509,7 +510,7 @@ UINT8 attp_cl_send_cmd(tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 cmd_code, BT_HDR
         }
     }
     else
-        att_ret = GATT_ILLEGAL_PARAMETER;
+        att_ret = GATT_ERROR;
 
     return att_ret;
 }

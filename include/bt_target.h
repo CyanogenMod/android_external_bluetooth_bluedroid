@@ -595,6 +595,11 @@
 #define GATT_DB_POOL_ID                 GKI_POOL_ID_8
 #endif
 
+/* GATT Data sending buffer pool ID, use default ACL pool for fix channel data */
+#ifndef GATT_BUF_POOL_ID
+#define GATT_BUF_POOL_ID                HCI_ACL_POOL_ID
+#endif
+
 /******************************************************************************
 **
 ** Lower Layer Interface

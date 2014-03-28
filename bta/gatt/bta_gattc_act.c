@@ -52,8 +52,8 @@ static void  bta_gattc_cmpl_cback(UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
                                   tGATT_CL_COMPLETE *p_data);
 
 static void bta_gattc_deregister_cmpl(tBTA_GATTC_RCB *p_clreg);
-
 static void bta_gattc_enc_cmpl_cback(tGATT_IF gattc_if, BD_ADDR bda);
+static void bta_gattc_cong_cback (UINT16 conn_id, BOOLEAN congested);
 
 static tGATT_CBACK bta_gattc_cl_cback =
 {
@@ -62,7 +62,8 @@ static tGATT_CBACK bta_gattc_cl_cback =
     bta_gattc_disc_res_cback,
     bta_gattc_disc_cmpl_cback,
     NULL,
-    bta_gattc_enc_cmpl_cback
+    bta_gattc_enc_cmpl_cback,
+    bta_gattc_cong_cback
 };
 
 /* opcode(tGATTC_OPTYPE) order has to be comply with internal event order */
@@ -1790,9 +1791,9 @@ static void bta_gattc_conn_cback(tGATT_IF gattc_if, BD_ADDR bda, UINT16 conn_id,
         p_buf->int_conn.transport            = transport;
         bdcpy(p_buf->int_conn.remote_bda, bda);
 
-                bta_sys_sendmsg(p_buf);
-            }
-        }
+        bta_sys_sendmsg(p_buf);
+    }
+}
 
 /*******************************************************************************
 **
@@ -2128,6 +2129,33 @@ static void  bta_gattc_cmpl_cback(UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
 
     return;
 }
+
+/*******************************************************************************
+**
+** Function         bta_gattc_cong_cback
+**
+** Description      congestion callback for BTA GATT client.
+**
+** Returns          void
+**
+********************************************************************************/
+static void bta_gattc_cong_cback (UINT16 conn_id, BOOLEAN congested)
+{
+    tBTA_GATTC_CLCB *p_clcb;
+    tBTA_GATTC cb_data;
+
+    if ((p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id)) != NULL)
+    {
+        if (p_clcb->p_rcb->p_cback)
+        {
+            cb_data.congest.conn_id = conn_id;
+            cb_data.congest.congested = congested;
+
+            (*p_clcb->p_rcb->p_cback)(BTA_GATTC_CONGEST_EVT, &cb_data);
+        }
+    }
+}
+
 #if BLE_INCLUDED == TRUE
 /*******************************************************************************
 **

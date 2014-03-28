@@ -46,6 +46,7 @@
 /********************************************************************************/
 static void gatt_le_connect_cback (BD_ADDR bd_addr, BOOLEAN connected, UINT16 reason, tBT_TRANSPORT transport);
 static void gatt_le_data_ind (BD_ADDR bd_addr, BT_HDR *p_buf);
+static void gatt_le_cong_cback(BD_ADDR remote_bda, BOOLEAN congest);
 
 static void gatt_l2cif_connect_ind_cback (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UINT8 l2cap_id);
 static void gatt_l2cif_connect_cfm_cback (UINT16 l2cap_cid, UINT16 result);
@@ -55,6 +56,7 @@ static void gatt_l2cif_disconnect_ind_cback (UINT16 l2cap_cid, BOOLEAN ack_neede
 static void gatt_l2cif_disconnect_cfm_cback (UINT16 l2cap_cid, UINT16 result);
 static void gatt_l2cif_data_ind_cback (UINT16 l2cap_cid, BT_HDR *p_msg);
 static void gatt_send_conn_cback (tGATT_TCB *p_tcb);
+static void gatt_l2cif_congest_cback (UINT16 cid, BOOLEAN congested);
 
 static const tL2CAP_APPL_INFO dyn_info =
 {
@@ -67,7 +69,7 @@ static const tL2CAP_APPL_INFO dyn_info =
     gatt_l2cif_disconnect_cfm_cback,
     NULL,
     gatt_l2cif_data_ind_cback,
-    NULL,
+    gatt_l2cif_congest_cback,
     NULL
 } ;
 
@@ -110,6 +112,7 @@ void gatt_init (void)
 
     fixed_reg.pL2CA_FixedConn_Cb = gatt_le_connect_cback;
     fixed_reg.pL2CA_FixedData_Cb = gatt_le_data_ind;
+    fixed_reg.pL2CA_FixedCong_Cb = gatt_le_cong_cback;      /* congestion callback */
     fixed_reg.default_idle_tout  = 0xffff;                  /* 0xffff default idle timeout */
 
     L2CA_RegisterFixedChannel (L2CAP_ATT_CID, &fixed_reg);
@@ -452,6 +455,62 @@ static void gatt_le_connect_cback (BD_ADDR bd_addr, BOOLEAN connected,
 
 /*******************************************************************************
 **
+** Function         gatt_channel_congestion
+**
+** Description      This function is called to process the congestion callback
+**                  from lcb
+**
+** Returns          void
+**
+*******************************************************************************/
+static void gatt_channel_congestion(tGATT_TCB *p_tcb, BOOLEAN congested)
+{
+    UINT8 i = 0;
+    tGATT_REG *p_reg=NULL;
+    UINT16 conn_id;
+
+    /* if uncongested, check to see if there is any more pending data */
+    if (p_tcb != NULL && congested == FALSE)
+    {
+        gatt_cl_send_next_cmd_inq(p_tcb);
+    }
+    /* notifying all applications for the connection up event */
+    for (i = 0, p_reg = gatt_cb.cl_rcb ; i < GATT_MAX_APPS; i++, p_reg++)
+    {
+        if (p_reg->in_use)
+        {
+            if (p_reg->app_cb.p_congestion_cb)
+            {
+                conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_reg->gatt_if);
+                (*p_reg->app_cb.p_congestion_cb)(conn_id, congested);
+            }
+        }
+    }
+}
+
+/*******************************************************************************
+**
+** Function         gatt_le_cong_cback
+**
+** Description      This function is called when GATT fixed channel is congested
+**                  or uncongested.
+**
+** Returns          void
+**
+*******************************************************************************/
+static void gatt_le_cong_cback(BD_ADDR remote_bda, BOOLEAN congested)
+{
+    tGATT_TCB *p_tcb = gatt_find_tcb_by_addr(remote_bda, BT_TRANSPORT_LE);
+
+    /* if uncongested, check to see if there is any more pending data */
+    if (p_tcb != NULL)
+    {
+        gatt_channel_congestion(p_tcb, congested);
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         gatt_le_data_ind
 **
 ** Description      This function is called when data is received from L2CAP.
@@ -553,7 +612,7 @@ static void gatt_l2cif_connect_ind_cback (BD_ADDR  bd_addr, UINT16 lcid, UINT16 
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_l2cif_connect_cfm_cback(UINT16 lcid, UINT16 result)
+static void gatt_l2cif_connect_cfm_cback(UINT16 lcid, UINT16 result)
 {
     tGATT_TCB       *p_tcb;
     tL2CAP_CFG_INFO cfg;
@@ -754,7 +813,7 @@ void gatt_l2cif_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_l2cif_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
+static void gatt_l2cif_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
 {
     tGATT_TCB       *p_tcb;
     UINT16          reason;
@@ -789,7 +848,7 @@ void gatt_l2cif_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_l2cif_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
+static void gatt_l2cif_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
 {
     tGATT_TCB       *p_tcb;
 
@@ -802,6 +861,25 @@ void gatt_l2cif_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
     }
     else /* prevent buffer leak */
         GKI_freebuf(p_buf);
+}
+
+/*******************************************************************************
+**
+** Function         gatt_l2cif_congest_cback
+**
+** Description      L2CAP congestion callback
+**
+** Returns          void
+**
+*******************************************************************************/
+static void gatt_l2cif_congest_cback (UINT16 lcid, BOOLEAN congested)
+{
+    tGATT_TCB *p_tcb = gatt_find_tcb_by_cid(lcid);
+
+    if (p_tcb != NULL)
+    {
+        gatt_channel_congestion(p_tcb, congested);
+    }
 }
 
 /*******************************************************************************
