@@ -58,6 +58,7 @@ void smp_l2cap_if_init (void)
 
     fixed_reg.pL2CA_FixedConn_Cb = smp_connect_cback;
     fixed_reg.pL2CA_FixedData_Cb = smp_data_ind;
+    fixed_reg.pL2CA_FixedCong_Cb = NULL;    /* do not handle congestion on this channel */
     fixed_reg.default_idle_tout  = 60;      /* set 60 seconds timeout, 0xffff default idle timeout */
 
     /* Now, register with L2CAP */

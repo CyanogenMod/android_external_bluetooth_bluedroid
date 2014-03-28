@@ -929,12 +929,21 @@ typedef void (tL2CA_FIXED_CHNL_CB) (BD_ADDR, BOOLEAN, UINT16, tBT_TRANSPORT);
 */
 typedef void (tL2CA_FIXED_DATA_CB) (BD_ADDR, BT_HDR *);
 
+/* Congestion status callback protype. This callback is optional. If
+** an application tries to send data when the transmit queue is full,
+** the data will anyways be dropped. The parameter is:
+**      remote BD_ADDR
+**      TRUE if congested, FALSE if uncongested
+*/
+typedef void (tL2CA_FIXED_CONGESTION_STATUS_CB) (BD_ADDR, BOOLEAN);
+
 /* Fixed channel registration info (the callback addresses and channel config)
 */
 typedef struct
 {
     tL2CA_FIXED_CHNL_CB    *pL2CA_FixedConn_Cb;
     tL2CA_FIXED_DATA_CB    *pL2CA_FixedData_Cb;
+    tL2CA_FIXED_CONGESTION_STATUS_CB *pL2CA_FixedCong_Cb;
     tL2CAP_FCR_OPTS         fixed_chnl_opts;
 
     UINT16                  default_idle_tout;

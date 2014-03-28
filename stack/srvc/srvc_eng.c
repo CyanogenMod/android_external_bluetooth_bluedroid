@@ -41,6 +41,7 @@ static tGATT_CBACK srvc_gatt_cback =
     NULL,
     NULL,
     srvc_eng_s_request_cback,
+    NULL,
     NULL
 } ;
 /* type for action functions */

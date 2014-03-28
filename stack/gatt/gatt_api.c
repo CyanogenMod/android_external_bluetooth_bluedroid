@@ -595,7 +595,7 @@ void GATTS_StopService (UINT16 service_handle)
 *******************************************************************************/
 tGATT_STATUS GATTS_HandleValueIndication (UINT16 conn_id,  UINT16 attr_handle, UINT16 val_len, UINT8 *p_val)
 {
-    tGATT_STATUS    cmd_status = GATT_ILLEGAL_PARAMETER;
+    tGATT_STATUS    cmd_status = GATT_NO_RESOURCES;
 
     tGATT_VALUE      indication;
     BT_HDR          *p_msg;
@@ -612,38 +612,39 @@ tGATT_STATUS GATTS_HandleValueIndication (UINT16 conn_id,  UINT16 attr_handle, U
         GATT_TRACE_ERROR1 ("GATTS_HandleValueIndication Unknown  conn_id: %u ", conn_id);
         return(tGATT_STATUS) GATT_INVALID_CONN_ID;
     }
+
+    if (! GATT_HANDLE_IS_VALID (attr_handle))
+        return GATT_ILLEGAL_PARAMETER;
+
     indication.conn_id  = conn_id;
     indication.handle   = attr_handle;
     indication.len      = val_len;
     memcpy (indication.value, p_val, val_len);
     indication.auth_req = GATT_AUTH_REQ_NONE;
 
-    if (GATT_HANDLE_IS_VALID (attr_handle)  )
+    if (GATT_HANDLE_IS_VALID(p_tcb->indicate_handle))
     {
-        if (GATT_HANDLE_IS_VALID(p_tcb->indicate_handle))
+        GATT_TRACE_DEBUG0 ("Add a pending indication");
+        if ((p_buf = gatt_add_pending_ind(p_tcb, &indication)) !=NULL)
         {
-            GATT_TRACE_DEBUG0 ("Add a pending indication");
-            if ((p_buf = gatt_add_pending_ind(p_tcb, &indication)) !=NULL)
-            {
-                cmd_status = GATT_SUCCESS;
-            }
-            else
-            {
-                cmd_status = GATT_NO_RESOURCES;
-            }
+            cmd_status = GATT_SUCCESS;
         }
         else
         {
+            cmd_status = GATT_NO_RESOURCES;
+        }
+    }
+    else
+    {
 
-            if ( (p_msg = attp_build_sr_msg (p_tcb, GATT_HANDLE_VALUE_IND, (tGATT_SR_MSG *)&indication)) != NULL)
+        if ( (p_msg = attp_build_sr_msg (p_tcb, GATT_HANDLE_VALUE_IND, (tGATT_SR_MSG *)&indication)) != NULL)
+        {
+            cmd_status = attp_send_sr_msg (p_tcb, p_msg);
+
+            if (cmd_status == GATT_SUCCESS || cmd_status == GATT_CONGESTED)
             {
-                cmd_status = attp_send_sr_msg (p_tcb, p_msg);
-
-                if (cmd_status == GATT_SUCCESS)
-                {
-                    p_tcb->indicate_handle = indication.handle;
-                    gatt_start_conf_timer(p_tcb);
-                }
+                p_tcb->indicate_handle = indication.handle;
+                gatt_start_conf_timer(p_tcb);
             }
         }
     }
