@@ -790,6 +790,7 @@ static void cfg_cmd_callback(int cmd_fd, int type, int size, uint32_t user_id)
             processing_save_cmd = 1;
             //hold the file saving until no more change in last 3 seconds.
             bdld("wait until no more changes in short time, cached change:%d", cached_change);
+#if 0
             int i;
             for(i = 0; i < 100; i ++) //5 minitue max waiting
             {
@@ -798,7 +799,9 @@ static void cfg_cmd_callback(int cmd_fd, int type, int size, uint32_t user_id)
                     break;
                 last_cached_change = cached_change;
             }
+#endif
             bdld("writing the bt_config.xml now, cached change:%d", cached_change);
+            sleep(3); //Delay config update by 3sec
             lock_slot(&slot_lock);
             if(cached_change > 0)
                 save_cfg();
