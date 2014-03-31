@@ -271,7 +271,7 @@ static BOOLEAN btif_gatt_is_link_encrypted (BD_ADDR bd_addr)
 
 static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_STATUS result)
 {
-    if (result != BTA_SUCCESS)
+    if (result != BTA_SUCCESS && result != BTA_BUSY)
     {
         bt_bdaddr_t bda;
         bdcpy(bda.address, bd_addr);
