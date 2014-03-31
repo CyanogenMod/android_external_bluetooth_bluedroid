@@ -45,6 +45,7 @@ enum
     BTA_GATTC_API_READ_EVT,
     BTA_GATTC_API_WRITE_EVT,
     BTA_GATTC_API_EXEC_EVT,
+    BTA_GATTC_API_CFG_MTU_EVT,
 
     BTA_GATTC_API_CLOSE_EVT,
 
@@ -188,6 +189,13 @@ typedef struct
     BOOLEAN                 start;
 } tBTA_GATTC_API_LISTEN;
 
+
+typedef struct
+{
+    BT_HDR              hdr;
+    UINT16              mtu;
+}tBTA_GATTC_API_CFG_MTU;
+
 typedef struct
 {
     BT_HDR                  hdr;
@@ -217,6 +225,7 @@ typedef union
     tBTA_GATTC_API_CONFIRM      api_confirm;
     tBTA_GATTC_API_EXEC         api_exec;
     tBTA_GATTC_API_READ_MULTI   api_read_multi;
+    tBTA_GATTC_API_CFG_MTU      api_mtu;
     tBTA_GATTC_OP_CMPL          op_cmpl;
     tBTA_GATTC_CI_EVT           ci_open;
     tBTA_GATTC_CI_EVT           ci_save;
@@ -327,6 +336,7 @@ typedef struct
     UINT8               srvc_hdl_chg;   /* service handle change indication pending */
     UINT16              attr_index;     /* cahce NV saving/loading attribute index */
 
+    UINT16              mtu;
 } tBTA_GATTC_SERV;
 
 #ifndef BTA_GATTC_NOTIF_REG_MAX
@@ -481,8 +491,9 @@ extern void bta_gattc_restart_discover(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA 
 extern void bta_gattc_init_bk_conn(tBTA_GATTC_API_OPEN *p_data, tBTA_GATTC_RCB *p_clreg);
 extern void bta_gattc_cancel_bk_conn(tBTA_GATTC_API_CANCEL_OPEN *p_data);
 extern void bta_gattc_send_open_cback( tBTA_GATTC_RCB *p_clreg, tBTA_GATT_STATUS status,
-                                       BD_ADDR remote_bda, UINT16 conn_id);
+                                       BD_ADDR remote_bda, UINT16 conn_id, UINT16 mtu);
 extern void bta_gattc_process_api_refresh(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
+extern void bta_gattc_cfg_mtu(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data);
 #if BLE_INCLUDED == TRUE
 extern void bta_gattc_listen(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
 extern void bta_gattc_broadcast(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);

@@ -294,6 +294,7 @@ void bta_gattc_clcb_dealloc(tBTA_GATTC_CLCB *p_clcb)
         {
             p_srcb->connected = FALSE;
             p_srcb->state = BTA_GATTC_SERV_IDLE;
+            p_srcb->mtu = 0;
         }
 
         utl_freebuf((void **)&p_clcb->p_q_cmd);
@@ -555,6 +556,18 @@ BOOLEAN bta_gattc_enqueue(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
                     memcpy(p_buf->p_id_list, p_data->api_read_multi.p_id_list,
                         p_data->api_read_multi.num_attr * sizeof(tBTA_GATTC_ATTR_ID));
                 }
+                break;
+            }
+            case BTA_GATTC_API_CFG_MTU_EVT:
+            {
+                len = sizeof(tBTA_GATTC_API_CFG_MTU);
+                p_clcb->p_q_cmd = (tBTA_GATTC_DATA *)GKI_getbuf(len);
+                if (p_clcb->p_q_cmd == NULL)
+                {
+                    APPL_TRACE_ERROR0("allocate buffer failed for p_q_cmd");
+                    return FALSE;
+                }
+                memcpy(p_clcb->p_q_cmd, p_data, len);
                 break;
             }
             default:
@@ -906,7 +919,7 @@ BOOLEAN bta_gattc_check_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR remote_bda, U
 **
 *******************************************************************************/
 void bta_gattc_send_open_cback( tBTA_GATTC_RCB *p_clreg, tBTA_GATT_STATUS status,
-                                BD_ADDR remote_bda, UINT16 conn_id)
+                                BD_ADDR remote_bda, UINT16 conn_id, UINT16 mtu)
 {
     tBTA_GATTC      cb_data;
 
@@ -917,6 +930,7 @@ void bta_gattc_send_open_cback( tBTA_GATTC_RCB *p_clreg, tBTA_GATT_STATUS status
         cb_data.open.status = status;
         cb_data.open.client_if = p_clreg->client_if;
         cb_data.open.conn_id = conn_id;
+        cb_data.open.mtu = mtu;
         bdcpy(cb_data.open.remote_bda, remote_bda);
 
         (*p_clreg->p_cback)(BTA_GATTC_OPEN_EVT, &cb_data);

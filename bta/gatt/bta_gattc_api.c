@@ -224,6 +224,34 @@ void BTA_GATTC_Close(UINT16 conn_id)
 }
 /*******************************************************************************
 **
+** Function         BTA_GATTC_ConfigureMTU
+**
+** Description      Configure the MTU size in the GATT channel. This can be done
+**                  only once per connection.
+**
+** Parameters       conn_id: connection ID.
+**                  mtu: desired MTU size to use.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu)
+{
+    tBTA_GATTC_API_CFG_MTU  *p_buf;
+
+    if ((p_buf = (tBTA_GATTC_API_CFG_MTU *) GKI_getbuf(sizeof(tBTA_GATTC_API_CFG_MTU))) != NULL)
+    {
+        p_buf->hdr.event = BTA_GATTC_API_CFG_MTU_EVT;
+        p_buf->hdr.layer_specific = conn_id;
+
+        p_buf->mtu = mtu;
+
+        bta_sys_sendmsg(p_buf);
+    }
+    return;
+}
+/*******************************************************************************
+**
 ** Function         BTA_GATTC_ServiceSearchRequest
 **
 ** Description      This function is called to request a GATT service discovery
