@@ -190,7 +190,7 @@ static const UINT8 bta_gattc_st_w4_conn[][BTA_GATTC_NUM_COLS] =
 static const UINT8 bta_gattc_st_connected[][BTA_GATTC_NUM_COLS] =
 {
 /* Event                            Action 1                            Next state */
-/* BTA_GATTC_API_OPEN_EVT           */   {BTA_GATTC_OPEN_ERROR,         BTA_GATTC_CONN_ST},
+/* BTA_GATTC_API_OPEN_EVT           */   {BTA_GATTC_OPEN,               BTA_GATTC_CONN_ST},
 /* BTA_GATTC_INT_OPEN_FAIL_EVT      */   {BTA_GATTC_IGNORE,             BTA_GATTC_CONN_ST},
 /* BTA_GATTC_API_CANCEL_OPEN_EVT    */   {BTA_GATTC_CANCEL_OPEN_ERROR, BTA_GATTC_CONN_ST},
 /* BTA_GATTC_INT_CANCEL_OPEN_OK_EVT */   {BTA_GATTC_IGNORE,            BTA_GATTC_CONN_ST},
@@ -225,7 +225,7 @@ static const UINT8 bta_gattc_st_connected[][BTA_GATTC_NUM_COLS] =
 static const UINT8 bta_gattc_st_discover[][BTA_GATTC_NUM_COLS] =
 {
 /* Event                            Action 1                            Next state */
-/* BTA_GATTC_API_OPEN_EVT           */   {BTA_GATTC_OPEN_ERROR,         BTA_GATTC_DISCOVER_ST},
+/* BTA_GATTC_API_OPEN_EVT           */   {BTA_GATTC_OPEN,               BTA_GATTC_DISCOVER_ST},
 /* BTA_GATTC_INT_OPEN_FAIL_EVT      */   {BTA_GATTC_IGNORE,             BTA_GATTC_DISCOVER_ST},
 /* BTA_GATTC_API_CANCEL_OPEN_EVT    */   {BTA_GATTC_CANCEL_OPEN_ERROR,  BTA_GATTC_DISCOVER_ST},
 /* BTA_GATTC_INT_CANCEL_OPEN_OK_EVT */   {BTA_GATTC_FAIL,               BTA_GATTC_DISCOVER_ST},
