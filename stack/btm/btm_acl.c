@@ -38,6 +38,7 @@
 #include "l2c_int.h"
 #include "hcidefs.h"
 #include "bd.h"
+#include "bt_utils.h"
 
 static void btm_establish_continue (tACL_CONN *p_acl_cb);
 static void btm_read_remote_features (UINT16 handle);
@@ -228,6 +229,9 @@ BOOLEAN btm_ble_get_acl_remote_addr(tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR conn_ad
 
     return st;
 #else
+    UNUSED(p_dev_rec);
+    UNUSED(conn_addr);
+    UNUSED(p_addr_type);
     return FALSE;
 #endif
 }
