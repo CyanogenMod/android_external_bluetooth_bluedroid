@@ -204,9 +204,13 @@ static bt_status_t btpan_enable(int local_role)
     int bta_pan_role;
     BTIF_TRACE_DEBUG1("local_role:%d", local_role);
     bta_pan_role = btpan_role_to_bta(local_role);
+#if BTA_PAN_INCLUDED == TRUE
     BTA_PanSetRole(bta_pan_role, &bta_panu_info, NULL, &bta_pan_nap_info);
     btpan_dev_local_role = local_role;
     return BT_STATUS_SUCCESS;
+#else
+    return BT_STATUS_FAIL;
+#endif
 }
 static int btpan_get_local_role()
 {
@@ -488,8 +492,22 @@ static inline int should_forward(tETH_HDR* hdr)
     BTIF_TRACE_DEBUG1("unknown proto:%x", ntohs(hdr->h_proto));
     return FALSE;
 }
+#if BTA_PAN_INCLUDED == TRUE
 extern void bta_pan_ci_rx_write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol,
         UINT8 *p_data, UINT16 len, BOOLEAN ext);
+#else
+static void bta_pan_ci_rx_write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol,
+        UINT8 *p_data, UINT16 len, BOOLEAN ext)
+{
+    UNUSED(handle);
+    UNUSED(dst);
+    UNUSED(src);
+    UNUSED(protocol);
+    UNUSED(p_data);
+    UNUSED(len);
+    UNUSED(ext);
+}
+#endif
 static void forward_bnep(tETH_HDR* eth_hdr, char * packet, int size)
 {
     int broadcast = eth_hdr->h_dest[0] & 1;
@@ -635,5 +653,4 @@ static void btpan_tap_fd_signaled(int fd, int type, int flags, uint32_t user_id)
         btsock_thread_add_fd(pth, fd, 0, SOCK_THREAD_FD_RD | SOCK_THREAD_ADD_FD_SYNC, 0);
     }
 }
-
 
