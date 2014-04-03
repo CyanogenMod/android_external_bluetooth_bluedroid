@@ -236,6 +236,9 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
         {
             bta_dm_conn_srvcs.count--;
 
+            APPL_TRACE_DEBUG2("Removed power mode entry for service id = %d, count = %d",
+                               p_bta_dm_pm_cfg[i].id, bta_dm_conn_srvcs.count);
+
             for(; j<bta_dm_conn_srvcs.count ; j++)
             {
 
@@ -262,11 +265,11 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
         bta_dm_conn_srvcs.conn_srvc[j].id = id;
         bta_dm_conn_srvcs.conn_srvc[j].app_id = app_id;
         bdcpy(bta_dm_conn_srvcs.conn_srvc[j].peer_bdaddr, peer_addr);
-
-        APPL_TRACE_WARNING2("new conn_srvc id:%d, app_id:%d", id, app_id);
-
         bta_dm_conn_srvcs.count++;
         bta_dm_conn_srvcs.conn_srvc[j].state = status;
+
+        APPL_TRACE_WARNING3("new conn_srvc id:%d, app_id:%d count:%d", id, app_id,
+                             bta_dm_conn_srvcs.count);
     }
     else
     {

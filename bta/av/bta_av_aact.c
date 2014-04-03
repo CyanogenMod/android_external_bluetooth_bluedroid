@@ -720,11 +720,9 @@ static void bta_av_a2d_sdp_cback(BOOLEAN found, tA2D_Service *p_service)
             p_msg->hdr.layer_specific = bta_av_cb.handle;
             bta_sys_sendmsg(p_msg);
             if (!found)
-            {
                 APPL_TRACE_ERROR0 ("bta_av_a2d_sdp_cback, SDP record not found");
-                APPL_TRACE_DEBUG0 ("bta_av_a2d_sdp_cback, start pm idle timer");
-                bta_sys_idle(BTA_ID_AV, p_scb->app_id, p_scb->peer_addr);
-            }
+
+            bta_sys_conn_close(BTA_ID_AV, p_scb->app_id, p_scb->peer_addr);
         }
         else
         {
@@ -999,7 +997,7 @@ void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     p_scb->sec_mask = p_data->api_open.sec_mask;
     p_scb->use_rc = p_data->api_open.use_rc;
 
-    bta_sys_app_open(BTA_ID_AV, p_scb->app_id, p_scb->peer_addr);
+    bta_sys_conn_open(BTA_ID_AV, p_scb->app_id, p_scb->peer_addr);
 
     /* allocate discovery database */
     if (p_scb->p_disc_db == NULL)
@@ -1397,7 +1395,7 @@ void bta_av_str_opened (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     L2CA_SetTxPriority(p_scb->l2c_cid, L2CAP_CHNL_PRIORITY_HIGH);
     L2CA_SetChnlFlushability (p_scb->l2c_cid, TRUE);
 
-    bta_sys_conn_open(BTA_ID_AV, p_scb->app_id, p_scb->peer_addr);
+    bta_sys_conn_open(BTA_ID_AV, bta_av_cb.audio_open_cnt, p_scb->peer_addr);
     memset(&p_scb->q_info, 0, sizeof(tBTA_AV_Q_INFO));
 
     p_scb->l2c_bufs = 0;
@@ -2346,7 +2344,7 @@ void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     }
 
     /* tell role manager to check M/S role */
-    bta_sys_conn_open(BTA_ID_AV, p_scb->app_id, p_scb->peer_addr);
+    bta_sys_conn_open(BTA_ID_AV, bta_av_cb.audio_open_cnt, p_scb->peer_addr);
 
     bta_sys_busy(BTA_ID_AV, bta_av_cb.audio_open_cnt, p_scb->peer_addr);
 
@@ -2493,7 +2491,7 @@ void bta_av_str_closed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         event = BTA_AV_OPEN_EVT;
         p_scb->open_status = BTA_AV_SUCCESS;
 
-        bta_sys_conn_close(BTA_ID_AV, p_scb->app_id, p_scb->peer_addr);
+        bta_sys_conn_close(BTA_ID_AV, bta_av_cb.audio_open_cnt, p_scb->peer_addr);
         bta_av_cleanup(p_scb, p_data);
         (*bta_av_cb.p_cback)(event, &data);
     }
@@ -2514,7 +2512,7 @@ void bta_av_str_closed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             data.close.hndl = p_scb->hndl;
             event = BTA_AV_CLOSE_EVT;
 
-            bta_sys_conn_close(BTA_ID_AV, p_scb->app_id, p_scb->peer_addr);
+            bta_sys_conn_close(BTA_ID_AV, bta_av_cb.audio_open_cnt, p_scb->peer_addr);
             bta_av_cleanup(p_scb, p_data);
             (*bta_av_cb.p_cback)(event, &data);
         }
