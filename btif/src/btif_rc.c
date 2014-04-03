@@ -844,7 +844,18 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
         {
             BTIF_TRACE_DEBUG2("rc_id:0x%x key_state:%d", p_data->remote_cmd.rc_id,
                                p_data->remote_cmd.key_state);
-            handle_rc_passthrough_cmd( (&p_data->remote_cmd) );
+            /** In race conditions just after 2nd AVRCP is connected
+             *  remote might send pass through commands, so check for
+             *  Rc handle before processing pass through commands
+             **/
+            if (btif_rc_cb.rc_handle == p_data->remote_cmd.rc_handle)
+            {
+                handle_rc_passthrough_cmd( (&p_data->remote_cmd) );
+            }
+            else
+            {
+                BTIF_TRACE_DEBUG0("Pas-through command for Invalid rc handle");
+            }
         }
         break;
         case BTA_AV_RC_FEAT_EVT:
