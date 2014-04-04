@@ -1561,7 +1561,12 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
         /* if we're over buffer high water mark, we're done */
         if ((p_port->tx.queue_size  > PORT_TX_HIGH_WM)
          || (p_port->tx.queue.count > PORT_TX_BUF_HIGH_WM))
+        {
+            event |= PORT_EV_TXFULL;
+            RFCOMM_TRACE_DEBUG2("PORT_WriteDataCO(): Tx Queue is FULL size= %d, count= %d",
+                p_port->tx.queue_size, p_port->tx.queue.count);
             break;
+	}
 
         /* continue with rfcomm data write */
         p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_DATA_POOL_ID);
@@ -1589,7 +1594,7 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
 
 
         RFCOMM_TRACE_EVENT1 ("PORT_WriteData %d bytes", length);
-
+        event &= ~PORT_EV_TXFULL;
         rc = port_write (p_port, p_buf);
 
         /* If queue went below the threashold need to send flow control */
