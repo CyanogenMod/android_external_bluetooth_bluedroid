@@ -58,7 +58,6 @@
 #endif
 
 #define MAX_SERIAL_PORT (USERIAL_PORT_3 + 1)
-#define READ_LIMIT (BTHC_USERIAL_READ_MEM_SIZE - BT_HC_HDR_SIZE)
 
 enum {
     USERIAL_RX_EXIT,
@@ -254,8 +253,8 @@ static void *userial_read_thread(void *arg)
     {
         if (bt_hc_cbacks)
         {
-            p_buf = (HC_BT_HDR *) bt_hc_cbacks->alloc( \
-                                                BTHC_USERIAL_READ_MEM_SIZE);
+            p_buf = (HC_BT_HDR *) bt_hc_cbacks->alloc(
+                        BT_HC_HDR_SIZE + HCI_MAX_FRAME_SIZE + 1); /* H4 HDR = 1 */
         }
         else
             p_buf = NULL;
@@ -266,7 +265,7 @@ static void *userial_read_thread(void *arg)
             p_buf->layer_specific = 0;
 
             p = (uint8_t *) (p_buf + 1);
-            rx_length = select_read(userial_cb.fd, p, READ_LIMIT);
+            rx_length = select_read(userial_cb.fd, p, HCI_MAX_FRAME_SIZE + 1);
         }
         else
         {
