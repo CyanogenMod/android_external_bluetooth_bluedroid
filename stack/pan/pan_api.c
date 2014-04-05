@@ -492,9 +492,7 @@ tPAN_RESULT PAN_Disconnect (UINT16 handle)
 ** Description      This sends data over the PAN connections. If this is called
 **                  on GN or NAP side and the packet is multicast or broadcast
 **                  it will be sent on all the links. Otherwise the correct link
-**                  is found based on the destination address and forwarded on it
-**                  If the return value is not PAN_SUCCESS the application should
-**                  take care of releasing the message buffer
+**                  is found based on the destination address and forwarded on it.
 **
 ** Parameters:      handle   - handle for the connection
 **                  dst      - MAC or BD Addr of the destination device
@@ -509,89 +507,39 @@ tPAN_RESULT PAN_Disconnect (UINT16 handle)
 **                                           there is an error in sending data
 **
 *******************************************************************************/
-tPAN_RESULT PAN_Write (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol, UINT8 *p_data, UINT16 len, BOOLEAN ext)
+tPAN_RESULT PAN_Write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol, UINT8 *p_data, UINT16 len, BOOLEAN ext)
 {
-    tPAN_CONN       *pcb;
-    UINT16          i;
-    tBNEP_RESULT    result;
+    BT_HDR *buffer;
 
-    if (pan_cb.role == PAN_ROLE_INACTIVE || (!(pan_cb.num_conns)))
-    {
-        PAN_TRACE_ERROR0 ("PAN is not active Data write failed");
+    if (pan_cb.role == PAN_ROLE_INACTIVE || !pan_cb.num_conns) {
+        PAN_TRACE_ERROR1("%s PAN is not active, data write failed.", __func__);
         return PAN_FAILURE;
     }
 
-    /* Check if it is broadcast or multicast packet */
-    if (dst[0] & 0x01)
-    {
-        for (i=0; i<MAX_PAN_CONNS; i++)
-        {
+    // If the packet is broadcast or multicast, we're going to have to create
+    // a copy of the packet for each connection. We can save one extra copy
+    // by fast-pathing here and calling BNEP_Write instead of placing the packet
+    // in a BT_HDR buffer, calling BNEP_Write, and then freeing the buffer.
+    if (dst[0] & 0x01) {
+        int i;
+        for (i = 0; i < MAX_PAN_CONNS; ++i) {
             if (pan_cb.pcb[i].con_state == PAN_STATE_CONNECTED)
                 BNEP_Write (pan_cb.pcb[i].handle, dst, p_data, len, protocol, src, ext);
         }
-
         return PAN_SUCCESS;
     }
 
-    if (pan_cb.active_role == PAN_ROLE_CLIENT)
-    {
-        /* Data write is on PANU connection */
-        for (i=0; i<MAX_PAN_CONNS; i++)
-        {
-            if (pan_cb.pcb[i].con_state == PAN_STATE_CONNECTED &&
-                pan_cb.pcb[i].src_uuid == UUID_SERVCLASS_PANU)
-                break;
-        }
-
-        if (i == MAX_PAN_CONNS)
-        {
-            PAN_TRACE_ERROR0 ("PAN Don't have any user connections");
-            return PAN_FAILURE;
-        }
-
-        result = BNEP_Write (pan_cb.pcb[i].handle, dst, p_data, len, protocol, src, ext);
-        if (result == BNEP_IGNORE_CMD)
-        {
-            PAN_TRACE_DEBUG0 ("PAN ignored data for PANU connection");
-            return result;
-        }
-        else if (result != BNEP_SUCCESS)
-        {
-            PAN_TRACE_ERROR0 ("PAN failed to write data for the PANU connection");
-            return result;
-        }
-
-        PAN_TRACE_DEBUG0 ("PAN successfully wrote data for the PANU connection");
-        return PAN_SUCCESS;
+    buffer = (BT_HDR *)GKI_getpoolbuf(PAN_POOL_ID);
+    if (!buffer) {
+        PAN_TRACE_ERROR1("%s unable to acquire buffer from pool.", __func__);
+        return PAN_NO_RESOURCES;
     }
 
-    pcb = pan_get_pcb_by_handle (handle);
-    if (!pcb)
-    {
-        PAN_TRACE_ERROR0 ("PAN Data write for wrong addr");
-        return PAN_FAILURE;
-    }
+    buffer->len = len;
+    buffer->offset = PAN_MINIMUM_OFFSET;
+    memcpy((UINT8 *)buffer + sizeof(BT_HDR) + buffer->offset, p_data, buffer->len);
 
-    if (pcb->con_state != PAN_STATE_CONNECTED)
-    {
-        PAN_TRACE_ERROR0 ("PAN Data write when conn is not active");
-        return PAN_FAILURE;
-    }
-
-    result = BNEP_Write (pcb->handle, dst, p_data, len, protocol, src, ext);
-    if (result == BNEP_IGNORE_CMD)
-    {
-        PAN_TRACE_DEBUG0 ("PAN ignored data write to PANU");
-        return result;
-    }
-    else if (result != BNEP_SUCCESS)
-    {
-        PAN_TRACE_ERROR0 ("PAN failed to send data to the PANU");
-        return result;
-    }
-
-    PAN_TRACE_DEBUG0 ("PAN successfully sent data to the PANU");
-    return PAN_SUCCESS;
+    return PAN_WriteBuf(handle, dst, src, protocol, buffer, ext);
 }
 
 
@@ -624,24 +572,23 @@ tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoc
     UINT16          i;
     tBNEP_RESULT    result;
 
-    /* Check if it is broadcast or multicast packet */
-    if (dst[0] & 0x01)
-    {
-        UINT8       *p_data;
-        UINT16      len;
-
-        p_data  = (UINT8 *)(p_buf + 1) + p_buf->offset;
-        len     = p_buf->len;
-        PAN_Write (handle, dst, src, protocol, p_data, len, ext);
-        GKI_freebuf (p_buf);
-        return PAN_SUCCESS;
-    }
-
     if (pan_cb.role == PAN_ROLE_INACTIVE || (!(pan_cb.num_conns)))
     {
         PAN_TRACE_ERROR0 ("PAN is not active Data write failed");
         GKI_freebuf (p_buf);
         return PAN_FAILURE;
+    }
+
+    /* Check if it is broadcast or multicast packet */
+    if (dst[0] & 0x01)
+    {
+        UINT8 *data = (UINT8 *)p_buf + sizeof(BT_HDR) + p_buf->offset;
+        for (i = 0; i < MAX_PAN_CONNS; ++i) {
+            if (pan_cb.pcb[i].con_state == PAN_STATE_CONNECTED)
+                BNEP_Write(pan_cb.pcb[i].handle, dst, data, p_buf->len, protocol, src, ext);
+        }
+        GKI_freebuf(p_buf);
+        return PAN_SUCCESS;
     }
 
     /* Check if the data write is on PANU side */
