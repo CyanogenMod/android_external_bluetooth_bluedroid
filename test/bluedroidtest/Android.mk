@@ -24,6 +24,8 @@ LOCAL_SRC_FILES:=     \
 LOCAL_C_INCLUDES :=
 LOCAL_CFLAGS := -Wno-unused-parameter
 
+LOCAL_CFLAGS += -std=c99
+
 LOCAL_MODULE_TAGS := eng
 
 LOCAL_MODULE:= bdt

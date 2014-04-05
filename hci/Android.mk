@@ -27,6 +27,8 @@ LOCAL_SRC_FILES += \
 
 endif
 
+LOCAL_CFLAGS += -std=c99
+
 LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/include \
         $(LOCAL_PATH)/../utils/include
