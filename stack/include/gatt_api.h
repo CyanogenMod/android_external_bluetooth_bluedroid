@@ -137,10 +137,6 @@ typedef UINT16 tGATT_DISCONN_REASON;
     #define GATT_MAX_SCCB       10
 #endif
 
-#ifndef GATTP_TRANSPORT_SUPPORTED
-#define GATTP_TRANSPORT_SUPPORTED        GATT_TRANSPORT_LE_BR_EDR
-#endif
-
 
 /* GATT notification caching timer, default to be three seconds
 */
