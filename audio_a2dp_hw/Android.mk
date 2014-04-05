@@ -7,6 +7,8 @@ LOCAL_SRC_FILES:= \
 
 LOCAL_C_INCLUDES+= . $(LOCAL_PATH)/../utils/include
 
+LOCAL_CFLAGS += -std=c99
+
 LOCAL_SHARED_LIBRARIES := \
 	libcutils liblog
 
