@@ -146,11 +146,6 @@
 #define  GAP_PREFER_CONN_SP_TOUT         2000
 #endif
 
-#if BLE_INCLUDED == TRUE
-#ifndef GAP_TRANSPORT_SUPPORTED
-#define GAP_TRANSPORT_SUPPORTED GATT_TRANSPORT_LE_BR_EDR
-#endif
-#endif
 /*****************************************************************************
 **  Type Definitions
 *****************************************************************************/
