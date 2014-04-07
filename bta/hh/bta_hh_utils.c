@@ -53,10 +53,14 @@ static const UINT8 bta_hh_mod_key_mask[BTA_HH_MOD_MAX_KEY] =
    to fix IOP issues of sniff subrate feature */
 static const UINT8 hid_black_addr_prefix_for_ssr[][3] = {
     {0x00, 0x1B, 0xDC} // ISSC
+    ,{0xdc, 0x2c, 0x26} // BORND
+    ,{0x54, 0x46, 0x6B} // JW MT002
 };
 
 static const UINT16 hid_ssr_max_lat_list_for_iot[] = {
     0x0012 // ISSC
+    ,BTA_HH_SSR_MAX_LATENCY_ZERO // BORND
+    ,BTA_HH_SSR_DISABLE_SSR // JW MT002
 };
 
 
