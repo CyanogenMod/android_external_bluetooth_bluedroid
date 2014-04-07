@@ -180,7 +180,12 @@ static const UINT8 rc_black_addr_prefix[][3] = {
 
 static const UINT8 rc_white_addr_prefix[][3] = {
     {0x94, 0xCE, 0x2C}, // Sony SBH50
-    {0x30, 0x17, 0xC8}  // Sony wm600
+    {0x30, 0x17, 0xC8} // Sony wm600
+};
+
+static const char* rc_white_name[] = {
+    "SBH50",
+    "MW600"
 };
 
 static void send_reject_response (UINT8 rc_handle, UINT8 label,
@@ -1661,17 +1666,31 @@ void lbl_destroy()
 static BOOLEAN dev_blacklisted_for_absolute_volume(BD_ADDR peer_dev)
 {
     int i;
+    char *dev_name_str = NULL;
     int whitelist_size = sizeof(rc_white_addr_prefix)/sizeof(rc_white_addr_prefix[0]);
+
     for (i = 0; i < whitelist_size; i++) {
         if (rc_white_addr_prefix[i][0] == peer_dev[0] &&
             rc_white_addr_prefix[i][1] == peer_dev[1] &&
             rc_white_addr_prefix[i][2] == peer_dev[2]) {
             BTIF_TRACE_DEBUG3("whitelist absolute volume for %02x:%02x:%02x",
-                                peer_dev[0], peer_dev[1], peer_dev[2]);
+                              peer_dev[0], peer_dev[1], peer_dev[2]);
             return FALSE;
         }
     }
-    BTIF_TRACE_WARNING3("blacklist absolute volume for %02x:%02x:%02x",
-                        peer_dev[0], peer_dev[1], peer_dev[2]);
+
+    dev_name_str = BTM_SecReadDevName(peer_dev);
+    whitelist_size = sizeof(rc_white_name)/sizeof(char*);
+    if (dev_name_str != NULL) {
+        for (i = 0; i < whitelist_size; i++) {
+            if (strcmp(dev_name_str, rc_white_name[i]) == 0) {
+                BTIF_TRACE_DEBUG1("whitelist absolute volume for %s", dev_name_str);
+                return FALSE;
+            }
+        }
+    }
+
+    BTIF_TRACE_WARNING4("blacklist absolute volume for %02x:%02x:%02x, name = %s",
+                        peer_dev[0], peer_dev[1], peer_dev[2], dev_name_str);
     return TRUE;
 }
