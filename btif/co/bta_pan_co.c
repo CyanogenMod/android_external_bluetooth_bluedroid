@@ -33,6 +33,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_pan.h>
 #include "btif_pan_internal.h"
+#include "btif_sock_thread.h"
 #include "bd.h"
 #include <string.h>
 #include "btif_util.h"
@@ -98,6 +99,7 @@ void bta_pan_co_open(UINT16 handle, UINT8 app_id, tBTA_PAN_ROLE local_role,
         }
         if(btpan_cb.tap_fd >= 0)
         {
+            btpan_cb.flow = 1;
             conn->state = PAN_STATE_OPEN;
             bta_pan_ci_rx_ready(handle);
         }
@@ -129,14 +131,10 @@ void bta_pan_co_close(UINT16 handle, UINT8 app_id)
         conn->state = PAN_STATE_CLOSE;
         btpan_cb.open_count--;
 
-        if(btpan_cb.open_count == 0)
+        if(btpan_cb.open_count == 0 && btpan_cb.tap_fd != -1)
         {
-            destroy_tap_read_thread();
-            if(btpan_cb.tap_fd != -1)
-            {
-                btpan_tap_close(btpan_cb.tap_fd);
-                btpan_cb.tap_fd = -1;
-            }
+            btpan_tap_close(btpan_cb.tap_fd);
+            btpan_cb.tap_fd = -1;
         }
     }
 }
@@ -171,7 +169,7 @@ void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
     BTIF_TRACE_API2("bta_pan_co_tx_path, handle:%d, app_id:%d", handle, app_id);
 
     btpan_conn_t* conn = btpan_find_conn_handle(handle);
-    if(conn && conn->state != PAN_STATE_OPEN)
+    if(!conn || conn->state != PAN_STATE_OPEN)
     {
         BTIF_TRACE_ERROR2("bta_pan_co_tx_path: cannot find pan connction or conn"
             "is not opened, conn:%p, conn->state:%d", conn, conn->state);
@@ -304,6 +302,10 @@ void bta_pan_co_rx_flow(UINT16 handle, UINT8 app_id, BOOLEAN enable)
     UNUSED(enable);
 
     BTIF_TRACE_API1("bta_pan_co_rx_flow, enabled:%d, not used", enable);
+    btpan_conn_t* conn = btpan_find_conn_handle(handle);
+    if(!conn || conn->state != PAN_STATE_OPEN)
+        return;
+    btpan_set_flow_control(enable);
 }
 
 /*******************************************************************************
