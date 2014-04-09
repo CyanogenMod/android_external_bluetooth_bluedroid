@@ -899,7 +899,10 @@ tBTIF_STATUS btif_a2dp_setup_codec(void)
         /* Send message to Media task to configure transcoding */
         btif_media_task_audio_feeding_init_req(&mfeed);
     }
-
+    else
+    {
+        status = BTIF_ERROR_SRV_AV_FEEDING_NOT_SUPPORTED;
+    }
     GKI_enable();
     return status;
 }

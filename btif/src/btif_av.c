@@ -652,6 +652,17 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
                 BTA_AvStart();
                 btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
             }
+            else if (status == BTIF_ERROR_SRV_AV_CP_NOT_SUPPORTED)
+            {
+#if defined(BTA_AV_DISCONNECT_IF_NO_SCMS_T) && (BTA_AV_DISCONNECT_IF_NO_SCMS_T == TRUE)
+                BTIF_TRACE_ERROR0("SCMST enabled, disconnect as remote does not support SCMST");
+                BTA_AvDisconnect(btif_av_cb.peer_bda.address);
+#else
+                BTIF_TRACE_WARNING0("SCMST enabled, connecting to non SCMST SEP");
+                BTA_AvStart();
+                btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
+#endif
+            }
             else
             {
                 BTIF_TRACE_ERROR1("## AV Disconnect## status : %x",status);
