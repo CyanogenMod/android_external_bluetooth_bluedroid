@@ -166,7 +166,7 @@ static void *btif_hh_poll_event_thread(void *arg)
     pfds[0].events = POLLIN;
 
     while(p_dev->hh_keep_polling){
-        ret = poll(pfds, 1, 500);
+        ret = poll(pfds, 1, 50);
         if (ret < 0) {
             APPL_TRACE_ERROR2("%s: Cannot poll for fds: %s\n", __FUNCTION__, strerror(errno));
             break;
