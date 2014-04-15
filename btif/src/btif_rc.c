@@ -836,7 +836,10 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
             BTIF_TRACE_DEBUG2("BTA_AV_META_MSG_EVT  code:%d label:%d", p_data->meta_msg.code,
                 p_data->meta_msg.rc_handle);
             /* handle the metamsg command */
+
             handle_rc_metamsg_cmd(&(p_data->meta_msg));
+            /* Free the Memory allocated for tAVRC_MSG */
+            GKI_freebuf(p_data->meta_msg.p_msg);
         }
         break;
         case BTA_AV_BROWSE_MSG_EVT:
