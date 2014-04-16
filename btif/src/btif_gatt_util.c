@@ -291,8 +291,10 @@ void btif_gatt_check_encrypted_link (BD_ADDR bd_addr)
                     buf, sizeof(btif_dm_ble_penc_keys_t)) == BT_STATUS_SUCCESS)
         && !btif_gatt_is_link_encrypted(bd_addr))
     {
+#if (!defined(BLE_DELAY_REQUEST_ENC) || (BLE_DELAY_REQUEST_ENC == FALSE))
         BTA_DmSetEncryption(bd_addr,
                             &btif_gatt_set_encryption_cb, BTM_BLE_SEC_ENCRYPT);
+#endif
     }
 }
 
