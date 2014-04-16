@@ -90,7 +90,8 @@ typedef enum {
     BTIF_GATTC_REFRESH,
     BTIF_GATTC_READ_RSSI,
     BTIF_GATTC_LISTEN,
-    BTIF_GATTC_SET_ADV_DATA
+    BTIF_GATTC_SET_ADV_DATA,
+    BTIF_GATTC_CONFIGURE_MTU,
 } btif_gattc_event_t;
 
 #define BTIF_GATT_MAX_OBSERVED_DEV 40
@@ -438,6 +439,12 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             HAL_CBACK(bt_gatt_callbacks, client->open_cb, p_data->open.conn_id
                 , p_data->open.status, p_data->open.client_if, &bda);
 
+            if (GATT_DEF_BLE_MTU_SIZE != p_data->open.mtu && p_data->open.mtu)
+            {
+                HAL_CBACK(bt_gatt_callbacks, client->configure_mtu_cb, p_data->open.conn_id
+                    , p_data->open.status , p_data->open.mtu);
+            }
+
             if (p_data->open.status == BTA_GATT_OK)
                 btif_gatt_check_encrypted_link(p_data->open.remote_bda);
             break;
@@ -510,6 +517,14 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             );
             break;
         }
+
+        case BTA_GATTC_CFG_MTU_EVT:
+        {
+            HAL_CBACK(bt_gatt_callbacks, client->configure_mtu_cb, p_data->cfg_mtu.conn_id
+                , p_data->cfg_mtu.status , p_data->cfg_mtu.mtu);
+            break;
+        }
+
         default:
             ALOGE("%s: Unhandled event (%d)!", __FUNCTION__, event);
             break;
@@ -882,6 +897,9 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
             break;
         }
+        case BTIF_GATTC_CONFIGURE_MTU:
+            BTA_GATTC_ConfigureMTU(p_cb->conn_id, p_cb->len);
+            break;
 
         default:
             ALOGE("%s: Unknown event (%d)!", __FUNCTION__, event);
@@ -1306,6 +1324,16 @@ static bt_status_t btif_gattc_read_remote_rssi(int client_if, const bt_bdaddr_t 
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
+static bt_status_t btif_gattc_configure_mtu(int conn_id, int mtu)
+{
+    CHECK_BTGATT_INIT();
+    btif_gattc_cb_t btif_cb;
+    btif_cb.conn_id = conn_id;
+    btif_cb.len = mtu; // Re-use len field
+    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_CONFIGURE_MTU,
+                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+}
+
 static int btif_gattc_get_device_type( const bt_bdaddr_t *bd_addr )
 {
     int device_type = 0;
@@ -1347,6 +1375,7 @@ const btgatt_client_interface_t btgattClientInterface = {
     btif_gattc_read_remote_rssi,
     btif_gattc_get_device_type,
     btif_gattc_set_adv_data,
+    btif_gattc_configure_mtu,
     btif_gattc_test_command
 };
 
