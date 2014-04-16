@@ -457,6 +457,8 @@ void bta_pan_open(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
         bta_pan_scb_dealloc(p_scb);
         bdcpy(data.bd_addr, p_data->api_open.bd_addr);
         data.status = BTA_PAN_FAIL;
+        data.local_role = p_data->api_open.local_role;
+        data.peer_role = p_data->api_open.peer_role;
         bta_pan_cb.p_cback(BTA_PAN_OPEN_EVT, (tBTA_PAN *)&data);
     }
 
