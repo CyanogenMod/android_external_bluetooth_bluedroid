@@ -30,7 +30,8 @@
 #include "srvc_battery_int.h"
 
 static void srvc_eng_s_request_cback (UINT16 conn_id, UINT32 trans_id, UINT8 op_code, tGATTS_DATA *p_data);
-static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected, tGATT_DISCONN_REASON reason);
+static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected,
+                                          tGATT_DISCONN_REASON reason, tBT_TRANSPORT transport);
 static void srvc_eng_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS status, tGATT_CL_COMPLETE *p_data);
 
 static tGATT_CBACK srvc_gatt_cback =
@@ -341,9 +342,10 @@ static void srvc_eng_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATU
 **
 *******************************************************************************/
 static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
-                                        BOOLEAN connected, tGATT_DISCONN_REASON reason)
+                                        BOOLEAN connected, tGATT_DISCONN_REASON reason,  tBT_TRANSPORT transport)
 {
     UNUSED(gatt_if);
+    UNUSED (transport);
 
     GATT_TRACE_EVENT5 ("srvc_eng_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",
                        (bda[0]<<24)+(bda[1]<<16)+(bda[2]<<8)+bda[3],

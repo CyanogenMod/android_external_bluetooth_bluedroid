@@ -163,10 +163,11 @@ tHID_STATUS hidh_conn_disconnect (UINT8 dhandle)
 **                  send security block L2C connection response.
 **
 *******************************************************************************/
-void hidh_sec_check_complete_term (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
+void hidh_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, UINT8 res)
 {
     tHID_HOST_DEV_CTB *p_dev= (tHID_HOST_DEV_CTB *) p_ref_data;
     UNUSED(bd_addr);
+    UNUSED (transport);
 
     if( res == BTM_SUCCESS && p_dev->conn.conn_state == HID_CONN_STATE_SECURITY )
     {
@@ -316,7 +317,7 @@ void hidh_proc_repage_timeout (TIMER_LIST_ENT *p_tle)
 ** Returns          void
 **
 *******************************************************************************/
-void hidh_sec_check_complete_orig (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
+void hidh_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, UINT8 res)
 {
     tHID_HOST_DEV_CTB *p_dev = (tHID_HOST_DEV_CTB *) p_ref_data;
     UINT8 dhandle;
@@ -325,6 +326,7 @@ void hidh_sec_check_complete_orig (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
 #endif
     UINT32 reason;
     UNUSED(bd_addr);
+    UNUSED (transport);
 
     dhandle = ((UINT32)p_dev - (UINT32)&(hh_cb.devices[0]))/ sizeof(tHID_HOST_DEV_CTB);
     if( res == BTM_SUCCESS && p_dev->conn.conn_state == HID_CONN_STATE_SECURITY )
@@ -879,6 +881,13 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
     UINT8       pool_id;
     UINT8       use_data = 0 ;
     BOOLEAN     blank_datc = FALSE;
+
+    if (!BTM_IsAclConnectionUp(hh_cb.devices[dhandle].addr, BT_TRANSPORT_BR_EDR))
+    {
+        if (buf)
+            GKI_freebuf ((void *)buf);
+        return( HID_ERR_NO_CONNECTION );
+    }
 
     if (p_hcon->conn_flags & HID_CONN_FLAGS_CONGESTED)
     {

@@ -162,7 +162,7 @@ BT_HDR *attp_build_browse_cmd(UINT8 op_code, UINT16 s_hdl, UINT16 e_hdl, tBT_UUI
 ** Returns          pointer to the command buffer.
 **
 *******************************************************************************/
-BT_HDR *attp_build_read_handles_cmd (UINT16 payload_size, tGATT_FIND_TYPE_VALUE *p_value_type)
+BT_HDR *attp_build_read_by_type_value_cmd (UINT16 payload_size, tGATT_FIND_TYPE_VALUE *p_value_type)
 {
     BT_HDR      *p_buf = NULL;
     UINT8       *p;
@@ -606,7 +606,7 @@ tGATT_STATUS attp_send_cl_msg (tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 op_code,
             break;
 
         case GATT_REQ_FIND_TYPE_VALUE:
-            p_cmd = attp_build_read_handles_cmd(p_tcb->payload_size, &p_msg->find_type_value);
+            p_cmd = attp_build_read_by_type_value_cmd(p_tcb->payload_size, &p_msg->find_type_value);
             break;
 
         case GATT_REQ_READ_MULTI:

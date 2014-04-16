@@ -796,10 +796,10 @@ tBTM_STATUS BTM_CancelInquiry(void)
 #if BLE_INCLUDED == TRUE
             if (((p_inq->inqparms.mode & BTM_BLE_INQUIRY_MASK) != 0)
 #if (defined(BTA_HOST_INTERLEAVE_SEARCH) && BTA_HOST_INTERLEAVE_SEARCH == TRUE)
-            &&(active_mode & BTM_LE_INQ_ACTIVE_MASK)
+            &&(active_mode & BTM_BLE_INQ_ACTIVE_MASK)
 #endif
             )
-                btm_ble_stop_scan();
+                btm_ble_stop_inquiry();
 #endif
         }
 
@@ -869,7 +869,6 @@ tBTM_STATUS BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms, tBTM_INQ_RESULTS_CB *p
             p_inq->scan_type = INQ_GENERAL;
             p_inq->inq_active = BTM_INQUIRY_INACTIVE;
             btm_cb.ble_ctr_cb.inq_var.scan_type = BTM_BLE_SCAN_MODE_NONE;
-            btm_cb.ble_ctr_cb.inq_var.proc_mode = BTM_BLE_INQUIRY_NONE;
             btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_DISABLE, BTM_BLE_DUPLICATE_ENABLE);
         }
         else
@@ -1080,7 +1079,8 @@ tBTM_STATUS BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms, tBTM_INQ_RESULTS_CB *p
 **                  BTM_WRONG_MODE if the device is not up.
 **
 *******************************************************************************/
-tBTM_STATUS  BTM_ReadRemoteDeviceName (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
+tBTM_STATUS  BTM_ReadRemoteDeviceName (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb
+                                                ,tBT_TRANSPORT transport)
 {
     tBTM_INQ_INFO   *p_cur = NULL;
     tINQ_DB_ENT     *p_i;
@@ -1101,7 +1101,7 @@ tBTM_STATUS  BTM_ReadRemoteDeviceName (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
     BTM_TRACE_API0 ("no device found in inquiry db");
 
 #if (BLE_INCLUDED == TRUE)
-    if (BTM_UseLeLink(remote_bda))
+    if (transport == BT_TRANSPORT_LE)
     {
         return btm_ble_read_remote_name(remote_bda, p_cur, p_cb);
     }
@@ -2266,7 +2266,7 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
 
 #if BLE_INCLUDED == TRUE
                 if ((p_inq->inqparms.mode & BTM_BLE_INQUIRY_MASK) != 0)
-                    btm_ble_stop_scan();
+                    btm_ble_stop_inquiry();
 #endif
 
 
@@ -2493,14 +2493,13 @@ void btm_process_inq_complete (UINT8 status, UINT8 mode)
                 (p_inq_cb)((tBTM_INQUIRY_CMPL *) &p_inq->inq_cmpl_info);
         }
 #if (defined(BTA_HOST_INTERLEAVE_SEARCH) && BTA_HOST_INTERLEAVE_SEARCH == TRUE)
-            if(p_inq->inqparms.mode != 0 && !(p_inq->inq_active & BTM_PERIODIC_INQUIRY_ACTIVE))
-            {
-                /* make inquiry inactive for next iteration */
-                p_inq->inq_active = BTM_INQUIRY_INACTIVE;
-                /* call the inquiry again */
-                BTM_StartInquiry(&p_inq->inqparms,p_inq->p_inq_results_cb,p_inq->p_inq_cmpl_cb);
-                return;
-            }
+        if(p_inq->inqparms.mode != 0 && !(p_inq->inq_active & BTM_PERIODIC_INQUIRY_ACTIVE))
+        {
+            /* make inquiry inactive for next iteration */
+            p_inq->inq_active = BTM_INQUIRY_INACTIVE;
+            /* call the inquiry again */
+            BTM_StartInquiry(&p_inq->inqparms,p_inq->p_inq_results_cb,p_inq->p_inq_cmpl_cb);
+        }
 #endif
     }
     if(p_inq->inqparms.mode == 0 && p_inq->scan_type == INQ_GENERAL)//this inquiry is complete
@@ -3422,9 +3421,6 @@ void btm_set_eir_uuid( UINT8 *p_eir, tBTM_INQ_RESULTS *p_results )
                 BTM_AddEirService( p_results->eir_uuid, uuid16 );
         }
     }
-
-    BTM_TRACE_DEBUG2("btm_set_eir_uuid eir_uuid=0x%08X %08X",
-                     p_results->eir_uuid[1], p_results->eir_uuid[0] );
 }
 #endif
 

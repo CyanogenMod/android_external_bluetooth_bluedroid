@@ -139,10 +139,12 @@ typedef struct
 
 typedef struct
 {
-    BT_HDR              hdr;
-    BD_ADDR             remote_bda;
-    tBTA_GATTS_IF       server_if;
-    BOOLEAN             is_direct;
+    BT_HDR                  hdr;
+    BD_ADDR                 remote_bda;
+    tBTA_GATTS_IF           server_if;
+    BOOLEAN                 is_direct;
+    tBTA_GATT_TRANSPORT     transport;
+
 }tBTA_GATTS_API_OPEN;
 
 typedef tBTA_GATTS_API_OPEN tBTA_GATTS_API_CANCEL_OPEN;

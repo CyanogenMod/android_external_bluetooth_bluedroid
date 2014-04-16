@@ -350,10 +350,11 @@ void rfcomm_process_timeout (TIMER_LIST_ENT  *p_tle)
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_sec_check_complete (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
+void rfc_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, UINT8 res)
 {
     tPORT *p_port = (tPORT *)p_ref_data;
     UNUSED(bd_addr);
+    UNUSED(transport);
 
     /* Verify that PORT is still waiting for Security to complete */
     if (!p_port->in_use

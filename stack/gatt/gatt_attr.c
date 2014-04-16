@@ -41,7 +41,8 @@
 #endif
 
 static void gatt_profile_request_cback (UINT16 conn_id, UINT32 trans_id, UINT8 op_code, tGATTS_DATA *p_data);
-static void gatt_profile_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected, tGATT_DISCONN_REASON reason);
+static void gatt_profile_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
+                                         BOOLEAN connected, tGATT_DISCONN_REASON reason, tBT_TRANSPORT transport);
 
 static tGATT_CBACK gatt_profile_cback =
 {
@@ -87,14 +88,15 @@ UINT16 gatt_profile_find_conn_id_by_bd_addr(BD_ADDR bda)
 ** Returns          Pointer to the found link conenction control block.
 **
 *******************************************************************************/
-tGATT_PROFILE_CLCB *gatt_profile_find_clcb_by_bd_addr(BD_ADDR bda)
+static tGATT_PROFILE_CLCB *gatt_profile_find_clcb_by_bd_addr(BD_ADDR bda, tBT_TRANSPORT transport)
 {
     UINT8 i_clcb;
     tGATT_PROFILE_CLCB    *p_clcb = NULL;
 
     for (i_clcb = 0, p_clcb= gatt_cb.profile_clcb; i_clcb < GATT_MAX_APPS; i_clcb++, p_clcb++)
     {
-        if (p_clcb->in_use && p_clcb->connected && !memcmp(p_clcb->bda, bda, BD_ADDR_LEN))
+        if (p_clcb->in_use && p_clcb->transport == transport &&
+            p_clcb->connected && !memcmp(p_clcb->bda, bda, BD_ADDR_LEN))
         {
             return p_clcb;
         }
@@ -112,7 +114,7 @@ tGATT_PROFILE_CLCB *gatt_profile_find_clcb_by_bd_addr(BD_ADDR bda)
 ** Returns           NULL if not found. Otherwise pointer to the connection link block.
 **
 *******************************************************************************/
-tGATT_PROFILE_CLCB *gatt_profile_clcb_alloc (UINT16 conn_id, BD_ADDR bda)
+tGATT_PROFILE_CLCB *gatt_profile_clcb_alloc (UINT16 conn_id, BD_ADDR bda, tBT_TRANSPORT tranport)
 {
     UINT8                   i_clcb = 0;
     tGATT_PROFILE_CLCB      *p_clcb = NULL;
@@ -124,6 +126,7 @@ tGATT_PROFILE_CLCB *gatt_profile_clcb_alloc (UINT16 conn_id, BD_ADDR bda)
             p_clcb->in_use      = TRUE;
             p_clcb->conn_id     = conn_id;
             p_clcb->connected   = TRUE;
+            p_clcb->transport   = tranport;
             memcpy (p_clcb->bda, bda, BD_ADDR_LEN);
             break;
         }
@@ -215,7 +218,8 @@ static void gatt_profile_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_
 **
 *******************************************************************************/
 static void gatt_profile_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
-                                        BOOLEAN connected, tGATT_DISCONN_REASON reason)
+                                        BOOLEAN connected, tGATT_DISCONN_REASON reason,
+                                        tBT_TRANSPORT transport)
 {
     UNUSED(gatt_if);
 
@@ -225,7 +229,7 @@ static void gatt_profile_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 co
 
     if (connected)
     {
-        if (gatt_profile_clcb_alloc(conn_id, bda) == NULL)
+        if (gatt_profile_clcb_alloc(conn_id, bda, transport) == NULL)
         {
             GATT_TRACE_ERROR0 ("gatt_profile_connect_cback: no_resource");
             return;

@@ -102,10 +102,6 @@
 #define SMP_HOST_ENCRYPT_INCLUDED FALSE
 #endif
 
-#ifndef SAP_INCLUDED
-#define SAP_INCLUDED FALSE
-#endif
-
 #ifndef SBC_NO_PCM_CPY_OPTION
 #define SBC_NO_PCM_CPY_OPTION FALSE
 #endif
@@ -116,34 +112,6 @@
 
 #ifndef BTA_AG_INCLUDED
 #define BTA_AG_INCLUDED  TRUE
-#endif
-
-#ifndef BTA_CT_INCLUDED
-#define BTA_CT_INCLUDED  FALSE
-#endif
-
-#ifndef BTA_CG_INCLUDED
-#define BTA_CG_INCLUDED  FALSE
-#endif
-
-#ifndef BTA_DG_INCLUDED
-#define BTA_DG_INCLUDED  FALSE
-#endif
-
-#ifndef BTA_FT_INCLUDED
-#define BTA_FT_INCLUDED FALSE
-#endif
-
-#ifndef BTA_OP_INCLUDED
-#define BTA_OP_INCLUDED FALSE
-#endif
-
-#ifndef BTA_PR_INCLUDED
-#define BTA_PR_INCLUDED FALSE
-#endif
-
-#ifndef BTA_SS_INCLUDED
-#define BTA_SS_INCLUDED FALSE
 #endif
 
 #ifndef BTA_DM_INCLUDED
@@ -171,14 +139,6 @@
 #define BTA_FS_INCLUDED TRUE
 #endif
 
-#ifndef BTA_AC_INCLUDED
-#define BTA_AC_INCLUDED FALSE
-#endif
-
-#ifndef BTA_HD_INCLUDED
-#define BTA_HD_INCLUDED FALSE
-#endif
-
 #ifndef BTA_HH_INCLUDED
 #define BTA_HH_INCLUDED TRUE
 #endif
@@ -199,68 +159,8 @@
 #define BTA_AV_INCLUDED TRUE
 #endif
 
-#ifndef BTA_AV_VDP_INCLUDED
-#define BTA_AV_VDP_INCLUDED FALSE
-#endif
-
-#ifndef BTA_AVK_INCLUDED
-#define BTA_AVK_INCLUDED FALSE
-#endif
-
-#ifndef BTA_PBS_INCLUDED
-#define BTA_PBS_INCLUDED FALSE
-#endif
-
-#ifndef BTA_PBC_INCLUDED
-#define BTA_PBC_INCLUDED FALSE
-#endif
-
-#ifndef BTA_FM_INCLUDED
-#define BTA_FM_INCLUDED FALSE
-#endif
-
-#ifndef BTA_FM_DEBUG
-#define BTA_FM_DEBUG FALSE
-#endif
-
-#ifndef BTA_FMTX_INCLUDED
-#define BTA_FMTX_INCLUDED FALSE
-#endif
-
-#ifndef BTA_FMTX_DEBUG
-#define BTA_FMTX_DEBUG FALSE
-#endif
-
-#ifndef BTA_FMTX_FMRX_SWITCH_WORKAROUND
-#define BTA_FMTX_FMRX_SWITCH_WORKAROUND FALSE
-#endif
-
-#ifndef BTA_FMTX_US_FCC_RULES
-#define BTA_FMTX_US_FCC_RULES FALSE
-#endif
-
-#ifndef BTA_HS_INCLUDED
-#define BTA_HS_INCLUDED FALSE
-#endif
-
-#ifndef BTA_MSE_INCLUDED
-#define BTA_MSE_INCLUDED FALSE
-#endif
-
-#ifndef BTA_MCE_INCLUDED
-#define BTA_MCE_INCLUDED FALSE
-#endif
-
-#ifndef BTA_PLAYBACK_INCLUDED
-#define BTA_PLAYBACK_INCLUDED FALSE
-#endif
-
-#ifndef BTA_SSR_INCLUDED
-#define BTA_SSR_INCLUDED FALSE
-#endif
-
-#ifndef BTA_JV_INCLUDED
-#define BTA_JV_INCLUDED FALSE
+#ifndef BTA_GATT_INCLUDED
+#define BTA_GATT_INCLUDED TRUE
 #endif
 
 #ifndef BTA_DISABLE_DELAY
@@ -397,10 +297,6 @@
 #define BTA_DM_SDP_DB_SIZE  8000
 #endif
 
-#ifndef FTS_REJECT_INVALID_OBEX_SET_PATH_REQ
-#define FTS_REJECT_INVALID_OBEX_SET_PATH_REQ FALSE
-#endif
-
 #ifndef HL_INCLUDED
 #define HL_INCLUDED  TRUE
 #endif
@@ -420,8 +316,6 @@
 //------------------End added from bdroid_buildcfg.h---------------------
 
 
-
-/* #define BYPASS_AVDATATRACE */
 
 /******************************************************************************
 **
@@ -1130,16 +1024,6 @@ and USER_HW_DISABLE_API macros */
 #define BTM_MAX_VSE_CALLBACKS           3
 #endif
 
-/* Number of streams for dual stack */
-#ifndef BTM_SYNC_INFO_NUM_STR
-#define BTM_SYNC_INFO_NUM_STR           2
-#endif
-
-/* Number of streams for dual stack in BT Controller */
-#ifndef BTM_SYNC_INFO_NUM_STR_BTC
-#define BTM_SYNC_INFO_NUM_STR_BTC       2
-#endif
-
 /******************************************
 **    Lisbon Features
 *******************************************/
@@ -1412,8 +1296,8 @@ and USER_HW_DISABLE_API macros */
 #define LOCAL_BLE_CONTROLLER_ID         (1)
 #endif
 
-#ifndef BTM_BLE_PRIVACY_SPT
-#define BTM_BLE_PRIVACY_SPT      TRUE
+#ifndef BLE_PRIVACY_SPT
+#define BLE_PRIVACY_SPT      TRUE
 #endif
 
 /******************************************************************************
@@ -1433,6 +1317,12 @@ and USER_HW_DISABLE_API macros */
 #error "can't have GATT without BLE"
 #endif
 
+#ifndef BLE_LLT_INCLUDED
+#define BLE_LLT_INCLUDED    TRUE
+#endif
+#ifndef BTM_DUMO_ADDR_CENTRAL_ENABLED
+#define BTM_DUMO_ADDR_CENTRAL_ENABLED    FALSE
+#endif
 #ifndef ATT_INCLUDED
 #define ATT_INCLUDED         TRUE
 #endif
@@ -1450,7 +1340,7 @@ and USER_HW_DISABLE_API macros */
 #endif
 
 #ifndef BLE_PERIPHERAL_MODE_SUPPORT
-#define BLE_PERIPHERAL_MODE_SUPPORT  FALSE
+#define BLE_PERIPHERAL_MODE_SUPPORT  TRUE
 #endif
 
 #ifndef BLE_PERIPHERAL_DISPLAYONLY

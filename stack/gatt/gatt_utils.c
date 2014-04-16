@@ -705,7 +705,8 @@ BOOLEAN gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIS
 ** Returns           TRUE if found
 **
 *******************************************************************************/
-BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *p_found_idx)
+BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *p_found_idx,
+                                    tBT_TRANSPORT *p_transport)
 {
     UINT8 i;
     BOOLEAN found = FALSE;
@@ -717,6 +718,7 @@ BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *p_found
         {
             memcpy( bda, gatt_cb.tcb[i].peer_bda, BD_ADDR_LEN);
             *p_found_idx = i;
+            *p_transport = gatt_cb.tcb[i].transport;
             found = TRUE;
             GATT_TRACE_DEBUG6("gatt_find_the_connected_bda bda :%02x-%02x-%02x-%02x-%02x-%02x",
                               bda[0],  bda[1], bda[2],  bda[3], bda[4],  bda[5]);
@@ -833,19 +835,19 @@ BOOLEAN gatt_is_bda_connected(BD_ADDR bda)
 ** Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
 **
 *******************************************************************************/
-UINT8 gatt_find_i_tcb_by_addr(BD_ADDR bda)
+UINT8 gatt_find_i_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
 {
-    UINT8 i = 0, j = GATT_INDEX_INVALID;
+    UINT8 i = 0;
 
     for ( ; i < GATT_MAX_PHY_CHANNEL; i ++)
     {
-        if (!memcmp(gatt_cb.tcb[i].peer_bda, bda, BD_ADDR_LEN))
+        if (!memcmp(gatt_cb.tcb[i].peer_bda, bda, BD_ADDR_LEN) &&
+            gatt_cb.tcb[i].transport == transport)
         {
-            j = i;
-            break;
+            return i;
         }
     }
-    return j;
+    return GATT_INDEX_INVALID;
 }
 
 
@@ -877,12 +879,12 @@ tGATT_TCB * gatt_get_tcb_by_idx(UINT8 tcb_idx)
 ** Returns           NULL if not found. Otherwise index to the tcb.
 **
 *******************************************************************************/
-tGATT_TCB * gatt_find_tcb_by_addr(BD_ADDR bda)
+tGATT_TCB * gatt_find_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
 {
     tGATT_TCB   *p_tcb = NULL;
     UINT8 i = 0;
 
-    if ((i = gatt_find_i_tcb_by_addr(bda)) != GATT_INDEX_INVALID)
+    if ((i = gatt_find_i_tcb_by_addr(bda, transport)) != GATT_INDEX_INVALID)
         p_tcb = &gatt_cb.tcb[i];
 
     return p_tcb;
@@ -919,14 +921,14 @@ UINT8 gatt_find_i_tcb_free(void)
 ** Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
 **
 *******************************************************************************/
-tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda)
+tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda, tBT_TRANSPORT transport)
 {
     UINT8 i = 0;
     BOOLEAN allocated = FALSE;
     tGATT_TCB    *p_tcb = NULL;
 
     /* search for existing tcb with matching bda    */
-    i = gatt_find_i_tcb_by_addr(bda);
+    i = gatt_find_i_tcb_by_addr(bda, transport);
     /* find free tcb */
     if (i == GATT_INDEX_INVALID)
     {
@@ -944,6 +946,7 @@ tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda)
             GKI_init_q (&p_tcb->pending_ind_q);
             p_tcb->in_use = TRUE;
             p_tcb->tcb_idx = i;
+            p_tcb->transport = transport;
         }
         memcpy(p_tcb->peer_bda, bda, BD_ADDR_LEN);
     }
@@ -970,6 +973,23 @@ void gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16
 
 /*******************************************************************************
 **
+** Function         gatt_convert_uuid32_to_uuid128
+**
+** Description      Convert a 32 bits UUID to be an standard 128 bits one.
+**
+** Returns          TRUE if two uuid match; FALSE otherwise.
+**
+*******************************************************************************/
+void gatt_convert_uuid32_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT32 uuid_32)
+{
+    UINT8   *p = &uuid_128[LEN_UUID_128 - 4];
+
+    memcpy (uuid_128, base_uuid, LEN_UUID_128);
+
+    UINT32_TO_STREAM(p, uuid_32);
+}
+/*******************************************************************************
+**
 ** Function         gatt_uuid_compare
 **
 ** Description      Compare two UUID to see if they are the same.
@@ -989,9 +1009,15 @@ BOOLEAN gatt_uuid_compare (tBT_UUID src, tBT_UUID tar)
     }
 
     /* If both are 16-bit, we can do a simple compare */
-    if (src.len == 2 && tar.len == 2)
+    if (src.len == LEN_UUID_16 && tar.len == LEN_UUID_16)
     {
         return src.uu.uuid16 == tar.uu.uuid16;
+    }
+
+    /* If both are 32-bit, we can do a simple compare */
+    if (src.len == LEN_UUID_32 && tar.len == LEN_UUID_32)
+    {
+        return src.uu.uuid32 == tar.uu.uuid32;
     }
 
     /* One or both of the UUIDs is 128-bit */
@@ -1001,6 +1027,11 @@ BOOLEAN gatt_uuid_compare (tBT_UUID src, tBT_UUID tar)
         gatt_convert_uuid16_to_uuid128(su, src.uu.uuid16);
         ps = su;
     }
+    else if (src.len == LEN_UUID_32)
+    {
+        gatt_convert_uuid32_to_uuid128(su, src.uu.uuid32);
+        ps = su;
+    }
     else
         ps = src.uu.uuid128;
 
@@ -1008,6 +1039,12 @@ BOOLEAN gatt_uuid_compare (tBT_UUID src, tBT_UUID tar)
     {
         /* convert a 16 bits UUID to 128 bits value */
         gatt_convert_uuid16_to_uuid128(tu, tar.uu.uuid16);
+        pt = tu;
+    }
+    else if (tar.len == LEN_UUID_32)
+    {
+        /* convert a 32 bits UUID to 128 bits value */
+        gatt_convert_uuid32_to_uuid128(tu, tar.uu.uuid32);
         pt = tu;
     }
     else
@@ -1034,6 +1071,12 @@ UINT8 gatt_build_uuid_to_stream(UINT8 **p_dst, tBT_UUID uuid)
     {
         UINT16_TO_STREAM (p, uuid.uu.uuid16);
         len = LEN_UUID_16;
+    }
+    else if (uuid.len == LEN_UUID_32) /* always convert 32 bits into 128 bits as alwats */
+    {
+        gatt_convert_uuid32_to_uuid128(p, uuid.uu.uuid32);
+        p += LEN_UUID_128;
+        len = LEN_UUID_128;
     }
     else if (uuid.len == LEN_UUID_128)
     {
@@ -1090,7 +1133,11 @@ BOOLEAN gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, UINT16 uuid_size, UINT8 *
                     STREAM_TO_UINT16(p_uuid_rec->uu.uuid16, p_uuid);
                 }
                 else
-                    is_base_uuid = FALSE;
+                {
+                    p_uuid += (LEN_UUID_128 - LEN_UUID_32);
+                    p_uuid_rec->len = LEN_UUID_32;
+                    STREAM_TO_UINT32(p_uuid_rec->uu.uuid32, p_uuid);
+                }
             }
             if (!is_base_uuid)
             {
@@ -1100,6 +1147,9 @@ BOOLEAN gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, UINT16 uuid_size, UINT8 *
             *p_data += LEN_UUID_128;
             break;
 
+        /* do not allow 32 bits UUID in ATT PDU now */
+        case LEN_UUID_32:
+            GATT_TRACE_ERROR0("DO NOT ALLOW 32 BITS UUID IN ATT PDU");
         case 0:
         default:
             if (uuid_size != 0) ret = FALSE;
@@ -1200,7 +1250,7 @@ void gatt_rsp_timeout(TIMER_LIST_ENT *p_tle)
     }
 
     GATT_TRACE_WARNING0("gatt_rsp_timeout disconnecting...");
-    gatt_disconnect (p_clcb->p_tcb->peer_bda);
+    gatt_disconnect (p_clcb->p_tcb);
 }
 
 /*******************************************************************************
@@ -1330,12 +1380,11 @@ UINT8 gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_sr_get_sec_info(BD_ADDR rem_bda, BOOLEAN le_conn, UINT8 *p_sec_flag, UINT8 *p_key_size)
+void gatt_sr_get_sec_info(BD_ADDR rem_bda, tBT_TRANSPORT transport, UINT8 *p_sec_flag, UINT8 *p_key_size)
 {
     UINT8           sec_flag = 0;
-    UNUSED(le_conn);
 
-    BTM_GetSecurityFlags(rem_bda, &sec_flag);
+    BTM_GetSecurityFlagsByTransport(rem_bda, &sec_flag, transport);
 
     sec_flag &= (GATT_SEC_FLAG_LKEY_UNAUTHED | GATT_SEC_FLAG_LKEY_AUTHED | GATT_SEC_FLAG_ENCRYPTED);
 
@@ -1438,6 +1487,14 @@ UINT32 gatt_add_sdp_record (tBT_UUID *p_uuid, UINT16 start_hdl, UINT16 end_hdl)
         case LEN_UUID_16:
             SDP_AddServiceClassIdList(sdp_handle, 1, &p_uuid->uu.uuid16);
             break;
+
+        case LEN_UUID_32:
+            UINT8_TO_BE_STREAM (p, (UUID_DESC_TYPE << 3) | SIZE_FOUR_BYTES);
+            UINT32_TO_BE_STREAM (p, p_uuid->uu.uuid32);
+            SDP_AddAttribute (sdp_handle, ATTR_ID_SERVICE_CLASS_ID_LIST, DATA_ELE_SEQ_DESC_TYPE,
+                              (UINT32) (p - buff), buff);
+            break;
+
         case LEN_UUID_128:
             UINT8_TO_BE_STREAM (p, (UUID_DESC_TYPE << 3) | SIZE_SIXTEEN_BYTES);
             ARRAY_TO_BE_STREAM (p, p_uuid->uu.uuid128, LEN_UUID_128);
@@ -1889,7 +1946,8 @@ BOOLEAN gatt_cancel_open(tGATT_IF gatt_if, BD_ADDR bda)
     tGATT_TCB *p_tcb=NULL;
     BOOLEAN status= TRUE;
 
-    p_tcb = gatt_find_tcb_by_addr(bda);
+    p_tcb = gatt_find_tcb_by_addr(bda, BT_TRANSPORT_LE);
+
     if (p_tcb)
     {
         if (gatt_get_ch_state(p_tcb) == GATT_CH_OPEN)
@@ -1902,7 +1960,7 @@ BOOLEAN gatt_cancel_open(tGATT_IF gatt_if, BD_ADDR bda)
             gatt_update_app_use_link_flag(gatt_if, p_tcb, FALSE, FALSE);
             if (!gatt_num_apps_hold_link(p_tcb))
             {
-                gatt_disconnect(p_tcb->peer_bda);
+                gatt_disconnect(p_tcb);
             }
         }
     }
@@ -2131,7 +2189,7 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
 ** Returns          16 bits uuid.
 **
 *******************************************************************************/
-void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason)
+void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason, tBT_TRANSPORT transport)
 {
     tGATT_TCB       *p_tcb = NULL;
     tGATT_CLCB      *p_clcb;
@@ -2142,9 +2200,10 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason)
 
     GATT_TRACE_DEBUG0 ("gatt_cleanup_upon_disc ");
 
-    if ((p_tcb = gatt_find_tcb_by_addr(bda)) != NULL)
+    if ((p_tcb = gatt_find_tcb_by_addr(bda, transport)) != NULL)
     {
         GATT_TRACE_DEBUG0 ("found p_tcb ");
+        gatt_set_ch_state(p_tcb, GATT_CH_CLOSE);
         for (i = 0; i < GATT_CL_MAX_LCB; i ++)
         {
             p_clcb = &gatt_cb.clcb[i];
@@ -2172,7 +2231,7 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason)
             {
                 conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_reg->gatt_if);
                 GATT_TRACE_DEBUG3 ("found p_reg tcb_idx=%d gatt_if=%d  conn_id=0x%x", p_tcb->tcb_idx, p_reg->gatt_if, conn_id);
-                (*p_reg->app_cb.p_conn_cb)(p_reg->gatt_if,  bda, conn_id, FALSE, reason);
+                (*p_reg->app_cb.p_conn_cb)(p_reg->gatt_if,  bda, conn_id, FALSE, reason, transport);
             }
         }
         memset(p_tcb, 0, sizeof(tGATT_TCB));
@@ -2227,6 +2286,10 @@ void gatt_dbg_display_uuid(tBT_UUID bt_uuid)
     if (bt_uuid.len == LEN_UUID_16)
     {
         sprintf(str_buf, "0x%04x", bt_uuid.uu.uuid16);
+    }
+    else if (bt_uuid.len == LEN_UUID_32)
+    {
+        sprintf(str_buf, "0x%08x", (unsigned int)bt_uuid.uu.uuid32);
     }
     else if (bt_uuid.len == LEN_UUID_128)
     {
@@ -2406,7 +2469,7 @@ BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_init
 *******************************************************************************/
 BOOLEAN gatt_remove_bg_dev_for_app(tGATT_IF gatt_if, BD_ADDR bd_addr)
 {
-    tGATT_TCB    *p_tcb = gatt_find_tcb_by_addr(bd_addr);
+    tGATT_TCB    *p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
     BOOLEAN       status;
 
     if (p_tcb)
@@ -2628,7 +2691,7 @@ BOOLEAN gatt_update_auto_connect_dev (tGATT_IF gatt_if, BOOLEAN add, BD_ADDR bd_
 {
     BOOLEAN         ret = FALSE;
     tGATT_REG        *p_reg;
-    tGATT_TCB       *p_tcb = gatt_find_tcb_by_addr(bd_addr);
+    tGATT_TCB       *p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
 
     GATT_TRACE_API0 ("gatt_update_auto_connect_dev ");
     /* Make sure app is registered */
@@ -2657,54 +2720,6 @@ BOOLEAN gatt_update_auto_connect_dev (tGATT_IF gatt_if, BOOLEAN add, BD_ADDR bd_
 
 
 
-/*******************************************************************************
-**
-** Function         gatt_get_conn_id
-**
-** Description      This function returns a connecttion handle to a ATT server
-**                  if the server is already connected
-**
-** Parameters       gatt_if: client interface.
-**                  bd_addr: peer device address.
-**
-** Returns          Connection handle or invalid handle value
-**
-*******************************************************************************/
-UINT16 gatt_get_conn_id (tGATT_IF gatt_if, BD_ADDR bd_addr)
-{
-    tGATT_REG       *p_reg;
-    tGATT_CLCB      *p_clcb;
-    tGATT_TCB       *p_tcb;
-    UINT8           i;
-
-    GATT_TRACE_API1 ("GATTC_GetConnIfConnected gatt_if=%d", gatt_if);
-    /* Do we have a transport to the peer ? If not, we are not connected */
-    if ((p_tcb = gatt_find_tcb_by_addr(bd_addr)) == NULL)
-    {
-        GATT_TRACE_EVENT0 ("GATTC_GetConnIfConnected - no TCB found");
-        return(GATT_INVALID_CONN_ID);
-    }
-
-    /* Make sure app is registered */
-    if ((p_reg = gatt_get_regcb(gatt_if)) == NULL)
-    {
-        GATT_TRACE_ERROR1("GATTC_GetConnIfConnected - gatt_if is not registered", gatt_if);
-        return(GATT_INVALID_CONN_ID);
-    }
-
-    /* Now see if the app already has a client control block to that peer */
-    for (i = 0, p_clcb = gatt_cb.clcb; i < GATT_CL_MAX_LCB; i++, p_clcb++)
-    {
-        if ( p_clcb->in_use && (p_clcb->p_reg == p_reg) && (p_clcb->p_tcb == p_tcb) )
-        {
-            return(p_clcb->conn_id);
-        }
-    }
-
-    /* If here, failed to allocate a client control block */
-    GATT_TRACE_ERROR1 ("gatt_get_conn_id: not connected- gatt_if: %u", gatt_if);
-    return(GATT_INVALID_CONN_ID);
-}
 /*******************************************************************************
 **
 ** Function     gatt_add_pending_new_srv_start
@@ -2736,12 +2751,13 @@ tGATT_PENDING_ENC_CLCB* gatt_add_pending_enc_channel_clcb(tGATT_TCB *p_tcb, tGAT
 ** Returns    Pointer to the new service start buffer, NULL no buffer available
 **
 *******************************************************************************/
-void gatt_update_listen_mode(void)
+BOOLEAN gatt_update_listen_mode(void)
 {
     UINT8           ii = 0;
     tGATT_REG       *p_reg = &gatt_cb.cl_rcb[0];
     UINT8           listening = 0;
     UINT16          connectability, window, interval;
+    BOOLEAN         rt = TRUE;
 
     for (; ii < GATT_MAX_APPS; ii ++, p_reg ++)
     {
@@ -2757,16 +2773,24 @@ void gatt_update_listen_mode(void)
     else
         BTM_BleUpdateAdvFilterPolicy (AP_SCAN_CONN_WL);
 
-    connectability = BTM_ReadConnectability (&window, &interval);
-
-    if (listening != GATT_LISTEN_TO_NONE)
+    if (rt)
     {
-        connectability |= BTM_BLE_CONNECTABLE;
+        connectability = BTM_ReadConnectability (&window, &interval);
+
+        if (listening != GATT_LISTEN_TO_NONE)
+        {
+            connectability |= BTM_BLE_CONNECTABLE;
+        }
+        else
+        {
+            if ((connectability & BTM_BLE_CONNECTABLE) == 0)
+            connectability &= ~BTM_BLE_CONNECTABLE;
+        }
+        /* turning on the adv now */
+        btm_ble_set_connectability(connectability);
     }
-    else
-        connectability &= ~BTM_BLE_CONNECTABLE;
-    /* turning on the adv now */
-    BTM_SetConnectability(connectability, window, interval);
+
+    return rt;
 
 }
 #endif

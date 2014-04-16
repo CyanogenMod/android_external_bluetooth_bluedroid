@@ -57,7 +57,8 @@
 static void gap_ble_s_attr_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_REQ_TYPE op_code, tGATTS_DATA *p_data);
 
 /* client connection callback */
-static void  gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected, tGATT_DISCONN_REASON reason);
+static void  gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected,
+                                            tGATT_DISCONN_REASON reason, tGATT_TRANSPORT transport);
 static void  gap_ble_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS status, tGATT_CL_COMPLETE *p_data);
 
 static tGATT_CBACK gap_cback =
@@ -213,65 +214,6 @@ UINT16 gap_get_conn_id_if_connected (BD_ADDR bd_addr)
     return(GATT_INVALID_CONN_ID);
 }
 
-/*******************************************************************************
-**
-** Function         gap_ble_enqueue_op
-**
-** Description      enqueue a GAP operation when GAP client is busy
-**
-** Returns          void
-**
-*******************************************************************************/
-void gap_ble_enqueue_op( tGAP_CLCB * p_clcb, UINT8 op, BD_ADDR reconn_addr, UINT8 privacy_flag, void *p_cback)
-{
-    tGAP_BLE_PENDING_OP  *p_op = (tGAP_BLE_PENDING_OP *)GKI_getbuf(sizeof(tGAP_BLE_PENDING_OP));
-
-    if (p_op != NULL)
-    {
-        p_op->op = op;
-        p_op->p_pending_cback = p_cback;
-
-        if (op == GATT_SET_GAP_PRIVACY_FLAG)
-            p_op->pending_data.privacy_flag = privacy_flag;
-        else if (op == GATT_UPDATE_RECONN_ADDR)
-            memcpy(p_op->pending_data.reconn_addr, reconn_addr, BD_ADDR_LEN);
-
-        GKI_enqueue(&p_clcb->pending_op_q, p_op);
-    }
-}
-
-/*******************************************************************************
-**
-** Function         gap_ble_process_pending_op
-**
-** Description      get next pending operation and process it
-**
-** Returns          void
-**
-*******************************************************************************/
-static BOOLEAN gap_ble_process_pending_op(tGAP_CLCB *p_clcb)
-{
-    tGAP_BLE_PENDING_OP *p_pending_op = (tGAP_BLE_PENDING_OP *)GKI_dequeue(&p_clcb->pending_op_q);
-    BOOLEAN         started = FALSE;
-
-    if (p_pending_op != NULL)
-    {
-        if (p_pending_op->op == GATT_UPDATE_RECONN_ADDR)
-        {
-            GAP_BleUpdateReconnectAddr( p_clcb->bda,
-                                        p_pending_op->pending_data.reconn_addr,
-                                        (tGAP_BLE_RECONN_ADDR_CBACK *)p_pending_op->p_pending_cback);
-            started = TRUE;
-        }
-        GKI_freebuf(p_pending_op);
-    }
-    else
-    {
-        GAP_TRACE_EVENT0("No pending operation");
-    }
-
-    return started;
-}
 
 /*******************************************************************************
 **   GAP Attributes Database Request callback
@@ -316,16 +258,6 @@ tGATT_STATUS gap_read_attr_value (UINT16 handle, tGATT_VALUE *p_value, BOOLEAN i
                     p_value->len = 2;
                     break;
 
-                case GATT_UUID_GAP_PRIVACY_FLAG:
-                    UINT8_TO_STREAM(p, p_db_attr->attr_value.privacy);
-                    p_value->len = 1;
-                    break;
-
-                case GATT_UUID_GAP_RECONN_ADDR:
-                    p_value->len = BD_ADDR_LEN;
-                    BDADDR_TO_STREAM(p, p_db_attr->attr_value.reconn_bda);
-                    break;
-
                 case GATT_UUID_GAP_PREF_CONN_PARAM:
                     UINT16_TO_STREAM(p, p_db_attr->attr_value.conn_param.int_min); /* int_min */
                     UINT16_TO_STREAM(p, p_db_attr->attr_value.conn_param.int_max); /* int_max */
@@ -357,18 +289,6 @@ tGATT_STATUS gap_proc_read (tGATTS_REQ_TYPE type, tGATT_READ_REQ *p_data, tGATTS
 
     return status;
 }
-BOOLEAN gap_read_local_reconn_addr(BD_ADDR_PTR reconn_bda)
-{
-    BD_ADDR dummy_bda = {0};
-
-    if (memcmp(gap_cb.reconn_bda, dummy_bda, BD_ADDR_LEN) != 0)
-    {
-        memcpy(reconn_bda, gap_cb.reconn_bda, BD_ADDR_LEN);
-        return TRUE;
-    }
-    else
-        return FALSE;
-}
 
 /******************************************************************************
 **
@@ -389,26 +309,7 @@ UINT8 gap_proc_write_req( tGATTS_REQ_TYPE type, tGATT_WRITE_REQ *p_data)
     {
         if (p_data-> handle == p_db_attr->handle)
         {
-            if (p_data->offset != 0) return GATT_NOT_LONG;
-            if (p_data->is_prep) return GATT_REQ_NOT_SUPPORTED;
-
-/* DO NOT SUPPORT RECONNECTION ADDRESS FOR NOW
-
-            if (p_db_attr->uuid == GATT_UUID_GAP_RECONN_ADDR)
-            {
-                if (!btm_cb.ble_ctr_cb.privacy)
-                    return GATT_WRITE_NOT_PERMIT;
-                if (p_data->len != BD_ADDR_LEN) return GATT_INVALID_ATTR_LEN;
-
-                STREAM_TO_BDADDR(p_db_attr->attr_value.reconn_bda, p);
-                // write direct connection address
-                memcpy(&gap_cb.reconn_bda, p_db_attr->attr_value.reconn_bda, BD_ADDR_LEN);
-
-                return GATT_SUCCESS;
-            }
-            else
-*/
-            return GATT_WRITE_NOT_PERMIT;
+                return GATT_WRITE_NOT_PERMIT;
         }
     }
     return GATT_NOT_FOUND;
@@ -513,6 +414,21 @@ void gap_attr_db_init(void)
                                                 GATT_CHAR_PROP_BIT_READ);
     p_db_attr ++;
 
+#if BTM_PERIPHERAL_ENABLED == TRUE       /* Only needed for peripheral testing */
+    /* add preferred connection parameter characteristic
+    */
+    uuid.uu.uuid16 = p_db_attr->uuid = GATT_UUID_GAP_PREF_CONN_PARAM;
+    p_db_attr->attr_value.conn_param.int_max = GAP_PREFER_CONN_INT_MAX; /* 6 */
+    p_db_attr->attr_value.conn_param.int_min = GAP_PREFER_CONN_INT_MIN; /* 0 */
+    p_db_attr->attr_value.conn_param.latency = GAP_PREFER_CONN_LATENCY; /* 0 */
+    p_db_attr->attr_value.conn_param.sp_tout = GAP_PREFER_CONN_SP_TOUT; /* 2000 */
+    p_db_attr->handle = GATTS_AddCharacteristic(service_handle,
+                                                &uuid,
+                                                GATT_PERM_READ,
+                                                GATT_CHAR_PROP_BIT_READ);
+    p_db_attr ++;
+#endif
+
     /* start service now */
     memset (&app_uuid.uu.uuid128, 0x81, LEN_UUID_128);
 
@@ -596,8 +512,6 @@ void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, BOOLEAN status, UINT16 len, UINT8 *p_
             (* p_dev_name_cback)(status, p_clcb->bda, len, (char *)p_name);
     }
 
-    if (!gap_ble_process_pending_op(p_clcb) &&
-        p_clcb->cl_op_uuid == 0)
         GATT_Disconnect(p_clcb->conn_id);
 
 }
@@ -612,11 +526,14 @@ void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, BOOLEAN status, UINT16 len, UINT8 *p_
 **
 *******************************************************************************/
 static void gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
-                                     BOOLEAN connected, tGATT_DISCONN_REASON reason)
+                                     BOOLEAN connected, tGATT_DISCONN_REASON reason,
+                                     tGATT_TRANSPORT transport)
 {
     tGAP_CLCB   *p_clcb = gap_find_clcb_by_bd_addr (bda);
     UINT16      cl_op_uuid;
+
     UNUSED(gatt_if);
+    UNUSED(transport);
 
     GAP_TRACE_EVENT5 ("gap_ble_c_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",
                       (bda[0]<<24)+(bda[1]<<16)+(bda[2]<<8)+bda[3],
@@ -636,9 +553,6 @@ static void gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_
         p_clcb->conn_id = conn_id;
         p_clcb->connected = TRUE;
 
-        /* Do not use reconnection address for now -->
-          check privacy enabled? set reconnect address
-        btm_ble_update_reconnect_address(bda);*/
     }
     else
     {
@@ -658,6 +572,10 @@ static void gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_
             if (cl_op_uuid == GATT_UUID_GAP_DEVICE_NAME)
             {
                 GAP_BleReadPeerDevName (bda, (tGAP_BLE_DEV_NAME_CBACK *)p_clcb->p_cback);
+            }
+            else if (cl_op_uuid == GATT_UUID_GAP_PREF_CONN_PARAM)
+            {
+                 GAP_BleReadPeerPrefConnParams(bda);
             }
         }
         /* current link disconnect */
@@ -695,7 +613,7 @@ static void gap_ble_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
 
     GAP_TRACE_EVENT3 ("gap_ble_c_cmpl_cback() - op_code: 0x%02x  status: 0x%02x  read_type: 0x%04x", op, status, op_type);
     /* Currently we only issue read commands */
-    if (op != GATTC_OPTYPE_READ && op != GATTC_OPTYPE_WRITE)
+    if (op != GATTC_OPTYPE_READ)
         return;
 
     if (status != GATT_SUCCESS)
@@ -731,7 +649,6 @@ static void gap_ble_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
             break;
         case GATT_UUID_GAP_ICON:
             break;
-
     }
 }
 
@@ -806,18 +723,20 @@ BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
         return(FALSE);
 
     /* hold the link here */
-    GATT_Connect(gap_cb.gatt_if, p_clcb->bda, TRUE);
-
-    if (p_clcb->connected)
+    if (GATT_Connect(gap_cb.gatt_if, p_clcb->bda, TRUE, BT_TRANSPORT_LE))
     {
-    return gap_ble_cl_read_request(p_clcb, GATT_UUID_GAP_PREF_CONN_PARAM, NULL);
+
+        if (p_clcb->connected)
+        {
+            return gap_ble_cl_read_request(p_clcb, GATT_UUID_GAP_PREF_CONN_PARAM, NULL);
+        }
+        /* Mark currently active operation */
+        p_clcb->cl_op_uuid = GATT_UUID_GAP_PREF_CONN_PARAM;
+
+        return(TRUE);
     }
-    /* Mark currently active operation */
-    p_clcb->cl_op_uuid = GATT_UUID_GAP_PREF_CONN_PARAM;
-
-    return(TRUE);
-
-
+    else
+        return FALSE;
 }
 
 /*******************************************************************************
@@ -839,10 +758,10 @@ BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NAME_CBACK *p_cba
     if ((p_clcb = gap_find_clcb_by_bd_addr (peer_bda)) == NULL)
     {
         if ((p_clcb = gap_clcb_alloc(0, peer_bda)) == NULL)
-    {
-        GAP_TRACE_ERROR0("GAP_BleReadPeerDevName max connection reached");
+        {
+            GAP_TRACE_ERROR0("GAP_BleReadPeerDevName max connection reached");
             return FALSE;
-    }
+        }
         p_clcb->connected = FALSE;
     }
 
@@ -855,20 +774,25 @@ BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NAME_CBACK *p_cba
         return(FALSE);
 
     /* hold the link here */
-    GATT_Connect(gap_cb.gatt_if, p_clcb->bda, TRUE);
 
-    if (p_clcb->connected)
+    if (GATT_Connect(gap_cb.gatt_if, p_clcb->bda, TRUE, BT_TRANSPORT_LE))
     {
-        return gap_ble_cl_read_request(p_clcb, GATT_UUID_GAP_DEVICE_NAME, (void *)p_cback);
+        if (p_clcb->connected)
+        {
+            return gap_ble_cl_read_request(p_clcb, GATT_UUID_GAP_DEVICE_NAME, (void *)p_cback);
+        }
+
+        p_clcb->p_cback = (void *)p_cback;
+        /* Mark currently active operation */
+        p_clcb->cl_op_uuid = GATT_UUID_GAP_DEVICE_NAME;
+
+
+        return(TRUE);
     }
-
-    p_clcb->p_cback = (void *)p_cback;
-    /* Mark currently active operation */
-    p_clcb->cl_op_uuid = GATT_UUID_GAP_DEVICE_NAME;
-
-
-    return(TRUE);
+    else
+        return FALSE;
 }
+
 
 /*******************************************************************************
 **
@@ -905,73 +829,6 @@ BOOLEAN GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda)
     gap_ble_cl_op_cmpl(p_clcb, FALSE, 0, NULL);
 
     return(TRUE);
-}
-
-/*******************************************************************************
-**
-** Function         GAP_BleUpdateReconnectAddr
-**
-** Description      Start a process to udpate the reconnect address if remote devive
-**                  has privacy enabled.
-**
-** Returns          TRUE if read started, else FALSE if GAP is busy
-**
-*******************************************************************************/
-BOOLEAN GAP_BleUpdateReconnectAddr (BD_ADDR peer_bda, BD_ADDR reconn_addr,
-                                    tGAP_BLE_RECONN_ADDR_CBACK *p_cback)
-{
-    tGAP_CLCB         *p_clcb;
-    tGATT_DISC_PARAM   param;
-
-    if (p_cback == NULL)
-        return(FALSE);
-
-    /* This function should only be called if there is a connection to  */
-    /* the peer. Get a client handle for that connection.               */
-    if ((p_clcb = gap_find_clcb_by_bd_addr (peer_bda)) == NULL ||
-        !p_clcb->connected)
-    {
-        GAP_TRACE_ERROR0("No connection, can not update reconnect address");
-        return(FALSE);
-    }
-
-    GAP_TRACE_API3 ("GAP_BleUpdateReconnectAddr() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
-                    (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],
-                    (peer_bda[4]<<8)+peer_bda[5], p_clcb->cl_op_uuid);
-
-    /* For now we only handle one at a time */
-    if (p_clcb->cl_op_uuid != 0)
-    {
-        gap_ble_enqueue_op(p_clcb, GATT_UPDATE_RECONN_ADDR, reconn_addr, 0, (void *)p_cback);
-        return(FALSE);
-    }
-
-    /* hold the link here */
-    GATT_Connect(gap_cb.gatt_if, p_clcb->bda, TRUE);
-
-    memset(&param, 0, sizeof(tGATT_DISC_PARAM));
-
-    param.service.len       = LEN_UUID_16;
-    param.service.uu.uuid16 = GATT_UUID_GAP_RECONN_ADDR;
-    param.s_handle          = 1;
-    param.e_handle          = 0xFFFF;
-
-    if (GATTC_Discover(p_clcb->conn_id, GATT_DISC_CHAR, &param) != GATT_SUCCESS)
-    {
-        GAP_TRACE_ERROR0 ("GAP_BleReadPeerPrefConnParams: GATT_Read Failed");
-        /* release the link here */
-        GATT_Disconnect(p_clcb->conn_id);
-        return(FALSE);
-    }
-    else
-    {
-        p_clcb->p_cback     = (void *)p_cback;
-        memcpy(p_clcb->reconn_addr, reconn_addr, BD_ADDR_LEN);
-        p_clcb->cl_op_uuid  = GATT_UUID_GAP_RECONN_ADDR;
-    }
-
-    return TRUE;
-
 }
 
 #endif  /* BLE_INCLUDED */

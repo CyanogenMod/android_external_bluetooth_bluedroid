@@ -582,7 +582,7 @@ tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, BOOLEAN is_orig, UINT16 pkt_types
     /* If originating, ensure that there is an ACL connection to the BD Address */
     if (is_orig)
     {
-        if ((!remote_bda) || ((acl_handle = BTM_GetHCIConnHandle (remote_bda)) == 0xFFFF))
+        if ((!remote_bda) || ((acl_handle = BTM_GetHCIConnHandle (remote_bda, BT_TRANSPORT_BR_EDR)) == 0xFFFF))
             return (BTM_UNKNOWN_ADDR);
     }
 
@@ -682,7 +682,7 @@ tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, BOOLEAN is_orig, UINT16 pkt_types
                 {
                     /* If role change is in progress, do not proceed with SCO setup
                      * Wait till role change is complete */
-                    p_acl = btm_bda_to_acl(remote_bda);
+                    p_acl = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
                     if (p_acl && p_acl->switch_role_state != BTM_ACL_SWKEY_STATE_IDLE)
                     {
                         BTM_TRACE_API1("Role Change is in progress for ACL handle 0x%04x",acl_handle);
@@ -740,7 +740,7 @@ void btm_sco_chk_pend_unpark (UINT8 hci_status, UINT16 hci_handle)
     for (xx = 0; xx < BTM_MAX_SCO_LINKS; xx++, p++)
     {
         if ((p->state == SCO_ST_PEND_UNPARK) &&
-            ((acl_handle = BTM_GetHCIConnHandle (p->esco.data.bd_addr)) == hci_handle))
+            ((acl_handle = BTM_GetHCIConnHandle (p->esco.data.bd_addr, BT_TRANSPORT_BR_EDR)) == hci_handle))
 
         {
             BTM_TRACE_API3("btm_sco_chk_pend_unpark -> (e)SCO Link for ACL handle 0x%04x, Desired Type %d, hci_status 0x%02x",
@@ -774,7 +774,7 @@ void btm_sco_chk_pend_rolechange (UINT16 hci_handle)
     for (xx = 0; xx < BTM_MAX_SCO_LINKS; xx++, p++)
     {
         if ((p->state == SCO_ST_PEND_ROLECHANGE) &&
-            ((acl_handle = BTM_GetHCIConnHandle (p->esco.data.bd_addr)) == hci_handle))
+            ((acl_handle = BTM_GetHCIConnHandle (p->esco.data.bd_addr, BT_TRANSPORT_BR_EDR)) == hci_handle))
 
         {
             BTM_TRACE_API1("btm_sco_chk_pend_rolechange -> (e)SCO Link for ACL handle 0x%04x", acl_handle);

@@ -320,17 +320,29 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
     tL2CAP_CFG_INFO cfg_info;
     UINT16          rej_reason, rej_mtu, lcid, rcid, info_type;
     tL2C_CCB        *p_ccb;
-    tL2C_RCB        *p_rcb;
-    BOOLEAN         cfg_rej;
+    tL2C_RCB        *p_rcb, *p_rcb2;
+    BOOLEAN         cfg_rej, pkt_size_rej = FALSE;
     UINT16          cfg_rej_len, cmd_len;
     UINT16          result;
     tL2C_CONN_INFO  ci;
 
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
     /* if l2cap command received in CID 1 on top of an LE link, ignore this command */
-    if (p_lcb->is_ble_link)
+    if (p_lcb->transport == BT_TRANSPORT_LE)
         return;
 #endif
+
+    /* Reject the packet if it exceeds the default Signalling Channel MTU */
+    if (pkt_len > L2CAP_DEFAULT_MTU)
+    {
+        /* Core Spec requires a single response to the first command found in a multi-command
+        ** L2cap packet.  If only responses in the packet, then it will be ignored.
+        ** Here we simply mark the bad packet and decide which cmd ID to reject later
+        */
+        pkt_size_rej = TRUE;
+        L2CAP_TRACE_ERROR1 ("L2CAP SIG MTU Pkt Len Exceeded (672) -> pkt_len: %d", pkt_len);
+    }
+
     p_next_cmd = p;
     p_pkt_end  = p + pkt_len;
 
@@ -353,6 +365,18 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             L2CAP_TRACE_WARNING3 ("Command len bad  pkt_len: %d  cmd_len: %d  code: %d",
                                   pkt_len, cmd_len, cmd_code);
             break;
+        }
+
+        L2CAP_TRACE_DEBUG3 ("cmd_code: %d, id:%d, cmd_len:%d", cmd_code, id, cmd_len);
+
+        /* Bad L2CAP packet length, look or cmd to reject */
+        if (pkt_size_rej)
+        {
+            /* If command found rejected it and we're done, otherwise keep looking */
+            if (l2c_is_cmd_rejected(cmd_code, id, p_lcb))
+                return;
+            else
+                continue; /* Look for next cmd/response in current packet */
         }
 
         switch (cmd_code)
@@ -911,6 +935,11 @@ void l2c_process_timeout (TIMER_LIST_ENT *p_tle)
         l2c_info_timeout((tL2C_LCB *)p_tle->param);
         break;
 
+#if (BLE_INCLUDED == TRUE)
+    case BTU_TTYPE_L2CAP_END_CONN_UPD:
+        l2c_enable_conn_param_timeout((tL2C_LCB *)p_tle->param);
+        break;
+#endif
     }
 }
 

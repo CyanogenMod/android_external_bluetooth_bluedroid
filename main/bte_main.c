@@ -641,11 +641,19 @@ static char *alloc(int size)
     APPL_TRACE_DEBUG1("HC alloc size=%d", size);
     */
 
+    /* Requested buffer size cannot exceed GKI_MAX_BUF_SIZE. */
+    if (size > GKI_MAX_BUF_SIZE)
+    {
+         APPL_TRACE_ERROR2("HCI DATA SIZE %d greater than MAX %d",
+                           size, GKI_MAX_BUF_SIZE);
+         return NULL;
+    }
+
     p_hdr = (BT_HDR *) GKI_getbuf ((UINT16) size);
 
     if (p_hdr == NULL)
     {
-        APPL_TRACE_WARNING0("alloc returns NO BUFFER!");
+        APPL_TRACE_WARNING1("alloc returns NO BUFFER! (sz %d)", size);
     }
 
     return ((char *) p_hdr);

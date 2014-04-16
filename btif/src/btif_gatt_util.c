@@ -285,7 +285,7 @@ uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src)
  * Encrypted link map handling
  *******************************************************************************/
 
-static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_STATUS result);
+static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_TRANSPORT transport, tBTA_STATUS result);
 
 static BOOLEAN btif_gatt_is_link_encrypted (BD_ADDR bd_addr)
 {
@@ -295,8 +295,10 @@ static BOOLEAN btif_gatt_is_link_encrypted (BD_ADDR bd_addr)
     return BTA_JvIsEncrypted(bd_addr);
 }
 
-static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_STATUS result)
+static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_TRANSPORT transport, tBTA_STATUS result)
 {
+    UNUSED(transport);
+
     if (result != BTA_SUCCESS && result != BTA_BUSY)
     {
         bt_bdaddr_t bda;
@@ -312,16 +314,39 @@ void btif_gatt_check_encrypted_link (BD_ADDR bd_addr)
 
     bt_bdaddr_t bda;
     bdcpy(bda.address, bd_addr);
+    int device_type = 0;
+    int addr_type = 0;
 
+#if (!defined(BLE_DELAY_REQUEST_ENC) || (BLE_DELAY_REQUEST_ENC == FALSE))
     if ((btif_storage_get_ble_bonding_key(&bda, BTIF_DM_LE_KEY_PENC,
                     buf, sizeof(btif_dm_ble_penc_keys_t)) == BT_STATUS_SUCCESS)
         && !btif_gatt_is_link_encrypted(bd_addr))
     {
-#if (!defined(BLE_DELAY_REQUEST_ENC) || (BLE_DELAY_REQUEST_ENC == FALSE))
-        BTA_DmSetEncryption(bd_addr,
+        tBTA_GATT_TRANSPORT transport = BTA_GATT_TRANSPORT_LE;
+
+        btif_get_device_type(bd_addr, &addr_type, &device_type);
+        switch(device_type)
+        {
+            case BT_DEVICE_TYPE_BREDR:
+                transport = BTA_GATT_TRANSPORT_BR_EDR;
+                break;
+
+            case BT_DEVICE_TYPE_BLE:
+                transport = BTA_GATT_TRANSPORT_LE;
+                break;
+
+            case BT_DEVICE_TYPE_DUMO:
+                transport = BTA_GATT_TRANSPORT_LE_BR_EDR;
+                break;
+
+            default:
+                BTIF_TRACE_ERROR1 (" GATT Encrypt :Invalid device type %d",device_type);
+                return;
+        }
+        BTA_DmSetEncryption(bd_addr,transport,
                             &btif_gatt_set_encryption_cb, BTM_BLE_SEC_ENCRYPT);
-#endif
     }
+#endif
 }
 
 /*******************************************************************************

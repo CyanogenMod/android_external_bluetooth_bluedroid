@@ -799,10 +799,11 @@ static void gap_checks_con_flags (tGAP_CCB    *p_ccb)
 ** Returns          void
 **
 *******************************************************************************/
-static void gap_sec_check_complete (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
+static void gap_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, UINT8 res)
 {
     tGAP_CCB *p_ccb = (tGAP_CCB *)p_ref_data;
     UNUSED(bd_addr);
+    UNUSED (transport);
 
     GAP_TRACE_EVENT3 ("gap_sec_check_complete conn_state:%d, conn_flags:0x%x, status:%d",
         p_ccb->con_state, p_ccb->con_flags, res);

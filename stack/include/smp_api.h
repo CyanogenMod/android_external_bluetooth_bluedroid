@@ -134,9 +134,9 @@ typedef struct
 
 typedef struct
 {
-    UINT8       reason;
-    UINT8       sec_level;
-    BOOLEAN     is_pair_cancel;
+    tSMP_STATUS     reason;
+    tSMP_SEC_LEVEL  sec_level;
+    BOOLEAN         is_pair_cancel;
 } tSMP_CMPL;
 
 typedef union

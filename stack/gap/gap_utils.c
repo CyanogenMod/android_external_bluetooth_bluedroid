@@ -183,7 +183,7 @@ void gap_find_addr_name_cb (tBTM_REMOTE_DEV_NAME *p)
                 if ((p_cb->p_cur_inq = BTM_InqDbNext(p_cb->p_cur_inq)) != NULL)
                 {
                     if ((BTM_ReadRemoteDeviceName (p_cb->p_cur_inq->results.remote_bd_addr,
-                        (tBTM_CMPL_CB *) gap_find_addr_name_cb)) == BTM_CMD_STARTED)
+                        (tBTM_CMPL_CB *) gap_find_addr_name_cb, BT_TRANSPORT_BR_EDR)) == BTM_CMD_STARTED)
                         return;     /* This routine will get called again with the next results */
                     else
                         p_result->status = gap_convert_btm_status ((tBTM_STATUS) p->status);
@@ -246,7 +246,7 @@ void gap_find_addr_inq_cb (tBTM_INQUIRY_CMPL *p)
                 if ((p_cb->p_cur_inq = BTM_InqDbFirst()) != NULL)
                 {
                     if ((BTM_ReadRemoteDeviceName (p_cb->p_cur_inq->results.remote_bd_addr,
-                        (tBTM_CMPL_CB *) gap_find_addr_name_cb)) == BTM_CMD_STARTED)
+                        (tBTM_CMPL_CB *) gap_find_addr_name_cb, BT_TRANSPORT_BR_EDR)) == BTM_CMD_STARTED)
                         return;     /* Wait for the response in gap_find_addr_name_cb() */
                     else
                         p_result->status = gap_convert_btm_status (p->status);

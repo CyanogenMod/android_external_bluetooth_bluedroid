@@ -400,6 +400,9 @@ BTU_API UINT32 btu_task (UINT32 param)
                     case BTU_TTYPE_L2CAP_HOLD:
                     case BTU_TTYPE_L2CAP_INFO:
                     case BTU_TTYPE_L2CAP_FCR_ACK:
+#if (BLE_INCLUDED == TRUE)
+                    case BTU_TTYPE_L2CAP_END_CONN_UPD:
+#endif
 
                         l2c_process_timeout (p_tle);
                         break;
@@ -473,6 +476,8 @@ BTU_API UINT32 btu_task (UINT32 param)
                     case BTU_TTYPE_BLE_INQUIRY:
                     case BTU_TTYPE_BLE_GAP_LIM_DISC:
                     case BTU_TTYPE_BLE_RANDOM_ADDR:
+                    case BTU_TTYPE_BLE_GAP_FAST_ADV:
+                    case BTU_TTYPE_BLE_OBSERVE:
                         btm_ble_timeout(p_tle);
                         break;
 

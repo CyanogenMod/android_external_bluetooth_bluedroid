@@ -200,20 +200,20 @@ typedef UINT8 (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 /* BTM_IsInquiryActive return values (Bit Mask)
  * Note: These bit masks are associated with the inquiry modes (BTM_*_INQUIRY) */
 #define BTM_INQUIRY_INACTIVE        0x0     /* no inquiry in progress */
-#define BTM_GENERAL_INQUIRY_ACTIVE  0x1     /* a general inquiry is in progress */
-#define BTM_LIMITED_INQUIRY_ACTIVE  0x2     /* a limited inquiry is in progress */
+#define BTM_GENERAL_INQUIRY_ACTIVE  BTM_GENERAL_INQUIRY     /* a general inquiry is in progress */
+#define BTM_LIMITED_INQUIRY_ACTIVE  BTM_LIMITED_INQUIRY     /* a limited inquiry is in progress */
 #define BTM_PERIODIC_INQUIRY_ACTIVE 0x8     /* a periodic inquiry is active */
 #define BTM_SSP_INQUIRY_ACTIVE      0x4     /* SSP is active, so inquiry is disallowed (work around for FW bug) */
-#define BTM_LE_GENERAL_INQUIRY_ACTIVE  0x10     /* a general inquiry is in progress */
-#define BTM_LE_LIMITED_INQUIRY_ACTIVE  0x20     /* a limited inquiry is in progress */
-#define BTM_LE_SELECT_CONN_ACTIVE	   0x40     /* selection connection is in progress */
-#define BTM_LE_OBSERVE_ACTIVE		   0x80     /* selection connection is in progress */
+#define BTM_LE_GENERAL_INQUIRY_ACTIVE  BTM_BLE_GENERAL_INQUIRY     /* a general inquiry is in progress */
+#define BTM_LE_LIMITED_INQUIRY_ACTIVE  BTM_BLE_LIMITED_INQUIRY      /* a limited inquiry is in progress */
+#define BTM_LE_SELECT_CONN_ACTIVE   0x40     /* selection connection is in progress */
+#define BTM_LE_OBSERVE_ACTIVE       0x80     /* selection connection is in progress */
 
 /* inquiry activity mask */
-#define BTM_BR_INQ_ACTIVE_MASK		   (BTM_GENERAL_INQUIRY_ACTIVE|BTM_LIMITED_INQUIRY_ACTIVE|BTM_PERIODIC_INQUIRY_ACTIVE) /* BR/EDR inquiry activity mask */
-#define BTM_LE_SCAN_ACTIVE_MASK		   0xF0     /* LE scan activity mask */
-#define BTM_LE_INQ_ACTIVE_MASK		   (BTM_LE_GENERAL_INQUIRY_ACTIVE|BTM_LE_LIMITED_INQUIRY_ACTIVE) /* LE inquiry activity mask*/
-#define BTM_INQUIRY_ACTIVE_MASK		   (BTM_BR_INQ_ACTIVE_MASK | BTM_LE_INQ_ACTIVE_MASK) /* inquiry activity mask */
+#define BTM_BR_INQ_ACTIVE_MASK        (BTM_GENERAL_INQUIRY_ACTIVE|BTM_LIMITED_INQUIRY_ACTIVE|BTM_PERIODIC_INQUIRY_ACTIVE) /* BR/EDR inquiry activity mask */
+#define BTM_BLE_SCAN_ACTIVE_MASK      0xF0     /* LE scan activity mask */
+#define BTM_BLE_INQ_ACTIVE_MASK       (BTM_LE_GENERAL_INQUIRY_ACTIVE|BTM_LE_LIMITED_INQUIRY_ACTIVE) /* LE inquiry activity mask*/
+#define BTM_INQUIRY_ACTIVE_MASK       (BTM_BR_INQ_ACTIVE_MASK | BTM_BLE_INQ_ACTIVE_MASK) /* inquiry activity mask */
 
 /* Define scan types */
 #define BTM_SCAN_TYPE_STANDARD      0
@@ -659,6 +659,7 @@ typedef struct
 typedef struct
 {
     UINT16      status;
+    BD_ADDR     bd_addr;
     UINT16      length;
     BD_NAME     remote_bd_name;
 } tBTM_REMOTE_DEV_NAME;
@@ -837,6 +838,10 @@ typedef struct
     DEV_CLASS_PTR   p_dc;       /* The device class */
     BD_NAME_PTR     p_bdn;      /* The device name */
     UINT8          *p_features; /* pointer to the remote device's features page[0] (supported features page) */
+#if BLE_INCLUDED == TRUE
+    UINT16          handle;     /* connection handle */
+    tBT_TRANSPORT   transport; /* link is LE or not */
+#endif
 } tBTM_BL_CONN_DATA;
 
 /* the data type associated with BTM_BL_DISCN_EVT */
@@ -844,6 +849,10 @@ typedef struct
 {
     tBTM_BL_EVENT   event;  /* The event reported. */
     BD_ADDR_PTR     p_bda;  /* The address of the disconnected device */
+#if BLE_INCLUDED == TRUE
+    UINT16          handle; /* disconnected connection handle */
+    tBT_TRANSPORT   transport; /* link is LE link or not */
+#endif
 } tBTM_BL_DISCN_DATA;
 
 /* Busy-Level shall have the inquiry_paging mask set when
@@ -893,10 +902,16 @@ typedef void (tBTM_BL_CHANGE_CB) (tBTM_BL_EVENT_DATA *p_data);
 ** changes. First param is BD address, second is if added or removed.
 ** Registered through BTM_AclRegisterForChanges call.
 */
+#if BLE_INCLUDED == TRUE
+typedef void (tBTM_ACL_DB_CHANGE_CB) (BD_ADDR p_bda, DEV_CLASS p_dc,
+                                      BD_NAME p_bdn, UINT8 *features,
+                                      BOOLEAN is_new, UINT16 handle,
+                                      tBT_TRANSPORT transport);
+#else
 typedef void (tBTM_ACL_DB_CHANGE_CB) (BD_ADDR p_bda, DEV_CLASS p_dc,
                                       BD_NAME p_bdn, UINT8 *features,
                                       BOOLEAN is_new);
-
+#endif
 /*****************************************************************************
 **  SCO CHANNEL MANAGEMENT
 *****************************************************************************/
@@ -1565,7 +1580,8 @@ typedef void (tBTM_MKEY_CALLBACK) (BD_ADDR bd_addr, UINT8 status, UINT8 key_flag
 **              optional data passed in by BTM_SetEncryption
 **              tBTM_STATUS - result of the operation
 */
-typedef void (tBTM_SEC_CBACK) (BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result);
+typedef void (tBTM_SEC_CBACK) (BD_ADDR bd_addr, tBT_TRANSPORT trasnport,
+                                void *p_ref_data, tBTM_STATUS result);
 
 /* Bond Cancel complete. Parameters are
 **              Result of the cancel operation
@@ -1896,73 +1912,6 @@ typedef struct
 #define BTM_FEATURE_NFC_OFF         (HCI_BRCM_FEATURE_NFC_OFF)  /* 0    */
 #define BTM_VSC_NFC_SUPPORTED(x) ((x)[BTM_FEATURE_NFC_OFF] & BTM_FEATURE_NFC_MASK)
 
-
-/************************
-**  Dual-Stack support
-*************************/
-/* BTM_SYNC_FAIL_EVT reason codes */
-#define BTM_SYNC_SUCCESS                    0
-#define BTM_SYNC_FAIL_BTE_SWITCH_REJECTED   1
-#define BTM_SYNC_FAIL_TRANS_PAUSE           2
-#define BTM_SYNC_FAIL_CORE_SYNC             3
-#define BTM_SYNC_FAIL_BTA_SYNC              4
-#define BTM_SYNC_FAIL_TRANS_RESUME          5
-#define BTM_SYNC_FAIL_RESYNC                6
-#define BTM_SYNC_FAIL_ERROR                 7
-#define BTM_SYNC_FAIL_UIPC_OPEN             8
-typedef UINT8 tBTM_SYNC_STATUS;
-
-/* Direction of sync (used by BTM_SyncStack) */
-#define BTM_SW_BB_TO_MM     0
-#define BTM_SW_TO_BB        1   /* Switch back to baseband stack (from either MM or BTC host) */
-#define BTM_SW_RESYNC       2
-#define BTM_SW_BB_TO_BTC    3   /* Switch from baseband stack to Bluetooth Controller Host stack */
-#define BTM_SW_MM_TO_BB     4
-#define BTM_SW_BTC_TO_BB    5
-typedef UINT8 tBTM_SW_DIR;
-
-/* Stack synchronization events (returned by tBTM_SYNC_STACK_CBACK callback) */
-#define BTM_SYNC_CPLT_EVT   0
-#define BTM_SYNC_BTA_EVT    1
-#define BTM_RESYNC_CPLT_EVT 2
-#define BTM_UIPC_OPENED_EVT 3
-#define BTM_UIPC_CLOSED_EVT 4
-typedef UINT8 tBTM_SYNC_STACK_EVT;
-
-/* Synchronization info from BTA/application that will be sent when calling BTE sync request functions */
-typedef struct
-{
-    tBTM_SW_DIR dir;
-    UINT16      lcid[BTM_SYNC_INFO_NUM_STR];
-    UINT8       avdt_handle[BTM_SYNC_INFO_NUM_STR];
-} tBTM_SYNC_INFO;
-
-/* Stack synchonization callback function
-** Parameters are
-**              event:  stack synchronization event
-**              status: BTM_SUCCESS if event was successful
-*/
-typedef void (*tBTM_SYNC_STACK_CBACK)(tBTM_SYNC_STACK_EVT event, tBTM_SYNC_STATUS status);
-
-
-/* Sync complete callback function. Called by bte layers after synchronization is complete
-** so that BTM_SYNC can procede with the next step for switching stack to MM
-**
-** Parameters are
-**              status: BTM_SUCCESS if synchronization was successful
-*/
-typedef void (*tBTM_SYNC_CPLT_CBACK)(tBTM_STATUS status);
-
-
-
-/* IPC event callback function. Called by BTM when an IPC event is received.
-** These events are currently sent to DM through the callback function.
-**
-** Parameters are
-**              status: BTM_SUCCESS if synchronization was successful
-**              p_data: Actual message in the IPC
-*/
-typedef void (tBTM_IPC_EVT_CBACK)(tBTM_STATUS status, BT_HDR *p_data);
 
 /* MIP evnets, callbacks    */
 enum
@@ -2659,7 +2608,8 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 **
 *******************************************************************************/
     BTM_API extern tBTM_STATUS  BTM_ReadRemoteDeviceName (BD_ADDR remote_bda,
-                                                          tBTM_CMPL_CB *p_cb);
+                                                          tBTM_CMPL_CB *p_cb,
+                                                          tBT_TRANSPORT transport);
 
 
 /*******************************************************************************
@@ -3187,7 +3137,7 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 ** Returns          TRUE if connection is up, else FALSE.
 **
 *******************************************************************************/
-    BTM_API extern BOOLEAN BTM_IsAclConnectionUp (BD_ADDR remote_bda);
+    BTM_API extern BOOLEAN BTM_IsAclConnectionUp (BD_ADDR remote_bda, tBT_TRANSPORT transport);
 
 
 /*******************************************************************************
@@ -3273,7 +3223,8 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 **                  BTM_BUSY if command is already in progress
 **
 *******************************************************************************/
-    BTM_API extern tBTM_STATUS BTM_ReadTxPower (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb);
+    BTM_API extern tBTM_STATUS BTM_ReadTxPower (BD_ADDR remote_bda,
+                                                      tBT_TRANSPORT transport, tBTM_CMPL_CB *p_cb);
 
 /*******************************************************************************
 **
@@ -3640,7 +3591,8 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 ** Returns          TRUE if registered OK, else FALSE
 **
 *******************************************************************************/
-    BTM_API extern BOOLEAN BTM_SecRegisterLinkKeyNotificationCallback (tBTM_LINK_KEY_CALLBACK *p_callback);
+    BTM_API extern BOOLEAN BTM_SecRegisterLinkKeyNotificationCallback (
+                                                        tBTM_LINK_KEY_CALLBACK *p_callback);
 
 
 /*******************************************************************************
@@ -3653,7 +3605,8 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 ** Returns          TRUE if registered OK, else FALSE
 **
 *******************************************************************************/
-    BTM_API extern BOOLEAN BTM_SecAddRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback);
+    BTM_API extern BOOLEAN BTM_SecAddRmtNameNotifyCallback (
+                                                               tBTM_RMT_NAME_CALLBACK *p_callback);
 
 
 /*******************************************************************************
@@ -3666,7 +3619,8 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 ** Returns          TRUE if OK, else FALSE
 **
 *******************************************************************************/
-    BTM_API extern BOOLEAN BTM_SecDeleteRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback);
+    BTM_API extern BOOLEAN BTM_SecDeleteRmtNameNotifyCallback (
+                                                            tBTM_RMT_NAME_CALLBACK *p_callback);
 
 
 /*******************************************************************************
@@ -3706,6 +3660,22 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 **
 *******************************************************************************/
     BTM_API extern BOOLEAN BTM_GetSecurityFlags (BD_ADDR bd_addr, UINT8 * p_sec_flags);
+
+/*******************************************************************************
+**
+** Function         BTM_GetSecurityFlagsByTransport
+**
+** Description      Get security flags for the device on a particular transport
+**
+** Parameters      bd_addr: BD address of remote device
+**                  p_sec_flags : Out parameter to be filled with security flags for the connection
+**                  transport :  Physical transport of the connection (BR/EDR or LE)
+**
+** Returns          BOOLEAN TRUE or FALSE is device found
+**
+*******************************************************************************/
+    BTM_API extern BOOLEAN BTM_GetSecurityFlagsByTransport (BD_ADDR bd_addr,
+                                UINT8 * p_sec_flags, tBT_TRANSPORT transport);
 
 /*******************************************************************************
 **
@@ -3789,9 +3759,10 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 ** Returns          TRUE if registered OK, else FALSE
 **
 *******************************************************************************/
-    BTM_API extern BOOLEAN BTM_SetUCDSecurityLevel (BOOLEAN is_originator, char *p_name, UINT8 service_id,
-                                                    UINT16 sec_level, UINT16 psm, UINT32 mx_proto_id,
-                                                    UINT32 mx_chan_id);
+    BTM_API extern BOOLEAN BTM_SetUCDSecurityLevel (BOOLEAN is_originator, char *p_name,
+                                                          UINT8 service_id, UINT16 sec_level,
+                                                          UINT16 psm, UINT32 mx_proto_id,
+                                                          UINT32 mx_chan_id);
 
 /*******************************************************************************
 **
@@ -3951,10 +3922,37 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 **
 ** Description      This function is called to perform bonding with peer device.
 **
+** Parameters:      bd_addr      - Address of the device to bond
+**                  pin_len      - length in bytes of the PIN Code
+**                  p_pin        - pointer to array with the PIN Code
+**                  trusted_mask - bitwise OR of trusted services (array of UINT32)
+
 ** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
 **
 *******************************************************************************/
-    BTM_API extern tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, UINT8 pin_len, UINT8 *p_pin, UINT32 trusted_mask[]);
+    BTM_API extern tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr,
+                                            UINT8 pin_len, UINT8 *p_pin,
+                                            UINT32 trusted_mask[]);
+
+/*******************************************************************************
+**
+** Function         BTM_SecBondByTransport
+**
+** Description      This function is called to perform bonding by designated transport
+**
+** Parameters:      bd_addr      - Address of the device to bond
+**                  pin_len      - length in bytes of the PIN Code
+**                  p_pin        - pointer to array with the PIN Code
+**                  trusted_mask - bitwise OR of trusted services (array of UINT32)
+**                  transport :  Physical transport to use for bonding (BR/EDR or LE)
+**
+** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
+**
+*******************************************************************************/
+    BTM_API extern tBTM_STATUS BTM_SecBondByTransport (BD_ADDR bd_addr,
+                                            tBT_TRANSPORT transport,
+                                            UINT8 pin_len, UINT8 *p_pin,
+                                            UINT32 trusted_mask[]);
 
 /*******************************************************************************
 **
@@ -3993,8 +3991,8 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 **                  BTM_MODE_UNSUPPORTED - if security manager not linked in.
 **
 *******************************************************************************/
-    BTM_API extern tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBTM_SEC_CBACK *p_callback,
-                                                  void *p_ref_data);
+    BTM_API extern tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBT_TRANSPORT transport,
+                                                  tBTM_SEC_CBACK *p_callback, void *p_ref_data);
 
 /*******************************************************************************
 **
@@ -4079,7 +4077,8 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 **                  r           - simple pairing Randomizer  C.
 **
 *******************************************************************************/
-    BTM_API extern void BTM_RemoteOobDataReply(tBTM_STATUS res, BD_ADDR bd_addr, BT_OCTET16 c, BT_OCTET16 r);
+    BTM_API extern void BTM_RemoteOobDataReply(tBTM_STATUS res, BD_ADDR bd_addr,
+                                                        BT_OCTET16 c, BT_OCTET16 r);
 
 /*******************************************************************************
 **
@@ -4232,7 +4231,7 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 ** Returns          the handle of the connection, or 0xFFFF if none.
 **
 *******************************************************************************/
-    BTM_API extern UINT16 BTM_GetHCIConnHandle (BD_ADDR remote_bda);
+    BTM_API extern UINT16 BTM_GetHCIConnHandle (BD_ADDR remote_bda, tBT_TRANSPORT transport);
 
 
 /*******************************************************************************
@@ -4418,171 +4417,6 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 *******************************************************************************/
     BTM_API extern UINT8 BTM_GetEirUuidList( UINT8 *p_eir, UINT8 uuid_size, UINT8 *p_num_uuid,
                                              UINT8 *p_uuid_list, UINT8 max_num_uuid);
-
-/*******************************************************************************
-**
-** Function         BTM_SyncStack
-**
-** Description      For Dual-Stack support. Called to initiate switching to/from
-**                  main stack (running on phone baseband) to mm stack (light
-**                  stack running on multi-media chip)
-**
-** Parameters       sync_dir: BTM_SW_BB_TO_MM: switch from BB to MM stack
-**                            BTM_SW_MM_TO_BB: switch from MM to BB stack
-**                            BTM_SW_RESYNC: resync MM and BB stacks
-**
-**                  p_sync_cback: callback function for event notification
-** Returns
-**
-*******************************************************************************/
-    BTM_API extern tBTM_STATUS BTM_SyncStack(tBTM_SW_DIR sync_dir, tBTM_SYNC_STACK_CBACK p_sync_cback);
-
-/*******************************************************************************
-**
-** Function         BTM_SyncBtaRsp
-**
-** Description      For Dual-Stack support. Called to indicate that upper layers
-**                  (e.g. BTA or application) have completed synchronizing bta/app
-**                  specific layers for switching.
-**
-**                  Called in response to 'BTM_SYNC_BTA_EVT'
-**
-** Parameters       status: BTM_SUCESS: bta/app successfully synchronized
-**                          otherwise:  sync was unsuccessfule. Abort switch.
-**
-**                  p_btm_sync_info: information from bta/app that will be needed
-**                                  by BTE (avdt and l2cap) for switching.
-**
-** Returns          void
-**
-*******************************************************************************/
-    BTM_API extern void BTM_SyncBtaRsp(tBTM_STATUS status, tBTM_SYNC_INFO *p_btm_sync_info);
-
-/*******************************************************************************
-**
-** Function         BTM_OpenUIPC
-**
-** Description      For Dual-Stack support. Called to open UIPC between
-**                  main stack (running on phone baseband) to embedded light stack
-**                  (running on Multimedia or Bluetooth Controller chip)
-**
-** Parameters       sync_dir: BTM_SW_BB_TO_MM: switch from BB to MM stack
-**                            BTM_SW_BB_TO_BTC:switch from BB to BTC stack
-**
-**                  p_sync_callback: callback function for event notification
-** Returns
-**
-*******************************************************************************/
-    BTM_API extern tBTM_STATUS BTM_OpenUIPC(tBTM_SW_DIR sync_dir, tBTM_SYNC_STACK_CBACK p_sync_callback);
-
-/*******************************************************************************
-**
-** Function         BTM_CloseUIPC
-**
-** Description      For Dual-Stack support. Called to close UIPC between
-**                  main stack (running on phone baseband) to embedded light stack
-**                  (running on Multimedia or Bluetooth Controller chip)
-**
-** Parameters
-**                  p_sync_callback: callback function for event notification
-** Returns
-**
-*******************************************************************************/
-    BTM_API extern tBTM_STATUS BTM_CloseUIPC(tBTM_SYNC_STACK_CBACK p_sync_callback);
-
-/*******************************************************************************
-**
-** Function         BTM_IpcSend
-**
-** Description      For Dual-Stack support. Called to send ipc messages from
-**                  full stack to lite stack and vice-versa. This API is
-**                  typically called by bta layers e.g. bta_av.
-**
-**
-** Parameters       len:    Length of the buffer in the ipc message
-**
-**                  buffer: Pointer to the buffer to be passed in the IPC message
-**
-** Returns          void
-**
-*******************************************************************************/
-    BTM_API extern void BTM_IpcSend(UINT16 len, UINT8* buffer);
-
-/*******************************************************************************
-**
-** Function         BTM_IpcSendBuf
-**
-** Description      For Dual-Stack support. Called to send ipc messages from
-**                  full stack to lite stack and vice-versa. This API is
-**                  typically called by bta layers e.g. bta_av_sync.
-**
-**
-** Parameters       p_buf: Pointer to the buffer to be passed in the IPC message
-**
-** Returns          void
-**
-*******************************************************************************/
-    BTM_API extern void BTM_IpcSendBuf(BT_HDR* p_buf);
-
-/*******************************************************************************
-**
-** Function         BTM_RegIpcEvtHandler
-**
-** Description      registers the DM provided handler for IPC events
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-    BTM_API extern void BTM_RegIpcEvtHandler(tBTM_IPC_EVT_CBACK *p_cback);
-
-/*******************************************************************************
-**
-** Function         BTM_RegRTIpcEvtHandler
-**
-** Description      registers the RT(Audio Routing) provided handler for IPC events
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-    BTM_API extern void BTM_RegRTIpcEvtHandler(tBTM_IPC_EVT_CBACK *p_cback);
-
-/*****************************************************************************
-**  N2BT
-*****************************************************************************/
-
-/* Data callback for N2BT */
-    typedef void (tBTM_N2BT_DATA_CB) (BD_ADDR bd_addr, UINT16 handle, UINT8 *p_data, UINT16 datalen);
-
-/*******************************************************************************
-**
-** Function         BTM_N2BtAcquire
-**
-** Description      Put controller into acquisition mode
-**
-** Returns          void
-**
-*******************************************************************************/
-    BTM_API extern void BTM_N2BtAcquire(BD_ADDR bd_addr, UINT16 timeout,
-                                        UINT8 freq, UINT8 src_addrlen, UINT8 sensor_flags,
-                                        UINT8 sensor_type, UINT8 sensor_clk_accuracy,
-                                        UINT16 add_rx_window, UINT16 init_crc,
-                                        UINT32 ac_low, UINT32 ac_high, UINT16 pkt_hdr,
-                                        UINT16 list_dur, UINT16 list_int,
-                                        UINT8 oor_missed_pkts, tBTM_VSC_CMPL_CB *p_cb,
-                                        tBTM_N2BT_DATA_CB *p_data_cback);
-
-/*******************************************************************************
-**
-** Function         BTM_N2BtDisconnect
-**
-** Description      Disconnects all N2BT devices
-**
-** Returns          void
-**
-*******************************************************************************/
-    BTM_API extern void BTM_N2BtDisconnect(void);
 
 /*****************************************************************************
 **  SCO OVER HCI

@@ -101,11 +101,12 @@ static char * format_uuid(tBT_UUID bt_uuid, char *str_buf)
 }
 
 static void btif_test_connect_cback(tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
-                                    BOOLEAN connected, tGATT_DISCONN_REASON reason)
+                                    BOOLEAN connected, tGATT_DISCONN_REASON reason, tBT_TRANSPORT transport)
 {
     UNUSED(gatt_if);
     UNUSED(bda);
     UNUSED(reason);
+    UNUSED (transport);
 
     ALOGD("%s: conn_id=%d, connected=%d", __FUNCTION__, conn_id, connected);
     test_cb.conn_id = connected ? conn_id : 0;
@@ -242,7 +243,7 @@ bt_status_t btif_gattc_test_command_impl(uint16_t command, btgatt_test_params_t*
             if (params->u1 == BT_DEVICE_TYPE_BLE)
                 BTM_SecAddBleDevice(params->bda1->address, NULL, BT_DEVICE_TYPE_BLE, 0);
 
-            if ( !GATT_Connect(test_cb.gatt_if, params->bda1->address, TRUE) )
+            if ( !GATT_Connect(test_cb.gatt_if, params->bda1->address, TRUE, BT_TRANSPORT_LE) )
             {
                 ALOGE("%s: GATT_Connect failed!", __FUNCTION__);
             }

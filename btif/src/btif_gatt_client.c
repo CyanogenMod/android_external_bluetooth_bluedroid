@@ -141,7 +141,9 @@ typedef struct
     uint8_t     start;
     uint8_t     has_mask;
     int8_t      rssi;
+    uint8_t     flag;
     tBT_DEVICE_TYPE device_type;
+    btgatt_transport_t transport;
 } __attribute__((packed)) btif_gattc_cb_t;
 
 typedef struct
@@ -153,8 +155,8 @@ typedef struct
 typedef struct
 {
     btif_gattc_dev_t remote_dev[BTIF_GATT_MAX_OBSERVED_DEV];
-    uint8_t        addr_type;
-    uint8_t        next_storage_idx;
+    uint8_t            addr_type;
+    uint8_t            next_storage_idx;
 }__attribute__((packed)) btif_gattc_dev_cb_t;
 
 /*******************************************************************************
@@ -482,6 +484,8 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
             uint8_t remote_name_len;
             uint8_t *p_eir_remote_name=NULL;
+            bt_device_type_t dev_type;
+            bt_property_t properties;
 
             p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
                                          BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
@@ -506,6 +510,19 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
                }
 
             }
+
+            if (( p_btif_cb->device_type == BT_DEVICE_TYPE_DUMO)&&
+               (p_btif_cb->flag & BTA_BLE_DMT_CONTROLLER_SPT) &&
+               (p_btif_cb->flag & BTA_BLE_DMT_HOST_SPT))
+             {
+                btif_storage_set_dmt_support_type (&(p_btif_cb->bd_addr), TRUE);
+             }
+
+             dev_type =  p_btif_cb->device_type;
+             BTIF_STORAGE_FILL_PROPERTY(&properties,
+                        BT_PROPERTY_TYPE_OF_DEVICE, sizeof(dev_type), &dev_type);
+             btif_storage_set_remote_device_property(&(p_btif_cb->bd_addr), &properties);
+
             HAL_CBACK(bt_gatt_callbacks, client->scan_result_cb,
                       &p_btif_cb->bd_addr, p_btif_cb->rssi, p_btif_cb->value);
             break;
@@ -570,6 +587,7 @@ static void bta_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_dat
             btif_cb.device_type = p_data->inq_res.device_type;
             btif_cb.rssi = p_data->inq_res.rssi;
             btif_cb.addr_type = p_data->inq_res.ble_addr_type;
+            btif_cb.flag = p_data->inq_res.flag;
             if (p_data->inq_res.p_eir)
             {
                 memcpy(btif_cb.value, p_data->inq_res.p_eir, 62);
@@ -663,6 +681,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             // Ensure device is in inquiry database
             int addr_type = 0;
             int device_type = 0;
+            tBTA_GATT_TRANSPORT transport = BTA_GATT_TRANSPORT_LE;
 
             if (btif_get_device_type(p_cb->bd_addr.address, &addr_type, &device_type) == TRUE
                   && device_type != BT_DEVICE_TYPE_BREDR)
@@ -672,8 +691,29 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             if (!p_cb->is_direct)
                 BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
 
+            switch(device_type)
+            {
+                case BT_DEVICE_TYPE_BREDR:
+                    transport = BTA_GATT_TRANSPORT_BR_EDR;
+                    break;
+
+                case BT_DEVICE_TYPE_BLE:
+                    transport = BTA_GATT_TRANSPORT_LE;
+                    break;
+
+                case BT_DEVICE_TYPE_DUMO:
+                    if ((p_cb->transport == GATT_TRANSPORT_LE) &&
+                        (btif_storage_is_dmt_supported_device(&(p_cb->bd_addr)) == TRUE))
+                        transport = BTA_GATT_TRANSPORT_LE;
+                    else
+                        transport = BTA_GATT_TRANSPORT_BR_EDR;
+                    break;
+            }
+
             // Connect!
-            BTA_GATTC_Open(p_cb->client_if, p_cb->bd_addr.address, p_cb->is_direct);
+            BTIF_TRACE_DEBUG2 ("BTA_GATTC_Open Transport  = %d, dev type = %d",
+                                transport, device_type);
+            BTA_GATTC_Open(p_cb->client_if, p_cb->bd_addr.address, p_cb->is_direct, transport);
             break;
         }
 
@@ -1057,12 +1097,14 @@ static bt_status_t btif_gattc_scan( int client_if, bool start )
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_open(int client_if, const bt_bdaddr_t *bd_addr, bool is_direct )
+static bt_status_t btif_gattc_open(int client_if, const bt_bdaddr_t *bd_addr,
+                                        bool is_direct,int transport)
 {
     CHECK_BTGATT_INIT();
     btif_gattc_cb_t btif_cb;
     btif_cb.client_if = (uint8_t) client_if;
     btif_cb.is_direct = is_direct ? 1 : 0;
+    btif_cb.transport = (btgatt_transport_t)transport;
     bdcpy(btif_cb.bd_addr.address, bd_addr->address);
     return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_OPEN,
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);

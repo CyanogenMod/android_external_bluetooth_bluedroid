@@ -30,12 +30,17 @@
 #define CHNL_MAP_LEN    5
 typedef UINT8 tBTM_BLE_CHNL_MAP[CHNL_MAP_LEN];
 
-#define BTM_BLE_CONNECT_EVT     0x00
-#define BTM_BLE_CONNECT_DIR_EVT 0x01
-#define BTM_BLE_DISCOVER_EVT    0x02
-#define BTM_BLE_NON_CONNECT_EVT 0x03
+/* 0x00-0x04 only used for set advertising parameter command */
+#define BTM_BLE_CONNECT_EVT     0x00   /* 0x00-0x04 only used for set advertising
+                                            parameter command */
+#define BTM_BLE_CONNECT_DIR_EVT 0x01   /* Connectable directed advertising */
+#define BTM_BLE_DISCOVER_EVT    0x02  /* Scannable undirected advertising */
+#define BTM_BLE_NON_CONNECT_EVT 0x03  /* Non connectable undirected advertising */
+#define BTM_BLE_CONNECT_LO_DUTY_DIR_EVT 0x04        /* Connectable low duty
+                                                       cycle directed advertising  */
+    /* 0x00 - 0x05 can be received on adv event type */
 #define BTM_BLE_SCAN_RSP_EVT    0x04
-#define BTM_BLE_SCAN_REQ_EVT    0x06
+#define BTM_BLE_SCAN_REQ_EVT    0x05
 #define BTM_BLE_UNKNOWN_EVT     0xff
 
 #define BTM_BLE_UNKNOWN_EVT     0xff
@@ -191,27 +196,33 @@ typedef struct
 #define BTM_BLE_LIMIT_DISC_FLAG         (0x01 << 0)
 #define BTM_BLE_GEN_DISC_FLAG           (0x01 << 1)
 #define BTM_BLE_BREDR_NOT_SPT           (0x01 << 2)
+/* 4.1 spec adv flag for simultaneous BR/EDR+LE connection support */
+#define BTM_BLE_DMT_CONTROLLER_SPT      (0x01 << 3)
+#define BTM_BLE_DMT_HOST_SPT            (0x01 << 4)
+
 #define BTM_BLE_NON_LIMIT_DISC_FLAG     (0x00 )         /* lowest bit unset */
 #define BTM_BLE_ADV_FLAG_MASK           (BTM_BLE_LIMIT_DISC_FLAG | BTM_BLE_BREDR_NOT_SPT | BTM_BLE_GEN_DISC_FLAG)
 #define BTM_BLE_LIMIT_DISC_MASK         (BTM_BLE_LIMIT_DISC_FLAG )
 
-#define BTM_BLE_AD_BIT_DEV_NAME        (0x0001 << 0)
-#define BTM_BLE_AD_BIT_FLAGS           (0x0001 << 1)
-#define BTM_BLE_AD_BIT_MANU            (0x0001 << 2)
-#define BTM_BLE_AD_BIT_TX_PWR          (0x0001 << 3)
-#define BTM_BLE_AD_BIT_INT_RANGE       (0x0001 << 5)
-#define BTM_BLE_AD_BIT_SERVICE         (0x0001 << 6)
-#define BTM_BLE_AD_BIT_SERVICE_SOL     (0x0001 << 7)
-#define BTM_BLE_AD_BIT_SERVICE_DATA    (0x0001 << 8)
-#define BTM_BLE_AD_BIT_SIGN_DATA       (0x0001 << 9)
-#define BTM_BLE_AD_BIT_SERVICE_128SOL  (0x0001 << 10)
-#define BTM_BLE_AD_BIT_APPEARANCE      (0x0001 << 11)
-#define BTM_BLE_AD_BIT_PUBLIC_ADDR      (0x0001 << 12)
-#define BTM_BLE_AD_BIT_RANDOM_ADDR      (0x0001 << 13)
+#define BTM_BLE_AD_BIT_DEV_NAME        (0x00000001 << 0)
+#define BTM_BLE_AD_BIT_FLAGS           (0x00000001 << 1)
+#define BTM_BLE_AD_BIT_MANU            (0x00000001 << 2)
+#define BTM_BLE_AD_BIT_TX_PWR          (0x00000001 << 3)
+#define BTM_BLE_AD_BIT_INT_RANGE       (0x00000001 << 5)
+#define BTM_BLE_AD_BIT_SERVICE         (0x00000001 << 6)
+#define BTM_BLE_AD_BIT_SERVICE_SOL     (0x00000001 << 7)
+#define BTM_BLE_AD_BIT_SERVICE_DATA    (0x00000001 << 8)
+#define BTM_BLE_AD_BIT_SIGN_DATA       (0x00000001 << 9)
+#define BTM_BLE_AD_BIT_SERVICE_128SOL  (0x00000001 << 10)
+#define BTM_BLE_AD_BIT_APPEARANCE      (0x00000001 << 11)
+#define BTM_BLE_AD_BIT_PUBLIC_ADDR      (0x00000001 << 12)
+#define BTM_BLE_AD_BIT_RANDOM_ADDR       (0x00000001 << 13)
+#define BTM_BLE_AD_BIT_SERVICE_32        (0x00000001 << 4)
+#define BTM_BLE_AD_BIT_SERVICE_32SOL     (0x00000001 << 14)
 
-#define BTM_BLE_AD_BIT_PROPRIETARY     (0x0001 << 15)
+#define BTM_BLE_AD_BIT_PROPRIETARY     (0x00000001 << 15)
 
-typedef  UINT16  tBTM_BLE_AD_MASK;
+typedef  UINT32  tBTM_BLE_AD_MASK;
 
 #define BTM_BLE_AD_TYPE_FLAG            HCI_EIR_FLAGS_TYPE                  /* 0x01 */
 #define BTM_BLE_AD_TYPE_16SRV_PART      HCI_EIR_MORE_16BITS_UUID_TYPE       /* 0x02 */
@@ -233,6 +244,11 @@ typedef  UINT16  tBTM_BLE_AD_MASK;
 #define BTM_BLE_AD_TYPE_PUBLIC_TARGET   0x17
 #define BTM_BLE_AD_TYPE_RANDOM_TARGET   0x18
 #define BTM_BLE_AD_TYPE_APPEARANCE      0x19
+#define BTM_BLE_AD_TYPE_ADV_INT         0x1a
+#define BTM_BLE_AD_TYPE_32SOL_SRV_UUID  0x1b
+#define BTM_BLE_AD_TYPE_32SERVICE_DATA  0x1c
+#define BTM_BLE_AD_TYPE_128SERVICE_DATA 0x1d
+
 #define BTM_BLE_AD_TYPE_MANU            HCI_EIR_MANUFACTURER_SPECIFIC_TYPE      /* 0xff */
 typedef UINT8   tBTM_BLE_AD_TYPE;
 
@@ -252,11 +268,29 @@ typedef struct
     UINT16      *p_uuid;
 }tBTM_BLE_SERVICE;
 
+/* Service tag supported in the device */
+typedef struct
+{
+    UINT8       num_service;
+    BOOLEAN     list_cmpl;
+    UINT32      *p_uuid;
+}tBTM_BLE_32SERVICE;
+
+
 typedef struct
 {
     UINT8       len;
     UINT8      *p_val;
 }tBTM_BLE_MANU;
+
+
+typedef struct
+{
+    tBT_UUID    service_uuid;
+    UINT8       len;
+    UINT8      *p_val;
+}tBTM_BLE_SERVICE_DATA;
+
 
 typedef struct
 {
@@ -273,9 +307,12 @@ typedef struct
 
 typedef struct
 {
-    tBTM_BLE_MANU           manu;			/* manufactuer data */
+    tBTM_BLE_SERVICE_DATA   *p_service_data;
+    tBTM_BLE_MANU           manu;           /* manufactuer data */
     tBTM_BLE_INT_RANGE      int_range;      /* slave prefered conn interval range */
     tBTM_BLE_SERVICE        services;       /* services */
+    tBTM_BLE_32SERVICE      service_32b;     /* 32 bits Service UUID */
+    tBTM_BLE_32SERVICE      sol_service_32b;    /* List of 32 bit Service Solicitation UUIDs */
     UINT16                  appearance;
     UINT8                   flag;
     tBTM_BLE_PROPRIETARY    *p_proprietary;
@@ -431,19 +468,6 @@ BTM_API extern void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_windo
 *******************************************************************************/
 BTM_API extern tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask,
                                                tBTM_BLE_ADV_DATA *p_data);
-
-/*******************************************************************************
-**
-** Function         BTM_BleReset
-**
-** Description      This function is called to reset ULP controller.
-**
-** Parameters       None.
-**
-** Returns          void
-**
-*******************************************************************************/
-BTM_API extern void BTM_BleReset(void);
 
 /*******************************************************************************
 **
@@ -866,17 +890,6 @@ void BTM_BleTestEnd(tBTM_CMPL_CB *p_cmd_cmpl_cback);
 
 /*******************************************************************************
 **
-** Function         BTM_IsBleLink
-**
-** Description      This function is to check the link type is BLE or BR/EDR.
-**
-** Returns          TRUE if BLE link; FALSE if BR/EDR.
-**
-*******************************************************************************/
-BTM_API extern BOOLEAN BTM_IsBleLink (BD_ADDR bd_addr);
-
-/*******************************************************************************
-**
 ** Function         BTM_UseLeLink
 **
 ** Description      This function is to select the underneath physical link to use.
@@ -885,6 +898,20 @@ BTM_API extern BOOLEAN BTM_IsBleLink (BD_ADDR bd_addr);
 **
 *******************************************************************************/
 BTM_API extern BOOLEAN BTM_UseLeLink (BD_ADDR bd_addr);
+
+/*******************************************************************************
+**
+** Function         BTM_BleStackEnable
+**
+** Description      Enable/Disable BLE functionality on stack regarless controller
+**                  capability.
+**
+** Parameters:      enable: TRUE to enable, FALSE to disable.
+**
+** Returns          TRUE if added OK, else FALSE
+**
+*******************************************************************************/
+BTM_API extern tBTM_STATUS BTM_BleStackEnable (BOOLEAN enable);
 
 #ifdef __cplusplus
 }

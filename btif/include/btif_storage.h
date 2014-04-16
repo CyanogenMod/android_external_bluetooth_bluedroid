@@ -353,4 +353,34 @@ bt_status_t btif_storage_set_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
 
 bt_status_t btif_storage_get_remote_version(const bt_bdaddr_t *remote_bd_addr,
                                   bt_remote_version_t *p_ver);
+
+/*******************************************************************************
+**
+** Function         btif_storage_set_dmt_support_type
+**
+** Description      Sets DMT support status for a remote device
+**
+** Returns          BT_STATUS_SUCCESS if config update is successful
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+
+bt_status_t btif_storage_set_dmt_support_type(const bt_bdaddr_t *remote_bd_addr,
+                                                   BOOLEAN dmt_supported);
+
+
+
+/*******************************************************************************
+**
+** Function         btif_storage_is_dmt_supported_device
+**
+** Description      checks if a device supports Dual mode topology
+**
+** Returns         TRUE if remote supports DMT else FALSE
+**
+*******************************************************************************/
+
+BOOLEAN btif_storage_is_dmt_supported_device(const bt_bdaddr_t *remote_bd_addr);
+
+
 #endif /* BTIF_STORAGE_H */

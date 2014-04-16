@@ -2246,7 +2246,7 @@ UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
                 p_ccb->out_cfg_fcr_present = TRUE;
             }
 
-            if (p_cfg->fcr.mode == L2CAP_FCR_ERTM_MODE)
+            if (p_cfg->fcr.mode == L2CAP_FCR_ERTM_MODE || p_cfg->fcr.mode == L2CAP_FCR_STREAM_MODE)
             {
                 /* Always respond with FCR ERTM parameters */
                 p_ccb->out_cfg_fcr_present = TRUE;

@@ -347,7 +347,7 @@ void bta_hh_le_open_conn(tBTA_HH_DEV_CB *p_cb, BD_ADDR remote_bda)
     bta_hh_cb.le_cb_index[BTA_HH_GET_LE_CB_IDX(p_cb->hid_handle)] = p_cb->index;
     p_cb->in_use = TRUE;
 
-    BTA_GATTC_Open(bta_hh_cb.gatt_if, remote_bda, TRUE);
+    BTA_GATTC_Open(bta_hh_cb.gatt_if, remote_bda, TRUE, BTA_GATT_TRANSPORT_LE);
 }
 /*******************************************************************************
 **
@@ -640,7 +640,8 @@ void bta_hh_le_read_rpt_ref_descr(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT *p_rp
 
     while (p_rpt != NULL)
     {
-        if (!p_rpt->in_use) break;
+        if(!p_rpt->in_use)
+            break;
 
         if (p_rpt->rpt_type == BTA_HH_RPTT_INPUT)
         {
@@ -674,8 +675,6 @@ void bta_hh_le_read_rpt_ref_descr(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT *p_rp
                 break;
             }
         }
-        else
-            break;
 
         if (p_rpt->index == BTA_HH_LE_RPT_MAX - 1)
             break;
@@ -1210,11 +1209,13 @@ void bta_hh_le_pri_service_discovery(tBTA_HH_DEV_CB *p_cb)
 ** Returns          None
 **
 *******************************************************************************/
-void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
+void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, tBTA_GATT_TRANSPORT transport,
+                                    void *p_ref_data, tBTM_STATUS result)
 {
     UINT8   idx = bta_hh_find_cb(bd_addr);
     tBTA_HH_DEV_CB *p_dev_cb;
     UNUSED(p_ref_data);
+    UNUSED (transport);
 
     APPL_TRACE_ERROR0("bta_hh_le_encrypt_cback");
 
@@ -1315,7 +1316,7 @@ void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
     }
 
     /* verify bond */
-    BTM_GetSecurityFlags(p_cb->addr, &sec_flag);
+    BTM_GetSecurityFlagsByTransport(p_cb->addr, &sec_flag, BT_TRANSPORT_LE);
 
     /* if link has been encrypted */
     if (sec_flag & BTM_SEC_FLAG_ENCRYPTED)
@@ -1327,14 +1328,14 @@ void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
     {
         sec_flag = BTM_BLE_SEC_ENCRYPT;
         p_cb->status = BTA_HH_ERR_AUTH_FAILED;
-        BTM_SetEncryption(p_cb->addr, bta_hh_le_encrypt_cback, &sec_flag);
+        BTM_SetEncryption(p_cb->addr, BTA_TRANSPORT_LE, bta_hh_le_encrypt_cback, &sec_flag);
     }
     /* unbonded device, report security error here */
     else if (p_cb->sec_mask != BTA_SEC_NONE)
     {
         sec_flag = BTM_BLE_SEC_ENCRYPT_NO_MITM;
         p_cb->status = BTA_HH_ERR_AUTH_FAILED;
-        BTM_SetEncryption(p_cb->addr, bta_hh_le_encrypt_cback, &sec_flag);
+        BTM_SetEncryption(p_cb->addr, BTA_TRANSPORT_LE, bta_hh_le_encrypt_cback, &sec_flag);
     }
     /* otherwise let it go through */
     else
@@ -2620,7 +2621,7 @@ static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB *p_cb, BOOLEAN check_bond)
         !p_cb->in_bg_conn && to_add)
     {
         /* add device into BG connection to accept remote initiated connection */
-        BTA_GATTC_Open(bta_hh_cb.gatt_if, p_cb->addr, FALSE);
+        BTA_GATTC_Open(bta_hh_cb.gatt_if, p_cb->addr, FALSE, BTA_GATT_TRANSPORT_LE);
         p_cb->in_bg_conn = TRUE;
 
         BTA_DmBleSetBgConnType(BTA_DM_BLE_CONN_AUTO, NULL);

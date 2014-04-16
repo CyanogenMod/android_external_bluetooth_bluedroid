@@ -77,21 +77,32 @@ typedef struct
 #define  BTA_GATT_INSUF_RESOURCE            GATT_INSUF_RESOURCE                /* 0x0011 */
 
 
-#define  BTA_GATT_ILLEGAL_PARAMETER         GATT_ILLEGAL_PARAMETER             /* 0x0087 */
-#define  BTA_GATT_NO_RESOURCES              GATT_NO_RESOURCES                  /* 0x0080 */
-#define  BTA_GATT_INTERNAL_ERROR            GATT_INTERNAL_ERROR                /* 0x0081 */
-#define  BTA_GATT_WRONG_STATE               GATT_WRONG_STATE                   /* 0x0082 */
-#define  BTA_GATT_DB_FULL                   GATT_DB_FULL                       /* 0x0083 */
-#define  BTA_GATT_BUSY                      GATT_BUSY                          /* 0x0084 */
-#define  BTA_GATT_ERROR                     GATT_ERROR                         /* 0x0085 */
-#define  BTA_GATT_CMD_STARTED               GATT_CMD_STARTED                   /* 0x0086 */
-#define  BTA_GATT_PENDING                   GATT_PENDING                       /* 0x0088 */
-#define  BTA_GATT_AUTH_FAIL                 GATT_AUTH_FAIL                     /* 0x0089 */
-#define  BTA_GATT_MORE                      GATT_MORE                          /* 0x008a */
-#define  BTA_GATT_INVALID_CFG               GATT_INVALID_CFG                   /* 0x008b */
-#define  BTA_GATT_DUP_REG                   0x008c
-#define  BTA_GATT_ALREADY_OPEN              0x008d                              /* 0x008d */
-#define  BTA_GATT_CANCEL                    0x008e                              /* 0x008e */
+#define  BTA_GATT_NO_RESOURCES              GATT_NO_RESOURCES                  /* 0x80 */
+#define  BTA_GATT_INTERNAL_ERROR            GATT_INTERNAL_ERROR                /* 0x81 */
+#define  BTA_GATT_WRONG_STATE               GATT_WRONG_STATE                   /* 0x82 */
+#define  BTA_GATT_DB_FULL                   GATT_DB_FULL                       /* 0x83 */
+#define  BTA_GATT_BUSY                      GATT_BUSY                          /* 0x84 */
+#define  BTA_GATT_ERROR                     GATT_ERROR                         /* 0x85 */
+#define  BTA_GATT_CMD_STARTED               GATT_CMD_STARTED                   /* 0x86 */
+#define  BTA_GATT_ILLEGAL_PARAMETER         GATT_ILLEGAL_PARAMETER             /* 0x87 */
+#define  BTA_GATT_PENDING                   GATT_PENDING                       /* 0x88 */
+#define  BTA_GATT_AUTH_FAIL                 GATT_AUTH_FAIL                     /* 0x89 */
+#define  BTA_GATT_MORE                      GATT_MORE                          /* 0x8a */
+#define  BTA_GATT_INVALID_CFG               GATT_INVALID_CFG                   /* 0x8b */
+#define  BTA_GATT_SERVICE_STARTED           GATT_SERVICE_STARTED               /* 0x8c */
+#define  BTA_GATT_ENCRYPED_MITM             GATT_ENCRYPED_MITM                 /* GATT_SUCCESS */
+#define  BTA_GATT_ENCRYPED_NO_MITM          GATT_ENCRYPED_NO_MITM              /* 0x8d */
+#define  BTA_GATT_NOT_ENCRYPTED             GATT_NOT_ENCRYPTED                 /* 0x8e */
+
+#define  BTA_GATT_DUP_REG                   0x8f                                /* 0x8f */
+#define  BTA_GATT_ALREADY_OPEN              0x90                                /* 0x90 */
+#define  BTA_GATT_CANCEL                    0x91                                /* 0x91 */
+
+                                             /* 0xE0 ~ 0xFC reserved for future use */
+#define  BTA_GATT_CCC_CFG_ERR                GATT_CCC_CFG_ERR     /* 0xFD Client Characteristic Configuration Descriptor Improperly Configured */
+#define  BTA_GATT_PRC_IN_PROGRESS            GATT_PRC_IN_PROGRESS /* 0xFE Procedure Already in progress */
+#define  BTA_GATT_OUT_OF_RANGE               GATT_OUT_OF_RANGE    /* 0xFFAttribute value out of range */
+
 typedef UINT8 tBTA_GATT_STATUS;
 
 #define BTA_GATT_INVALID_CONN_ID   GATT_INVALID_CONN_ID
@@ -325,6 +336,7 @@ typedef struct
     UINT16              conn_id;
     tBTA_GATTC_IF       client_if;
     BD_ADDR             remote_bda;
+    tBTA_TRANSPORT      transport;
     UINT16              mtu;
 }tBTA_GATTC_OPEN;
 
@@ -469,12 +481,9 @@ typedef tGATTS_SRV_CHG     tBTA_GATTS_SRV_CHG;
 typedef tGATTS_SRV_CHG_REQ tBTA_GATTS_SRV_CHG_REQ;
 typedef tGATTS_SRV_CHG_RSP tBTA_GATTS_SRV_CHG_RSP;
 
-enum
-{
-    BTA_GATT_TRANSPORT_LE,
-    BTA_GATT_TRANSPORT_BR_EDR,
-    BTA_GATT_TRANSPORT_LE_BR_EDR
-};
+#define BTA_GATT_TRANSPORT_LE       GATT_TRANSPORT_LE
+#define BTA_GATT_TRANSPORT_BR_EDR   GATT_TRANSPORT_BR_EDR
+#define BTA_GATT_TRANSPORT_LE_BR_EDR    GATT_TRANSPORT_LE_BR_EDR
 typedef UINT8 tBTA_GATT_TRANSPORT;
 
 /* attribute value */
@@ -552,6 +561,7 @@ typedef struct
     BD_ADDR             remote_bda;
     UINT16              conn_id;
     tBTA_GATT_REASON    reason; /* report disconnect reason */
+    tBTA_GATT_TRANSPORT transport;
 }tBTA_GATTS_CONN;
 
 /* GATTS callback data */
@@ -560,7 +570,7 @@ typedef union
     tBTA_GATTS_REG_OPER     reg_oper;
     tBTA_GATTS_CREATE       create;
     tBTA_GATTS_SRVC_OPER    srvc_oper;
-    tBTA_GATT_STATUS        status; /*  BTA_GATTS_CONF_EVT */
+    tBTA_GATT_STATUS        status; /*  BTA_GATTS_CONF_EVT or BTA_GATTS_LISTEN_EVT */
     tBTA_GATTS_ADD_RESULT   add_result;  /* add included service: BTA_GATTS_ADD_INCL_SRVC_EVT
                                            add char : BTA_GATTS_ADD_CHAR_EVT
                                            add char descriptor: BTA_GATTS_ADD_CHAR_DESCR_EVT */
@@ -644,7 +654,8 @@ BTA_API extern void BTA_GATTC_AppDeregister (tBTA_GATTC_IF client_if);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, BOOLEAN is_direct);
+BTA_API extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
+                                   BOOLEAN is_direct, tBTA_GATT_TRANSPORT transport);
 
 /*******************************************************************************
 **
@@ -1301,7 +1312,8 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN is_direct);
+    BTA_API extern void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda,
+                                        BOOLEAN is_direct, tBTA_GATT_TRANSPORT transport);
 
 
 /*******************************************************************************
