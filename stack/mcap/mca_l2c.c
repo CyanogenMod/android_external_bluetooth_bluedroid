@@ -70,11 +70,13 @@ const tL2CAP_FCR_OPTS mca_l2c_fcr_opts_def =
 ** Returns          void
 **
 *******************************************************************************/
-static void mca_sec_check_complete_term (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
+static void mca_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, UINT8 res)
 {
     tMCA_TC_TBL     *p_tbl = (tMCA_TC_TBL *)p_ref_data;
     tL2CAP_CFG_INFO cfg;
     tL2CAP_ERTM_INFO ertm_info;
+
+    UNUSED(transport);
 
     MCA_TRACE_DEBUG1("mca_sec_check_complete_term res: %d", res);
 
@@ -115,11 +117,12 @@ static void mca_sec_check_complete_term (BD_ADDR bd_addr, void *p_ref_data, UINT
 ** Returns          void
 **
 *******************************************************************************/
-static void mca_sec_check_complete_orig (BD_ADDR bd_addr, void *p_ref_data, UINT8 res)
+static void mca_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, UINT8 res)
 {
     tMCA_TC_TBL     *p_tbl = (tMCA_TC_TBL *)p_ref_data;
     tL2CAP_CFG_INFO cfg;
     UNUSED(bd_addr);
+    UNUSED(transport);
 
     MCA_TRACE_DEBUG1("mca_sec_check_complete_orig res: %d", res);
 

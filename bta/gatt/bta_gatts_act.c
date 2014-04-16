@@ -37,9 +37,12 @@
 #include <string.h>
 
 static void bta_gatts_nv_save_cback(BOOLEAN is_saved, tGATTS_HNDL_RANGE *p_hndl_range);
-static BOOLEAN bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd, tGATTS_SRV_CHG_REQ *p_req, tGATTS_SRV_CHG_RSP *p_rsp);
+static BOOLEAN bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd, tGATTS_SRV_CHG_REQ *p_req,
+                                                tGATTS_SRV_CHG_RSP *p_rsp);
 
-static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected, tGATT_DISCONN_REASON reason);
+static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
+                                      BOOLEAN connected, tGATT_DISCONN_REASON reason,
+                                      tGATT_TRANSPORT transport);
 static void bta_gatts_send_request_cback (UINT16 conn_id,
                                           UINT32 trans_id,
                                           tGATTS_REQ_TYPE req_type, tGATTS_DATA *p_data);
@@ -85,7 +88,8 @@ static void bta_gatts_nv_save_cback(BOOLEAN is_add, tGATTS_HNDL_RANGE *p_hndl_ra
 ** Returns          none.
 **
 *******************************************************************************/
-static BOOLEAN bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd, tGATTS_SRV_CHG_REQ *p_req, tGATTS_SRV_CHG_RSP *p_rsp)
+static BOOLEAN bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd,
+                                              tGATTS_SRV_CHG_REQ *p_req, tGATTS_SRV_CHG_RSP *p_rsp)
 {
     return bta_gatts_co_srv_chg((tBTA_GATTS_SRV_CHG_CMD) cmd,
                                 (tBTA_GATTS_SRV_CHG_REQ *) p_req,
@@ -223,14 +227,16 @@ void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
             p_cb->rcb[first_unuse].p_cback = p_msg->api_reg.p_cback;
             memcpy(&p_cb->rcb[first_unuse].app_uuid, &p_msg->api_reg.app_uuid, sizeof(tBT_UUID));
             cb_data.reg_oper.server_if      =
-            p_cb->rcb[first_unuse].gatt_if  = GATT_Register(&p_msg->api_reg.app_uuid, &bta_gatts_cback);
+            p_cb->rcb[first_unuse].gatt_if  = 
+            GATT_Register(&p_msg->api_reg.app_uuid, &bta_gatts_cback);
             if ( !p_cb->rcb[first_unuse].gatt_if)
             {
                 status = BTA_GATT_NO_RESOURCES;
             }
             else
             {
-                if ((p_buf = (tBTA_GATTS_INT_START_IF *) GKI_getbuf(sizeof(tBTA_GATTS_INT_START_IF))) != NULL)
+                if ((p_buf =
+                  (tBTA_GATTS_INT_START_IF *) GKI_getbuf(sizeof(tBTA_GATTS_INT_START_IF))) != NULL)
                 {
                     p_buf->hdr.event    = BTA_GATTS_INT_START_IF_EVT;
                     p_buf->server_if    = p_cb->rcb[first_unuse].gatt_if;
@@ -275,7 +281,8 @@ void bta_gatts_start_if(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
     }
     else
     {
-        APPL_TRACE_ERROR1("Unable to start app.: Unknown interface =%d",p_msg->int_start_if.server_if );
+        APPL_TRACE_ERROR1("Unable to start app.: Unknown interface =%d",
+            p_msg->int_start_if.server_if );
     }
 }
 /*******************************************************************************
@@ -358,7 +365,8 @@ void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 
             if (service_id != 0)
             {
-                memcpy(&p_cb->srvc_cb[srvc_idx].service_uuid, &p_msg->api_create_svc.service_uuid, sizeof(tBT_UUID));
+                memcpy(&p_cb->srvc_cb[srvc_idx].service_uuid,
+                    &p_msg->api_create_svc.service_uuid, sizeof(tBT_UUID));
                 p_cb->srvc_cb[srvc_idx].service_id   = service_id;
                 p_cb->srvc_cb[srvc_idx].inst_num     = p_msg->api_create_svc.inst;
                 p_cb->srvc_cb[srvc_idx].idx          = srvc_idx;
@@ -617,11 +625,7 @@ void bta_gatts_send_rsp (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 **
 ** Function         bta_gatts_indicate_handle
 **
-<<<<<<< HEAD
-** Description      GATTS indicate handel value
-=======
 ** Description      GATTS send handle value indication or notification.
->>>>>>> 6ea30bf... LE: UPF 45 bug fixes
 **
 ** Returns          none.
 **
@@ -632,13 +636,14 @@ void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
     tBTA_GATT_STATUS    status = BTA_GATT_ILLEGAL_PARAMETER;
     tGATT_IF            gatt_if;
     BD_ADDR             remote_bda;
-
+    tBTA_TRANSPORT transport;
 
     p_srvc_cb = bta_gatts_find_srvc_cb_by_attr_id (p_cb, p_msg->api_indicate.attr_id);
 
     if (p_srvc_cb )
     {
-        if (GATT_GetConnectionInfor(p_msg->api_indicate.hdr.layer_specific, &gatt_if, remote_bda))
+        if (GATT_GetConnectionInfor(p_msg->api_indicate.hdr.layer_specific,
+            &gatt_if, remote_bda, &transport))
         {
             if (p_msg->api_indicate.need_confirm)
 
@@ -653,7 +658,7 @@ void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
                                                         p_msg->api_indicate.value);
 
             /* if over BR_EDR, inform PM for mode change */
-            if (!BTM_IsBleLink(remote_bda))
+            if (transport == BTA_TRANSPORT_BR_EDR)
             {
                 bta_sys_busy(BTA_ID_GATTS, BTA_ALL_APP_ID, remote_bda);
                 bta_sys_idle(BTA_ID_GATTS, BTA_ALL_APP_ID, remote_bda);
@@ -664,8 +669,7 @@ void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
             APPL_TRACE_ERROR1("Unknown connection ID: %d fail sending notification",
                               p_msg->api_indicate.hdr.layer_specific);
         }
-
-        if (status != GATT_SUCCESS && p_msg->api_indicate.need_confirm &&
+        if ((status != GATT_SUCCESS || !p_msg->api_indicate.need_confirm) &&
             p_cb->rcb[p_srvc_cb->rcb_idx].p_cback)
         {
             (*p_cb->rcb[p_srvc_cb->rcb_idx].p_cback)(BTA_GATTS_CONF_EVT, (tBTA_GATTS *)&status);
@@ -692,13 +696,22 @@ void bta_gatts_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 {
     tBTA_GATTS_RCB      *p_rcb=NULL;
     tBTA_GATT_STATUS    status= BTA_GATT_ERROR;
+    UINT16              conn_id;
     UNUSED(p_cb);
 
     if ((p_rcb = bta_gatts_find_app_rcb_by_app_if(p_msg->api_open.server_if)) != NULL)
     {
-        if (GATT_Connect(p_rcb->gatt_if, p_msg->api_open.remote_bda, p_msg->api_open.is_direct))
+        /* should always get the connection ID */
+        if (GATT_Connect(p_rcb->gatt_if, p_msg->api_open.remote_bda,
+                        p_msg->api_open.is_direct, p_msg->api_open.transport))
         {
             status = BTA_GATT_OK;
+
+            if (GATT_GetConnIdIfConnected(p_rcb->gatt_if, p_msg->api_open.remote_bda,
+                                            &conn_id, p_msg->api_open.transport))
+            {
+                status = BTA_GATT_ALREADY_OPEN;
+            }
         }
     }
     else
@@ -727,7 +740,8 @@ void bta_gatts_cancel_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 
     if ((p_rcb = bta_gatts_find_app_rcb_by_app_if(p_msg->api_cancel_open.server_if)) != NULL)
     {
-        if (!GATT_CancelConnect(p_rcb->gatt_if, p_msg->api_cancel_open.remote_bda, p_msg->api_cancel_open.is_direct))
+        if (!GATT_CancelConnect(p_rcb->gatt_if, p_msg->api_cancel_open.remote_bda,
+                                p_msg->api_cancel_open.is_direct))
         {
             APPL_TRACE_ERROR0("bta_gatts_cancel_open failed for open request");
         }
@@ -759,9 +773,11 @@ void bta_gatts_close (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
     tBTA_GATT_STATUS    status= BTA_GATT_ERROR;
     tGATT_IF            gatt_if;
     BD_ADDR             remote_bda;
+    tBTA_GATT_TRANSPORT transport;
+
     UNUSED(p_cb);
 
-    if (GATT_GetConnectionInfor(p_msg->hdr.layer_specific, &gatt_if, remote_bda))
+    if (GATT_GetConnectionInfor(p_msg->hdr.layer_specific, &gatt_if, remote_bda, &transport))
     {
         if (GATT_Disconnect(p_msg->hdr.layer_specific) != GATT_SUCCESS)
         {
@@ -776,7 +792,7 @@ void bta_gatts_close (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 
         if (p_rcb && p_rcb->p_cback)
         {
-            if (!BTM_IsBleLink(remote_bda))
+            if (transport == BTA_TRANSPORT_BR_EDR)
                 bta_sys_conn_close( BTA_ID_GATTS ,BTA_ALL_APP_ID, remote_bda);
 
             (*p_rcb->p_cback)(BTA_GATTS_CLOSE_EVT,  (tBTA_GATTS *)&status);
@@ -840,19 +856,21 @@ static void bta_gatts_send_request_cback (UINT16 conn_id,
     tBTA_GATTS          cb_data;
     tBTA_GATTS_RCB     *p_rcb;
     tGATT_IF            gatt_if;
+    tBTA_GATT_TRANSPORT transport;
 
     memset(&cb_data, 0 , sizeof(tBTA_GATTS));
 
-    if (GATT_GetConnectionInfor(conn_id, &gatt_if, cb_data.req_data.remote_bda))
+    if (GATT_GetConnectionInfor(conn_id, &gatt_if, cb_data.req_data.remote_bda, &transport))
     {
         p_rcb = bta_gatts_find_app_rcb_by_app_if(gatt_if);
 
-        APPL_TRACE_DEBUG3 ("bta_gatts_send_request_cback conn_id=%d trans_id=%d req_type=%d", conn_id, trans_id, req_type);
+        APPL_TRACE_DEBUG3 ("bta_gatts_send_request_cback conn_id=%d trans_id=%d req_type=%d",
+                            conn_id, trans_id, req_type);
 
         if (p_rcb && p_rcb->p_cback)
         {
             /* if over BR_EDR, inform PM for mode change */
-            if (!BTM_IsBleLink(cb_data.req_data.remote_bda))
+            if (transport == BTA_TRANSPORT_BR_EDR)
             {
                 bta_sys_busy(BTA_ID_GATTS, BTA_ALL_APP_ID, cb_data.req_data.remote_bda);
                 bta_sys_idle(BTA_ID_GATTS, BTA_ALL_APP_ID, cb_data.req_data.remote_bda);
@@ -885,7 +903,8 @@ static void bta_gatts_send_request_cback (UINT16 conn_id,
 **
 *******************************************************************************/
 static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
-                                  BOOLEAN connected, tGATT_DISCONN_REASON reason)
+                                  BOOLEAN connected, tGATT_DISCONN_REASON reason,
+                                  tGATT_TRANSPORT transport)
 {
     tBTA_GATTS      cb_data;
     UINT8           evt = connected ? BTA_GATTS_CONNECT_EVT: BTA_GATTS_DISCONNECT_EVT;
@@ -901,7 +920,7 @@ static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
     if (p_reg && p_reg->p_cback)
     {
         /* there is no RM for GATT */
-        if (!BTM_IsBleLink(bda))
+        if (transport == BTA_TRANSPORT_BR_EDR)
         {
             if (connected)
                 bta_sys_conn_open(BTA_ID_GATTS, BTA_ALL_APP_ID, bda);
@@ -912,6 +931,7 @@ static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
         cb_data.conn.conn_id = conn_id;
         cb_data.conn.server_if = gatt_if;
         cb_data.conn.reason = reason;
+        cb_data.conn.transport = transport;
         memcpy(cb_data.conn.remote_bda, bda, BD_ADDR_LEN);
         (*p_reg->p_cback)(evt, &cb_data);
     }

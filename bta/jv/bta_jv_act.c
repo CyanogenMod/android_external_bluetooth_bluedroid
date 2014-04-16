@@ -886,7 +886,7 @@ void bta_jv_get_remote_device_name(tBTA_JV_MSG *p_data)
 {
 
     BTM_ReadRemoteDeviceName(p_data->get_rmt_name.bd_addr,
-        (tBTM_CMPL_CB *)bta_jv_get_remote_device_name_cback);
+        (tBTM_CMPL_CB *)bta_jv_get_remote_device_name_cback, BT_TRANSPORT_BR_EDR);
 }
 
 /*******************************************************************************
@@ -903,11 +903,16 @@ void bta_jv_set_service_class (tBTA_JV_MSG *p_data)
     tBTA_UTL_COD cod;
 
     /* set class of device */
-    /* BTA_JvSetServiceClass(UINT32 service) assumes that the service class passed to the API function as defined in the assigned number page.
-    For example: the object transfer bit is bit 20 of the 24-bit Class of device; the value of this bit is 0x00100000 (value 1)
-    Our btm_api.h defines this bit as #define BTM_COD_SERVICE_OBJ_TRANSFER        0x1000 // (value 2)
-    This reflects that the service class defined at btm is UINT16, which starts at bit 8 of the 24 bit Class of Device
-    The following statement converts from (value 1) into (value 2) */
+    /* 
+    BTA_JvSetServiceClass(UINT32 service) assumes that the service class passed to the
+    API function as defined in the assigned number page.
+    For example: the object transfer bit is bit 20 of the 24-bit Class of device;
+    the value of this bit is 0x00100000 (value 1)
+    Our btm_api.h defines this bit as #define BTM_COD_SERVICE_OBJ_TRANSFER        0x1000  (value 2)
+    This reflects that the service class defined at btm is UINT16,
+    which starts at bit 8 of the 24 bit Class of Device
+    The following statement converts from (value 1) into (value 2)
+    */
     cod.service = (p_data->set_service.service >> 8);
     utl_set_device_class(&cod, BTA_UTL_SET_COD_SERVICE_CLASS);
 }
@@ -921,9 +926,11 @@ void bta_jv_set_service_class (tBTA_JV_MSG *p_data)
 ** Returns      void
 **
 *******************************************************************************/
-static void bta_jv_sec_cback (BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
+static void bta_jv_sec_cback (BD_ADDR bd_addr, tBTA_TRANSPORT transport,
+                                    void *p_ref_data, tBTM_STATUS result)
 {
     UNUSED(p_ref_data);
+    UNUSED(transport);
 
     tBTA_JV_SET_ENCRYPTION  set_enc;
     if(bta_jv_cb.p_dm_cback)
@@ -947,7 +954,7 @@ static void bta_jv_sec_cback (BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS res
 *******************************************************************************/
 void bta_jv_set_encryption(tBTA_JV_MSG *p_data)
 {
-    BTM_SetEncryption(p_data->set_encrypt.bd_addr, bta_jv_sec_cback, NULL);
+    BTM_SetEncryption(p_data->set_encrypt.bd_addr, BTA_TRANSPORT_BR_EDR, bta_jv_sec_cback, NULL);
 }
 
 /*******************************************************************************

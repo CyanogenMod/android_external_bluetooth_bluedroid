@@ -64,6 +64,7 @@ BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
     int               i, j;
     BOOLEAN           found = FALSE;
 
+    BTM_TRACE_API2("%s, link key type:%x", __FUNCTION__,key_type);
     p_dev_rec = btm_find_dev (bd_addr);
     if (!p_dev_rec)
     {
@@ -79,7 +80,7 @@ BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
                 memset (p_dev_rec, 0, sizeof (tBTM_SEC_DEV_REC));
                 p_dev_rec->sec_flags = BTM_SEC_IN_USE;
                 memcpy (p_dev_rec->bd_addr, bd_addr, BD_ADDR_LEN);
-                p_dev_rec->hci_handle = BTM_GetHCIConnHandle (bd_addr);
+                p_dev_rec->hci_handle = BTM_GetHCIConnHandle (bd_addr, BT_TRANSPORT_BR_EDR);
 
 #if BLE_INCLUDED == TRUE
                 /* use default value for background connection params */
@@ -172,7 +173,7 @@ BOOLEAN BTM_SecDeleteDevice (BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC  *p_dev_rec;
 
-    if (BTM_IsAclConnectionUp(bd_addr))
+    if (BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE) || BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_BR_EDR))
     {
         BTM_TRACE_WARNING0("BTM_SecDeleteDevice FAILED: Cannot Delete when connection is active");
         return(FALSE);
@@ -215,9 +216,9 @@ char *BTM_SecReadDevName (BD_ADDR bd_addr)
 ** Function         btm_sec_alloc_dev
 **
 ** Description      Look for the record in the device database for the record
-**                  with specified handle
+**                  with specified address
 **
-** Returns          Pointer to the record
+** Returns          Pointer to the record or NULL
 **
 *******************************************************************************/
 tBTM_SEC_DEV_REC *btm_sec_alloc_dev (BD_ADDR bd_addr)
@@ -278,7 +279,10 @@ tBTM_SEC_DEV_REC *btm_sec_alloc_dev (BD_ADDR bd_addr)
 
     memcpy (p_dev_rec->bd_addr, bd_addr, BD_ADDR_LEN);
 
-    p_dev_rec->hci_handle = BTM_GetHCIConnHandle (bd_addr);
+#if BLE_INCLUDED == TRUE
+    p_dev_rec->ble_hci_handle = BTM_GetHCIConnHandle (bd_addr, BT_TRANSPORT_LE);
+#endif
+    p_dev_rec->hci_handle = BTM_GetHCIConnHandle (bd_addr, BT_TRANSPORT_BR_EDR);
     p_dev_rec->timestamp = btm_cb.dev_rec_count++;
 
     return(p_dev_rec);
@@ -376,7 +380,11 @@ tBTM_SEC_DEV_REC *btm_find_dev_by_handle (UINT16 handle)
     for (i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i++, p_dev_rec++)
     {
         if ((p_dev_rec->sec_flags & BTM_SEC_IN_USE)
-            && (p_dev_rec->hci_handle == handle))
+            && ((p_dev_rec->hci_handle == handle)
+#if BLE_INCLUDED == TRUE
+            ||(p_dev_rec->ble_hci_handle == handle)
+#endif
+                ))
             return(p_dev_rec);
     }
     return(NULL);
@@ -440,7 +448,7 @@ tBTM_SEC_DEV_REC *btm_find_or_alloc_dev (BD_ADDR bd_addr)
 **                  the oldest non-paired device.  If all devices are paired it
 **                  deletes the oldest paired device.
 **
-** Returns          Pointer to the record
+** Returns          Pointer to the record or NULL
 **
 *******************************************************************************/
 tBTM_SEC_DEV_REC *btm_find_oldest_dev (void)
@@ -454,7 +462,7 @@ tBTM_SEC_DEV_REC *btm_find_oldest_dev (void)
     for (i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i++, p_dev_rec++)
     {
         if (((p_dev_rec->sec_flags & BTM_SEC_IN_USE) == 0)
-            || ((p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN) != 0))
+            || ((p_dev_rec->sec_flags & (BTM_SEC_LINK_KEY_KNOWN |BTM_SEC_LE_LINK_KEY_KNOWN)) != 0))
             continue; /* Device is paired so skip it */
 
         if (p_dev_rec->timestamp < ot)

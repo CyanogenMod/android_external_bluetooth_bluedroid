@@ -919,8 +919,9 @@ L2C_API extern BOOLEAN L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIO
 **      BD Address of remote
 **      TRUE if channel is connected, FALSE if disconnected
 **      Reason for connection failure
+**      transport : physical transport, BR/EDR or LE
 */
-typedef void (tL2CA_FIXED_CHNL_CB) (BD_ADDR, BOOLEAN, UINT16);
+typedef void (tL2CA_FIXED_CHNL_CB) (BD_ADDR, BOOLEAN, UINT16, tBT_TRANSPORT);
 
 /* Signalling data received. Parameters are
 **      BD Address of remote
@@ -1128,7 +1129,8 @@ L2C_API extern BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda);
 **  Return value:   TRUE if update started
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_UpdateBleConnParams (BD_ADDR rem_bdRa, UINT16 min_int, UINT16 max_int, UINT16 latency, UINT16 timeout);
+L2C_API extern BOOLEAN L2CA_UpdateBleConnParams (BD_ADDR rem_bdRa, UINT16 min_int,
+                                                          UINT16 max_int, UINT16 latency, UINT16 timeout);
 
 /*******************************************************************************
 **
@@ -1143,18 +1145,6 @@ L2C_API extern BOOLEAN L2CA_UpdateBleConnParams (BD_ADDR rem_bdRa, UINT16 min_in
 **
 *******************************************************************************/
 L2C_API extern BOOLEAN L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, BOOLEAN enable);
-
-/*******************************************************************************
-**
-** Function         L2CA_HandleConnUpdateEvent
-**
-** Description      This function enables the connection update request from remote
-**                  after a successful connection update response is received.
-**
-** Returns          void
-**
-*******************************************************************************/
-L2C_API void L2CA_HandleConnUpdateEvent (UINT16 handle, UINT8 status);
 
 /*******************************************************************************
 **
@@ -1173,10 +1163,13 @@ L2C_API extern UINT8 L2CA_GetBleConnRole (BD_ADDR bd_addr);
 **
 ** Description      This function returns the disconnect reason code.
 **
+**  Parameters:     BD Address of remote
+**                         Physical transport for the L2CAP connection (BR/EDR or LE)
+**
 ** Returns          disconnect reason
 **
 *******************************************************************************/
-L2C_API extern UINT16 L2CA_GetDisconnectReason (BD_ADDR remote_bda);
+L2C_API extern UINT16 L2CA_GetDisconnectReason (BD_ADDR remote_bda, tBT_TRANSPORT transport);
 
 #endif /* (BLE_INCLUDED == TRUE) */
 

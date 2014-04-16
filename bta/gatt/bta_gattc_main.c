@@ -288,14 +288,16 @@ static char *gattc_state_code(tBTA_GATTC_STATE state_code);
 ** Description      State machine event handling function for GATTC
 **
 **
-** Returns          void
+** Returns          BOOLEAN  : TRUE if queued client request buffer can be immediately released
+**                                        else FALSE
 **
 *******************************************************************************/
-void bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_DATA *p_data)
+BOOLEAN bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC_ST_TBL     state_table;
     UINT8               action;
     int                 i;
+    BOOLEAN             rt = TRUE;
 #if BTA_GATT_DEBUG == TRUE
     tBTA_GATTC_STATE in_state = p_clcb->state;
     UINT16         in_event = event;
@@ -320,6 +322,8 @@ void bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_DATA
         if ((action = state_table[event][i]) != BTA_GATTC_IGNORE)
         {
             (*bta_gattc_action[action])(p_clcb, p_data);
+             p_clcb->buf_held = FALSE;
+             rt = FALSE;
         }
         else
         {
@@ -336,6 +340,7 @@ void bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_DATA
                           gattc_evt_code(in_event));
     }
 #endif
+return rt;
 }
 
 /*******************************************************************************
@@ -345,7 +350,7 @@ void bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_DATA
 ** Description      GATT client main event handling function.
 **
 **
-** Returns          void
+** Returns          BOOLEAN
 **
 *******************************************************************************/
 BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
@@ -353,6 +358,7 @@ BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
     tBTA_GATTC_CB *p_cb = &bta_gattc_cb;
     tBTA_GATTC_CLCB *p_clcb = NULL;
     tBTA_GATTC_RCB      *p_clreg;
+    BOOLEAN             rt = TRUE;
 #if BTA_GATT_DEBUG == TRUE
     APPL_TRACE_DEBUG1("bta_gattc_hdl_event: Event [%s]", gattc_evt_code(p_msg->event));
 #endif
@@ -410,7 +416,7 @@ BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
 
             if (p_clcb != NULL)
             {
-                bta_gattc_sm_execute(p_clcb, p_msg->event, (tBTA_GATTC_DATA *) p_msg);
+                rt = bta_gattc_sm_execute(p_clcb, p_msg->event, (tBTA_GATTC_DATA *) p_msg);
             }
             else
             {
@@ -421,7 +427,7 @@ BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
     }
 
 
-    return(TRUE);
+    return rt;
 }
 
 

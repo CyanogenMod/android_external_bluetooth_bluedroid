@@ -100,9 +100,10 @@ typedef struct
     uint8_t             is_direct;
     uint8_t             num_handles;
     uint8_t             properties;
-    uint8_t             transport;
     uint8_t             confirm;
     uint8_t             status;
+    btgatt_transport_t  transport;
+
 } __attribute__((packed)) btif_gatts_cb_t;
 
 
@@ -369,6 +370,7 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
             // Ensure device is in inquiry database
             int addr_type = 0;
             int device_type = 0;
+            tBTA_GATT_TRANSPORT transport = BTA_GATT_TRANSPORT_LE;
 
             if (btif_get_device_type(p_cb->bd_addr.address, &addr_type, &device_type) == TRUE
                   && device_type != BT_DEVICE_TYPE_BREDR)
@@ -378,9 +380,32 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
             if (!p_cb->is_direct)
                 BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
 
+            switch(device_type)
+            {
+                case BT_DEVICE_TYPE_BREDR:
+                    transport = BTA_GATT_TRANSPORT_BR_EDR;
+                    break;
+
+                case BT_DEVICE_TYPE_BLE:
+                    transport = BTA_GATT_TRANSPORT_LE;
+                    break;
+
+                case BT_DEVICE_TYPE_DUMO:
+                    if ((p_cb->transport == GATT_TRANSPORT_LE) &&
+                        (btif_storage_is_dmt_supported_device(&(p_cb->bd_addr)) == TRUE))
+                        transport = BTA_GATT_TRANSPORT_LE;
+                    else
+                        transport = BTA_GATT_TRANSPORT_BR_EDR;
+                    break;
+
+                default:
+                    BTIF_TRACE_ERROR1 (" GATT Open :Invalid device type %d",device_type);
+                    return;
+            }
+
             // Connect!
             BTA_GATTS_Open(p_cb->server_if, p_cb->bd_addr.address,
-                           p_cb->is_direct);
+                           p_cb->is_direct, transport);
             break;
         }
 
@@ -489,12 +514,14 @@ static bt_status_t btif_gatts_unregister_app( int server_if )
                                  (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
 }
 
-static bt_status_t btif_gatts_open( int server_if, const bt_bdaddr_t *bd_addr, bool is_direct )
+static bt_status_t btif_gatts_open( int server_if, const bt_bdaddr_t *bd_addr,
+                                      bool is_direct, int transport )
 {
     CHECK_BTGATT_INIT();
     btif_gatts_cb_t btif_cb;
     btif_cb.server_if = (uint8_t) server_if;
     btif_cb.is_direct = is_direct ? 1 : 0;
+    btif_cb.transport = (btgatt_transport_t)transport;
     bdcpy(btif_cb.bd_addr.address, bd_addr->address);
     return btif_transfer_context(btgatts_handle_event, BTIF_GATTS_OPEN,
                                  (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);

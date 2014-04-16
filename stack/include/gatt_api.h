@@ -25,44 +25,47 @@
 **  Constants
 *****************************************************************************/
 /* Success code and error codes */
-#define  GATT_SUCCESS                        0x0000
-#define  GATT_INVALID_HANDLE                 0x0001
-#define  GATT_READ_NOT_PERMIT                0x0002
-#define  GATT_WRITE_NOT_PERMIT               0x0003
-#define  GATT_INVALID_PDU                    0x0004
-#define  GATT_INSUF_AUTHENTICATION           0x0005
-#define  GATT_REQ_NOT_SUPPORTED              0x0006
-#define  GATT_INVALID_OFFSET                 0x0007
-#define  GATT_INSUF_AUTHORIZATION            0x0008
-#define  GATT_PREPARE_Q_FULL                 0x0009
-#define  GATT_NOT_FOUND                      0x000a
-#define  GATT_NOT_LONG                       0x000b
-#define  GATT_INSUF_KEY_SIZE                 0x000c
-#define  GATT_INVALID_ATTR_LEN               0x000d
-#define  GATT_ERR_UNLIKELY                   0x000e
-#define  GATT_INSUF_ENCRYPTION               0x000f
-#define  GATT_UNSUPPORT_GRP_TYPE             0x0010
-#define  GATT_INSUF_RESOURCE                 0x0011
+#define  GATT_SUCCESS                        0x00
+#define  GATT_INVALID_HANDLE                 0x01
+#define  GATT_READ_NOT_PERMIT                0x02
+#define  GATT_WRITE_NOT_PERMIT               0x03
+#define  GATT_INVALID_PDU                    0x04
+#define  GATT_INSUF_AUTHENTICATION           0x05
+#define  GATT_REQ_NOT_SUPPORTED              0x06
+#define  GATT_INVALID_OFFSET                 0x07
+#define  GATT_INSUF_AUTHORIZATION            0x08
+#define  GATT_PREPARE_Q_FULL                 0x09
+#define  GATT_NOT_FOUND                      0x0a
+#define  GATT_NOT_LONG                       0x0b
+#define  GATT_INSUF_KEY_SIZE                 0x0c
+#define  GATT_INVALID_ATTR_LEN               0x0d
+#define  GATT_ERR_UNLIKELY                   0x0e
+#define  GATT_INSUF_ENCRYPTION               0x0f
+#define  GATT_UNSUPPORT_GRP_TYPE             0x10
+#define  GATT_INSUF_RESOURCE                 0x11
 
 
-#define  GATT_ILLEGAL_PARAMETER              0x0087
-#define  GATT_NO_RESOURCES                   0x0080
-#define  GATT_INTERNAL_ERROR                 0x0081
-#define  GATT_WRONG_STATE                    0x0082
-#define  GATT_DB_FULL                        0x0083
-#define  GATT_BUSY                           0x0084
-#define  GATT_ERROR                          0x0085
-#define  GATT_CMD_STARTED                    0x0086
-#define  GATT_PENDING                        0x0088
-#define  GATT_AUTH_FAIL                      0x0089
-#define  GATT_MORE                           0x008a
-#define  GATT_INVALID_CFG                    0x008b
-#define  GATT_SERVICE_STARTED                0x008c
+#define  GATT_ILLEGAL_PARAMETER              0x87
+#define  GATT_NO_RESOURCES                   0x80
+#define  GATT_INTERNAL_ERROR                 0x81
+#define  GATT_WRONG_STATE                    0x82
+#define  GATT_DB_FULL                        0x83
+#define  GATT_BUSY                           0x84
+#define  GATT_ERROR                          0x85
+#define  GATT_CMD_STARTED                    0x86
+#define  GATT_PENDING                        0x88
+#define  GATT_AUTH_FAIL                      0x89
+#define  GATT_MORE                           0x8a
+#define  GATT_INVALID_CFG                    0x8b
+#define  GATT_SERVICE_STARTED                0x8c
 #define  GATT_ENCRYPED_MITM                  GATT_SUCCESS
-#define  GATT_ENCRYPED_NO_MITM               0x008d
-#define  GATT_NOT_ENCRYPTED                  0x008e
+#define  GATT_ENCRYPED_NO_MITM               0x8d
+#define  GATT_NOT_ENCRYPTED                  0x8e
 
-
+                                             /* 0xE0 ~ 0xFC reserved for future use */
+#define  GATT_CCC_CFG_ERR                    0xFD /* Client Characteristic Configuration Descriptor Improperly Configured */
+#define  GATT_PRC_IN_PROGRESS                0xFE /* Procedure Already in progress */
+#define  GATT_OUT_OF_RANGE                   0xFF /* Attribute value out of range */
 typedef UINT8 tGATT_STATUS;
 
 
@@ -325,12 +328,9 @@ typedef union
 } tGATTS_RSP;
 
 /* Transports for the primary service  */
-enum
-{
-    GATT_TRANSPORT_LE,
-    GATT_TRANSPORT_BR_EDR,
-    GATT_TRANSPORT_LE_BR_EDR
-};
+#define GATT_TRANSPORT_LE           BT_TRANSPORT_LE
+#define GATT_TRANSPORT_BR_EDR       BT_TRANSPORT_BR_EDR
+#define GATT_TRANSPORT_LE_BR_EDR    (BT_TRANSPORT_LE|BT_TRANSPORT_BR_EDR)
 typedef UINT8 tGATT_TRANSPORT;
 
 #define GATT_PREP_WRITE_CANCEL   0x00
@@ -548,26 +548,30 @@ typedef struct
 
 
 typedef UINT8 tGATT_IF;
-#define GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP    0 /* start a idle timer for this duration when no application
-                                              need to use the link */
+#define GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP    0 /* start a idle timer for this duration
+                                                 when no application need to use the link */
 
 #define GATT_LINK_NO_IDLE_TIMEOUT            0xFFFF
 
 #define GATT_INVALID_ACL_HANDLE              0xFFFF
 /* discover result callback function */
-typedef void (tGATT_DISC_RES_CB) (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT_DISC_RES *p_data);
+typedef void (tGATT_DISC_RES_CB) (UINT16 conn_id, tGATT_DISC_TYPE disc_type,
+                                    tGATT_DISC_RES *p_data);
 
 /* discover complete callback function */
 typedef void (tGATT_DISC_CMPL_CB) (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT_STATUS status);
 
 /* Define a callback function for when read/write/disc/config operation is completed. */
-typedef void (tGATT_CMPL_CBACK) (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS status, tGATT_CL_COMPLETE *p_data);
+typedef void (tGATT_CMPL_CBACK) (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS status,
+                tGATT_CL_COMPLETE *p_data);
 
 /* Define a callback function when an initialized connection is established. */
-typedef void (tGATT_CONN_CBACK) (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected, tGATT_DISCONN_REASON reason);
+typedef void (tGATT_CONN_CBACK) (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected,
+                                    tGATT_DISCONN_REASON reason, tBT_TRANSPORT transport);
 
 /* attribute request callback for ATT server */
-typedef void  (tGATT_REQ_CBACK )(UINT16 conn_id, UINT32 trans_id, tGATTS_REQ_TYPE type, tGATTS_DATA *p_data);
+typedef void  (tGATT_REQ_CBACK )(UINT16 conn_id, UINT32 trans_id, tGATTS_REQ_TYPE type,
+                                tGATTS_DATA *p_data);
 
 /* Define a callback function when encryption is established. */
 typedef void (tGATT_ENC_CMPL_CB)(tGATT_IF gatt_if, BD_ADDR bda);
@@ -639,7 +643,8 @@ typedef struct
 /* Attibute server handle ranges NV storage callback functions
 */
 typedef void  (tGATTS_NV_SAVE_CBACK)(BOOLEAN is_saved, tGATTS_HNDL_RANGE *p_hndl_range);
-typedef BOOLEAN  (tGATTS_NV_SRV_CHG_CBACK)(tGATTS_SRV_CHG_CMD cmd, tGATTS_SRV_CHG_REQ *p_req, tGATTS_SRV_CHG_RSP *p_rsp);
+typedef BOOLEAN  (tGATTS_NV_SRV_CHG_CBACK)(tGATTS_SRV_CHG_CMD cmd, tGATTS_SRV_CHG_REQ *p_req,
+                                            tGATTS_SRV_CHG_RSP *p_rsp);
 
 typedef struct
 {
@@ -801,7 +806,8 @@ extern "C"
 ** Returns          TRUE if operation succeed, FALSE if handle block was not found.
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_inst);
+    GATT_API extern BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
+                                                      UINT16 svc_inst);
 
 /*******************************************************************************
 **
@@ -998,11 +1004,13 @@ extern "C"
 **
 ** Parameter        bd_addr:   target device bd address.
 **                  idle_tout: timeout value in seconds.
+**                  transport: trasnport option.
 **
 ** Returns          void
 **
 *******************************************************************************/
-    GATT_API extern void GATT_SetIdleTimeout (BD_ADDR bd_addr, UINT16 idle_tout);
+    GATT_API extern void GATT_SetIdleTimeout (BD_ADDR bd_addr, UINT16 idle_tout,
+                                            tGATT_TRANSPORT transport);
 
 
 /*******************************************************************************
@@ -1058,11 +1066,13 @@ extern "C"
 ** Parameters       gatt_if: applicaiton interface
 **                  bd_addr: peer device address.
 **                  is_direct: is a direct conenection or a background auto connection
+**                  transport : Physical transport for GATT connection (BR/EDR or LE)
 **
 ** Returns          TRUE if connection started; FALSE if connection start failure.
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct);
+    GATT_API extern BOOLEAN GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr,
+                                          BOOLEAN is_direct, tBT_TRANSPORT transport);
 
 
 /*******************************************************************************
@@ -1080,7 +1090,8 @@ extern "C"
 ** Returns          TRUE if connection started; FALSE if connection start failure.
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct);
+    GATT_API extern BOOLEAN GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr,
+                                                BOOLEAN is_direct);
 
 /*******************************************************************************
 **
@@ -1108,11 +1119,13 @@ extern "C"
 ** Parameters        conn_id: connection id  (input)
 **                   p_gatt_if: applicaiton interface (output)
 **                   bd_addr: peer device address. (output)
+**                   transport :  physical transport of the GATT connection (BR/EDR or LE)
 **
 ** Returns          TRUE the ligical link information is found for conn_id
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN GATT_GetConnectionInfor(UINT16 conn_id, tGATT_IF *p_gatt_if, BD_ADDR bd_addr);
+    GATT_API extern BOOLEAN GATT_GetConnectionInfor(UINT16 conn_id, tGATT_IF *p_gatt_if,
+                                        BD_ADDR bd_addr, tBT_TRANSPORT *p_transport);
 
 
 /*******************************************************************************
@@ -1125,11 +1138,13 @@ extern "C"
 ** Parameters        gatt_if: applicaiton interface (input)
 **                   bd_addr: peer device address. (input)
 **                   p_conn_id: connection id  (output)
+**                   transport :  physical transport of the GATT connection (BR/EDR or LE)
 **
 ** Returns          TRUE the ligical link is connected
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, UINT16 *p_conn_id);
+    GATT_API extern BOOLEAN GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr,
+                                                      UINT16 *p_conn_id, tBT_TRANSPORT transport);
 
 
 /*******************************************************************************

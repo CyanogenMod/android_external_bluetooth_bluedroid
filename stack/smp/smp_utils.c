@@ -621,6 +621,35 @@ void smp_proc_pairing_cmpl(tSMP_CB *p_cb)
     smp_reset_control_value(p_cb);
 }
 
+/*******************************************************************************
+**
+** Function         smp_reject_unexp_pair_req
+**
+** Description      send pairing failure to an unexpected pairing request during
+**                  an active pairing process.
+**
+** Returns          void
+**
+*******************************************************************************/
+void smp_reject_unexp_pair_req(BD_ADDR bd_addr)
+{
+    BT_HDR *p_buf;
+    UINT8   *p;
+
+    if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_PAIR_FAIL_SIZE + L2CAP_MIN_OFFSET)) != NULL)
+    {
+        p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+
+        UINT8_TO_STREAM (p, SMP_OPCODE_PAIRING_FAILED);
+        UINT8_TO_STREAM (p, SMP_PAIR_NOT_SUPPORT);
+
+        p_buf->offset = L2CAP_MIN_OFFSET;
+        p_buf->len = SMP_PAIR_FAIL_SIZE;
+
+        smp_send_msg_to_L2CAP(bd_addr, p_buf);
+    }
+}
+
 #if SMP_CONFORMANCE_TESTING == TRUE
 /*******************************************************************************
 **

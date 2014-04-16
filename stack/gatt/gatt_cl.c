@@ -27,6 +27,7 @@
 #if BLE_INCLUDED == TRUE
 
 #include <string.h>
+#include "bt_utils.h"
 #include "gki.h"
 #include "gatt_int.h"
 
@@ -102,6 +103,13 @@ void gatt_act_discovery(tGATT_CLCB *p_clcb)
             cl_req.find_type_value.s_handle = p_clcb->s_handle;
             cl_req.find_type_value.e_handle = p_clcb->e_handle;
             cl_req.find_type_value.value_len = p_clcb->uuid.len;
+            /* if service type is 32 bits UUID, convert it now */
+            if (p_clcb->uuid.len == LEN_UUID_32)
+            {
+                cl_req.find_type_value.value_len = LEN_UUID_128;
+                gatt_convert_uuid32_to_uuid128(cl_req.find_type_value.value, p_clcb->uuid.uu.uuid32);
+            }
+            else
             memcpy (cl_req.find_type_value.value,  &p_clcb->uuid.uu, p_clcb->uuid.len);
         }
 
@@ -402,10 +410,12 @@ void gatt_send_prepare_write(tGATT_TCB  *p_tcb, tGATT_CLCB *p_clcb)
 ** Returns          void
 **
 *******************************************************************************/
-static void gatt_process_find_type_value_rsp (tGATT_CLCB *p_clcb, UINT16 len, UINT8 *p_data)
+void gatt_process_find_type_value_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT16 len, UINT8 *p_data)
 {
     tGATT_DISC_RES      result;
     UINT8               *p = p_data;
+
+    UNUSED(p_tcb);
 
     GATT_TRACE_DEBUG0("gatt_process_find_type_value_rsp ");
     /* unexpected response */
@@ -445,10 +455,14 @@ static void gatt_process_find_type_value_rsp (tGATT_CLCB *p_clcb, UINT16 len, UI
 ** Returns          void
 **
 *******************************************************************************/
-static void gatt_process_read_info_rsp(tGATT_CLCB *p_clcb, UINT16 len, UINT8 *p_data)
+void gatt_process_read_info_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op_code,
+                                UINT16 len, UINT8 *p_data)
 {
     tGATT_DISC_RES  result;
     UINT8   *p = p_data, uuid_len = 0, type;
+
+    UNUSED(p_tcb);
+    UNUSED(op_code);
 
     if (len < GATT_INFO_RSP_MIN_LEN)
     {
@@ -500,9 +514,13 @@ static void gatt_process_read_info_rsp(tGATT_CLCB *p_clcb, UINT16 len, UINT8 *p_
 ** Returns          void.
 **
 *******************************************************************************/
-static void gatt_proc_disc_error_rsp(tGATT_CLCB *p_clcb, UINT8 opcode, UINT8 reason)
+void gatt_proc_disc_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 opcode,
+                              UINT16 handle, UINT8 reason)
 {
     tGATT_STATUS    status = (tGATT_STATUS) reason;
+
+    UNUSED(p_tcb);
+    UNUSED(handle);
 
     GATT_TRACE_DEBUG2("gatt_proc_disc_error_rsp reason: %02x cmd_code %04x", reason, opcode);
 
@@ -536,11 +554,15 @@ static void gatt_proc_disc_error_rsp(tGATT_CLCB *p_clcb, UINT8 opcode, UINT8 rea
 ** Returns          void
 **
 *******************************************************************************/
-static void gatt_process_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 *p_data)
+void gatt_process_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op_code,
+                            UINT16 len, UINT8 *p_data)
 {
     UINT8   opcode, reason, * p= p_data;
     UINT16  handle;
     tGATT_VALUE  *p_attr = (tGATT_VALUE *)p_clcb->p_attr_buf;
+
+    UNUSED(op_code);
+    UNUSED(len);
 
     GATT_TRACE_DEBUG0("gatt_process_error_rsp ");
     STREAM_TO_UINT8(opcode, p);
@@ -549,7 +571,7 @@ static void gatt_process_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 *
 
     if (p_clcb->operation == GATTC_OPTYPE_DISCOVERY)
     {
-        gatt_proc_disc_error_rsp(p_clcb, opcode, reason);
+        gatt_proc_disc_error_rsp(p_tcb, p_clcb, opcode, handle, reason);
     }
     else
     {
@@ -921,11 +943,13 @@ void gatt_process_read_by_type_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 
 ** Returns          void
 **
 *******************************************************************************/
-static void gatt_process_read_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,
-                                  UINT16 len, UINT8 *p_data)
+void gatt_process_read_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,  UINT8 op_code,
+                           UINT16 len, UINT8 *p_data)
 {
     UINT16      offset = p_clcb->counter;
     UINT8       * p= p_data;
+
+    UNUSED(op_code);
 
     if (p_clcb->operation == GATTC_OPTYPE_READ)
     {
@@ -1169,7 +1193,7 @@ void gatt_client_handle_server_rsp (tGATT_TCB *p_tcb, UINT8 op_code,
         switch (op_code)
         {
             case GATT_RSP_ERROR:
-                gatt_process_error_rsp(p_tcb, p_clcb, p_data);
+                gatt_process_error_rsp(p_tcb, p_clcb, op_code, len, p_data);
                 break;
 
             case GATT_RSP_MTU:       /* 2 bytes mtu */
@@ -1177,7 +1201,7 @@ void gatt_client_handle_server_rsp (tGATT_TCB *p_tcb, UINT8 op_code,
                 break;
 
             case GATT_RSP_FIND_INFO:
-                gatt_process_read_info_rsp(p_clcb, len, p_data);
+                gatt_process_read_info_rsp(p_tcb, p_clcb, op_code, len, p_data);
                 break;
 
             case GATT_RSP_READ_BY_TYPE:
@@ -1188,11 +1212,11 @@ void gatt_client_handle_server_rsp (tGATT_TCB *p_tcb, UINT8 op_code,
             case GATT_RSP_READ:
             case GATT_RSP_READ_BLOB:
             case GATT_RSP_READ_MULTI:
-                gatt_process_read_rsp(p_tcb, p_clcb, len, p_data);
+                gatt_process_read_rsp(p_tcb, p_clcb, op_code, len, p_data);
                 break;
 
             case GATT_RSP_FIND_TYPE_VALUE: /* disc service with UUID */
-                gatt_process_find_type_value_rsp(p_clcb, len, p_data);
+                gatt_process_find_type_value_rsp(p_tcb, p_clcb, len, p_data);
                 break;
 
             case GATT_RSP_WRITE:

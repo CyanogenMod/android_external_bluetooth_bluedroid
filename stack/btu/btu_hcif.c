@@ -37,6 +37,7 @@
 #include "btm_api.h"
 #include "btm_int.h"
 
+
 // btla-specific ++
 #define LOG_TAG "BTLD"
 #if (defined(ANDROID_APP_INCLUDED) && (ANDROID_APP_INCLUDED == TRUE) && (!defined(LINUX_NATIVE)) )
@@ -136,6 +137,9 @@ static void btu_ble_read_remote_feat_evt (UINT8 *p);
 static void btu_ble_ll_conn_param_upd_evt (UINT8 *p);
 static void btu_ble_proc_ltk_req (UINT8 *p);
 static void btu_hcif_encryption_key_refresh_cmpl_evt (UINT8 *p);
+#if (BLE_LLT_INCLUDED == TRUE)
+static void btu_ble_rc_param_req_evt(UINT8 *p);
+#endif
     #endif
 /*******************************************************************************
 **
@@ -421,6 +425,12 @@ void btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_msg)
                 case HCI_BLE_LTK_REQ_EVT: /* received only at slave device */
                     btu_ble_proc_ltk_req(p);
                     break;
+#if (BLE_LLT_INCLUDED == TRUE)
+               case HCI_BLE_RC_PARAM_REQ_EVT:
+                    btu_ble_rc_param_req_evt(p);
+                    break;
+#endif
+
             }
             break;
 #endif /* BLE_INCLUDED */
@@ -1136,6 +1146,10 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
 
         case HCI_BLE_WRITE_ADV_ENABLE:
             btm_ble_write_adv_enable_complete(p);
+            break;
+
+        case HCI_BLE_READ_SUPPORTED_STATES:
+            btm_read_ble_local_supported_states_complete(p, evt_len);
             break;
 
         case HCI_BLE_TRANSMITTER_TEST:
@@ -2266,16 +2280,7 @@ static void btu_ble_ll_conn_complete_evt ( UINT8 *p, UINT16 evt_len)
 
 static void btu_ble_ll_conn_param_upd_evt (UINT8 *p)
 {
-    /* LE connection update has completed successfully as a master. */
-    /* We can enable the update request if the result is a success. */
-    /* extract the HCI handle first */
-    UINT8   status;
-    UINT16  handle;
-    BT_TRACE_0(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, "btu_ble_ll_conn_param_upd_evt");
-
-    STREAM_TO_UINT8  (status, p);
-    STREAM_TO_UINT16 (handle, p);
-    L2CA_HandleConnUpdateEvent(handle, status);
+    /* This is empty until an upper layer cares about returning event */
 }
 
 static void btu_ble_read_remote_feat_evt (UINT8 *p)
@@ -2299,5 +2304,21 @@ static void btu_ble_proc_ltk_req (UINT8 *p)
 /**********************************************
 ** End of BLE Events Handler
 ***********************************************/
+#if (defined BLE_LLT_INCLUDED) && (BLE_LLT_INCLUDED == TRUE)
+static void btu_ble_rc_param_req_evt(UINT8 *p)
+{
+    UINT16 handle;
+    UINT16  int_min, int_max, latency, timeout;
+
+    STREAM_TO_UINT16(handle, p);
+    STREAM_TO_UINT16(int_min, p);
+    STREAM_TO_UINT16(int_max, p);
+    STREAM_TO_UINT16(latency, p);
+    STREAM_TO_UINT16(timeout, p);
+
+    l2cble_process_rc_param_request_evt(handle, int_min, int_max, latency, timeout);
+}
+#endif /* BLE_LLT_INCLUDED */
+
 #endif /* BLE_INCLUDED */
 

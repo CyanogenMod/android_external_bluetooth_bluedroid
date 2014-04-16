@@ -26,6 +26,7 @@
     #include "l2c_api.h"
     #include "smp_int.h"
 
+#define MAX_KEY_DISTRIBUTION_TYPES   3
 
 const UINT8 smp_association_table[2][SMP_IO_CAP_MAX][SMP_IO_CAP_MAX] =
 {
@@ -108,6 +109,7 @@ void smp_send_app_cback(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
         {
             p_cb->loc_auth_req   = cb_data.io_req.auth_req;
             p_cb->loc_io_caps    = cb_data.io_req.io_cap;
+
 #if (defined(BLE_PERIPHERAL_DISPLAYONLY) && (BLE_PERIPHERAL_DISPLAYONLY == TRUE))
             if (p_cb->role == HCI_ROLE_SLAVE)
             {
@@ -165,7 +167,11 @@ void smp_send_pair_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
        some peripherals are not able to revert to fast connection parameters
        during the start of service discovery. Connection paramter updates
        get enabled again once service discovery completes. */
-    L2CA_EnableUpdateBleConnParams(p_cb->pairing_bda, FALSE);
+    if (L2CA_EnableUpdateBleConnParams(p_cb->pairing_bda, FALSE) == FALSE)
+    {
+        SMP_TRACE_ERROR0 ("smp pair failed...!");
+        return;
+    }
 #endif
 
     /* erase all keys when master sends pairing req*/
@@ -616,7 +622,7 @@ void smp_proc_sl_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_start_enc(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
-    BOOLEAN cmd;
+    tBTM_STATUS cmd;
     UINT8 reason = SMP_ENC_FAIL;
 
     SMP_TRACE_DEBUG0 ("smp_start_enc ");
@@ -625,7 +631,7 @@ void smp_start_enc(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     else
         cmd = btm_ble_start_encrypt(p_cb->pairing_bda, FALSE, NULL);
 
-    if (!cmd)
+    if (cmd != BTM_CMD_STARTED && cmd != BTM_BUSY)
         smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
 
 }
@@ -729,7 +735,7 @@ void smp_key_pick_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     UINT8   i = 0;
 
     SMP_TRACE_DEBUG1 ("smp_key_pick_key key_to_dist=0x%x", key_to_dist);
-    while (i < 3)
+    while (i < MAX_KEY_DISTRIBUTION_TYPES)
     {
         SMP_TRACE_DEBUG2("key to send = %02x, i = %d",  key_to_dist, i);
 
@@ -899,6 +905,7 @@ void smp_pairing_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
     SMP_TRACE_DEBUG0 ("smp_pairing_cmpl ");
 
+    (void)L2CA_EnableUpdateBleConnParams(p_cb->pairing_bda, TRUE);
     if ((p_cb->status == SMP_SUCCESS) ||
         (p_cb->status <= SMP_REPEATED_ATTEMPTS && p_cb->status != SMP_SUCCESS))
     {
@@ -960,6 +967,18 @@ void smp_idle_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
         smp_proc_pairing_cmpl(p_cb);
     }
 }
+
+/*******************************************************************************
+** Function     smp_fast_conn_param
+** Description  apply default connection parameter for pairing process
+*******************************************************************************/
+void smp_fast_conn_param(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
+{
+    /* disable connection parameter update */
+    (void)L2CA_EnableUpdateBleConnParams(p_cb->pairing_bda, FALSE);
+}
+
+
 /*******************************************************************************
 **
 ** Function         smp_link_encrypted

@@ -21,8 +21,6 @@
 
 #include "bt_target.h"
 
-#if BLE_INCLUDED == TRUE
-
 
 #include "bt_trace.h"
 #include "gatt_api.h"
@@ -169,6 +167,7 @@ typedef union
 */
 #define GATT_ATTR_UUID_TYPE_16      0
 #define GATT_ATTR_UUID_TYPE_128     1
+#define GATT_ATTR_UUID_TYPE_32      2
 typedef UINT8   tGATT_ATTR_UUID_TYPE;
 
 /* 16 bits UUID Attribute in server database
@@ -183,6 +182,20 @@ typedef struct
     UINT16                              handle;
     UINT16                              uuid;
 } tGATT_ATTR16;
+
+/* 32 bits UUID Attribute in server database
+*/
+typedef struct
+{
+    void                                *p_next;  /* pointer to the next attribute,
+                                                    either tGATT_ATTR16, tGATT_ATTR32 or tGATT_ATTR128 */
+    tGATT_ATTR_VALUE                    *p_value;
+    tGATT_ATTR_UUID_TYPE                uuid_type;
+    tGATT_PERM                          permission;
+    UINT16                              handle;
+    UINT32                              uuid;
+} tGATT_ATTR32;
+
 
 /* 128 bits UUID Attribute in server database
 */
@@ -340,6 +353,7 @@ typedef struct
     BUFFER_Q        pending_enc_clcb;   /* pending encryption channel q */
     tGATT_SEC_ACTION sec_act;
     BD_ADDR         peer_bda;
+    tBT_TRANSPORT   transport;
     UINT32          trans_id;
 
     UINT16          att_lcid;           /* L2CAP channel ID for ATT */
@@ -400,6 +414,7 @@ typedef struct
     BOOLEAN                 in_use;
     TIMER_LIST_ENT          rsp_timer_ent;  /* peer response timer */
     UINT8                   retry_count;
+
 } tGATT_CLCB;
 
 typedef struct
@@ -454,6 +469,7 @@ typedef struct
     BOOLEAN in_use;
     BOOLEAN connected;
     BD_ADDR bda;
+    tBT_TRANSPORT   transport;
 }tGATT_PROFILE_CLCB;
 
 typedef struct
@@ -524,9 +540,9 @@ GATT_API extern void gatt_set_err_rsp(BOOLEAN enable, UINT8 req_op_code, UINT8 e
 extern void gatt_init (void);
 
 /* from gatt_main.c */
-extern BOOLEAN gatt_disconnect (BD_ADDR rem_bda);
-extern BOOLEAN gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr);
-extern BOOLEAN gatt_connect (BD_ADDR rem_bda,  tGATT_TCB *p_tcb);
+extern BOOLEAN gatt_disconnect (tGATT_TCB *p_tcb);
+extern BOOLEAN gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr, tBT_TRANSPORT transport);
+extern BOOLEAN gatt_connect (BD_ADDR rem_bda,  tGATT_TCB *p_tcb, tBT_TRANSPORT transport);
 extern void gatt_data_process (tGATT_TCB *p_tcb, BT_HDR *p_buf);
 extern void gatt_update_app_use_link_flag ( tGATT_IF gatt_if, tGATT_TCB *p_tcb, BOOLEAN is_add, BOOLEAN check_acl_link);
 
@@ -541,9 +557,8 @@ extern void gatt_add_a_bonded_dev_for_srv_chg (BD_ADDR bda);
 
 /* from gatt_attr.c */
 extern UINT16 gatt_profile_find_conn_id_by_bd_addr(BD_ADDR bda);
-extern tGATT_PROFILE_CLCB *gatt_profile_find_clcb_by_bd_addr(BD_ADDR bda);
 extern BOOLEAN gatt_profile_clcb_dealloc (UINT16 conn_id);
-extern tGATT_PROFILE_CLCB *gatt_profile_clcb_alloc (UINT16 conn_id, BD_ADDR bda);
+extern tGATT_PROFILE_CLCB *gatt_profile_clcb_alloc (UINT16 conn_id, BD_ADDR bda, tBT_TRANSPORT transport);
 
 
 /* Functions provided by att_protocol.c */
@@ -558,7 +573,8 @@ extern UINT32 gatt_add_sdp_record (tBT_UUID *p_uuid, UINT16 start_hdl, UINT16 en
 extern BOOLEAN gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid, UINT16 len, UINT8 **p_data);
 extern UINT8 gatt_build_uuid_to_stream(UINT8 **p_dst, tBT_UUID uuid);
 extern BOOLEAN gatt_uuid_compare(tBT_UUID src, tBT_UUID tar);
-extern void gatt_sr_get_sec_info(BD_ADDR rem_bda, BOOLEAN le_conn, UINT8 *p_sec_flag, UINT8 *p_key_size);
+extern void gatt_convert_uuid32_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT32 uuid_32);
+extern void gatt_sr_get_sec_info(BD_ADDR rem_bda, tBT_TRANSPORT transport, UINT8 *p_sec_flag, UINT8 *p_key_size);
 extern void gatt_start_rsp_timer(UINT16 clcb_idx);
 extern void gatt_start_conf_timer(tGATT_TCB    *p_tcb);
 extern void gatt_rsp_timeout(TIMER_LIST_ENT *p_tle);
@@ -573,13 +589,13 @@ extern tGATTS_PENDING_NEW_SRV_START *gatt_sr_is_new_srv_chg(tBT_UUID *p_app_uuid
 extern BOOLEAN gatt_is_srv_chg_ind_pending (tGATT_TCB *p_tcb);
 extern tGATTS_SRV_CHG *gatt_is_bda_in_the_srv_chg_clt_list (BD_ADDR bda);
 
-extern BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *p_found_idx);
+extern BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *p_found_idx, tBT_TRANSPORT *p_transport);
 extern void gatt_set_srv_chg(void);
 extern void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr);
 extern tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind);
 extern tGATTS_PENDING_NEW_SRV_START *gatt_add_pending_new_srv_start( tGATTS_HNDL_RANGE *p_new_srv_start);
 extern void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id);
-extern void gatt_update_listen_mode(void);
+extern BOOLEAN gatt_update_listen_mode(void);
 
 /* reserved handle list */
 extern tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_app_id (tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid, UINT16 svc_inst);
@@ -635,16 +651,16 @@ extern BOOLEAN gatt_find_app_hold_link(tGATT_TCB *p_tcb, UINT8 start_idx, UINT8 
 extern UINT8 gatt_num_apps_hold_link(tGATT_TCB *p_tcb);
 extern UINT8 gatt_num_clcb_by_bd_addr(BD_ADDR bda);
 extern tGATT_TCB * gatt_find_tcb_by_cid(UINT16 lcid);
-extern tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda);
+extern tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda, tBT_TRANSPORT transport);
 extern tGATT_TCB * gatt_get_tcb_by_idx(UINT8 tcb_idx);
-extern tGATT_TCB * gatt_find_tcb_by_addr(BD_ADDR bda);
-
+extern tGATT_TCB * gatt_find_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport);
+extern BOOLEAN gatt_send_ble_burst_data (BD_ADDR remote_bda,  BT_HDR *p_buf);
 
 /* GATT client functions */
 extern void gatt_dequeue_sr_cmd (tGATT_TCB *p_tcb);
 extern UINT8 gatt_send_write_msg(tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 op_code, UINT16 handle,
                                  UINT16 len, UINT16 offset, UINT8 *p_data);
-extern void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason);
+extern void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason, tBT_TRANSPORT transport);
 extern void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data);
 
 extern void gatt_act_discovery(tGATT_CLCB *p_clcb);
@@ -667,7 +683,7 @@ extern tGATT_SEC_ACTION gatt_get_sec_act(tGATT_TCB *p_tcb);
 extern void gatt_set_sec_act(tGATT_TCB *p_tcb, tGATT_SEC_ACTION sec_act);
 
 /* gatt_db.c */
-extern BOOLEAN gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID service, BOOLEAN is_pri, UINT16 s_hdl, UINT16 num_handle);
+extern BOOLEAN gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID *p_service, BOOLEAN is_pri, UINT16 s_hdl, UINT16 num_handle);
 extern UINT16 gatts_add_included_service (tGATT_SVC_DB *p_db, UINT16 s_handle, UINT16 e_handle, tBT_UUID service);
 extern UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm, tGATT_CHAR_PROP property, tBT_UUID *p_char_uuid);
 extern UINT16 gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm, tBT_UUID *p_dscp_uuid);
@@ -684,4 +700,4 @@ extern tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db);
 extern void gatt_reset_bgdev_list(void);
 #endif
 
-#endif /* BLE_INCLUDED */
+

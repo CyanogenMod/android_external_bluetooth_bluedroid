@@ -443,14 +443,14 @@ BOOLEAN DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback)
                       (peer_bda[4]<<8)+peer_bda[5], dis_attr_uuid[dis_cb.dis_read_uuid_idx]);
 
 
-    GATT_GetConnIdIfConnected(srvc_eng_cb.gatt_if, peer_bda, &conn_id);
+    GATT_GetConnIdIfConnected(srvc_eng_cb.gatt_if, peer_bda, &conn_id, BT_TRANSPORT_LE);
 
     /* need to enhance it as multiple service is needed */
     srvc_eng_request_channel(peer_bda, SRVC_ID_DIS);
 
     if (conn_id == GATT_INVALID_CONN_ID)
     {
-        return GATT_Connect(srvc_eng_cb.gatt_if, peer_bda, TRUE);
+        return GATT_Connect(srvc_eng_cb.gatt_if, peer_bda, TRUE, BT_TRANSPORT_LE);
     }
 
     return dis_gatt_c_read_dis_req(conn_id);

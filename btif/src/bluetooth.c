@@ -327,7 +327,7 @@ static const void* get_profile_interface (const char *profile_id)
     if (is_profile(profile_id, BT_PROFILE_HEALTH_ID))
         return btif_hl_get_interface();
 
-#if BTA_GATT_INCLUDED == TRUE
+#if ( BTA_GATT_INCLUDED == TRUE &&BLE_INCLUDED == TRUE)
     if (is_profile(profile_id, BT_PROFILE_GATT_ID))
         return btif_gatt_get_interface();
 #endif

@@ -483,6 +483,25 @@ static void btm_read_ble_local_supported_features(void)
     /* Send a Read Local Supported Features message to the Host Controller. */
     btsnd_hcic_ble_read_local_spt_feat ();
 }
+
+/*******************************************************************************
+**
+** Function         btm_read_ble_local_supported_states
+**
+** Description      Local function called to send a read BLE local supported
+**                  features command
+**
+** Returns          void
+**
+*******************************************************************************/
+static void btm_read_ble_local_supported_states(void)
+{
+    BTM_TRACE_DEBUG0("btm_read_ble_local_supported_states ");
+    btu_start_timer (&btm_cb.devcb.reset_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_DEV_REPLY_TIMEOUT);
+
+    /* Send a Read Local Supported states message to the Host Controller. */
+    btsnd_hcic_ble_read_supported_states ();
+}
 #endif
 /*******************************************************************************
 **
@@ -808,6 +827,36 @@ void btm_read_ble_buf_size_complete (UINT8 *p, UINT16 evt_len)
 
         l2c_link_processs_ble_num_bufs (lm_num_le_bufs);
     }
+    btm_read_ble_local_supported_states();
+}
+/*******************************************************************************
+**
+** Function         btm_read_ble_local_supported_states_complete
+**
+** Description      This function is called when command complete for
+**                  Read LE Local Supported states complete is received.
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_read_ble_local_supported_states_complete (UINT8 *p, UINT16 evt_len)
+{
+    UINT8       status;
+
+    UNUSED(evt_len);
+    BTM_TRACE_DEBUG0("btm_read_ble_local_supported_states_complete ");
+
+    btu_stop_timer (&btm_cb.devcb.reset_timer);
+
+    STREAM_TO_UINT8  (status, p);
+    if (status == HCI_SUCCESS)
+    {
+        STREAM_TO_ARRAY(&btm_cb.devcb.le_supported_states, p, BTM_LE_SUPPORT_STATE_SIZE);
+    }
+    else
+    {
+        BTM_TRACE_WARNING1 ("btm_read_ble_local_supported_features_complete status = %d", status);
+    }
 
     btm_read_ble_local_supported_features();
 }
@@ -842,6 +891,8 @@ void btm_read_ble_local_supported_features_complete (UINT8 *p, UINT16 evt_len)
         BTM_TRACE_WARNING1 ("btm_read_ble_local_supported_features_complete status = %d", status);
     }
 
+    btsnd_hcic_ble_set_evt_mask((UINT8 *)HCI_BLE_EVENT_MASK_DEF);
+
 #if BTM_INTERNAL_BB == TRUE
     {
         UINT8 buf[9] = BTM_INTERNAL_LOCAL_FEA;
@@ -874,6 +925,8 @@ void btm_read_white_list_size_complete(UINT8 *p, UINT16 evt_len)
         STREAM_TO_UINT8(btm_cb.ble_ctr_cb.max_filter_entries, p);
         btm_cb.ble_ctr_cb.num_empty_filter = btm_cb.ble_ctr_cb.max_filter_entries;
     }
+    /* write LE host support and simultatunous LE supported */
+    btsnd_hcic_ble_write_host_supported(BTM_BLE_HOST_SUPPORT, BTM_BLE_SIMULTANEOUS_HOST);
 
     btm_get_ble_buffer_size();
 }

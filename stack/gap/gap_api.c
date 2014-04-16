@@ -734,7 +734,7 @@ UINT16 GAP_GetRemoteDeviceName (BD_ADDR addr, tGAP_CALLBACK *callback)
         p_cb->gap_cback = callback;
         p_cb->event = GAP_EVT_REM_NAME_COMPLETE;     /* Return event expected */
 
-        btm_status = BTM_ReadRemoteDeviceName (addr, gap_cb.btm_cback[p_cb->index]);
+        btm_status = BTM_ReadRemoteDeviceName (addr, gap_cb.btm_cback[p_cb->index], BT_TRANSPORT_BR_EDR);
 
         /* If the name was not returned immediately, or if an error occurred, release the control block */
         if ((retval = gap_convert_btm_status (btm_status)) != GAP_CMD_INITIATED)

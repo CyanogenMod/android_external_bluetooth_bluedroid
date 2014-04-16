@@ -1073,6 +1073,12 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
                 ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device (inquiry)", status);
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
                 status = btif_storage_set_remote_addr_type(&bdaddr, addr_type);
+                if (( dev_type == BT_DEVICE_TYPE_DUMO)&&
+                   (p_search_data->inq_res.flag & BTA_BLE_DMT_CONTROLLER_SPT) &&
+                   (p_search_data->inq_res.flag & BTA_BLE_DMT_HOST_SPT))
+                 {
+                    btif_storage_set_dmt_support_type (&bdaddr, TRUE);
+                 }
                 ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote addr type (inquiry)", status);
 #endif
                 /* Callback to notify upper layer of device */

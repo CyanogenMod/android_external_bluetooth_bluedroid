@@ -497,6 +497,10 @@ typedef struct
 #define BLE_ADDR_TYPE_MASK      (BLE_ADDR_RANDOM | BLE_ADDR_PUBLIC)
 typedef UINT8 tBLE_ADDR_TYPE;
 
+#define BT_TRANSPORT_BR_EDR    1
+#define BT_TRANSPORT_LE        2
+typedef UINT8 tBT_TRANSPORT;
+
 #define BLE_ADDR_IS_STATIC(x)   ((x[0] & 0xC0) == 0xC0)
 
 typedef struct

@@ -1744,8 +1744,8 @@ BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_bd_addr)
 
     bd2str(remote_bd_addr, &bdstr);
 
-	/*consider on LAP part of BDA string*/
-	bdstr[8] = '\0';
+    /*consider on LAP part of BDA string*/
+    bdstr[8] = '\0';
 
     int line_size = sizeof(linebuf);
     if(btif_config_get_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
@@ -1757,3 +1757,68 @@ BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_bd_addr)
     return FALSE;
 
 }
+
+/*******************************************************************************
+**
+** Function         btif_storage_set_dmt_support_type
+**
+** Description      Sets DMT support status for a remote device
+**
+** Returns          BT_STATUS_SUCCESS if config update is successful
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+
+bt_status_t btif_storage_set_dmt_support_type(const bt_bdaddr_t *remote_bd_addr,
+                                                   BOOLEAN dmt_supported)
+{
+    int ret;
+    bdstr_t bdstr = {0};
+    if(remote_bd_addr)
+    {
+        bd2str(remote_bd_addr, &bdstr);
+    }
+    else
+    {
+        BTIF_TRACE_ERROR1("%s  NULL BD Address", __FUNCTION__);
+        return BT_STATUS_FAIL;
+    }
+
+   ret = btif_config_set_int("Remote", bdstr,"DMTSupported", (int)dmt_supported);
+   return ret ? BT_STATUS_SUCCESS:BT_STATUS_FAIL;
+
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_is_dmt_supported_device
+**
+** Description      checks if a device supports Dual mode topology
+**
+** Returns         TRUE if remote address is valid and supports DMT else FALSE
+**
+*******************************************************************************/
+
+BOOLEAN btif_storage_is_dmt_supported_device(const bt_bdaddr_t *remote_bd_addr)
+{
+    int    dmt_supported = 0;
+    bdstr_t bdstr = {0};
+    if(remote_bd_addr)
+        bd2str(remote_bd_addr, &bdstr);
+
+    if(remote_bd_addr)
+    {
+        bd2str(remote_bd_addr, &bdstr);
+    }
+    else
+    {
+        BTIF_TRACE_ERROR1("%s  NULL BD Address", __FUNCTION__);
+        return FALSE;
+    }
+
+    btif_config_get_int("Remote", bdstr,"DMTSupported", &dmt_supported);
+
+    return dmt_supported == 1 ? TRUE:FALSE;
+}
+
+

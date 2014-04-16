@@ -114,9 +114,8 @@ void gatt_verify_signature(tGATT_TCB *p_tcb, BT_HDR *p_buf)
     }
     else
     {
-        /* if this is a bad signature, assume from attacker, ignore it */
-        GATT_TRACE_ERROR0("Signature Verification Failed");
-        gatt_disconnect(p_tcb->peer_bda);
+        /* if this is a bad signature, assume from attacker, ignore it  */
+        GATT_TRACE_ERROR0("Signature Verification Failed, data ignored");
     }
 
     return;
@@ -157,7 +156,7 @@ void gatt_sec_check_complete(BOOLEAN sec_check_ok, tGATT_CLCB   *p_clcb, UINT8 s
 ** Returns
 **
 *******************************************************************************/
-void gatt_enc_cmpl_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
+void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, tBTM_STATUS result)
 {
     tGATT_TCB   *p_tcb;
     UINT8       sec_flag;
@@ -167,7 +166,7 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
     UNUSED(p_ref_data);
 
     GATT_TRACE_DEBUG0("gatt_enc_cmpl_cback");
-    if ((p_tcb = gatt_find_tcb_by_addr(bd_addr)) != NULL)
+    if ((p_tcb = gatt_find_tcb_by_addr(bd_addr, transport)) != NULL)
     {
         if (gatt_get_sec_act(p_tcb) == GATT_SEC_ENC_PENDING)
             return;
@@ -178,8 +177,9 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
             {
                 if (gatt_get_sec_act(p_tcb) == GATT_SEC_ENCRYPT_MITM )
                 {
-                    BTM_GetSecurityFlags(bd_addr, &sec_flag);
-                    if (sec_flag & sec_flag & BTM_SEC_FLAG_LKEY_AUTHED)
+                    BTM_GetSecurityFlagsByTransport(bd_addr, &sec_flag, transport);
+
+                    if (sec_flag & BTM_SEC_FLAG_LKEY_AUTHED)
                     {
                         status = TRUE;
                     }
@@ -232,7 +232,7 @@ void gatt_notify_enc_cmpl(BD_ADDR bd_addr)
     UINT16       count;
     UINT8        i = 0;
 
-    if ((p_tcb = gatt_find_tcb_by_addr(bd_addr)) != NULL)
+    if ((p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE)) != NULL)
     {
         for (i = 0; i < GATT_MAX_APPS; i++)
         {
@@ -316,9 +316,7 @@ tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
     UINT8               sec_flag;
     tGATT_TCB           *p_tcb = p_clcb->p_tcb;
     tGATT_AUTH_REQ      auth_req = p_clcb->auth_req;
-
     BOOLEAN             is_link_encrypted= FALSE;
-    BOOLEAN             is_le_link=FALSE;
     BOOLEAN             is_link_key_known=FALSE;
     BOOLEAN             is_key_mitm=FALSE;
     UINT8               key_type;
@@ -327,8 +325,8 @@ tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
     if (auth_req == GATT_AUTH_REQ_NONE )
         return act;
 
-    is_le_link = BTM_UseLeLink(p_tcb->peer_bda);
-    BTM_GetSecurityFlags(p_tcb->peer_bda, &sec_flag);
+    BTM_GetSecurityFlagsByTransport(p_tcb->peer_bda, &sec_flag, p_clcb->p_tcb->transport);
+
     btm_ble_link_sec_check(p_tcb->peer_bda, auth_req, &sec_act);
 
     /* if a encryption is pending, need to wait */
@@ -336,24 +334,15 @@ tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
         auth_req != GATT_AUTH_REQ_NONE)
         return GATT_SEC_ENC_PENDING;
 
-    if (sec_flag & BTM_SEC_FLAG_ENCRYPTED)
+    if (sec_flag & (BTM_SEC_FLAG_ENCRYPTED| BTM_SEC_FLAG_LKEY_KNOWN))
     {
-        is_link_encrypted = TRUE;
+        if (sec_flag & BTM_SEC_FLAG_ENCRYPTED)
+            is_link_encrypted = TRUE;
+
         is_link_key_known = TRUE;
 
         if (sec_flag & BTM_SEC_FLAG_LKEY_AUTHED)
-        {
             is_key_mitm = TRUE;
-        }
-
-    }
-    else if (sec_flag & BTM_SEC_FLAG_LKEY_KNOWN)
-    {
-        is_link_key_known = TRUE;
-        if (sec_flag & BTM_SEC_FLAG_LKEY_AUTHED)
-        {
-            is_key_mitm = TRUE;
-        }
     }
 
     /* first check link key upgrade required or not */
@@ -377,7 +366,7 @@ tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
     /* now check link needs to be encrypted or not if the link key upgrade is not required */
     if (act == GATT_SEC_OK)
     {
-        if (is_le_link &&
+        if (p_tcb->transport == BT_TRANSPORT_LE &&
             (p_clcb->operation == GATTC_OPTYPE_WRITE) &&
             (p_clcb->op_subtype == GATT_WRITE_NO_RSP))
         {
@@ -430,7 +419,7 @@ tGATT_STATUS gatt_get_link_encrypt_status(tGATT_TCB *p_tcb)
     tGATT_STATUS    encrypt_status = GATT_NOT_ENCRYPTED;
     UINT8           sec_flag=0;
 
-    BTM_GetSecurityFlags(p_tcb->peer_bda, &sec_flag);
+    BTM_GetSecurityFlagsByTransport(p_tcb->peer_bda, &sec_flag, p_tcb->transport);
 
     if ((sec_flag & BTM_SEC_FLAG_ENCRYPTED) && (sec_flag & BTM_SEC_FLAG_LKEY_KNOWN))
     {
@@ -510,7 +499,7 @@ BOOLEAN gatt_security_check_start(tGATT_CLCB *p_clcb)
             {
                 GATT_TRACE_DEBUG0("gatt_security_check_start: Encrypt now or key upgreade first");
                 gatt_convert_sec_action(gatt_sec_act, &btm_ble_sec_act);
-                btm_status = BTM_SetEncryption(p_tcb->peer_bda, gatt_enc_cmpl_cback, &btm_ble_sec_act);
+                btm_status = BTM_SetEncryption(p_tcb->peer_bda, p_tcb->transport , gatt_enc_cmpl_cback, &btm_ble_sec_act);
                 if ( (btm_status != BTM_SUCCESS) && (btm_status != BTM_CMD_STARTED))
                 {
                     GATT_TRACE_ERROR1("gatt_security_check_start BTM_SetEncryption failed btm_status=%d", btm_status);

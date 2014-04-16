@@ -225,6 +225,9 @@ typedef union
 typedef void (tGAP_BLE_DEV_NAME_CBACK)(BOOLEAN status, BD_ADDR addr, UINT16 length, char *p_name);
 
 typedef void (tGAP_BLE_RECONN_ADDR_CBACK)(BOOLEAN status, BD_ADDR addr, BD_ADDR reconn_bda);
+#if BLE_PRIVACY_SPT == TRUE
+typedef void (tGAP_BLE_PRIVACY_CBACK)(BOOLEAN status, BD_ADDR addr, BOOLEAN privacy_enabled);
+#endif
 
 /*****************************************************************************
 **  External Function Declarations
@@ -440,10 +443,16 @@ GAP_API extern UINT16 GAP_SetPairableMode (UINT16 mode, BOOLEAN connect_only_pai
 **
 ** Description      This function is called to initiate bonding with peer device
 **
+** Parameters:      bd_addr      - Address of the device to bond
+**                  pin_len      - length in bytes of the PIN Code
+**                  p_pin        - pointer to array with the PIN Code
+**                  trusted_mask - bitwise OR of trusted services (array of UINT32)
+**
 ** Returns          tBTM_STATUS - BTM_CMD_STARTED of successfully initiated
 **
 *******************************************************************************/
-GAP_API extern UINT8 GAP_Bond (BD_ADDR bd_addr, UINT8 pin_len, UINT8 *p_pin, UINT32 trusted_mask[]);
+GAP_API extern UINT8 GAP_Bond (BD_ADDR bd_addr, UINT8 pin_len,
+                               UINT8 *p_pin, UINT32 trusted_mask[]);
 
 /*******************************************************************************
 **

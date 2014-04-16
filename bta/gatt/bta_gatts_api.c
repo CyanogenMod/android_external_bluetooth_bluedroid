@@ -464,11 +464,13 @@ void BTA_GATTS_SendRsp (UINT16 conn_id, UINT32 trans_id,
 ** Parameters       server_if: server interface.
 **                  remote_bda: remote device BD address.
 **                  is_direct: direct connection or background auto connection
+**                  transport : Transport on which GATT connection to be opened (BR/EDR or LE)
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN is_direct)
+void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN is_direct,
+                    tBTA_GATT_TRANSPORT transport)
 {
     tBTA_GATTS_API_OPEN  *p_buf;
 
@@ -477,6 +479,7 @@ void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN is_dire
         p_buf->hdr.event = BTA_GATTS_API_OPEN_EVT;
         p_buf->server_if = server_if;
         p_buf->is_direct = is_direct;
+        p_buf->transport = transport;
         memcpy(p_buf->remote_bda, remote_bda, BD_ADDR_LEN);
 
         bta_sys_sendmsg(p_buf);
