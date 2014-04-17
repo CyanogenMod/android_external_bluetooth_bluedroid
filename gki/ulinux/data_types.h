@@ -19,51 +19,46 @@
 #ifndef DATA_TYPES_H
 #define DATA_TYPES_H
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #ifndef NULL
-#define NULL     0
+#  define NULL     (void *)0
 #endif
 
 #ifndef FALSE
-#define FALSE  0
+#  define FALSE  false
 #endif
 
-typedef unsigned char   UINT8;
-typedef unsigned short  UINT16;
-typedef unsigned long   UINT32;
-typedef unsigned long long      UINT64;
+#ifndef TRUE
+#  define TRUE   true
+#endif
 
-typedef signed   long   INT32;
-typedef signed   char   INT8;
-typedef signed   short  INT16;
-typedef unsigned char   BOOLEAN;
+typedef uint8_t UINT8;
+typedef uint16_t UINT16;
+typedef uint32_t UINT32;
+typedef uint64_t UINT64;
 
+typedef int8_t INT8;
+typedef int16_t INT16;
+typedef int32_t INT32;
+typedef bool BOOLEAN;
 
 typedef UINT32          TIME_STAMP;
 
-#ifndef TRUE
-#define TRUE   (!FALSE)
-#endif
-
-typedef unsigned char   UBYTE;
-
 #ifdef __arm
-#define PACKED  __packed
-#define INLINE  __inline
+#  define PACKED  __packed
+#  define INLINE  __inline
 #else
-#define PACKED
-#define INLINE
+#  define PACKED
+#  define INLINE
 #endif
 
-#define UINT16_LOW_BYTE(x)      ((x) & 0xff)
-#define UINT16_HI_BYTE(x)       ((x) >> 8)
+#ifndef BIG_ENDIAN
+#define BIG_ENDIAN FALSE
+#endif
 
-
-#define BCM_STRCAT_S(x1,x2,x3)      strcat((x1),(x3))
-#define BCM_STRNCAT_S(x1,x2,x3,x4)  strncat((x1),(x3),(x4))
 #define BCM_STRCPY_S(x1,x2,x3)      strcpy((x1),(x3))
 #define BCM_STRNCPY_S(x1,x2,x3,x4)  strncpy((x1),(x3),(x4))
 
-
-
 #endif
-

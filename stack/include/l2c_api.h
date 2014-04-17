@@ -647,7 +647,7 @@ L2C_API extern BOOLEAN L2CA_FlowControl (UINT16 cid, BOOLEAN data_enabled);
 ** Returns          TRUE if valid Channel, else FALSE
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_SendTestSFrame (UINT16 cid, BOOLEAN rr_or_rej,
+L2C_API extern BOOLEAN L2CA_SendTestSFrame (UINT16 cid, UINT8 sup_type,
                                             UINT8 back_track);
 
 /*******************************************************************************
