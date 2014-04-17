@@ -25,6 +25,7 @@
  *****************************************************************************/
 
 #include <errno.h>
+#include <inttypes.h>
 #include <pthread.h>
 #include <stdint.h>
 #include <sys/time.h>
@@ -46,7 +47,7 @@
 
 #define LOG_TAG "audio_a2dp_hw"
 /* #define LOG_NDEBUG 0 */
-#include <cutils/log.h>
+#include <log/log.h>
 
 /*****************************************************************************
 **  Constants & Macros
@@ -440,7 +441,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
     int sent;
 
-    DEBUG("write %d bytes (fd %d)", bytes, out->audio_fd);
+    DEBUG("write %zu bytes (fd %d)", bytes, out->audio_fd);
 
     if (out->state == AUDIO_A2DP_STATE_SUSPENDED)
     {
@@ -485,7 +486,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
         out->state = AUDIO_A2DP_STATE_STOPPED;
     }
 
-    DEBUG("wrote %d bytes out of %d bytes", sent, bytes);
+    DEBUG("wrote %d bytes out of %zu bytes", sent, bytes);
     return sent;
 }
 
@@ -494,7 +495,7 @@ static uint32_t out_get_sample_rate(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    DEBUG("rate %d", out->cfg.rate);
+    DEBUG("rate %" PRIu32, out->cfg.rate);
 
     return out->cfg.rate;
 }
@@ -503,7 +504,7 @@ static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    DEBUG("out_set_sample_rate : %d", rate);
+    DEBUG("out_set_sample_rate : %" PRIu32, rate);
 
     if (rate != AUDIO_STREAM_DEFAULT_RATE)
     {
@@ -520,7 +521,7 @@ static size_t out_get_buffer_size(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    DEBUG("buffer_size : %d", out->buffer_sz);
+    DEBUG("buffer_size : %zu", out->buffer_sz);
 
     return out->buffer_sz;
 }
@@ -529,7 +530,7 @@ static uint32_t out_get_channels(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    DEBUG("channels 0x%x", out->cfg.channel_flags);
+    DEBUG("channels 0x%" PRIx32, out->cfg.channel_flags);
 
     return out->cfg.channel_flags;
 }
@@ -551,8 +552,6 @@ static int out_set_format(struct audio_stream *stream, audio_format_t format)
 static int out_standby(struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-    int retval = 0;
-
     int retVal = 0;
 
     FNLOG();
