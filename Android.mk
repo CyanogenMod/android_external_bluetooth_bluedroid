@@ -14,6 +14,10 @@ endif
 bdroid_CFLAGS += -Wall -Werror
 bdroid_CFLAGS += -DBTA_AVK_INCLUDED
 
+ifneq ($(BOARD_BLUETOOTH_BDROID_HCILP_INCLUDED),)
+  bdroid_CFLAGS += -DHCILP_INCLUDED=$(BOARD_BLUETOOTH_BDROID_HCILP_INCLUDED)
+endif
+
 include $(call all-subdir-makefiles)
 
 # Cleanup our locals
