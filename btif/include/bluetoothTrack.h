@@ -23,7 +23,8 @@ extern "C" {
 int btCreateTrack(int trackFreq, int channelType);
 void btDeleteTrack();
 void btStopTrack();
-void btStopTrack();
+void btStartTrack();
+void btPauseTrack();
 int btWriteData(void *audioBuffer, int bufferlen);
 
 #if defined (__cplusplus) || (cplusplus)

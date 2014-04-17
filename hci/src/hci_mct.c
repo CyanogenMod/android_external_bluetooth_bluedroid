@@ -786,6 +786,16 @@ uint16_t hci_mct_receive_evt_msg(void)
            /* Next, wait for next message */
            p_cb->rcv_state = MCT_RX_NEWMSG_ST;
            continue_fetch_looping = FALSE;
+
+           /*set the SSR flag */
+           if(property_set("bluetooth.isSSR", "1") < 0)
+           {
+               ALOGE("SSR: hci_mct.c:SSR case : error in setting up property\n ");
+           }
+           else
+           {
+               ALOGE("SSR: hci_mct.c:setting the SSR property to 1 DONE New\n ");
+           }
         }
         else
 #endif

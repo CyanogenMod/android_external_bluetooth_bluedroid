@@ -148,6 +148,11 @@ void bta_mce_enable(tBTA_MCE_MSG *p_data)
 *******************************************************************************/
 void bta_mce_get_remote_mas_instances(tBTA_MCE_MSG *p_data)
 {
+    if(p_data == NULL)
+    {
+    APPL_TRACE_DEBUG0("MCE control block handle is null");
+    return;
+    }
     tBTA_MCE_STATUS status = BTA_MCE_FAILURE;
 
     APPL_TRACE_DEBUG2("%s in, sdp_active:%d", __FUNCTION__, bta_mce_cb.sdp_active);

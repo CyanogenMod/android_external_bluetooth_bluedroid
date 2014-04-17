@@ -593,13 +593,12 @@ BOOLEAN BTM_BleUpdateBgConnDev(BOOLEAN add_remove, BD_ADDR   remote_bda)
 
     if(bdcmpany(remote_bda) == 0)
     {
-       /* cancel any pending connection and clear whitelist */
+    /* cancel any pending connection and clear whitelist */
         btm_ble_start_auto_conn(FALSE);
         btm_ble_clear_white_list();
         gatt_reset_bgdev_list();
         return ret;
     }
-
     /* update white list */
     ret = btm_update_bg_conn_list(add_remove, remote_bda, &dev_wl_type);
 
