@@ -54,10 +54,6 @@ typedef unsigned char   UBYTE;
 #define INLINE
 #endif
 
-#ifndef BIG_ENDIAN
-#define BIG_ENDIAN FALSE
-#endif
-
 #define UINT16_LOW_BYTE(x)      ((x) & 0xff)
 #define UINT16_HI_BYTE(x)       ((x) >> 8)
 
