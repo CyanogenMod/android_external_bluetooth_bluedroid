@@ -55,7 +55,7 @@ static UINT8 btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB *p_cb,
                                      BD_ADDR_PTR p_addr_ptr,
                                      tBLE_ADDR_TYPE *p_init_addr_type,
                                      tBLE_ADDR_TYPE *p_own_addr_type);
-static BOOLEAN btm_ble_start_adv(void);
+static tBTM_STATUS btm_ble_start_adv(void);
 static tBTM_STATUS btm_ble_stop_adv(void);
 
 
