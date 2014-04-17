@@ -351,7 +351,6 @@ static void btif_media_task_aa_handle_clear_track(void);
 static void btif_media_task_aa_handle_start_decoding(void );
 #endif
 extern BOOLEAN btif_hf_is_call_idle();
-extern BOOLEAN btif_multihf_is_call_idle();
 extern void btif_av_request_audio_focus(BOOLEAN enable);
 
 BOOLEAN btif_media_task_start_decoding_req(void);
@@ -554,7 +553,7 @@ static void btif_recv_ctrl_data(void)
             /* Dont sent START request to stack while we are in call.
                Some headsets like Sony MW600, dont allow AVDTP START
                in call and respond BAD_STATE */
-            if (!btif_multihf_is_call_idle())
+            if (!btif_hf_is_call_idle())
             {
                 a2dp_cmd_acknowledge(A2DP_CTRL_ACK_INCALL_FAILURE);
                 break;
