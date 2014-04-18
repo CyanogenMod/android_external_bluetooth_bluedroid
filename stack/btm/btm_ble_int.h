@@ -299,7 +299,7 @@ extern UINT8 btm_ble_read_sec_key_size(BD_ADDR bd_addr);
 extern BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr,UINT8 wl_type);
 extern BOOLEAN btm_update_bg_conn_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 *p_attr_tag);
 extern void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy);
-extern void btm_update_adv_filter_policy(tBTM_BLE_AFP adv_policy);
+extern void btm_update_scan_filter_policy(tBTM_BLE_AFP adv_policy);
 extern void btm_ble_clear_white_list (void);
 
 /* background connection function */

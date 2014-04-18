@@ -92,7 +92,7 @@ LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../btif/include \
 	$(LOCAL_PATH)/../btif/co \
 	$(LOCAL_PATH)/../hci/include\
-	$(LOCAL_PATH)/../brcm/include \
+	$(LOCAL_PATH)/../vnd/include \
 	$(LOCAL_PATH)/../embdrv/sbc/encoder/include \
 	$(LOCAL_PATH)/../audio_a2dp_hw \
 	$(LOCAL_PATH)/../utils/include \

@@ -50,6 +50,7 @@
 #include "btif_pan.h"
 #include "btif_profile_queue.h"
 #include "btif_config.h"
+#include "bta_vendor_api.h"
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
@@ -607,6 +608,12 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
     /* callback to HAL */
     if (status == BTA_SUCCESS)
     {
+#if (BLE_INCLUDED == TRUE && BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
+        BTA_BrcmInit();
+#endif
+        /* initialize a2dp service */
+        btif_av_init();
+
         /* init rfcomm & l2cap api */
         btif_sock_init();
 

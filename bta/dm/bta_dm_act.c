@@ -5423,6 +5423,48 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
             break;
     }
 }
-
 #endif /* BTA_GATT_INCLUDED */
+
+#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+/*******************************************************************************
+**
+** Function         bta_dm_enable_scan_filter
+**
+** Description      This function enable/disable adv payload filtering condition
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_enable_scan_filter (tBTA_DM_MSG *p_data)
+{
+    tBTA_SYS_VS_BLE_SCAN_PF_ENABLE  param;
+
+    param.enable = p_data->ble_enable_scan_filter.enable;
+    param.p_target = p_data->ble_enable_scan_filter.p_target;
+    param.p_cmpl_cback = p_data->ble_enable_scan_filter.p_cmpl_cback;
+
+    bta_sys_vs_hdl(BTA_VS_BLE_SCAN_PF_ENABLE_EVT, (void *)&param);
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_cfg_filter_cond
+**
+** Description      This function configure adv payload filtering condition
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_cfg_filter_cond (tBTA_DM_MSG *p_data)
+{
+    tBTA_SYS_VS_BLE_SCAN_PF_COND  param;
+
+    param.action = p_data->ble_cfg_filter_cond.action;
+    param.cond_type = p_data->ble_cfg_filter_cond.cond_type;
+    param.p_cond = (void *)p_data->ble_cfg_filter_cond.p_cond_param;
+    param.p_cmpl_cback = p_data->ble_cfg_filter_cond.p_cmpl_cback;
+
+    bta_sys_vs_hdl(BTA_VS_BLE_SCAN_PF_COND_EVT, (void *)&param);
+}
+#endif  /* BLE_ANDROID_CONTROLLER_SCAN_FILTER */
 #endif  /* BLE_INCLUDED */

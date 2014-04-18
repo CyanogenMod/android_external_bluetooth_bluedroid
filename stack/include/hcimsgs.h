@@ -1267,7 +1267,7 @@ HCI_API extern BOOLEAN btsnd_hcic_ble_set_random_addr (BD_ADDR random_addr);
 HCI_API extern BOOLEAN btsnd_hcic_ble_write_adv_params (UINT16 adv_int_min, UINT16 adv_int_max,
                                        UINT8 adv_type, UINT8 addr_type_own,
                                        UINT8 addr_type_dir, BD_ADDR direct_bda,
-                                       UINT8 channel_map, UINT8 adv_filter_policy);
+                                       UINT8 channel_map, UINT8 scan_filter_policy);
 
 HCI_API extern BOOLEAN btsnd_hcic_ble_read_adv_chnl_tx_power (void);
 

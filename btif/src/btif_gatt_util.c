@@ -131,6 +131,32 @@ void btif_to_bta_response(tBTA_GATTS_RSP *p_dest, btgatt_response_t* p_src)
     memcpy(p_dest->attr_value.value, p_src->attr_value.value, GATT_MAX_ATTR_LEN);
 }
 
+void btif_to_bta_uuid_mask(tBTA_DM_BLE_PF_COND_MASK *p_mask, bt_uuid_t *p_src)
+{
+    char *p_byte = (char*)p_src;
+    int i = 0;
+
+    switch (uuidType(p_src->uu))
+    {
+        case LEN_UUID_16:
+            p_mask->uuid16_mask = (p_src->uu[13] << 8) + p_src->uu[12];
+            break;
+
+        case LEN_UUID_32:
+            p_mask->uuid32_mask = (p_src->uu[13] <<  8) + p_src->uu[12];
+            p_mask->uuid32_mask += (p_src->uu[15] << 24) + (p_src->uu[14] << 16);
+            break;
+
+        case LEN_UUID_128:
+            for(i = 0; i != 16; ++i)
+                p_mask->uuid128_mask[i] = p_byte[i];
+            break;
+
+        default:
+            break;
+    }
+}
+
 /*******************************************************************************
  * BTA -> BTIF conversion functions
  *******************************************************************************/

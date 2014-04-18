@@ -432,20 +432,29 @@ typedef UINT8 tBTA_DM_BLE_SCAN_COND_OP;
 
 /* filter selection bit index  */
 #define BTA_DM_BLE_PF_ADDR_FILTER          BTM_BLE_PF_ADDR_FILTER
+#define BTA_DM_BLE_PF_SRVC_DATA            BTM_BLE_PF_SRVC_DATA
 #define BTA_DM_BLE_PF_SRVC_UUID            BTM_BLE_PF_SRVC_UUID
 #define BTA_DM_BLE_PF_SRVC_SOL_UUID        BTM_BLE_PF_SRVC_SOL_UUID
 #define BTA_DM_BLE_PF_LOCAL_NAME           BTM_BLE_PF_LOCAL_NAME
 #define BTA_DM_BLE_PF_MANU_DATA            BTM_BLE_PF_MANU_DATA
-#define BTA_DM_BLE_PF_SRVC_DATA            BTM_BLE_PF_SRVC_DATA
+#define BTA_DM_BLE_PF_SRVC_DATA_PATTERN    BTM_BLE_PF_SRVC_DATA_PATTERN
 #define BTA_DM_BLE_PF_TYPE_MAX             BTM_BLE_PF_TYPE_MAX
 #define BTA_DM_BLE_PF_TYPE_ALL             BTM_BLE_PF_TYPE_ALL
 typedef UINT8   tBTA_DM_BLE_PF_COND_TYPE;
+
+typedef union
+{
+      UINT16              uuid16_mask;
+      UINT32              uuid32_mask;
+      UINT8               uuid128_mask[LEN_UUID_128];
+}tBTA_DM_BLE_PF_COND_MASK;
 
 typedef struct
 {
     tBLE_BD_ADDR                *p_target_addr;     /* target address, if NULL, generic UUID filter */
     tBT_UUID                    uuid;           /* UUID condition */
     tBTA_DM_BLE_PF_LOGIC_TYPE   cond_logic;    /* AND/OR */
+    tBTA_DM_BLE_PF_COND_MASK    *p_uuid_mask;           /* UUID condition mask, if NULL, match exact as UUID condition */
 }tBTA_DM_BLE_PF_UUID_COND;
 
 typedef struct
@@ -459,7 +468,17 @@ typedef struct
     UINT16                  company_id;     /* company ID */
     UINT8                   data_len;       /* <= 20 bytes */
     UINT8                   *p_pattern;
+    UINT16                  company_id_mask; /* UUID value mask */
+    UINT8                   *p_pattern_mask; /* Manufactuer data matching mask, same length as data pattern,
+                                                set to all 0xff, match exact data */
 }tBTA_DM_BLE_PF_MANU_COND;
+
+typedef struct
+{
+    UINT16                  uuid;     /* service ID */
+    UINT8                   data_len;       /* <= 20 bytes */
+    UINT8                   *p_pattern;
+}tBTA_DM_BLE_PF_SRVC_PATTERN_COND;
 
 typedef union
 {
@@ -468,8 +487,8 @@ typedef union
     tBTA_DM_BLE_PF_MANU_COND                   manu_data;  /* manufactuer data filtering */
     tBTA_DM_BLE_PF_UUID_COND                   srvc_uuid;  /* service UUID filtering */
     tBTA_DM_BLE_PF_UUID_COND                   solicitate_uuid;   /* solicitated service UUID filtering */
+    tBTA_DM_BLE_PF_SRVC_PATTERN_COND           srvc_data;      /* service data pattern */
 }tBTA_DM_BLE_PF_COND_PARAM;
-
 
 typedef INT8 tBTA_DM_RSSI_VALUE;
 typedef UINT8 tBTA_DM_LINK_QUALITY_VALUE;

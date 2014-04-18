@@ -103,6 +103,11 @@ enum
     BTA_DM_API_BLE_SET_ADV_CONFIG_EVT,
     BTA_DM_API_BLE_SET_SCAN_RSP_EVT,
     BTA_DM_API_BLE_BROADCAST_EVT,
+
+#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+    BTA_DM_API_CFG_FILTER_COND_EVT,
+    BTA_DM_API_ENABLE_SCAN_FILTER_EVT,
+#endif
 #endif
 
 #if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
@@ -565,6 +570,25 @@ typedef struct
     BOOLEAN     remove_dev;
 }tBTA_DM_API_REMOVE_ACL;
 
+#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+typedef struct
+{
+    BT_HDR                          hdr;
+    tBTA_DM_BLE_SCAN_COND_OP        action;
+    tBTA_DM_BLE_PF_COND_TYPE        cond_type;
+    tBTA_DM_BLE_PF_COND_PARAM       *p_cond_param;
+    void                            *p_cmpl_cback;
+}tBTA_DM_API_CFG_FILTER_COND;
+
+typedef struct
+{
+    BT_HDR                          hdr;
+    BOOLEAN                         enable;
+    tBLE_BD_ADDR                    *p_target;
+    void                            *p_cmpl_cback;
+}tBTA_DM_API_ENABLE_SCAN_FILTER;
+#endif
+
 /* union of all data types */
 typedef union
 {
@@ -640,6 +664,10 @@ typedef union
     tBTA_DM_API_LOCAL_PRIVACY           ble_local_privacy;
     tBTA_DM_API_BLE_ADV_PARAMS          ble_set_adv_params;
     tBTA_DM_API_SET_ADV_CONFIG          ble_set_adv_data;
+#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+    tBTA_DM_API_ENABLE_SCAN_FILTER      ble_enable_scan_filter;
+    tBTA_DM_API_CFG_FILTER_COND         ble_cfg_filter_cond;
+#endif
 #endif
 
     tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT set_afh_channel_assessment;
@@ -1000,6 +1028,11 @@ extern void bta_dm_ble_set_adv_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_scan_rsp (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_broadcast (tBTA_DM_MSG *p_data);
+
+#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+extern void bta_dm_enable_scan_filter (tBTA_DM_MSG *p_data);
+extern void bta_dm_cfg_filter_cond (tBTA_DM_MSG *p_data);
+#endif
 
 #endif
 extern void bta_dm_set_encryption(tBTA_DM_MSG *p_data);
