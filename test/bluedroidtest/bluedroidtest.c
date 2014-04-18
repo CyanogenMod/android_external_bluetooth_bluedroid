@@ -58,6 +58,8 @@
 
 #define CASE_RETURN_STR(const) case const: return #const;
 
+#define UNUSED __attribute__((unused))
+
 /************************************************************************************
 **  Local type definitions
 ************************************************************************************/
@@ -469,7 +471,7 @@ static void adapter_state_changed(bt_state_t state)
     }
 }
 
-static void dut_mode_recv(uint16_t opcode, uint8_t *buf, uint8_t len)
+static void dut_mode_recv(uint16_t UNUSED opcode, uint8_t UNUSED *buf, uint8_t UNUSED len)
 {
     bdt_log("DUT MODE RECV : NOT IMPLEMENTED");
 }
@@ -611,7 +613,7 @@ void bdt_cleanup(void)
  ** Console commands
  *******************************************************************************/
 
-void do_help(char *p)
+void do_help(char UNUSED *p)
 {
     int i = 0;
     int max = 0;
@@ -626,7 +628,7 @@ void do_help(char *p)
     }
 }
 
-void do_quit(char *p)
+void do_quit(char UNUSED *p)
 {
     bdt_shutdown();
 }
@@ -639,17 +641,17 @@ void do_quit(char *p)
  *
 */
 
-void do_init(char *p)
+void do_init(char UNUSED *p)
 {
     bdt_init();
 }
 
-void do_enable(char *p)
+void do_enable(char UNUSED *p)
 {
     bdt_enable();
 }
 
-void do_disable(char *p)
+void do_disable(char UNUSED *p)
 {
     bdt_disable();
 }
@@ -663,7 +665,7 @@ void do_le_test_mode(char *p)
     bdt_le_test_mode(p);
 }
 
-void do_cleanup(char *p)
+void do_cleanup(char UNUSED *p)
 {
     bdt_cleanup();
 }
@@ -731,7 +733,7 @@ static void process_cmd(char *p, unsigned char is_job)
     do_help(NULL);
 }
 
-int main (int argc, char * argv[])
+int main (int UNUSED argc, char UNUSED *argv[])
 {
     int opt;
     char cmd[128];

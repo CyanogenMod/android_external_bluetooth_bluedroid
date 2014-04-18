@@ -6,7 +6,7 @@ LOCAL_C_INCLUDES:= $(LOCAL_PATH)/include \
                    $(LOCAL_PATH)/../gki/ulinux \
                    $(bdroid_C_INCLUDES)
 
-LOCAL_CFLAGS += -Werror $(bdroid_CFLAGS) -std=c99
+LOCAL_CFLAGS += $(bdroid_CFLAGS) -std=c99
 
 LOCAL_PRELINK_MODULE:=false
 LOCAL_SRC_FILES:= \

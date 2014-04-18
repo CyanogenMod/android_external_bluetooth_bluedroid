@@ -528,7 +528,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
     tAVRC_MSG   msg;
     UINT8       *p_data;
     UINT8       *p_begin;
-    BOOLEAN     drop = FALSE;
+    UINT8       drop = 0;
     BOOLEAN     free = TRUE;
     BT_HDR      *p_rsp = NULL;
     UINT8       *p_rsp_data;
