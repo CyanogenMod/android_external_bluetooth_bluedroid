@@ -73,6 +73,10 @@ LOCAL_SRC_FILES:= \
     ./hl/bta_hl_utils.c \
     ./hl/bta_hl_sdp.c \
     ./hl/bta_hl_ci.c \
+    ./mce/bta_mce_api.c \
+    ./mce/bta_mce_main.c \
+    ./mce/bta_mce_act.c \
+    ./mce/bta_mce_cfg.c \
     ./sys/bta_sys_main.c \
     ./sys/bta_sys_ci.c \
     ./sys/bta_sys_conn.c \

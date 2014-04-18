@@ -1,5 +1,6 @@
 /******************************************************************************
  *
+ *  Copyright (C) 2014 The Android Open Source Project
  *  Copyright (C) 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,6 +49,7 @@
 #include "btif_util.h"
 #include "btif_sock.h"
 #include "btif_pan.h"
+#include "btif_mce.h"
 #include "btif_profile_queue.h"
 #include "btif_config.h"
 /************************************************************************************
