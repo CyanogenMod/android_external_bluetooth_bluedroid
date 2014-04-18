@@ -11,6 +11,8 @@ else
   bdroid_CFLAGS += -DHAS_NO_BDROID_BUILDCFG
 endif
 
+bdroid_CFLAGS += -Wall -Werror
+
 include $(call all-subdir-makefiles)
 
 # Cleanup our locals
