@@ -47,7 +47,7 @@ static UINT8 btm_ble_cs_update_pf_counter(tBTM_BLE_SCAN_COND_OP action,
 #define BTM_BLE_GET_SCAN_PF_ACTION(x)    ((x) & 0x0f)
 
 /* max number of filter available for different filter type, controller dependent number */
-const static UINT8 btm_ble_cs_filter_max[BTM_BLE_PF_TYPE_MAX] =
+static const UINT8 btm_ble_cs_filter_max[BTM_BLE_PF_TYPE_MAX] =
 {
     BTM_BLE_MAX_ADDR_FILTER,        /* address filter */
     1,                              /* no limit for service data change, always enable or disable */
