@@ -235,12 +235,13 @@ tAVDT_CTRL_CBACK * const bta_av_dt_cback[] =
 **
 ** Returns          void
 ***********************************************/
-UINT8  bta_av_get_scb_handle ( tBTA_AV_SCB *p_scb, UINT8 t_local_sep )
+UINT8  bta_av_get_scb_handle ( tBTA_AV_SCB *p_scb, UINT8 local_sep )
 {
     UINT8 xx =0;
     for (xx = 0; xx<BTA_AV_MAX_SEPS; xx++)
     {
-        if (p_scb->seps[xx].tsep == t_local_sep)
+        if ((p_scb->seps[xx].tsep == local_sep) &&
+            (p_scb->seps[xx].codec_type == p_scb->codec_type))
             return (p_scb->seps[xx].av_handle);
     }
     APPL_TRACE_DEBUG0(" bta_av_get_scb_handle appropiate sep_type not found")

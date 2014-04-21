@@ -553,6 +553,9 @@ static bt_status_t connect_int( bt_bdaddr_t *bd_addr )
 static bt_status_t connect( bt_bdaddr_t *bd_addr )
 {
     CHECK_BTHF_INIT();
+
+    btif_queue_remove_connect(UUID_SERVCLASS_AG_HANDSFREE, BTIF_QUEUE_CHECK_CONNECT_REQ);
+
    if(btif_hf_cb.handle)
        return btif_queue_connect(UUID_SERVCLASS_AG_HANDSFREE, bd_addr, connect_int, BTIF_QUEUE_CONNECT_EVT);
     else
@@ -1141,6 +1144,35 @@ static int get_remote_features()
     CHECK_BTHF_INIT();
 
     return btif_hf_cb.peer_feat;
+}
+
+/*******************************************************************************
+**
+** Function         btif_hf_is_connected
+**
+** Description      Checks if hf is connected
+**
+** Returns          BOOLEAN
+**
+*******************************************************************************/
+BOOLEAN btif_hf_is_connected(void)
+{
+    return is_connected(NULL);
+}
+
+/*******************************************************************************
+**
+** Function         btif_hf_close_update
+**
+** Description      close audio and update to application layer
+**
+** Returns          boolean
+**
+*******************************************************************************/
+void btif_hf_close_update(void)
+{
+   btif_hf_cb.state = BTHF_CONNECTION_STATE_DISCONNECTED;
+   HAL_CBACK(bt_hf_callbacks, connection_state_cb, btif_hf_cb.state, &btif_hf_cb.connected_bda);
 }
 
 /*******************************************************************************

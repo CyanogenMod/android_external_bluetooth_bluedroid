@@ -167,7 +167,6 @@ static char* btif_get_default_local_name();
 ******************************************************************************/
 extern UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID];
 extern bt_status_t btif_hf_execute_service(BOOLEAN b_enable);
-extern bt_status_t btif_multihf_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_av_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_hh_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_mce_execute_service(BOOLEAN b_enable);
@@ -176,10 +175,11 @@ extern int btif_hh_connect(bt_bdaddr_t *bd_addr);
 extern BOOLEAN btif_hh_check_if_sdp_required(bt_bdaddr_t *bd_addr);
 extern bt_status_t btif_hd_execute_service(BOOLEAN b_enable);
 extern void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16);
+extern BOOLEAN btif_hf_is_connected();
+extern void btif_hf_close_update();
 extern BOOLEAN btif_av_is_connected();
 extern void btif_av_close_update();
 extern void btif_av_move_idle(bt_bdaddr_t bd_addr);
-extern BOOLEAN btif_is_multi_hf_supported();
 
 
 /******************************************************************************
@@ -195,10 +195,7 @@ bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
          case BTA_HFP_SERVICE_ID:
          case BTA_HSP_SERVICE_ID:
          {
-              if (btif_is_multi_hf_supported())
-                  btif_multihf_execute_service(b_enable);
-              else
-                  btif_hf_execute_service(b_enable);
+              btif_hf_execute_service(b_enable);
          }break;
          case BTA_A2DP_SERVICE_ID:
          {
@@ -1818,6 +1815,12 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             BTIF_TRACE_ERROR0("Received H/W Error. ");
             /* Flush storage data */
             btif_config_flush();
+            //checking hfp is connected
+            if (btif_hf_is_connected())
+            {
+                BTIF_TRACE_DEBUG0("HFP Connection is Active disconnect before kill");
+                btif_hf_close_update();
+            }
             //checking weather music is palyed or not
             if (btif_av_is_connected())
             {
@@ -1980,8 +1983,16 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
         case BTA_DM_REM_NAME_EVT:
             BTIF_TRACE_DEBUG0("BTA_DM_REM_NAME_EVT");
 
-            /* remote name */
-            if (strlen((char *)p_data->rem_name_evt.bd_name) > 0)
+            bt_bdname_t alias;
+            bt_property_t prop[1];
+            uint32_t num_properties = 0;
+            memset(&alias, 0, sizeof(alias));
+            bdcpy(bd_addr.address, p_data->rem_name_evt.bd_addr);
+            BTIF_DM_GET_REMOTE_PROP(&bd_addr, BT_PROPERTY_REMOTE_FRIENDLY_NAME,
+                    &alias, sizeof(alias), prop[num_properties]);
+
+           /* Update Remote device name only when the Alias name is not present */
+            if ((alias.name[0] == '\0') && (strlen((char *)p_data->rem_name_evt.bd_name) > 0))
             {
                 bt_property_t properties[1];
                 bt_status_t status;

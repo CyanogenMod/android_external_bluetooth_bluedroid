@@ -28,7 +28,6 @@
  ***********************************************************************************/
 
 #include <hardware/bluetooth.h>
-#include <hardware/bt_multi_hf.h>
 #include <hardware/bt_hf.h>
 #include <hardware/bt_av.h>
 #include <netinet/in.h>

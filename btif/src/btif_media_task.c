@@ -216,11 +216,12 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
    layers we might need to temporarily buffer up data */
 
 /* 24 frames is equivalent to 6.89*24*2.9 ~= 480 ms @ 44.1 khz, 20 ms mediatick */
-#define MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ 24
+#define MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ 50
 
 //#define BTIF_MEDIA_VERBOSE_ENABLED
 /* In case of A2DP SINK, we will delay start by 5 AVDTP Packets*/
 #define MAX_A2DP_DELAYED_START_FRAME_COUNT 5
+#define MAX_A2DP_AV_SYNC_FRAME_COUNT 1
 #define PACKET_PLAYED_PER_TICK_48 8
 #define PACKET_PLAYED_PER_TICK_44 7
 #define PACKET_PLAYED_PER_TICK_32 5
@@ -351,7 +352,6 @@ static void btif_media_task_aa_handle_clear_track(void);
 static void btif_media_task_aa_handle_start_decoding(void );
 #endif
 extern BOOLEAN btif_hf_is_call_idle();
-extern BOOLEAN btif_multihf_is_call_idle();
 extern void btif_av_request_audio_focus(BOOLEAN enable);
 
 BOOLEAN btif_media_task_start_decoding_req(void);
@@ -554,7 +554,7 @@ static void btif_recv_ctrl_data(void)
             /* Dont sent START request to stack while we are in call.
                Some headsets like Sony MW600, dont allow AVDTP START
                in call and respond BAD_STATE */
-            if (!btif_multihf_is_call_idle())
+            if (!btif_hf_is_call_idle())
             {
                 a2dp_cmd_acknowledge(A2DP_CTRL_ACK_INCALL_FAILURE);
                 break;
@@ -1196,6 +1196,8 @@ void btif_a2dp_on_suspended(tBTA_AV_SUSPEND *p_av)
     APPL_TRACE_EVENT0("## ON A2DP SUSPENDED ##");
     if ((!btif_media_cb.is_source))
     {
+        btif_media_cb.rx_flush = TRUE;
+        btif_media_task_aa_rx_flush_req();
         btif_media_task_stop_decoding_req();
         return;
     }
@@ -1311,7 +1313,10 @@ static void btif_media_task_avk_handle_timer ( void )
             btif_av_request_audio_focus(TRUE);
             return;
         }
-        num_frames_to_process = btif_media_cb.frames_to_process;
+        if (btif_media_cb.RxSbcQ.count > 3)
+            num_frames_to_process = 2* btif_media_cb.frames_to_process;
+        else
+            num_frames_to_process = btif_media_cb.frames_to_process;
         APPL_TRACE_DEBUG0(" Process Frames + ");
 
         do
@@ -1649,8 +1654,6 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
     int retwriteAudioTrack = 0;
     availPcmBytes = 2*sizeof(pcmData);
 
-    APPL_TRACE_DEBUG2("btif_media_task_handle_media sbc_pkt_len=0x%x ofst = 0x%x",
-                      sbc_frame_len, p_msg->offset);
     if ((btif_media_cb.is_source) || (btif_media_cb.rx_flush))
     {
         APPL_TRACE_DEBUG0(" State Changed happened in this tick ");
@@ -1661,15 +1664,12 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
     for(count = 0; count < num_sbc_frames && sbc_frame_len != 0; count ++)
     {
         pcmBytes = availPcmBytes;
-        APPL_TRACE_DEBUG3("sbc_start_frame: 0x%x first_sbc_byte: 0x%x sbcFrameLenRemain: 0x%x",
-                                           sbc_start_frame, *sbc_start_frame, sbc_frame_len);
         status = oi_sbc_decode_vnd_if->OI_CODEC_SBC_DecodeFrame(&context, (const OI_BYTE**)&sbc_start_frame,
                                                         &sbc_frame_len, pcmDataPointer, &pcmBytes);
         if (!OI_SUCCESS(status)) {
             APPL_TRACE_ERROR1("Decoding failure: %d\n", status);
             break;
         }
-        APPL_TRACE_DEBUG3("pcmDataPointer: 0x%x first_pcm_byte: 0x%x numPcmBytes: 0x%x", pcmDataPointer, *pcmDataPointer, pcmBytes);
         availPcmBytes -= pcmBytes;
         pcmDataPointer += pcmBytes/2;
         p_msg->offset += (p_msg->len - 1) - sbc_frame_len;
@@ -2261,6 +2261,7 @@ static void btif_media_task_aa_handle_stop_decoding(void )
 {
     btif_media_cb.is_rx_timer = FALSE;
     GKI_stop_timer(BTIF_MEDIA_AVK_TASK_TIMER_ID);
+    btPauseTrack();
 }
 
 /*******************************************************************************
@@ -2276,6 +2277,7 @@ static void btif_media_task_aa_handle_start_decoding(void )
 {
     if(btif_media_cb.is_rx_timer == TRUE)
         return;
+    btStartTrack();
     btif_media_cb.is_rx_timer = TRUE;
     GKI_start_timer(BTIF_MEDIA_AVK_TASK_TIMER_ID, GKI_MS_TO_TICKS(BTIF_SINK_MEDIA_TIME_TICK), TRUE);
 }
@@ -2726,7 +2728,7 @@ UINT8 btif_media_sink_enque_buf(BT_HDR *p_pkt)
         p_msg->num_frames_to_be_processed = (*((UINT8*)(p_msg + 1) + p_msg->offset)) & 0x0f;
         BTIF_TRACE_VERBOSE1("btif_media_sink_enque_buf + ", p_msg->num_frames_to_be_processed);
         GKI_enqueue(&(btif_media_cb.RxSbcQ), p_msg);
-        if(btif_media_cb.RxSbcQ.count == MAX_A2DP_DELAYED_START_FRAME_COUNT)
+        if(btif_media_cb.RxSbcQ.count == MAX_A2DP_AV_SYNC_FRAME_COUNT)
         {
             BTIF_TRACE_DEBUG0(" Initiate Decoding ");
             btif_media_task_start_decoding_req();
