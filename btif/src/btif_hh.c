@@ -1678,11 +1678,18 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
 
     else {
         int    hex_bytes_filled;
-        UINT8  hexbuf[200];
+        UINT8  *hexbuf;
         UINT16 len = (strlen(data) + 1) / 2;
 
-        /* Build a SetReport data buffer */
-        memset(hexbuf, 0, 200);
+        hexbuf = GKI_getbuf(len);
+        if (hexbuf == NULL) {
+            BTIF_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, len = %d",
+                __FUNCTION__, len);
+            return BT_STATUS_FAIL;
+        }
+
+        /* Build a SendData data buffer */
+        memset(hexbuf, 0, len);
         hex_bytes_filled = ascii_2_hex(data, len, hexbuf);
         BTIF_TRACE_ERROR2("Hex bytes filled, hex value: %d, %d", hex_bytes_filled, len);
 
@@ -1691,15 +1698,17 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
             if (p_buf == NULL) {
                 BTIF_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, len = %d",
                                   __FUNCTION__, hex_bytes_filled);
+                GKI_freebuf(hexbuf);
                 return BT_STATUS_FAIL;
             }
             p_buf->layer_specific = BTA_HH_RPTT_OUTPUT;
             BTA_HhSendData(p_dev->dev_handle, *bda, p_buf);
+            GKI_freebuf(hexbuf);
             return BT_STATUS_SUCCESS;
         }
-
+        GKI_freebuf(hexbuf);
+        return BT_STATUS_FAIL;
     }
-    return BT_STATUS_FAIL;
 }
 
 
