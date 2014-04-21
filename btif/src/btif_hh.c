@@ -1612,11 +1612,18 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
     }
     else {
         int    hex_bytes_filled;
-        UINT8  hexbuf[200];
+        UINT8  *hexbuf;
         UINT16 len = (strlen(report) + 1) / 2;
 
+        hexbuf = GKI_getbuf(len);
+        if (hexbuf == NULL) {
+            BTIF_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, len = %d",
+                __FUNCTION__, len);
+            return BT_STATUS_FAIL;
+        }
+
         /* Build a SetReport data buffer */
-        memset(hexbuf, 0, 200);
+        memset(hexbuf, 0, len);
         //TODO
         hex_bytes_filled = ascii_2_hex(report, len, hexbuf);
         ALOGI("Hex bytes filled, hex value: %d", hex_bytes_filled);
@@ -1625,11 +1632,15 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
             if (p_buf == NULL) {
                 BTIF_TRACE_ERROR2("%s: Error, failed to allocate RPT buffer, len = %d",
                                   __FUNCTION__, hex_bytes_filled);
+                GKI_freebuf(hexbuf);
                 return BT_STATUS_FAIL;
             }
             BTA_HhSetReport(p_dev->dev_handle, reportType, p_buf);
+            GKI_freebuf(hexbuf);
+            return BT_STATUS_SUCCESS;
         }
-        return BT_STATUS_SUCCESS;
+        GKI_freebuf(hexbuf);
+        return BT_STATUS_FAIL;
     }
 }
 
