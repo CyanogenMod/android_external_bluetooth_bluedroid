@@ -1125,6 +1125,16 @@ and USER_HW_DISABLE_API macros */
 #define BTM_OOB_INCLUDED                TRUE
 #endif
 
+/* Include No MITM/No Bonding/No Keys implementation for Simple Pairing */
+#ifndef BTM_NO_MITM_NO_BONDING_INCLUDED
+#define BTM_NO_MITM_NO_BONDING_INCLUDED  FALSE
+#endif
+
+/* Include No MITM implementation for Simple Pairing */
+#ifndef BTM_NO_MITM_INCLUDED
+#define BTM_NO_MITM_INCLUDED  FALSE
+#endif
+
 /* TRUE to include Sniff Subrating */
 #ifndef BTM_SSR_INCLUDED
 #define BTM_SSR_INCLUDED                TRUE
