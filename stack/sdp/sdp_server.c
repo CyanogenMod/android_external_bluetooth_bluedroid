@@ -54,7 +54,9 @@
  */
 static const UINT8 sdp_black_list_prefix[][3] = {{0x00, 0x1D, 0xBA}, /* JVC carkit */
                                                  {0x64, 0xD4, 0xBD}, /* Honda handsfree carkit */
-                                                 {0x00, 0x06, 0xF7}  /* Denso carkit */};
+                                                 {0x00, 0x06, 0xF7},  /* Denso carkit */
+                                                 {0x00, 0x1E, 0xB2},  /* AVN 3.0 Hyundai*/
+                                                 {0x00, 0x13, 0x7B}  /* BYOM Opel*/ };
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
