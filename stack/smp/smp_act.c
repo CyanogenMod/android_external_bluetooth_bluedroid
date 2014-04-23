@@ -104,6 +104,9 @@ void smp_send_app_cback(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
         callback_rc = (*p_cb->p_callback)(p_cb->cb_evt, p_cb->pairing_bda, &cb_data);
 
         SMP_TRACE_DEBUG ("callback_rc=%d  p_cb->cb_evt=%d",callback_rc, p_cb->cb_evt );
+        btu_stop_timer (&p_cb->rsp_timer_ent);
+        btu_start_timer (&p_cb->rsp_timer_ent, BTU_TTYPE_SMP_PAIRING_CMD,
+               SMP_WAIT_FOR_RSP_TOUT);
 
         if (callback_rc == SMP_SUCCESS && p_cb->cb_evt == SMP_IO_CAP_REQ_EVT)
         {
@@ -331,9 +334,6 @@ void smp_proc_sec_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
             p_cb->peer_auth_req = auth_req;
             p_cb->loc_r_key = p_cb->loc_i_key = SMP_SEC_DEFAULT_KEY ;
             p_cb->cb_evt = SMP_SEC_REQUEST_EVT;
-            btu_stop_timer (&p_cb->rsp_timer_ent);
-            btu_start_timer (&p_cb->rsp_timer_ent, BTU_TTYPE_SMP_PAIRING_CMD,
-                   SMP_WAIT_FOR_RSP_TOUT);
             break;
 
         case BTM_BLE_SEC_REQ_ACT_DISCARD:
