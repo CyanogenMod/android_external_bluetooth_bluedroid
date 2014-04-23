@@ -368,8 +368,30 @@ BOOLEAN bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
                 /* Found attribute. Get value. */
                 /* There might be race condition between SDP and BRSF.  */
                 /* Do not update if we already received BRSF.           */
-                if (p_scb->peer_features == 0)
-                    p_scb->peer_features = p_attr->attr_value.v.u16;
+        
+                APPL_TRACE_DEBUG1("bta_ag_sdp_find_attr: peer_attr 0x%x",  p_attr->attr_value.v.u16);
+                APPL_TRACE_WARNING0("bta_ag_sdp_find_attr not using value as p_scb->peer_features");
+ 
+                /* Do not use the value as peer_features. 
+                **
+                ** if (p_scb->peer_features == 0)
+                **     p_scb->peer_features = p_attr->attr_value.v.u16;
+                **
+                ** Reason is, that the service connection negotiation depends on the 
+                ** BTA_AG_FEAT_3WAY feature (see the calling of bta_ag_svc_conn_open()
+                ** for BTA_AG_HF_CMD_CMER). A race condition could result in erratic
+                ** behavior.
+                **
+                ** Background: Using the attr_value for peer_feature was a change introduced 
+                ** in android 4.2. That version triggered a number of bug-reports about 
+                ** bluetooth being broken.
+                **
+                ** This problem was observed first hand on a BMW 2005/E46 car kit which does 
+                ** not send AT+BRSF and behaves as if it would not support 3WAY. With the newly 
+                ** introduced code for using attr_value as peer_feature the result was that 
+                ** bluetooth connections to the car kit always terminated after 5 seconds 
+                ** (via BTA_AG_SVC_TOUT_EVT).
+                */
             }
         }
         else    /* HSP */
