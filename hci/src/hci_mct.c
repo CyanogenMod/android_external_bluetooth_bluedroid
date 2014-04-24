@@ -763,11 +763,14 @@ uint16_t hci_mct_receive_evt_msg(void)
                   (HC_BT_HDR *) bt_hc_cbacks->alloc(len);
            }
            ALOGE("sending H/w error event to stack\n ");
-           p_cb->p_rcv_msg->offset = 0;
-           p_cb->p_rcv_msg->layer_specific = 0;
-           p_cb->p_rcv_msg->event = MSG_HC_TO_STACK_HCI_EVT;
-           p_cb->p_rcv_msg->len = 3;
-           memcpy((uint8_t *)(p_cb->p_rcv_msg + 1),&dev_ssr_event, 3);
+           if (p_cb->p_rcv_msg)
+           {
+               p_cb->p_rcv_msg->offset = 0;
+               p_cb->p_rcv_msg->layer_specific = 0;
+               p_cb->p_rcv_msg->event = MSG_HC_TO_STACK_HCI_EVT;
+               p_cb->p_rcv_msg->len = 3;
+               memcpy((uint8_t *)(p_cb->p_rcv_msg + 1),&dev_ssr_event, 3);
+           }
            msg_received = TRUE;
            /* Next, wait for next message */
            p_cb->rcv_state = MCT_RX_NEWMSG_ST;
@@ -908,7 +911,7 @@ uint16_t hci_mct_receive_evt_msg(void)
        }
 
         /* If we received entire message, then send it to the task */
-        if (msg_received)
+        if (msg_received && p_cb->p_rcv_msg)
         {
             uint8_t intercepted = FALSE;
 
