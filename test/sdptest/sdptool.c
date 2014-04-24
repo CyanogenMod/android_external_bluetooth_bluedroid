@@ -326,11 +326,13 @@ static int create_cmdjob(char *cmd)
     char *job_cmd;
 
     job_cmd = malloc(strlen(cmd)+1); /* freed in job handler */
-    strlcpy(job_cmd, cmd, sizeof(cmd));
+    if (job_cmd) {
+        strlcpy(job_cmd, cmd, sizeof(cmd));
 
-    if (pthread_create(&thread_id, NULL,
+        if (pthread_create(&thread_id, NULL,
                        (void*)cmdjob_handler, (void*)job_cmd)!=0)
-      perror("pthread_create");
+            perror("pthread_create");
+    }
 
     return 0;
 }
@@ -633,7 +635,8 @@ void do_sdp_init(char *p)
     if(NULL == sSdpInterface) {
         sSdpInterface = get_sdp_interface();
     }
-    sSdpInterface->Init(pSDP_cmpl_cb);
+    if (sSdpInterface)
+       sSdpInterface->Init(pSDP_cmpl_cb);
     msdpHandle.spp = 0;
     msdpHandle.dummy = 0;
 }
@@ -721,7 +724,7 @@ int parseCommand(char *p)
         }
         if((prev==' ')&&(*p!=' ')) {
             j++;
-            if(j>MAX_PARAMS) {
+            if(j >= MAX_PARAMS) {
                 printf("No of params specified exceed the max limit: %d\n",MAX_PARAMS);
                 return -1;
             }
