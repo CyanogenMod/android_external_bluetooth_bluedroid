@@ -226,10 +226,8 @@ static void *userial_read_thread(void *arg)
 **
 ** Description     Initializes the userial driver
 **
-** Returns         TRUE/FALSE
-**
 *******************************************************************************/
-uint8_t userial_init(void)
+bool userial_init(void)
 {
     int idx;
 
@@ -238,7 +236,7 @@ uint8_t userial_init(void)
     for (idx=0; idx < CH_MAX; idx++)
         userial_cb.fd[idx] = -1;
     utils_queue_init(&(userial_cb.rx_q));
-    return TRUE;
+    return true;
 }
 
 
@@ -248,10 +246,8 @@ uint8_t userial_init(void)
 **
 ** Description     Open Bluetooth device with the port ID
 **
-** Returns         TRUE/FALSE
-**
 *******************************************************************************/
-uint8_t userial_open(uint8_t port)
+bool userial_open(userial_port_t port)
 {
     struct sched_param param;
     int policy, result;
@@ -269,7 +265,7 @@ uint8_t userial_open(uint8_t port)
     if (port >= MAX_SERIAL_PORT)
     {
         ALOGE("Port > MAX_SERIAL_PORT");
-        return FALSE;
+        return false;
     }
 
     /* Calling vendor-specific part */
@@ -283,14 +279,14 @@ uint8_t userial_open(uint8_t port)
                     result);
             ALOGE("userial_open: HCI MCT expects 2 or 4 open file descriptors");
             bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
-            return FALSE;
+            return false;
         }
     }
     else
     {
         ALOGE("userial_open: missing vendor lib interface !!!");
         ALOGE("userial_open: unable to open BT transport");
-        return FALSE;
+        return false;
     }
 
     ALOGI("CMD=%d, EVT=%d, ACL_Out=%d, ACL_In=%d", \
@@ -302,7 +298,7 @@ uint8_t userial_open(uint8_t port)
     {
         ALOGE("userial_open: failed to open BT transport");
         bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
-        return FALSE;
+        return false;
     }
 
     userial_cb.port = port;
@@ -315,7 +311,7 @@ uint8_t userial_open(uint8_t port)
     {
         ALOGE("pthread_create failed!");
         bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
-        return FALSE;
+        return false;
     }
 
     if(pthread_getschedparam(userial_cb.read_thread, &policy, &param)==0)
@@ -334,7 +330,7 @@ uint8_t userial_open(uint8_t port)
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -347,7 +343,7 @@ uint8_t userial_open(uint8_t port)
 **                 copied into p_data.  This may be less than len.
 **
 *******************************************************************************/
-uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
+uint16_t userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
 {
     int ret = -1;
     int ch_idx = (msg_id == MSG_HC_TO_STACK_HCI_EVT) ? CH_EVT : CH_ACL_IN;
@@ -369,7 +365,7 @@ uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
 **                 may be less than len.
 **
 *******************************************************************************/
-uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
+uint16_t userial_write(uint16_t msg_id, const uint8_t *p_data, uint16_t len)
 {
     int ret, total = 0;
     int ch_idx = (msg_id == MSG_STACK_TO_HC_HCI_CMD) ? CH_CMD : CH_ACL_OUT;
@@ -389,8 +385,6 @@ uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
 ** Function        userial_close
 **
 ** Description     Close the userial port
-**
-** Returns         None
 **
 *******************************************************************************/
 void userial_close(void)
@@ -419,10 +413,8 @@ void userial_close(void)
 **
 ** Description     ioctl inteface
 **
-** Returns         None
-**
 *******************************************************************************/
-void userial_ioctl(userial_ioctl_op_t op, void *p_data)
+void userial_ioctl(userial_ioctl_op_t op)
 {
     switch(op)
     {
@@ -436,9 +428,8 @@ void userial_ioctl(userial_ioctl_op_t op, void *p_data)
                 send_wakeup_signal(USERIAL_RX_FLOW_OFF);
             break;
 
-        case USERIAL_OP_INIT:
         default:
+            ALOGE("%s invalid operation: %d", __func__, op);
             break;
     }
 }
-

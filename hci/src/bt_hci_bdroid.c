@@ -337,8 +337,7 @@ static int set_rxflow(bt_rx_flow_state_t state)
     BTHCDBG("set_rxflow %d", state);
 
     userial_ioctl(\
-     ((state == BT_RXFLOW_ON) ? USERIAL_OP_RXFLOW_ON : USERIAL_OP_RXFLOW_OFF), \
-     NULL);
+     ((state == BT_RXFLOW_ON) ? USERIAL_OP_RXFLOW_ON : USERIAL_OP_RXFLOW_OFF));
 
     return BT_HC_STATUS_SUCCESS;
 }

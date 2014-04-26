@@ -312,18 +312,15 @@ static void *userial_read_thread(void *arg)
 **
 ** Description     Initializes the userial driver
 **
-** Returns         TRUE/FALSE
-**
 *******************************************************************************/
-uint8_t userial_init(void)
+bool userial_init(void)
 {
     USERIALDBG("userial_init");
     memset(&userial_cb, 0, sizeof(tUSERIAL_CB));
     userial_cb.fd = -1;
     utils_queue_init(&(userial_cb.rx_q));
-    return TRUE;
+    return true;
 }
-
 
 /*******************************************************************************
 **
@@ -331,10 +328,8 @@ uint8_t userial_init(void)
 **
 ** Description     Open Bluetooth device with the port ID
 **
-** Returns         TRUE/FALSE
-**
 *******************************************************************************/
-uint8_t userial_open(uint8_t port)
+bool  userial_open(userial_port_t port)
 {
     struct sched_param param;
     int policy, result;
@@ -353,7 +348,7 @@ uint8_t userial_open(uint8_t port)
     if (port >= MAX_SERIAL_PORT)
     {
         ALOGE("Port > MAX_SERIAL_PORT");
-        return FALSE;
+        return false;
     }
 
     /* Calling vendor-specific part */
@@ -367,7 +362,7 @@ uint8_t userial_open(uint8_t port)
                     result);
             ALOGE("userial_open: HCI UART expects only one open fd");
             bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
-            return FALSE;
+            return false;
         }
 
         userial_cb.fd = fd_array[0];
@@ -376,13 +371,13 @@ uint8_t userial_open(uint8_t port)
     {
         ALOGE("userial_open: missing vendor lib interface !!!");
         ALOGE("userial_open: unable to open UART port");
-        return FALSE;
+        return false;
     }
 
     if (userial_cb.fd == -1)
     {
         ALOGE("userial_open: failed to open UART port");
-        return FALSE;
+        return false;
     }
 
     USERIALDBG( "fd = %d", userial_cb.fd);
@@ -395,7 +390,7 @@ uint8_t userial_open(uint8_t port)
                        userial_read_thread, NULL) != 0 )
     {
         ALOGE("pthread_create failed!");
-        return FALSE;
+        return false;
     }
 
     if(pthread_getschedparam(userial_cb.read_thread, &policy, &param)==0)
@@ -414,7 +409,7 @@ uint8_t userial_open(uint8_t port)
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -427,7 +422,7 @@ uint8_t userial_open(uint8_t port)
 **                 copied into p_data.  This may be less than len.
 **
 *******************************************************************************/
-uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
+uint16_t userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
 {
     uint16_t total_len = 0;
     uint16_t copy_len = 0;
@@ -482,7 +477,7 @@ uint16_t  userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
 **                 may be less than len.
 **
 *******************************************************************************/
-uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
+uint16_t userial_write(uint16_t msg_id, const uint8_t *p_data, uint16_t len)
 {
     int ret, total = 0;
     UNUSED(msg_id);
@@ -505,8 +500,6 @@ uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
 ** Function        userial_close
 **
 ** Description     Close the userial port
-**
-** Returns         None
 **
 *******************************************************************************/
 void userial_close(void)
@@ -543,13 +536,9 @@ void userial_close(void)
 **
 ** Description     ioctl inteface
 **
-** Returns         None
-**
 *******************************************************************************/
-void userial_ioctl(userial_ioctl_op_t op, void *p_data)
+void userial_ioctl(userial_ioctl_op_t op)
 {
-    UNUSED(p_data);
-
     switch(op)
     {
         case USERIAL_OP_RXFLOW_ON:
@@ -562,9 +551,8 @@ void userial_ioctl(userial_ioctl_op_t op, void *p_data)
                 send_wakeup_signal(USERIAL_RX_FLOW_OFF);
             break;
 
-        case USERIAL_OP_INIT:
         default:
+            ALOGE("%s invalid operation: %d", __func__, op);
             break;
     }
 }
-
