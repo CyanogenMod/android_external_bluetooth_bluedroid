@@ -407,29 +407,12 @@ void userial_close(void)
         userial_cb.fd[idx] = -1;
 }
 
-/*******************************************************************************
-**
-** Function        userial_ioctl
-**
-** Description     ioctl inteface
-**
-*******************************************************************************/
-void userial_ioctl(userial_ioctl_op_t op)
-{
-    switch(op)
-    {
-        case USERIAL_OP_RXFLOW_ON:
-            if (userial_running)
-                send_wakeup_signal(USERIAL_RX_FLOW_ON);
-            break;
+void userial_pause_reading(void) {
+    if (userial_running)
+        send_wakeup_signal(USERIAL_RX_FLOW_OFF);
+}
 
-        case USERIAL_OP_RXFLOW_OFF:
-            if (userial_running)
-                send_wakeup_signal(USERIAL_RX_FLOW_OFF);
-            break;
-
-        default:
-            ALOGE("%s invalid operation: %d", __func__, op);
-            break;
-    }
+void userial_resume_reading(void) {
+    if (userial_running)
+        send_wakeup_signal(USERIAL_RX_FLOW_ON);
 }

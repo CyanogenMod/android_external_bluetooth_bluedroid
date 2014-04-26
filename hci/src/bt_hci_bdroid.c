@@ -27,6 +27,7 @@
 
 #define LOG_TAG "bt_hci_bdroid"
 
+#include <assert.h>
 #include <utils/Log.h>
 #include <pthread.h>
 #include "bt_hci_bdroid.h"
@@ -332,12 +333,23 @@ static int transmit_buf(TRANSAC transac, char * p_buf, int len)
 
 
 /** Controls receive flow */
-static int set_rxflow(bt_rx_flow_state_t state)
-{
+static int set_rxflow(bt_rx_flow_state_t state) {
     BTHCDBG("set_rxflow %d", state);
 
-    userial_ioctl(\
-     ((state == BT_RXFLOW_ON) ? USERIAL_OP_RXFLOW_ON : USERIAL_OP_RXFLOW_OFF));
+    switch (state) {
+        case BT_RXFLOW_ON:
+            userial_resume_reading();
+            break;
+
+        case BT_RXFLOW_OFF:
+            userial_pause_reading();
+            break;
+
+        default:
+            assert(false);
+            ALOGE("%s unexpected flow state: %d", __func__, state);
+            return BT_HC_STATUS_FAIL;
+    }
 
     return BT_HC_STATUS_SUCCESS;
 }
