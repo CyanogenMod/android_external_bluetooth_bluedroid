@@ -23,6 +23,7 @@
  *  Description:   Handsfree Profile Bluetooth Interface
  *
  ***********************************************************************************/
+#include <assert.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
 #include <sys/types.h>
@@ -51,6 +52,7 @@
 #include "bta_jv_api.h"
 #include "bta_jv_co.h"
 #include "port_api.h"
+#include "list.h"
 
 #include <cutils/log.h>
 #include <hardware/bluetooth.h>
@@ -92,7 +94,7 @@ typedef struct {
   int rfc_handle;
   int rfc_port_handle;
   int role;
-  BUFFER_Q incoming_que;
+  list_t *incoming_queue;
 } rfc_slot_t;
 
 static rfc_slot_t rfc_slots[MAX_RFC_CHANNEL];
@@ -122,11 +124,6 @@ static inline void bd_copy(UINT8* dest, UINT8* src, BOOLEAN swap)
     }
     else memcpy(dest, src, 6);
 }
-static inline void free_gki_que(BUFFER_Q* q)
-{
-    while(!GKI_queue_is_empty(q))
-           GKI_freebuf(GKI_dequeue(q));
-}
 static void init_rfc_slots()
 {
     int i;
@@ -136,7 +133,8 @@ static void init_rfc_slots()
         rfc_slots[i].scn = -1;
         rfc_slots[i].sdp_handle = 0;
         rfc_slots[i].fd = rfc_slots[i].app_fd = -1;
-        GKI_init_q(&rfc_slots[i].incoming_que);
+        rfc_slots[i].incoming_queue = list_new(GKI_freebuf);
+        assert(rfc_slots[i].incoming_queue != NULL);
     }
     BTA_JvEnable(jv_dm_cback);
     init_slot_lock(&slot_lock);
@@ -156,8 +154,10 @@ void btsock_rfc_cleanup()
     int i;
     for(i = 0; i < MAX_RFC_CHANNEL; i++)
     {
-        if(rfc_slots[i].id)
+        if(rfc_slots[i].id) {
             cleanup_rfc_slot(&rfc_slots[i]);
+            list_free(rfc_slots[i].incoming_queue);
+        }
     }
     unlock_slot(&slot_lock);
 }
@@ -507,7 +507,7 @@ static void cleanup_rfc_slot(rfc_slot_t* rs)
         rs->rfc_handle = 0;
     }
     free_rfc_slot_scn(rs);
-    free_gki_que(&rs->incoming_que);
+    list_clear(rs->incoming_queue);
 
     rs->rfc_port_handle = 0;
     //cleanup the flag
@@ -846,24 +846,20 @@ static int send_data_to_app(int fd, BT_HDR *p_buf)
 }
 static BOOLEAN flush_incoming_que_on_wr_signal(rfc_slot_t* rs)
 {
-    while(!GKI_queue_is_empty(&rs->incoming_que))
+    while(!list_is_empty(rs->incoming_queue))
     {
-        BT_HDR *p_buf = GKI_dequeue(&rs->incoming_que);
+        BT_HDR *p_buf = list_front(rs->incoming_queue);
         int sent = send_data_to_app(rs->fd, p_buf);
         switch(sent)
         {
             case SENT_NONE:
             case SENT_PARTIAL:
-                //add it back to the queue at same position
-                GKI_enqueue_head (&rs->incoming_que, p_buf);
                 //monitor the fd to get callback when app is ready to receive data
                 btsock_thread_add_fd(pth, rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_WR, rs->id);
                 return TRUE;
             case SENT_ALL:
-                GKI_freebuf(p_buf);
-                break;
             case SENT_FAILED:
-                GKI_freebuf(p_buf);
+                list_remove(rs->incoming_queue, p_buf);
                 return FALSE;
         }
     }
@@ -942,8 +938,8 @@ int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf)
     rfc_slot_t* rs = find_rfc_slot_by_id(id);
     if(rs)
     {
-        if(!GKI_queue_is_empty(&rs->incoming_que))
-            GKI_enqueue(&rs->incoming_que, p_buf);
+        if(!list_is_empty(rs->incoming_queue))
+            list_append(rs->incoming_queue, p_buf);
         else
         {
             int sent = send_data_to_app(rs->fd, p_buf);
@@ -952,7 +948,7 @@ int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf)
                 case SENT_NONE:
                 case SENT_PARTIAL:
                     //add it to the end of the queue
-                    GKI_enqueue(&rs->incoming_que, p_buf);
+                    list_append(rs->incoming_queue, p_buf);
                     //monitor the fd to get callback when app is ready to receive data
                     btsock_thread_add_fd(pth, rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_WR, rs->id);
                     break;
