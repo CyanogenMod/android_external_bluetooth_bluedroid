@@ -27,26 +27,27 @@
 #define LOG_TAG "bt_userial"
 
 #include <assert.h>
-#include <utils/Log.h>
-#include <pthread.h>
-#include <fcntl.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <pthread.h>
 #include <stdio.h>
+#include <sys/eventfd.h>
 #include <sys/prctl.h>
 #include <sys/socket.h>
+#include <utils/Log.h>
 
 #include "bt_hci_bdroid.h"
+#include "bt_utils.h"
+#include "bt_vendor_lib.h"
 #include "userial.h"
 #include "utils.h"
-#include "bt_vendor_lib.h"
-#include "bt_utils.h"
 
 /******************************************************************************
 **  Constants & Macros
 ******************************************************************************/
 
 #ifndef USERIAL_DBG
-#define USERIAL_DBG FALSE
+#define USERIAL_DBG TRUE
 #endif
 
 #if (USERIAL_DBG == TRUE)
@@ -58,10 +59,13 @@
 #define MAX_SERIAL_PORT (USERIAL_PORT_3 + 1)
 #define READ_LIMIT (BTHC_USERIAL_READ_MEM_SIZE - BT_HC_HDR_SIZE)
 
+// The set of events one can send to the userial read thread.
+// Note that the values must be >= 0x8000000000000000 to guarantee delivery
+// of the message (see eventfd(2) for details on blocking behaviour).
 enum {
-    USERIAL_RX_EXIT,
-    USERIAL_RX_FLOW_OFF,
-    USERIAL_RX_FLOW_ON
+    USERIAL_RX_EXIT     = 0x8000000000000000ULL,
+    USERIAL_RX_FLOW_OFF = 0x8000000000000001ULL,
+    USERIAL_RX_FLOW_ON  = 0x8000000000000002ULL,
 };
 
 /******************************************************************************
@@ -97,38 +101,38 @@ static volatile uint8_t userial_running = 0;
 **      - signal_fds[0]: join fd_set in select call of userial_read_thread
 **      - signal_fds[1]: trigger from userial_close
 *****************************************************************************/
-static int signal_fds[2] = { -1, -1 };
+static int event_fd = -1;
 static uint8_t rx_flow_on = TRUE;
 
-static inline int create_signal_fds(fd_set *set) {
-    if (signal_fds[0] == -1 && socketpair(AF_UNIX, SOCK_STREAM, 0, signal_fds) == -1) {
-        ALOGE("%s socketpair failed: %s", __func__, strerror(errno));
-        return -1;
+static inline int add_event_fd(fd_set *set) {
+    if (event_fd == -1) {
+      event_fd = eventfd(0, 0);
+      if (event_fd == -1) {
+          ALOGE("%s unable to create event fd: %s", __func__, strerror(errno));
+          return -1;
+      }
     }
 
-    FD_SET(signal_fds[0], set);
-    return signal_fds[0];
+    FD_SET(event_fd, set);
+    return event_fd;
 }
 
-static inline int send_wakeup_signal(char sig_cmd) {
-    assert(signal_fds[0] != -1);
-    assert(signal_fds[1] != -1);
-    return send(signal_fds[1], &sig_cmd, sizeof(sig_cmd), 0);
+static inline void send_event(uint64_t event_id) {
+    assert(event_fd != -1);
+    eventfd_write(event_fd, event_id);
 }
 
-static inline char reset_signal() {
-    assert(signal_fds[0] != -1);
-    assert(signal_fds[1] != -1);
+static inline uint64_t read_event() {
+    assert(event_fd != -1);
 
-    char sig_recv = -1;
-    recv(signal_fds[0], &sig_recv, sizeof(sig_recv), MSG_WAITALL);
-    return sig_recv;
+    uint64_t value = 0;
+    eventfd_read(event_fd, &value);
+    return value;
 }
 
-static inline int is_signaled(fd_set *set) {
-    assert(signal_fds[0] != -1);
-    assert(signal_fds[1] != -1);
-    return FD_ISSET(signal_fds[0], set);
+static inline bool is_event_available(fd_set *set) {
+    assert(event_fd != -1);
+    return !!FD_ISSET(event_fd, set);
 }
 
 /*******************************************************************************
@@ -147,7 +151,6 @@ static int select_read(int fd, uint8_t *pbuf, int len)
 {
     fd_set input;
     int n = 0, ret = -1;
-    char reason = 0;
 
     while (userial_running)
     {
@@ -157,28 +160,26 @@ static int select_read(int fd, uint8_t *pbuf, int len)
         {
             FD_SET(fd, &input);
         }
-        int fd_max = create_signal_fds(&input);
+        int fd_max = add_event_fd(&input);
         fd_max = fd_max > fd ? fd_max : fd;
 
         /* Do the select */
         n = select(fd_max+1, &input, NULL, NULL, NULL);
-        if(is_signaled(&input))
+        if(is_event_available(&input))
         {
-            reason = reset_signal();
-            if (reason == USERIAL_RX_EXIT)
-            {
-                USERIALDBG("RX termination");
-                return -1;
-            }
-            else if (reason == USERIAL_RX_FLOW_OFF)
-            {
-                USERIALDBG("RX flow OFF");
-                rx_flow_on = FALSE;
-            }
-            else if (reason == USERIAL_RX_FLOW_ON)
-            {
-                USERIALDBG("RX flow ON");
-                rx_flow_on = TRUE;
+            uint64_t event = read_event();
+            switch (event) {
+                case USERIAL_RX_FLOW_ON:
+                    USERIALDBG("RX flow ON");
+                    rx_flow_on = TRUE;
+                    break;
+                case USERIAL_RX_FLOW_OFF:
+                    USERIALDBG("RX flow OFF");
+                    rx_flow_on = FALSE;
+                    break;
+                case USERIAL_RX_EXIT:
+                    USERIALDBG("RX termination");
+                    return -1;
             }
         }
 
@@ -402,7 +403,7 @@ void userial_close(void) {
 
     // Join the reader thread if it's still running.
     if (userial_running) {
-        send_wakeup_signal(USERIAL_RX_EXIT);
+        send_event(USERIAL_RX_EXIT);
         int result = pthread_join(userial_cb.read_thread, NULL);
         if (result)
             ALOGE("%s failed to join reader thread: %d", __func__, result);
@@ -422,10 +423,10 @@ void userial_close(void) {
 
 void userial_pause_reading(void) {
     if (userial_running)
-        send_wakeup_signal(USERIAL_RX_FLOW_OFF);
+        send_event(USERIAL_RX_FLOW_OFF);
 }
 
 void userial_resume_reading(void) {
     if (userial_running)
-        send_wakeup_signal(USERIAL_RX_FLOW_ON);
+        send_event(USERIAL_RX_FLOW_ON);
 }
