@@ -60,11 +60,21 @@ BTA_API extern void bta_ag_co_init(void);
 **                      BTA_AG_CO_AUD_STATE_OFF_XFER - Audio is closed pending transfer
 **                      BTA_AG_CO_AUD_STATE_ON       - Audio has been turned on
 **                      BTA_AG_CO_AUD_STATE_SETUP    - Audio is about to be turned on
+**                  codec - if WBS support is compiled in, codec to going to be used is provided
+**                      and when in BTA_AG_CO_AUD_STATE_SETUP, BTM_I2SPCMConfig() must be called with
+**                      the correct platform parameters.
+**                      in the other states codec type should not be ignored
 **
 ** Returns          void
 **
 *******************************************************************************/
+#if (BTM_WBS_INCLUDED == TRUE )
+BTA_API extern void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state,
+                                          tBTA_AG_PEER_CODEC codec);
+
+#else
 BTA_API extern void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state);
+#endif
 
 /*******************************************************************************
 **

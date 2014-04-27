@@ -423,6 +423,10 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 #if (BTM_WBS_INCLUDED == TRUE )
     p_scb->peer_codecs = BTA_AG_CODEC_NONE;
     p_scb->sco_codec = BTA_AG_CODEC_NONE;
+    /* Clear these flags upon SLC teardown */
+    p_scb->codec_updated = FALSE;
+    p_scb->codec_fallback = FALSE;
+    p_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T2;
 #endif
     p_scb->role = 0;
     p_scb->post_sco = BTA_AG_POST_SCO_NONE;
@@ -874,5 +878,53 @@ void bta_ag_rcvd_slc_ready(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
         /* In pass-through mode, BTA knows that SLC is ready only through call-in. */
         bta_ag_svc_conn_open(p_scb, NULL);
     }
+}
+
+/*******************************************************************************
+**
+** Function         bta_ag_setcodec
+**
+** Description      Handle API SetCodec
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_ag_setcodec(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+{
+#if (BTM_WBS_INCLUDED == TRUE )
+    tBTA_AG_PEER_CODEC codec_type = p_data->api_setcodec.codec;
+    tBTA_AG_VAL        val;
+
+    /* Check if the requested codec type is valid */
+    if((codec_type != BTA_AG_CODEC_NONE) &&
+       (codec_type != BTA_AG_CODEC_CVSD) &&
+       (codec_type != BTA_AG_CODEC_MSBC))
+    {
+        val.num = codec_type;
+        val.hdr.status = BTA_AG_FAIL_RESOURCES;
+        APPL_TRACE_ERROR("bta_ag_setcodec error: unsupported codec type %d", codec_type);
+        (*bta_ag_cb.p_cback)(BTA_AG_WBS_EVT, (tBTA_AG *) &val);
+        return;
+    }
+
+    if((p_scb->peer_codecs & codec_type) || (codec_type == BTA_AG_CODEC_NONE) ||
+        (codec_type == BTA_AG_CODEC_CVSD))
+    {
+        p_scb->sco_codec = codec_type;
+        p_scb->codec_updated = TRUE;
+        val.num = codec_type;
+        val.hdr.status = BTA_AG_SUCCESS;
+        APPL_TRACE_DEBUG("bta_ag_setcodec: Updated codec type %d", codec_type);
+    }
+    else
+    {
+        val.num = codec_type;
+        val.hdr.status = BTA_AG_FAIL_RESOURCES;
+        APPL_TRACE_ERROR("bta_ag_setcodec error: unsupported codec type %d", codec_type);
+    }
+
+    (*bta_ag_cb.p_cback)(BTA_AG_WBS_EVT, (tBTA_AG *) &val);
+#endif
 }
 

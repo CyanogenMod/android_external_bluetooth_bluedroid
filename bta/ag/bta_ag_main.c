@@ -318,11 +318,16 @@ static tBTA_AG_SCB *bta_ag_scb_alloc(void)
             /* initialize variables */
             p_scb->in_use = TRUE;
             p_scb->sco_idx = BTM_INVALID_SCO_INDEX;
-
+#if (BTM_WBS_INCLUDED == TRUE )
+            p_scb->codec_updated = FALSE;
+#endif
             /* set up timers */
             p_scb->act_timer.param = (UINT32) p_scb;
             p_scb->act_timer.p_cback = bta_ag_timer_cback;
-
+#if (BTM_WBS_INCLUDED == TRUE)
+            /* set eSCO mSBC setting to T2 as the preferred */
+            p_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T2;
+#endif
             APPL_TRACE_DEBUG("bta_ag_scb_alloc %d", bta_ag_scb_to_idx(p_scb));
             break;
         }

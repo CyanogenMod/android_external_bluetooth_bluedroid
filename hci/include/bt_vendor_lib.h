@@ -143,6 +143,18 @@ typedef enum {
     BT_VND_OP_LPM_WAKE_SET_STATE,
 
 /*  [operation]
+ *      Perform any vendor specific commands related to audio state changes.
+ *  [input param]
+ *      a pointer to bt_vendor_op_audio_state_t indicating what audio state is
+ *      set.
+ *  [return]
+ *      0 - default, don't care.
+ *  [callback]
+ *      None.
+ */
+    BT_VND_OP_SET_AUDIO_STATE,
+
+/*  [operation]
  *      The epilog call to the vendor module so that it can perform any
  *      vendor-specific processes (e.g. send a HCI_RESET to BT Controller)
  *      before the caller calls for cleanup().
@@ -192,6 +204,13 @@ typedef enum {
     BT_VND_OP_RESULT_SUCCESS,
     BT_VND_OP_RESULT_FAIL,
 } bt_vendor_op_result_t;
+
+/** audio (SCO) state changes triggering VS commands for configuration */
+typedef struct {
+    uint16_t    handle;
+    uint16_t    peer_codec;
+    uint16_t    state;
+} bt_vendor_op_audio_state_t;
 
 /*
  * Bluetooth Host/Controller Vendor callback structure.
@@ -285,6 +304,9 @@ typedef struct {
 
     /* notifies caller result of lpm enable/disable */
     cfg_result_cb  lpm_cb;
+
+    /* notifies the result of codec setting */
+    cfg_result_cb audio_state_cb;
 
     /* buffer allocation request */
     malloc_cb   alloc;

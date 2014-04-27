@@ -60,6 +60,19 @@
 #define BTIF_HF_SECURITY    (BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT)
 #endif
 
+#if (BTM_WBS_INCLUDED == TRUE )
+#ifndef BTIF_HF_FEATURES
+#define BTIF_HF_FEATURES   ( BTA_AG_FEAT_3WAY | \
+                             BTA_AG_FEAT_ECNR   | \
+                             BTA_AG_FEAT_REJECT | \
+                             BTA_AG_FEAT_ECS    | \
+                             BTA_AG_FEAT_EXTERR | \
+                             BTA_AG_FEAT_BTRH   | \
+                             BTA_AG_FEAT_VREC   | \
+                             BTA_AG_FEAT_CODEC |\
+                             BTA_AG_FEAT_UNAT)
+#endif
+#else
 #ifndef BTIF_HF_FEATURES
 #define BTIF_HF_FEATURES   ( BTA_AG_FEAT_3WAY | \
                              BTA_AG_FEAT_ECNR   | \
@@ -69,6 +82,7 @@
                              BTA_AG_FEAT_BTRH   | \
                              BTA_AG_FEAT_VREC   | \
                              BTA_AG_FEAT_UNAT)
+#endif
 #endif
 
 #define BTIF_HF_CALL_END_TIMEOUT       6
@@ -156,6 +170,14 @@ static btif_hf_cb_t btif_hf_cb[BTIF_HF_NUM_CB];
 /************************************************************************************
 **  Externs
 ************************************************************************************/
+/* By default, even though codec negotiation is enabled, we will not use WBS as the default
+* codec unless this variable is set to TRUE.
+*/
+#ifndef BTIF_HF_WBS_PREFERRED
+#define BTIF_HF_WBS_PREFERRED   FALSE
+#endif
+
+BOOLEAN btif_conf_hf_force_wbs = BTIF_HF_WBS_PREFERRED;
 
 /************************************************************************************
 **  Functions
@@ -525,6 +547,18 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
                               &btif_hf_cb[idx].connected_bda);
             break;
 
+#if (BTM_WBS_INCLUDED == TRUE )
+        case BTA_AG_WBS_EVT:
+            BTIF_TRACE_DEBUG("BTA_AG_WBS_EVT Set codec status %d codec %d 1=CVSD 2=MSBC", \
+                               p_data->val.hdr.status, p_data->val.num);
+            if(p_data->val.num == BTA_AG_CODEC_CVSD)
+             { HAL_CBACK(bt_hf_callbacks, wbs_cb, BTHF_WBS_NO, &btif_hf_cb[idx].connected_bda);}
+            else if(p_data->val.num == BTA_AG_CODEC_MSBC)
+             {HAL_CBACK(bt_hf_callbacks, wbs_cb, BTHF_WBS_YES, &btif_hf_cb[idx].connected_bda);}
+            else
+             {HAL_CBACK(bt_hf_callbacks, wbs_cb, BTHF_WBS_NONE, &btif_hf_cb[idx].connected_bda);}
+            break;
+#endif
         /* Java needs to send OK/ERROR for these commands */
         case BTA_AG_AT_CHLD_EVT:
             HAL_CBACK(bt_hf_callbacks, chld_cmd_cb, atoi(p_data->val.str),
@@ -556,7 +590,30 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
         case BTA_AG_AT_BTRH_EVT:
             send_at_result(BTA_AG_OK_ERROR, BTA_AG_ERR_OP_NOT_SUPPORTED, idx);
             break;
-
+        case BTA_AG_AT_BAC_EVT:
+            BTIF_TRACE_DEBUG("AG Bitmap of peer-codecs %d", p_data->val.num);
+#if (BTM_WBS_INCLUDED == TRUE )
+            /* If the peer supports mSBC and the BTIF prefferred codec is also mSBC, then
+            we should set the BTA AG Codec to mSBC. This would trigger a +BCS to mSBC at the time
+            of SCO connection establishment */
+            if ((btif_conf_hf_force_wbs == TRUE) && (p_data->val.num & BTA_AG_CODEC_MSBC))
+            {
+                  BTIF_TRACE_EVENT("%s btif_hf override-Preferred Codec to MSBC", __FUNCTION__);
+                  BTA_AgSetCodec(btif_hf_cb[idx].handle,BTA_AG_CODEC_MSBC);
+            }
+            else
+            {
+                  BTIF_TRACE_EVENT("%s btif_hf override-Preferred Codec to CVSD", __FUNCTION__);
+                  BTA_AgSetCodec(btif_hf_cb[idx].handle,BTA_AG_CODEC_CVSD);
+            }
+#endif
+            break;
+        case BTA_AG_AT_BCS_EVT:
+            BTIF_TRACE_DEBUG("AG final seleded codec is %d 1=CVSD 2=MSBC", p_data->val.num);
+            /*  no BTHF_WBS_NONE case, becuase HF1.6 supported device can send BCS */
+            HAL_CBACK(bt_hf_callbacks, wbs_cb,(p_data->val.num == BTA_AG_CODEC_MSBC) ? \
+                        BTHF_WBS_YES : BTHF_WBS_NO, &btif_hf_cb[idx].connected_bda);
+            break;
 
         default:
             BTIF_TRACE_WARNING("%s: Unhandled event: %d", __FUNCTION__, event);
@@ -1362,6 +1419,34 @@ static void  cleanup( void )
     }
 }
 
+/*******************************************************************************
+**
+** Function         configure_wbs
+**
+** Description      set to over-ride the current WBS configuration.
+**                  It will not send codec setting cmd to the controller now.
+**                  It just change the configure.
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+static bt_status_t  configure_wbs( bt_bdaddr_t *bd_addr , bthf_wbs_config_t config )
+{
+    CHECK_BTHF_INIT();
+
+    int idx = btif_hf_idx_by_bdaddr(bd_addr);
+
+    BTIF_TRACE_EVENT("%s config is %d", __FUNCTION__,config);
+    if (config == BTHF_WBS_YES)
+        BTA_AgSetCodec(btif_hf_cb[idx].handle,BTA_AG_CODEC_MSBC);
+    else if(config == BTHF_WBS_NO)
+        BTA_AgSetCodec(btif_hf_cb[idx].handle,BTA_AG_CODEC_CVSD);
+    else
+        BTA_AgSetCodec(btif_hf_cb[idx].handle,BTA_AG_CODEC_NONE);
+
+    return BT_STATUS_SUCCESS;
+}
+
 static const bthf_interface_t bthfInterface = {
     sizeof(bthfInterface),
     init,
@@ -1380,6 +1465,7 @@ static const bthf_interface_t bthfInterface = {
     clcc_response,
     phone_state_change,
     cleanup,
+    configure_wbs,
 };
 
 /*******************************************************************************

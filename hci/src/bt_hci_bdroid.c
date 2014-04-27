@@ -87,6 +87,7 @@ typedef struct
     pthread_t       worker_thread;
     pthread_mutex_t mutex;
     pthread_cond_t  cond;
+    BUFFER_Q        cmd_q;
     uint8_t         epilog_timer_created;
     timer_t         epilog_timer_id;
 } bt_hc_cb_t;
@@ -223,6 +224,7 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
 
     lib_running = 1;
     ready_events = 0;
+    utils_queue_init(&hc_cb.cmd_q);
     pthread_mutex_init(&hc_cb.mutex, NULL);
     pthread_cond_init(&hc_cb.cond, NULL);
     pthread_attr_init(&thread_attr);
@@ -346,6 +348,49 @@ static int logging(bt_hc_logging_state_t state, char *p_path)
     return BT_HC_STATUS_SUCCESS;
 }
 
+/** sends command HC controller to configure platform specific behaviour */
+static int tx_hc_cmd(TRANSAC transac, char *p_buf, int len)
+{
+    BTHCDBG("tx_hc_cmd: transac %p", transac);
+    if ((TRANSAC)0 != transac)
+   {
+        utils_enqueue(&hc_cb.cmd_q, (void *)transac);
+        bthc_signal_event(HC_EVENT_TX_CMD);
+        return BT_HC_STATUS_SUCCESS;
+    }
+    return BT_HC_STATUS_FAIL;
+}
+
+/** handle HC controller command to configure platform specific behaviour */
+static int tx_hc_msg(HC_BT_HDR *p_msg)
+{
+    int ret_val = 0;
+    int event, sub_event;
+    BTHCDBG("tx_hc_msg: p_msg %p, event: 0x%x", (void *)p_msg, p_msg->event);
+
+    event = p_msg->event & MSG_EVT_MASK;
+    sub_event = p_msg->event & MSG_SUB_EVT_MASK;
+    switch (event)
+    {
+    case MSG_CTRL_TO_HC_CMD:
+        {
+            switch (sub_event)
+            {
+            case BT_HC_AUDIO_STATE:
+                vendor_send_command(BT_VND_OP_SET_AUDIO_STATE, (p_msg+1));
+                break;
+            default:
+                ALOGW("tx_hc_msg(sub_event: 0x%x) not supported", sub_event);
+                break;
+            }
+        }
+         break;
+      default:
+        ALOGW("tx_hc_msg(event: 0x%x) not supported", event);
+        break;
+   }
+    return ret_val;
+}
 
 /** Closes the interface */
 static void cleanup( void )
@@ -397,7 +442,8 @@ static const bt_hc_interface_t bluetoothHCLibInterface = {
     postload,
     transmit_buf,
     logging,
-    cleanup
+    cleanup,
+    tx_hc_cmd,
 };
 
 
@@ -538,6 +584,16 @@ static void *bt_hc_worker_thread(void *arg)
         if (events & HC_EVENT_LPM_WAKE_DEVICE)
         {
             lpm_wake_assert();
+        }
+
+        if (events & HC_EVENT_TX_CMD)
+        {
+            HC_BT_HDR *p_cmd_msg;
+            while ((p_cmd_msg = utils_dequeue(&hc_cb.cmd_q)) != NULL)
+            {
+                if ((0 >= tx_hc_msg(p_cmd_msg)) && bt_hc_cbacks)
+                    bt_hc_cbacks->dealloc(p_cmd_msg);
+            }
         }
 
         if (events & HC_EVENT_EPILOG)

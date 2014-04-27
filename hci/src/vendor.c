@@ -41,6 +41,7 @@ static bt_vendor_interface_t *vendor_interface;
 static void firmware_config_cb(bt_vendor_op_result_t result);
 static void sco_config_cb(bt_vendor_op_result_t result);
 static void low_power_mode_cb(bt_vendor_op_result_t result);
+static void sco_audiostate_cb(bt_vendor_op_result_t result);
 static void *buffer_alloc(int size);
 static void buffer_free(void *buffer);
 static uint8_t transmit_cb(uint16_t opcode, void *buffer, tINT_CMD_CBACK callback);
@@ -51,6 +52,7 @@ static const bt_vendor_callbacks_t vendor_callbacks = {
   firmware_config_cb,
   sco_config_cb,
   low_power_mode_cb,
+  sco_audiostate_cb,
   buffer_alloc,
   buffer_free,
   transmit_cb,
@@ -132,6 +134,24 @@ static void sco_config_cb(UNUSED_ATTR bt_vendor_op_result_t result) {
 // LPM enable/disable request.
 static void low_power_mode_cb(bt_vendor_op_result_t result) {
   lpm_vnd_cback(result != BT_VND_OP_RESULT_SUCCESS);
+}
+
+/******************************************************************************
+**
+** Function         sco_audiostate_cb
+**
+** Description      HOST/CONTROLLER VENDOR LIB CALLBACK API - This function is
+**                  called when the libbt-vendor completed vendor specific codec
+**                  setup request
+**
+** Returns          None
+**
+******************************************************************************/
+static void sco_audiostate_cb(bt_vendor_op_result_t result)
+{
+    uint8_t status = (result == BT_VND_OP_RESULT_SUCCESS) ? 0 : 1;
+
+    ALOGI("sco_audiostate_cb(status: %d)",status);
 }
 
 // Called by vendor library when it needs an HCI buffer.
