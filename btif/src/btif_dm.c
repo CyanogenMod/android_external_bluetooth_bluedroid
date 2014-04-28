@@ -84,6 +84,8 @@ typedef struct
     UINT8   is_temp;
     UINT8   pin_code_len;
     UINT8   is_ssp;
+    UINT8   auth_req;
+    UINT8   io_cap;
     UINT8   autopair_attempts;
     UINT8   is_local_initiated;
     UINT8   sdp_attempts;
@@ -2213,6 +2215,63 @@ void btif_dm_execute_service_request(UINT16 event, char *p_param)
                           BT_STATUS_SUCCESS, 1, &property);
     }
     return;
+}
+
+void btif_dm_proc_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap, tBTA_OOB_DATA *p_oob_data,
+                      tBTA_AUTH_REQ *p_auth_req, BOOLEAN is_orig)
+{
+    UINT8   yes_no_bit = BTA_AUTH_SP_YES & *p_auth_req;
+    /* if local initiated:
+    **      1. set DD + MITM
+    ** if remote initiated:
+    **      1. Copy over the auth_req from peer's io_rsp
+    **      2. Set the MITM if peer has it set or if peer has DisplayYesNo (iPhone)
+    ** as a fallback set MITM+GB if peer had MITM set
+    */
+    UNUSED (bd_addr);
+    UNUSED (p_io_cap);
+    UNUSED (p_oob_data);
+
+
+    BTIF_TRACE_DEBUG2("+%s: p_auth_req=%d", __FUNCTION__, *p_auth_req);
+    if(pairing_cb.is_local_initiated)
+    {
+        /* if initing/responding to a dedicated bonding, use dedicate bonding bit */
+        *p_auth_req = BTA_AUTH_DD_BOND | BTA_AUTH_SP_YES;
+    }
+    else if (!is_orig)
+    {
+        /* peer initiated paring. They probably know what they want.
+        ** Copy the mitm from peer device.
+        */
+        BTIF_TRACE_DEBUG2("%s: setting p_auth_req to peer's: %d",
+                __FUNCTION__, pairing_cb.auth_req);
+        *p_auth_req = (pairing_cb.auth_req & BTA_AUTH_BONDS);
+
+        /* copy over the MITM bit as well. In addition if the peer has DisplayYesNo, force MITM */
+        if ((yes_no_bit) || (pairing_cb.io_cap & BTM_IO_CAP_IO) )
+            *p_auth_req |= BTA_AUTH_SP_YES;
+    }
+    else if (yes_no_bit)
+    {
+        /* set the general bonding bit for stored device */
+        *p_auth_req = BTA_AUTH_GEN_BOND | yes_no_bit;
+    }
+    BTIF_TRACE_DEBUG2("-%s: p_auth_req=%d", __FUNCTION__, *p_auth_req);
+}
+
+void btif_dm_proc_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
+                      tBTA_OOB_DATA oob_data, tBTA_AUTH_REQ auth_req)
+{
+    UNUSED (bd_addr);
+    UNUSED (oob_data);
+    
+    if(auth_req & BTA_AUTH_BONDS)
+    {
+        BTIF_TRACE_DEBUG2("%s auth_req:%d", __FUNCTION__, auth_req);
+        pairing_cb.auth_req = auth_req;
+        pairing_cb.io_cap = io_cap;
+    }
 }
 
 #if (BTM_OOB_INCLUDED == TRUE)
