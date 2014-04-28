@@ -45,6 +45,7 @@
 #define GKI_ERROR_ADDR_NOT_IN_BUF       0xFFF5
 #define GKI_ERROR_OUT_OF_BUFFERS        0xFFF4
 #define GKI_ERROR_GETPOOLBUF_BAD_QID    0xFFF3
+#define GKI_ERROR_TIMER_LIST_CORRUPTED  0xFFF2
 
 
 /********************************************************************

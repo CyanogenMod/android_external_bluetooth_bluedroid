@@ -841,8 +841,19 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
         }
         else    /* This entry needs to be inserted before the last entry */
         {
-            /* Find the entry that the new one needs to be inserted in front of */
             p_temp = p_timer_listq->p_first;
+
+            if (p_temp == NULL)
+            {
+                /* list is corrupted, exit to avoid crash */
+                GKI_TRACE_ERROR_0("GKI_add_to_timer_list : Timerlist Q is empty");
+                GKI_exception(GKI_ERROR_TIMER_LIST_CORRUPTED, "*** "
+                        "GKI_add_to_timer_list(): timer list corrupted! ***");
+                return;
+            }
+            /* Find the entry that the new one needs to be inserted in front of
+             * as last_ticks is the expiry value of p_last, it should be inserted
+             * BEFORE p_last. otherwise list is probably corrupted! */
             while (p_tle->ticks > p_temp->ticks)
             {
                 /* Update the tick value if looking at an unexpired entry */
