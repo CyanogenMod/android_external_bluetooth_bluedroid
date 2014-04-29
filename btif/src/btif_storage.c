@@ -287,6 +287,8 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
             strncpy(value, (char*)prop->val, prop->len);
             value[prop->len]='\0';
             btif_config_set_str("Remote", bdstr, BTIF_STORAGE_PATH_REMOTE_ALIASE, value);
+            /* save remote name immediately */
+            btif_config_flush();
             break;
         case BT_PROPERTY_REMOTE_TRUST_VALUE:
             btif_config_set_int("Remote", bdstr, BTIF_STORAGE_PATH_REMOTE_TRUST_VALUE, *(int*)prop->val);
