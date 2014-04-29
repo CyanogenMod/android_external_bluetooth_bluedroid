@@ -533,6 +533,9 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
         return;
     }
 
+    /* need to notify up-layer device is disconnected to avoid state out of sync with up-layer */
+    HAL_CBACK(bt_hh_callbacks, connection_state_cb, &(p_dev->bd_addr), BTHH_CONN_STATE_DISCONNECTED);
+
     p_dev->dev_status = BTHH_CONN_STATE_UNKNOWN;
     p_dev->dev_handle = BTA_HH_INVALID_HANDLE;
     if (btif_hh_cb.device_num > 0) {
@@ -935,9 +938,18 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             }
             {
                 char *cached_name = NULL;
-                char name[] = "Broadcom Bluetooth HID";
-                if (cached_name == NULL) {
-                    cached_name = name;
+                bt_bdname_t bdname;
+                bt_property_t prop_name;
+                BTIF_STORAGE_FILL_PROPERTY(&prop_name, BT_PROPERTY_BDNAME,
+                                           sizeof(bt_bdname_t), &bdname);
+                if (btif_storage_get_remote_device_property(
+                    &p_dev->bd_addr, &prop_name) == BT_STATUS_SUCCESS)
+                {
+                    cached_name = (char *)bdname.name;
+                }
+                else
+                {
+                    cached_name = "Bluetooth HID";
                 }
 
                 BTIF_TRACE_WARNING2("%s: name = %s", __FUNCTION__, cached_name);

@@ -98,6 +98,8 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_ble_observe,
     bta_dm_ble_set_adv_params,     /* BTA_DM_API_BLE_SCAN_PARAM_EVT */
     bta_dm_ble_set_adv_config,     /* BTA_DM_API_BLE_SET_ADV_CONFIG_EVT */
+    bta_dm_ble_set_scan_rsp,       /* BTA_DM_API_BLE_SET_SCAN_RSP_EVT */
+    bta_dm_ble_broadcast,          /* BTA_DM_API_BLE_BROADCAST_EVT */
 #endif
 
 #if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)

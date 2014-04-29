@@ -104,8 +104,8 @@ typedef enum {
 
 typedef struct
 {
-    tBTM_BLE_AD_MASK mask;
-    tBTM_BLE_ADV_DATA data;
+    tBTA_BLE_AD_MASK mask;
+    tBTA_BLE_ADV_DATA data;
 } btgatt_adv_data;
 
 typedef struct
@@ -463,10 +463,31 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         case BTIF_GATT_OBSERVE_EVT:
         {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
-            if (!btif_gattc_find_bdaddr(p_btif_cb->bd_addr.address))
+            uint8_t remote_name_len;
+            uint8_t *p_eir_remote_name=NULL;
+
+            p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+                                         BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
+
+            if(p_eir_remote_name == NULL)
             {
-                btif_gattc_add_remote_bdaddr(p_btif_cb->bd_addr.address, p_btif_cb->addr_type);
-                btif_gattc_update_properties(p_btif_cb);
+                p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+                                BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
+            }
+
+            if ((p_btif_cb->addr_type != BLE_ADDR_RANDOM) || (p_eir_remote_name))
+            {
+               if (!btif_gattc_find_bdaddr(p_btif_cb->bd_addr.address))
+               {
+                  static const char* exclude_filter[] =
+                        {"LinkKey", "LE_KEY_PENC", "LE_KEY_PID", "LE_KEY_PCSRK", "LE_KEY_LENC", "LE_KEY_LCSRK"};
+
+                  btif_gattc_add_remote_bdaddr(p_btif_cb->bd_addr.address, p_btif_cb->addr_type);
+                  btif_gattc_update_properties(p_btif_cb);
+                  btif_config_filter_remove("Remote", exclude_filter, sizeof(exclude_filter)/sizeof(char*),
+                  BTIF_STORAGE_MAX_ALLOWED_REMOTE_DEVICE);
+               }
+
             }
             HAL_CBACK(bt_gatt_callbacks, client->scan_result_cb,
                       &p_btif_cb->bd_addr, p_btif_cb->rssi, p_btif_cb->value);
@@ -819,17 +840,46 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
 
         case BTIF_GATTC_LISTEN:
+#ifdef BLE_PERIPHERAL_MODE_SUPPORT
             BTA_GATTC_Listen(p_cb->client_if, p_cb->start, NULL);
+#else
+            BTA_GATTC_Broadcast(p_cb->client_if, p_cb->start);
+#endif
             break;
 
         case BTIF_GATTC_SET_ADV_DATA:
         {
             if (p_cb->start == 0)
-                BTM_BleWriteAdvData(p_cb->adv_data.mask, &p_cb->adv_data.data);
+                BTA_DmBleSetAdvConfig(p_cb->adv_data.mask, &p_cb->adv_data.data);
             else
-                BTM_BleWriteScanRsp(p_cb->adv_data.mask, &p_cb->adv_data.data);
+                BTA_DmBleSetScanRsp(p_cb->adv_data.mask, &p_cb->adv_data.data);
+
+            // Cleanup ...
+
+            // ... manufacturer data
             if (p_cb->adv_data.data.manu.p_val != NULL)
                 GKI_freebuf(p_cb->adv_data.data.manu.p_val);
+
+            // ... service data
+            if (p_cb->adv_data.data.p_proprietary != NULL)
+            {
+                int i = 0;
+                tBTA_BLE_PROP_ELEM *p_elem = p_cb->adv_data.data.p_proprietary->p_elem;
+                while (i++ != p_cb->adv_data.data.p_proprietary->num_elem && p_elem)
+                {
+                    if (p_elem->p_val != NULL)
+                        GKI_freebuf(p_elem->p_val);
+                    ++p_elem;
+                }
+                if (p_cb->adv_data.data.p_proprietary->p_elem != NULL)
+                    GKI_freebuf(p_cb->adv_data.data.p_proprietary->p_elem);
+                GKI_freebuf(p_cb->adv_data.data.p_proprietary);
+            }
+
+            // ... service list
+            if (p_cb->adv_data.data.services.p_uuid != NULL)
+                GKI_freebuf(p_cb->adv_data.data.services.p_uuid);
+
             break;
         }
 
@@ -904,7 +954,9 @@ static bt_status_t btif_gattc_listen(int client_if, bool start)
 
 static bt_status_t btif_gattc_set_adv_data(int client_if, bool set_scan_rsp, bool include_name,
                 bool include_txpower, int min_interval, int max_interval, int appearance,
-                uint16_t manufacturer_len, char* manufacturer_data)
+                uint16_t manufacturer_len, char* manufacturer_data,
+                uint16_t service_data_len, char* service_data,
+                uint16_t service_uuid_len, char* service_uuid)
 {
     CHECK_BTGATT_INIT();
     btif_gattc_cb_t btif_cb;
@@ -947,6 +999,112 @@ static bt_status_t btif_gattc_set_adv_data(int client_if, bool set_scan_rsp, boo
             btif_cb.adv_data.mask |= BTM_BLE_AD_BIT_MANU;
             btif_cb.adv_data.data.manu.len = manufacturer_len;
             memcpy(btif_cb.adv_data.data.manu.p_val, manufacturer_data, manufacturer_len);
+        }
+    }
+
+    tBTA_BLE_PROP_ELEM *p_elem_service_data = NULL;
+    tBTA_BLE_PROP_ELEM *p_elem_service_128 = NULL;
+
+    if (service_data_len > 0 && service_data != NULL)
+    {
+        p_elem_service_data = GKI_getbuf(sizeof(tBTA_BLE_PROP_ELEM));
+        if (p_elem_service_data != NULL)
+        {
+            p_elem_service_data->p_val = GKI_getbuf(service_data_len);
+            if (p_elem_service_data->p_val != NULL)
+            {
+                p_elem_service_data->adv_type = BTM_BLE_AD_TYPE_SERVICE_DATA;
+                p_elem_service_data->len = service_data_len;
+                memcpy(p_elem_service_data->p_val, service_data, service_data_len);
+
+            } else {
+                GKI_freebuf(p_elem_service_data);
+                p_elem_service_data = NULL;
+            }
+        }
+    }
+
+    if (service_uuid_len > 0 && service_uuid != NULL)
+    {
+        btif_cb.adv_data.data.services.list_cmpl = FALSE;
+        btif_cb.adv_data.data.services.num_service = 0;
+
+        btif_cb.adv_data.data.services.p_uuid =
+            GKI_getbuf(service_uuid_len / LEN_UUID_128 * LEN_UUID_16);
+        if (btif_cb.adv_data.data.services.p_uuid != NULL)
+        {
+            UINT16 *p_uuid_out = btif_cb.adv_data.data.services.p_uuid;
+            while (service_uuid_len >= LEN_UUID_128)
+            {
+                bt_uuid_t uuid;
+                memset(&uuid, 0, sizeof(bt_uuid_t));
+                memcpy(&uuid.uu, service_uuid, LEN_UUID_128);
+
+                tBT_UUID bt_uuid;
+                memset(&bt_uuid, 0, sizeof(tBT_UUID));
+                btif_to_bta_uuid(&bt_uuid, &uuid);
+
+                if (bt_uuid.len == LEN_UUID_16)
+                {
+                    btif_cb.adv_data.mask |= BTM_BLE_AD_BIT_SERVICE;
+                    ++btif_cb.adv_data.data.services.num_service;
+                    *p_uuid_out++ = bt_uuid.uu.uuid16;
+
+                } else if (bt_uuid.len == LEN_UUID_128 && p_elem_service_128 == NULL) {
+                    /* Currently, only one 128-bit UUID is supported */
+                    p_elem_service_128 = GKI_getbuf(sizeof(tBTA_BLE_PROP_ELEM));
+                    if (p_elem_service_128 != NULL)
+                    {
+                        p_elem_service_128->p_val = GKI_getbuf(LEN_UUID_128);
+                        if (p_elem_service_128->p_val != NULL)
+                        {
+                            p_elem_service_128->adv_type = BTM_BLE_AD_TYPE_128SRV_PART;
+                            p_elem_service_128->len = LEN_UUID_128;
+                            memcpy(p_elem_service_128->p_val, bt_uuid.uu.uuid128, LEN_UUID_128);
+
+                        } else {
+                            GKI_freebuf(p_elem_service_128);
+                            p_elem_service_128 = NULL;
+                        }
+                    }
+                }
+
+                service_uuid += LEN_UUID_128;
+                service_uuid_len -= LEN_UUID_128;
+            }
+        }
+    }
+
+    if (p_elem_service_data != NULL || p_elem_service_128 != NULL)
+    {
+        btif_cb.adv_data.data.p_proprietary = GKI_getbuf(sizeof(tBTA_BLE_PROPRIETARY));
+        if (btif_cb.adv_data.data.p_proprietary != NULL)
+        {
+            tBTA_BLE_PROPRIETARY *p_prop = btif_cb.adv_data.data.p_proprietary;
+            tBTA_BLE_PROP_ELEM *p_elem = NULL;
+            p_prop->num_elem = 0;
+            btif_cb.adv_data.mask |= BTM_BLE_AD_BIT_PROPRIETARY;
+
+            if (p_elem_service_128 != NULL)
+                ++p_prop->num_elem;
+
+            if (p_elem_service_data != NULL)
+                ++p_prop->num_elem;
+
+            p_prop->p_elem = GKI_getbuf(sizeof(tBTA_BLE_PROP_ELEM) * p_prop->num_elem);
+            p_elem = p_prop->p_elem;
+
+            if (p_elem_service_128 != NULL)
+            {
+                memcpy(p_elem++, p_elem_service_128, sizeof(tBTA_BLE_PROP_ELEM));
+                GKI_freebuf(p_elem_service_128);
+            }
+
+            if (p_elem_service_data != NULL)
+            {
+                memcpy(p_elem++, p_elem_service_data, sizeof(tBTA_BLE_PROP_ELEM));
+                GKI_freebuf(p_elem_service_data);
+            }
         }
     }
 
