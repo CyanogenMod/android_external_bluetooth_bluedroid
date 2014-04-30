@@ -116,6 +116,9 @@ typedef struct
 
 #define BTM_BLE_VALID_PRAM(x, min, max)  (((x) >= (min) && (x) <= (max)) || ((x) == BTM_BLE_CONN_PARAM_UNDEF))
 
+#define BTM_BLE_PRIVATE_ADDR_INT    900           /* 15 minutes minimum for
+                                                   random address refreshing */
+
 typedef struct
 {
 
@@ -328,6 +331,8 @@ extern void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len);
 extern void btm_read_ble_local_supported_states_complete(UINT8 *p, UINT16 evt_len);
 extern tBTM_BLE_CONN_ST btm_ble_get_conn_st(void);
 extern void btm_ble_set_conn_st(tBTM_BLE_CONN_ST new_st);
+extern UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst,
+                                     tBTM_BLE_ADV_DATA *p_data);
 extern tBTM_STATUS btm_ble_start_adv(void);
 extern tBTM_STATUS btm_ble_stop_adv(void);
 extern tBTM_STATUS btm_ble_start_scan (UINT8 filter_enb);
@@ -383,10 +388,16 @@ extern BOOLEAN btm_send_pending_direct_conn(void);
 extern void btm_ble_enqueue_direct_conn_req(void *p_param);
 
 /* BLE address management */
-extern void btm_gen_resolvable_private_addr (void);
+extern void btm_gen_resolvable_private_addr (void *p_cmd_cplt_cback);
 extern void btm_gen_non_resolvable_private_addr (tBTM_BLE_ADDR_CBACK *p_cback, void *p);
 extern void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_cback, void *p);
 extern void btm_ble_update_reconnect_address(BD_ADDR bd_addr);
+extern void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p);
+
+extern void btm_ble_multi_adv_configure_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst);
+extern void btm_ble_multi_adv_init(void);
+extern void btm_ble_multi_adv_reenable(UINT8 inst_id);
+
 extern BOOLEAN btm_ble_topology_check(tBTM_BLE_STATE_MASK request);
 extern BOOLEAN btm_ble_clear_topology_mask(tBTM_BLE_STATE_MASK request_state);
 extern BOOLEAN btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state);
@@ -396,6 +407,7 @@ BT_API extern void btm_ble_set_no_disc_if_pair_fail (BOOLEAN disble_disc);
 BT_API extern void btm_ble_set_test_mac_value (BOOLEAN enable, UINT8 *p_test_mac_val);
 BT_API extern void btm_ble_set_test_local_sign_cntr_value(BOOLEAN enable, UINT32 test_local_sign_cntr);
 BT_API extern void btm_set_random_address(BD_ADDR random_bda);
+BT_API extern void btm_ble_set_keep_rfu_in_auth_req(BOOLEAN keep_rfu);
 #endif
 
 

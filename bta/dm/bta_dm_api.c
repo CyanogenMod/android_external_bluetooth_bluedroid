@@ -1515,19 +1515,26 @@ void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
 **
 ** Description      This function is called to override the BTA default ADV parameters.
 **
-** Parameters       Pointer to User defined ADV data structure
+** Parameters       data_mask: adv data mask.
+**                  p_adv_cfg: Pointer to User defined ADV data structure. This
+**                             memory space can not be freed until p_adv_data_cback
+**                             is received.
+**                  p_adv_data_cback: set adv data complete callback.
 **
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg)
+void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
+                            tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
     tBTA_DM_API_SET_ADV_CONFIG  *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_SET_ADV_CONFIG *) GKI_getbuf(sizeof(tBTA_DM_API_SET_ADV_CONFIG))) != NULL)
+    if ((p_msg = (tBTA_DM_API_SET_ADV_CONFIG *)
+        GKI_getbuf(sizeof(tBTA_DM_API_SET_ADV_CONFIG))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BLE_SET_ADV_CONFIG_EVT;
         p_msg->data_mask = data_mask;
+        p_msg->p_adv_data_cback = p_adv_data_cback;
         p_msg->p_adv_cfg = p_adv_cfg;
 
         bta_sys_sendmsg(p_msg);
@@ -1545,14 +1552,17 @@ void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg)
+BTA_API extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
+                        tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
     tBTA_DM_API_SET_ADV_CONFIG  *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_SET_ADV_CONFIG *) GKI_getbuf(sizeof(tBTA_DM_API_SET_ADV_CONFIG))) != NULL)
+    if ((p_msg = (tBTA_DM_API_SET_ADV_CONFIG *)
+        GKI_getbuf(sizeof(tBTA_DM_API_SET_ADV_CONFIG))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BLE_SET_SCAN_RSP_EVT;
         p_msg->data_mask = data_mask;
+        p_msg->p_adv_data_cback = p_adv_data_cback;
         p_msg->p_adv_cfg = p_adv_cfg;
 
         bta_sys_sendmsg(p_msg);
@@ -1814,6 +1824,166 @@ void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable)
 }
 #endif
 
+#if BLE_INCLUDED == TRUE
+/*******************************************************************************
+**
+** Function         BTA_BleEnableAdvInstance
+**
+** Description      This function enable a Multi-ADV instance with the specififed
+**                  adv parameters
+**
+** Parameters       p_params: pointer to the adv parameter structure.
+**                  p_cback: callback function associated to this adv instance.
+**                  p_ref: reference data pointer to this adv instance.
+**
+** Returns          BTA_SUCCESS if command started sucessfully; otherwise failure.
+**
+*******************************************************************************/
+tBTA_STATUS BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
+                                tBTA_BLE_MULTI_ADV_CBACK *p_cback,
+                                void *p_ref)
+{
+    tBTA_DM_API_BLE_MULTI_ADV_ENB    *p_msg;
+    UINT16 len = sizeof(tBTA_BLE_ADV_PARAMS) + sizeof(tBTA_DM_API_BLE_MULTI_ADV_ENB);
+
+    APPL_TRACE_API0 ("BTA_BleEnableAdvInstance");
+
+    if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_ENB *) GKI_getbuf(len)) != NULL)
+    {
+        memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_MULTI_ADV_ENB));
+
+        p_msg->hdr.event     = BTA_DM_API_BLE_MULTI_ADV_ENB_EVT;
+        p_msg->p_cback      = (void *)p_cback;
+        if (p_params != NULL)
+        {
+            p_msg->p_params =  (void *)(p_msg + 1);
+            memcpy(p_msg->p_params, p_params, sizeof(tBTA_BLE_ADV_PARAMS));
+        }
+        p_msg->p_ref        = p_ref;
+
+        bta_sys_sendmsg(p_msg);
+
+        return BTA_SUCCESS;
+    }
+    return BTA_FAILURE;
+}
+
+/*******************************************************************************
+**
+** Function         BTA_BleUpdateAdvInstParam
+**
+** Description      This function update a Multi-ADV instance with the specififed
+**                  adv parameters.
+**
+** Parameters       inst_id: Adv instance to update the parameter.
+**                  p_params: pointer to the adv parameter structure.
+**
+** Returns          BTA_SUCCESS if command started sucessfully; otherwise failure.
+**
+*******************************************************************************/
+tBTA_STATUS BTA_BleUpdateAdvInstParam (UINT8 inst_id, tBTA_BLE_ADV_PARAMS *p_params)
+{
+    tBTA_DM_API_BLE_MULTI_ADV_PARAM    *p_msg;
+    UINT16      len = sizeof(tBTA_BLE_ADV_PARAMS) + sizeof(tBTA_DM_API_BLE_MULTI_ADV_PARAM);
+
+    APPL_TRACE_API0 ("BTA_BleUpdateAdvInstParam");
+    if (inst_id <= BTM_BLE_MULTI_ADV_MAX && inst_id != BTA_BLE_MULTI_ADV_ILLEGAL)
+    {
+        if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_PARAM *) GKI_getbuf(len)) != NULL)
+        {
+             memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_MULTI_ADV_PARAM));
+
+             p_msg->hdr.event     = BTA_DM_API_BLE_MULTI_ADV_PARAM_UPD_EVT;
+             p_msg->inst_id        = inst_id;
+             p_msg->p_params =  (void *)(p_msg + 1);
+             memcpy(p_msg->p_params, p_params, sizeof(tBTA_BLE_ADV_PARAMS));
+
+             bta_sys_sendmsg(p_msg);
+
+             return BTA_SUCCESS;
+        }
+    }
+    return BTA_FAILURE;
+}
+
+/*******************************************************************************
+**
+** Function         BTA_BleCfgAdvInstData
+**
+** Description      This function configure a Multi-ADV instance with the specififed
+**                  adv data or scan response data.
+**
+** Parameter        inst_id: Adv instance to configure the adv data or scan response.
+**                  is_scan_rsp: is the data scan response or adv data.
+**                  data_mask: adv data type as bit mask.
+**                  p_data: pointer to the ADV data structure tBTA_BLE_ADV_DATA. This
+**                  memory space can not be freed until BTA_BLE_MULTI_ADV_DATA_EVT
+**                  is sent to application.
+**
+** Returns          BTA_SUCCESS if command started sucessfully; otherwise failure.
+**
+*******************************************************************************/
+tBTA_STATUS BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
+                            tBTA_BLE_AD_MASK data_mask,
+                            tBTA_BLE_ADV_DATA *p_data)
+{
+    tBTA_DM_API_BLE_MULTI_ADV_DATA    *p_msg;
+    UINT16      len =  sizeof(tBTA_DM_API_BLE_MULTI_ADV_DATA) ;
+
+    APPL_TRACE_API0 ("BTA_BleCfgAdvInstData");
+
+    if (inst_id <= BTM_BLE_MULTI_ADV_MAX && inst_id != BTA_BLE_MULTI_ADV_ILLEGAL)
+    {
+    if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_DATA *) GKI_getbuf(len)) != NULL)
+    {
+            memset(p_msg, 0, len);
+
+            p_msg->hdr.event     = BTA_DM_API_BLE_MULTI_ADV_DATA_EVT;
+            p_msg->inst_id      = inst_id;
+            p_msg->is_scan_rsp  = is_scan_rsp;
+            p_msg->data_mask     = data_mask;
+            p_msg->p_data        = p_data;
+
+            bta_sys_sendmsg(p_msg);
+
+            return BTA_SUCCESS;
+        }
+    }
+    return BTA_FAILURE;
+}
+
+/*******************************************************************************
+**
+** Function         BTA_BleDisableAdvInstance
+**
+** Description      This function disable a Multi-ADV instance.
+**
+** Parameter        inst_id: instance ID to disable.
+**
+** Returns          BTA_SUCCESS if command started sucessfully; otherwise failure.
+**
+*******************************************************************************/
+tBTA_STATUS BTA_BleDisableAdvInstance (UINT8  inst_id)
+{
+    tBTA_DM_API_BLE_MULTI_ADV_DISABLE    *p_msg;
+
+    APPL_TRACE_API1 ("BTA_BleDisableAdvInstance: %d", inst_id);
+
+    if (inst_id <= BTM_BLE_MULTI_ADV_MAX && inst_id != BTA_BLE_MULTI_ADV_ILLEGAL)
+    {
+        if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_DISABLE *)
+            GKI_getbuf(sizeof(tBTA_DM_API_BLE_MULTI_ADV_DISABLE))) != NULL)
+        {
+            memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_MULTI_ADV_DISABLE));
+            p_msg->hdr.event    = BTA_DM_API_BLE_MULTI_ADV_DISABLE_EVT;
+            p_msg->inst_id      = inst_id;
+            bta_sys_sendmsg(p_msg);
+            return BTA_SUCCESS;
+        }
+    }
+    return BTA_FAILURE;
+}
+
 /*******************************************************************************
 **
 ** Function         BTA_DmBleUpdateConnectionParams
@@ -1832,7 +2002,6 @@ void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable)
 void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int, UINT16 max_int,
                                     UINT16 latency, UINT16 timeout)
 {
-#if BLE_INCLUDED == TRUE
     tBTA_DM_API_UPDATE_CONN_PARAM *p_msg;
 
     if ((p_msg = (tBTA_DM_API_UPDATE_CONN_PARAM *) GKI_getbuf(sizeof(tBTA_DM_API_UPDATE_CONN_PARAM))) != NULL)
@@ -1848,8 +2017,8 @@ void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int, UINT16 max
 
         bta_sys_sendmsg(p_msg);
     }
-#endif
 }
+#endif
 
 /*******************************************************************************
 **
@@ -1946,8 +2115,6 @@ void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev, tBTA_TRANSPORT transpor
 BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
                                      tBTA_DM_SEARCH_CBACK *p_results_cb)
 {
-#if BLE_INCLUDED == TRUE
-
     tBTA_DM_API_BLE_OBSERVE   *p_msg;
 
     APPL_TRACE_API1("BTA_DmBleObserve:start = %d ", start);
@@ -1963,6 +2130,5 @@ BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
 
         bta_sys_sendmsg(p_msg);
     }
-#endif
 }
 #endif

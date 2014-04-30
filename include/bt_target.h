@@ -1295,7 +1295,6 @@ and USER_HW_DISABLE_API macros */
 #define BLE_ANDROID_CONTROLLER_SCAN_FILTER            TRUE
 #endif
 
-
 #ifndef LOCAL_BLE_CONTROLLER_ID
 #define LOCAL_BLE_CONTROLLER_ID         (1)
 #endif
@@ -1303,6 +1302,11 @@ and USER_HW_DISABLE_API macros */
 #ifndef BLE_PRIVACY_SPT
 #define BLE_PRIVACY_SPT      TRUE
 #endif
+
+#ifndef BLE_MULTI_ADV_INCLUDED
+#define BLE_MULTI_ADV_INCLUDED  TRUE
+#endif
+
 
 /******************************************************************************
 **

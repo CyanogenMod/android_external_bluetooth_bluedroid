@@ -336,8 +336,9 @@ typedef struct
 #define BTA_DM_BLE_AD_BIT_SERVICE_128SOL  BTM_BLE_AD_BIT_SERVICE_128SOL
 #define BTA_DM_BLE_AD_BIT_PUBLIC_ADDR     BTM_BLE_AD_BIT_PUBLIC_ADDR
 #define BTA_DM_BLE_AD_BIT_RANDOM_ADDR     BTM_BLE_AD_BIT_RANDOM_ADDR
+#define BTA_DM_BLE_AD_BIT_SERVICE_128     BTM_BLE_AD_BIT_SERVICE_128      /*128-bit Service UUIDs*/
 
-typedef  UINT16  tBTA_BLE_AD_MASK;
+typedef  tBTM_BLE_AD_MASK  tBTA_BLE_AD_MASK;
 
 /* slave preferred connection interval range */
 typedef struct
@@ -378,14 +379,67 @@ typedef struct
 
 typedef struct
 {
-    tBTA_BLE_MANU			manu;			/* manufactuer data */
-    tBTA_BLE_INT_RANGE		int_range;      /* slave prefered conn interval range */
-    tBTA_BLE_SERVICE		services;       /* services */
-	UINT16					appearance;		/* appearance data */
-    UINT8					flag;
-    tBTA_BLE_PROPRIETARY    *p_proprietary;
+    tBT_UUID    service_uuid;
+    UINT8       len;
+    UINT8      *p_val;
+}tBTA_BLE_SERVICE_DATA;
 
+typedef tBTM_BLE_128SERVICE tBTA_BLE_128SERVICE;
+typedef tBTM_BLE_32SERVICE  tBTA_BLE_32SERVICE;
+
+typedef struct
+{
+    tBTA_BLE_INT_RANGE      int_range;          /* slave prefered conn interval range */
+    tBTA_BLE_MANU           *p_manu;            /* manufacturer data */
+    tBTA_BLE_SERVICE        *p_services;        /* 16 bits services */
+    tBTA_BLE_128SERVICE     *p_services_128b;   /* 128 bits service */
+    tBTA_BLE_32SERVICE      *p_service_32b;     /* 32 bits Service UUID */
+    tBTA_BLE_SERVICE        *p_sol_services;    /* 16 bits services Solicitation UUIDs */
+    tBTA_BLE_32SERVICE      *p_sol_service_32b; /* List of 32 bit Service Solicitation UUIDs */
+    tBTA_BLE_128SERVICE     *p_sol_service_128b;/* List of 128 bit Service Solicitation UUIDs */
+    tBTA_BLE_PROPRIETARY    *p_proprietary;     /* proprietary data */
+    tBTA_BLE_SERVICE_DATA   *p_service_data;    /* service data */
+    UINT16                  appearance;         /* appearance data */
+    UINT8                   flag;
+    UINT8                   tx_power;
 }tBTA_BLE_ADV_DATA;
+
+typedef void (tBTA_SET_ADV_DATA_CMPL_CBACK) (tBTA_STATUS status);
+
+/* advertising channel map */
+#define BTA_BLE_ADV_CHNL_37 BTM_BLE_ADV_CHNL_37
+#define BTA_BLE_ADV_CHNL_38 BTM_BLE_ADV_CHNL_38
+#define BTA_BLE_ADV_CHNL_39 BTM_BLE_ADV_CHNL_39
+typedef tBTM_BLE_ADV_CHNL_MAP tBTA_BLE_ADV_CHNL_MAP; /* use as a bit mask */
+
+/* advertising filter policy */
+typedef tBTM_BLE_AFP   tBTA_BLE_AFP;
+
+/* adv event type */
+#define BTA_BLE_CONNECT_EVT         BTM_BLE_CONNECT_EVT     /* Connectable undirected advertising */
+#define BTA_BLE_CONNECT_DIR_EVT     BTM_BLE_CONNECT_DIR_EVT /* Connectable directed advertising */
+#define BTA_BLE_DISCOVER_EVT        BTM_BLE_DISCOVER_EVT    /* Scannable undirected advertising */
+#define BTA_BLE_NON_CONNECT_EVT     BTM_BLE_NON_CONNECT_EVT /* Non connectable undirected advertising */
+typedef UINT8 tBTA_BLE_ADV_EVT;
+
+/* adv tx power level */
+#define BTA_BLE_ADV_TX_POWER_MIN        0           /* minimum tx power */
+#define BTA_BLE_ADV_TX_POWER_LOW        1           /* low tx power     */
+#define BTA_BLE_ADV_TX_POWER_MID        2           /* middle tx power  */
+#define BTA_BLE_ADV_TX_POWER_UPPER      3           /* upper tx power   */
+#define BTA_BLE_ADV_TX_POWER_MAX        4           /* maximum tx power */
+typedef UINT8 tBTA_BLE_ADV_TX_POWER;
+
+/* advertising instance parameters */
+typedef struct
+{
+    UINT16                  adv_int_min;            /* minimum adv interval */
+    UINT16                  adv_int_max;            /* maximum adv interval */
+    tBTA_BLE_ADV_EVT        adv_type;               /* adv event type */
+    tBTA_BLE_ADV_CHNL_MAP   channel_map;            /* adv channel map */
+    tBTA_BLE_AFP            adv_filter_policy;      /* advertising filter policy */
+    tBTA_BLE_ADV_TX_POWER   tx_power;               /* adv tx power */
+}tBTA_BLE_ADV_PARAMS;
 
 /* These are the fields returned in each device adv packet.  It
 ** is returned in the results callback if registered.
@@ -842,6 +896,21 @@ typedef union
 
 /* Security callback */
 typedef void (tBTA_DM_SEC_CBACK)(tBTA_DM_SEC_EVT event, tBTA_DM_SEC *p_data);
+
+#define BTA_BLE_MULTI_ADV_MAX BTM_BLE_MULTI_ADV_MAX
+#define BTA_BLE_MULTI_ADV_ILLEGAL 0
+
+/* multi adv callback event */
+#define BTA_BLE_MULTI_ADV_ENB_EVT           1
+#define BTA_BLE_MULTI_ADV_DISABLE_EVT       2
+#define BTA_BLE_MULTI_ADV_PARAM_EVT         3
+#define BTA_BLE_MULTI_ADV_DATA_EVT          4
+
+typedef UINT8 tBTA_BLE_MULTI_ADV_EVT;
+
+/* multi adv callback */
+typedef void (tBTA_BLE_MULTI_ADV_CBACK)(tBTA_BLE_MULTI_ADV_EVT event,
+                                        UINT8 inst_id, void *p_ref, tBTA_STATUS status);
 
 /* Vendor Specific Command Callback */
 typedef tBTM_VSC_CMPL_CB        tBTA_VENDOR_CMPL_CBACK;
@@ -1999,7 +2068,8 @@ BTA_API extern void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, BOOLEAN privac
 **
 *******************************************************************************/
 BTA_API extern void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask,
-                                           tBTA_BLE_ADV_DATA *p_adv_cfg);
+                                           tBTA_BLE_ADV_DATA *p_adv_cfg,
+                                           tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
 
 /*******************************************************************************
 **
@@ -2013,7 +2083,8 @@ BTA_API extern void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask,
 **
 *******************************************************************************/
 BTA_API extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask,
-                                         tBTA_BLE_ADV_DATA *p_adv_cfg);
+                                         tBTA_BLE_ADV_DATA *p_adv_cfg,
+                                         tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
 
 /*******************************************************************************
 **
@@ -2027,6 +2098,66 @@ BTA_API extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask,
 **
 *******************************************************************************/
 BTA_API extern void BTA_DmBleBroadcast (BOOLEAN start);
+
+
+/*******************************************************************************
+**
+** Function         BTA_BleEnableAdvInstance
+**
+** Description      This function enables the Multi ADV instance feature
+**
+** Parameters       p_params Pointer to ADV param user defined structure
+**                  p_cback  Pointer to Multi ADV callback structure
+**                  p_ref - Reference pointer
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern tBTA_STATUS BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
+                                tBTA_BLE_MULTI_ADV_CBACK *p_cback,void *p_ref);
+
+/*******************************************************************************
+**
+** Function         BTA_BleUpdateAdvInstParam
+**
+** Description      This function updates the Multi ADV instance params
+**
+** Parameters       inst_id Instance ID
+**                  p_params Pointer to ADV param user defined structure
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern tBTA_STATUS BTA_BleUpdateAdvInstParam (UINT8 inst_id,
+                                tBTA_BLE_ADV_PARAMS *p_params);
+
+/*******************************************************************************
+**
+** Function         BTA_BleCfgAdvInstData
+**
+** Description      This function is called to configure the ADV instance data
+**
+** Parameters       inst_id - Instance ID
+**                  is_scan_rsp - Boolean value Scan response
+**                  Pointer to User defined ADV data structure
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern tBTA_STATUS BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
+                                tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_data);
+
+/*******************************************************************************
+**
+** Function         BTA_BleDisableAdvInstance
+**
+** Description      This function is called to disable the ADV instance
+**
+** Parameters       inst_id - Instance ID to be disabled
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern tBTA_STATUS BTA_BleDisableAdvInstance(UINT8 inst_id);
 
 /*******************************************************************************
 **

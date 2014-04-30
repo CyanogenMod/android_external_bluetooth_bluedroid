@@ -5204,8 +5204,16 @@ void bta_dm_ble_set_adv_params (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data)
 {
-    BTM_BleWriteAdvData(p_data->ble_set_adv_data.data_mask,
-                        (tBTM_BLE_ADV_DATA *)p_data->ble_set_adv_data.p_adv_cfg);
+    tBTA_STATUS status = BTA_FAILURE;
+
+    if (BTM_BleWriteAdvData(p_data->ble_set_adv_data.data_mask,
+                        (tBTM_BLE_ADV_DATA *)p_data->ble_set_adv_data.p_adv_cfg) == BTM_SUCCESS)
+    {
+        status = BTA_SUCCESS;
+    }
+
+    if (p_data->ble_set_adv_data.p_adv_data_cback)
+        (*p_data->ble_set_adv_data.p_adv_data_cback)(status);
 }
 
 /*******************************************************************************
@@ -5219,8 +5227,16 @@ void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_ble_set_scan_rsp (tBTA_DM_MSG *p_data)
 {
-    BTM_BleWriteScanRsp(p_data->ble_set_adv_data.data_mask,
-                        (tBTM_BLE_ADV_DATA *)p_data->ble_set_adv_data.p_adv_cfg);
+    tBTA_STATUS status = BTA_FAILURE;
+
+    if(BTM_BleWriteScanRsp(p_data->ble_set_adv_data.data_mask,
+                        (tBTM_BLE_ADV_DATA *)p_data->ble_set_adv_data.p_adv_cfg) == BTM_SUCCESS)
+    {
+        status = BTA_SUCCESS;
+    }
+
+    if (p_data->ble_set_adv_data.p_adv_data_cback)
+        (*p_data->ble_set_adv_data.p_adv_data_cback)(status);
 }
 
 /*******************************************************************************
@@ -5235,6 +5251,71 @@ void bta_dm_ble_set_scan_rsp (tBTA_DM_MSG *p_data)
 void bta_dm_ble_broadcast (tBTA_DM_MSG *p_data)
 {
     BTM_BleBroadcast(p_data->ble_observe.start);
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_ble_multi_adv_enb
+**
+** Description      This function enables a single advertising instance
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_multi_adv_enb(tBTA_DM_MSG *p_data)
+{
+#if BLE_MULTI_ADV_INCLUDED == TRUE
+    BTM_BleEnableAdvInstance((tBTM_BLE_ADV_PARAMS*)p_data->ble_multi_adv_enb.p_params,
+        p_data->ble_multi_adv_enb.p_cback,p_data->ble_multi_adv_enb.p_ref);
+#endif
+}
+/*******************************************************************************
+**
+** Function         bta_dm_ble_multi_adv_param_upd
+**
+** Description      This function updates multiple advertising instance parameters
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_multi_adv_upd_param(tBTA_DM_MSG *p_data)
+{
+#if BLE_MULTI_ADV_INCLUDED == TRUE
+    BTM_BleUpdateAdvInstParam(p_data->ble_multi_adv_param.inst_id,
+        (tBTM_BLE_ADV_PARAMS*)p_data->ble_multi_adv_param.p_params);
+#endif
+}
+/*******************************************************************************
+**
+** Function         bta_dm_ble_multi_adv_data
+**
+** Description      This function write multiple advertising instance adv data
+**                  or scan response data
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_multi_adv_data(tBTA_DM_MSG *p_data)
+{
+#if BLE_MULTI_ADV_INCLUDED == TRUE
+    BTM_BleCfgAdvInstData(p_data->ble_multi_adv_data.inst_id,p_data->ble_multi_adv_data.is_scan_rsp,
+        p_data->ble_multi_adv_data.data_mask,(tBTM_BLE_ADV_DATA*)p_data->ble_multi_adv_data.p_data);
+#endif
+}
+/*******************************************************************************
+**
+** Function         btm_dm_ble_multi_adv_disable
+**
+** Description      This function disable a single adv instance
+**
+** Parameters:
+**
+*******************************************************************************/
+void btm_dm_ble_multi_adv_disable(tBTA_DM_MSG *p_data)
+{
+#if BLE_MULTI_ADV_INCLUDED == TRUE
+    BTM_BleDisableAdvInstance(p_data->ble_multi_adv_disable.inst_id);
+#endif
 }
 
 #if ((defined BTA_GATT_INCLUDED) &&  (BTA_GATT_INCLUDED == TRUE))
