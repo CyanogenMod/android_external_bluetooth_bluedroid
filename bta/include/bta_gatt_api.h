@@ -128,6 +128,11 @@ typedef UINT8 tBTA_GATT_STATUS;
 #define BTA_GATTC_LISTEN_EVT        16  /* listen event */
 #define BTA_GATTC_ENC_CMPL_CB_EVT   17  /* encryption complete callback event */
 #define BTA_GATTC_CFG_MTU_EVT       18  /* configure MTU complete event */
+#define BTA_GATTC_ADV_DATA_EVT      19  /* ADV data event */
+#define BTA_GATTC_MULT_ADV_ENB_EVT  20  /* Enable Multi ADV event */
+#define BTA_GATTC_MULT_ADV_UPD_EVT  21  /* Update parameter event */
+#define BTA_GATTC_MULT_ADV_DATA_EVT 22  /* Multi ADV data event */
+#define BTA_GATTC_MULT_ADV_DIS_EVT  23  /* Disable Multi ADV event */
 
 typedef UINT8 tBTA_GATTC_EVT;
 
