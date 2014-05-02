@@ -5056,10 +5056,14 @@ static inline int btif_hl_close_select_thread(void)
     char sig_on = btif_hl_signal_select_exit;
     BTIF_TRACE_DEBUG0("btif_hl_signal_select_exit");
     result = send(signal_fds[1], &sig_on, sizeof(sig_on), 0);
-    /* Wait for the select_thread_id to exit */
-    if (select_thread_id != -1) {
-        pthread_join(select_thread_id, NULL);
-        select_thread_id = -1;
+    if (btif_is_enabled())
+    {
+        /* Wait for the select_thread_id to exit if BT is still enabled
+        and only this profile getting  cleaned up*/
+        if (select_thread_id != -1) {
+            pthread_join(select_thread_id, NULL);
+            select_thread_id = -1;
+        }
     }
    /* Cleanup signal sockets */
     if(signal_fds[0] != -1)
