@@ -662,6 +662,7 @@ static void hidh_l2cif_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
             hh_cb.devices[dhandle].conn_tries = 0;
             hh_cb.devices[dhandle].conn.timer_entry.param = (UINT32) dhandle;
             btu_start_timer (&(hh_cb.devices[dhandle].conn.timer_entry), BTU_TTYPE_HID_HOST_REPAGE_TO, HID_HOST_REPAGE_WIN);
+            hh_cb.callback( dhandle,  hh_cb.devices[dhandle].addr, HID_HDEV_EVT_CLOSE, disc_res, NULL);
         }
         else
 #endif
