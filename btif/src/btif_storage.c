@@ -186,35 +186,6 @@ bt_status_t btif_storage_get_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
 
 /*******************************************************************************
 **
-** Function         btif_in_make_filename
-**
-** Description      Internal helper function to create NVRAM file path
-**                  from address and filename
-**
-** Returns          NVRAM file path if successfull, NULL otherwise
-**
-*******************************************************************************/
-static char* btif_in_make_filename(bt_bdaddr_t *bd_addr, char *fname)
-{
-    static char path[256];
-    bdstr_t bdstr;
-
-    if (fname == NULL)return NULL;
-    if (bd_addr)
-    {
-        sprintf(path, "%s/%s/%s", BTIF_STORAGE_PATH_BLUEDROID,
-                bd2str(bd_addr, &bdstr), fname);
-    }
-    else
-    {
-        /* local adapter */
-        sprintf(path, "%s/LOCAL/%s", BTIF_STORAGE_PATH_BLUEDROID, fname);
-    }
-
-    return(char*)path;
-}
-/*******************************************************************************
-**
 ** Function         btif_in_split_uuids_string_to_list
 **
 ** Description      Internal helper function to split the string of UUIDs
@@ -537,29 +508,6 @@ static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_
     } while(kpos != -1);
     BTIF_TRACE_DEBUG0("out");
     return BT_STATUS_SUCCESS;
-}
-
-static int hex_str_to_int(const char* str, int size)
-{
-    int  n = 0;
-    char c = *str++;
-    while (size-- != 0)
-    {
-        n <<= 4;
-        if (c >= '0' && c <= '9') {
-            n |= c - '0';
-        }
-        else if (c >= 'a' && c <= 'z') {
-            n |= c - 'a' + 10;
-        }
-        else // (c >= 'A' && c <= 'Z')
-        {
-            n |= c - 'A' + 10;
-        }
-
-        c = *str++;
-    }
-    return n;
 }
 
 /************************************************************************************

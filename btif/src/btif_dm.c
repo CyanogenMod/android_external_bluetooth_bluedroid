@@ -450,23 +450,6 @@ static void btif_update_remote_properties(BD_ADDR bd_addr, BD_NAME bd_name,
     HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
                      status, &bdaddr, num_properties, properties);
 }
-/*******************************************************************************
-**
-** Function         hid_remote_name_cback
-**
-** Description      Remote name callback for HID device. Called in stack context
-**                  Special handling for HID devices
-**
-** Returns          void
-**
-*******************************************************************************/
-static void hid_remote_name_cback(void *p_param)
-{
-    BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
-
-    btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_HID_REMOTE_NAME,
-        (char *)p_param, sizeof(tBTM_REMOTE_DEV_NAME), NULL);
-}
 
 /*******************************************************************************
 **

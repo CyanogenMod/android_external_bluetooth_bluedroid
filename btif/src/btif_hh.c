@@ -337,29 +337,6 @@ static void sync_lockstate_on_connect(btif_hh_device_t *p_dev)
 
 /*******************************************************************************
 **
-** Function         btif_hh_find_dev_by_handle
-**
-** Description      Return the device pointer of the specified device handle
-**
-** Returns          Device entry pointer in the device table
-*******************************************************************************/
-static btif_hh_device_t *btif_hh_find_dev_by_handle(UINT8 handle)
-{
-    UINT32 i;
-    // LOGV("%s: handle = %d", __FUNCTION__, handle);
-    for (i = 0; i < BTIF_HH_MAX_HID; i++) {
-        if (btif_hh_cb.devices[i].dev_status != BTHH_CONN_STATE_UNKNOWN &&
-            btif_hh_cb.devices[i].dev_handle == handle)
-        {
-            return &btif_hh_cb.devices[i];
-        }
-    }
-    return NULL;
-}
-
-
-/*******************************************************************************
-**
 ** Function         btif_hh_find_connected_dev_by_handle
 **
 ** Description      Return the connected device pointer of the specified device handle
@@ -1376,75 +1353,6 @@ static bt_status_t set_info (bt_bdaddr_t *bd_addr, bthh_hid_info_t hid_info )
 
     GKI_freebuf(dscp_info.descriptor.dsc_list);
 
-    return BT_STATUS_SUCCESS;
-}
-/*******************************************************************************
-**
-** Function         get_idle_time
-**
-** Description      Get the HID idle time
-**
-** Returns         bt_status_t
-**
-*******************************************************************************/
-static bt_status_t get_idle_time(bt_bdaddr_t *bd_addr)
-{
-    CHECK_BTHH_INIT();
-    btif_hh_device_t *p_dev;
-    BD_ADDR* bda = (BD_ADDR*) bd_addr;
-
-    BTIF_TRACE_DEBUG6(" addr = %02X:%02X:%02X:%02X:%02X:%02X",
-         (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
-
-    if (btif_hh_cb.status == BTIF_HH_DISABLED) {
-        BTIF_TRACE_ERROR2("%s: Error, HH status = %d", __FUNCTION__, btif_hh_cb.status);
-        return BT_STATUS_FAIL;
-    }
-
-    p_dev = btif_hh_find_connected_dev_by_bda(bd_addr);
-    if (p_dev != NULL) {
-        //BTA_HhGetIdle(p_dev->dev_handle);
-    }
-    else {
-        return BT_STATUS_FAIL;
-    }
-    return BT_STATUS_SUCCESS;
-}
-
-/*******************************************************************************
-**
-** Function         set_idle_time
-**
-** Description      Set the HID idle time
-**
-** Returns         bt_status_t
-**
-*******************************************************************************/
-static bt_status_t set_idle_time (bt_bdaddr_t *bd_addr, uint8_t idle_time)
-{
-    UNUSED(idle_time);
-
-    CHECK_BTHH_INIT();
-    btif_hh_device_t *p_dev;
-    BD_ADDR* bda = (BD_ADDR*) bd_addr;
-
-    BTIF_TRACE_DEBUG6("addr = %02X:%02X:%02X:%02X:%02X:%02X",
-         (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
-
-    if (btif_hh_cb.status == BTIF_HH_DISABLED) {
-        BTIF_TRACE_ERROR2("%s: Error, HH status = %d", __FUNCTION__, btif_hh_cb.status);
-        return BT_STATUS_FAIL;
-    }
-
-    p_dev = btif_hh_find_connected_dev_by_bda(bd_addr);
-    if (p_dev == NULL) {
-        BTIF_TRACE_WARNING6(" Error, device %02X:%02X:%02X:%02X:%02X:%02X not opened.",
-             (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
-        return BT_STATUS_FAIL;
-    }
-    else {
-        //BTA_HhSetIdle(p_dev->dev_handle, idle_time);
-    }
     return BT_STATUS_SUCCESS;
 }
 

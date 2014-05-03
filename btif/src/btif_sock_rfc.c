@@ -102,9 +102,6 @@ static uint32_t rfc_slot_id;
 static volatile int pth = -1; //poll thread handle
 static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data);
 static void cleanup_rfc_slot(rfc_slot_t* rs);
-static inline void close_rfc_connection(int rfc_handle, int server);
-static bt_status_t dm_get_remote_service_record(bt_bdaddr_t *remote_addr,
-                                                    bt_uuid_t *uuid);
 static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data);
 static inline BOOLEAN send_app_scn(rfc_slot_t* rs);
 static pthread_mutex_t slot_lock;

@@ -1475,65 +1475,6 @@ void bta_jv_delete_record(tBTA_JV_MSG *p_data)
     }
 }
 
-/*******************************************************************************
-**
-** Function     bta_jv_l2cap_client_cback
-**
-** Description  handles the l2cap client events
-**
-** Returns      void
-**
-*******************************************************************************/
-static void bta_jv_l2cap_client_cback(UINT16 gap_handle, UINT16 event)
-{
-    UNUSED(gap_handle);
-    UNUSED(event);
-#if 0
-    tBTA_JV_L2C_CB  *p_cb = &bta_jv_cb.l2c_cb[gap_handle];
-    tBTA_JV     evt_data;
-
-    if(gap_handle >= BTA_JV_MAX_L2C_CONN && !p_cb->p_cback)
-        return;
-
-    APPL_TRACE_DEBUG2( "bta_jv_l2cap_client_cback: %d evt:x%x",
-        gap_handle, event);
-    evt_data.l2c_open.status = BTA_JV_SUCCESS;
-    evt_data.l2c_open.handle = gap_handle;
-    switch (event)
-    {
-    case GAP_EVT_CONN_OPENED:
-        bdcpy(evt_data.l2c_open.rem_bda, GAP_ConnGetRemoteAddr(gap_handle));
-        evt_data.l2c_open.tx_mtu = GAP_ConnGetRemMtuSize(gap_handle);
-        p_cb->state = BTA_JV_ST_CL_OPEN;
-        p_cb->p_cback(BTA_JV_L2CAP_OPEN_EVT, &evt_data);
-        break;
-
-    case GAP_EVT_CONN_CLOSED:
-        p_cb->state = BTA_JV_ST_NONE;
-        bta_jv_free_sec_id(&p_cb->sec_id);
-        evt_data.l2c_close.async = TRUE;
-        p_cb->p_cback(BTA_JV_L2CAP_CLOSE_EVT, &evt_data);
-        p_cb->p_cback = NULL;
-        break;
-
-    case GAP_EVT_CONN_DATA_AVAIL:
-        evt_data.handle = gap_handle;
-        p_cb->p_cback(BTA_JV_L2CAP_DATA_IND_EVT, &evt_data);
-        break;
-
-    case GAP_EVT_CONN_CONGESTED:
-    case GAP_EVT_CONN_UNCONGESTED:
-        p_cb->cong = (event == GAP_EVT_CONN_CONGESTED) ? TRUE : FALSE;
-        evt_data.l2c_cong.cong = p_cb->cong;
-        p_cb->p_cback(BTA_JV_L2CAP_CONG_EVT, &evt_data);
-        break;
-
-    default:
-        break;
-    }
-#endif
-}
-
 #if SDP_FOR_JV_INCLUDED == TRUE
 /*******************************************************************************
 **
@@ -1707,67 +1648,6 @@ void bta_jv_l2cap_close(tBTA_JV_MSG *p_data)
         p_cback(BTA_JV_L2CAP_CLOSE_EVT, (tBTA_JV *)&evt_data);
     else
         APPL_TRACE_ERROR0("### NO CALLBACK SET !!! ###");
-#endif
-}
-
-/*******************************************************************************
-**
-** Function         bta_jv_l2cap_server_cback
-**
-** Description      handles the l2cap server callback
-**
-** Returns          void
-**
-*******************************************************************************/
-static void bta_jv_l2cap_server_cback(UINT16 gap_handle, UINT16 event)
-{
-    UNUSED(gap_handle);
-    UNUSED(event);
-#if 0
-    tBTA_JV_L2C_CB  *p_cb = &bta_jv_cb.l2c_cb[gap_handle];
-    tBTA_JV evt_data;
-    tBTA_JV_L2CAP_CBACK *p_cback;
-
-    if(gap_handle >= BTA_JV_MAX_L2C_CONN && !p_cb->p_cback)
-        return;
-
-    APPL_TRACE_DEBUG2( "bta_jv_l2cap_server_cback: %d evt:x%x",
-        gap_handle, event);
-    evt_data.l2c_open.status = BTA_JV_SUCCESS;
-    evt_data.l2c_open.handle = gap_handle;
-
-    switch (event)
-    {
-    case GAP_EVT_CONN_OPENED:
-        bdcpy(evt_data.l2c_open.rem_bda, GAP_ConnGetRemoteAddr(gap_handle));
-        evt_data.l2c_open.tx_mtu = GAP_ConnGetRemMtuSize(gap_handle);
-        p_cb->state = BTA_JV_ST_SR_OPEN;
-        p_cb->p_cback(BTA_JV_L2CAP_OPEN_EVT, &evt_data);
-        break;
-
-    case GAP_EVT_CONN_CLOSED:
-        evt_data.l2c_close.async = TRUE;
-        evt_data.l2c_close.handle = p_cb->handle;
-        p_cback = p_cb->p_cback;
-        evt_data.l2c_close.status = bta_jv_free_l2c_cb(p_cb);
-        p_cback(BTA_JV_L2CAP_CLOSE_EVT, &evt_data);
-        break;
-
-    case GAP_EVT_CONN_DATA_AVAIL:
-        evt_data.handle = gap_handle;
-        p_cb->p_cback(BTA_JV_L2CAP_DATA_IND_EVT, &evt_data);
-        break;
-
-    case GAP_EVT_CONN_CONGESTED:
-    case GAP_EVT_CONN_UNCONGESTED:
-        p_cb->cong = (event == GAP_EVT_CONN_CONGESTED) ? TRUE : FALSE;
-        evt_data.l2c_cong.cong = p_cb->cong;
-        p_cb->p_cback(BTA_JV_L2CAP_CONG_EVT, &evt_data);
-        break;
-
-    default:
-        break;
-    }
 #endif
 }
 
@@ -2242,39 +2122,6 @@ void bta_jv_rfcomm_close(tBTA_JV_MSG *p_data)
     bta_jv_free_rfc_cb(p_cb, p_pcb);
     APPL_TRACE_DEBUG2("bta_jv_rfcomm_close: sec id in use:%d, rfc_cb in use:%d",
                 get_sec_id_used(), get_rfc_cb_used());
-}
-
-/*******************************************************************************
-**
-** Function     bta_jv_get_num_rfc_listen
-**
-** Description  when a RFCOMM connection goes down, make sure that there's only
-**              one port stays listening on this scn.
-**
-** Returns
-**
-*******************************************************************************/
-static UINT8 bta_jv_get_num_rfc_listen(tBTA_JV_RFC_CB *p_cb)
-{
-    UINT8   i, listen=1;
-    tBTA_JV_PCB *p_pcb;
-
-    if (p_cb->max_sess > 1)
-    {
-        listen = 0;
-        for (i=0; i<p_cb->max_sess; i++)
-        {
-            if (p_cb->rfc_hdl[i] != 0)
-            {
-                p_pcb = &bta_jv_cb.port_cb[p_cb->rfc_hdl[i] - 1];
-                if (BTA_JV_ST_SR_LISTEN == p_pcb->state)
-                {
-                    listen++;
-                }
-            }
-        }
-    }
-    return listen;
 }
 
 /*******************************************************************************
