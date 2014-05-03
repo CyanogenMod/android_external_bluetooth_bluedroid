@@ -82,6 +82,7 @@ BOOLEAN blacklistPairingRetries(BD_ADDR bd_addr)
       {p.type=t;p.val=v;p.len=l;btif_storage_get_remote_device_property(b,&p);}
 
 #define COD_UNCLASSIFIED ((0x1F) << 8)
+#define COD_HID_JOYSTICK                    0x0504
 #define COD_HID_KEYBOARD                    0x0540
 #define COD_HID_POINTING                    0x0580
 #define COD_HID_COMBO                       0x05C0
@@ -1078,6 +1079,33 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
 
                 pairing_cb.autopair_attempts++;
                 BTA_DmPinReply( (UINT8*)bd_addr.address, TRUE, 4, pin_code.pin);
+                return;
+            }
+        }
+        else if (check_cod(&bd_addr, COD_HID_JOYSTICK))
+        {
+            if(( btif_storage_is_wiimote (&bd_addr, &bd_name) == TRUE) &&
+                (pairing_cb.autopair_attempts == 0))
+            {
+                bt_bdaddr_t ad_addr;
+                bt_status_t status;
+                bt_property_t prop;
+                prop.type = BT_PROPERTY_BDADDR;
+                prop.val = (void*) &ad_addr;
+
+                status = btif_storage_get_adapter_property(&prop);
+
+                BTIF_TRACE_DEBUG("%s() Attempting auto pair", __FUNCTION__);
+
+                pin_code.pin[0] = ad_addr.address[5];
+                pin_code.pin[1] = ad_addr.address[4];
+                pin_code.pin[2] = ad_addr.address[3];
+                pin_code.pin[3] = ad_addr.address[2];
+                pin_code.pin[4] = ad_addr.address[1];
+                pin_code.pin[5] = ad_addr.address[0];
+
+                pairing_cb.autopair_attempts++;
+                BTA_DmPinReply( (UINT8*)bd_addr.address, TRUE, 6, pin_code.pin);
                 return;
             }
         }
