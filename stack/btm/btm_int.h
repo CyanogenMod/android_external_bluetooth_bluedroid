@@ -601,7 +601,7 @@ typedef struct
 #define BTM_SM4_CONN_PEND   0x40        /* set this bit to indicate accepting acl conn; to be cleared on btm_acl_created */
     UINT8       sm4;                    /* BTM_SM4_TRUE, if the peer supports SM4 */
     tBTM_IO_CAP rmt_io_caps;            /* IO capability of the peer device */
-    BOOLEAN     rmt_auth_req;           /* the auth_req flag as in the IO caps rsp evt */
+    tBTM_AUTH_REQ rmt_auth_req;         /* the auth_req flag as in the IO caps rsp evt */
 
 #if (BLE_INCLUDED == TRUE)
     UINT16              ble_hci_handle;         /* use in DUMO connection */
