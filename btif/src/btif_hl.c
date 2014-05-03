@@ -94,7 +94,6 @@ static BUFFER_Q soc_queue;
 static int reg_counter;
 
 static inline int btif_hl_select_wakeup(void);
-static inline int btif_hl_select_exit(void);
 static inline int btif_hl_select_close_connected(void);
 static inline int btif_hl_close_select_thread(void);
 static UINT8 btif_hl_get_next_app_id(void);
@@ -1236,51 +1235,6 @@ static BOOLEAN btif_hl_find_peer_mdep_id(UINT8 app_id, BD_ADDR bd_addr,
 
     return found;
 }
-/*******************************************************************************
-**
-** Function        btif_hl_find_local_mdep_id
-**
-** Description      Find the local MDEP ID from the MDEP configuration
-**
-** Returns          BOOLEAN
-**
-*******************************************************************************/
-static BOOLEAN btif_hl_find_local_mdep_id(UINT8 app_id,
-                                          tBTA_HL_MDEP_ROLE local_mdep_role,
-                                          UINT16 mdep_data_type,
-                                          tBTA_HL_MDEP_ID *p_local_mdep_id){
-    UINT8 app_idx;
-    btif_hl_app_cb_t      *p_acb;
-    UINT8  i,j;
-    BOOLEAN found = FALSE;
-
-    BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
-
-    if (btif_hl_find_app_idx(app_id, &app_idx) )
-    {
-        p_acb  =BTIF_HL_GET_APP_CB_PTR(app_idx);
-
-        for (i=0; i< p_acb->sup_feature.num_of_mdeps; i++)
-        {
-            if (p_acb->sup_feature.mdep[i].mdep_cfg.mdep_role == local_mdep_role )
-            {
-                for (j=0; j< p_acb->sup_feature.mdep[i].mdep_cfg.num_of_mdep_data_types; j++)
-                {
-                    if ( p_acb->sup_feature.mdep[i].mdep_cfg.data_cfg[j].data_type == mdep_data_type)
-                    {
-                        found = TRUE;
-                        *p_local_mdep_id = p_acb->sup_feature.mdep[i].mdep_id;
-                        return found;
-                    }
-                }
-            }
-        }
-
-
-    }
-    BTIF_TRACE_DEBUG2("found=%d local mdep id=%d", found, *p_local_mdep_id );
-    return found;
-}
 
 /*******************************************************************************
 **
@@ -2218,28 +2172,6 @@ static void btif_hl_proc_reg_cfm(tBTA_HL *p_data){
     }
 }
 
-/*******************************************************************************
-**
-** Function         btif_hl_proc_sdp_info_ind
-**
-** Description      Process the SDP info indication
-**
-** Returns          Nothing
-**
-*******************************************************************************/
-static void btif_hl_proc_sdp_info_ind(tBTA_HL *p_data)
-
-{
-    btif_hl_app_cb_t         *p_acb;
-    UINT8                   app_idx;
-
-    BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
-    if (btif_hl_find_app_idx_using_handle(p_data->sdp_info_ind.app_handle, &app_idx))
-    {
-        p_acb = BTIF_HL_GET_APP_CB_PTR(app_idx);
-        memcpy(&p_acb->sdp_info_ind, &p_data->sdp_info_ind, sizeof(tBTA_HL_SDP_INFO_IND));
-    }
-}
 /*******************************************************************************
 **
 ** Function btif_hl_set_chan_cb_state
@@ -4498,45 +4430,6 @@ BOOLEAN  btif_hl_delete_mdl_cfg(UINT8 mdep_id, UINT8 item_idx){
 
     BTIF_TRACE_DEBUG2("%s success=%d  ",__FUNCTION__, success );
     return success;
-}
-
-/*******************************************************************************
-**
-** Function         get_device_datatype
-**
-** Description      Start SDP on remote device and look for Remote HDP Data type and role
-**
-** Returns         bt_status_t
-**
-*******************************************************************************/
-static bt_status_t get_device_datatype(int app_id, bt_bdaddr_t *bd_addr){
-    btif_hl_app_cb_t    *p_acb;
-    UINT8               app_idx;
-    bt_status_t         status = BT_STATUS_SUCCESS;
-    BD_ADDR             bda;
-    UINT8               i;
-
-    CHECK_BTHL_INIT();
-    BTIF_TRACE_EVENT2("%s app_id=%d", __FUNCTION__, app_id);
-    btif_hl_display_calling_process_name();
-
-    for (i=0; i<6; i++)
-    {
-        bda[i] = (UINT8) bd_addr->address[i];
-    }
-
-    if (btif_hl_find_app_idx(((UINT8)app_id), &app_idx))
-    {
-        p_acb = BTIF_HL_GET_APP_CB_PTR(app_idx);
-        BTA_HlSdpQuery(app_id,p_acb->app_handle,bda);
-    }
-    else
-    {
-        status  = BT_STATUS_FAIL;
-    }
-
-    BTIF_TRACE_DEBUG1("de-reg return status=%d", status);
-    return status;
 }
 
 /*******************************************************************************

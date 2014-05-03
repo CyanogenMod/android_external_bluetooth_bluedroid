@@ -140,49 +140,6 @@ const char* dump_uipc_event(tUIPC_EVENT event)
 }
 
 /*****************************************************************************
-**
-** Function
-**
-** Description
-**
-** Returns
-**
-*******************************************************************************/
-
-static void uipc_wait(tUIPC_CH_ID ch_id, tUIPC_EVENT wait_event_flags)
-{
-    int ret;
-    tUIPC_CHAN *p = &uipc_main.ch[ch_id];
-
-    //BTIF_TRACE_EVENT2("WAIT UIPC CH %d EVT %x BEGIN", ch_id, wait_event_flags);
-    pthread_mutex_lock(&p->cond_mutex);
-    p->cond_flags |= wait_event_flags;
-    ret = pthread_cond_wait(&p->cond, &p->cond_mutex);
-    pthread_mutex_unlock(&p->cond_mutex);
-    //BTIF_TRACE_EVENT2("WAIT UIPC CH %d EVT %x DONE", ch_id, wait_event_flags);
-}
-
-static void uipc_signal(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
-{
-    int ret;
-    tUIPC_CHAN *p = &uipc_main.ch[ch_id];
-
-    //BTIF_TRACE_EVENT2("SIGNAL UIPC CH %d EVT %x BEGIN", ch_id, dump_uipc_event(event));
-    pthread_mutex_lock(&p->cond_mutex);
-
-    if (event & p->cond_flags)
-    {
-        //BTIF_TRACE_EVENT0("UNBLOCK");
-        ret = pthread_cond_signal(&p->cond);
-        p->cond_flags = 0;
-    }
-
-    pthread_mutex_unlock(&p->cond_mutex);
-}
-
-
-
-/*****************************************************************************
 **   socket helper functions
 *****************************************************************************/
 

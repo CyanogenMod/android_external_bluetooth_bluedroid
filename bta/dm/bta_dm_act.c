@@ -241,26 +241,6 @@ UINT8 g_disc_raw_data_buf[MAX_DISC_RAW_DATA_BUF];
 
 /*******************************************************************************
 **
-** Function         bta_dm_app_ready_timer_cback
-**
-** Description      allow sending EIR to controller
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&(BTA_EIR_CANNED_UUID_LIST != TRUE)
-static void bta_dm_app_ready_timer_cback (TIMER_LIST_ENT *p_tle)
-{
-    UNUSED(p_tle);
-    bta_dm_set_eir (NULL);
-}
-#else
-#define bta_dm_app_ready_timer_cback (x)
-#endif
-
-/*******************************************************************************
-**
 ** Function         bta_dm_enable
 **
 ** Description      Initialises the BT device manager
@@ -416,28 +396,6 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
 
         bta_sys_policy_register((tBTA_SYS_CONN_CBACK*)bta_dm_policy_cback);
 
-
-        // BLUEDROID REMOVE ??
-#if 0
-#if 1
-        /* Create broadcom primary DI record */
-        if(WBT_ExtCreateRecord())
-        {
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )
-            /* while app_ready_timer is running, BTA DM doesn't send EIR to controller */
-            bta_dm_cb.app_ready_timer.p_cback = (TIMER_CBACK*)&bta_dm_app_ready_timer_cback;
-            bta_sys_start_timer(&bta_dm_cb.app_ready_timer, 0, 100);
-
-            bta_sys_add_uuid(UUID_SERVCLASS_PNP_INFORMATION);
-#endif
-            bta_dm_di_cb.di_handle[bta_dm_di_cb.di_num] = 0;    /* primary DI record */
-            bta_dm_di_cb.di_num ++;
-        }
-#else   /* Eventually implement pin code */
-        if (WBT_ExtCreateRecord())
-            WBT_ExtAddPinCode();
-#endif
-#endif
 #if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
         memset (&app_uuid.uu.uuid128, 0x87, LEN_UUID_128);
         bta_dm_gattc_register();

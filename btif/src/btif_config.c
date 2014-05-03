@@ -93,7 +93,6 @@ static int processing_save_cmd;
 static void cfg_cmd_callback(int cmd_fd, int type, int flags, uint32_t user_id);
 static inline short alloc_node(cfg_node* p, short grow);
 static inline void free_node(cfg_node* p);
-static inline void free_inode(cfg_node* p, int child);
 static inline short find_inode(const cfg_node* p, const char* name);
 static cfg_node* find_node(const char* section, const char* key, const char* name);
 static int remove_node(const char* section, const char* key, const char* name);
@@ -104,7 +103,6 @@ static int set_node(const char* section, const char* key, const char* name,
 static int save_cfg();
 static void load_cfg();
 static short find_next_node(const cfg_node* p, short start, char* name, int* bytes);
-static int create_dir(const char* path);
 #ifdef UNIT_TEST
 static void cfg_test_load();
 static void cfg_test_write();

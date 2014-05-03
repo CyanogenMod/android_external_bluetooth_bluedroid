@@ -452,4 +452,3 @@ void bte_load_did_conf (const char *p_path)
         }
     }
 }
-

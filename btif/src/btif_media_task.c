@@ -284,49 +284,6 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame);
  **  Misc helper functions
  *****************************************************************************/
 
-static void tput_mon(int is_rx, int len, int reset)
-{
-    /* only monitor one connection at a time for now */
-    static t_stat cur_stat;
-    struct timespec now;
-    unsigned long long prev_us;
-    unsigned long long now_us;
-
-    if (reset == TRUE)
-    {
-        memset(&cur_stat, 0, sizeof(t_stat));
-        return;
-    }
-
-    if (is_rx)
-    {
-        cur_stat.rx+=len;
-        cur_stat.rx_tot+=len;
-    }
-    else
-    {
-        cur_stat.tx+=len;
-        cur_stat.tx_tot+=len;
-    }
-    clock_gettime(CLOCK_MONOTONIC, &now);
-
-    now_us = now.tv_sec*USEC_PER_SEC + now.tv_nsec/1000;
-
-    if ((now_us - cur_stat.ts_prev_us) < TPUT_STATS_INTERVAL_US)
-        return;
-
-    APPL_TRACE_WARNING4("tput rx:%d, tx:%d (bytes/s)  (tot : rx %d, tx %d bytes)",
-          (cur_stat.rx*1000000)/((now_us - cur_stat.ts_prev_us)),
-          (cur_stat.tx*1000000)/((now_us - cur_stat.ts_prev_us)),
-           cur_stat.rx_tot, cur_stat.tx_tot);
-
-    /* stats dumped. now reset stats for next interval */
-    cur_stat.rx = 0;
-    cur_stat.tx = 0;
-    cur_stat.ts_prev_us = now_us;
-}
-
-
 static void log_tstamps_us(char *comment)
 {
     #define USEC_PER_SEC 1000000L
@@ -993,40 +950,6 @@ void btif_a2dp_set_tx_flush(BOOLEAN enable)
     APPL_TRACE_EVENT1("## DROP TX %d ##", enable);
     btif_media_cb.tx_flush = enable;
 }
-
-/*****************************************************************************
-**
-** Function        btif_calc_pcmtime
-**
-** Description     Calculates the pcmtime equivalent of a datapacket
-**
-** Returns         microseconds
-**
-*******************************************************************************/
-
-static int btif_calc_pcmtime(UINT32 bytes_processed)
-{
-    int pcm_time_us = 0;
-    tBTIF_AV_MEDIA_FEED_CFG *p_cfg;
-
-    p_cfg = &btif_media_cb.media_feeding.cfg;
-
-    /* calculate corresponding pcm time based on data processed */
-    switch(btif_media_cb.media_feeding.format)
-    {
-        case BTIF_AV_CODEC_PCM:
-            pcm_time_us = (bytes_processed*1000000)/
-                          (p_cfg->pcm.num_channel*p_cfg->pcm.sampling_freq*p_cfg->pcm.bit_per_sample/8);
-            break;
-
-        default :
-            APPL_TRACE_ERROR1("mediafeeding format invalid : %d", btif_media_cb.media_feeding.format);
-            break;
-    }
-
-    return pcm_time_us;
-}
-
 
 /*******************************************************************************
  **
@@ -1754,34 +1677,6 @@ static void btif_media_task_audio_feeding_init(BT_HDR *p_msg)
             APPL_TRACE_ERROR1("unknown feeding format %d", p_feeding->feeding.format);
             break;
     }
-}
-
-/*******************************************************************************
- **
- ** Function         btif_media_task_uipc_cback
- **
- ** Description      UIPC call back function for synchronous mode only
- **
- ** Returns          void
- **
- *******************************************************************************/
-static void btif_media_task_uipc_cback(BT_HDR *p_msg)
-{
-    /* Sanity check */
-    if (NULL == p_msg)
-    {
-        return;
-    }
-
-    /* Just handle RX_EVT */
-    if (p_msg->event != UIPC_RX_DATA_EVT)
-    {
-        return;
-    }
-
-    p_msg->event = BTIF_MEDIA_UIPC_RX_RDY;
-
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_msg);
 }
 
 /*******************************************************************************
