@@ -1943,6 +1943,39 @@ BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_bd_addr)
 
 }
 
+static const char *wii_names[4] = {
+    "Nintendo RVL-CNT-01",		/* 1st gen */
+    "Nintendo RVL-CNT-01-TR",	/* 2nd gen */
+    "Nintendo RVL-CNT-01-UC",	/* Wii U Pro Controller */
+    "Nintendo RVL-WBC-01",		/* Balance Board */
+};
+
+/*******************************************************************************
+**
+** Function         btif_storage_is_wiimote
+**
+** Description      BTIF storage API - checks if this device is a wiimote
+**
+** Returns          TRUE   if the device is found in wiimote device list
+**                  FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN btif_storage_is_wiimote(bt_bdaddr_t *remote_bd_addr, bt_bdname_t *remote_bd_name)
+{
+    uint8_t wii_names_size = sizeof(wii_names) / sizeof(wii_names[0]);
+    uint8_t i = 0;
+
+    /* Check device name */
+    for (i = 0; i < wii_names_size; i++)
+    {
+        if (!strcmp((char*)remote_bd_name->name, wii_names[i]))
+            return TRUE;
+    }
+
+    return FALSE;
+
+}
+
 /*******************************************************************************
 **
 ** Function         btif_storage_set_dmt_support_type
