@@ -6,7 +6,9 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include
 
 LOCAL_SRC_FILES := \
-    ./src/list.c
+    ./src/fixed_queue.c \
+    ./src/list.c \
+    ./src/semaphore.c
 
 LOCAL_CFLAGS := -std=c99 -Wall -Werror
 LOCAL_MODULE := libosi
