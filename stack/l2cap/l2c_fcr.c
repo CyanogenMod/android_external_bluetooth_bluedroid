@@ -254,14 +254,14 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
         UINT32  throughput_avg, ack_delay_avg, ack_q_count_avg;
 
         dur = GKI_OS_TICKS_TO_MS(dur);
-        BT_TRACE_2(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
+        BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
                    "---  L2CAP ERTM  Stats for CID: 0x%04x   Duration: %08ums", p_ccb->local_cid, dur);
-        BT_TRACE_4(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
+        BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
                    "Retransmissions:%08u Times Flow Controlled:%08u Retrans Touts:%08u Ack Touts:%08u",
                     p_ccb->fcrb.pkts_retransmitted, p_ccb->fcrb.xmit_window_closed, p_ccb->fcrb.retrans_touts, p_ccb->fcrb.xmit_ack_touts);
-        BT_TRACE_1(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
+        BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
                    "Times there is less than 2 packets in controller when flow controlled:%08u", p_ccb->fcrb.controller_idle);
-        BT_TRACE_2(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
+        BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
                    "max_held_acks:%08u, in_cfg.fcr.tx_win_sz:%08u", p_ccb->fcrb.max_held_acks, p_ccb->peer_cfg.fcr.tx_win_sz );
         if (p_str)
         {
@@ -270,14 +270,14 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
                 (dur >= 10 ? (p_ccb->fcrb.ertm_byte_counts[0] * 100) / (dur / 10) : 0),
                 p_ccb->fcrb.s_frames_sent[0], p_ccb->fcrb.s_frames_sent[1], p_ccb->fcrb.s_frames_sent[2], p_ccb->fcrb.s_frames_sent[3]);
 
-            BT_TRACE_1(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
+            BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
 
             sprintf(p_str, "Rcvd Pkts:%08u Bytes:%10u(%06u/sec) RR:%08u REJ:%08u RNR:%08u SREJ:%08u",
                 p_ccb->fcrb.ertm_pkt_counts[1], p_ccb->fcrb.ertm_byte_counts[1],
                 (dur >= 10 ? (p_ccb->fcrb.ertm_byte_counts[1] * 100) / (dur / 10) : 0),
                 p_ccb->fcrb.s_frames_rcvd[0], p_ccb->fcrb.s_frames_rcvd[1], p_ccb->fcrb.s_frames_rcvd[2], p_ccb->fcrb.s_frames_rcvd[3]);
 
-            BT_TRACE_1(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
+            BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
 
             throughput_avg  = 0;
             ack_delay_avg   = 0;
@@ -287,7 +287,7 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
             {
                 if (i == p_ccb->fcrb.ack_delay_avg_index )
                 {
-                    BT_TRACE_1(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
+                    BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
                            "[%02u] collecting data ...", i );
                     continue;
                 }
@@ -297,7 +297,7 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
                         p_ccb->fcrb.ack_delay_avg[i], p_ccb->fcrb.ack_delay_min[i], p_ccb->fcrb.ack_delay_max[i],
                         p_ccb->fcrb.ack_q_count_avg[i], p_ccb->fcrb.ack_q_count_min[i], p_ccb->fcrb.ack_q_count_max[i] );
 
-                BT_TRACE_1(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
+                BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
 
                 throughput_avg  += p_ccb->fcrb.throughput[i];
                 ack_delay_avg   += p_ccb->fcrb.ack_delay_avg[i];
@@ -308,14 +308,14 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
             ack_delay_avg   /= (L2CAP_ERTM_STATS_NUM_AVG - 1);
             ack_q_count_avg /= (L2CAP_ERTM_STATS_NUM_AVG - 1);
 
-            BT_TRACE_3(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
+            BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
                    "throughput_avg: %8u (kbytes/sec), ack_delay_avg: %8u ms, ack_q_count_avg: %8u",
                     throughput_avg, ack_delay_avg, ack_q_count_avg );
 
             GKI_freebuf(p_str);
         }
 
-        BT_TRACE_0(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
+        BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
                    "---");
     }
 #endif
@@ -2690,7 +2690,7 @@ static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, UINT8 num_bufs_acked)
                 p_ccb->fcrb.ack_delay_avg[index], p_ccb->fcrb.ack_delay_min[index], p_ccb->fcrb.ack_delay_max[index],
                 p_ccb->fcrb.ack_q_count_avg[index], p_ccb->fcrb.ack_q_count_min[index], p_ccb->fcrb.ack_q_count_max[index] );
 
-        BT_TRACE_1(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", str);
+        BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", str);
 
         index = (index + 1) % L2CAP_ERTM_STATS_NUM_AVG;
         p_ccb->fcrb.ack_delay_avg_index = index;

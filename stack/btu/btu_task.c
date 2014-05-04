@@ -170,7 +170,7 @@ BTU_API UINT32 btu_task (UINT32 param)
 
 #if (defined(HCISU_H4_INCLUDED) && HCISU_H4_INCLUDED == TRUE)
     /* wait an event that HCISU is ready */
-    BT_TRACE_0(TRACE_LAYER_BTU, TRACE_TYPE_API,
+    BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_API,
                 "btu_task pending for preload complete event");
 
     for (;;)
@@ -179,7 +179,7 @@ BTU_API UINT32 btu_task (UINT32 param)
         if (event & EVENT_MASK(GKI_SHUTDOWN_EVT))
         {
             /* indicates BT ENABLE abort */
-            BT_TRACE_0(TRACE_LAYER_BTU, TRACE_TYPE_WARNING,
+            BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_WARNING,
                         "btu_task start abort!");
             return (0);
         }
@@ -189,13 +189,13 @@ BTU_API UINT32 btu_task (UINT32 param)
         }
         else
         {
-            BT_TRACE_1(TRACE_LAYER_BTU, TRACE_TYPE_WARNING,
+            BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_WARNING,
                 "btu_task ignore evt %04x while pending for preload complete",
                 event);
         }
     }
 
-    BT_TRACE_0(TRACE_LAYER_BTU, TRACE_TYPE_API,
+    BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_API,
                 "btu_task received preload complete event");
 #endif
 
