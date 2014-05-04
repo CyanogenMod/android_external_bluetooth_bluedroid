@@ -50,22 +50,22 @@ void GKI_PrintBufferUsage(UINT8 *p_num_pools, UINT16 *p_cur_used)
     UINT8   num = gki_cb.com.curr_total_no_of_pools;
     UINT16   cur[GKI_NUM_TOTAL_BUF_POOLS];
 
-    GKI_TRACE_0("");
-    GKI_TRACE_0("--- GKI Buffer Pool Summary (R - restricted, P - public) ---");
+    GKI_TRACE("");
+    GKI_TRACE("--- GKI Buffer Pool Summary (R - restricted, P - public) ---");
 
-    GKI_TRACE_0("POOL     SIZE  USED  MAXU  TOTAL");
-    GKI_TRACE_0("------------------------------");
+    GKI_TRACE("POOL     SIZE  USED  MAXU  TOTAL");
+    GKI_TRACE("------------------------------");
     for (i = 0; i < gki_cb.com.curr_total_no_of_pools; i++)
     {
         p = &gki_cb.com.freeq[i];
         if ((1 << i) & gki_cb.com.pool_access_mask)
         {
-            GKI_TRACE_5("%02d: (R), %4d, %3d, %3d, %3d",
+            GKI_TRACE("%02d: (R), %4d, %3d, %3d, %3d",
                         i, p->size, p->cur_cnt, p->max_cnt, p->total);
         }
         else
         {
-            GKI_TRACE_5("%02d: (P), %4d, %3d, %3d, %3d",
+            GKI_TRACE("%02d: (P), %4d, %3d, %3d, %3d",
                         i, p->size, p->cur_cnt, p->max_cnt, p->total);
         }
         cur[i] = p->cur_cnt;
@@ -90,7 +90,7 @@ void GKI_PrintBuffer(void)
     UINT16 i;
     for(i=0; i<GKI_NUM_TOTAL_BUF_POOLS; i++)
 	{
-		GKI_TRACE_5("pool:%4u free %4u cur %3u max %3u  total%3u", i, gki_cb.com.freeq[i].size,
+		GKI_TRACE("pool:%4u free %4u cur %3u max %3u  total%3u", i, gki_cb.com.freeq[i].size,
                     gki_cb.com.freeq[i].cur_cnt, gki_cb.com.freeq[i].max_cnt, gki_cb.com.freeq[i].total);
     }
 }
@@ -136,16 +136,16 @@ UINT16 gki_calc_stack (UINT8 task)
 void GKI_print_task(void)
 {
 #ifdef _BT_WIN32
-	GKI_TRACE_0("Service not available under insight");
+	GKI_TRACE("Service not available under insight");
 #else
     UINT8 TaskId;
 
-	GKI_TRACE_0("TID TASKNAME STATE FREE_STACK  STACK");
+	GKI_TRACE("TID TASKNAME STATE FREE_STACK  STACK");
 	for(TaskId=0; TaskId < GKI_MAX_TASKS; TaskId++)
 	{
 		if (gki_cb.com.OSRdyTbl[TaskId] != TASK_DEAD)
 		{
-			GKI_TRACE_5("%2u   %-8s %-5s  0x%04X     0x%04X Bytes",
+			GKI_TRACE("%2u   %-8s %-5s  0x%04X     0x%04X Bytes",
 				(UINT16)TaskId,  gki_cb.com.OSTName[TaskId],
 				OSTaskStates[gki_cb.com.OSRdyTbl[TaskId]],
                 gki_calc_stack(TaskId), gki_cb.com.OSStackSize[TaskId]);
