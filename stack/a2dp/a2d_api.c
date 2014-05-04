@@ -59,7 +59,7 @@ static void a2d_sdp_cback(UINT16 status)
     tA2D_Service        a2d_svc;
     tSDP_PROTOCOL_ELEM  elem;
 
-    A2D_TRACE_API1("a2d_sdp_cback status: %d", status);
+    A2D_TRACE_API("a2d_sdp_cback status: %d", status);
 
     if (status == SDP_SUCCESS)
     {
@@ -101,7 +101,7 @@ static void a2d_sdp_cback(UINT16 status)
             if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_AVDTP, &elem))
             {
                 a2d_svc.avdt_version = elem.params[0];
-                A2D_TRACE_DEBUG1("avdt_version: 0x%x", a2d_svc.avdt_version);
+                A2D_TRACE_DEBUG("avdt_version: 0x%x", a2d_svc.avdt_version);
             }
 
             /* we've got everything, we're done */
@@ -175,7 +175,7 @@ tA2D_STATUS A2D_AddRecord(UINT16 service_uuid, char *p_service_name, char *p_pro
     UINT8       *p;
     tSDP_PROTOCOL_ELEM  proto_list [A2D_NUM_PROTO_ELEMS];
 
-    A2D_TRACE_API1("A2D_AddRecord uuid: %x", service_uuid);
+    A2D_TRACE_API("A2D_AddRecord uuid: %x", service_uuid);
 
     if( (sdp_handle == 0) ||
         (service_uuid != UUID_SERVCLASS_AUDIO_SOURCE && service_uuid != UUID_SERVCLASS_AUDIO_SINK) )
@@ -277,7 +277,7 @@ tA2D_STATUS A2D_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
                                    ATTR_ID_PROTOCOL_DESC_LIST,
                                    ATTR_ID_PROVIDER_NAME};
 
-    A2D_TRACE_API1("A2D_FindService uuid: %x", service_uuid);
+    A2D_TRACE_API("A2D_FindService uuid: %x", service_uuid);
     if( (service_uuid != UUID_SERVCLASS_AUDIO_SOURCE && service_uuid != UUID_SERVCLASS_AUDIO_SINK) ||
         p_db == NULL || p_db->p_db == NULL || p_cback == NULL)
         return A2D_INVALID_PARAMS;

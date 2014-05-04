@@ -1034,7 +1034,7 @@ void avdt_ccb_set_conn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 void avdt_ccb_set_disconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     /*
-    AVDT_TRACE_EVENT2("avdt_ccb_set_disconn:conn:x%x, api:x%x",
+    AVDT_TRACE_EVENT("avdt_ccb_set_disconn:conn:x%x, api:x%x",
         p_ccb->p_conn_cback, p_data->disconnect.p_cback);
         */
     /* save callback */

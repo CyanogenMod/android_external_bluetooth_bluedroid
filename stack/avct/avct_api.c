@@ -56,7 +56,7 @@ void AVCT_Register(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask)
 {
     UNUSED(mtu_br);
 
-    AVCT_TRACE_API0("AVCT_Register");
+    AVCT_TRACE_API("AVCT_Register");
 
     /* register PSM with L2CAP */
     L2CA_Register(AVCT_PSM, (tL2CAP_APPL_INFO *) &avct_l2c_appl);
@@ -108,7 +108,7 @@ void AVCT_Register(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask)
 *******************************************************************************/
 void AVCT_Deregister(void)
 {
-    AVCT_TRACE_API0("AVCT_Deregister");
+    AVCT_TRACE_API("AVCT_Deregister");
 
     /* deregister PSM with L2CAP */
     L2CA_Deregister(AVCT_PSM);
@@ -136,7 +136,7 @@ UINT16 AVCT_CreateConn(UINT8 *p_handle, tAVCT_CC *p_cc, BD_ADDR peer_addr)
     tAVCT_CCB   *p_ccb;
     tAVCT_LCB   *p_lcb;
 
-    AVCT_TRACE_API2("AVCT_CreateConn: %d, control:%d", p_cc->role, p_cc->control);
+    AVCT_TRACE_API("AVCT_CreateConn: %d, control:%d", p_cc->role, p_cc->control);
 
     /* Allocate ccb; if no ccbs, return failure */
     if ((p_ccb = avct_ccb_alloc(p_cc)) == NULL)
@@ -172,7 +172,7 @@ UINT16 AVCT_CreateConn(UINT8 *p_handle, tAVCT_CC *p_cc, BD_ADDR peer_addr)
             {
                 /* bind lcb to ccb */
                 p_ccb->p_lcb = p_lcb;
-                AVCT_TRACE_DEBUG1("ch_state: %d", p_lcb->ch_state);
+                AVCT_TRACE_DEBUG("ch_state: %d", p_lcb->ch_state);
                 avct_lcb_event(p_lcb, AVCT_LCB_UL_BIND_EVT, (tAVCT_LCB_EVT *) &p_ccb);
             }
         }
@@ -198,7 +198,7 @@ UINT16 AVCT_RemoveConn(UINT8 handle)
     UINT16              result = AVCT_SUCCESS;
     tAVCT_CCB           *p_ccb;
 
-    AVCT_TRACE_API0("AVCT_RemoveConn");
+    AVCT_TRACE_API("AVCT_RemoveConn");
 
     /* map handle to ccb */
     if ((p_ccb = avct_ccb_by_idx(handle)) == NULL)
@@ -242,7 +242,7 @@ UINT16 AVCT_CreateBrowse (UINT8 handle, UINT8 role)
     tAVCT_BCB   *p_bcb;
     int         index;
 
-    AVCT_TRACE_API1("AVCT_CreateBrowse: %d", role);
+    AVCT_TRACE_API("AVCT_CreateBrowse: %d", role);
 
     /* map handle to ccb */
     if ((p_ccb = avct_ccb_by_idx(handle)) == NULL)
@@ -285,7 +285,7 @@ UINT16 AVCT_CreateBrowse (UINT8 handle, UINT8 role)
         {
             /* bind bcb to ccb */
             p_ccb->p_bcb = p_bcb;
-            AVCT_TRACE_DEBUG1("ch_state: %d", p_bcb->ch_state);
+            AVCT_TRACE_DEBUG("ch_state: %d", p_bcb->ch_state);
             avct_bcb_event(p_bcb, AVCT_LCB_UL_BIND_EVT, (tAVCT_LCB_EVT *) &p_ccb);
         }
     }
@@ -317,7 +317,7 @@ UINT16 AVCT_RemoveBrowse (UINT8 handle)
     UINT16              result = AVCT_SUCCESS;
     tAVCT_CCB           *p_ccb;
 
-    AVCT_TRACE_API0("AVCT_RemoveBrowse");
+    AVCT_TRACE_API("AVCT_RemoveBrowse");
 
     /* map handle to ccb */
     if ((p_ccb = avct_ccb_by_idx(handle)) == NULL)
@@ -416,14 +416,14 @@ UINT16 AVCT_MsgReq(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR *p_msg)
     tAVCT_CCB       *p_ccb;
     tAVCT_UL_MSG    ul_msg;
 
-    AVCT_TRACE_API0("AVCT_MsgReq");
+    AVCT_TRACE_API("AVCT_MsgReq");
 
     /* verify p_msg parameter */
     if (p_msg == NULL)
     {
         return AVCT_NO_RESOURCES;
     }
-    AVCT_TRACE_API1("len: %d", p_msg->len);
+    AVCT_TRACE_API("len: %d", p_msg->len);
 
     /* map handle to ccb */
     if ((p_ccb = avct_ccb_by_idx(handle)) == NULL)

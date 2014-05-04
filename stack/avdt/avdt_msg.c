@@ -589,7 +589,7 @@ static UINT8 avdt_msg_prs_cfg(tAVDT_CFG *p_cfg, UINT8 *p, UINT16 len, UINT8* p_e
 
     if (!p_cfg)
     {
-        AVDT_TRACE_ERROR0 ("not expecting this cfg");
+        AVDT_TRACE_ERROR ("not expecting this cfg");
         return AVDT_ERR_BAD_STATE;
     }
 
@@ -633,7 +633,7 @@ static UINT8 avdt_msg_prs_cfg(tAVDT_CFG *p_cfg, UINT8 *p, UINT16 len, UINT8* p_e
             {
                 /* Skip unknown categories. */
                 p += elem_len;
-                AVDT_TRACE_DEBUG2("skipping unknown service category=%d len: %d", elem, elem_len);
+                AVDT_TRACE_DEBUG("skipping unknown service category=%d len: %d", elem, elem_len);
                 continue;
             }
         }
@@ -647,7 +647,7 @@ static UINT8 avdt_msg_prs_cfg(tAVDT_CFG *p_cfg, UINT8 *p, UINT16 len, UINT8* p_e
 
         /* add element to psc mask, but mask out codec or protect */
         p_cfg->psc_mask |= (1 << elem);
-        AVDT_TRACE_DEBUG3("elem=%d elem_len: %d psc_mask=0x%x", elem, elem_len, p_cfg->psc_mask);
+        AVDT_TRACE_DEBUG("elem=%d elem_len: %d psc_mask=0x%x", elem, elem_len, p_cfg->psc_mask);
 
         /* parse individual information elements with additional parameters */
         switch (elem)
@@ -689,7 +689,7 @@ static UINT8 avdt_msg_prs_cfg(tAVDT_CFG *p_cfg, UINT8 *p, UINT16 len, UINT8* p_e
 #if AVDT_MULTIPLEXING == TRUE
             case AVDT_CAT_MUX:
                 /* verify length */
-                AVDT_TRACE_WARNING2("psc_mask=0x%x elem_len=%d", p_cfg->psc_mask, elem_len);
+                AVDT_TRACE_WARNING("psc_mask=0x%x elem_len=%d", p_cfg->psc_mask, elem_len);
                 if( ((0 == (p_cfg->psc_mask & (AVDT_PSC_RECOV|AVDT_PSC_REPORT))) && (elem_len != 3))
                     || (((p_cfg->psc_mask & AVDT_PSC_REPORT) && !(p_cfg->psc_mask & AVDT_PSC_RECOV))
                     && (elem_len != 5))
@@ -760,7 +760,7 @@ static UINT8 avdt_msg_prs_cfg(tAVDT_CFG *p_cfg, UINT8 *p, UINT16 len, UINT8* p_e
         } /* switch */
     } /* while ! err, !end*/
     *p_elem = elem;
-    AVDT_TRACE_DEBUG3("err=0x%x, elem:0x%x psc_mask=0x%x", err, elem, p_cfg->psc_mask);
+    AVDT_TRACE_DEBUG("err=0x%x, elem:0x%x psc_mask=0x%x", err, elem, p_cfg->psc_mask);
 
     return err;
 }
@@ -914,7 +914,7 @@ static UINT8 avdt_msg_prs_reconfig_cmd(tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
             /* verify no protocol service capabilities in parameters */
             if (!err)
             {
-                AVDT_TRACE_DEBUG2("avdt_msg_prs_reconfig_cmd psc_mask=0x%x/0x%x", p_msg->config_cmd.p_cfg->psc_mask, AVDT_MSG_PSC_MASK);
+                AVDT_TRACE_DEBUG("avdt_msg_prs_reconfig_cmd psc_mask=0x%x/0x%x", p_msg->config_cmd.p_cfg->psc_mask, AVDT_MSG_PSC_MASK);
                 if ((p_msg->config_cmd.p_cfg->psc_mask != 0) ||
                     (p_msg->config_cmd.p_cfg->num_codec == 0 && p_msg->config_cmd.p_cfg->num_protect == 0))
                 {
@@ -1161,7 +1161,7 @@ static UINT8 avdt_msg_prs_delay_rpt (tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
     /* verify len */
     if (len != AVDT_LEN_DELAY_RPT)
     {
-        AVDT_TRACE_WARNING2("avdt_msg_prs_delay_rpt expected len: %u  got: %u", AVDT_LEN_DELAY_RPT, len);
+        AVDT_TRACE_WARNING("avdt_msg_prs_delay_rpt expected len: %u  got: %u", AVDT_LEN_DELAY_RPT, len);
         err = AVDT_ERR_LENGTH;
     }
     else
@@ -1176,7 +1176,7 @@ static UINT8 avdt_msg_prs_delay_rpt (tAVDT_MSG *p_msg, UINT8 *p, UINT16 len)
         else
         {
             BE_STREAM_TO_UINT16 (p_msg->delay_rpt_cmd.delay, p);
-            AVDT_TRACE_DEBUG1("avdt_msg_prs_delay_rpt delay: %u", p_msg->delay_rpt_cmd.delay);
+            AVDT_TRACE_DEBUG("avdt_msg_prs_delay_rpt delay: %u", p_msg->delay_rpt_cmd.delay);
         }
     }
     return err;
@@ -1289,7 +1289,7 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
         label = AVDT_LAYERSPEC_LABEL(p_ccb->p_curr_msg->layer_specific);
         msg = AVDT_LAYERSPEC_MSG(p_ccb->p_curr_msg->layer_specific);
         sig = (UINT8) p_ccb->p_curr_msg->event;
-        AVDT_TRACE_DEBUG3("avdt_msg_send label:%d, msg:%d, sig:%d", label, msg, sig);
+        AVDT_TRACE_DEBUG("avdt_msg_send label:%d, msg:%d, sig:%d", label, msg, sig);
 
         /* keep track of how much of msg we've sent */
         curr_msg_len -= p_buf->len;
@@ -1368,7 +1368,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
     if (p_buf->len < avdt_msg_pkt_type_len[pkt_type])
     {
         GKI_freebuf(p_buf);
-        AVDT_TRACE_WARNING0("Bad length during reassembly");
+        AVDT_TRACE_WARNING("Bad length during reassembly");
         p_ret = NULL;
     }
     /* single packet */
@@ -1379,7 +1379,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         {
             GKI_freebuf(p_ccb->p_rx_msg);
             p_ccb->p_rx_msg = NULL;
-            AVDT_TRACE_WARNING0("Got single during reassembly");
+            AVDT_TRACE_WARNING("Got single during reassembly");
         }
         p_ret = p_buf;
     }
@@ -1390,7 +1390,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         if (p_ccb->p_rx_msg != NULL)
         {
             GKI_freebuf(p_ccb->p_rx_msg);
-            AVDT_TRACE_WARNING0("Got start during reassembly");
+            AVDT_TRACE_WARNING("Got start during reassembly");
         }
         p_ccb->p_rx_msg = p_buf;
 
@@ -1412,7 +1412,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         if (p_ccb->p_rx_msg == NULL)
         {
             GKI_freebuf(p_buf);
-            AVDT_TRACE_WARNING1("Pkt type=%d out of order", pkt_type);
+            AVDT_TRACE_WARNING("Pkt type=%d out of order", pkt_type);
             p_ret = NULL;
         }
         else
@@ -1484,7 +1484,7 @@ void avdt_msg_send_cmd(tAVDT_CCB *p_ccb, void *p_scb, UINT8 sig_id, tAVDT_MSG *p
     p_buf = (BT_HDR *) GKI_getpoolbuf(AVDT_CMD_POOL_ID);
     if (p_buf == NULL)
     {
-        AVDT_TRACE_ERROR0("avdt_msg_send_cmd out of buffer!!");
+        AVDT_TRACE_ERROR("avdt_msg_send_cmd out of buffer!!");
         return;
     }
 
@@ -1620,7 +1620,7 @@ void avdt_msg_send_rej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
         /* add the error code */
         AVDT_MSG_BLD_ERR(p, p_params->hdr.err_code);
     }
-    AVDT_TRACE_DEBUG0("avdt_msg_send_rej");
+    AVDT_TRACE_DEBUG("avdt_msg_send_rej");
 
     /* calculate length */
     p_buf->len = (UINT16) (p - p_start);
@@ -1671,7 +1671,7 @@ void avdt_msg_send_grej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     AVDT_BLD_LAYERSPEC(p_buf->layer_specific, AVDT_MSG_TYPE_GRJ, p_params->hdr.label);
     //p_buf->event = 0;
     //AVDT_BLD_LAYERSPEC(p_buf->layer_specific, 0, p_params->hdr.label);
-    AVDT_TRACE_DEBUG0("avdt_msg_send_grej");
+    AVDT_TRACE_DEBUG("avdt_msg_send_grej");
 
     /* queue message and trigger ccb to send it */
     GKI_enqueue(&p_ccb->rsp_q, p_buf);
@@ -1719,7 +1719,7 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
     /* parse the message header */
     AVDT_MSG_PRS_HDR(p, label, pkt_type, msg_type);
 
-    /* AVDT_TRACE_DEBUG1("msg_type=%d", msg_type); */
+    /* AVDT_TRACE_DEBUG("msg_type=%d", msg_type); */
     /* set up label and ccb_idx in message hdr */
     msg.hdr.label = label;
     msg.hdr.ccb_idx = avdt_ccb_to_idx(p_ccb);
@@ -1727,7 +1727,7 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
     /* verify msg type */
     if (msg_type == AVDT_MSG_TYPE_GRJ)
     {
-        AVDT_TRACE_WARNING1("Dropping msg msg_type=%d", msg_type);
+        AVDT_TRACE_WARNING("Dropping msg msg_type=%d", msg_type);
         ok = FALSE;
     }
     /* check for general reject */
@@ -1749,7 +1749,7 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         msg.hdr.sig_id = sig;
         if ((sig == 0) || (sig > AVDT_SIG_MAX))
         {
-            AVDT_TRACE_WARNING2("Dropping msg sig=%d msg_type:%d", sig, msg_type);
+            AVDT_TRACE_WARNING("Dropping msg sig=%d msg_type:%d", sig, msg_type);
             ok = FALSE;
 
             /* send a general reject */
@@ -1814,7 +1814,7 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         /* if parsing failed */
         if (err != 0)
         {
-            AVDT_TRACE_WARNING2("Parsing failed sig=%d err=0x%x", sig, err);
+            AVDT_TRACE_WARNING("Parsing failed sig=%d err=0x%x", sig, err);
 
             /* if its a rsp or rej, drop it; if its a cmd, send a rej;
             ** note special case for abort; never send abort reject
@@ -1851,7 +1851,7 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
             else
             {
                 ok = FALSE;
-                AVDT_TRACE_WARNING2("Cmd not found for rsp sig=%d label=%d", sig, label);
+                AVDT_TRACE_WARNING("Cmd not found for rsp sig=%d label=%d", sig, label);
             }
         }
     }
