@@ -101,7 +101,7 @@ void btm_ble_vendor_scan_pf_cmpl_cback(tBTM_VSC_CMPL *p_params)
 
     if (evt_len < 1 )
     {
-        BTM_TRACE_ERROR1("can not interpret ADV PF filter setting callback. status = %d", status);
+        BTM_TRACE_ERROR("can not interpret ADV PF filter setting callback. status = %d", status);
         return;
     }
     op_subcode   = *p ++;
@@ -132,11 +132,11 @@ void btm_ble_vendor_scan_pf_cmpl_cback(tBTM_VSC_CMPL *p_params)
 
         case BTM_BLE_META_PF_ENABLE:
             cond_type = BTM_BLE_META_PF_ENABLE;
-            BTM_TRACE_DEBUG0("CS feature Enabled");
+            BTM_TRACE_DEBUG("CS feature Enabled");
             break;
 
         default:
-            BTM_TRACE_ERROR1("unknow operation: %d", op_subcode);
+            BTM_TRACE_ERROR("unknow operation: %d", op_subcode);
             break;
         }
 
@@ -258,7 +258,7 @@ UINT8 btm_ble_cs_update_pf_counter(tBTM_BLE_SCAN_COND_OP action,
 
     if (cond_type > BTM_BLE_PF_TYPE_ALL)
     {
-        BTM_TRACE_ERROR1("unknown PF filter condition type %d", cond_type);
+        BTM_TRACE_ERROR("unknown PF filter condition type %d", cond_type);
         return BTM_BLE_INVALID_COUNTER;
     }
     /* for these three types of filter, always generic */
@@ -292,7 +292,7 @@ UINT8 btm_ble_cs_update_pf_counter(tBTM_BLE_SCAN_COND_OP action,
 
         p_counter[cond_type] = btm_ble_cs_filter_max[cond_type] - num_available;
 
-        BTM_TRACE_DEBUG1("current filter counter number = %d", p_counter[cond_type]);
+        BTM_TRACE_DEBUG("current filter counter number = %d", p_counter[cond_type]);
 
         /* update corresponding feature mask */
         if (p_counter[cond_type] > 0)
@@ -305,7 +305,7 @@ UINT8 btm_ble_cs_update_pf_counter(tBTM_BLE_SCAN_COND_OP action,
     }
     else
     {
-        BTM_TRACE_ERROR0("no matching filter counter found");
+        BTM_TRACE_ERROR("no matching filter counter found");
     }
     /* no matching filter located and updated */
     return BTM_BLE_INVALID_COUNTER;
@@ -400,7 +400,7 @@ tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
     }
     else
     {
-        BTM_TRACE_ERROR0("manufacturer data PF filter update failed");
+        BTM_TRACE_ERROR("manufacturer data PF filter update failed");
     }
 
     return st;
@@ -457,7 +457,7 @@ tBTM_STATUS btm_ble_update_pf_local_name(tBTM_BLE_SCAN_COND_OP action,
     }
     else
     {
-        BTM_TRACE_ERROR0("Local Name PF filter update failed");
+        BTM_TRACE_ERROR("Local Name PF filter update failed");
     }
 
     return st;
@@ -508,7 +508,7 @@ tBTM_STATUS btm_ble_update_addr_filter(tBTM_BLE_SCAN_COND_OP action,
     }
     else
     {
-        BTM_TRACE_ERROR0("Broadcaster Address Filter Update failed");
+        BTM_TRACE_ERROR("Broadcaster Address Filter Update failed");
     }
     return st;
 }
@@ -549,7 +549,7 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
 
     if (p_uuid_cond == NULL && action != BTM_BLE_SCAN_COND_CLEAR)
     {
-        BTM_TRACE_ERROR0("Illegal param for add/delete UUID filter");
+        BTM_TRACE_ERROR("Illegal param for add/delete UUID filter");
         return st;
     }
 
@@ -573,7 +573,7 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
                                   param,
                                   btm_ble_vendor_scan_pf_cmpl_cback)) == BTM_NO_RESOURCES)
         {
-            BTM_TRACE_ERROR0("Update Address filter into controller failed.");
+            BTM_TRACE_ERROR("Update Address filter into controller failed.");
             return st;
         }
     }
@@ -605,7 +605,7 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
         }
         else
         {
-            BTM_TRACE_ERROR1("illegal UUID length: %d", p_uuid_cond->uuid.len);
+            BTM_TRACE_ERROR("illegal UUID length: %d", p_uuid_cond->uuid.len);
             return BTM_ILLEGAL_VALUE;
         }
 #if !(defined VENDOR_ADV_PCF_LEGACY && VENDOR_ADV_PCF_LEGACY == TRUE)
@@ -648,7 +648,7 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
     }
     else
     {
-        BTM_TRACE_ERROR0("UUID filter udpating failed");
+        BTM_TRACE_ERROR("UUID filter udpating failed");
     }
 
     return st;
@@ -699,7 +699,7 @@ tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
 
     if (action != BTM_BLE_SCAN_COND_CLEAR)
     {
-        BTM_TRACE_ERROR1("unable to perform action:%d for generic adv filter type", action);
+        BTM_TRACE_ERROR("unable to perform action:%d for generic adv filter type", action);
         return BTM_ILLEGAL_VALUE;
     }
 
@@ -712,7 +712,7 @@ tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
         /* not a generic filter, and feature selection is empty */
         (p_target != NULL && p_bda_filter && p_bda_filter->feat_mask == 0))
     {
-        BTM_TRACE_ERROR0("Error: Can not clear filter, No PF filter has been configured!");
+        BTM_TRACE_ERROR("Error: Can not clear filter, No PF filter has been configured!");
         return st;
     }
 
@@ -787,7 +787,7 @@ tBTM_STATUS BTM_BleEnableFilterCondition(BOOLEAN enable, tBLE_BD_ADDR *p_target,
 
     if (btm_ble_vendor_cb.p_scan_pf_cback)
     {
-        BTM_TRACE_ERROR0("ADV PF Filter activity busy");
+        BTM_TRACE_ERROR("ADV PF Filter activity busy");
         return BTM_BUSY;
     }
 
@@ -798,7 +798,7 @@ tBTM_STATUS BTM_BleEnableFilterCondition(BOOLEAN enable, tBLE_BD_ADDR *p_target,
         if (p_bda_filter == NULL ||
             (p_bda_filter && p_bda_filter->feat_mask == BTM_BLE_PF_SELECT_NONE))
         {
-            BTM_TRACE_ERROR0("No PF filter has been configured!");
+            BTM_TRACE_ERROR("No PF filter has been configured!");
             return st;
         }
 
@@ -905,7 +905,7 @@ tBTM_STATUS BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
         break;
 
     default:
-        BTM_TRACE_WARNING1("condition type [%d] not supported currently.", cond_type);
+        BTM_TRACE_WARNING("condition type [%d] not supported currently.", cond_type);
         break;
     }
     if (st == BTM_CMD_STARTED
@@ -1106,12 +1106,12 @@ void btm_ble_vendor_update_irk_list(BD_ADDR target_bda, BD_ADDR pseudo_bda, BOOL
         {
             if ((i = btm_ble_vendor_alloc_irk_entry(target_bda, pseudo_bda)) == BTM_CS_IRK_LIST_INVALID)
             {
-                BTM_TRACE_ERROR0("max IRK capacity reached");
+                BTM_TRACE_ERROR("max IRK capacity reached");
             }
         }
         else
         {
-            BTM_TRACE_WARNING0(" IRK already in queue");
+            BTM_TRACE_WARNING(" IRK already in queue");
         }
     }
     else
@@ -1122,7 +1122,7 @@ void btm_ble_vendor_update_irk_list(BD_ADDR target_bda, BD_ADDR pseudo_bda, BOOL
         }
         else
         {
-            BTM_TRACE_ERROR0("No IRK exist in list, can not remove");
+            BTM_TRACE_ERROR("No IRK exist in list, can not remove");
         }
     }
     return ;
@@ -1154,14 +1154,14 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
 
     /*if (evt_len < 2 )
     {
-        BTM_TRACE_ERROR0("can not interpret IRK  VSC cmpl callback");
+        BTM_TRACE_ERROR("can not interpret IRK  VSC cmpl callback");
         return;
     }*/
     op_subcode   = *p ++;
-    BTM_TRACE_DEBUG1("btm_ble_vendor_irk_vsc_op_cmpl op_subcode = %d", op_subcode);
+    BTM_TRACE_DEBUG("btm_ble_vendor_irk_vsc_op_cmpl op_subcode = %d", op_subcode);
     if (evt_len < 2 )
     {
-        BTM_TRACE_ERROR0("can not interpret IRK  VSC cmpl callback");
+        BTM_TRACE_ERROR("can not interpret IRK  VSC cmpl callback");
         return;
     }
 
@@ -1173,7 +1173,7 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
             STREAM_TO_UINT8(p_cb->irk_avail_size, p);
             p_cb->irk_list_size = 0;
 
-            BTM_TRACE_DEBUG1("p_cb->irk_list_size = %d", p_cb->irk_avail_size);
+            BTM_TRACE_DEBUG("p_cb->irk_list_size = %d", p_cb->irk_avail_size);
 
             for (i = 0; i < BTM_CS_IRK_LIST_MAX; i ++)
                 memset(&p_cb->irk_list[i], 0, sizeof(tBTM_BLE_IRK_ENTRY));
@@ -1183,7 +1183,7 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
     {
         if (!btm_ble_vendor_deq_irk_pending(target_bda, pseudo_bda))
         {
-            BTM_TRACE_ERROR0("no pending IRK operation");
+            BTM_TRACE_ERROR("no pending IRK operation");
             return;
         }
 
@@ -1195,7 +1195,7 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
         else if (status == 0x07) /* BT_ERROR_CODE_MEMORY_CAPACITY_EXCEEDED  */
         {
             p_cb->irk_avail_size = 0;
-            BTM_TRACE_ERROR0("IRK Full ");
+            BTM_TRACE_ERROR("IRK Full ");
         }
         else
         {
@@ -1207,7 +1207,7 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
     {
         if (!btm_ble_vendor_deq_irk_pending(target_bda, pseudo_bda))
         {
-            BTM_TRACE_ERROR0("no pending IRK operation");
+            BTM_TRACE_ERROR("no pending IRK operation");
             return;
         }
         if (status == HCI_SUCCESS)
@@ -1390,7 +1390,7 @@ BOOLEAN btm_ble_vendor_irk_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
     tBTM_BLE_VENDOR_CB  *p_cb = &btm_ble_vendor_cb;
     BOOLEAN         rt = FALSE;
     tBTM_BLE_IRK_ENTRY  *p_irk_entry = NULL;
-    BTM_TRACE_DEBUG1 ("btm_ble_vendor_irk_list_load_dev:max_irk_size=%d", p_cb->irk_avail_size);
+    BTM_TRACE_DEBUG ("btm_ble_vendor_irk_list_load_dev:max_irk_size=%d", p_cb->irk_avail_size);
     memset(param, 0, 40);
 
     if (p_dev_rec != NULL && /* RPA is being used and PID is known */
@@ -1424,13 +1424,13 @@ BOOLEAN btm_ble_vendor_irk_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
         }
         else
         {
-            BTM_TRACE_ERROR0("Device already in IRK list");
+            BTM_TRACE_ERROR("Device already in IRK list");
             rt = TRUE;
         }
     }
     else
     {
-        BTM_TRACE_DEBUG0("Device not a RPA enabled device");
+        BTM_TRACE_DEBUG("Device not a RPA enabled device");
     }
     return rt;
 }
@@ -1457,7 +1457,7 @@ void btm_ble_vendor_irk_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec)
     }
     else
     {
-        BTM_TRACE_ERROR0("Device not in IRK list");
+        BTM_TRACE_ERROR("Device not in IRK list");
     }
 
     if (p_cs_cb->irk_list_size == 0)

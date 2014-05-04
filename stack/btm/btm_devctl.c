@@ -175,7 +175,7 @@ void btm_dev_init (void)
 #endif
 
 #else
-   BTM_TRACE_EVENT0 ("BTM_AUTOMATIC_HCI_RESET is FALSE, so skip btm reset for now");
+   BTM_TRACE_EVENT ("BTM_AUTOMATIC_HCI_RESET is FALSE, so skip btm reset for now");
 #endif
 
 }
@@ -319,7 +319,7 @@ BOOLEAN BTM_IsDeviceUp (void)
 *******************************************************************************/
 tBTM_STATUS BTM_SetAfhChannels (UINT8 first, UINT8 last)
 {
-    BTM_TRACE_API4 ("BTM_SetAfhChannels first: %d (%d) last: %d (%d)",
+    BTM_TRACE_API ("BTM_SetAfhChannels first: %d (%d) last: %d (%d)",
                        first, btm_cb.first_disabled_channel, last,
                        btm_cb.last_disabled_channel);
 
@@ -441,7 +441,7 @@ void btm_get_hci_buf_size (void)
 *******************************************************************************/
 void btm_read_ble_wl_size(void)
 {
-    BTM_TRACE_DEBUG0("btm_read_ble_wl_size ");
+    BTM_TRACE_DEBUG("btm_read_ble_wl_size ");
     btu_start_timer (&btm_cb.devcb.reset_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_DEV_REPLY_TIMEOUT);
 
     /* Send a Read Buffer Size message to the Host Controller. */
@@ -458,7 +458,7 @@ void btm_read_ble_wl_size(void)
 *******************************************************************************/
 void btm_get_ble_buffer_size(void)
 {
-    BTM_TRACE_DEBUG0("btm_get_ble_buffer_size ");
+    BTM_TRACE_DEBUG("btm_get_ble_buffer_size ");
     btu_start_timer (&btm_cb.devcb.reset_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_DEV_REPLY_TIMEOUT);
 
     /* Send a Read Buffer Size message to the Host Controller. */
@@ -477,7 +477,7 @@ void btm_get_ble_buffer_size(void)
 *******************************************************************************/
 static void btm_read_ble_local_supported_features(void)
 {
-    BTM_TRACE_DEBUG0("btm_read_ble_local_supported_features ");
+    BTM_TRACE_DEBUG("btm_read_ble_local_supported_features ");
     btu_start_timer (&btm_cb.devcb.reset_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_DEV_REPLY_TIMEOUT);
 
     /* Send a Read Local Supported Features message to the Host Controller. */
@@ -496,7 +496,7 @@ static void btm_read_ble_local_supported_features(void)
 *******************************************************************************/
 static void btm_read_ble_local_supported_states(void)
 {
-    BTM_TRACE_DEBUG0("btm_read_ble_local_supported_states ");
+    BTM_TRACE_DEBUG("btm_read_ble_local_supported_states ");
     btu_start_timer (&btm_cb.devcb.reset_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_DEV_REPLY_TIMEOUT);
 
     /* Send a Read Local Supported states message to the Host Controller. */
@@ -538,7 +538,7 @@ void btm_get_local_version (void)
 *******************************************************************************/
 static void btm_read_local_supported_cmds (UINT8 local_controller_id)
 {
-    BTM_TRACE_DEBUG0("Start reading local supported commands");
+    BTM_TRACE_DEBUG("Start reading local supported commands");
 
     btu_start_timer (&btm_cb.devcb.reset_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_DEV_REPLY_TIMEOUT);
 
@@ -632,7 +632,7 @@ void btm_reset_complete (void)
 {
     int devinx;
 
-    BTM_TRACE_EVENT0 ("btm_reset_complete");
+    BTM_TRACE_EVENT ("btm_reset_complete");
 
     /* Handle if btm initiated the reset */
     if (btm_cb.devcb.state == BTM_DEV_STATE_WAIT_RESET_CMPLT)
@@ -815,7 +815,7 @@ void btm_read_ble_buf_size_complete (UINT8 *p, UINT16 evt_len)
     UINT16      lm_num_le_bufs;
     UNUSED(evt_len);
 
-    BTM_TRACE_DEBUG0("btm_read_ble_buf_size_complete ");
+    BTM_TRACE_DEBUG("btm_read_ble_buf_size_complete ");
     STREAM_TO_UINT8  (status, p);
     if (status == HCI_SUCCESS)
     {
@@ -846,7 +846,7 @@ void btm_read_ble_local_supported_states_complete (UINT8 *p, UINT16 evt_len)
     UINT8       status;
 
     UNUSED(evt_len);
-    BTM_TRACE_DEBUG0("btm_read_ble_local_supported_states_complete ");
+    BTM_TRACE_DEBUG("btm_read_ble_local_supported_states_complete ");
 
     btu_stop_timer (&btm_cb.devcb.reset_timer);
 
@@ -857,7 +857,7 @@ void btm_read_ble_local_supported_states_complete (UINT8 *p, UINT16 evt_len)
     }
     else
     {
-        BTM_TRACE_WARNING1 ("btm_read_ble_local_supported_features_complete status = %d", status);
+        BTM_TRACE_WARNING ("btm_read_ble_local_supported_features_complete status = %d", status);
     }
 
     btm_read_ble_local_supported_features();
@@ -879,7 +879,7 @@ void btm_read_ble_local_supported_features_complete (UINT8 *p, UINT16 evt_len)
     UINT8       status;
     UNUSED(evt_len);
 
-    BTM_TRACE_DEBUG0("btm_read_ble_local_supported_features_complete ");
+    BTM_TRACE_DEBUG("btm_read_ble_local_supported_features_complete ");
 
     btu_stop_timer (&btm_cb.devcb.reset_timer);
 
@@ -890,7 +890,7 @@ void btm_read_ble_local_supported_features_complete (UINT8 *p, UINT16 evt_len)
     }
     else
     {
-        BTM_TRACE_WARNING1 ("btm_read_ble_local_supported_features_complete status = %d", status);
+        BTM_TRACE_WARNING ("btm_read_ble_local_supported_features_complete status = %d", status);
     }
 
     btsnd_hcic_ble_set_evt_mask((UINT8 *)HCI_BLE_EVENT_MASK_DEF);
@@ -919,7 +919,7 @@ void btm_read_white_list_size_complete(UINT8 *p, UINT16 evt_len)
     UINT8       status;
     UNUSED(evt_len);
 
-    BTM_TRACE_DEBUG0("btm_read_white_list_size_complete ");
+    BTM_TRACE_DEBUG("btm_read_white_list_size_complete ");
     STREAM_TO_UINT8  (status, p);
 
     if (status == HCI_SUCCESS)
@@ -990,7 +990,7 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
     UINT8 last;
     UINT8 first;
 
-    BTM_TRACE_DEBUG1 ("btm_decode_ext_features_page page: %d", page_number);
+    BTM_TRACE_DEBUG ("btm_decode_ext_features_page page: %d", page_number);
     switch (page_number)
     {
     /* Extended (Legacy) Page 0 */
@@ -1041,7 +1041,7 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
             }
         }
 
-        BTM_TRACE_DEBUG1("Local supported ACL packet types: 0x%04x",
+        BTM_TRACE_DEBUG("Local supported ACL packet types: 0x%04x",
                          btm_cb.btm_acl_pkt_types_supported);
 
         /* Create (e)SCO supported packet types mask */
@@ -1098,7 +1098,7 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
         }
 #endif
 
-        BTM_TRACE_DEBUG1("Local supported SCO packet types: 0x%04x",
+        BTM_TRACE_DEBUG("Local supported SCO packet types: 0x%04x",
                          btm_cb.btm_sco_pkt_types_supported);
 
         /* Create Default Policy Settings */
@@ -1157,7 +1157,7 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
         break;
 
     default:
-        BTM_TRACE_ERROR1("btm_decode_ext_features_page page=%d unknown", page_number);
+        BTM_TRACE_ERROR("btm_decode_ext_features_page page=%d unknown", page_number);
         break;
     }
 }
@@ -1198,11 +1198,11 @@ void btm_reset_ctrlr_complete ()
     }
 
     if (!found)
-        BTM_TRACE_WARNING0 ("btm_reset_ctrlr_complete: NONE of local controller features is set");
+        BTM_TRACE_WARNING ("btm_reset_ctrlr_complete: NONE of local controller features is set");
 
     max_page_number = i;
 
-    BTM_TRACE_DEBUG1 ("btm_reset_ctrlr_complete: max_page_number: %d", max_page_number);
+    BTM_TRACE_DEBUG ("btm_reset_ctrlr_complete: max_page_number: %d", max_page_number);
 
     /*
     * Set State to Ready (needs to be done before btm_decode_ext_features_page
@@ -1246,7 +1246,7 @@ void btm_reset_ctrlr_complete ()
 *******************************************************************************/
 static void btm_issue_host_support_for_lmp_features (void)
 {
-    BTM_TRACE_DEBUG1("btm_issue_host_support_for_lmp_features lmp_features_host_may_support: 0x%02x", btm_cb.devcb.lmp_features_host_may_support);
+    BTM_TRACE_DEBUG("btm_issue_host_support_for_lmp_features lmp_features_host_may_support: 0x%02x", btm_cb.devcb.lmp_features_host_may_support);
 
     if (btm_cb.devcb.lmp_features_host_may_support & BTM_HOST_MAY_SUPP_SSP)
     {
@@ -1296,7 +1296,7 @@ static void btm_issue_host_support_for_lmp_features (void)
         return;
     }
 
-    BTM_TRACE_ERROR2("%s lmp_features_host_may_support: 0x%02x. This is unexpected.",__FUNCTION__,
+    BTM_TRACE_ERROR("%s lmp_features_host_may_support: 0x%02x. This is unexpected.",__FUNCTION__,
                       btm_cb.devcb.lmp_features_host_may_support);
 }
 
@@ -1404,7 +1404,7 @@ void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len)
             /* if local controller has extended features and supports
             **HCI_Read_Local_Extended_Features command,
             ** then start reading these feature starting with extended features page 1 */
-            BTM_TRACE_DEBUG0 ("Start reading local extended features");
+            BTM_TRACE_DEBUG ("Start reading local extended features");
             btm_get_local_ext_features(HCI_EXT_FEATURES_PAGE_1);
         }
         else
@@ -1439,7 +1439,7 @@ void btm_read_local_ext_features_complete (UINT8 *p, UINT16 evt_len)
 
     if (status != HCI_SUCCESS)
     {
-        BTM_TRACE_WARNING1("btm_read_local_ext_features_complete status = 0x%02X", status);
+        BTM_TRACE_WARNING("btm_read_local_ext_features_complete status = 0x%02X", status);
         btm_read_all_lmp_features_complete (HCI_EXT_FEATURES_PAGE_0);
         return;
     }
@@ -1452,7 +1452,7 @@ void btm_read_local_ext_features_complete (UINT8 *p, UINT16 evt_len)
 
     if (page_number > HCI_EXT_FEATURES_PAGE_MAX)
     {
-        BTM_TRACE_ERROR1("btm_read_local_ext_features_complete page=%d unknown",
+        BTM_TRACE_ERROR("btm_read_local_ext_features_complete page=%d unknown",
                 page_number);
         return;
     }
@@ -1475,7 +1475,7 @@ void btm_read_local_ext_features_complete (UINT8 *p, UINT16 evt_len)
     if ((page_number == page_number_max) ||
         (page_number == HCI_EXT_FEATURES_PAGE_MAX))
     {
-        BTM_TRACE_DEBUG1("BTM reached last extended features page (%d)", page_number);
+        BTM_TRACE_DEBUG("BTM reached last extended features page (%d)", page_number);
         btm_read_all_lmp_features_complete(page_number);
     }
     /* Else (another page must be read) */
@@ -1483,7 +1483,7 @@ void btm_read_local_ext_features_complete (UINT8 *p, UINT16 evt_len)
     {
         /* Read the next features page */
         page_number++;
-        BTM_TRACE_DEBUG1("BTM reads next extended features page (%d)", page_number);
+        BTM_TRACE_DEBUG("BTM reads next extended features page (%d)", page_number);
         btm_get_local_ext_features(page_number);
     }
 }
@@ -1506,7 +1506,7 @@ void btm_read_local_supported_cmds_complete (UINT8 *p)
     btu_stop_timer (&(p_devcb->reset_timer));
 
     STREAM_TO_UINT8  (status, p);
-    BTM_TRACE_DEBUG1("btm_read_local_supported_cmds_complete status (0x%02x)", status);
+    BTM_TRACE_DEBUG("btm_read_local_supported_cmds_complete status (0x%02x)", status);
 
     if (status == HCI_SUCCESS)
     {
@@ -1536,7 +1536,7 @@ void btm_write_simple_paring_mode_complete (UINT8 *p)
 
     if (status != HCI_SUCCESS)
     {
-        BTM_TRACE_WARNING1("btm_write_simple_paring_mode_complete status: 0x%02x", status);
+        BTM_TRACE_WARNING("btm_write_simple_paring_mode_complete status: 0x%02x", status);
     }
 
     if (btm_cb.devcb.lmp_features_host_may_support & BTM_HOST_MAY_SUPP_SSP)
@@ -1565,7 +1565,7 @@ void btm_write_le_host_supported_complete (UINT8 *p)
 
     if (status != HCI_SUCCESS)
     {
-        BTM_TRACE_WARNING1("btm_write_le_host_supported_complete status: 0x%02x", status);
+        BTM_TRACE_WARNING("btm_write_le_host_supported_complete status: 0x%02x", status);
     }
 
     if (btm_cb.devcb.lmp_features_host_may_support & BTM_HOST_MAY_SUPP_LE)
@@ -1877,7 +1877,7 @@ UINT8 *BTM_ReadLocalExtendedFeatures (UINT8 page_number)
     if (page_number <= HCI_EXT_FEATURES_PAGE_MAX)
         return (btm_cb.devcb.local_lmp_features[page_number]);
 
-    BTM_TRACE_ERROR1("Warning: BTM_ReadLocalExtendedFeatures page %d unknown",
+    BTM_TRACE_ERROR("Warning: BTM_ReadLocalExtendedFeatures page %d unknown",
             page_number);
     return NULL;
 }
@@ -1938,7 +1938,7 @@ tBTM_STATUS BTM_VendorSpecificCommand(UINT16 opcode, UINT8 param_len,
 {
     void *p_buf;
 
-    BTM_TRACE_EVENT2 ("BTM: BTM_VendorSpecificCommand: Opcode: 0x%04X, ParamLen: %i.",
+    BTM_TRACE_EVENT ("BTM: BTM_VendorSpecificCommand: Opcode: 0x%04X, ParamLen: %i.",
                       opcode, param_len);
 
     /* Allocate a buffer to hold HCI command plus the callback function */
@@ -2020,7 +2020,7 @@ tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, BOOLEAN is_register)
             if (is_register == FALSE)
             {
                 btm_cb.devcb.p_vend_spec_cb[i] = NULL;
-                BTM_TRACE_EVENT0("BTM Deregister For VSEvents is successfully");
+                BTM_TRACE_EVENT("BTM Deregister For VSEvents is successfully");
             }
             return (BTM_SUCCESS);
         }
@@ -2032,12 +2032,12 @@ tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, BOOLEAN is_register)
         if (free_idx < BTM_MAX_VSE_CALLBACKS)
         {
             btm_cb.devcb.p_vend_spec_cb[free_idx] = p_cb;
-            BTM_TRACE_EVENT0("BTM Register For VSEvents is successfully");
+            BTM_TRACE_EVENT("BTM Register For VSEvents is successfully");
         }
         else
         {
             /* No free entries available */
-            BTM_TRACE_ERROR0 ("BTM_RegisterForVSEvents: too many callbacks registered");
+            BTM_TRACE_ERROR ("BTM_RegisterForVSEvents: too many callbacks registered");
 
             retval = BTM_NO_RESOURCES;
         }
@@ -2062,7 +2062,7 @@ void btm_vendor_specific_evt (UINT8 *p, UINT8 evt_len)
 {
     UINT8 i;
 
-    BTM_TRACE_DEBUG0 ("BTM Event: Vendor Specific event from controller");
+    BTM_TRACE_DEBUG ("BTM Event: Vendor Specific event from controller");
 
     for (i=0; i<BTM_MAX_VSE_CALLBACKS; i++)
     {
@@ -2086,7 +2086,7 @@ void btm_vendor_specific_evt (UINT8 *p, UINT8 evt_len)
 *******************************************************************************/
 tBTM_STATUS BTM_WritePageTimeout(UINT16 timeout)
 {
-    BTM_TRACE_EVENT1 ("BTM: BTM_WritePageTimeout: Timeout: %d.", timeout);
+    BTM_TRACE_EVENT ("BTM: BTM_WritePageTimeout: Timeout: %d.", timeout);
 
     /* Send the HCI command */
     if (btsnd_hcic_write_page_tout (timeout))
@@ -2110,7 +2110,7 @@ tBTM_STATUS BTM_WritePageTimeout(UINT16 timeout)
 *******************************************************************************/
 tBTM_STATUS BTM_WriteVoiceSettings(UINT16 settings)
 {
-    BTM_TRACE_EVENT1 ("BTM: BTM_WriteVoiceSettings: Settings: 0x%04x.", settings);
+    BTM_TRACE_EVENT ("BTM: BTM_WriteVoiceSettings: Settings: 0x%04x.", settings);
 
     /* Send the HCI command */
     if (btsnd_hcic_write_voice_settings ((UINT16)(settings & 0x03ff)))
@@ -2138,7 +2138,7 @@ tBTM_STATUS BTM_EnableTestMode(void)
 {
     UINT8   cond;
 
-    BTM_TRACE_EVENT0 ("BTM: BTM_EnableTestMode");
+    BTM_TRACE_EVENT ("BTM: BTM_EnableTestMode");
 
     /* set auto accept connection as this is needed during test mode */
     /* Allocate a buffer to hold HCI command */
@@ -2225,7 +2225,7 @@ tBTM_STATUS BTM_ReadStoredLinkKey (BD_ADDR bd_addr,	tBTM_CMPL_CB *p_cb)
         bd_addr = local_bd_addr;
     }
 
-    BTM_TRACE_EVENT1 ("BTM: BTM_ReadStoredLinkKey: Read_All: %s",
+    BTM_TRACE_EVENT ("BTM: BTM_ReadStoredLinkKey: Read_All: %s",
                         read_all_flag ? "TRUE" : "FALSE");
 
     /* Send the HCI command */
@@ -2262,7 +2262,7 @@ tBTM_STATUS BTM_WriteStoredLinkKey (UINT8 num_keys,
     if (btm_cb.devcb.p_stored_link_key_cmpl_cb)
         return (BTM_BUSY);
 
-    BTM_TRACE_EVENT1 ("BTM: BTM_WriteStoredLinkKey: num_keys: %d", num_keys);
+    BTM_TRACE_EVENT ("BTM: BTM_WriteStoredLinkKey: num_keys: %d", num_keys);
 
     /* Check the maximum number of link keys */
     if(num_keys > HCI_MAX_NUM_OF_LINK_KEYS_PER_CMMD)
@@ -2309,7 +2309,7 @@ tBTM_STATUS BTM_DeleteStoredLinkKey(BD_ADDR bd_addr, tBTM_CMPL_CB *p_cb)
         bd_addr = local_bd_addr;
     }
 
-    BTM_TRACE_EVENT1 ("BTM: BTM_DeleteStoredLinkKey: delete_all_flag: %s",
+    BTM_TRACE_EVENT ("BTM: BTM_DeleteStoredLinkKey: delete_all_flag: %s",
                         delete_all_flag ? "TRUE" : "FALSE");
 
     /* Send the HCI command */
@@ -2355,7 +2355,7 @@ void btm_read_stored_link_key_complete (UINT8 *p)
         }
         else
         {
-            BTM_TRACE_WARNING1("Read stored link key status %d", result.status);
+            BTM_TRACE_WARNING("Read stored link key status %d", result.status);
             result.max_keys = 0;
             result.read_keys = 0;
         }

@@ -64,7 +64,7 @@ BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
     int               i, j;
     BOOLEAN           found = FALSE;
 
-    BTM_TRACE_API2("%s, link key type:%x", __FUNCTION__,key_type);
+    BTM_TRACE_API("%s, link key type:%x", __FUNCTION__,key_type);
     p_dev_rec = btm_find_dev (bd_addr);
     if (!p_dev_rec)
     {
@@ -137,7 +137,7 @@ BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
 
     if (link_key)
     {
-        BTM_TRACE_EVENT6 ("BTM_SecAddDevice()  BDA: %02x:%02x:%02x:%02x:%02x:%02x",
+        BTM_TRACE_EVENT ("BTM_SecAddDevice()  BDA: %02x:%02x:%02x:%02x:%02x:%02x",
                           bd_addr[0], bd_addr[1], bd_addr[2],
                           bd_addr[3], bd_addr[4], bd_addr[5]);
         p_dev_rec->sec_flags |= BTM_SEC_LINK_KEY_KNOWN;
@@ -175,7 +175,7 @@ BOOLEAN BTM_SecDeleteDevice (BD_ADDR bd_addr)
 
     if (BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE) || BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_BR_EDR))
     {
-        BTM_TRACE_WARNING0("BTM_SecDeleteDevice FAILED: Cannot Delete when connection is active");
+        BTM_TRACE_WARNING("BTM_SecDeleteDevice FAILED: Cannot Delete when connection is active");
         return(FALSE);
     }
 
@@ -226,7 +226,7 @@ tBTM_SEC_DEV_REC *btm_sec_alloc_dev (BD_ADDR bd_addr)
     tBTM_SEC_DEV_REC *p_dev_rec = NULL;
     tBTM_INQ_INFO    *p_inq_info;
     int               i;
-    BTM_TRACE_EVENT0 ("btm_sec_alloc_dev");
+    BTM_TRACE_EVENT ("btm_sec_alloc_dev");
     for (i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i++)
     {
         if (!(btm_cb.sec_dev_rec[i].sec_flags & BTM_SEC_IN_USE))
@@ -336,7 +336,7 @@ BOOLEAN btm_dev_support_switch (BD_ADDR bd_addr)
     {
         if (HCI_SWITCH_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_0]))
         {
-            BTM_TRACE_DEBUG0("btm_dev_support_switch return TRUE (feature found)");
+            BTM_TRACE_DEBUG("btm_dev_support_switch return TRUE (feature found)");
             return (TRUE);
         }
 
@@ -353,12 +353,12 @@ BOOLEAN btm_dev_support_switch (BD_ADDR bd_addr)
         /* If we don't know peer's capabilities, assume it supports Role-switch */
         if (feature_empty)
         {
-            BTM_TRACE_DEBUG0("btm_dev_support_switch return TRUE (feature empty)");
+            BTM_TRACE_DEBUG("btm_dev_support_switch return TRUE (feature empty)");
             return (TRUE);
         }
     }
 
-    BTM_TRACE_DEBUG0("btm_dev_support_switch return FALSE");
+    BTM_TRACE_DEBUG("btm_dev_support_switch return FALSE");
     return(FALSE);
 }
 
@@ -430,7 +430,7 @@ tBTM_SEC_DEV_REC *btm_find_dev (BD_ADDR bd_addr)
 tBTM_SEC_DEV_REC *btm_find_or_alloc_dev (BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
-    BTM_TRACE_EVENT0 ("btm_find_or_alloc_dev");
+    BTM_TRACE_EVENT ("btm_find_or_alloc_dev");
     if ((p_dev_rec = btm_find_dev (bd_addr)) == NULL)
     {
 
