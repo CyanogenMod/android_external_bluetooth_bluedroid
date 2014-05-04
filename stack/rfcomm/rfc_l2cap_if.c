@@ -101,7 +101,7 @@ void RFCOMM_ConnectInd (BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
             /* wait random timeout (2 - 12) to resolve collision */
             /* if peer gives up then local device rejects incoming connection and continues as initiator */
             /* if timeout, local device disconnects outgoing connection and continues as acceptor */
-            RFCOMM_TRACE_DEBUG2 ("RFCOMM_ConnectInd start timer for collision, initiator's LCID(0x%x), acceptor's LCID(0x%x)",
+            RFCOMM_TRACE_DEBUG ("RFCOMM_ConnectInd start timer for collision, initiator's LCID(0x%x), acceptor's LCID(0x%x)",
                                   p_mcb->lcid, p_mcb->pending_lcid);
 
             rfc_timer_start(p_mcb, (UINT16)(GKI_get_tick_count()%10 + 2));
@@ -146,7 +146,7 @@ void RFCOMM_ConnectCnf (UINT16 lcid, UINT16 result)
 
     if (!p_mcb)
     {
-        RFCOMM_TRACE_ERROR1 ("RFCOMM_ConnectCnf LCID:0x%x", lcid);
+        RFCOMM_TRACE_ERROR ("RFCOMM_ConnectCnf LCID:0x%x", lcid);
         return;
     }
 
@@ -158,7 +158,7 @@ void RFCOMM_ConnectCnf (UINT16 lcid, UINT16 result)
             UINT16 i;
             UINT8  idx;
 
-            RFCOMM_TRACE_DEBUG1 ("RFCOMM_ConnectCnf retry as acceptor on pending LCID(0x%x)", p_mcb->pending_lcid);
+            RFCOMM_TRACE_DEBUG ("RFCOMM_ConnectCnf retry as acceptor on pending LCID(0x%x)", p_mcb->pending_lcid);
 
             /* remove mcb from mapping table */
             rfc_save_lcid_mcb (NULL, p_mcb->lcid);
@@ -178,7 +178,7 @@ void RFCOMM_ConnectCnf (UINT16 lcid, UINT16 result)
                     p_mcb->port_inx[i] = 0;
                     p_mcb->port_inx[i+1] = idx;
                     rfc_cb.port.port[idx - 1].dlci += 1;
-                    RFCOMM_TRACE_DEBUG2 ("RFCOMM MX - DLCI:%d -> %d", i, rfc_cb.port.port[idx - 1].dlci);
+                    RFCOMM_TRACE_DEBUG ("RFCOMM MX - DLCI:%d -> %d", i, rfc_cb.port.port[idx - 1].dlci);
                 }
             }
 
@@ -187,7 +187,7 @@ void RFCOMM_ConnectCnf (UINT16 lcid, UINT16 result)
         }
         else
         {
-            RFCOMM_TRACE_DEBUG1 ("RFCOMM_ConnectCnf peer gave up pending LCID(0x%x)", p_mcb->pending_lcid);
+            RFCOMM_TRACE_DEBUG ("RFCOMM_ConnectCnf peer gave up pending LCID(0x%x)", p_mcb->pending_lcid);
 
             /* Peer gave up his connection request, make sure cleaning up L2CAP channel */
             L2CA_ConnectRsp (p_mcb->bd_addr, p_mcb->pending_id, p_mcb->pending_lcid, L2CAP_CONN_NO_RESOURCES, 0);
@@ -218,7 +218,7 @@ void RFCOMM_ConfigInd (UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 
     if (!p_mcb)
     {
-        RFCOMM_TRACE_ERROR1 ("RFCOMM_ConfigInd LCID:0x%x", lcid);
+        RFCOMM_TRACE_ERROR ("RFCOMM_ConfigInd LCID:0x%x", lcid);
         return;
     }
 
@@ -241,7 +241,7 @@ void RFCOMM_ConfigCnf (UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 
     if (!p_mcb)
     {
-        RFCOMM_TRACE_ERROR1 ("RFCOMM_ConfigCnf no MCB LCID:0x%x", lcid);
+        RFCOMM_TRACE_ERROR ("RFCOMM_ConfigCnf no MCB LCID:0x%x", lcid);
         return;
     }
 
@@ -282,7 +282,7 @@ void RFCOMM_DisconnectInd (UINT16 lcid, BOOLEAN is_conf_needed)
 
     if (!p_mcb)
     {
-        RFCOMM_TRACE_WARNING1 ("RFCOMM_DisconnectInd LCID:0x%x", lcid);
+        RFCOMM_TRACE_WARNING ("RFCOMM_DisconnectInd LCID:0x%x", lcid);
         return;
     }
 
@@ -309,7 +309,7 @@ void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
 
     if (!p_mcb)
     {
-        RFCOMM_TRACE_WARNING1 ("RFCOMM_BufDataInd LCID:0x%x", lcid);
+        RFCOMM_TRACE_WARNING ("RFCOMM_BufDataInd LCID:0x%x", lcid);
         GKI_freebuf (p_buf);
         return;
     }
@@ -392,12 +392,12 @@ void RFCOMM_CongestionStatusInd (UINT16 lcid, BOOLEAN is_congested)
 
     if (!p_mcb)
     {
-        RFCOMM_TRACE_ERROR1 ("RFCOMM_CongestionStatusInd dropped LCID:0x%x", lcid);
+        RFCOMM_TRACE_ERROR ("RFCOMM_CongestionStatusInd dropped LCID:0x%x", lcid);
         return;
     }
     else
     {
-        RFCOMM_TRACE_EVENT1 ("RFCOMM_CongestionStatusInd LCID:0x%x", lcid);
+        RFCOMM_TRACE_EVENT ("RFCOMM_CongestionStatusInd LCID:0x%x", lcid);
     }
     rfc_process_l2cap_congestion (p_mcb, is_congested);
 }
@@ -415,7 +415,7 @@ tRFC_MCB *rfc_find_lcid_mcb (UINT16 lcid)
 
     if (lcid - L2CAP_BASE_APPL_CID >= MAX_L2CAP_CHANNELS)
     {
-        RFCOMM_TRACE_ERROR1 ("rfc_find_lcid_mcb LCID:0x%x", lcid);
+        RFCOMM_TRACE_ERROR ("rfc_find_lcid_mcb LCID:0x%x", lcid);
         return (NULL);
     }
     else
@@ -424,7 +424,7 @@ tRFC_MCB *rfc_find_lcid_mcb (UINT16 lcid)
         {
             if (p_mcb->lcid != lcid)
             {
-                RFCOMM_TRACE_WARNING2 ("rfc_find_lcid_mcb LCID reused LCID:0x%x current:0x%x", lcid, p_mcb->lcid);
+                RFCOMM_TRACE_WARNING ("rfc_find_lcid_mcb LCID reused LCID:0x%x current:0x%x", lcid, p_mcb->lcid);
                 return (NULL);
             }
         }

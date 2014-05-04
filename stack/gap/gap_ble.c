@@ -197,7 +197,7 @@ UINT16 gap_get_conn_id_if_connected (BD_ADDR bd_addr)
     tGAP_CLCB       *p_clcb;
     UINT16          i;
 
-    GAP_TRACE_EVENT2 ("gap_get_conn_id_if_connected() - BDA: %08x%04x ",
+    GAP_TRACE_EVENT ("gap_get_conn_id_if_connected() - BDA: %08x%04x ",
                       (bd_addr[0]<<24)+(bd_addr[1]<<16)+(bd_addr[2]<<8)+bd_addr[3],
                       (bd_addr[4]<<8)+bd_addr[5]);
 
@@ -249,7 +249,7 @@ tGATT_STATUS gap_read_attr_value (UINT16 handle, tGATT_VALUE *p_value, BOOLEAN i
                         p_value->len -= offset;
                         p_dev_name += offset;
                         ARRAY_TO_STREAM(p, p_dev_name, p_value->len);
-                        GAP_TRACE_EVENT1("GATT_UUID_GAP_DEVICE_NAME len=0x%04x", p_value->len);
+                        GAP_TRACE_EVENT("GATT_UUID_GAP_DEVICE_NAME len=0x%04x", p_value->len);
                     }
                     break;
 
@@ -332,7 +332,7 @@ void gap_ble_s_attr_request_cback (UINT16 conn_id, UINT32 trans_id,
     tGATTS_RSP  rsp_msg;
     BOOLEAN     ignore = FALSE;
 
-    GAP_TRACE_EVENT1("gap_ble_s_attr_request_cback : recv type (0x%02x)", type);
+    GAP_TRACE_EVENT("gap_ble_s_attr_request_cback : recv type (0x%02x)", type);
 
     memset(&rsp_msg, 0, sizeof(tGATTS_RSP));
 
@@ -351,16 +351,16 @@ void gap_ble_s_attr_request_cback (UINT16 conn_id, UINT32 trans_id,
 
         case GATTS_REQ_TYPE_WRITE_EXEC:
             ignore = TRUE;
-            GAP_TRACE_EVENT0("Ignore GATTS_REQ_TYPE_WRITE_EXEC"  );
+            GAP_TRACE_EVENT("Ignore GATTS_REQ_TYPE_WRITE_EXEC"  );
             break;
 
         case GATTS_REQ_TYPE_MTU:
-            GAP_TRACE_EVENT1("Get MTU exchange new mtu size: %d", p_data->mtu);
+            GAP_TRACE_EVENT("Get MTU exchange new mtu size: %d", p_data->mtu);
             ignore = TRUE;
             break;
 
         default:
-            GAP_TRACE_EVENT1("Unknown/unexpected LE GAP ATT request: 0x%02x", type);
+            GAP_TRACE_EVENT("Unknown/unexpected LE GAP ATT request: 0x%02x", type);
             break;
     }
 
@@ -396,7 +396,7 @@ void gap_attr_db_init(void)
     /* Create a GAP service */
     service_handle = GATTS_CreateService (gap_cb.gatt_if, &uuid, 0, GAP_MAX_ATTR_NUM, TRUE);
 
-    GAP_TRACE_EVENT1 ("gap_attr_db_init service_handle = %d", service_handle);
+    GAP_TRACE_EVENT ("gap_attr_db_init service_handle = %d", service_handle);
 
     /* add Device Name Characteristic
     */
@@ -434,7 +434,7 @@ void gap_attr_db_init(void)
 
     status = GATTS_StartService(gap_cb.gatt_if, service_handle, GAP_TRANSPORT_SUPPORTED );
 
-    GAP_TRACE_EVENT3 ("GAP App gatt_if: %d  s_hdl = %d start_status=%d",
+    GAP_TRACE_EVENT ("GAP App gatt_if: %d  s_hdl = %d start_status=%d",
                       gap_cb.gatt_if, service_handle, status);
 
 
@@ -455,13 +455,13 @@ void GAP_BleAttrDBUpdate(UINT16 attr_uuid, tGAP_BLE_ATTR_VALUE *p_value)
     tGAP_ATTR  *p_db_attr = gap_cb.gatt_attr;
     UINT8       i = 0;
 
-    GAP_TRACE_EVENT1("GAP_BleAttrDBUpdate attr_uuid=0x%04x", attr_uuid);
+    GAP_TRACE_EVENT("GAP_BleAttrDBUpdate attr_uuid=0x%04x", attr_uuid);
 
     for (i = 0; i < GAP_MAX_CHAR_NUM; i ++, p_db_attr ++)
     {
         if (p_db_attr->uuid == attr_uuid)
         {
-            GAP_TRACE_EVENT1("Found attr_uuid=0x%04x", attr_uuid);
+            GAP_TRACE_EVENT("Found attr_uuid=0x%04x", attr_uuid);
 
             switch (attr_uuid)
             {
@@ -499,14 +499,14 @@ void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, BOOLEAN status, UINT16 len, UINT8 *p_
     tGAP_BLE_DEV_NAME_CBACK *p_dev_name_cback = (tGAP_BLE_DEV_NAME_CBACK *)(p_clcb->p_cback);
     UINT16                  op = p_clcb->cl_op_uuid;
 
-    GAP_TRACE_EVENT1("gap_ble_cl_op_cmpl status: %d", status);
+    GAP_TRACE_EVENT("gap_ble_cl_op_cmpl status: %d", status);
 
     p_clcb->cl_op_uuid = 0;
     p_clcb->p_cback=NULL;
 
     if (p_dev_name_cback)
     {
-        GAP_TRACE_EVENT0("calling gap_ble_cl_op_cmpl");
+        GAP_TRACE_EVENT("calling gap_ble_cl_op_cmpl");
 
         if (op == GATT_UUID_GAP_DEVICE_NAME)
             (* p_dev_name_cback)(status, p_clcb->bda, len, (char *)p_name);
@@ -535,7 +535,7 @@ static void gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_
     UNUSED(gatt_if);
     UNUSED(transport);
 
-    GAP_TRACE_EVENT5 ("gap_ble_c_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",
+    GAP_TRACE_EVENT ("gap_ble_c_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",
                       (bda[0]<<24)+(bda[1]<<16)+(bda[2]<<8)+bda[3],
                       (bda[4]<<8)+bda[5], connected, conn_id, reason);
 
@@ -546,7 +546,7 @@ static void gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_
         {
             if ((p_clcb = gap_clcb_alloc(conn_id, bda))== NULL)
             {
-                GAP_TRACE_ERROR0 ("gap_ble_c_connect_cback: no_resource");
+                GAP_TRACE_ERROR ("gap_ble_c_connect_cback: no_resource");
                 return;
             }
         }
@@ -564,7 +564,7 @@ static void gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_
     {
         cl_op_uuid = p_clcb->cl_op_uuid;
 
-        GAP_TRACE_EVENT1 ("cl_op_uuid=0x%04x", cl_op_uuid  );
+        GAP_TRACE_EVENT ("cl_op_uuid=0x%04x", cl_op_uuid  );
 
         if (p_clcb->connected)
         {
@@ -611,7 +611,7 @@ static void gap_ble_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
 
     op_type = p_clcb->cl_op_uuid;
 
-    GAP_TRACE_EVENT3 ("gap_ble_c_cmpl_cback() - op_code: 0x%02x  status: 0x%02x  read_type: 0x%04x", op, status, op_type);
+    GAP_TRACE_EVENT ("gap_ble_c_cmpl_cback() - op_code: 0x%02x  status: 0x%02x  read_type: 0x%04x", op, status, op_type);
     /* Currently we only issue read commands */
     if (op != GATTC_OPTYPE_READ)
         return;
@@ -627,7 +627,7 @@ static void gap_ble_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
     switch (op_type)
     {
         case GATT_UUID_GAP_PREF_CONN_PARAM:
-            GAP_TRACE_EVENT0 ("GATT_UUID_GAP_PREF_CONN_PARAM");
+            GAP_TRACE_EVENT ("GATT_UUID_GAP_PREF_CONN_PARAM");
             /* Extract the peripheral preferred connection parameters and save them */
 
             STREAM_TO_UINT16 (min, pp);
@@ -641,7 +641,7 @@ static void gap_ble_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
             break;
 
         case GATT_UUID_GAP_DEVICE_NAME:
-            GAP_TRACE_EVENT0 ("GATT_UUID_GAP_DEVICE_NAME");
+            GAP_TRACE_EVENT ("GATT_UUID_GAP_DEVICE_NAME");
             len = (UINT16)strlen((char *)pp);
             if (len > GAP_CHAR_DEV_NAME_SIZE)
                 len = GAP_CHAR_DEV_NAME_SIZE;
@@ -675,7 +675,7 @@ BOOLEAN gap_ble_cl_read_request(tGAP_CLCB *p_clcb, UINT16 uuid, void * p_cback)
 
     if (GATTC_Read(p_clcb->conn_id, GATT_READ_BY_TYPE, &param) != GATT_SUCCESS)
     {
-        GAP_TRACE_ERROR0 ("GAP_BleReadPeerPrefConnParams: GATT_Read Failed");
+        GAP_TRACE_ERROR ("GAP_BleReadPeerPrefConnParams: GATT_Read Failed");
         /* release the link here */
         GATT_Disconnect(p_clcb->conn_id);
         return(FALSE);
@@ -708,13 +708,13 @@ BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
     {
         if ((p_clcb = gap_clcb_alloc(0, peer_bda)) == NULL)
         {
-            GAP_TRACE_ERROR0("GAP_BleReadPeerPrefConnParams max connection reached");
+            GAP_TRACE_ERROR("GAP_BleReadPeerPrefConnParams max connection reached");
             return FALSE;
         }
         p_clcb->connected = FALSE;
     }
 
-    GAP_TRACE_API3 ("GAP_BleReadPeerPrefConnParams() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
+    GAP_TRACE_API ("GAP_BleReadPeerPrefConnParams() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
                     (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],
                     (peer_bda[4]<<8)+peer_bda[5], p_clcb->cl_op_uuid);
 
@@ -759,13 +759,13 @@ BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NAME_CBACK *p_cba
     {
         if ((p_clcb = gap_clcb_alloc(0, peer_bda)) == NULL)
         {
-            GAP_TRACE_ERROR0("GAP_BleReadPeerDevName max connection reached");
+            GAP_TRACE_ERROR("GAP_BleReadPeerDevName max connection reached");
             return FALSE;
         }
         p_clcb->connected = FALSE;
     }
 
-    GAP_TRACE_EVENT3 ("GAP_BleReadPeerDevName() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
+    GAP_TRACE_EVENT ("GAP_BleReadPeerDevName() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
                       (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],
                       (peer_bda[4]<<8)+peer_bda[5], p_clcb->cl_op_uuid);
 
@@ -807,13 +807,13 @@ BOOLEAN GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda)
 {
     tGAP_CLCB *p_clcb = gap_find_clcb_by_bd_addr (peer_bda);
 
-    GAP_TRACE_EVENT3 ("GAP_BleCancelReadPeerDevName() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
+    GAP_TRACE_EVENT ("GAP_BleCancelReadPeerDevName() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
                       (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],
                       (peer_bda[4]<<8)+peer_bda[5], (p_clcb == NULL)? 0 : p_clcb->cl_op_uuid);
 
     if (p_clcb == NULL || p_clcb->cl_op_uuid != GATT_UUID_GAP_DEVICE_NAME)
     {
-        GAP_TRACE_ERROR0 ("Cannot cancel current op is not get dev name");
+        GAP_TRACE_ERROR ("Cannot cancel current op is not get dev name");
         return FALSE;
     }
 
@@ -821,7 +821,7 @@ BOOLEAN GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda)
     {
         if (!GATT_CancelConnect(gap_cb.gatt_if, peer_bda, TRUE))
         {
-            GAP_TRACE_ERROR0 ("Cannot cancel where No connection id");
+            GAP_TRACE_ERROR ("Cannot cancel where No connection id");
             return FALSE;
         }
     }

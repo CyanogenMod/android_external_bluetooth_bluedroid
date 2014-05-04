@@ -348,7 +348,7 @@ UINT16 GAP_SetPairableMode (UINT16 mode, BOOLEAN connect_only_paired)
     }
     else
     {
-        GAP_TRACE_ERROR1 ("GAP_SetPairableMode: illegal mode %d", mode);
+        GAP_TRACE_ERROR ("GAP_SetPairableMode: illegal mode %d", mode);
         status = GAP_ERR_ILL_MODE;
     }
     return (status);
@@ -604,13 +604,13 @@ UINT16 GAP_GetFirstInquiryResult(tGAP_INQ_RESULTS *p_results)
         memcpy(p_results, &gap_cb.cur_inqptr->results, sizeof(tBTM_INQ_RESULTS));
 
         ptr = (UINT8 *)gap_cb.cur_inqptr->results.remote_bd_addr;
-        GAP_TRACE_EVENT6("GAP_GetFirstInqResult %02x%02x%02x%02x%02x%02x",
+        GAP_TRACE_EVENT("GAP_GetFirstInqResult %02x%02x%02x%02x%02x%02x",
                     ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5]);
         return(BT_PASS);
     }
     else
     {
-        GAP_TRACE_EVENT0("GAP_FirstInqResults:  No BD_ADDRs Found");
+        GAP_TRACE_EVENT("GAP_FirstInqResults:  No BD_ADDRs Found");
         memset(p_results, 0, sizeof(tBTM_INQ_RESULTS));
         return(GAP_EOINQDB);
     }
@@ -643,14 +643,14 @@ UINT16 GAP_GetNextInquiryResult(tGAP_INQ_RESULTS *p_results)
                    sizeof(tGAP_INQ_RESULTS));
 
             ptr = (UINT8 *)gap_cb.cur_inqptr->results.remote_bd_addr;
-            GAP_TRACE_EVENT6("GAP_GetNextInqResult %02x%02x%02x%02x%02x%02x",
+            GAP_TRACE_EVENT("GAP_GetNextInqResult %02x%02x%02x%02x%02x%02x",
                         ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5]);
 
             return(BT_PASS);
         }
         else
         {
-            GAP_TRACE_EVENT0("GAP_NextInqResults:  No BD_ADDRs Found");
+            GAP_TRACE_EVENT("GAP_NextInqResults:  No BD_ADDRs Found");
             memset(p_results, 0, sizeof(tBTM_INQ_RESULTS));
             return(GAP_EOINQDB);
         }

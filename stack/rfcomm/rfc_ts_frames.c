@@ -576,14 +576,14 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
 
     if (p_buf->len < RFCOMM_CTRL_FRAME_LEN)
     {
-        RFCOMM_TRACE_ERROR1 ("Bad Length1: %d", p_buf->len);
+        RFCOMM_TRACE_ERROR ("Bad Length1: %d", p_buf->len);
         return (RFC_EVENT_BAD_FRAME);
     }
 
     RFCOMM_PARSE_CTRL_FIELD (ead, p_frame->cr, p_frame->dlci, p_data);
     if( !ead )
     {
-        RFCOMM_TRACE_ERROR0 ("Bad Address(EA must be 1)");
+        RFCOMM_TRACE_ERROR ("Bad Address(EA must be 1)");
         return (RFC_EVENT_BAD_FRAME);
     }
     RFCOMM_PARSE_TYPE_FIELD (p_frame->type, p_frame->pf, p_data);
@@ -605,7 +605,7 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
 
     if (p_buf->len != len)
     {
-        RFCOMM_TRACE_ERROR2 ("Bad Length2 %d %d", p_buf->len, len);
+        RFCOMM_TRACE_ERROR ("Bad Length2 %d %d", p_buf->len, len);
         return (RFC_EVENT_BAD_FRAME);
     }
 
@@ -622,7 +622,7 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
          || !p_frame->pf || len || !RFCOMM_VALID_DLCI (p_frame->dlci)
          || !rfc_check_fcs (RFCOMM_CTRL_FRAME_LEN, p_start, fcs))
         {
-            RFCOMM_TRACE_ERROR0 ("Bad SABME");
+            RFCOMM_TRACE_ERROR ("Bad SABME");
             return (RFC_EVENT_BAD_FRAME);
         }
         else
@@ -633,7 +633,7 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
           || !p_frame->pf || len || !RFCOMM_VALID_DLCI (p_frame->dlci)
           || !rfc_check_fcs (RFCOMM_CTRL_FRAME_LEN, p_start, fcs))
         {
-            RFCOMM_TRACE_ERROR0 ("Bad UA");
+            RFCOMM_TRACE_ERROR ("Bad UA");
             return (RFC_EVENT_BAD_FRAME);
         }
         else
@@ -644,7 +644,7 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
          || len || !RFCOMM_VALID_DLCI(p_frame->dlci)
          || !rfc_check_fcs (RFCOMM_CTRL_FRAME_LEN, p_start, fcs))
         {
-            RFCOMM_TRACE_ERROR0 ("Bad DM");
+            RFCOMM_TRACE_ERROR ("Bad DM");
             return (RFC_EVENT_BAD_FRAME);
         }
         else
@@ -655,7 +655,7 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
           || !p_frame->pf || len || !RFCOMM_VALID_DLCI(p_frame->dlci)
           || !rfc_check_fcs (RFCOMM_CTRL_FRAME_LEN, p_start, fcs))
         {
-            RFCOMM_TRACE_ERROR0 ("Bad DISC");
+            RFCOMM_TRACE_ERROR ("Bad DISC");
             return (RFC_EVENT_BAD_FRAME);
         }
         else
@@ -664,18 +664,18 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
     case RFCOMM_UIH:
         if (!RFCOMM_VALID_DLCI(p_frame->dlci))
         {
-            RFCOMM_TRACE_ERROR0 ("Bad UIH - invalid DLCI");
+            RFCOMM_TRACE_ERROR ("Bad UIH - invalid DLCI");
             return (RFC_EVENT_BAD_FRAME);
         }
         else if (!rfc_check_fcs (2, p_start, fcs))
         {
-            RFCOMM_TRACE_ERROR0 ("Bad UIH - FCS");
+            RFCOMM_TRACE_ERROR ("Bad UIH - FCS");
             return (RFC_EVENT_BAD_FRAME);
         }
         else if (RFCOMM_FRAME_IS_RSP(p_mcb->is_initiator, p_frame->cr))
         {
             /* we assume that this is ok to allow bad implementations to work */
-            RFCOMM_TRACE_ERROR0 ("Bad UIH - response");
+            RFCOMM_TRACE_ERROR ("Bad UIH - response");
             return (RFC_EVENT_UIH);
         }
         else
@@ -708,7 +708,7 @@ void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
 
     if (!p_rx_frame->ea || !length)
     {
-        RFCOMM_TRACE_ERROR2 ("Illegal MX Frame ea:%d len:%d", p_rx_frame->ea, length);
+        RFCOMM_TRACE_ERROR ("Illegal MX Frame ea:%d len:%d", p_rx_frame->ea, length);
         GKI_freebuf (p_buf);
         return;
     }
@@ -730,7 +730,7 @@ void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
 
     if (mx_len != length)
     {
-        RFCOMM_TRACE_ERROR0 ("Bad MX frame");
+        RFCOMM_TRACE_ERROR ("Bad MX frame");
         GKI_freebuf (p_buf);
         return;
     }
@@ -756,7 +756,7 @@ void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
          || (p_rx_frame->u.pn.mtu < RFCOMM_MIN_MTU)
          || (p_rx_frame->u.pn.mtu > RFCOMM_MAX_MTU))
         {
-            RFCOMM_TRACE_ERROR0 ("Bad PN frame");
+            RFCOMM_TRACE_ERROR ("Bad PN frame");
             break;
         }
 
@@ -808,7 +808,7 @@ void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
         if (!ea || !cr || !p_rx_frame->dlci
          || !RFCOMM_VALID_DLCI (p_rx_frame->dlci))
         {
-            RFCOMM_TRACE_ERROR0 ("Bad MSC frame");
+            RFCOMM_TRACE_ERROR ("Bad MSC frame");
             break;
         }
 
@@ -853,7 +853,7 @@ void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
         if (!ea || !cr || !p_rx_frame->dlci
          || !RFCOMM_VALID_DLCI (p_rx_frame->dlci))
         {
-            RFCOMM_TRACE_ERROR0 ("Bad RPN frame");
+            RFCOMM_TRACE_ERROR ("Bad RPN frame");
             break;
         }
 
@@ -890,7 +890,7 @@ void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
         if (!ea || !cr || !p_rx_frame->dlci
          || !RFCOMM_VALID_DLCI (p_rx_frame->dlci))
         {
-            RFCOMM_TRACE_ERROR0 ("Bad RPN frame");
+            RFCOMM_TRACE_ERROR ("Bad RPN frame");
             break;
         }
 
