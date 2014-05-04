@@ -616,16 +616,16 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 
 #if (BT_USE_TRACES == TRUE)
 
-#define BT_TRACE(l,t,...)                         LogMsg((TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | (t)), ##__VA_ARGS__)
-#define BT_ERROR_TRACE(l,...)                     LogMsg(TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | TRACE_TYPE_ERROR, ##__VA_ARGS__)
+#define BT_TRACE(l,t,...)                        LogMsg((TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | (t)), ##__VA_ARGS__)
+#define BT_ERROR_TRACE(l,...)                    LogMsg(TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | TRACE_TYPE_ERROR, ##__VA_ARGS__)
 
 /* Define tracing for the HCI unit
 */
 
-#define HCI_TRACE_ERROR(...)                   {if (btu_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, ##__VA_ARGS__);}
-#define HCI_TRACE_WARNING(...)                 {if (btu_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, ##__VA_ARGS__);}
-#define HCI_TRACE_EVENT(...)                   {if (btu_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, ##__VA_ARGS__);}
-#define HCI_TRACE_DEBUG(...)                   {if (btu_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
+#define HCI_TRACE_ERROR(...)                     {if (btu_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, ##__VA_ARGS__);}
+#define HCI_TRACE_WARNING(...)                   {if (btu_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, ##__VA_ARGS__);}
+#define HCI_TRACE_EVENT(...)                     {if (btu_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, ##__VA_ARGS__);}
+#define HCI_TRACE_DEBUG(...)                     {if (btu_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 
 
 /* Define tracing for BTM
@@ -639,129 +639,19 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 
 /* Define tracing for the L2CAP unit
 */
-#define L2CAP_TRACE_ERROR0(m)                     {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_ERROR, m);}
-#define L2CAP_TRACE_ERROR1(m,p1)                  {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_ERROR, m,p1);}
-#define L2CAP_TRACE_ERROR2(m,p1,p2)               {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_ERROR, m,p1,p2);}
-#define L2CAP_TRACE_ERROR3(m,p1,p2,p3)            {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_ERROR, m,p1,p2,p3);}
-#define L2CAP_TRACE_ERROR4(m,p1,p2,p3,p4)         {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_ERROR, m,p1,p2,p3,p4);}
-#define L2CAP_TRACE_ERROR5(m,p1,p2,p3,p4,p5)      {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_ERROR, m,p1,p2,p3,p4,p5);}
-#define L2CAP_TRACE_ERROR6(m,p1,p2,p3,p4,p5,p6)   {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_ERROR, m,p1,p2,p3,p4,p5,p6);}
-
-#define L2CAP_TRACE_WARNING0(m)                   {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_WARNING, m);}
-#define L2CAP_TRACE_WARNING1(m,p1)                {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_WARNING, m,p1);}
-#define L2CAP_TRACE_WARNING2(m,p1,p2)             {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_WARNING, m,p1,p2);}
-#define L2CAP_TRACE_WARNING3(m,p1,p2,p3)          {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_WARNING, m,p1,p2,p3);}
-#define L2CAP_TRACE_WARNING4(m,p1,p2,p3,p4)       {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_WARNING, m,p1,p2,p3,p4);}
-#define L2CAP_TRACE_WARNING5(m,p1,p2,p3,p4,p5)    {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_WARNING, m,p1,p2,p3,p4,p5);}
-#define L2CAP_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6) {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_WARNING, m,p1,p2,p3,p4,p5,p6);}
-
-#define L2CAP_TRACE_API0(m)                       {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_API, m);}
-#define L2CAP_TRACE_API1(m,p1)                    {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_API, m,p1);}
-#define L2CAP_TRACE_API2(m,p1,p2)                 {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_API, m,p1,p2);}
-#define L2CAP_TRACE_API3(m,p1,p2,p3)              {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_API, m,p1,p2,p3);}
-#define L2CAP_TRACE_API4(m,p1,p2,p3,p4)           {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_API, m,p1,p2,p3,p4);}
-#define L2CAP_TRACE_API5(m,p1,p2,p3,p4,p5)        {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_API, m,p1,p2,p3,p4,p5);}
-#define L2CAP_TRACE_API6(m,p1,p2,p3,p4,p5,p6)     {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_API, m,p1,p2,p3,p4,p5,p6);}
-
-#define L2CAP_TRACE_EVENT0(m)                     {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_EVENT, m);}
-#define L2CAP_TRACE_EVENT1(m,p1)                  {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_EVENT, m, p1);}
-#define L2CAP_TRACE_EVENT2(m,p1,p2)               {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_EVENT, m,p1,p2);}
-#define L2CAP_TRACE_EVENT3(m,p1,p2,p3)            {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_EVENT, m,p1,p2,p3);}
-#define L2CAP_TRACE_EVENT4(m,p1,p2,p3,p4)         {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_EVENT, m,p1,p2,p3,p4);}
-#define L2CAP_TRACE_EVENT5(m,p1,p2,p3,p4,p5)      {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_EVENT, m,p1,p2,p3,p4,p5);}
-#define L2CAP_TRACE_EVENT6(m,p1,p2,p3,p4,p5,p6)   {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_EVENT, m,p1,p2,p3,p4,p5,p6);}
-
-#define L2CAP_TRACE_DEBUG0(m)                     {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_DEBUG, m);}
-#define L2CAP_TRACE_DEBUG1(m,p1)                  {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_DEBUG, m,p1);}
-#define L2CAP_TRACE_DEBUG2(m,p1,p2)               {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_DEBUG, m,p1,p2);}
-#define L2CAP_TRACE_DEBUG3(m,p1,p2,p3)            {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_DEBUG, m,p1,p2,p3);}
-#define L2CAP_TRACE_DEBUG4(m,p1,p2,p3,p4)         {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4);}
-#define L2CAP_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)      {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4,p5);}
-#define L2CAP_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)   {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4,p5,p6);}
-
-/* Define tracing for the LLCP unit
-*/
-#define LLCP_TRACE_ERROR0(m)                     {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_ERROR, m);}
-#define LLCP_TRACE_ERROR1(m,p1)                  {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_ERROR, m,p1);}
-#define LLCP_TRACE_ERROR2(m,p1,p2)               {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_ERROR, m,p1,p2);}
-#define LLCP_TRACE_ERROR3(m,p1,p2,p3)            {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_ERROR, m,p1,p2,p3);}
-#define LLCP_TRACE_ERROR4(m,p1,p2,p3,p4)         {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_ERROR, m,p1,p2,p3,p4);}
-#define LLCP_TRACE_ERROR5(m,p1,p2,p3,p4,p5)      {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_ERROR, m,p1,p2,p3,p4,p5);}
-#define LLCP_TRACE_ERROR6(m,p1,p2,p3,p4,p5,p6)   {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_ERROR, m,p1,p2,p3,p4,p5,p6);}
-
-#define LLCP_TRACE_WARNING0(m)                   {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_WARNING, m);}
-#define LLCP_TRACE_WARNING1(m,p1)                {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_WARNING, m,p1);}
-#define LLCP_TRACE_WARNING2(m,p1,p2)             {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_WARNING, m,p1,p2);}
-#define LLCP_TRACE_WARNING3(m,p1,p2,p3)          {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_WARNING, m,p1,p2,p3);}
-#define LLCP_TRACE_WARNING4(m,p1,p2,p3,p4)       {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_WARNING, m,p1,p2,p3,p4);}
-#define LLCP_TRACE_WARNING5(m,p1,p2,p3,p4,p5)    {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_WARNING, m,p1,p2,p3,p4,p5);}
-#define LLCP_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6) {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_WARNING, m,p1,p2,p3,p4,p5,p6);}
-
-#define LLCP_TRACE_API0(m)                       {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_API, m);}
-#define LLCP_TRACE_API1(m,p1)                    {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_API, m,p1);}
-#define LLCP_TRACE_API2(m,p1,p2)                 {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_API, m,p1,p2);}
-#define LLCP_TRACE_API3(m,p1,p2,p3)              {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_API, m,p1,p2,p3);}
-#define LLCP_TRACE_API4(m,p1,p2,p3,p4)           {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_API, m,p1,p2,p3,p4);}
-#define LLCP_TRACE_API5(m,p1,p2,p3,p4,p5)        {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_API, m,p1,p2,p3,p4,p5);}
-#define LLCP_TRACE_API6(m,p1,p2,p3,p4,p5,p6)     {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_API, m,p1,p2,p3,p4,p5,p6);}
-
-#define LLCP_TRACE_EVENT0(m)                     {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_EVENT, m);}
-#define LLCP_TRACE_EVENT1(m,p1)                  {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_EVENT, m, p1);}
-#define LLCP_TRACE_EVENT2(m,p1,p2)               {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_EVENT, m,p1,p2);}
-#define LLCP_TRACE_EVENT3(m,p1,p2,p3)            {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_EVENT, m,p1,p2,p3);}
-#define LLCP_TRACE_EVENT4(m,p1,p2,p3,p4)         {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_EVENT, m,p1,p2,p3,p4);}
-#define LLCP_TRACE_EVENT5(m,p1,p2,p3,p4,p5)      {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_EVENT, m,p1,p2,p3,p4,p5);}
-#define LLCP_TRACE_EVENT6(m,p1,p2,p3,p4,p5,p6)   {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_EVENT, m,p1,p2,p3,p4,p5,p6);}
-
-#define LLCP_TRACE_DEBUG0(m)                     {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_DEBUG, m);}
-#define LLCP_TRACE_DEBUG1(m,p1)                  {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_DEBUG, m,p1);}
-#define LLCP_TRACE_DEBUG2(m,p1,p2)               {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_DEBUG, m,p1,p2);}
-#define LLCP_TRACE_DEBUG3(m,p1,p2,p3)            {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_DEBUG, m,p1,p2,p3);}
-#define LLCP_TRACE_DEBUG4(m,p1,p2,p3,p4)         {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4);}
-#define LLCP_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)      {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4,p5);}
-#define LLCP_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)   {if (llcp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_LLCP, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4,p5,p6);}
+#define L2CAP_TRACE_ERROR(...)                   {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_ERROR, ##__VA_ARGS__);}
+#define L2CAP_TRACE_WARNING(...)                 {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_WARNING, ##__VA_ARGS__);}
+#define L2CAP_TRACE_API(...)                     {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_API, ##__VA_ARGS__);}
+#define L2CAP_TRACE_EVENT(...)                   {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_EVENT, ##__VA_ARGS__);}
+#define L2CAP_TRACE_DEBUG(...)                   {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 
 /* Define tracing for the SDP unit
 */
-#define SDP_TRACE_ERROR0(m)                     {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_ERROR, m);}
-#define SDP_TRACE_ERROR1(m,p1)                  {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_ERROR, m,p1);}
-#define SDP_TRACE_ERROR2(m,p1,p2)               {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_ERROR, m,p1,p2);}
-#define SDP_TRACE_ERROR3(m,p1,p2,p3)            {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_ERROR, m,p1,p2,p3);}
-#define SDP_TRACE_ERROR4(m,p1,p2,p3,p4)         {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_ERROR, m,p1,p2,p3,p4);}
-#define SDP_TRACE_ERROR5(m,p1,p2,p3,p4,p5)      {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_ERROR, m,p1,p2,p3,p4,p5);}
-#define SDP_TRACE_ERROR6(m,p1,p2,p3,p4,p5,p6)   {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_ERROR, m,p1,p2,p3,p4,p5,p6);}
-
-#define SDP_TRACE_WARNING0(m)                   {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_WARNING, m);}
-#define SDP_TRACE_WARNING1(m,p1)                {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_WARNING, m,p1);}
-#define SDP_TRACE_WARNING2(m,p1,p2)             {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_WARNING, m,p1,p2);}
-#define SDP_TRACE_WARNING3(m,p1,p2,p3)          {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_WARNING, m,p1,p2,p3);}
-#define SDP_TRACE_WARNING4(m,p1,p2,p3,p4)       {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_WARNING, m,p1,p2,p3,p4);}
-#define SDP_TRACE_WARNING5(m,p1,p2,p3,p4,p5)    {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_WARNING, m,p1,p2,p3,p4,p5);}
-#define SDP_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6) {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_WARNING, m,p1,p2,p3,p4,p5,p6);}
-
-#define SDP_TRACE_API0(m)                       {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_API, m);}
-#define SDP_TRACE_API1(m,p1)                    {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_API, m,p1);}
-#define SDP_TRACE_API2(m,p1,p2)                 {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_API, m,p1,p2);}
-#define SDP_TRACE_API3(m,p1,p2,p3)              {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_API, m,p1,p2,p3);}
-#define SDP_TRACE_API4(m,p1,p2,p3,p4)           {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_API, m,p1,p2,p3,p4);}
-#define SDP_TRACE_API5(m,p1,p2,p3,p4,p5)        {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_API, m,p1,p2,p3,p4,p5);}
-#define SDP_TRACE_API6(m,p1,p2,p3,p4,p5,p6)     {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_API, m,p1,p2,p3,p4,p5,p6);}
-
-#define SDP_TRACE_EVENT0(m)                     {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_EVENT, m);}
-#define SDP_TRACE_EVENT1(m,p1)                  {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_EVENT, m, p1);}
-#define SDP_TRACE_EVENT2(m,p1,p2)               {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_EVENT, m,p1,p2);}
-#define SDP_TRACE_EVENT3(m,p1,p2,p3)            {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_EVENT, m,p1,p2,p3);}
-#define SDP_TRACE_EVENT4(m,p1,p2,p3,p4)         {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_EVENT, m,p1,p2,p3,p4);}
-#define SDP_TRACE_EVENT5(m,p1,p2,p3,p4,p5)      {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_EVENT, m,p1,p2,p3,p4,p5);}
-#define SDP_TRACE_EVENT6(m,p1,p2,p3,p4,p5,p6)   {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_EVENT, m,p1,p2,p3,p4,p5,p6);}
-
-#define SDP_TRACE_DEBUG0(m)                     {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_DEBUG, m);}
-#define SDP_TRACE_DEBUG1(m,p1)                  {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_DEBUG, m,p1);}
-#define SDP_TRACE_DEBUG2(m,p1,p2)               {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_DEBUG, m,p1,p2);}
-#define SDP_TRACE_DEBUG3(m,p1,p2,p3)            {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_DEBUG, m,p1,p2,p3);}
-#define SDP_TRACE_DEBUG4(m,p1,p2,p3,p4)         {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4);}
-#define SDP_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)      {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4,p5);}
-#define SDP_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)   {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4,p5,p6);}
+#define SDP_TRACE_ERROR(...)                     {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_ERROR, ##__VA_ARGS__);}
+#define SDP_TRACE_WARNING(...)                   {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_WARNING, ##__VA_ARGS__);}
+#define SDP_TRACE_API(...)                       {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_API, ##__VA_ARGS__);}
+#define SDP_TRACE_EVENT(...)                     {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_EVENT, ##__VA_ARGS__);}
+#define SDP_TRACE_DEBUG(...)                     {if (sdp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 
 /* Define tracing for the RFCOMM unit
 */
@@ -2492,129 +2382,19 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 
 /* Define tracing for the L2CAP unit
 */
-#define L2CAP_TRACE_ERROR0(m)
-#define L2CAP_TRACE_ERROR1(m,p1)
-#define L2CAP_TRACE_ERROR2(m,p1,p2)
-#define L2CAP_TRACE_ERROR3(m,p1,p2,p3)
-#define L2CAP_TRACE_ERROR4(m,p1,p2,p3,p4)
-#define L2CAP_TRACE_ERROR5(m,p1,p2,p3,p4,p5)
-#define L2CAP_TRACE_ERROR6(m,p1,p2,p3,p4,p5,p6)
-
-#define L2CAP_TRACE_WARNING0(m)
-#define L2CAP_TRACE_WARNING1(m,p1)
-#define L2CAP_TRACE_WARNING2(m,p1,p2)
-#define L2CAP_TRACE_WARNING3(m,p1,p2,p3)
-#define L2CAP_TRACE_WARNING4(m,p1,p2,p3,p4)
-#define L2CAP_TRACE_WARNING5(m,p1,p2,p3,p4,p5)
-#define L2CAP_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6)
-
-#define L2CAP_TRACE_API0(m)
-#define L2CAP_TRACE_API1(m,p1)
-#define L2CAP_TRACE_API2(m,p1,p2)
-#define L2CAP_TRACE_API3(m,p1,p2,p3)
-#define L2CAP_TRACE_API4(m,p1,p2,p3,p4)
-#define L2CAP_TRACE_API5(m,p1,p2,p3,p4,p5)
-#define L2CAP_TRACE_API6(m,p1,p2,p3,p4,p5,p6)
-
-#define L2CAP_TRACE_EVENT0(m)
-#define L2CAP_TRACE_EVENT1(m,p1)
-#define L2CAP_TRACE_EVENT2(m,p1,p2)
-#define L2CAP_TRACE_EVENT3(m,p1,p2,p3)
-#define L2CAP_TRACE_EVENT4(m,p1,p2,p3,p4)
-#define L2CAP_TRACE_EVENT5(m,p1,p2,p3,p4,p5)
-#define L2CAP_TRACE_EVENT6(m,p1,p2,p3,p4,p5,p6)
-
-#define L2CAP_TRACE_DEBUG0(m)
-#define L2CAP_TRACE_DEBUG1(m,p1)
-#define L2CAP_TRACE_DEBUG2(m,p1,p2)
-#define L2CAP_TRACE_DEBUG3(m,p1,p2,p3)
-#define L2CAP_TRACE_DEBUG4(m,p1,p2,p3,p4)
-#define L2CAP_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)
-#define L2CAP_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)
-
-/* Define tracing for the LLCP unit
-*/
-#define LLCP_TRACE_ERROR0(m)
-#define LLCP_TRACE_ERROR1(m,p1)
-#define LLCP_TRACE_ERROR2(m,p1,p2)
-#define LLCP_TRACE_ERROR3(m,p1,p2,p3)
-#define LLCP_TRACE_ERROR4(m,p1,p2,p3,p4)
-#define LLCP_TRACE_ERROR5(m,p1,p2,p3,p4,p5)
-#define LLCP_TRACE_ERROR6(m,p1,p2,p3,p4,p5,p6)
-
-#define LLCP_TRACE_WARNING0(m)
-#define LLCP_TRACE_WARNING1(m,p1)
-#define LLCP_TRACE_WARNING2(m,p1,p2)
-#define LLCP_TRACE_WARNING3(m,p1,p2,p3)
-#define LLCP_TRACE_WARNING4(m,p1,p2,p3,p4)
-#define LLCP_TRACE_WARNING5(m,p1,p2,p3,p4,p5)
-#define LLCP_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6)
-
-#define LLCP_TRACE_API0(m)
-#define LLCP_TRACE_API1(m,p1)
-#define LLCP_TRACE_API2(m,p1,p2)
-#define LLCP_TRACE_API3(m,p1,p2,p3)
-#define LLCP_TRACE_API4(m,p1,p2,p3,p4)
-#define LLCP_TRACE_API5(m,p1,p2,p3,p4,p5)
-#define LLCP_TRACE_API6(m,p1,p2,p3,p4,p5,p6)
-
-#define LLCP_TRACE_EVENT0(m)
-#define LLCP_TRACE_EVENT1(m,p1)
-#define LLCP_TRACE_EVENT2(m,p1,p2)
-#define LLCP_TRACE_EVENT3(m,p1,p2,p3)
-#define LLCP_TRACE_EVENT4(m,p1,p2,p3,p4)
-#define LLCP_TRACE_EVENT5(m,p1,p2,p3,p4,p5)
-#define LLCP_TRACE_EVENT6(m,p1,p2,p3,p4,p5,p6)
-
-#define LLCP_TRACE_DEBUG0(m)
-#define LLCP_TRACE_DEBUG1(m,p1)
-#define LLCP_TRACE_DEBUG2(m,p1,p2)
-#define LLCP_TRACE_DEBUG3(m,p1,p2,p3)
-#define LLCP_TRACE_DEBUG4(m,p1,p2,p3,p4)
-#define LLCP_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)
-#define LLCP_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)
+#define L2CAP_TRACE_ERROR(...)
+#define L2CAP_TRACE_WARNING(...)
+#define L2CAP_TRACE_API(...)
+#define L2CAP_TRACE_EVENT(...)
+#define L2CAP_TRACE_DEBUG(...)
 
 /* Define tracing for the SDP unit
 */
-#define SDP_TRACE_ERROR0(m)
-#define SDP_TRACE_ERROR1(m,p1)
-#define SDP_TRACE_ERROR2(m,p1,p2)
-#define SDP_TRACE_ERROR3(m,p1,p2,p3)
-#define SDP_TRACE_ERROR4(m,p1,p2,p3,p4)
-#define SDP_TRACE_ERROR5(m,p1,p2,p3,p4,p5)
-#define SDP_TRACE_ERROR6(m,p1,p2,p3,p4,p5,p6)
-
-#define SDP_TRACE_WARNING0(m)
-#define SDP_TRACE_WARNING1(m,p1)
-#define SDP_TRACE_WARNING2(m,p1,p2)
-#define SDP_TRACE_WARNING3(m,p1,p2,p3)
-#define SDP_TRACE_WARNING4(m,p1,p2,p3,p4)
-#define SDP_TRACE_WARNING5(m,p1,p2,p3,p4,p5)
-#define SDP_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6)
-
-#define SDP_TRACE_API0(m)
-#define SDP_TRACE_API1(m,p1)
-#define SDP_TRACE_API2(m,p1,p2)
-#define SDP_TRACE_API3(m,p1,p2,p3)
-#define SDP_TRACE_API4(m,p1,p2,p3,p4)
-#define SDP_TRACE_API5(m,p1,p2,p3,p4,p5)
-#define SDP_TRACE_API6(m,p1,p2,p3,p4,p5,p6)
-
-#define SDP_TRACE_EVENT0(m)
-#define SDP_TRACE_EVENT1(m,p1)
-#define SDP_TRACE_EVENT2(m,p1,p2)
-#define SDP_TRACE_EVENT3(m,p1,p2,p3)
-#define SDP_TRACE_EVENT4(m,p1,p2,p3,p4)
-#define SDP_TRACE_EVENT5(m,p1,p2,p3,p4,p5)
-#define SDP_TRACE_EVENT6(m,p1,p2,p3,p4,p5,p6)
-
-#define SDP_TRACE_DEBUG0(m)
-#define SDP_TRACE_DEBUG1(m,p1)
-#define SDP_TRACE_DEBUG2(m,p1,p2)
-#define SDP_TRACE_DEBUG3(m,p1,p2,p3)
-#define SDP_TRACE_DEBUG4(m,p1,p2,p3,p4)
-#define SDP_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)
-#define SDP_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)
+#define SDP_TRACE_ERROR(...)
+#define SDP_TRACE_WARNING(...)
+#define SDP_TRACE_API(...)
+#define SDP_TRACE_EVENT(...)
+#define SDP_TRACE_DEBUG(...)
 
 /* Define tracing for the RFCOMM unit
 */

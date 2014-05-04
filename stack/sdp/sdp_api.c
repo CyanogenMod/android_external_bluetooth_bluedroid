@@ -79,7 +79,7 @@ BOOLEAN SDP_InitDiscoveryDb (tSDP_DISCOVERY_DB *p_db, UINT32 len, UINT16 num_uui
     if (p_db == NULL || (sizeof (tSDP_DISCOVERY_DB) > len) ||
         num_attr > SDP_MAX_ATTR_FILTERS || num_uuid > SDP_MAX_UUID_FILTERS)
     {
-        SDP_TRACE_ERROR4("SDP_InitDiscoveryDb Illegal param: p_db 0x%x, len %d, num_uuid %d, num_attr %d",
+        SDP_TRACE_ERROR("SDP_InitDiscoveryDb Illegal param: p_db 0x%x, len %d, num_uuid %d, num_attr %d",
                          (UINT32)p_db, len, num_uuid, num_attr);
 
         return(FALSE);
@@ -747,7 +747,7 @@ static BOOLEAN sdp_fill_proto_elem( tSDP_DISC_ATTR  *p_attr, UINT16 layer_uuid,
         /* Now, see if the entry contains the layer we are interested in */
         for (p_sattr = p_attr->attr_value.v.p_sub_attr; p_sattr; p_sattr = p_sattr->p_next_attr)
         {
-            /* SDP_TRACE_DEBUG3 ("SDP - p_sattr 0x%x, layer_uuid:0x%x, u16:0x%x####",
+            /* SDP_TRACE_DEBUG ("SDP - p_sattr 0x%x, layer_uuid:0x%x, u16:0x%x####",
                 p_sattr, layer_uuid, p_sattr->attr_value.v.u16); */
 
             if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE)

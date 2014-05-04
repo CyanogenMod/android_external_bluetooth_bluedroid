@@ -67,7 +67,7 @@ void l2c_bcst_msg( BT_HDR *p_buf, UINT16 psm )
     /* Ensure we have enough space in the buffer for the L2CAP and HCI headers */
     if (p_buf->offset < L2CAP_BCST_MIN_OFFSET)
     {
-        L2CAP_TRACE_ERROR1 ("L2CAP - cannot send buffer, offset: %d", p_buf->offset);
+        L2CAP_TRACE_ERROR ("L2CAP - cannot send buffer, offset: %d", p_buf->offset);
         GKI_freebuf (p_buf);
         return;
     }
@@ -150,7 +150,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
             if ((p_msg->layer_specific == 0) && (rcv_cid == L2CAP_SIGNALLING_CID)
                 && (cmd_code == L2CAP_CMD_INFO_REQ || cmd_code == L2CAP_CMD_CONN_REQ))
             {
-                L2CAP_TRACE_WARNING5 ("L2CAP - holding ACL for unknown handle:%d ls:%d cid:%d opcode:%d cur count:%d",
+                L2CAP_TRACE_WARNING ("L2CAP - holding ACL for unknown handle:%d ls:%d cid:%d opcode:%d cur count:%d",
                                     handle, p_msg->layer_specific, rcv_cid, cmd_code,
                                     l2cb.rcv_hold_q.count);
                 p_msg->layer_specific = 2;
@@ -163,7 +163,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
             }
             else
             {
-                L2CAP_TRACE_ERROR5 ("L2CAP - rcvd ACL for unknown handle:%d ls:%d cid:%d opcode:%d cur count:%d",
+                L2CAP_TRACE_ERROR ("L2CAP - rcvd ACL for unknown handle:%d ls:%d cid:%d opcode:%d cur count:%d",
                                     handle, p_msg->layer_specific, rcv_cid, cmd_code, l2cb.rcv_hold_q.count);
             }
             GKI_freebuf (p_msg);
@@ -172,7 +172,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     }
     else
     {
-        L2CAP_TRACE_WARNING1 ("L2CAP - expected pkt start or complete, got: %d", pkt_type);
+        L2CAP_TRACE_WARNING ("L2CAP - expected pkt start or complete, got: %d", pkt_type);
         GKI_freebuf (p_msg);
         return;
     }
@@ -196,7 +196,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     {
         if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, rcv_cid)) == NULL)
         {
-            L2CAP_TRACE_WARNING1 ("L2CAP - unknown CID: 0x%04x", rcv_cid);
+            L2CAP_TRACE_WARNING ("L2CAP - unknown CID: 0x%04x", rcv_cid);
             GKI_freebuf (p_msg);
             return;
         }
@@ -209,14 +209,14 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     }
     else
     {
-        L2CAP_TRACE_WARNING0 ("L2CAP - got incorrect hci header" );
+        L2CAP_TRACE_WARNING ("L2CAP - got incorrect hci header" );
         GKI_freebuf (p_msg);
         return;
     }
 
     if (l2cap_len != p_msg->len)
     {
-        L2CAP_TRACE_WARNING2 ("L2CAP - bad length in pkt. Exp: %d  Act: %d",
+        L2CAP_TRACE_WARNING ("L2CAP - bad length in pkt. Exp: %d  Act: %d",
                               l2cap_len, p_msg->len);
 
         GKI_freebuf (p_msg);
@@ -233,7 +233,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     {
         /* process_connectionless_data (p_lcb); */
         STREAM_TO_UINT16 (psm, p);
-        L2CAP_TRACE_DEBUG1( "GOT CONNECTIONLESS DATA PSM:%d", psm ) ;
+        L2CAP_TRACE_DEBUG( "GOT CONNECTIONLESS DATA PSM:%d", psm ) ;
 #if (TCS_BCST_SETUP_INCLUDED == TRUE && TCS_INCLUDED == TRUE)
         if (psm == TCS_PSM_INTERCOM || psm == TCS_PSM_CORDLESS)
         {
@@ -340,7 +340,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
         ** Here we simply mark the bad packet and decide which cmd ID to reject later
         */
         pkt_size_rej = TRUE;
-        L2CAP_TRACE_ERROR1 ("L2CAP SIG MTU Pkt Len Exceeded (672) -> pkt_len: %d", pkt_len);
+        L2CAP_TRACE_ERROR ("L2CAP SIG MTU Pkt Len Exceeded (672) -> pkt_len: %d", pkt_len);
     }
 
     p_next_cmd = p;
@@ -362,12 +362,12 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
         /* Check command length does not exceed packet length */
         if ((p_next_cmd = p + cmd_len) > p_pkt_end)
         {
-            L2CAP_TRACE_WARNING3 ("Command len bad  pkt_len: %d  cmd_len: %d  code: %d",
+            L2CAP_TRACE_WARNING ("Command len bad  pkt_len: %d  cmd_len: %d  code: %d",
                                   pkt_len, cmd_len, cmd_code);
             break;
         }
 
-        L2CAP_TRACE_DEBUG3 ("cmd_code: %d, id:%d, cmd_len:%d", cmd_code, id, cmd_len);
+        L2CAP_TRACE_DEBUG ("cmd_code: %d, id:%d, cmd_len:%d", cmd_code, id, cmd_len);
 
         /* Bad L2CAP packet length, look or cmd to reject */
         if (pkt_size_rej)
@@ -389,14 +389,14 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
                 /* What to do with the MTU reject ? We have negotiated an MTU. For now */
                 /* we will ignore it and let a higher protocol timeout take care of it */
 
-                L2CAP_TRACE_WARNING2 ("L2CAP - MTU rej Handle: %d MTU: %d", p_lcb->handle, rej_mtu);
+                L2CAP_TRACE_WARNING ("L2CAP - MTU rej Handle: %d MTU: %d", p_lcb->handle, rej_mtu);
             }
             if (rej_reason == L2CAP_CMD_REJ_INVALID_CID)
             {
                 STREAM_TO_UINT16 (rcid, p);
                 STREAM_TO_UINT16 (lcid, p);
 
-                L2CAP_TRACE_WARNING2 ("L2CAP - rej with CID invalid, LCID: 0x%04x RCID: 0x%04x", lcid, rcid);
+                L2CAP_TRACE_WARNING ("L2CAP - rej with CID invalid, LCID: 0x%04x RCID: 0x%04x", lcid, rcid);
 
                 /* Remote CID invalid. Treat as a disconnect */
                 if (((p_ccb = l2cu_find_ccb_by_cid (p_lcb, lcid)) != NULL)
@@ -429,7 +429,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             STREAM_TO_UINT16 (rcid, p);
             if ((p_rcb = l2cu_find_rcb_by_psm (con_info.psm)) == NULL)
             {
-                L2CAP_TRACE_WARNING1 ("L2CAP - rcvd conn req for unknown PSM: %d", con_info.psm);
+                L2CAP_TRACE_WARNING ("L2CAP - rcvd conn req for unknown PSM: %d", con_info.psm);
                 l2cu_reject_connection (p_lcb, rcid, id, L2CAP_CONN_NO_PSM);
                 break;
             }
@@ -437,14 +437,14 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             {
                 if (!p_rcb->api.pL2CA_ConnectInd_Cb)
                 {
-                    L2CAP_TRACE_WARNING1 ("L2CAP - rcvd conn req for outgoing-only connection PSM: %d", con_info.psm);
+                    L2CAP_TRACE_WARNING ("L2CAP - rcvd conn req for outgoing-only connection PSM: %d", con_info.psm);
                     l2cu_reject_connection (p_lcb, rcid, id, L2CAP_CONN_NO_PSM);
                     break;
                 }
             }
             if ((p_ccb = l2cu_allocate_ccb (p_lcb, 0)) == NULL)
             {
-                L2CAP_TRACE_ERROR0 ("L2CAP - unable to allocate CCB");
+                L2CAP_TRACE_ERROR ("L2CAP - unable to allocate CCB");
                 l2cu_reject_connection (p_lcb, rcid, id, L2CAP_CONN_NO_RESOURCES);
                 break;
             }
@@ -463,13 +463,13 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 
             if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, lcid)) == NULL)
             {
-                L2CAP_TRACE_WARNING2 ("L2CAP - no CCB for conn rsp, LCID: %d RCID: %d",
+                L2CAP_TRACE_WARNING ("L2CAP - no CCB for conn rsp, LCID: %d RCID: %d",
                                       lcid, con_info.remote_cid);
                 break;
             }
             if (p_ccb->local_id != id)
             {
-                L2CAP_TRACE_WARNING2 ("L2CAP - con rsp - bad ID. Exp: %d Got: %d",
+                L2CAP_TRACE_WARNING ("L2CAP - con rsp - bad ID. Exp: %d Got: %d",
                                       p_ccb->local_id, id);
                 break;
             }
@@ -657,7 +657,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             {
                 if (p_ccb->local_id != id)
                 {
-                    L2CAP_TRACE_WARNING2 ("L2CAP - cfg rsp - bad ID. Exp: %d Got: %d",
+                    L2CAP_TRACE_WARNING ("L2CAP - cfg rsp - bad ID. Exp: %d Got: %d",
                                           p_ccb->local_id, id);
                     break;
                 }
@@ -668,7 +668,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             }
             else
             {
-                L2CAP_TRACE_WARNING1 ("L2CAP - rcvd cfg rsp for unknown CID: 0x%04x", lcid);
+                L2CAP_TRACE_WARNING ("L2CAP - rcvd cfg rsp for unknown CID: 0x%04x", lcid);
             }
             break;
 
@@ -786,7 +786,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             break;
 
         default:
-            L2CAP_TRACE_WARNING1 ("L2CAP - bad cmd code: %d", cmd_code);
+            L2CAP_TRACE_WARNING ("L2CAP - bad cmd code: %d", cmd_code);
             l2cu_send_peer_cmd_reject (p_lcb, L2CAP_CMD_REJ_NOT_UNDERSTOOD, id, 0, 0);
             return;
         }
@@ -815,11 +815,11 @@ void l2c_process_held_packets (BOOLEAN timed_out)
     if (!timed_out)
     {
         btu_stop_timer(&l2cb.rcv_hold_tle);
-        L2CAP_TRACE_WARNING0("L2CAP HOLD CONTINUE");
+        L2CAP_TRACE_WARNING("L2CAP HOLD CONTINUE");
     }
     else
     {
-        L2CAP_TRACE_WARNING0("L2CAP HOLD TIMEOUT");
+        L2CAP_TRACE_WARNING("L2CAP HOLD TIMEOUT");
     }
 
     /* Update the timeouts in the hold queue */
@@ -961,7 +961,7 @@ UINT8 l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flags)
     /* Find the channel control block. We don't know the link it is on. */
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
     {
-        L2CAP_TRACE_WARNING1 ("L2CAP - no CCB for L2CA_DataWrite, CID: %d", cid);
+        L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_DataWrite, CID: %d", cid);
         GKI_freebuf (p_data);
         return (L2CAP_DW_FAILED);
     }
@@ -970,7 +970,7 @@ UINT8 l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flags)
                   bigger than mtu size of peer is a violation of protocol */
     if (p_data->len > p_ccb->peer_cfg.mtu)
     {
-        L2CAP_TRACE_WARNING1 ("L2CAP - CID: 0x%04x  cannot send message bigger than peer's mtu size", cid);
+        L2CAP_TRACE_WARNING ("L2CAP - CID: 0x%04x  cannot send message bigger than peer's mtu size", cid);
         GKI_freebuf (p_data);
         return (L2CAP_DW_FAILED);
     }
@@ -982,7 +982,7 @@ UINT8 l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flags)
     /* If already congested, do not accept any more packets */
     if (p_ccb->cong_sent)
     {
-        L2CAP_TRACE_ERROR3 ("L2CAP - CID: 0x%04x cannot send, already congested  xmit_hold_q.count: %u  buff_quota: %u",
+        L2CAP_TRACE_ERROR ("L2CAP - CID: 0x%04x cannot send, already congested  xmit_hold_q.count: %u  buff_quota: %u",
                             p_ccb->local_cid, p_ccb->xmit_hold_q.count, p_ccb->buff_quota);
 
         GKI_freebuf (p_data);

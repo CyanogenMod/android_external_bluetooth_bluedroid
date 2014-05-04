@@ -74,7 +74,7 @@ BOOLEAN l2c_link_hci_conn_req (BD_ADDR bd_addr)
         if (!p_lcb)
         {
             btsnd_hcic_reject_conn (bd_addr, HCI_ERR_HOST_REJECT_RESOURCES);
-            L2CAP_TRACE_ERROR0 ("L2CAP failed to allocate LCB");
+            L2CAP_TRACE_ERROR ("L2CAP failed to allocate LCB");
             return FALSE;
         }
 
@@ -134,7 +134,7 @@ BOOLEAN l2c_link_hci_conn_req (BD_ADDR bd_addr)
     }
     else
     {
-        L2CAP_TRACE_ERROR1("L2CAP got conn_req while connected (state:%d). Reject it",
+        L2CAP_TRACE_ERROR("L2CAP got conn_req while connected (state:%d). Reject it",
                 p_lcb->link_state);
         /* Reject the connection with ACL Connection Already exist reason */
         btsnd_hcic_reject_conn (bd_addr, HCI_ERR_CONNECTION_EXISTS);
@@ -173,13 +173,13 @@ BOOLEAN l2c_link_hci_conn_comp (UINT8 status, UINT16 handle, BD_ADDR p_bda)
     /* If we don't have one, this is an error */
     if (!p_lcb)
     {
-        L2CAP_TRACE_WARNING0 ("L2CAP got conn_comp for unknown BD_ADDR");
+        L2CAP_TRACE_WARNING ("L2CAP got conn_comp for unknown BD_ADDR");
         return (FALSE);
     }
 
     if (p_lcb->link_state != LST_CONNECTING)
     {
-        L2CAP_TRACE_ERROR2 ("L2CAP got conn_comp in bad state: %d  status: 0x%d", p_lcb->link_state, status);
+        L2CAP_TRACE_ERROR ("L2CAP got conn_comp in bad state: %d  status: 0x%d", p_lcb->link_state, status);
 
         if (status != HCI_SUCCESS)
             l2c_link_hci_disc_comp (p_lcb->handle, status);
@@ -300,7 +300,7 @@ void l2c_link_sec_comp (BD_ADDR p_bda, tBT_TRANSPORT transport, void *p_ref_data
 
     UNUSED(transport);
 
-    L2CAP_TRACE_DEBUG2 ("l2c_link_sec_comp: %d, 0x%x", status, p_ref_data);
+    L2CAP_TRACE_DEBUG ("l2c_link_sec_comp: %d, 0x%x", status, p_ref_data);
 
     if (status == BTM_SUCCESS_NO_SECURITY)
         status = BTM_SUCCESS;
@@ -314,7 +314,7 @@ void l2c_link_sec_comp (BD_ADDR p_bda, tBT_TRANSPORT transport, void *p_ref_data
     /* If we don't have one, this is an error */
     if (!p_lcb)
     {
-        L2CAP_TRACE_WARNING0 ("L2CAP got sec_comp for unknown BD_ADDR");
+        L2CAP_TRACE_WARNING ("L2CAP got sec_comp for unknown BD_ADDR");
         return;
     }
 
@@ -328,7 +328,7 @@ void l2c_link_sec_comp (BD_ADDR p_bda, tBT_TRANSPORT transport, void *p_ref_data
             switch(status)
             {
             case BTM_SUCCESS:
-                L2CAP_TRACE_DEBUG1 ("ccb timer ticks: %u", p_ccb->timer_entry.ticks);
+                L2CAP_TRACE_DEBUG ("ccb timer ticks: %u", p_ccb->timer_entry.ticks);
                 event = L2CEVT_SEC_COMP;
                 break;
 
@@ -448,7 +448,7 @@ BOOLEAN l2c_link_hci_disc_comp (UINT16 handle, UINT8 reason)
 
             }
 #endif
-            L2CAP_TRACE_DEBUG0("l2c_link_hci_disc_comp: Restarting pending ACL request");
+            L2CAP_TRACE_DEBUG("l2c_link_hci_disc_comp: Restarting pending ACL request");
 
             if (l2cu_create_conn(p_lcb, transport))
                 lcb_is_free = FALSE; /* still using this lcb */
@@ -521,7 +521,7 @@ void l2c_link_timeout (tL2C_LCB *p_lcb)
     UINT16      timeout;
     tBTM_STATUS rc;
 
-     L2CAP_TRACE_EVENT3 ("L2CAP - l2c_link_timeout() link state %d first CCB %p is_bonding:%d",
+     L2CAP_TRACE_EVENT ("L2CAP - l2c_link_timeout() link state %d first CCB %p is_bonding:%d",
          p_lcb->link_state, p_lcb->ccb_queue.p_first_ccb, p_lcb->is_bonding);
 
     /* If link was connecting or disconnecting, clear all channels and drop the LCB */
@@ -566,7 +566,7 @@ void l2c_link_timeout (tL2C_LCB *p_lcb)
 
             (*p_cb) (L2CAP_PING_RESULT_NO_RESP);
 
-             L2CAP_TRACE_WARNING0 ("L2CAP - ping timeout");
+             L2CAP_TRACE_WARNING ("L2CAP - ping timeout");
 
             /* For all channels, send a disconnect indication event through */
             /* their FSMs. The CCBs should remove themselves from the LCB   */
@@ -759,7 +759,7 @@ void l2c_link_adjust_allocation (void)
         qq = qq_remainder = 0;
     }
 
-    L2CAP_TRACE_EVENT5 ("l2c_link_adjust_allocation  num_hipri: %u  num_lowpri: %u  low_quota: %u  round_robin_quota: %u  qq: %u",
+    L2CAP_TRACE_EVENT ("l2c_link_adjust_allocation  num_hipri: %u  num_lowpri: %u  low_quota: %u  round_robin_quota: %u  qq: %u",
                         num_hipri_links, num_lowpri_links, low_quota,
                         l2cb.round_robin_quota, qq);
 
@@ -791,10 +791,10 @@ void l2c_link_adjust_allocation (void)
 #if L2CAP_HOST_FLOW_CTRL
             p_lcb->link_ack_thresh = L2CAP_HOST_FC_ACL_BUFS / l2cb.num_links_active;
 #endif
-            L2CAP_TRACE_EVENT3 ("l2c_link_adjust_allocation LCB %d   Priority: %d  XmitQuota: %d",
+            L2CAP_TRACE_EVENT ("l2c_link_adjust_allocation LCB %d   Priority: %d  XmitQuota: %d",
                                 yy, p_lcb->acl_priority, p_lcb->link_xmit_quota);
 
-            L2CAP_TRACE_EVENT2 ("        SentNotAcked: %d  RRUnacked: %d",
+            L2CAP_TRACE_EVENT ("        SentNotAcked: %d  RRUnacked: %d",
                                 p_lcb->sent_not_acked, l2cb.round_robin_unacked);
 
             /* There is a special case where we have readjusted the link quotas and  */
@@ -832,7 +832,7 @@ void l2c_link_adjust_chnl_allocation (void)
     UINT16      quota_per_weighted_chnls[GKI_NUM_TOTAL_BUF_POOLS];
     UINT16      reserved_buff[GKI_NUM_TOTAL_BUF_POOLS];
 
-    L2CAP_TRACE_DEBUG0 ("l2c_link_adjust_chnl_allocation");
+    L2CAP_TRACE_DEBUG ("l2c_link_adjust_chnl_allocation");
 
     /* initialize variables */
     for (xx = 0; xx < GKI_NUM_TOTAL_BUF_POOLS; xx++ )
@@ -886,7 +886,7 @@ void l2c_link_adjust_chnl_allocation (void)
             else
                 quota_per_weighted_chnls[xx] = 1;
 
-            L2CAP_TRACE_DEBUG5 ("POOL ID:%d, GKI_poolcount = %d, reserved_buff = %d, weighted_chnls = %d, quota_per_weighted_chnls = %d",
+            L2CAP_TRACE_DEBUG ("POOL ID:%d, GKI_poolcount = %d, reserved_buff = %d, weighted_chnls = %d, quota_per_weighted_chnls = %d",
                                  xx, GKI_poolcount(xx), reserved_buff[xx], weighted_chnls[xx], quota_per_weighted_chnls[xx] );
         }
         else
@@ -906,7 +906,7 @@ void l2c_link_adjust_chnl_allocation (void)
         {
             p_ccb->buff_quota = quota_per_weighted_chnls[p_ccb->ertm_info.user_tx_pool_id] * p_ccb->tx_data_rate;
 
-            L2CAP_TRACE_EVENT6 ("CID:0x%04x FCR Mode:%u UserTxPool:%u Priority:%u TxDataRate:%u Quota:%u",
+            L2CAP_TRACE_EVENT ("CID:0x%04x FCR Mode:%u UserTxPool:%u Priority:%u TxDataRate:%u Quota:%u",
                                 p_ccb->local_cid, p_ccb->peer_cfg.fcr.mode, p_ccb->ertm_info.user_tx_pool_id,
                                 p_ccb->ccb_priority, p_ccb->tx_data_rate, p_ccb->buff_quota);
 
@@ -915,7 +915,7 @@ void l2c_link_adjust_chnl_allocation (void)
         {
             p_ccb->buff_quota = quota_per_weighted_chnls[HCI_ACL_POOL_ID] * p_ccb->tx_data_rate;
 
-            L2CAP_TRACE_EVENT4 ("CID:0x%04x Priority:%u TxDataRate:%u Quota:%u",
+            L2CAP_TRACE_EVENT ("CID:0x%04x Priority:%u TxDataRate:%u Quota:%u",
                                 p_ccb->local_cid,
                                 p_ccb->ccb_priority, p_ccb->tx_data_rate, p_ccb->buff_quota);
         }
@@ -1086,7 +1086,7 @@ BOOLEAN l2c_link_check_power_mode (tL2C_LCB *p_lcb)
         {
             if ( mode == BTM_PM_STS_PENDING )
             {
-                L2CAP_TRACE_DEBUG1 ("LCB(0x%x) is in PM pending state", p_lcb->handle);
+                L2CAP_TRACE_DEBUG ("LCB(0x%x) is in PM pending state", p_lcb->handle);
 
                 return TRUE;
             }
@@ -1367,7 +1367,7 @@ static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
 #if (BLE_INCLUDED == TRUE)
     if (p_lcb->transport == BT_TRANSPORT_LE)
     {
-        L2CAP_TRACE_DEBUG6 ("TotalWin=%d,Hndl=0x%x,Quota=%d,Unack=%d,RRQuota=%d,RRUnack=%d",
+        L2CAP_TRACE_DEBUG ("TotalWin=%d,Hndl=0x%x,Quota=%d,Unack=%d,RRQuota=%d,RRUnack=%d",
                 l2cb.controller_le_xmit_window,
                 p_lcb->handle,
                 p_lcb->link_xmit_quota, p_lcb->sent_not_acked,
@@ -1376,7 +1376,7 @@ static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
     else
 #endif
     {
-        L2CAP_TRACE_DEBUG6 ("TotalWin=%d,Hndl=0x%x,Quota=%d,Unack=%d,RRQuota=%d,RRUnack=%d",
+        L2CAP_TRACE_DEBUG ("TotalWin=%d,Hndl=0x%x,Quota=%d,Unack=%d,RRQuota=%d,RRUnack=%d",
                 l2cb.controller_xmit_window,
                 p_lcb->handle,
                 p_lcb->link_xmit_quota, p_lcb->sent_not_acked,
@@ -1418,7 +1418,7 @@ void l2c_link_process_num_completed_pkts (UINT8 *p)
         /* Originally designed for [3DSG]                   */
         if((p_lcb != NULL) && (p_lcb->p_nocp_cb))
         {
-            L2CAP_TRACE_DEBUG0 ("L2CAP - calling NoCP callback");
+            L2CAP_TRACE_DEBUG ("L2CAP - calling NoCP callback");
             (*p_lcb->p_nocp_cb)(p_lcb->remote_bd_addr);
         }
 
@@ -1466,7 +1466,7 @@ void l2c_link_process_num_completed_pkts (UINT8 *p)
 #if (BLE_INCLUDED == TRUE)
             if (p_lcb->transport == BT_TRANSPORT_LE)
             {
-                L2CAP_TRACE_DEBUG5 ("TotalWin=%d,LinkUnack(0x%x)=%d,RRCheck=%d,RRUnack=%d",
+                L2CAP_TRACE_DEBUG ("TotalWin=%d,LinkUnack(0x%x)=%d,RRCheck=%d,RRUnack=%d",
                     l2cb.controller_le_xmit_window,
                     p_lcb->handle, p_lcb->sent_not_acked,
                     l2cb.check_round_robin, l2cb.round_robin_unacked);
@@ -1474,7 +1474,7 @@ void l2c_link_process_num_completed_pkts (UINT8 *p)
             else
 #endif
             {
-                L2CAP_TRACE_DEBUG5 ("TotalWin=%d,LinkUnack(0x%x)=%d,RRCheck=%d,RRUnack=%d",
+                L2CAP_TRACE_DEBUG ("TotalWin=%d,LinkUnack(0x%x)=%d,RRCheck=%d,RRUnack=%d",
                     l2cb.controller_xmit_window,
                     p_lcb->handle, p_lcb->sent_not_acked,
                     l2cb.check_round_robin, l2cb.round_robin_unacked);
@@ -1484,13 +1484,13 @@ void l2c_link_process_num_completed_pkts (UINT8 *p)
         else
         {
 #if (BLE_INCLUDED == TRUE)
-            L2CAP_TRACE_DEBUG5 ("TotalWin=%d  LE_Win: %d, Handle=0x%x, RRCheck=%d, RRUnack=%d",
+            L2CAP_TRACE_DEBUG ("TotalWin=%d  LE_Win: %d, Handle=0x%x, RRCheck=%d, RRUnack=%d",
                 l2cb.controller_xmit_window,
                 l2cb.controller_le_xmit_window,
                 handle,
                 l2cb.check_round_robin, l2cb.round_robin_unacked);
 #else
-            L2CAP_TRACE_DEBUG4 ("TotalWin=%d  Handle=0x%x  RRCheck=%d  RRUnack=%d",
+            L2CAP_TRACE_DEBUG ("TotalWin=%d  Handle=0x%x  RRCheck=%d  RRUnack=%d",
                 l2cb.controller_xmit_window,
                 handle,
                 l2cb.check_round_robin, l2cb.round_robin_unacked);
@@ -1566,7 +1566,7 @@ BT_HDR *l2cap_link_chk_pkt_start (BT_HDR *p_cur_buf)
         /* a packet, it is incomplete. Drop it.                   */
         if (p_lcb->p_hcit_rcv_acl)
         {
-            L2CAP_TRACE_WARNING0 ("L2CAP - dropping incomplete pkt");
+            L2CAP_TRACE_WARNING ("L2CAP - dropping incomplete pkt");
             GKI_freebuf (p_lcb->p_hcit_rcv_acl);
             p_lcb->p_hcit_rcv_acl = NULL;
         }
@@ -1623,7 +1623,7 @@ BT_HDR *l2cap_link_chk_pkt_start (BT_HDR *p_cur_buf)
             else
             {
                 /* Packet too long. Drop the base packet */
-                L2CAP_TRACE_WARNING3 ("L2CAP - dropping too long pkt BufLen: %d  total_len: %d  hci_len: %d",
+                L2CAP_TRACE_WARNING ("L2CAP - dropping too long pkt BufLen: %d  total_len: %d  hci_len: %d",
                                       p_lcb->p_hcit_rcv_acl->len, total_len, hci_len);
 
                 GKI_freebuf (p_lcb->p_hcit_rcv_acl);
@@ -1710,7 +1710,7 @@ void l2c_link_segments_xmitted (BT_HDR *p_msg)
     /* Find the LCB based on the handle */
     if ((p_lcb = l2cu_find_lcb_by_handle (handle)) == NULL)
     {
-        L2CAP_TRACE_WARNING1 ("L2CAP - rcvd segment complete, unknown handle: %d", handle);
+        L2CAP_TRACE_WARNING ("L2CAP - rcvd segment complete, unknown handle: %d", handle);
         GKI_freebuf (p_msg);
         return;
     }

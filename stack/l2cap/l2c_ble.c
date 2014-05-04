@@ -57,13 +57,13 @@ BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda)
     /* There can be only one BLE connection request outstanding at a time */
     if (btm_ble_get_conn_st() == BLE_CONN_IDLE)
     {
-        L2CAP_TRACE_WARNING0 ("L2CA_CancelBleConnectReq - no connection pending");
+        L2CAP_TRACE_WARNING ("L2CA_CancelBleConnectReq - no connection pending");
         return(FALSE);
     }
 
     if (memcmp (rem_bda, l2cb.ble_connecting_bda, BD_ADDR_LEN))
     {
-        L2CAP_TRACE_WARNING4 ("L2CA_CancelBleConnectReq - different  BDA Connecting: %08x%04x  Cancel: %08x%04x",
+        L2CAP_TRACE_WARNING ("L2CA_CancelBleConnectReq - different  BDA Connecting: %08x%04x  Cancel: %08x%04x",
                               (l2cb.ble_connecting_bda[0]<<24)+(l2cb.ble_connecting_bda[1]<<16)+(l2cb.ble_connecting_bda[2]<<8)+l2cb.ble_connecting_bda[3],
                               (l2cb.ble_connecting_bda[4]<<8)+l2cb.ble_connecting_bda[5],
                               (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
@@ -111,7 +111,7 @@ BOOLEAN L2CA_UpdateBleConnParams (BD_ADDR rem_bda, UINT16 min_int, UINT16 max_in
         /* If we don't have one, create one and accept the connection. */
         if (!p_lcb || !p_acl_cb)
         {
-            L2CAP_TRACE_WARNING2 ("L2CA_UpdateBleConnParams - unknown BD_ADDR %08x%04x",
+            L2CAP_TRACE_WARNING ("L2CA_UpdateBleConnParams - unknown BD_ADDR %08x%04x",
                                   (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
                                   (rem_bda[4]<<8)+rem_bda[5]);
             return(FALSE);
@@ -119,7 +119,7 @@ BOOLEAN L2CA_UpdateBleConnParams (BD_ADDR rem_bda, UINT16 min_int, UINT16 max_in
 
         if (p_lcb->transport != BT_TRANSPORT_LE)
         {
-            L2CAP_TRACE_WARNING2 ("L2CA_UpdateBleConnParams - BD_ADDR %08x%04x not LE",
+            L2CAP_TRACE_WARNING ("L2CA_UpdateBleConnParams - BD_ADDR %08x%04x not LE",
                                   (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
                                   (rem_bda[4]<<8)+rem_bda[5]);
             return(FALSE);
@@ -170,19 +170,19 @@ BOOLEAN L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, BOOLEAN enable)
 
     if (!p_lcb)
     {
-        L2CAP_TRACE_WARNING2 ("L2CA_EnableUpdateBleConnParams - unknown BD_ADDR %08x%04x",
+        L2CAP_TRACE_WARNING ("L2CA_EnableUpdateBleConnParams - unknown BD_ADDR %08x%04x",
             (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
             (rem_bda[4]<<8)+rem_bda[5]);
         return (FALSE);
     }
 
-    L2CAP_TRACE_API5 ("%s - BD_ADDR %08x%04x enable %d current upd state 0x%02x",__FUNCTION__,
+    L2CAP_TRACE_API ("%s - BD_ADDR %08x%04x enable %d current upd state 0x%02x",__FUNCTION__,
         (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
         (rem_bda[4]<<8)+rem_bda[5], enable, p_lcb->conn_update_mask);
 
     if (p_lcb->transport != BT_TRANSPORT_LE || (p_lcb->link_role != HCI_ROLE_MASTER))
     {
-        L2CAP_TRACE_WARNING4 ("%s - BD_ADDR %08x%04x not LE or not master %d", __FUNCTION__,
+        L2CAP_TRACE_WARNING ("%s - BD_ADDR %08x%04x not LE or not master %d", __FUNCTION__,
                               (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
                               (rem_bda[4]<<8)+rem_bda[5], p_lcb->link_role);
         return (FALSE);
@@ -266,7 +266,7 @@ UINT16 L2CA_GetDisconnectReason (BD_ADDR remote_bda, tBT_TRANSPORT transport)
     if ((p_lcb = l2cu_find_lcb_by_bd_addr (remote_bda, transport)) != NULL)
         reason = p_lcb->disc_reason;
 
-    L2CAP_TRACE_DEBUG1 ("L2CA_GetDisconnectReason=%d ",reason);
+    L2CAP_TRACE_DEBUG ("L2CA_GetDisconnectReason=%d ",reason);
 
     return reason;
 }
@@ -287,7 +287,7 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
     tL2C_LCB            *p_lcb;
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_or_alloc_dev (bda);
 
-    L2CAP_TRACE_DEBUG5 ("l2cble_scanner_conn_comp: HANDLE=%d addr_type=%d conn_interval=%d slave_latency=%d supervision_tout=%d",
+    L2CAP_TRACE_DEBUG ("l2cble_scanner_conn_comp: HANDLE=%d addr_type=%d conn_interval=%d slave_latency=%d supervision_tout=%d",
                         handle,  type, conn_interval, conn_latency, conn_timeout);
 
     l2cb.is_ble_connecting = FALSE;
@@ -302,7 +302,7 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
         if (!p_lcb)
         {
             btm_sec_disconnect (handle, HCI_ERR_NO_CONNECTION);
-            L2CAP_TRACE_ERROR0 ("l2cble_scanner_conn_comp - failed to allocate LCB");
+            L2CAP_TRACE_ERROR ("l2cble_scanner_conn_comp - failed to allocate LCB");
             return;
         }
         else
@@ -310,14 +310,14 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
             if (!l2cu_initialize_fixed_ccb (p_lcb, L2CAP_ATT_CID, &l2cb.fixed_reg[L2CAP_ATT_CID - L2CAP_FIRST_FIXED_CHNL].fixed_chnl_opts))
             {
                 btm_sec_disconnect (handle, HCI_ERR_NO_CONNECTION);
-                L2CAP_TRACE_WARNING0 ("l2cble_scanner_conn_comp - LCB but no CCB");
+                L2CAP_TRACE_WARNING ("l2cble_scanner_conn_comp - LCB but no CCB");
                 return ;
             }
         }
     }
     else if (p_lcb->link_state != LST_CONNECTING)
     {
-        L2CAP_TRACE_ERROR1 ("L2CAP got BLE scanner conn_comp in bad state: %d", p_lcb->link_state);
+        L2CAP_TRACE_ERROR ("L2CAP got BLE scanner conn_comp in bad state: %d", p_lcb->link_state);
         return;
     }
     btu_stop_timer(&p_lcb->timer_entry);
@@ -344,7 +344,7 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
           (conn_latency > p_dev_rec->conn_params.slave_latency) ||
           (conn_timeout > p_dev_rec->conn_params.supervision_tout)))
     {
-        L2CAP_TRACE_ERROR5 ("upd_ll_conn_params: HANDLE=%d min_conn_int=%d max_conn_int=%d slave_latency=%d supervision_tout=%d",
+        L2CAP_TRACE_ERROR ("upd_ll_conn_params: HANDLE=%d min_conn_int=%d max_conn_int=%d slave_latency=%d supervision_tout=%d",
                             handle, p_dev_rec->conn_params.min_conn_int, p_dev_rec->conn_params.max_conn_int,
                             p_dev_rec->conn_params.slave_latency, p_dev_rec->conn_params.supervision_tout);
 
@@ -397,7 +397,7 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
         if (!p_lcb)
         {
             btm_sec_disconnect (handle, HCI_ERR_NO_CONNECTION);
-            L2CAP_TRACE_ERROR0 ("l2cble_advertiser_conn_comp - failed to allocate LCB");
+            L2CAP_TRACE_ERROR ("l2cble_advertiser_conn_comp - failed to allocate LCB");
             return;
         }
         else
@@ -405,7 +405,7 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
             if (!l2cu_initialize_fixed_ccb (p_lcb, L2CAP_ATT_CID, &l2cb.fixed_reg[L2CAP_ATT_CID - L2CAP_FIRST_FIXED_CHNL].fixed_chnl_opts))
             {
                 btm_sec_disconnect (handle, HCI_ERR_NO_CONNECTION);
-                L2CAP_TRACE_WARNING0 ("l2cble_scanner_conn_comp - LCB but no CCB");
+                L2CAP_TRACE_WARNING ("l2cble_scanner_conn_comp - LCB but no CCB");
                 return ;
             }
         }
@@ -484,7 +484,7 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
     /* Check command length does not exceed packet length */
     if ((p + cmd_len) > p_pkt_end)
     {
-        L2CAP_TRACE_WARNING3 ("L2CAP - LE - format error, pkt_len: %d  cmd_len: %d  code: %d", pkt_len, cmd_len, cmd_code);
+        L2CAP_TRACE_WARNING ("L2CAP - LE - format error, pkt_len: %d  cmd_len: %d  code: %d", pkt_len, cmd_len, cmd_code);
         return;
     }
 
@@ -535,7 +535,7 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
                      }
                      else
                      {
-                         L2CAP_TRACE_EVENT0 ("L2CAP - LE - update currently disabled");
+                         L2CAP_TRACE_EVENT ("L2CAP - LE - update currently disabled");
                      }
 
                 }
@@ -549,7 +549,7 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             break;
 
         default:
-            L2CAP_TRACE_WARNING1 ("L2CAP - LE - unknown cmd code: %d", cmd_code);
+            L2CAP_TRACE_WARNING ("L2CAP - LE - unknown cmd code: %d", cmd_code);
             l2cu_send_peer_cmd_reject (p_lcb, L2CAP_CMD_REJ_NOT_UNDERSTOOD, id, 0, 0);
             return;
     }
@@ -616,7 +616,7 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
     /* There can be only one BLE connection request outstanding at a time */
     if (p_dev_rec == NULL)
     {
-        L2CAP_TRACE_WARNING0 ("unknown device, can not initate connection");
+        L2CAP_TRACE_WARNING ("unknown device, can not initate connection");
         return(FALSE);
     }
 
@@ -640,7 +640,7 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
     if (!btm_ble_topology_check(BTM_BLE_STATE_INIT))
     {
         l2cu_release_lcb (p_lcb);
-        L2CAP_TRACE_ERROR0("initate direct connection fail, topology limitation");
+        L2CAP_TRACE_ERROR("initate direct connection fail, topology limitation");
         return FALSE;
     }
 #if BLE_PRIVACY_SPT == TRUE
@@ -670,7 +670,7 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
                                         0))                      /* UINT16 max_len       */
     {
         l2cu_release_lcb (p_lcb);
-        L2CAP_TRACE_ERROR0("initate direct connection fail, no resources");
+        L2CAP_TRACE_ERROR("initate direct connection fail, no resources");
         return (FALSE);
     }
     else
@@ -706,7 +706,7 @@ BOOLEAN l2cble_create_conn (tL2C_LCB *p_lcb)
     }
     else
     {
-        L2CAP_TRACE_WARNING1 ("L2CAP - LE - cannot start new connection at conn st: %d", conn_st);
+        L2CAP_TRACE_WARNING ("L2CAP - LE - cannot start new connection at conn st: %d", conn_st);
 
         btm_ble_enqueue_direct_conn_req(p_lcb);
 
@@ -770,14 +770,14 @@ void l2cble_process_rc_param_request_evt(UINT16 handle, UINT16 int_min, UINT16 i
         }
         else
         {
-            L2CAP_TRACE_EVENT0 ("L2CAP - LE - update currently disabled");
+            L2CAP_TRACE_EVENT ("L2CAP - LE - update currently disabled");
             btsnd_hcic_ble_rc_param_req_neg_reply (handle,HCI_ERR_UNACCEPT_CONN_INTERVAL);
         }
 
     }
     else
     {
-        L2CAP_TRACE_WARNING0("No link to update connection parameter")
+        L2CAP_TRACE_WARNING("No link to update connection parameter")
     }
 }
 #endif

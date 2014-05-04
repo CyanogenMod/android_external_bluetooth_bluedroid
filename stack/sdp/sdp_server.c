@@ -148,7 +148,7 @@ void sdp_server_handle_client_req (tCONN_CB *p_ccb, BT_HDR *p_msg)
 
     default:
         sdpu_build_n_send_error (p_ccb, trans_num, SDP_INVALID_REQ_SYNTAX, SDP_TEXT_BAD_PDU);
-        SDP_TRACE_WARNING1 ("SDP - server got unknown PDU: 0x%x", pdu_id);
+        SDP_TRACE_WARNING ("SDP - server got unknown PDU: 0x%x", pdu_id);
         break;
     }
 }
@@ -245,7 +245,7 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
     /* Get a buffer to use to build the response */
     if ((p_buf = (BT_HDR *)GKI_getpoolbuf (SDP_POOL_ID)) == NULL)
     {
-        SDP_TRACE_ERROR0 ("SDP - no buf for search rsp");
+        SDP_TRACE_ERROR ("SDP - no buf for search rsp");
         return;
     }
     p_buf->offset = L2CAP_MIN_OFFSET;
@@ -263,7 +263,7 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
     UINT16_TO_BE_STREAM (p_rsp, num_rsp_handles);
     UINT16_TO_BE_STREAM (p_rsp, cur_handles);
 
-/*    SDP_TRACE_DEBUG5("SDP Service Rsp: tothdl %d, curhdlr %d, start %d, end %d, cont %d",
+/*    SDP_TRACE_DEBUG("SDP Service Rsp: tothdl %d, curhdlr %d, start %d, end %d, cont %d",
                      num_rsp_handles, cur_handles, cont_offset,
                      cont_offset + cur_handles-1, is_cont); */
     for (xx = cont_offset; xx < cont_offset + cur_handles; xx++)
@@ -391,7 +391,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
             p_ccb->rsp_list = (UINT8 *)GKI_getbuf (max_list_len);
             if (p_ccb->rsp_list == NULL)
             {
-                SDP_TRACE_ERROR0 ("SDP - no scratch buf for search rsp");
+                SDP_TRACE_ERROR ("SDP - no scratch buf for search rsp");
                 return;
             }
         }
@@ -440,7 +440,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
             {
                 if (attr_len >= SDP_MAX_ATTR_LEN)
                 {
-                    SDP_TRACE_ERROR2("SDP attr too big: max_list_len=%d,attr_len=%d", max_list_len, attr_len);
+                    SDP_TRACE_ERROR("SDP attr too big: max_list_len=%d,attr_len=%d", max_list_len, attr_len);
                     sdpu_build_n_send_error (p_ccb, trans_num, SDP_NO_RESOURCES, NULL);
                     return;
                 }
@@ -499,7 +499,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     /* Get a buffer to use to build the response */
     if ((p_buf = (BT_HDR *)GKI_getpoolbuf (SDP_POOL_ID)) == NULL)
     {
-        SDP_TRACE_ERROR0 ("SDP - no buf for search rsp");
+        SDP_TRACE_ERROR ("SDP - no buf for search rsp");
         return;
     }
     p_buf->offset = L2CAP_MIN_OFFSET;
@@ -641,7 +641,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
             p_ccb->rsp_list = (UINT8 *)GKI_getbuf (max_list_len);
             if (p_ccb->rsp_list == NULL)
             {
-                SDP_TRACE_ERROR0 ("SDP - no scratch buf for search rsp");
+                SDP_TRACE_ERROR ("SDP - no scratch buf for search rsp");
                 return;
             }
         }
@@ -714,7 +714,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
                 {
                     if (attr_len >= SDP_MAX_ATTR_LEN)
                     {
-                        SDP_TRACE_ERROR2("SDP attr too big: max_list_len=%d,attr_len=%d", max_list_len, attr_len);
+                        SDP_TRACE_ERROR("SDP attr too big: max_list_len=%d,attr_len=%d", max_list_len, attr_len);
                         sdpu_build_n_send_error (p_ccb, trans_num, SDP_NO_RESOURCES, NULL);
                         return;
                     }
@@ -801,7 +801,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     /* Get a buffer to use to build the response */
     if ((p_buf = (BT_HDR *)GKI_getpoolbuf (SDP_POOL_ID)) == NULL)
     {
-        SDP_TRACE_ERROR0 ("SDP - no buf for search rsp");
+        SDP_TRACE_ERROR ("SDP - no buf for search rsp");
         return;
     }
     p_buf->offset = L2CAP_MIN_OFFSET;
