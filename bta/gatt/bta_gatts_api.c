@@ -59,7 +59,7 @@ void BTA_GATTS_Disable(void)
 
     if (bta_sys_is_register(BTA_ID_GATTS) == FALSE)
     {
-        APPL_TRACE_WARNING0("GATTS Module not enabled/already disabled");
+        APPL_TRACE_WARNING("GATTS Module not enabled/already disabled");
         return;
     }
 

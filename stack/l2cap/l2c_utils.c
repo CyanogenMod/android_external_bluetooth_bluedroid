@@ -2478,7 +2478,7 @@ BOOLEAN l2cu_set_acl_priority (BD_ADDR bd_addr, UINT8 priority, BOOLEAN reset_af
     UINT8                command[HCI_BRCM_ACL_PRIORITY_PARAM_SIZE];
     UINT8                vs_param;
 
-    APPL_TRACE_EVENT1("SET ACL PRIORITY %d", priority);
+    APPL_TRACE_EVENT("SET ACL PRIORITY %d", priority);
 
     /* Find the link control block for the acl channel */
     if ((p_lcb = l2cu_find_lcb_by_bd_addr(bd_addr, BT_TRANSPORT_BR_EDR)) == NULL)

@@ -115,7 +115,7 @@ void bta_ar_reg_avdt(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback, tBTA_SYS_ID sy
 #if (BTA_AR_DEBUG == TRUE)
     else
     {
-        APPL_TRACE_ERROR1("bta_ar_reg_avdt: the registration is from wrong sys_id:%d", sys_id);
+        APPL_TRACE_ERROR("bta_ar_reg_avdt: the registration is from wrong sys_id:%d", sys_id);
     }
 #endif
 

@@ -65,7 +65,7 @@ void BTA_HhEnable(tBTA_SEC sec_mask, tBTA_HH_CBACK *p_cback)
     /* register with BTA system manager */
     bta_sys_register(BTA_ID_HH, &bta_hh_reg);
 
-    APPL_TRACE_ERROR0("Calling BTA_HhEnable");
+    APPL_TRACE_ERROR("Calling BTA_HhEnable");
     p_buf = (tBTA_HH_API_ENABLE *)GKI_getbuf((UINT16)sizeof(tBTA_HH_API_ENABLE));
 
     if (p_buf != NULL)
@@ -155,7 +155,7 @@ void BTA_HhOpen(BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode, tBTA_SEC sec_mask)
     }
     else
     {
-        APPL_TRACE_ERROR0("No resource to send HID host Connect request.");
+        APPL_TRACE_ERROR("No resource to send HID host Connect request.");
     }
 }
 
@@ -308,7 +308,7 @@ void BTA_HhSendData(UINT8 dev_handle, BD_ADDR dev_bda, BT_HDR  *p_data)
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
     if (p_data->layer_specific != BTA_HH_RPTT_OUTPUT)
     {
-        APPL_TRACE_ERROR0("ERROR! Wrong report type! Write Command only valid for output report!");
+        APPL_TRACE_ERROR("ERROR! Wrong report type! Write Command only valid for output report!");
         return;
     }
 #endif
@@ -482,7 +482,7 @@ void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
             break;
 
         default:
-            APPL_TRACE_DEBUG1("Unknown boot report: %d", p_report[0]);;
+            APPL_TRACE_DEBUG("Unknown boot report: %d", p_report[0]);;
             break;
         }
     }

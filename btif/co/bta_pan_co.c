@@ -50,7 +50,7 @@
 *******************************************************************************/
 UINT8 bta_pan_co_init(UINT8 *q_level)
 {
-    BTIF_TRACE_API0("bta_pan_co_init");
+    BTIF_TRACE_API("bta_pan_co_init");
 
     /* set the q_level to 30 buffers */
     *q_level = 30;
@@ -75,14 +75,14 @@ UINT8 bta_pan_co_init(UINT8 *q_level)
 void bta_pan_co_open(UINT16 handle, UINT8 app_id, tBTA_PAN_ROLE local_role,
                             tBTA_PAN_ROLE peer_role, BD_ADDR peer_addr)
 {
-    BTIF_TRACE_API4("bta_pan_co_open:app_id:%d, local_role:%d, peer_role:%d, "
+    BTIF_TRACE_API("bta_pan_co_open:app_id:%d, local_role:%d, peer_role:%d, "
                     "handle:%d", app_id, local_role, peer_role, handle);
     btpan_conn_t* conn = btpan_find_conn_addr(peer_addr);
     if(conn == NULL)
         conn = btpan_new_conn(handle, peer_addr, local_role, peer_role);
     if(conn)
     {
-        BTIF_TRACE_DEBUG6("bta_pan_co_open:tap_fd:%d, open_count:%d, "
+        BTIF_TRACE_DEBUG("bta_pan_co_open:tap_fd:%d, open_count:%d, "
             "conn->handle:%d should = handle:%d, local_role:%d, remote_role:%d",
              btpan_cb.tap_fd, btpan_cb.open_count, conn->handle, handle,
              conn->local_role, conn->remote_role);
@@ -119,11 +119,11 @@ void bta_pan_co_open(UINT16 handle, UINT8 app_id, tBTA_PAN_ROLE local_role,
 *******************************************************************************/
 void bta_pan_co_close(UINT16 handle, UINT8 app_id)
 {
-    BTIF_TRACE_API2("bta_pan_co_close:app_id:%d, handle:%d", app_id, handle);
+    BTIF_TRACE_API("bta_pan_co_close:app_id:%d, handle:%d", app_id, handle);
     btpan_conn_t* conn = btpan_find_conn_handle(handle);
     if(conn && conn->state == PAN_STATE_OPEN)
     {
-        BTIF_TRACE_DEBUG0("bta_pan_co_close");
+        BTIF_TRACE_DEBUG("bta_pan_co_close");
 
         // let bta close event reset this handle as it needs
         // the handle to find the connection upon CLOSE
@@ -166,12 +166,12 @@ void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
     BOOLEAN            ext;
     BOOLEAN         forward;
 
-    BTIF_TRACE_API2("bta_pan_co_tx_path, handle:%d, app_id:%d", handle, app_id);
+    BTIF_TRACE_API("bta_pan_co_tx_path, handle:%d, app_id:%d", handle, app_id);
 
     btpan_conn_t* conn = btpan_find_conn_handle(handle);
     if(!conn || conn->state != PAN_STATE_OPEN)
     {
-        BTIF_TRACE_ERROR2("bta_pan_co_tx_path: cannot find pan connction or conn"
+        BTIF_TRACE_ERROR("bta_pan_co_tx_path: cannot find pan connction or conn"
             "is not opened, conn:%p, conn->state:%d", conn, conn->state);
         return;
     }
@@ -181,14 +181,14 @@ void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
         if ((p_buf = bta_pan_ci_readbuf(handle, src, dst, &protocol,
                                  &ext, &forward)))
         {
-            BTIF_TRACE_DEBUG2("bta_pan_co_tx_path, calling btapp_tap_send, "
+            BTIF_TRACE_DEBUG("bta_pan_co_tx_path, calling btapp_tap_send, "
                 "p_buf->len:%d, offset:%d", p_buf->len, p_buf->offset);
             if(is_empty_eth_addr(conn->eth_addr) && is_valid_bt_eth_addr(src))
             {
-                BTIF_TRACE_DEBUG6("pan bt peer addr: %02x:%02x:%02x:%02x:%02x:%02x",
+                BTIF_TRACE_DEBUG("pan bt peer addr: %02x:%02x:%02x:%02x:%02x:%02x",
                     conn->peer[0], conn->peer[1], conn->peer[2],
                     conn->peer[3],conn->peer[4], conn->peer[5]);
-                BTIF_TRACE_DEBUG6("     update its ethernet addr: "
+                BTIF_TRACE_DEBUG("     update its ethernet addr: "
                     "%02x:%02x:%02x:%02x:%02x:%02x", src[0], src[1], src[2],
                     src[3],src[4], src[5]);
                 memcpy(conn->eth_addr, src, sizeof(conn->eth_addr));
@@ -219,7 +219,7 @@ void bta_pan_co_rx_path(UINT16 handle, UINT8 app_id)
     UNUSED(handle);
     UNUSED(app_id);
 
-    BTIF_TRACE_API0("bta_pan_co_rx_path not used");
+    BTIF_TRACE_API("bta_pan_co_rx_path not used");
 }
 
 /*******************************************************************************
@@ -249,7 +249,7 @@ void bta_pan_co_tx_write(UINT16 handle, UINT8 app_id, BD_ADDR src, BD_ADDR dst,
     UNUSED(ext);
     UNUSED(forward);
 
-    BTIF_TRACE_API0("bta_pan_co_tx_write not used");
+    BTIF_TRACE_API("bta_pan_co_tx_write not used");
 }
 
 /*******************************************************************************
@@ -278,7 +278,7 @@ void  bta_pan_co_tx_writebuf(UINT16 handle, UINT8 app_id, BD_ADDR src,
     UNUSED(ext);
     UNUSED(forward);
 
-    BTIF_TRACE_API0("bta_pan_co_tx_writebuf not used");
+    BTIF_TRACE_API("bta_pan_co_tx_writebuf not used");
 }
 
 /*******************************************************************************
@@ -301,7 +301,7 @@ void bta_pan_co_rx_flow(UINT16 handle, UINT8 app_id, BOOLEAN enable)
     UNUSED(app_id);
     UNUSED(enable);
 
-    BTIF_TRACE_API1("bta_pan_co_rx_flow, enabled:%d, not used", enable);
+    BTIF_TRACE_API("bta_pan_co_rx_flow, enabled:%d, not used", enable);
     btpan_conn_t* conn = btpan_find_conn_handle(handle);
     if(!conn || conn->state != PAN_STATE_OPEN)
         return;
@@ -326,7 +326,7 @@ void bta_pan_co_pfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STATUS res
     UNUSED(len);
     UNUSED(p_filters);
 
-    BTIF_TRACE_API0("bta_pan_co_pfilt_ind");
+    BTIF_TRACE_API("bta_pan_co_pfilt_ind");
 }
 
 /*******************************************************************************
@@ -347,6 +347,6 @@ void bta_pan_co_mfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STATUS res
     UNUSED(len);
     UNUSED(p_filters);
 
-    BTIF_TRACE_API0("bta_pan_co_mfilt_ind");
+    BTIF_TRACE_API("bta_pan_co_mfilt_ind");
 }
 

@@ -63,7 +63,7 @@ BTA_API tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK *p_cback)
 
     if (bta_sys_is_register (BTA_ID_HS))
     {
-        APPL_TRACE_ERROR0("BTA HF Client is already enabled, ignoring ...");
+        APPL_TRACE_ERROR("BTA HF Client is already enabled, ignoring ...");
         return BTA_FAILURE;
     }
 

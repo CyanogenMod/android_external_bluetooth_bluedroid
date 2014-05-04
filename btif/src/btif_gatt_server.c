@@ -399,7 +399,7 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
                     break;
 
                 default:
-                    BTIF_TRACE_ERROR1 (" GATT Open :Invalid device type %d",device_type);
+                    BTIF_TRACE_ERROR (" GATT Open :Invalid device type %d",device_type);
                     return;
             }
 

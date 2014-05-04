@@ -81,7 +81,7 @@ BOOLEAN bta_hl_co_get_num_of_mdep(UINT8 app_id, UINT8 *p_num_of_mdep)
     }
 
 
-    BTIF_TRACE_DEBUG3("%s success=%d num_mdeps=%d",
+    BTIF_TRACE_DEBUG("%s success=%d num_mdeps=%d",
                       __FUNCTION__, success, *p_num_of_mdep );
     return success;
 }
@@ -110,7 +110,7 @@ BOOLEAN bta_hl_co_advrtise_source_sdp(UINT8 app_id)
     }
 
 
-    BTIF_TRACE_DEBUG2("%s advertize_flag=%d", __FUNCTION__, advertize_source_sdp );
+    BTIF_TRACE_DEBUG("%s advertize_flag=%d", __FUNCTION__, advertize_source_sdp );
 
     return advertize_source_sdp;
 }
@@ -141,7 +141,7 @@ BOOLEAN bta_hl_co_get_mdep_config(UINT8  app_id,
     UINT8       app_idx;
     BOOLEAN     success = FALSE;
 
-    BTIF_TRACE_DEBUG5("%s app_id=%d mdep_idx=%d mdep_id=%d mdep_counter=%d",
+    BTIF_TRACE_DEBUG("%s app_id=%d mdep_idx=%d mdep_id=%d mdep_counter=%d",
                       __FUNCTION__, app_id,mdep_idx,mdep_id,mdep_counter);
 
     if (btif_hl_find_app_idx(app_id, &app_idx))
@@ -155,7 +155,7 @@ BOOLEAN bta_hl_co_get_mdep_config(UINT8  app_id,
         success = TRUE;
     }
 
-    BTIF_TRACE_DEBUG4("%s success=%d mdep_idx=%d mdep_id=%d",
+    BTIF_TRACE_DEBUG("%s success=%d mdep_idx=%d mdep_id=%d",
                       __FUNCTION__, success, mdep_idx, mdep_id );
 
     return success;
@@ -183,7 +183,7 @@ BOOLEAN bta_hl_co_get_echo_config(UINT8  app_id,
     btif_hl_app_cb_t    *p_acb;
     tBTA_HL_SUP_FEATURE *p_sup;
 
-    BTIF_TRACE_DEBUG2("%s app_id=%d",__FUNCTION__, app_id );
+    BTIF_TRACE_DEBUG("%s app_id=%d",__FUNCTION__, app_id );
 
     if (btif_hl_find_app_idx(app_id, &app_idx))
     {
@@ -194,7 +194,7 @@ BOOLEAN bta_hl_co_get_echo_config(UINT8  app_id,
         success = TRUE;
     }
 
-    BTIF_TRACE_DEBUG4("%s success=%d max tx_size=%d rx_size=%d",
+    BTIF_TRACE_DEBUG("%s success=%d max tx_size=%d rx_size=%d",
                       __FUNCTION__, success, p_echo_cfg->max_tx_apdu_size,
                       p_echo_cfg->max_rx_apdu_size );
 
@@ -219,7 +219,7 @@ BOOLEAN bta_hl_co_get_echo_config(UINT8  app_id,
 void bta_hl_co_save_mdl(UINT8 mdep_id, UINT8 item_idx, tBTA_HL_MDL_CFG *p_mdl_cfg )
 {
 
-    BTIF_TRACE_DEBUG6("%s mdep_id =%d, item_idx=%d active=%d mdl_id=%d time=%d",
+    BTIF_TRACE_DEBUG("%s mdep_id =%d, item_idx=%d active=%d mdl_id=%d time=%d",
                       __FUNCTION__, mdep_id, item_idx,
                       p_mdl_cfg->active,
                       p_mdl_cfg->mdl_id,
@@ -246,7 +246,7 @@ void bta_hl_co_delete_mdl(UINT8 mdep_id, UINT8 item_idx)
 {
 
 
-    BTIF_TRACE_DEBUG3("%s mdep_id=%d, item_idx=%d", __FUNCTION__, mdep_id, item_idx);
+    BTIF_TRACE_DEBUG("%s mdep_id=%d, item_idx=%d", __FUNCTION__, mdep_id, item_idx);
 
     btif_hl_delete_mdl_cfg(mdep_id, item_idx);
 
@@ -276,7 +276,7 @@ BOOLEAN bta_hl_co_load_mdl_config (UINT8 app_id, UINT8 buffer_size,
     UINT8 i;
     tBTA_HL_MDL_CFG *p;
 
-    BTIF_TRACE_DEBUG3("%s app_id=%d, num_items=%d",
+    BTIF_TRACE_DEBUG("%s app_id=%d, num_items=%d",
                       __FUNCTION__, app_id, buffer_size);
 
     if (buffer_size > BTA_HL_NUM_MDL_CFGS)
@@ -292,13 +292,13 @@ BOOLEAN bta_hl_co_load_mdl_config (UINT8 app_id, UINT8 buffer_size,
         {
             if (p->active)
             {
-                BTIF_TRACE_DEBUG6("i=%d mdl_id=0x%x dch_mode=%d local mdep_role=%d mdep_id=%d mtu=%d",
+                BTIF_TRACE_DEBUG("i=%d mdl_id=0x%x dch_mode=%d local mdep_role=%d mdep_id=%d mtu=%d",
                                   i, p->mdl_id, p->dch_mode, p->local_mdep_role, p->local_mdep_role, p->mtu);
             }
         }
     }
 
-    BTIF_TRACE_DEBUG3("%s success=%d num_items=%d", __FUNCTION__, result, buffer_size);
+    BTIF_TRACE_DEBUG("%s success=%d num_items=%d", __FUNCTION__, result, buffer_size);
 
     return result;
 }
@@ -326,7 +326,7 @@ void bta_hl_co_get_tx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
     btif_hl_mdl_cb_t *p_dcb;
     tBTA_HL_STATUS status = BTA_HL_STATUS_FAIL;
 
-    BTIF_TRACE_DEBUG4("%s app_id=%d mdl_handle=0x%x buf_size=%d",
+    BTIF_TRACE_DEBUG("%s app_id=%d mdl_handle=0x%x buf_size=%d",
                       __FUNCTION__, app_id, mdl_handle, buf_size);
 
     if (btif_hl_find_mdl_idx_using_handle(mdl_handle, &app_idx, &mcl_idx, &mdl_idx))
@@ -371,7 +371,7 @@ void bta_hl_co_put_rx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
     btif_hl_mdl_cb_t *p_dcb;
     tBTA_HL_STATUS status = BTA_HL_STATUS_FAIL;
     int            r;
-    BTIF_TRACE_DEBUG4("%s app_id=%d mdl_handle=0x%x data_size=%d",
+    BTIF_TRACE_DEBUG("%s app_id=%d mdl_handle=0x%x data_size=%d",
                       __FUNCTION__,app_id, mdl_handle, data_size);
 
     if (btif_hl_find_mdl_idx_using_handle(mdl_handle, &app_idx, &mcl_idx, &mdl_idx))
@@ -383,18 +383,18 @@ void bta_hl_co_put_rx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
             memcpy(p_dcb->p_rx_pkt, p_data, data_size);
             if (p_dcb->p_scb)
             {
-                BTIF_TRACE_DEBUG4("app_idx=%d mcl_idx=0x%x mdl_idx=0x%x data_size=%d",
+                BTIF_TRACE_DEBUG("app_idx=%d mcl_idx=0x%x mdl_idx=0x%x data_size=%d",
                                   app_idx, mcl_idx, mdl_idx, data_size);
                 r = send(p_dcb->p_scb->socket_id[1], p_dcb->p_rx_pkt, data_size, 0);
 
                 if (r == data_size)
                 {
-                    BTIF_TRACE_DEBUG1("socket send success data_size=%d",  data_size);
+                    BTIF_TRACE_DEBUG("socket send success data_size=%d",  data_size);
                     status = BTA_HL_STATUS_OK;
                 }
                 else
                 {
-                    BTIF_TRACE_ERROR2("socket send failed r=%d data_size=%d",r, data_size);
+                    BTIF_TRACE_ERROR("socket send failed r=%d data_size=%d",r, data_size);
                 }
 
 
@@ -431,7 +431,7 @@ void bta_hl_co_get_echo_data (UINT8 app_id, tBTA_HL_MCL_HANDLE mcl_handle,
     UNUSED(buf_size);
     UNUSED(p_buf);
 
-    BTIF_TRACE_ERROR1("%s not supported",__FUNCTION__);
+    BTIF_TRACE_ERROR("%s not supported",__FUNCTION__);
     bta_hl_ci_get_echo_data(mcl_handle,  status, evt);
 }
 
@@ -460,7 +460,7 @@ void bta_hl_co_put_echo_data (UINT8 app_id, tBTA_HL_MCL_HANDLE mcl_handle,
     UNUSED(data_size);
     UNUSED(p_data);
 
-    BTIF_TRACE_ERROR1("%s not supported",__FUNCTION__);
+    BTIF_TRACE_ERROR("%s not supported",__FUNCTION__);
     bta_hl_ci_put_echo_data(mcl_handle,  status, evt);
 }
 

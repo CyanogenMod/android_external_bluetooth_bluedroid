@@ -105,7 +105,7 @@ void bta_dm_disable_pm(void)
     {
         if(bta_dm_cb.pm_timer[i].in_use)
         {
-            APPL_TRACE_DEBUG1("stop dm_pm_timer:%d", i);
+            APPL_TRACE_DEBUG("stop dm_pm_timer:%d", i);
             bta_sys_stop_timer(&bta_dm_cb.pm_timer[i].timer);
             bta_dm_cb.pm_timer[i].in_use = FALSE;
         }
@@ -131,7 +131,7 @@ static void bta_dm_pm_stop_timer(BD_ADDR peer_addr)
 
         if(bta_dm_cb.pm_timer[i].in_use && !bdcmp(bta_dm_cb.pm_timer[i].peer_bdaddr, peer_addr))
         {
-            APPL_TRACE_DEBUG1("stop dm_pm_timer:%d", i);
+            APPL_TRACE_DEBUG("stop dm_pm_timer:%d", i);
             bta_sys_stop_timer(&bta_dm_cb.pm_timer[i].timer);
             bta_dm_cb.pm_timer[i].in_use = FALSE;
             break;
@@ -162,7 +162,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
 #endif
     tBTA_DM_PEER_DEVICE *p_dev;
 
-    APPL_TRACE_DEBUG3("bta_dm_pm_cback: st(%d), id(%d), app(%d)", status, id, app_id);
+    APPL_TRACE_DEBUG("bta_dm_pm_cback: st(%d), id(%d), app(%d)", status, id, app_id);
 
     btm_status = BTM_ReadLocalVersion (&vers);
     p_dev = bta_dm_find_peer_device(peer_addr);
@@ -241,7 +241,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
         }
         else
         {
-            APPL_TRACE_WARNING0("bta_dm_act no entry for connected service cbs");
+            APPL_TRACE_WARNING("bta_dm_act no entry for connected service cbs");
             return;
         }
     }
@@ -250,7 +250,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
         /* check if we have more connected service that cbs */
         if(bta_dm_conn_srvcs.count == BTA_DM_NUM_CONN_SRVS)
         {
-            APPL_TRACE_WARNING0("bta_dm_act no more connected service cbs");
+            APPL_TRACE_WARNING("bta_dm_act no more connected service cbs");
             return;
         }
 
@@ -259,7 +259,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
         bta_dm_conn_srvcs.conn_srvc[j].app_id = app_id;
         bdcpy(bta_dm_conn_srvcs.conn_srvc[j].peer_bdaddr, peer_addr);
 
-        APPL_TRACE_WARNING2("new conn_srvc id:%d, app_id:%d", id, app_id);
+        APPL_TRACE_WARNING("new conn_srvc id:%d, app_id:%d", id, app_id);
 
         bta_dm_conn_srvcs.count++;
         bta_dm_conn_srvcs.conn_srvc[j].state = status;
@@ -368,7 +368,7 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
             p_act0 = &p_pm_spec->actn_tbl[p_srvcs->state][0];
             p_act1 = &p_pm_spec->actn_tbl[p_srvcs->state][1];
 
-            APPL_TRACE_DEBUG3("bta_dm_pm_set_mode: srvcsid: %d, state: %d, j: %d", p_srvcs->id, p_srvcs->state, j);
+            APPL_TRACE_DEBUG("bta_dm_pm_set_mode: srvcsid: %d, state: %d, j: %d", p_srvcs->id, p_srvcs->state, j);
             allowed_modes |= p_pm_spec->allow_mask;
 
             /* PM actions are in the order of strictness */
@@ -433,7 +433,7 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
                 bdcpy(bta_dm_cb.pm_timer[i].peer_bdaddr, peer_addr);
                 bta_dm_cb.pm_timer[i].timer.p_cback = bta_dm_pm_timer_cback;
                 bta_sys_start_timer(&bta_dm_cb.pm_timer[i].timer, 0, timeout);
-                APPL_TRACE_DEBUG2("start dm_pm_timer:%d, %d", i, timeout);
+                APPL_TRACE_DEBUG("start dm_pm_timer:%d, %d", i, timeout);
                 return;
 
             }
@@ -443,7 +443,7 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
         /* no more timers */
         if(i==BTA_DM_NUM_PM_TIMER)
         {
-            APPL_TRACE_WARNING0("bta_dm_act dm_pm_timer no more");
+            APPL_TRACE_WARNING("bta_dm_act dm_pm_timer no more");
             return;
         }
     }
@@ -469,7 +469,7 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
         }
         else
         {
-            APPL_TRACE_DEBUG0("bta_dm_pm_set_mode: Link policy disallows SNIFF, ignore request");
+            APPL_TRACE_DEBUG("bta_dm_pm_set_mode: Link policy disallows SNIFF, ignore request");
         }
     }
     else if(pm_action == BTA_DM_PM_ACTIVE)
@@ -529,13 +529,13 @@ static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index)
     BTM_ReadPowerMode(p_peer_dev->peer_bdaddr, &mode);
 
 #if (BTM_SSR_INCLUDED == TRUE)
-    APPL_TRACE_DEBUG3("bta_dm_pm_sniff cur:%d, idx:%d, info:x%x", mode, index, p_peer_dev->info);
+    APPL_TRACE_DEBUG("bta_dm_pm_sniff cur:%d, idx:%d, info:x%x", mode, index, p_peer_dev->info);
     if (mode != BTM_PM_MD_SNIFF ||
         (HCI_SNIFF_SUB_RATE_SUPPORTED(BTM_ReadLocalFeatures ()) &&
          HCI_SNIFF_SUB_RATE_SUPPORTED(BTM_ReadRemoteFeatures (p_peer_dev->peer_bdaddr)) &&
          !(p_peer_dev->info & BTA_DM_DI_USE_SSR)))
 #else
-    APPL_TRACE_DEBUG2("bta_dm_pm_sniff cur:%d, idx:%d", mode, index);
+    APPL_TRACE_DEBUG("bta_dm_pm_sniff cur:%d, idx:%d", mode, index);
     if(mode != BTM_PM_MD_SNIFF)
 #endif
     {
@@ -554,12 +554,12 @@ static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index)
         }
         else if (status == BTM_SUCCESS)
         {
-            APPL_TRACE_DEBUG0("bta_dm_pm_sniff BTM_SetPowerMode() returns BTM_SUCCESS");
+            APPL_TRACE_DEBUG("bta_dm_pm_sniff BTM_SetPowerMode() returns BTM_SUCCESS");
             p_peer_dev->info &= ~(BTA_DM_DI_INT_SNIFF|BTA_DM_DI_ACP_SNIFF|BTA_DM_DI_SET_SNIFF);
         }
         else /* error */
         {
-            APPL_TRACE_ERROR1("bta_dm_pm_sniff BTM_SetPowerMode() returns ERROR status=%d", status);
+            APPL_TRACE_ERROR("bta_dm_pm_sniff BTM_SetPowerMode() returns ERROR status=%d", status);
             p_peer_dev->info &= ~(BTA_DM_DI_INT_SNIFF|BTA_DM_DI_ACP_SNIFF|BTA_DM_DI_SET_SNIFF);
         }
     }
@@ -597,7 +597,7 @@ static void bta_dm_pm_ssr(BD_ADDR peer_addr)
                     && ((p_bta_dm_pm_cfg[j].app_id == BTA_ALL_APP_ID )
                     || (p_bta_dm_pm_cfg[j].app_id == bta_dm_conn_srvcs.conn_srvc[i].app_id)))
                 {
-                    APPL_TRACE_WARNING2("bta_dm_pm_ssr conn_srvc id:%d, app_id:%d",
+                    APPL_TRACE_WARNING("bta_dm_pm_ssr conn_srvc id:%d, app_id:%d",
                         bta_dm_conn_srvcs.conn_srvc[i].id, bta_dm_conn_srvcs.conn_srvc[i].app_id);
                     break;
                 }
@@ -625,7 +625,7 @@ static void bta_dm_pm_ssr(BD_ADDR peer_addr)
     }
 
     p_spec = &p_bta_dm_ssr_spec[ssr];
-    APPL_TRACE_WARNING2("bta_dm_pm_ssr:%d, lat:%d", ssr, p_spec->max_lat);
+    APPL_TRACE_WARNING("bta_dm_pm_ssr:%d, lat:%d", ssr, p_spec->max_lat);
     if(p_spec->max_lat)
     {
         /* set the SSR parameters. */
@@ -698,7 +698,7 @@ static void bta_dm_pm_timer_cback(void *p_tle)
     tBTA_DM_PM_TIMER  *p_buf;
     UINT8 i;
 
-    APPL_TRACE_WARNING0("dm_pm_timer expires");
+    APPL_TRACE_WARNING("dm_pm_timer expires");
 
     for(i=0; i<BTA_DM_NUM_PM_TIMER; i++)
     {
@@ -708,7 +708,7 @@ static void bta_dm_pm_timer_cback(void *p_tle)
 
             if(&bta_dm_cb.pm_timer[i].timer == (TIMER_LIST_ENT*) p_tle)
             {
-                APPL_TRACE_WARNING1("dm_pm_timer expires %d", i);
+                APPL_TRACE_WARNING("dm_pm_timer expires %d", i);
                 bta_dm_cb.pm_timer[i].in_use = FALSE;
                 break;
             }
@@ -748,7 +748,7 @@ void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data)
     tBTA_DM_PEER_DEVICE *p_dev;
     tBTA_DM_DEV_INFO    info;
 
-    APPL_TRACE_DEBUG1("bta_dm_pm_btm_status:%d", p_data->pm_status.status);
+    APPL_TRACE_DEBUG("bta_dm_pm_btm_status:%d", p_data->pm_status.status);
     p_dev = bta_dm_find_peer_device(p_data->pm_status.bd_addr);
     if(NULL == p_dev)
         return;
@@ -762,7 +762,7 @@ void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data)
             we should not try it again*/
             if (p_data->pm_status.hci_status != 0)
             {
-                APPL_TRACE_ERROR1("bta_dm_pm_btm_status  hci_status=%d", p_data->pm_status.hci_status);
+                APPL_TRACE_ERROR("bta_dm_pm_btm_status  hci_status=%d", p_data->pm_status.hci_status);
                 p_dev->info &= ~(BTA_DM_DI_INT_SNIFF|BTA_DM_DI_ACP_SNIFF|BTA_DM_DI_SET_SNIFF);
 
                 if(p_dev->pm_mode_attempted &(BTA_DM_PM_PARK | BTA_DM_PM_SNIFF))
@@ -838,7 +838,7 @@ void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data)
 void bta_dm_pm_timer(tBTA_DM_MSG *p_data)
 {
 
-    APPL_TRACE_WARNING0("proc dm_pm_timer expires");
+    APPL_TRACE_WARNING("proc dm_pm_timer expires");
     bta_dm_pm_set_mode(p_data->pm_status.bd_addr, TRUE);
 
 
@@ -894,7 +894,7 @@ static BOOLEAN bta_dm_pm_is_sco_active ()
         }
     }
 
-    APPL_TRACE_DEBUG1("bta_dm_is_sco_active: SCO active: %d", bScoActive);
+    APPL_TRACE_DEBUG("bta_dm_is_sco_active: SCO active: %d", bScoActive);
     return bScoActive;
 }
 
@@ -919,7 +919,7 @@ static void bta_dm_pm_hid_check(BOOLEAN bScoActive)
         /* check if an entry already present */
         if(bta_dm_conn_srvcs.conn_srvc[j].id == BTA_ID_HH )
         {
-            APPL_TRACE_DEBUG2 ("SCO status change(Active: %d), modify HID link policy. state: %d",
+            APPL_TRACE_DEBUG ("SCO status change(Active: %d), modify HID link policy. state: %d",
                 bScoActive, bta_dm_conn_srvcs.conn_srvc[j].state);
             bta_dm_pm_set_sniff_policy( bta_dm_find_peer_device(bta_dm_conn_srvcs.conn_srvc[j].peer_bdaddr), bScoActive);
 

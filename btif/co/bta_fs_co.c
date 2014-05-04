@@ -63,11 +63,11 @@ static int del_path (const char *path)
     int ret = 0;
     char nameBuffer[PATH_MAX] = {0};
     struct stat statBuffer;
-    BTIF_TRACE_DEBUG1("in del_path for path:%s", path);
+    BTIF_TRACE_DEBUG("in del_path for path:%s", path);
     dir = opendir(path);
 
     if (dir == NULL) {
-        BTIF_TRACE_DEBUG1("opendir failed on path:%s", path);
+        BTIF_TRACE_DEBUG("opendir failed on path:%s", path);
         return -1;
     }
 
@@ -82,7 +82,7 @@ static int del_path (const char *path)
         de = readdir(dir);
 
         if (de == NULL) {
-            BTIF_TRACE_DEBUG1("readdir failed for path:%s", path);
+            BTIF_TRACE_DEBUG("readdir failed for path:%s", path);
             //ret = -1;
             break;
         }
@@ -91,7 +91,7 @@ static int del_path (const char *path)
            continue;
 
         if((int)strlen(de->d_name) > PATH_MAX - nameLen) {
-            BTIF_TRACE_DEBUG1("d_name len:%d is too big", strlen(de->d_name));
+            BTIF_TRACE_DEBUG("d_name len:%d is too big", strlen(de->d_name));
             ret = -1;
             break;
         }
@@ -101,7 +101,7 @@ static int del_path (const char *path)
         ret = lstat (nameBuffer, &statBuffer);
 
         if (ret != 0) {
-            BTIF_TRACE_DEBUG1("lstat failed for path:%s", nameBuffer);
+            BTIF_TRACE_DEBUG("lstat failed for path:%s", nameBuffer);
             break;
         }
 
@@ -113,7 +113,7 @@ static int del_path (const char *path)
         } else {
             ret = unlink(nameBuffer);
             if (ret != 0) {
-                BTIF_TRACE_DEBUG1("unlink failed for path:%s", nameBuffer);
+                BTIF_TRACE_DEBUG("unlink failed for path:%s", nameBuffer);
                 break;
             }
         }
@@ -122,7 +122,7 @@ static int del_path (const char *path)
     closedir(dir);
     if(ret == 0) {
         ret = rmdir(path);
-        BTIF_TRACE_DEBUG2("rmdir return:%d for path:%s", ret, path);
+        BTIF_TRACE_DEBUG("rmdir return:%d for path:%s", ret, path);
     }
 
     return ret;
@@ -191,7 +191,7 @@ inline int getAccess(int accType, struct stat *buffer, char *p_path)
 	default:
 	return BTA_FS_CO_OK;
     }
-    BTIF_TRACE_DEBUG0("*************FTP- Access Failed **********");
+    BTIF_TRACE_DEBUG("*************FTP- Access Failed **********");
     return BTA_FS_CO_EACCES;
 }
 
@@ -274,7 +274,7 @@ static int btapp_fs_check_space( const char *p_path, const UINT32 size, const UI
 
                 max_space = fs_buffer.f_bavail * fs_buffer.f_bsize;
 #if (BTA_FS_DEBUG==TRUE)
-                BTIF_TRACE_DEBUG2("btapp_fs_enough_space(file size: %d): (uint)max_size: %u", size, (UINT32)max_space);
+                BTIF_TRACE_DEBUG("btapp_fs_enough_space(file size: %d): (uint)max_size: %u", size, (UINT32)max_space);
 #endif
                 if (max_space < size)
                     err = EFBIG;
@@ -282,7 +282,7 @@ static int btapp_fs_check_space( const char *p_path, const UINT32 size, const UI
             else
             {
                 err = errno;
-                BTIF_TRACE_WARNING1("btapp_fs_enough_space(): statfs() failed with err: %d", err);
+                BTIF_TRACE_WARNING("btapp_fs_enough_space(): statfs() failed with err: %d", err);
             }
         }
         else
@@ -353,7 +353,7 @@ void bta_fs_co_open(const char *p_path, int oflags, UINT32 size, UINT16 evt,
                 if (oflags & O_CREAT)
                 {
                     fchown(fd, BT_UID, BT_GID);
-                    BTIF_TRACE_DEBUG0("\n ******CHANGED OWNERSHIP SUCCESSFULLY**********");
+                    BTIF_TRACE_DEBUG("\n ******CHANGED OWNERSHIP SUCCESSFULLY**********");
                 }
             }
         }
@@ -364,9 +364,9 @@ void bta_fs_co_open(const char *p_path, int oflags, UINT32 size, UINT16 evt,
         }
     }
 
-    BTIF_TRACE_DEBUG4("[CO] bta_fs_co_open: handle:%d err:%d, flags:%x, app id:%d",
+    BTIF_TRACE_DEBUG("[CO] bta_fs_co_open: handle:%d err:%d, flags:%x, app id:%d",
             fd, err, oflags, app_id);
-    BTIF_TRACE_DEBUG1("file=%s", p_path);
+    BTIF_TRACE_DEBUG("file=%s", p_path);
 
     /* convert fs error into bta_fs err. erro is set by first call to enough space to a valid value
      * and needs only updating in case of error. This reports correct failure to remote obex! */
@@ -412,13 +412,13 @@ tBTA_FS_CO_STATUS bta_fs_co_close(int fd, UINT8 app_id)
     tBTA_FS_CO_STATUS status = BTA_FS_CO_OK;
     int err;
 
-    BTIF_TRACE_DEBUG2("[CO] bta_fs_co_close: handle:%d, app id:%d",
+    BTIF_TRACE_DEBUG("[CO] bta_fs_co_close: handle:%d, app id:%d",
         fd, app_id);
     if (close (fd) < 0)
     {
         err = errno;
         status = BTA_FS_CO_FAIL;
-        BTIF_TRACE_WARNING3("[CO] bta_fs_co_close: handle:%d error=%d app_id:%d", fd, err, app_id);
+        BTIF_TRACE_WARNING("[CO] bta_fs_co_close: handle:%d error=%d app_id:%d", fd, err, app_id);
     }
 
     return (status);
@@ -462,7 +462,7 @@ void bta_fs_co_read(int fd, UINT8 *p_buf, UINT16 nbytes, UINT16 evt, UINT8 ssn, 
     {
         err = errno;
         status = BTA_FS_CO_FAIL;
-        BTIF_TRACE_WARNING3("[CO] bta_fs_co_read: handle:%d error=%d app_id:%d",
+        BTIF_TRACE_WARNING("[CO] bta_fs_co_read: handle:%d error=%d app_id:%d",
                             fd, err, app_id);
     }
     else if (num_read < nbytes)
@@ -510,7 +510,7 @@ void bta_fs_co_write(int fd, const UINT8 *p_buf, UINT16 nbytes, UINT16 evt,
         err = errno;
         status = BTA_FS_CO_FAIL;
     }
-/*    BTIF_TRACE_DEBUG3("[CO] bta_fs_co_write: handle:%d error=%d, num_written:%d", fd, err, num_written);*/
+/*    BTIF_TRACE_DEBUG("[CO] bta_fs_co_write: handle:%d error=%d, num_written:%d", fd, err, num_written);*/
 
     bta_fs_ci_write(fd, status, evt);
 }
@@ -610,7 +610,7 @@ tBTA_FS_CO_STATUS bta_fs_co_access(const char *p_path, int mode, BOOLEAN *p_is_d
     }
     else
     {
-	BTIF_TRACE_DEBUG0("stat() failed! ");
+	BTIF_TRACE_DEBUG("stat() failed! ");
         return BTA_FS_CO_FAIL;
     }
 
@@ -645,7 +645,7 @@ tBTA_FS_CO_STATUS bta_fs_co_mkdir(const char *p_path, UINT8 app_id)
     {
         err = errno;
         status = BTA_FS_CO_FAIL;
-        BTIF_TRACE_WARNING3("[CO] bta_fs_co_mkdir: error=%d, path [%s] app_id:%d",
+        BTIF_TRACE_WARNING("[CO] bta_fs_co_mkdir: error=%d, path [%s] app_id:%d",
                             err, p_path, app_id);
     }
     return (status);
@@ -678,10 +678,10 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
     char *dirName, *tmp = NULL;
 
     path_len = strlen( p_path )+1;
-    BTIF_TRACE_DEBUG2( "bta_fs_co_rmdir( app_id: %d ): path_len: %d", app_id, path_len );
+    BTIF_TRACE_DEBUG( "bta_fs_co_rmdir( app_id: %d ): path_len: %d", app_id, path_len );
 #if (TRUE==BTA_FS_DEBUG)
-    BTIF_TRACE_DEBUG1( "bta_fs_co_rmdir():path_len: %d, p_path", app_id );
-    BTIF_TRACE_DEBUG0( p_path );
+    BTIF_TRACE_DEBUG( "bta_fs_co_rmdir():path_len: %d, p_path", app_id );
+    BTIF_TRACE_DEBUG( p_path );
 #endif
 
     /* allocate a temp buffer for path with 0 char. make sure not to crash if path is too big! */
@@ -692,7 +692,7 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
     }
     else
     {
-        BTIF_TRACE_WARNING2( "bta_fs_co_rmdir( app_id: %d ) for path_len: %d::out of memory",
+        BTIF_TRACE_WARNING( "bta_fs_co_rmdir( app_id: %d ) for path_len: %d::out of memory",
                              app_id, path_len );
         return BTA_FS_CO_FAIL;
     }
@@ -709,7 +709,7 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
     {
         free(dirName);
 #if (TRUE==BTA_FS_DEBUG)
-        BTIF_TRACE_WARNING0( "bta_fs_co_rmdir()::stat(dirName) failed" );
+        BTIF_TRACE_WARNING( "bta_fs_co_rmdir()::stat(dirName) failed" );
 #endif
         return BTA_FS_CO_FAIL;
     }
@@ -718,7 +718,7 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
     if (status != BTA_FS_CO_OK)
     {
 #if (TRUE==BTA_FS_DEBUG)
-        BTIF_TRACE_WARNING0( "bta_fs_co_rmdir()::getAccess(dirName) FAILED");
+        BTIF_TRACE_WARNING( "bta_fs_co_rmdir()::getAccess(dirName) FAILED");
 #endif
         return status;
     }
@@ -730,7 +730,7 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
     else
     {
 #if (TRUE==BTA_FS_DEBUG)
-        BTIF_TRACE_WARNING0( "bta_fs_co_rmdir()::stat(p_path) FAILED");
+        BTIF_TRACE_WARNING( "bta_fs_co_rmdir()::stat(p_path) FAILED");
 #endif
         return BTA_FS_CO_FAIL;
     }
@@ -738,7 +738,7 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
     if (status != BTA_FS_CO_OK)
     {
 #if (TRUE==BTA_FS_DEBUG)
-        BTIF_TRACE_DEBUG0( "bta_fs_co_rmdir()::getAccess(p_path) FAILED");
+        BTIF_TRACE_DEBUG( "bta_fs_co_rmdir()::getAccess(p_path) FAILED");
 #endif
         return status;
     }
@@ -746,7 +746,7 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
     if (del_path(p_path) != 0)
     {
         err = errno;
-        BTIF_TRACE_WARNING1( "bta_fs_co_rmdir():rmdir/del_path FAILED with err: %d", err );
+        BTIF_TRACE_WARNING( "bta_fs_co_rmdir():rmdir/del_path FAILED with err: %d", err );
         if (err == EACCES)
             status = BTA_FS_CO_EACCES;
         else if (err == ENOTEMPTY)
@@ -777,7 +777,7 @@ tBTA_FS_CO_STATUS bta_fs_co_rmdir(const char *p_path, UINT8 app_id)
 *******************************************************************************/
 tBTA_FS_CO_STATUS bta_fs_co_unlink(const char *p_path, UINT8 app_id)
 {
-    BTIF_TRACE_DEBUG0("bta_fs_co_unlink");
+    BTIF_TRACE_DEBUG("bta_fs_co_unlink");
     int err;
     tBTA_FS_CO_STATUS status = BTA_FS_CO_OK;
     char *dirName, *tmp=NULL;
@@ -806,7 +806,7 @@ tBTA_FS_CO_STATUS bta_fs_co_unlink(const char *p_path, UINT8 app_id)
     }
     else
     {
-        BTIF_TRACE_DEBUG0("stat() failed! ");
+        BTIF_TRACE_DEBUG("stat() failed! ");
         free(dirName);
         return BTA_FS_CO_FAIL;
     }
@@ -865,32 +865,32 @@ void bta_fs_co_getdirentry(const char *p_path, BOOLEAN first_item,
     char fullname[500];
     UNUSED(app_id);
 
-    BTIF_TRACE_DEBUG0("Entered bta_fs_co_getdirentry");
+    BTIF_TRACE_DEBUG("Entered bta_fs_co_getdirentry");
 
     /* First item is to be retrieved */
     if (first_item)
     {
-        BTIF_TRACE_DEBUG1("bta_fs_co_getdirentry: path = %s", p_path);
+        BTIF_TRACE_DEBUG("bta_fs_co_getdirentry: path = %s", p_path);
 
         dir = opendir(p_path);
         if(dir == NULL)
         {
-     	    BTIF_TRACE_DEBUG1("bta_fs_co_getdirentry: dir is NULL so error out with errno=%d", errno);
+     	    BTIF_TRACE_DEBUG("bta_fs_co_getdirentry: dir is NULL so error out with errno=%d", errno);
             co_status = BTA_FS_CO_EODIR;
             bta_fs_ci_direntry(co_status, evt);
             return;
         }
 
-        BTIF_TRACE_DEBUG1("bta_fs_co_getdirentry: dir = %p", dir);
+        BTIF_TRACE_DEBUG("bta_fs_co_getdirentry: dir = %p", dir);
         if((dirent = readdir(dir)) != NULL)
         {
             p_entry->refdata = (UINT32) dir;     /* Save this for future searches */
             status = 0;
-            BTIF_TRACE_DEBUG1("bta_fs_co_getdirentry: dirent = %p", dirent);
+            BTIF_TRACE_DEBUG("bta_fs_co_getdirentry: dirent = %p", dirent);
         }
         else
         {
-            BTIF_TRACE_DEBUG1("bta_fs_co_getdirentry: dirent = %p", dirent);
+            BTIF_TRACE_DEBUG("bta_fs_co_getdirentry: dirent = %p", dirent);
             /* Close the search if there are no more items */
             closedir( (DIR*) p_entry->refdata);
             co_status = BTA_FS_CO_EODIR;
@@ -903,18 +903,18 @@ void bta_fs_co_getdirentry(const char *p_path, BOOLEAN first_item,
             /* Close the search if there are no more items */
             closedir( (DIR*) p_entry->refdata);
             co_status = BTA_FS_CO_EODIR;
-            BTIF_TRACE_DEBUG1("bta_fs_co_getdirentry: dirent = %p", dirent);
+            BTIF_TRACE_DEBUG("bta_fs_co_getdirentry: dirent = %p", dirent);
         }
         else
         {
-            BTIF_TRACE_DEBUG1("bta_fs_co_getdirentry: dirent = %p", dirent);
+            BTIF_TRACE_DEBUG("bta_fs_co_getdirentry: dirent = %p", dirent);
             status = 0;
         }
     }
 
     if (status == 0)
     {
-        BTIF_TRACE_DEBUG0("bta_fs_co_getdirentry: status = 0");
+        BTIF_TRACE_DEBUG("bta_fs_co_getdirentry: status = 0");
 
         sprintf(fullname, "%s/%s", p_path,  dirent->d_name);
 
@@ -957,11 +957,11 @@ void bta_fs_co_getdirentry(const char *p_path, BOOLEAN first_item,
 #endif
             co_status = BTA_FS_CO_OK;
         } else {
-            BTIF_TRACE_WARNING0("stat() failed! ");
+            BTIF_TRACE_WARNING("stat() failed! ");
             co_status = BTA_FS_CO_EACCES;
         }
     }
-    BTIF_TRACE_DEBUG0("bta_fs_co_getdirentry: calling bta_fs_ci_getdirentry");
+    BTIF_TRACE_DEBUG("bta_fs_co_getdirentry: calling bta_fs_ci_getdirentry");
 
     bta_fs_ci_direntry(co_status, evt);
 }
@@ -989,7 +989,7 @@ void bta_fs_co_setdir(const char *p_path, UINT8 app_id)
     UNUSED(p_path);
     UNUSED(app_id);
 
-    BTIF_TRACE_DEBUG2("Entered %s. New path: %s", __FUNCTION__, p_path);
+    BTIF_TRACE_DEBUG("Entered %s. New path: %s", __FUNCTION__, p_path);
 }
 
 /*******************************************************************************
@@ -1020,7 +1020,7 @@ void bta_fs_co_resume(UINT16 evt, UINT8 app_id)
     UNUSED(evt);
     UNUSED(app_id);
 
-    BTIF_TRACE_WARNING0("[CO] bta_fs_co_resume - NOT implemented");
+    BTIF_TRACE_WARNING("[CO] bta_fs_co_resume - NOT implemented");
 }
 
 /*******************************************************************************
@@ -1050,7 +1050,7 @@ void bta_fs_co_set_perms(const char *p_src_path,  UINT8 *p_perms, UINT16 evt, UI
     UNUSED(evt);
     UNUSED(app_id);
 
-    BTIF_TRACE_WARNING0("[CO] bta_fs_co_set_perms - NOT implemented");
+    BTIF_TRACE_WARNING("[CO] bta_fs_co_set_perms - NOT implemented");
 }
 
 /*******************************************************************************
@@ -1082,7 +1082,7 @@ void bta_fs_co_rename(const char *p_src_path, const char *p_dest_path, UINT8 *p_
     UNUSED(evt);
     UNUSED(app_id);
 
-    BTIF_TRACE_WARNING0("[CO] bta_fs_co_rename - NOT implemented");
+    BTIF_TRACE_WARNING("[CO] bta_fs_co_rename - NOT implemented");
 }
 
 /*******************************************************************************
@@ -1116,7 +1116,7 @@ void bta_fs_co_copy(const char *p_src_path, const char *p_dest_path, UINT8 *p_pe
     UNUSED(evt);
     UNUSED(app_id);
 
-    BTIF_TRACE_WARNING0("[CO] bta_fs_co_copy - NOT implemented");
+    BTIF_TRACE_WARNING("[CO] bta_fs_co_copy - NOT implemented");
 }
 
 /*******************************************************************************
@@ -1141,7 +1141,7 @@ void bta_fs_co_resume_op(UINT32 offset, UINT16 evt, UINT8 app_id)
     UNUSED(evt);
     UNUSED(app_id);
 
-    BTIF_TRACE_WARNING0("[CO] bta_fs_co_resume_op - NOT implemented");
+    BTIF_TRACE_WARNING("[CO] bta_fs_co_resume_op - NOT implemented");
 }
 
 
@@ -1172,7 +1172,7 @@ void bta_fs_co_session_info(BD_ADDR bd_addr, UINT8 *p_sess_info, UINT8 ssn,
     UNUSED(p_info);
     UNUSED(app_id);
 
-    BTIF_TRACE_WARNING0("[CO] bta_fs_co_session_info - NOT implemented");
+    BTIF_TRACE_WARNING("[CO] bta_fs_co_session_info - NOT implemented");
 }
 
 
@@ -1205,7 +1205,7 @@ void bta_fs_co_suspend(BD_ADDR bd_addr, UINT8 *p_sess_info, UINT8 ssn,
     UNUSED(info);
     UNUSED(app_id);
 
-    BTIF_TRACE_WARNING0("[CO] bta_fs_co_suspend - NOT implemented");
+    BTIF_TRACE_WARNING("[CO] bta_fs_co_suspend - NOT implemented");
 }
 
 /*******************************************************************************
@@ -1231,6 +1231,6 @@ void bta_fs_co_sess_ssn(int fd, UINT8 ssn, UINT8 app_id)
     UNUSED(ssn);
     UNUSED(app_id);
 
-    BTIF_TRACE_WARNING0("[CO] bta_fs_co_suspend - NOT implemented");
+    BTIF_TRACE_WARNING("[CO] bta_fs_co_suspend - NOT implemented");
 }
 

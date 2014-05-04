@@ -177,7 +177,7 @@ static void bta_pan_data_buf_ind_cback(UINT16 handle, BD_ADDR src, BD_ADDR dst, 
         p_new_buf = (BT_HDR *)GKI_getpoolbuf( PAN_POOL_ID );
         if(!p_new_buf)
         {
-            APPL_TRACE_WARNING0("Cannot get a PAN GKI buffer");
+            APPL_TRACE_WARNING("Cannot get a PAN GKI buffer");
             GKI_freebuf( p_buf );
             return;
         }

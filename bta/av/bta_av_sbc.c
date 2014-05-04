@@ -441,7 +441,7 @@ UINT8 bta_av_sbc_cfg_for_cap(UINT8 *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p
     }
     else
     {
-        APPL_TRACE_ERROR1("bta_av_sbc_cfg_for_cap: ch_mode(0x%02X) not supported", p_pref->ch_mode);
+        APPL_TRACE_ERROR("bta_av_sbc_cfg_for_cap: ch_mode(0x%02X) not supported", p_pref->ch_mode);
         return A2D_FAIL;
     }
 
@@ -452,7 +452,7 @@ UINT8 bta_av_sbc_cfg_for_cap(UINT8 *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p
     }
     else
     {
-        APPL_TRACE_ERROR1("bta_av_sbc_cfg_for_cap: samp_freq(0x%02X) not supported", p_pref->samp_freq);
+        APPL_TRACE_ERROR("bta_av_sbc_cfg_for_cap: samp_freq(0x%02X) not supported", p_pref->samp_freq);
         return A2D_FAIL;
     }
 
@@ -463,7 +463,7 @@ UINT8 bta_av_sbc_cfg_for_cap(UINT8 *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p
     }
     else
     {
-        APPL_TRACE_ERROR1("bta_av_sbc_cfg_for_cap: block_len(0x%02X) not supported", p_pref->block_len);
+        APPL_TRACE_ERROR("bta_av_sbc_cfg_for_cap: block_len(0x%02X) not supported", p_pref->block_len);
         return A2D_FAIL;
     }
 
@@ -474,7 +474,7 @@ UINT8 bta_av_sbc_cfg_for_cap(UINT8 *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p
     }
     else
     {
-        APPL_TRACE_ERROR1("bta_av_sbc_cfg_for_cap: num_subbands(0x%02X) not supported", p_pref->num_subbands);
+        APPL_TRACE_ERROR("bta_av_sbc_cfg_for_cap: num_subbands(0x%02X) not supported", p_pref->num_subbands);
         return A2D_FAIL;
     }
 
@@ -485,7 +485,7 @@ UINT8 bta_av_sbc_cfg_for_cap(UINT8 *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p
     }
     else
     {
-        APPL_TRACE_ERROR1("bta_av_sbc_cfg_for_cap: alloc_mthd(0x%02X) not supported", p_pref->alloc_mthd);
+        APPL_TRACE_ERROR("bta_av_sbc_cfg_for_cap: alloc_mthd(0x%02X) not supported", p_pref->alloc_mthd);
         return A2D_FAIL;
     }
 
@@ -527,19 +527,19 @@ UINT8 bta_av_sbc_cfg_matches_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap)
     /* parse configuration */
     if ((status = A2D_ParsSbcInfo(&cfg_cie, p_cfg, TRUE)) != 0)
     {
-        APPL_TRACE_ERROR1(" bta_av_sbc_cfg_matches_cap Parsing Failed %d", status);
+        APPL_TRACE_ERROR(" bta_av_sbc_cfg_matches_cap Parsing Failed %d", status);
         return status;
     }
 
     /* verify that each parameter is in range */
 
-    APPL_TRACE_DEBUG2(" FREQ peer: 0%x, capability  0%x", cfg_cie.samp_freq, p_cap->samp_freq);
-    APPL_TRACE_DEBUG2(" CH_MODE peer: 0%x, capability  0%x", cfg_cie.ch_mode, p_cap->ch_mode);
-    APPL_TRACE_DEBUG2(" BLOCK_LEN peer: 0%x, capability  0%x", cfg_cie.block_len, p_cap->block_len);
-    APPL_TRACE_DEBUG2(" SUB_BAND peer: 0%x, capability  0%x", cfg_cie.num_subbands, p_cap->num_subbands);
-    APPL_TRACE_DEBUG2(" ALLOC_MTHD peer: 0%x, capability  0%x", cfg_cie.alloc_mthd, p_cap->alloc_mthd);
-    APPL_TRACE_DEBUG2(" MAX_BitPool peer: 0%x, capability  0%x", cfg_cie.max_bitpool, p_cap->max_bitpool);
-    APPL_TRACE_DEBUG2(" Min_bitpool peer: 0%x, capability  0%x", cfg_cie.min_bitpool, p_cap->min_bitpool);
+    APPL_TRACE_DEBUG(" FREQ peer: 0%x, capability  0%x", cfg_cie.samp_freq, p_cap->samp_freq);
+    APPL_TRACE_DEBUG(" CH_MODE peer: 0%x, capability  0%x", cfg_cie.ch_mode, p_cap->ch_mode);
+    APPL_TRACE_DEBUG(" BLOCK_LEN peer: 0%x, capability  0%x", cfg_cie.block_len, p_cap->block_len);
+    APPL_TRACE_DEBUG(" SUB_BAND peer: 0%x, capability  0%x", cfg_cie.num_subbands, p_cap->num_subbands);
+    APPL_TRACE_DEBUG(" ALLOC_MTHD peer: 0%x, capability  0%x", cfg_cie.alloc_mthd, p_cap->alloc_mthd);
+    APPL_TRACE_DEBUG(" MAX_BitPool peer: 0%x, capability  0%x", cfg_cie.max_bitpool, p_cap->max_bitpool);
+    APPL_TRACE_DEBUG(" Min_bitpool peer: 0%x, capability  0%x", cfg_cie.min_bitpool, p_cap->min_bitpool);
 
     /* sampling frequency */
     if ((cfg_cie.samp_freq & p_cap->samp_freq) == 0)

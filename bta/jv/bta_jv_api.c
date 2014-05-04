@@ -63,7 +63,7 @@ tBTA_JV_STATUS BTA_JvEnable(tBTA_JV_DM_CBACK *p_cback)
     tBTA_JV_API_ENABLE  *p_buf;
     int i;
 
-    APPL_TRACE_API0( "BTA_JvEnable");
+    APPL_TRACE_API( "BTA_JvEnable");
     if(p_cback && FALSE == bta_sys_is_register(BTA_ID_JV))
     {
         memset(&bta_jv_cb, 0, sizeof(tBTA_JV_CB));
@@ -86,7 +86,7 @@ tBTA_JV_STATUS BTA_JvEnable(tBTA_JV_DM_CBACK *p_cback)
     }
     else
       {
-         APPL_TRACE_ERROR0("JVenable fails");
+         APPL_TRACE_ERROR("JVenable fails");
       }
     return(status);
 }
@@ -104,7 +104,7 @@ void BTA_JvDisable(void)
 {
     BT_HDR  *p_buf;
 
-    APPL_TRACE_API0( "BTA_JvDisable");
+    APPL_TRACE_API( "BTA_JvDisable");
     bta_sys_deregister(BTA_ID_JV);
     if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
@@ -147,7 +147,7 @@ tBTA_JV_STATUS BTA_JvSetDiscoverability(tBTA_JV_DISC disc_mode)
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_SET_DISCOVERABILITY *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvSetDiscoverability");
+    APPL_TRACE_API( "BTA_JvSetDiscoverability");
     if ((p_msg = (tBTA_JV_API_SET_DISCOVERABILITY *)GKI_getbuf(sizeof(tBTA_JV_MSG))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_SET_DISCOVERABILITY_EVT;
@@ -171,7 +171,7 @@ tBTA_JV_STATUS BTA_JvSetDiscoverability(tBTA_JV_DISC disc_mode)
 *******************************************************************************/
 tBTA_JV_DISC BTA_JvGetDiscoverability(void)
 {
-    APPL_TRACE_API0( "BTA_JvGetDiscoverability");
+    APPL_TRACE_API( "BTA_JvGetDiscoverability");
     return BTM_ReadDiscoverability(0, 0);
 }
 
@@ -192,7 +192,7 @@ tBTA_JV_STATUS BTA_JvGetLocalDeviceAddr(void)
     tBTA_JV_STATUS ret = BTA_JV_FAILURE;
     BT_HDR *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvGetLocalDeviceAddr");
+    APPL_TRACE_API( "BTA_JvGetLocalDeviceAddr");
     if ((p_msg = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
         p_msg->event = BTA_JV_API_GET_LOCAL_DEVICE_ADDR_EVT;
@@ -220,7 +220,7 @@ tBTA_JV_STATUS BTA_JvGetLocalDeviceName(void)
     tBTA_JV_STATUS ret = BTA_JV_FAILURE;
     BT_HDR *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvGetLocalDeviceName");
+    APPL_TRACE_API( "BTA_JvGetLocalDeviceName");
     if ((p_msg = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
         p_msg->event = BTA_JV_API_GET_LOCAL_DEVICE_NAME_EVT;
@@ -248,7 +248,7 @@ tBTA_JV_STATUS BTA_JvGetRemoteDeviceName(BD_ADDR bd_addr)
     tBTA_JV_STATUS ret = BTA_JV_FAILURE;
     tBTA_JV_API_GET_REMOTE_NAME *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvGetRemoteDeviceName");
+    APPL_TRACE_API( "BTA_JvGetRemoteDeviceName");
     if ((p_msg = (tBTA_JV_API_GET_REMOTE_NAME *)GKI_getbuf(sizeof(tBTA_JV_API_GET_REMOTE_NAME))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_GET_REMOTE_DEVICE_NAME_EVT;
@@ -279,7 +279,7 @@ INT32 BTA_JvGetPreknownDevice(UINT8 * p_bd_addr, UINT32 index)
     UINT32  count = 0;
     INT32   ret = BTA_JV_INTERNAL_ERR;
 
-    APPL_TRACE_API0( "BTA_JvGetPreknownDevice");
+    APPL_TRACE_API( "BTA_JvGetPreknownDevice");
     p_info = BTM_InqFirstResult();
     if(p_info)
     {
@@ -346,7 +346,7 @@ INT32 BTA_JvGetPreknownDevice(UINT8 * p_bd_addr, UINT32 index)
 *******************************************************************************/
 UINT8 * BTA_JvGetDeviceClass(void)
 {
-    APPL_TRACE_API0( "BTA_JvGetDeviceClass");
+    APPL_TRACE_API( "BTA_JvGetDeviceClass");
     return BTM_ReadDeviceClass();
 }
 
@@ -365,7 +365,7 @@ tBTA_JV_STATUS BTA_JvSetServiceClass(UINT32 service)
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_SET_SERVICE_CLASS *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvSetServiceClass");
+    APPL_TRACE_API( "BTA_JvSetServiceClass");
     if ((p_msg = (tBTA_JV_API_SET_SERVICE_CLASS *)GKI_getbuf(sizeof(tBTA_JV_API_SET_SERVICE_CLASS))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_SET_SERVICE_CLASS_EVT;
@@ -395,7 +395,7 @@ tBTA_JV_STATUS BTA_JvSetEncryption(BD_ADDR bd_addr)
     tBTA_JV_STATUS ret = BTA_JV_FAILURE;
     tBTA_JV_API_SET_ENCRYPTION *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvSetEncryption");
+    APPL_TRACE_API( "BTA_JvSetEncryption");
     if ((p_msg = (tBTA_JV_API_SET_ENCRYPTION *)GKI_getbuf(sizeof(tBTA_JV_API_SET_ENCRYPTION))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_SET_ENCRYPTION_EVT;
@@ -541,7 +541,7 @@ tBTA_JV_STATUS BTA_JvGetSCN(void)
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     BT_HDR *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvGetSCN");
+    APPL_TRACE_API( "BTA_JvGetSCN");
     if ((p_msg = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
         p_msg->event = BTA_JV_API_GET_SCN_EVT;
@@ -568,7 +568,7 @@ tBTA_JV_STATUS BTA_JvFreeSCN(UINT8 scn)
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_FREE_SCN *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvFreeSCN");
+    APPL_TRACE_API( "BTA_JvFreeSCN");
     if ((p_msg = (tBTA_JV_API_FREE_SCN *)GKI_getbuf(sizeof(tBTA_JV_API_FREE_SCN))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_FREE_SCN_EVT;
@@ -595,7 +595,7 @@ tBTA_JV_STATUS BTA_JvFreeSCN(UINT8 scn)
 UINT16 BTA_JvGetPSM(void)
 {
 #if 0
-    APPL_TRACE_API0( "BTA_JvGetPSM");
+    APPL_TRACE_API( "BTA_JvGetPSM");
 
     return (L2CA_AllocatePSM());
 #endif
@@ -622,7 +622,7 @@ tBTA_JV_STATUS BTA_JvStartDiscovery(BD_ADDR bd_addr, UINT16 num_uuid,
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_START_DISCOVERY *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvStartDiscovery");
+    APPL_TRACE_API( "BTA_JvStartDiscovery");
     if ((p_msg = (tBTA_JV_API_START_DISCOVERY *)GKI_getbuf(sizeof(tBTA_JV_API_START_DISCOVERY))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_START_DISCOVERY_EVT;
@@ -656,7 +656,7 @@ tBTA_JV_STATUS BTA_JvCancelDiscovery(void * user_data)
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_CANCEL_DISCOVERY *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvCancelDiscovery");
+    APPL_TRACE_API( "BTA_JvCancelDiscovery");
     if ((p_msg = (tBTA_JV_API_CANCEL_DISCOVERY *)GKI_getbuf(sizeof(tBTA_JV_API_CANCEL_DISCOVERY))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_CANCEL_DISCOVERY_EVT;
@@ -687,7 +687,7 @@ tBTA_JV_STATUS BTA_JvGetServicesLength(BOOLEAN inc_hdr, UINT16 *p_services_len)
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_GET_SERVICES_LENGTH *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvGetServicesLength");
+    APPL_TRACE_API( "BTA_JvGetServicesLength");
     if ((p_msg = (tBTA_JV_API_GET_SERVICES_LENGTH *)GKI_getbuf(sizeof(tBTA_JV_API_GET_SERVICES_LENGTH))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_GET_SERVICES_LENGTH_EVT;
@@ -724,7 +724,7 @@ INT32 BTA_JvGetServicesResult(BOOLEAN inc_hdr, UINT8 **TLVs)
     UINT32  len;
     UINT32  hdr_len;
 
-    APPL_TRACE_API0( "BTA_JvGetServicesResult");
+    APPL_TRACE_API( "BTA_JvGetServicesResult");
     if(p_bta_jv_cfg->p_sdp_db->p_first_rec)
     {
         /* the database is valid */
@@ -781,7 +781,7 @@ tBTA_JV_STATUS BTA_JvServiceSelect(UINT16 uuid)
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_SERVICE_SELECT *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvServiceSelect");
+    APPL_TRACE_API( "BTA_JvServiceSelect");
     if ((p_msg = (tBTA_JV_API_SERVICE_SELECT *)GKI_getbuf(sizeof(tBTA_JV_API_SERVICE_SELECT))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_SERVICE_SELECT_EVT;
@@ -808,7 +808,7 @@ INT32 BTA_JvServiceResult(UINT8 *TLV)
 {
     INT32   serv_sel = -1;
 
-    APPL_TRACE_API0( "BTA_JvServiceResult");
+    APPL_TRACE_API( "BTA_JvServiceResult");
     if(bta_jv_cb.p_sel_raw_data)
     {
         serv_sel = bta_jv_cb.sel_len;
@@ -836,7 +836,7 @@ tBTA_JV_STATUS BTA_JvCreateRecordByUser(void *user_data)
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_CREATE_RECORD *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvCreateRecordByUser");
+    APPL_TRACE_API( "BTA_JvCreateRecordByUser");
     if ((p_msg = (tBTA_JV_API_CREATE_RECORD *)GKI_getbuf(sizeof(tBTA_JV_API_CREATE_RECORD))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_CREATE_RECORD_EVT;
@@ -872,7 +872,7 @@ tBTA_JV_STATUS BTA_JvUpdateRecord(UINT32 handle, UINT16 *p_ids,
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_UPDATE_RECORD *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvUpdateRecord");
+    APPL_TRACE_API( "BTA_JvUpdateRecord");
     if ((p_msg = (tBTA_JV_API_UPDATE_RECORD *)GKI_getbuf(sizeof(tBTA_JV_API_UPDATE_RECORD))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_UPDATE_RECORD_EVT;
@@ -907,7 +907,7 @@ tBTA_JV_STATUS BTA_JvAddAttribute(UINT32 handle, UINT16 attr_id,
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_ADD_ATTRIBUTE *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvAddAttribute");
+    APPL_TRACE_API( "BTA_JvAddAttribute");
     if ((p_msg = (tBTA_JV_API_ADD_ATTRIBUTE *)GKI_getbuf(sizeof(tBTA_JV_API_ADD_ATTRIBUTE))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_ADD_ATTRIBUTE_EVT;
@@ -938,7 +938,7 @@ tBTA_JV_STATUS BTA_JvDeleteAttribute(UINT32 handle, UINT16 attr_id)
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_ADD_ATTRIBUTE *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvDeleteAttribute");
+    APPL_TRACE_API( "BTA_JvDeleteAttribute");
     if ((p_msg = (tBTA_JV_API_ADD_ATTRIBUTE *)GKI_getbuf(sizeof(tBTA_JV_API_ADD_ATTRIBUTE))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_DELETE_ATTRIBUTE_EVT;
@@ -965,7 +965,7 @@ tBTA_JV_STATUS BTA_JvDeleteRecord(UINT32 handle)
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_ADD_ATTRIBUTE *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvDeleteRecord");
+    APPL_TRACE_API( "BTA_JvDeleteRecord");
     if ((p_msg = (tBTA_JV_API_ADD_ATTRIBUTE *)GKI_getbuf(sizeof(tBTA_JV_API_ADD_ATTRIBUTE))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_DELETE_RECORD_EVT;
@@ -1024,7 +1024,7 @@ tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask,
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_L2CAP_CONNECT *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvL2capConnect");
+    APPL_TRACE_API( "BTA_JvL2capConnect");
     if (p_cback &&
         (p_msg = (tBTA_JV_API_L2CAP_CONNECT *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_CONNECT))) != NULL)
     {
@@ -1057,7 +1057,7 @@ tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle)
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_L2CAP_CLOSE *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvL2capClose");
+    APPL_TRACE_API( "BTA_JvL2capClose");
     if (handle < BTA_JV_MAX_L2C_CONN && bta_jv_cb.l2c_cb[handle].p_cback &&
         (p_msg = (tBTA_JV_API_L2CAP_CLOSE *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_CLOSE))) != NULL)
     {
@@ -1092,7 +1092,7 @@ tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_L2CAP_SERVER *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvL2capStartServer");
+    APPL_TRACE_API( "BTA_JvL2capStartServer");
     if (p_cback &&
         (p_msg = (tBTA_JV_API_L2CAP_SERVER *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_SERVER))) != NULL)
     {
@@ -1125,7 +1125,7 @@ tBTA_JV_STATUS BTA_JvL2capStopServer(UINT16 local_psm)
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_L2CAP_SERVER *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvL2capStopServer");
+    APPL_TRACE_API( "BTA_JvL2capStopServer");
     if ((p_msg = (tBTA_JV_API_L2CAP_SERVER *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_SERVER))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_L2CAP_STOP_SERVER_EVT;
@@ -1165,7 +1165,7 @@ tBTA_JV_STATUS BTA_JvL2capRead(UINT32 handle, UINT32 req_id, UINT8 *p_data, UINT
 #endif
     tBTA_JV_L2CAP_READ evt_data;
 
-    APPL_TRACE_API0( "BTA_JvL2capRead");
+    APPL_TRACE_API( "BTA_JvL2capRead");
 
 #if SDP_FOR_JV_INCLUDED == TRUE
     if(BTA_JV_L2C_FOR_SDP_HDL == handle)
@@ -1231,7 +1231,7 @@ tBTA_JV_STATUS BTA_JvL2capReceive(UINT32 handle, UINT32 req_id, UINT8 *p_data, U
     UINT32  left_over = 0;
     UINT16  max_len, read_len;
 
-    APPL_TRACE_API0( "BTA_JvL2capReceive");
+    APPL_TRACE_API( "BTA_JvL2capReceive");
 
     if (handle < BTA_JV_MAX_L2C_CONN && bta_jv_cb.l2c_cb[handle].p_cback)
     {
@@ -1278,7 +1278,7 @@ tBTA_JV_STATUS BTA_JvL2capReady(UINT32 handle, UINT32 *p_data_size)
 #if 0
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
 
-    APPL_TRACE_API1( "BTA_JvL2capReady: %d", handle);
+    APPL_TRACE_API( "BTA_JvL2capReady: %d", handle);
     if (p_data_size && handle < BTA_JV_MAX_L2C_CONN && bta_jv_cb.l2c_cb[handle].p_cback)
     {
         *p_data_size = 0;
@@ -1319,7 +1319,7 @@ tBTA_JV_STATUS BTA_JvL2capWrite(UINT32 handle, UINT32 req_id, UINT8 *p_data, UIN
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_L2CAP_WRITE *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvL2capWrite");
+    APPL_TRACE_API( "BTA_JvL2capWrite");
     if (handle < BTA_JV_MAX_L2C_CONN && bta_jv_cb.l2c_cb[handle].p_cback &&
         (p_msg = (tBTA_JV_API_L2CAP_WRITE *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_WRITE))) != NULL)
     {
@@ -1358,7 +1358,7 @@ tBTA_JV_STATUS BTA_JvRfcommConnect(tBTA_SEC sec_mask,
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_RFCOMM_CONNECT *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvRfcommConnect");
+    APPL_TRACE_API( "BTA_JvRfcommConnect");
     if (p_cback &&
         (p_msg = (tBTA_JV_API_RFCOMM_CONNECT *)GKI_getbuf(sizeof(tBTA_JV_API_RFCOMM_CONNECT))) != NULL)
     {
@@ -1393,7 +1393,7 @@ tBTA_JV_STATUS BTA_JvRfcommClose(UINT32 handle, void *user_data)
     UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK)&~BTA_JV_RFCOMM_MASK) - 1;
     UINT32  si = BTA_JV_RFC_HDL_TO_SIDX(handle);
 
-    APPL_TRACE_API0( "BTA_JvRfcommClose");
+    APPL_TRACE_API( "BTA_JvRfcommClose");
     if (hi < BTA_JV_MAX_RFC_CONN && bta_jv_cb.rfc_cb[hi].p_cback &&
         si < BTA_JV_MAX_RFC_SR_SESSION && bta_jv_cb.rfc_cb[hi].rfc_hdl[si] &&
         (p_msg = (tBTA_JV_API_RFCOMM_CLOSE *)GKI_getbuf(sizeof(tBTA_JV_API_RFCOMM_CLOSE))) != NULL)
@@ -1432,7 +1432,7 @@ tBTA_JV_STATUS BTA_JvRfcommStartServer(tBTA_SEC sec_mask,
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_RFCOMM_SERVER *p_msg;
 
-    APPL_TRACE_API0( "BTA_JvRfcommStartServer");
+    APPL_TRACE_API( "BTA_JvRfcommStartServer");
     if (p_cback &&
         (p_msg = (tBTA_JV_API_RFCOMM_SERVER *)GKI_getbuf(sizeof(tBTA_JV_API_RFCOMM_SERVER))) != NULL)
     {
@@ -1440,7 +1440,7 @@ tBTA_JV_STATUS BTA_JvRfcommStartServer(tBTA_SEC sec_mask,
             max_session = 1;
         if (max_session > BTA_JV_MAX_RFC_SR_SESSION)
         {
-            APPL_TRACE_DEBUG2( "max_session is too big. use max (%d)", max_session, BTA_JV_MAX_RFC_SR_SESSION);
+            APPL_TRACE_DEBUG( "max_session is too big. use max (%d)", max_session, BTA_JV_MAX_RFC_SR_SESSION);
             max_session = BTA_JV_MAX_RFC_SR_SESSION;
         }
         p_msg->hdr.event = BTA_JV_API_RFCOMM_START_SERVER_EVT;
@@ -1472,7 +1472,7 @@ tBTA_JV_STATUS BTA_JvRfcommStopServer(UINT32 handle, void * user_data)
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_RFCOMM_SERVER *p_msg;
-    APPL_TRACE_API0( "BTA_JvRfcommStopServer");
+    APPL_TRACE_API( "BTA_JvRfcommStopServer");
     if ((p_msg = (tBTA_JV_API_RFCOMM_SERVER *)GKI_getbuf(sizeof(tBTA_JV_API_RFCOMM_SERVER))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_RFCOMM_STOP_SERVER_EVT;
@@ -1503,7 +1503,7 @@ tBTA_JV_STATUS BTA_JvRfcommRead(UINT32 handle, UINT32 req_id, UINT8 *p_data, UIN
     UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK)&~BTA_JV_RFCOMM_MASK) - 1;
     UINT32  si = BTA_JV_RFC_HDL_TO_SIDX(handle);
 
-    APPL_TRACE_API0( "BTA_JvRfcommRead");
+    APPL_TRACE_API( "BTA_JvRfcommRead");
     if (hi < BTA_JV_MAX_RFC_CONN && bta_jv_cb.rfc_cb[hi].p_cback &&
         si < BTA_JV_MAX_RFC_SR_SESSION && bta_jv_cb.rfc_cb[hi].rfc_hdl[si] &&
         (p_msg = (tBTA_JV_API_RFCOMM_READ *)GKI_getbuf(sizeof(tBTA_JV_API_RFCOMM_READ))) != NULL)
@@ -1563,7 +1563,7 @@ tBTA_JV_STATUS BTA_JvRfcommReady(UINT32 handle, UINT32 *p_data_size)
     UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK)&~BTA_JV_RFCOMM_MASK) - 1;
     UINT32  si = BTA_JV_RFC_HDL_TO_SIDX(handle);
 
-    APPL_TRACE_API0( "BTA_JvRfcommReady");
+    APPL_TRACE_API( "BTA_JvRfcommReady");
     if (hi < BTA_JV_MAX_RFC_CONN && bta_jv_cb.rfc_cb[hi].p_cback &&
         si < BTA_JV_MAX_RFC_SR_SESSION && bta_jv_cb.rfc_cb[hi].rfc_hdl[si])
     {
@@ -1593,8 +1593,8 @@ tBTA_JV_STATUS BTA_JvRfcommWrite(UINT32 handle, UINT32 req_id)
     UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK)&~BTA_JV_RFCOMM_MASK) - 1;
     UINT32  si = BTA_JV_RFC_HDL_TO_SIDX(handle);
 
-    APPL_TRACE_API0( "BTA_JvRfcommWrite");
-    APPL_TRACE_DEBUG3( "handle:0x%x, hi:%d, si:%d", handle, hi, si);
+    APPL_TRACE_API( "BTA_JvRfcommWrite");
+    APPL_TRACE_DEBUG( "handle:0x%x, hi:%d, si:%d", handle, hi, si);
     if (hi < BTA_JV_MAX_RFC_CONN && bta_jv_cb.rfc_cb[hi].p_cback &&
         si < BTA_JV_MAX_RFC_SR_SESSION && bta_jv_cb.rfc_cb[hi].rfc_hdl[si] &&
         (p_msg = (tBTA_JV_API_RFCOMM_WRITE *)GKI_getbuf(sizeof(tBTA_JV_API_RFCOMM_WRITE))) != NULL)
@@ -1604,7 +1604,7 @@ tBTA_JV_STATUS BTA_JvRfcommWrite(UINT32 handle, UINT32 req_id)
         p_msg->req_id = req_id;
         p_msg->p_cb = &bta_jv_cb.rfc_cb[hi];
         p_msg->p_pcb = &bta_jv_cb.port_cb[p_msg->p_cb->rfc_hdl[si] - 1];
-        APPL_TRACE_API0( "write ok");
+        APPL_TRACE_API( "write ok");
         bta_sys_sendmsg(p_msg);
         status = BTA_JV_SUCCESS;
     }
@@ -1637,7 +1637,7 @@ tBTA_JV_STATUS BTA_JvSetPmProfile(UINT32 handle, tBTA_JV_PM_ID app_id, tBTA_JV_C
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
     tBTA_JV_API_SET_PM_PROFILE *p_msg;
 
-    APPL_TRACE_API2("BTA_JVSetPmProfile handle:0x%x, app_id:%d", handle, app_id);
+    APPL_TRACE_API("BTA_JVSetPmProfile handle:0x%x, app_id:%d", handle, app_id);
     if ((p_msg = (tBTA_JV_API_SET_PM_PROFILE *)GKI_getbuf(sizeof(tBTA_JV_API_SET_PM_PROFILE)))
         != NULL)
     {

@@ -205,7 +205,7 @@ BOOLEAN bta_sys_sm_execute(BT_HDR *p_msg)
     UINT8               action;
     int                 i;
 
-    APPL_TRACE_EVENT2("bta_sys_sm_execute state:%d, event:0x%x",  bta_sys_cb.state, p_msg->event);
+    APPL_TRACE_EVENT("bta_sys_sm_execute state:%d, event:0x%x",  bta_sys_cb.state, p_msg->event);
 
     /* look up the state table for the current state */
     state_table = bta_sys_st_tbl[bta_sys_cb.state];
@@ -255,7 +255,7 @@ void bta_sys_hw_btm_cback( tBTM_DEV_STATUS status )
 
     tBTA_SYS_HW_MSG *sys_event;
 
-    APPL_TRACE_DEBUG1(" bta_sys_hw_btm_cback was called with parameter: %i" , status );
+    APPL_TRACE_DEBUG(" bta_sys_hw_btm_cback was called with parameter: %i" , status );
 
     /* send a message to BTA SYS */
     if ((sys_event = (tBTA_SYS_HW_MSG *) GKI_getbuf(sizeof(tBTA_SYS_HW_MSG))) != NULL)
@@ -278,7 +278,7 @@ void bta_sys_hw_btm_cback( tBTM_DEV_STATUS status )
     }
     else
     {
-        APPL_TRACE_DEBUG0("ERROR bta_sys_hw_btm_cback couldn't send msg" );
+        APPL_TRACE_DEBUG("ERROR bta_sys_hw_btm_cback couldn't send msg" );
     }
 }
 
@@ -299,7 +299,7 @@ void bta_sys_hw_error(tBTA_SYS_HW_MSG *p_sys_hw_msg)
     UINT8 module_index;
     UNUSED(p_sys_hw_msg);
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     for (module_index = 0; module_index < BTA_SYS_MAX_HW_MODULES; module_index++)
     {
@@ -352,7 +352,7 @@ void bta_sys_hw_api_enable( tBTA_SYS_HW_MSG *p_sys_hw_msg )
             bta_sys_cb.sys_hw_cback[p_sys_hw_msg->hw_module ](  BTA_SYS_HW_ON_EVT   );
     }
 
-    APPL_TRACE_EVENT2 ("bta_sys_hw_api_enable for %d, active modules 0x%04X",
+    APPL_TRACE_EVENT ("bta_sys_hw_api_enable for %d, active modules 0x%04X",
                     p_sys_hw_msg->hw_module, bta_sys_cb.sys_hw_module_active);
 
 }
@@ -369,7 +369,7 @@ void bta_sys_hw_api_enable( tBTA_SYS_HW_MSG *p_sys_hw_msg )
 *******************************************************************************/
 void bta_sys_hw_api_disable(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
-    APPL_TRACE_DEBUG2("bta_sys_hw_api_disable for %d, active modules: 0x%04X",
+    APPL_TRACE_DEBUG("bta_sys_hw_api_disable for %d, active modules: 0x%04X",
         p_sys_hw_msg->hw_module, bta_sys_cb.sys_hw_module_active );
 
     /* make sure the related SW blocks were stopped */
@@ -410,7 +410,7 @@ void bta_sys_hw_api_disable(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 *******************************************************************************/
 void bta_sys_hw_evt_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
-    APPL_TRACE_EVENT1("bta_sys_hw_evt_enabled for %i", p_sys_hw_msg->hw_module);
+    APPL_TRACE_EVENT("bta_sys_hw_evt_enabled for %i", p_sys_hw_msg->hw_module);
 
 #if ( defined BTM_AUTOMATIC_HCI_RESET && BTM_AUTOMATIC_HCI_RESET == TRUE )
     /* If device is already up, send a fake "BTM DEVICE UP" using BTA SYS state machine */
@@ -443,7 +443,7 @@ void bta_sys_hw_evt_disabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
     UINT8 hw_module_index;
 
-    APPL_TRACE_DEBUG1("bta_sys_hw_evt_disabled - module 0x%X", p_sys_hw_msg->hw_module);
+    APPL_TRACE_DEBUG("bta_sys_hw_evt_disabled - module 0x%X", p_sys_hw_msg->hw_module);
 
     for (hw_module_index = 0; hw_module_index < BTA_SYS_MAX_HW_MODULES; hw_module_index++)
     {
@@ -467,7 +467,7 @@ void bta_sys_hw_evt_stack_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
     UINT8 hw_module_index;
     UNUSED(p_sys_hw_msg);
 
-    APPL_TRACE_DEBUG0(" bta_sys_hw_evt_stack_enabled!notify the callers");
+    APPL_TRACE_DEBUG(" bta_sys_hw_evt_stack_enabled!notify the callers");
 
     for (hw_module_index = 0; hw_module_index < BTA_SYS_MAX_HW_MODULES; hw_module_index++ )
     {
@@ -494,7 +494,7 @@ BTA_API void bta_sys_event(BT_HDR *p_msg)
     UINT8       id;
     BOOLEAN     freebuf = TRUE;
 
-    APPL_TRACE_EVENT1("BTA got event 0x%x", p_msg->event);
+    APPL_TRACE_EVENT("BTA got event 0x%x", p_msg->event);
 
     /* get subsystem id from event */
     id = (UINT8) (p_msg->event >> 8);
@@ -506,7 +506,7 @@ BTA_API void bta_sys_event(BT_HDR *p_msg)
     }
     else
     {
-        APPL_TRACE_WARNING1("BTA got unregistered event id %d", id);
+        APPL_TRACE_WARNING("BTA got unregistered event id %d", id);
     }
 
     if (freebuf)
@@ -642,7 +642,7 @@ void bta_sys_disable(tBTA_SYS_HW_MODULE module)
     int bta_id = 0;
     int bta_id_max = 0;
 
-    APPL_TRACE_DEBUG1("bta_sys_disable: module %i", module);
+    APPL_TRACE_DEBUG("bta_sys_disable: module %i", module);
 
     switch( module )
     {
@@ -663,7 +663,7 @@ void bta_sys_disable(tBTA_SYS_HW_MODULE module)
             bta_id_max = BTA_ID_GPS;
             break;
         default:
-            APPL_TRACE_WARNING0("bta_sys_disable: unkown module");
+            APPL_TRACE_WARNING("bta_sys_disable: unkown module");
             return;
     }
 

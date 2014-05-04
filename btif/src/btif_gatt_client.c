@@ -215,7 +215,7 @@ static void btapp_gattc_req_data(UINT16 event, char *p_dest, char *p_src)
             }
             else
             {
-                BTIF_TRACE_WARNING2("%s :Src read.p_value ptr is NULL for event  0x%x",
+                BTIF_TRACE_WARNING("%s :Src read.p_value ptr is NULL for event  0x%x",
                                     __FUNCTION__, event);
                 p_dest_data->read.p_value = NULL;
 
@@ -632,12 +632,12 @@ static void bta_gattc_multi_adv_cback(tBTA_BLE_MULTI_ADV_EVT event, UINT8 inst_i
 
     if(NULL == p_ref)
     {
-        BTIF_TRACE_ERROR1("%s Invalid p_ref received",__FUNCTION__);
+        BTIF_TRACE_ERROR("%s Invalid p_ref received",__FUNCTION__);
         return;
     }
 
     client_if = *(UINT8 *)p_ref;
-    BTIF_TRACE_DEBUG4("%s -Inst ID %d, Status:%x, client_if:%d",__FUNCTION__,inst_id, call_status,
+    BTIF_TRACE_DEBUG("%s -Inst ID %d, Status:%x, client_if:%d",__FUNCTION__,inst_id, call_status,
                        client_if);
 
     btif_cb.status = call_status;
@@ -711,13 +711,13 @@ static void bta_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_dat
 
         case BTA_DM_INQ_CMPL_EVT:
         {
-            BTIF_TRACE_DEBUG2("%s  BLE observe complete. Num Resp %d",
+            BTIF_TRACE_DEBUG("%s  BLE observe complete. Num Resp %d",
                               __FUNCTION__,p_data->inq_cmpl.num_resps);
             return;
         }
 
         default:
-        BTIF_TRACE_WARNING2("%s : Unknown event 0x%x", __FUNCTION__, event);
+        BTIF_TRACE_WARNING("%s : Unknown event 0x%x", __FUNCTION__, event);
         return;
     }
     btif_transfer_context(btif_gattc_upstreams_evt, BTIF_GATT_OBSERVE_EVT,
@@ -838,7 +838,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             }
 
             // Connect!
-            BTIF_TRACE_DEBUG2 ("BTA_GATTC_Open Transport  = %d, dev type = %d",
+            BTIF_TRACE_DEBUG ("BTA_GATTC_Open Transport  = %d, dev type = %d",
                                 transport, device_type);
             BTA_GATTC_Open(p_cb->client_if, p_cb->bd_addr.address, p_cb->is_direct, transport);
             break;
@@ -1190,7 +1190,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                     &(p_multi_adv_data_cb->clntif_map[arrindex][CLNT_IF_IDX]));
             }
             else
-                BTIF_TRACE_ERROR1("%s invalid index in BTIF_GATTC_ENABLE_ADV",__FUNCTION__);
+                BTIF_TRACE_ERROR("%s invalid index in BTIF_GATTC_ENABLE_ADV",__FUNCTION__);
             break;
         }
 
@@ -1210,7 +1210,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                     &(p_multi_adv_data_cb->inst_cb[cbindex].param));
             }
             else
-                BTIF_TRACE_ERROR1("%s invalid index in BTIF_GATTC_UPDATE_ADV", __FUNCTION__);
+                BTIF_TRACE_ERROR("%s invalid index in BTIF_GATTC_UPDATE_ADV", __FUNCTION__);
             break;
         }
 
@@ -1223,7 +1223,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             int inst_id = btif_multi_adv_instid_for_clientif(p_adv_data->client_if);
             if(inst_id < 0 || cbindex < 0)
             {
-               BTIF_TRACE_ERROR1("%s invalid index in BTIF_GATTC_SETADV_INST_DATA", __FUNCTION__);
+               BTIF_TRACE_ERROR("%s invalid index in BTIF_GATTC_SETADV_INST_DATA", __FUNCTION__);
                return;
             }
 
@@ -1246,7 +1246,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             if(inst_id >=0)
                 BTA_BleDisableAdvInstance((UINT8)inst_id);
             else
-                BTIF_TRACE_ERROR1("%s invalid instance ID in BTIF_GATTC_DISABLE_ADV",__FUNCTION__);
+                BTIF_TRACE_ERROR("%s invalid instance ID in BTIF_GATTC_DISABLE_ADV",__FUNCTION__);
             break;
         }
 

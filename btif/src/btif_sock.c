@@ -71,22 +71,22 @@ bt_status_t btif_sock_init()
     {
         //fix me, the process doesn't exit right now. don't set the init flag for now
         //binit = 1;
-        BTIF_TRACE_DEBUG0("btsock initializing...");
+        BTIF_TRACE_DEBUG("btsock initializing...");
         btsock_thread_init();
         int handle = btsock_thread_create(btsock_signaled, NULL);
         if(handle >= 0 && btsock_rfc_init(handle) == BT_STATUS_SUCCESS)
         {
-            BTIF_TRACE_DEBUG0("btsock successfully initialized");
+            BTIF_TRACE_DEBUG("btsock successfully initialized");
             return BT_STATUS_SUCCESS;
         }
     }
-    else BTIF_TRACE_ERROR0("btsock interface already initialized");
+    else BTIF_TRACE_ERROR("btsock interface already initialized");
     return BT_STATUS_FAIL;
 }
 void btif_sock_cleanup()
 {
     btsock_rfc_cleanup();
-    BTIF_TRACE_DEBUG0("leaving");
+    BTIF_TRACE_DEBUG("leaving");
 }
 
 static bt_status_t btsock_listen(btsock_type_t type, const char* service_name,
@@ -94,7 +94,7 @@ static bt_status_t btsock_listen(btsock_type_t type, const char* service_name,
 {
     if((service_uuid == NULL && channel <= 0) || sock_fd == NULL)
     {
-        BTIF_TRACE_ERROR3("invalid parameters, uuid:%p, channel:%d, sock_fd:%p", service_uuid, channel, sock_fd);
+        BTIF_TRACE_ERROR("invalid parameters, uuid:%p, channel:%d, sock_fd:%p", service_uuid, channel, sock_fd);
         return BT_STATUS_PARM_INVALID;
     }
     *sock_fd = -1;
@@ -105,15 +105,15 @@ static bt_status_t btsock_listen(btsock_type_t type, const char* service_name,
             status = btsock_rfc_listen(service_name, service_uuid, channel, sock_fd, flags);
             break;
         case BTSOCK_L2CAP:
-            BTIF_TRACE_ERROR1("bt l2cap socket type not supported, type:%d", type);
+            BTIF_TRACE_ERROR("bt l2cap socket type not supported, type:%d", type);
             status = BT_STATUS_UNSUPPORTED;
             break;
         case BTSOCK_SCO:
-            BTIF_TRACE_ERROR1("bt sco socket not supported, type:%d", type);
+            BTIF_TRACE_ERROR("bt sco socket not supported, type:%d", type);
             status = BT_STATUS_UNSUPPORTED;
             break;
         default:
-            BTIF_TRACE_ERROR1("unknown bt socket type:%d", type);
+            BTIF_TRACE_ERROR("unknown bt socket type:%d", type);
             status = BT_STATUS_UNSUPPORTED;
             break;
     }
@@ -124,7 +124,7 @@ static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type
 {
     if((uuid == NULL && channel <= 0) || bd_addr == NULL || sock_fd == NULL)
     {
-        BTIF_TRACE_ERROR4("invalid parameters, bd_addr:%p, uuid:%p, channel:%d, sock_fd:%p",
+        BTIF_TRACE_ERROR("invalid parameters, bd_addr:%p, uuid:%p, channel:%d, sock_fd:%p",
                 bd_addr, uuid, channel, sock_fd);
         return BT_STATUS_PARM_INVALID;
     }
@@ -136,15 +136,15 @@ static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type
             status = btsock_rfc_connect(bd_addr, uuid, channel, sock_fd, flags);
             break;
         case BTSOCK_L2CAP:
-            BTIF_TRACE_ERROR1("bt l2cap socket type not supported, type:%d", type);
+            BTIF_TRACE_ERROR("bt l2cap socket type not supported, type:%d", type);
             status = BT_STATUS_UNSUPPORTED;
             break;
         case BTSOCK_SCO:
-            BTIF_TRACE_ERROR1("bt sco socket not supported, type:%d", type);
+            BTIF_TRACE_ERROR("bt sco socket not supported, type:%d", type);
             status = BT_STATUS_UNSUPPORTED;
             break;
         default:
-            BTIF_TRACE_ERROR1("unknown bt socket type:%d", type);
+            BTIF_TRACE_ERROR("unknown bt socket type:%d", type);
             status = BT_STATUS_UNSUPPORTED;
             break;
     }
@@ -158,13 +158,13 @@ static void btsock_signaled(int fd, int type, int flags, uint32_t user_id)
             btsock_rfc_signaled(fd, flags, user_id);
             break;
         case BTSOCK_L2CAP:
-            BTIF_TRACE_ERROR2("bt l2cap socket type not supported, fd:%d, flags:%d", fd, flags);
+            BTIF_TRACE_ERROR("bt l2cap socket type not supported, fd:%d, flags:%d", fd, flags);
             break;
         case BTSOCK_SCO:
-            BTIF_TRACE_ERROR2("bt sco socket type not supported, fd:%d, flags:%d", fd, flags);
+            BTIF_TRACE_ERROR("bt sco socket type not supported, fd:%d, flags:%d", fd, flags);
             break;
         default:
-            BTIF_TRACE_ERROR3("unknown socket type:%d, fd:%d, flags:%d", type, fd, flags);
+            BTIF_TRACE_ERROR("unknown socket type:%d, fd:%d, flags:%d", type, fd, flags);
             break;
     }
 }

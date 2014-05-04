@@ -114,7 +114,7 @@ void BTA_HlUpdate(UINT8  app_id,
 {
     tBTA_HL_API_UPDATE *p_buf;
 
-    APPL_TRACE_DEBUG0("BTA_HlUpdate");
+    APPL_TRACE_DEBUG("BTA_HlUpdate");
     if (is_register)
     {
 

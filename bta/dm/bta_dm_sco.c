@@ -247,7 +247,7 @@ INT32 Convert_8M_ToBT_Filtered (UINT8 *pSrc, void *pDst, UINT32 dwSrcSamples,
     SRC_TYPE        *pOv, *pOvEnd;
     INT16           *psBtOut = (INT16 *)pDst;
 #if BTA_DM_SCO_DEBUG
-    APPL_TRACE_DEBUG1("Convert_8M_ToBT_Filtered,  CurrentPos %d\n", CurrentPos);
+    APPL_TRACE_DEBUG("Convert_8M_ToBT_Filtered,  CurrentPos %d\n", CurrentPos);
 #endif
     memcpy (pOverlapArea + (BTA_DM_PCM_OVERLAP_SIZE * 2), pSrc, BTA_DM_PCM_OVERLAP_SIZE * 2);
 
@@ -411,7 +411,7 @@ INT32 Convert_8S_ToBT_Filtered (UINT8 *pSrc, void *pDst, UINT32 dwSrcSamples,
     INT16           *psBtOut = (INT16 *)pDst;
 
 #if BTA_DM_SCO_DEBUG
-    APPL_TRACE_DEBUG5("Convert_8S_ToBT_Filtered CurrentPos %d, SRC_TYPE %d, SRC_CHANNELS %d, \
+    APPL_TRACE_DEBUG("Convert_8S_ToBT_Filtered CurrentPos %d, SRC_TYPE %d, SRC_CHANNELS %d, \
         dwSrcSamples %d,  dwSrcSps %d",  	CurrentPos, sizeof (SRC_TYPE), SRC_CHANNELS, \
         dwSrcSamples, dwSrcSps);
 #endif
@@ -608,7 +608,7 @@ void BTA_DmPcmInitSamples (UINT32 src_sps, UINT32 bits, UINT32 n_channels)
          p_cb->can_be_filtered = 0;
 
 #if BTA_DM_SCO_DEBUG
-    APPL_TRACE_DEBUG2("bta_dm_pcm_init_samples: n_channels = %d bits = %d", n_channels, bits);
+    APPL_TRACE_DEBUG("bta_dm_pcm_init_samples: n_channels = %d bits = %d", n_channels, bits);
 #endif
     if(n_channels == 1)
     {
@@ -642,11 +642,11 @@ void BTA_DmPcmInitSamples (UINT32 src_sps, UINT32 bits, UINT32 n_channels)
     }
 
 #if BTA_DM_SCO_DEBUG
-    APPL_TRACE_DEBUG2("bta_pcm_init_dwn_sample: cur_pos %d, src_sps %d", \
+    APPL_TRACE_DEBUG("bta_pcm_init_dwn_sample: cur_pos %d, src_sps %d", \
 		p_cb->cur_pos, p_cb->src_sps);
-    APPL_TRACE_DEBUG3("bta_pcm_init_dwn_sample: bits %d, n_channels %d, sample_size %d, ", \
+    APPL_TRACE_DEBUG("bta_pcm_init_dwn_sample: bits %d, n_channels %d, sample_size %d, ", \
 		p_cb->bits, p_cb->n_channels, p_cb->sample_size);
-    APPL_TRACE_DEBUG3("bta_pcm_init_dwn_sample: can_be_filtered %d, n_channels: %d, \
+    APPL_TRACE_DEBUG("bta_pcm_init_dwn_sample: can_be_filtered %d, n_channels: %d, \
         divisor %d", p_cb->can_be_filtered, p_cb->n_channels, p_cb->divisor);
 #endif
 
@@ -673,7 +673,7 @@ INT32 BTA_DmPcmResample (void *p_src, UINT32 in_bytes, void *p_dst)
     UINT32 out_sample;
 
 #if BTA_DM_SCO_DEBUG
-    APPL_TRACE_DEBUG1("bta_pcm_resample : insamples  %d",  (in_bytes  / bta_dm_pcm_cb.divisor));
+    APPL_TRACE_DEBUG("bta_pcm_resample : insamples  %d",  (in_bytes  / bta_dm_pcm_cb.divisor));
 #endif
     if(bta_dm_pcm_cb.can_be_filtered)
     {
@@ -687,7 +687,7 @@ INT32 BTA_DmPcmResample (void *p_src, UINT32 in_bytes, void *p_dst)
     }
 
 #if BTA_DM_SCO_DEBUG
-    APPL_TRACE_DEBUG1("bta_pcm_resample : outsamples  %d",  out_sample);
+    APPL_TRACE_DEBUG("bta_pcm_resample : outsamples  %d",  out_sample);
 #endif
 
     return (out_sample * bta_dm_pcm_cb.sample_size);

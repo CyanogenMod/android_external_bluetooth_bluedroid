@@ -340,7 +340,7 @@ void btif_gatt_check_encrypted_link (BD_ADDR bd_addr)
                 break;
 
             default:
-                BTIF_TRACE_ERROR1 (" GATT Encrypt :Invalid device type %d",device_type);
+                BTIF_TRACE_ERROR (" GATT Encrypt :Invalid device type %d",device_type);
                 return;
         }
         BTA_DmSetEncryption(bd_addr,transport,

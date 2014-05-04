@@ -49,7 +49,7 @@ static void bta_hf_client_port_cback(UINT32 code, UINT16 port_handle)
     /* ignore port events for port handles other than connected handle */
     if (port_handle != bta_hf_client_cb.scb.conn_handle)
     {
-        APPL_TRACE_DEBUG2("bta_hf_client_port_cback ignoring handle:%d conn_handle = %d",
+        APPL_TRACE_DEBUG("bta_hf_client_port_cback ignoring handle:%d conn_handle = %d",
                           port_handle, bta_hf_client_cb.scb.conn_handle);
         return;
     }
@@ -76,13 +76,13 @@ static void bta_hf_client_mgmt_cback(UINT32 code, UINT16 port_handle)
     tBTA_HF_CLIENT_RFC     *p_buf;
     UINT16                  event;
 
-    APPL_TRACE_DEBUG4("bta_hf_client_mgmt_cback : code = %d, port_handle = %d, conn_handle = %d, serv_handle = %d",
+    APPL_TRACE_DEBUG("bta_hf_client_mgmt_cback : code = %d, port_handle = %d, conn_handle = %d, serv_handle = %d",
                         code, port_handle, bta_hf_client_cb.scb.conn_handle, bta_hf_client_cb.scb.serv_handle);
 
     /* ignore close event for port handles other than connected handle */
     if ((code != PORT_SUCCESS) && (port_handle != bta_hf_client_cb.scb.conn_handle))
     {
-        APPL_TRACE_DEBUG1("bta_hf_client_mgmt_cback ignoring handle:%d", port_handle);
+        APPL_TRACE_DEBUG("bta_hf_client_mgmt_cback ignoring handle:%d", port_handle);
         return;
     }
 
@@ -95,7 +95,7 @@ static void bta_hf_client_mgmt_cback(UINT32 code, UINT16 port_handle)
         }
         else
         {
-            APPL_TRACE_ERROR1 ("bta_hf_client_mgmt_cback: PORT_SUCCESS, ignoring handle = %d", port_handle);
+            APPL_TRACE_ERROR ("bta_hf_client_mgmt_cback: PORT_SUCCESS, ignoring handle = %d", port_handle);
             return;
         }
     }
@@ -150,7 +150,7 @@ void bta_hf_client_start_server(void)
 
     if (bta_hf_client_cb.scb.serv_handle > 0)
     {
-        APPL_TRACE_DEBUG2("%s already started, handle: %d", __FUNCTION__, bta_hf_client_cb.scb.serv_handle);
+        APPL_TRACE_DEBUG("%s already started, handle: %d", __FUNCTION__, bta_hf_client_cb.scb.serv_handle);
         return;
     }
 
@@ -168,10 +168,10 @@ void bta_hf_client_start_server(void)
     else
     {
         /* TODO: can we handle this better? */
-        APPL_TRACE_DEBUG1("bta_hf_client_start_server: RFCOMM_CreateConnection returned error:%d", port_status);
+        APPL_TRACE_DEBUG("bta_hf_client_start_server: RFCOMM_CreateConnection returned error:%d", port_status);
     }
 
-    APPL_TRACE_DEBUG1("bta_hf_client_start_server handle: %d", bta_hf_client_cb.scb.serv_handle);
+    APPL_TRACE_DEBUG("bta_hf_client_start_server handle: %d", bta_hf_client_cb.scb.serv_handle);
 }
 
 /*******************************************************************************
@@ -186,11 +186,11 @@ void bta_hf_client_start_server(void)
 *******************************************************************************/
 void bta_hf_client_close_server(void)
 {
-    APPL_TRACE_DEBUG2("%s %d", __FUNCTION__, bta_hf_client_cb.scb.serv_handle);
+    APPL_TRACE_DEBUG("%s %d", __FUNCTION__, bta_hf_client_cb.scb.serv_handle);
 
     if (bta_hf_client_cb.scb.serv_handle == 0)
     {
-        APPL_TRACE_DEBUG1("%s already stopped", __FUNCTION__);
+        APPL_TRACE_DEBUG("%s already stopped", __FUNCTION__);
         return;
     }
 
@@ -219,7 +219,7 @@ void bta_hf_client_rfc_do_open(tBTA_HF_CLIENT_DATA *p_data)
             bta_hf_client_mgmt_cback) == PORT_SUCCESS)
     {
         bta_hf_client_setup_port(bta_hf_client_cb.scb.conn_handle);
-        APPL_TRACE_DEBUG1("bta_hf_client_rfc_do_open : conn_handle = %d", bta_hf_client_cb.scb.conn_handle);
+        APPL_TRACE_DEBUG("bta_hf_client_rfc_do_open : conn_handle = %d", bta_hf_client_cb.scb.conn_handle);
     }
     /* RFCOMM create connection failed; send ourselves RFCOMM close event */
     else

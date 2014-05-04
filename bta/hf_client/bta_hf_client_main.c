@@ -237,7 +237,7 @@ tBTA_HF_CLIENT_CB  bta_hf_client_cb;
 *******************************************************************************/
 void bta_hf_client_scb_init(void)
 {
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     memset(&bta_hf_client_cb.scb, 0, sizeof(tBTA_HF_CLIENT_SCB));
     bta_hf_client_cb.scb.sco_idx = BTM_INVALID_SCO_INDEX;
@@ -256,7 +256,7 @@ void bta_hf_client_scb_init(void)
 *******************************************************************************/
 void bta_hf_client_scb_disable(void)
 {
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     bta_hf_client_scb_init();
 
@@ -275,7 +275,7 @@ void bta_hf_client_scb_disable(void)
 *******************************************************************************/
 void bta_hf_client_resume_open (void)
 {
-    APPL_TRACE_DEBUG1 ("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG ("%s", __FUNCTION__);
 
     /* resume opening process.  */
     if (bta_hf_client_cb.scb.state == BTA_HF_CLIENT_INIT_ST)
@@ -297,7 +297,7 @@ void bta_hf_client_resume_open (void)
 *******************************************************************************/
 static void bta_hf_client_colli_timer_cback (TIMER_LIST_ENT *p_tle)
 {
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (p_tle)
     {
@@ -329,15 +329,15 @@ void bta_hf_client_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
     {
         if (id == BTA_ID_SYS)   /* ACL collision */
         {
-            APPL_TRACE_WARNING0 ("HF Client found collision (ACL) ...");
+            APPL_TRACE_WARNING ("HF Client found collision (ACL) ...");
         }
         else if (id == BTA_ID_HS)   /* RFCOMM collision */
         {
-            APPL_TRACE_WARNING0 ("HF Client found collision (RFCOMM) ...");
+            APPL_TRACE_WARNING ("HF Client found collision (RFCOMM) ...");
         }
         else
         {
-            APPL_TRACE_WARNING0 ("HF Client found collision (\?\?\?) ...");
+            APPL_TRACE_WARNING ("HF Client found collision (\?\?\?) ...");
         }
 
         bta_hf_client_cb.scb.state = BTA_HF_CLIENT_INIT_ST;
@@ -412,7 +412,7 @@ static void bta_hf_client_api_disable(tBTA_HF_CLIENT_DATA *p_data)
 {
     if (!bta_sys_is_register (BTA_ID_HS))
     {
-        APPL_TRACE_ERROR0("BTA HF Client is already disabled, ignoring ...");
+        APPL_TRACE_ERROR("BTA HF Client is already disabled, ignoring ...");
         return;
     }
 
@@ -437,7 +437,7 @@ static void bta_hf_client_api_disable(tBTA_HF_CLIENT_DATA *p_data)
 BOOLEAN bta_hf_client_hdl_event(BT_HDR *p_msg)
 {
 #if BTA_HF_CLIENT_DEBUG == TRUE
-    APPL_TRACE_DEBUG2("bta_hf_client_hdl_event %s (0x%x)", bta_hf_client_evt_str(p_msg->event), p_msg->event);
+    APPL_TRACE_DEBUG("bta_hf_client_hdl_event %s (0x%x)", bta_hf_client_evt_str(p_msg->event), p_msg->event);
 #endif
 
     switch (p_msg->event)
@@ -482,7 +482,7 @@ void bta_hf_client_sm_execute(UINT16 event, tBTA_HF_CLIENT_DATA *p_data)
     /* Ignore displaying of AT results when not connected (Ignored in state machine) */
     if (bta_hf_client_cb.scb.state == BTA_HF_CLIENT_OPEN_ST)
     {
-        APPL_TRACE_EVENT4("HF Client evt : State %d (%s), Event 0x%04x (%s)",
+        APPL_TRACE_EVENT("HF Client evt : State %d (%s), Event 0x%04x (%s)",
                            bta_hf_client_cb.scb.state,
                            bta_hf_client_state_str(bta_hf_client_cb.scb.state),
                            event, bta_hf_client_evt_str(event));
@@ -492,7 +492,7 @@ void bta_hf_client_sm_execute(UINT16 event, tBTA_HF_CLIENT_DATA *p_data)
     event &= 0x00FF;
     if (event >= (BTA_HF_CLIENT_MAX_EVT & 0x00FF))
     {
-        APPL_TRACE_ERROR0("HF Client evt out of range, ignoring...");
+        APPL_TRACE_ERROR("HF Client evt out of range, ignoring...");
         return;
     }
 
@@ -518,7 +518,7 @@ void bta_hf_client_sm_execute(UINT16 event, tBTA_HF_CLIENT_DATA *p_data)
 #if BTA_HF_CLIENT_DEBUG == TRUE
     if (bta_hf_client_cb.scb.state != in_state)
     {
-        APPL_TRACE_EVENT3("BTA HF Client State Change: [%s] -> [%s] after Event [%s]",
+        APPL_TRACE_EVENT("BTA HF Client State Change: [%s] -> [%s] after Event [%s]",
                               bta_hf_client_state_str(in_state),
                               bta_hf_client_state_str(bta_hf_client_cb.scb.state),
                               bta_hf_client_evt_str(in_event));
@@ -550,11 +550,11 @@ static void send_post_slc_cmd(void)
 *******************************************************************************/
 void bta_hf_client_slc_seq(BOOLEAN error)
 {
-    APPL_TRACE_DEBUG1("bta_hf_client_slc_seq cmd: %u", bta_hf_client_cb.scb.at_cb.current_cmd);
+    APPL_TRACE_DEBUG("bta_hf_client_slc_seq cmd: %u", bta_hf_client_cb.scb.at_cb.current_cmd);
 
     if (error) {
         /* SLC establishment error, sent close rfcomm event */
-        APPL_TRACE_ERROR1("HFPClient: Failed to create SLC due to AT error, disconnecting (%u)",
+        APPL_TRACE_ERROR("HFPClient: Failed to create SLC due to AT error, disconnecting (%u)",
                 bta_hf_client_cb.scb.at_cb.current_cmd);
 
         bta_hf_client_sm_execute(BTA_HF_CLIENT_API_CLOSE_EVT, NULL);
@@ -611,7 +611,7 @@ void bta_hf_client_slc_seq(BOOLEAN error)
 
     default:
         /* If happen there is a bug in SLC creation procedure... */
-        APPL_TRACE_ERROR1("HFPClient: Failed to create SLCdue to unexpected AT command, disconnecting (%u)",
+        APPL_TRACE_ERROR("HFPClient: Failed to create SLCdue to unexpected AT command, disconnecting (%u)",
                             bta_hf_client_cb.scb.at_cb.current_cmd);
 
         bta_hf_client_sm_execute(BTA_HF_CLIENT_API_CLOSE_EVT, NULL);

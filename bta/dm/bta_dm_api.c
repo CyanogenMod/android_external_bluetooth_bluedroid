@@ -130,7 +130,7 @@ tBTA_STATUS BTA_EnableTestMode(void)
 {
     BT_HDR    *p_msg;
 
-    APPL_TRACE_API0("BTA_EnableTestMode");
+    APPL_TRACE_API("BTA_EnableTestMode");
 
     if ((p_msg = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
@@ -155,7 +155,7 @@ void BTA_DisableTestMode(void)
 {
     BT_HDR    *p_msg;
 
-    APPL_TRACE_API0("BTA_DisableTestMode");
+    APPL_TRACE_API("BTA_DisableTestMode");
 
     if ((p_msg = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
@@ -252,7 +252,7 @@ void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 p
 void BTA_DmSetScanParam (UINT16 page_scan_interval, UINT16 page_scan_window,
                                   UINT16 inquiry_scan_interval, UINT16 inquiry_scan_window)
 {
-    APPL_TRACE_API4 ("BTA_DmSetScanParam: %d, %d, %d, %d",
+    APPL_TRACE_API ("BTA_DmSetScanParam: %d, %d, %d, %d",
             page_scan_interval, page_scan_window,
             inquiry_scan_interval, inquiry_scan_window);
 
@@ -495,7 +495,7 @@ BOOLEAN BTA_DmIsMaster(BD_ADDR bd_addr)
     UINT8 link_role;
 
     BTM_GetRole(bd_addr, &link_role);
-    APPL_TRACE_API1("BTA_DmIsMaster role:x%x", link_role);
+    APPL_TRACE_API("BTA_DmIsMaster role:x%x", link_role);
     if(link_role == BTM_ROLE_MASTER)
     {
         is_master = TRUE;
@@ -1217,7 +1217,7 @@ void BTA_SysFeatures (UINT16 sys_features)
 {
     bta_sys_cb.sys_features = sys_features;
 
-    APPL_TRACE_API1("BTA_SysFeatures: sys_features = %d", sys_features);
+    APPL_TRACE_API("BTA_SysFeatures: sys_features = %d", sys_features);
 }
 
 /*******************************************************************************
@@ -1473,7 +1473,7 @@ void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
 #if BLE_INCLUDED == TRUE
     tBTA_DM_API_BLE_ADV_PARAMS    *p_msg;
 
-    APPL_TRACE_API2 ("BTA_DmSetBleAdvParam: %d, %d", adv_int_min, adv_int_max);
+    APPL_TRACE_API ("BTA_DmSetBleAdvParam: %d, %d", adv_int_min, adv_int_max);
 
     if ((p_msg = (tBTA_DM_API_BLE_ADV_PARAMS *) GKI_getbuf(sizeof(tBTA_DM_API_BLE_ADV_PARAMS))) != NULL)
     {
@@ -1574,7 +1574,7 @@ BTA_API extern void BTA_DmBleBroadcast (BOOLEAN start)
 {
     tBTA_DM_API_BLE_OBSERVE   *p_msg;
 
-    APPL_TRACE_API1("BTA_DmBleBroadcast: start = %d ", start);
+    APPL_TRACE_API("BTA_DmBleBroadcast: start = %d ", start);
 
     if ((p_msg = (tBTA_DM_API_BLE_OBSERVE *) GKI_getbuf(sizeof(tBTA_DM_API_BLE_OBSERVE))) != NULL)
     {
@@ -1852,7 +1852,7 @@ tBTA_STATUS BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
     tBTA_DM_API_BLE_MULTI_ADV_ENB    *p_msg;
     UINT16 len = sizeof(tBTA_BLE_ADV_PARAMS) + sizeof(tBTA_DM_API_BLE_MULTI_ADV_ENB);
 
-    APPL_TRACE_API0 ("BTA_BleEnableAdvInstance");
+    APPL_TRACE_API ("BTA_BleEnableAdvInstance");
 
     if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_ENB *) GKI_getbuf(len)) != NULL)
     {
@@ -1892,7 +1892,7 @@ tBTA_STATUS BTA_BleUpdateAdvInstParam (UINT8 inst_id, tBTA_BLE_ADV_PARAMS *p_par
     tBTA_DM_API_BLE_MULTI_ADV_PARAM    *p_msg;
     UINT16      len = sizeof(tBTA_BLE_ADV_PARAMS) + sizeof(tBTA_DM_API_BLE_MULTI_ADV_PARAM);
 
-    APPL_TRACE_API0 ("BTA_BleUpdateAdvInstParam");
+    APPL_TRACE_API ("BTA_BleUpdateAdvInstParam");
     if (inst_id <= BTM_BLE_MULTI_ADV_MAX && inst_id != BTA_BLE_MULTI_ADV_ILLEGAL)
     {
         if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_PARAM *) GKI_getbuf(len)) != NULL)
@@ -1936,7 +1936,7 @@ tBTA_STATUS BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
     tBTA_DM_API_BLE_MULTI_ADV_DATA    *p_msg;
     UINT16      len =  sizeof(tBTA_DM_API_BLE_MULTI_ADV_DATA) ;
 
-    APPL_TRACE_API0 ("BTA_BleCfgAdvInstData");
+    APPL_TRACE_API ("BTA_BleCfgAdvInstData");
 
     if (inst_id <= BTM_BLE_MULTI_ADV_MAX && inst_id != BTA_BLE_MULTI_ADV_ILLEGAL)
     {
@@ -1973,7 +1973,7 @@ tBTA_STATUS BTA_BleDisableAdvInstance (UINT8  inst_id)
 {
     tBTA_DM_API_BLE_MULTI_ADV_DISABLE    *p_msg;
 
-    APPL_TRACE_API1 ("BTA_BleDisableAdvInstance: %d", inst_id);
+    APPL_TRACE_API ("BTA_BleDisableAdvInstance: %d", inst_id);
 
     if (inst_id <= BTM_BLE_MULTI_ADV_MAX && inst_id != BTA_BLE_MULTI_ADV_ILLEGAL)
     {
@@ -2053,7 +2053,7 @@ void BTA_DmSetEncryption(BD_ADDR bd_addr, tBTA_TRANSPORT transport, tBTA_DM_ENCR
 {
     tBTA_DM_API_SET_ENCRYPTION   *p_msg;
 
-    APPL_TRACE_API0("BTA_DmSetEncryption"); //todo
+    APPL_TRACE_API("BTA_DmSetEncryption"); //todo
     if ((p_msg = (tBTA_DM_API_SET_ENCRYPTION *) GKI_getbuf(sizeof(tBTA_DM_API_SET_ENCRYPTION))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_SET_ENCRYPTION));
@@ -2086,7 +2086,7 @@ void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev, tBTA_TRANSPORT transpor
 {
     tBTA_DM_API_REMOVE_ACL   *p_msg;
 
-    APPL_TRACE_API0("BTA_DmCloseACL");
+    APPL_TRACE_API("BTA_DmCloseACL");
 
     if ((p_msg = (tBTA_DM_API_REMOVE_ACL *) GKI_getbuf(sizeof(tBTA_DM_API_REMOVE_ACL))) != NULL)
     {
@@ -2123,7 +2123,7 @@ BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
 {
     tBTA_DM_API_BLE_OBSERVE   *p_msg;
 
-    APPL_TRACE_API1("BTA_DmBleObserve:start = %d ", start);
+    APPL_TRACE_API("BTA_DmBleObserve:start = %d ", start);
 
     if ((p_msg = (tBTA_DM_API_BLE_OBSERVE *) GKI_getbuf(sizeof(tBTA_DM_API_BLE_OBSERVE))) != NULL)
     {

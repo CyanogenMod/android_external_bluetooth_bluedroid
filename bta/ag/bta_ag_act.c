@@ -244,7 +244,7 @@ void bta_ag_disc_int_res(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     UINT16 event = BTA_AG_DISC_FAIL_EVT;
 
-    APPL_TRACE_DEBUG1 ("bta_ag_disc_int_res: Status: %d", p_data->disc_result.status);
+    APPL_TRACE_DEBUG ("bta_ag_disc_int_res: Status: %d", p_data->disc_result.status);
 
     /* if found service */
     if (p_data->disc_result.status == SDP_SUCCESS ||
@@ -556,13 +556,13 @@ void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     /* set role */
     p_scb->role = BTA_AG_ACP;
 
-    APPL_TRACE_DEBUG2 ("bta_ag_rfc_acp_open: serv_handle0 = %d serv_handle1 = %d",
+    APPL_TRACE_DEBUG ("bta_ag_rfc_acp_open: serv_handle0 = %d serv_handle1 = %d",
                        p_scb->serv_handle[0], p_scb->serv_handle[1]);
 
     /* get bd addr of peer */
     if (PORT_SUCCESS != (status=PORT_CheckConnection(p_data->rfc.port_handle, dev_addr, &lcid)))
     {
-        APPL_TRACE_DEBUG1 ("bta_ag_rfc_acp_open error PORT_CheckConnection returned status %d", status);
+        APPL_TRACE_DEBUG ("bta_ag_rfc_acp_open error PORT_CheckConnection returned status %d", status);
     }
 
     /* Collision Handling */
@@ -602,7 +602,7 @@ void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     /* determine connected service from port handle */
     for (i = 0; i < BTA_AG_NUM_IDX; i++)
     {
-        APPL_TRACE_DEBUG3 ("bta_ag_rfc_acp_open: i = %d serv_handle = %d port_handle = %d",
+        APPL_TRACE_DEBUG ("bta_ag_rfc_acp_open: i = %d serv_handle = %d port_handle = %d",
                            i, p_scb->serv_handle[i], p_data->rfc.port_handle);
 
         if (p_scb->serv_handle[i] == p_data->rfc.port_handle)
@@ -613,7 +613,7 @@ void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
         }
     }
 
-    APPL_TRACE_DEBUG2 ("bta_ag_rfc_acp_open: conn_service = %d conn_handle = %d",
+    APPL_TRACE_DEBUG ("bta_ag_rfc_acp_open: conn_service = %d conn_handle = %d",
                        p_scb->conn_service, p_scb->conn_handle);
 
     /* close any unopened server */
@@ -867,7 +867,7 @@ void bta_ag_rcvd_slc_ready(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     UNUSED(p_data);
 
-    APPL_TRACE_DEBUG1("bta_ag_rcvd_slc_ready: handle = %d", bta_ag_scb_to_idx(p_scb));
+    APPL_TRACE_DEBUG("bta_ag_rcvd_slc_ready: handle = %d", bta_ag_scb_to_idx(p_scb));
 
     if (bta_ag_cb.parse_mode == BTA_AG_PASS_THROUGH)
     {

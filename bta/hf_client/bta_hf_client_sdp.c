@@ -52,7 +52,7 @@ static void bta_hf_client_sdp_cback(UINT16 status)
     tBTA_HF_CLIENT_DISC_RESULT *p_buf;
     UINT16                     event;
 
-    APPL_TRACE_DEBUG1("bta_hf_client_sdp_cback status:0x%x", status);
+    APPL_TRACE_DEBUG("bta_hf_client_sdp_cback status:0x%x", status);
 
     /* set event according to int/acp */
     if (bta_hf_client_cb.scb.role == BTA_HF_CLIENT_ACP)
@@ -98,7 +98,7 @@ BOOLEAN bta_hf_client_add_record(char *p_service_name, UINT8 scn,
     UINT8               buf[2];
     UINT16              sdp_features = 0;
 
-    APPL_TRACE_DEBUG0("bta_hf_client_add_record");
+    APPL_TRACE_DEBUG("bta_hf_client_add_record");
 
     memset( proto_elem_list, 0 , BTA_HF_CLIENT_NUM_PROTO_ELEMS*sizeof(tSDP_PROTOCOL_ELEM));
 
@@ -198,7 +198,7 @@ void bta_hf_client_del_record(tBTA_HF_CLIENT_DATA *p_data)
 {
     UNUSED(p_data);
 
-    APPL_TRACE_DEBUG0("bta_hf_client_del_record");
+    APPL_TRACE_DEBUG("bta_hf_client_del_record");
 
     if (bta_hf_client_cb.sdp_handle != 0)
     {
@@ -287,7 +287,7 @@ BOOLEAN bta_hf_client_sdp_find_attr(void)
         break;
     }
 
-    APPL_TRACE_DEBUG3("%s peer_version=0x%x peer_features=0x%x",
+    APPL_TRACE_DEBUG("%s peer_version=0x%x peer_features=0x%x",
                       __FUNCTION__, bta_hf_client_cb.scb.peer_version,
                       bta_hf_client_cb.scb.peer_features);
 

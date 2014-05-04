@@ -222,7 +222,7 @@ tBTA_GATTC_CLCB * bta_gattc_clcb_alloc(tBTA_GATTC_IF client_if, BD_ADDR remote_b
         if (!bta_gattc_cb.clcb[i_clcb].in_use)
         {
 #if BTA_GATT_DEBUG == TRUE
-            APPL_TRACE_DEBUG1("bta_gattc_clcb_alloc: found clcb[%d] available",i_clcb);
+            APPL_TRACE_DEBUG("bta_gattc_clcb_alloc: found clcb[%d] available",i_clcb);
 #endif
             p_clcb                  = &bta_gattc_cb.clcb[i_clcb];
             p_clcb->in_use          = TRUE;
@@ -308,7 +308,7 @@ void bta_gattc_clcb_dealloc(tBTA_GATTC_CLCB *p_clcb)
     }
     else
     {
-        APPL_TRACE_ERROR0("bta_gattc_clcb_dealloc p_clcb=NULL");
+        APPL_TRACE_ERROR("bta_gattc_clcb_dealloc p_clcb=NULL");
     }
 }
 
@@ -440,7 +440,7 @@ BOOLEAN bta_gattc_enqueue(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
  }
  else
  {
-     APPL_TRACE_ERROR0("already has a pending command!!");
+     APPL_TRACE_ERROR("already has a pending command!!");
      /* skip the callback now. ----- need to send callback ? */
  }
  return p_clcb->buf_held;
@@ -573,7 +573,7 @@ BOOLEAN bta_gattc_check_notif_registry(tBTA_GATTC_RCB  *p_clreg, tBTA_GATTC_SERV
             bdcmp(p_clreg->notif_reg[i].remote_bda, p_srcb->server_bda) == 0 &&
             bta_gattc_charid_compare (&p_clreg->notif_reg[i].char_id, &p_notify->char_id))
         {
-            APPL_TRACE_DEBUG0("Notification registered!");
+            APPL_TRACE_DEBUG("Notification registered!");
             return TRUE;
         }
     }
@@ -611,7 +611,7 @@ void bta_gattc_clear_notif_registration(UINT16 conn_id)
     }
     else
     {
-        APPL_TRACE_ERROR0("can not clear indication/notif registration for unknown app");
+        APPL_TRACE_ERROR("can not clear indication/notif registration for unknown app");
     }
     return;
 }
@@ -649,7 +649,7 @@ tBTA_GATT_STATUS bta_gattc_pack_read_cb_data(tBTA_GATTC_SERV *p_srcb,
                                     &p_value->aggre_value.pre_format[i].descr_id) == FALSE)
             {
                 status = BTA_GATT_INTERNAL_ERROR;
-                APPL_TRACE_ERROR1("can not map to GATT ID. handle = 0x%04x", handle);
+                APPL_TRACE_ERROR("can not map to GATT ID. handle = 0x%04x", handle);
                 break;
             }
             i ++;
@@ -710,7 +710,7 @@ BOOLEAN bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda
     }
     if (!add)
     {
-        APPL_TRACE_ERROR0("Do not find the bg connection mask for the remote device");
+        APPL_TRACE_ERROR("Do not find the bg connection mask for the remote device");
         return FALSE;
     }
     else /* adding a new device mask */
@@ -732,7 +732,7 @@ BOOLEAN bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda
                 return TRUE;
             }
         }
-        APPL_TRACE_ERROR0("no available space to mark the bg connection status");
+        APPL_TRACE_ERROR("no available space to mark the bg connection status");
         return FALSE;
     }
 }
@@ -816,7 +816,7 @@ tBTA_GATTC_CONN * bta_gattc_conn_alloc(BD_ADDR remote_bda)
         if (!p_conn->in_use)
         {
 #if BTA_GATT_DEBUG == TRUE
-            APPL_TRACE_DEBUG1("bta_gattc_conn_alloc: found conn_track[%d] available",i_conn);
+            APPL_TRACE_DEBUG("bta_gattc_conn_alloc: found conn_track[%d] available",i_conn);
 #endif
             p_conn->in_use          = TRUE;
             bdcpy(p_conn->remote_bda, remote_bda);
@@ -845,7 +845,7 @@ tBTA_GATTC_CONN * bta_gattc_conn_find(BD_ADDR remote_bda)
         if (p_conn->in_use && bdcmp(remote_bda, p_conn->remote_bda) == 0)
         {
 #if BTA_GATT_DEBUG == TRUE
-            APPL_TRACE_DEBUG1("bta_gattc_conn_find: found conn_track[%d] matched",i_conn);
+            APPL_TRACE_DEBUG("bta_gattc_conn_find: found conn_track[%d] matched",i_conn);
 #endif
             return p_conn;
         }
@@ -956,7 +956,7 @@ tBTA_GATTC_CLCB * bta_gattc_find_int_disconn_clcb(tBTA_GATTC_DATA *p_msg)
     }
     else if ((p_clcb = bta_gattc_find_clcb_by_conn_id(p_msg->int_conn.hdr.layer_specific)) == NULL)
     {
-        APPL_TRACE_DEBUG1(" disconnection ID: [%d] not used by BTA",
+        APPL_TRACE_DEBUG(" disconnection ID: [%d] not used by BTA",
             p_msg->int_conn.hdr.layer_specific);
     }
     return p_clcb;

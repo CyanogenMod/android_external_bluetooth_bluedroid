@@ -77,12 +77,12 @@ void bta_hf_client_send_at_cmd(tBTA_HF_CLIENT_DATA *p_data)
             bta_hf_client_send_at_nrec();
             break;
         default:
-            APPL_TRACE_ERROR0("Default case");
+            APPL_TRACE_ERROR("Default case");
             snprintf(buf,BTA_HF_CLIENT_AT_MAX_LEN,
                 "Cmd %d 1st arg %u 2nd arg %u string arg %s",
                 p_val->uint8_val, p_val->uint32_val1,
                 p_val->uint32_val2, p_val->str);
-            APPL_TRACE_ERROR1("%s ", buf);
+            APPL_TRACE_ERROR("%s ", buf);
             break;
     }
 }
