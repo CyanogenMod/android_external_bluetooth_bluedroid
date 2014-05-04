@@ -115,7 +115,7 @@ void gatt_verify_signature(tGATT_TCB *p_tcb, BT_HDR *p_buf)
     else
     {
         /* if this is a bad signature, assume from attacker, ignore it  */
-        GATT_TRACE_ERROR0("Signature Verification Failed, data ignored");
+        GATT_TRACE_ERROR("Signature Verification Failed, data ignored");
     }
 
     return;
@@ -165,7 +165,7 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_d
     UINT16       count;
     UNUSED(p_ref_data);
 
-    GATT_TRACE_DEBUG0("gatt_enc_cmpl_cback");
+    GATT_TRACE_DEBUG("gatt_enc_cmpl_cback");
     if ((p_tcb = gatt_find_tcb_by_addr(bd_addr, transport)) != NULL)
     {
         if (gatt_get_sec_act(p_tcb) == GATT_SEC_ENC_PENDING)
@@ -206,12 +206,12 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_d
         }
         else
         {
-            GATT_TRACE_ERROR0("Unknown operation encryption completed");
+            GATT_TRACE_ERROR("Unknown operation encryption completed");
         }
     }
     else
     {
-        GATT_TRACE_ERROR0("enc callback for unknown bd_addr");
+        GATT_TRACE_ERROR("enc callback for unknown bd_addr");
     }
 }
 
@@ -262,7 +262,7 @@ void gatt_notify_enc_cmpl(BD_ADDR bd_addr)
     }
     else
     {
-        GATT_TRACE_DEBUG0("notify GATT for encryption completion of unknown device");
+        GATT_TRACE_DEBUG("notify GATT for encryption completion of unknown device");
     }
     return;
 }
@@ -428,7 +428,7 @@ tGATT_STATUS gatt_get_link_encrypt_status(tGATT_TCB *p_tcb)
             encrypt_status = GATT_ENCRYPED_MITM;
     }
 
-    GATT_TRACE_DEBUG1("gatt_get_link_encrypt_status status=0x%x",encrypt_status);
+    GATT_TRACE_DEBUG("gatt_get_link_encrypt_status status=0x%x",encrypt_status);
     return  encrypt_status ;
 }
 
@@ -489,7 +489,7 @@ BOOLEAN gatt_security_check_start(tGATT_CLCB *p_clcb)
     switch (gatt_sec_act )
     {
         case GATT_SEC_SIGN_DATA:
-            GATT_TRACE_DEBUG0("gatt_security_check_start: Do data signing");
+            GATT_TRACE_DEBUG("gatt_security_check_start: Do data signing");
             gatt_sign_data(p_clcb);
             break;
         case GATT_SEC_ENCRYPT:
@@ -497,12 +497,12 @@ BOOLEAN gatt_security_check_start(tGATT_CLCB *p_clcb)
         case GATT_SEC_ENCRYPT_MITM:
             if (sec_act_old < GATT_SEC_ENCRYPT)
             {
-                GATT_TRACE_DEBUG0("gatt_security_check_start: Encrypt now or key upgreade first");
+                GATT_TRACE_DEBUG("gatt_security_check_start: Encrypt now or key upgreade first");
                 gatt_convert_sec_action(gatt_sec_act, &btm_ble_sec_act);
                 btm_status = BTM_SetEncryption(p_tcb->peer_bda, p_tcb->transport , gatt_enc_cmpl_cback, &btm_ble_sec_act);
                 if ( (btm_status != BTM_SUCCESS) && (btm_status != BTM_CMD_STARTED))
                 {
-                    GATT_TRACE_ERROR1("gatt_security_check_start BTM_SetEncryption failed btm_status=%d", btm_status);
+                    GATT_TRACE_ERROR("gatt_security_check_start BTM_SetEncryption failed btm_status=%d", btm_status);
                     status = FALSE;
                 }
             }

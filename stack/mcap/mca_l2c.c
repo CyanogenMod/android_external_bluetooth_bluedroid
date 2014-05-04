@@ -78,11 +78,11 @@ static void mca_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transpor
 
     UNUSED(transport);
 
-    MCA_TRACE_DEBUG1("mca_sec_check_complete_term res: %d", res);
+    MCA_TRACE_DEBUG("mca_sec_check_complete_term res: %d", res);
 
     if ( res == BTM_SUCCESS )
     {
-        MCA_TRACE_DEBUG2 ("lcid:x%x id:x%x", p_tbl->lcid, p_tbl->id);
+        MCA_TRACE_DEBUG ("lcid:x%x id:x%x", p_tbl->lcid, p_tbl->id);
         /* Set the FCR options: control channel mandates ERTM */
         ertm_info.preferred_mode    = mca_l2c_fcr_opts_def.mode;
         ertm_info.allowed_modes     = L2CAP_FCR_CHAN_OPT_ERTM;
@@ -124,7 +124,7 @@ static void mca_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transpor
     UNUSED(bd_addr);
     UNUSED(transport);
 
-    MCA_TRACE_DEBUG1("mca_sec_check_complete_orig res: %d", res);
+    MCA_TRACE_DEBUG("mca_sec_check_complete_orig res: %d", res);
 
     if ( res == BTM_SUCCESS )
     {
@@ -160,7 +160,7 @@ void mca_l2c_cconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
     tL2CAP_ERTM_INFO ertm_info, *p_ertm_info = NULL;
     tL2CAP_CFG_INFO  cfg;
 
-    MCA_TRACE_EVENT3 ("mca_l2c_cconn_ind_cback: lcid:x%x psm:x%x id:x%x", lcid, psm, id);
+    MCA_TRACE_EVENT ("mca_l2c_cconn_ind_cback: lcid:x%x psm:x%x id:x%x", lcid, psm, id);
 
     /* do we already have a control channel for this peer? */
     if ((p_ccb = mca_ccb_by_bd(handle, bd_addr)) == NULL)
@@ -237,7 +237,7 @@ void mca_l2c_dconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
     tL2CAP_ERTM_INFO *p_ertm_info = NULL, ertm_info;
     const tMCA_CHNL_CFG   *p_chnl_cfg;
 
-    MCA_TRACE_EVENT2 ("mca_l2c_dconn_ind_cback: lcid:x%x psm:x%x ", lcid, psm);
+    MCA_TRACE_EVENT ("mca_l2c_dconn_ind_cback: lcid:x%x psm:x%x ", lcid, psm);
 
     if (((p_ccb = mca_ccb_by_bd(handle, bd_addr)) != NULL) && /* find the CCB */
         (p_ccb->status == MCA_CCB_STAT_PENDING) &&  /* this CCB is expecting a MDL */
@@ -299,12 +299,12 @@ void mca_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
     tL2CAP_CFG_INFO cfg;
     tMCA_CCB *p_ccb;
 
-    MCA_TRACE_DEBUG2("mca_l2c_connect_cfm_cback lcid: x%x, result: %d",
+    MCA_TRACE_DEBUG("mca_l2c_connect_cfm_cback lcid: x%x, result: %d",
                      lcid, result);
     /* look up info for this channel */
     if ((p_tbl = mca_tc_tbl_by_lcid(lcid)) != NULL)
     {
-        MCA_TRACE_DEBUG2("p_tbl state: %d, tcid: %d", p_tbl->state, p_tbl->tcid);
+        MCA_TRACE_DEBUG("p_tbl state: %d, tcid: %d", p_tbl->state, p_tbl->tcid);
         /* if in correct state */
         if (p_tbl->state == MCA_TC_ST_CONN)
         {
@@ -426,7 +426,7 @@ void mca_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
         {
             p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;
         }
-        MCA_TRACE_DEBUG3("peer_mtu: %d, lcid: x%x mtu_present:%d",p_tbl->peer_mtu, lcid, p_cfg->mtu_present);
+        MCA_TRACE_DEBUG("peer_mtu: %d, lcid: x%x mtu_present:%d",p_tbl->peer_mtu, lcid, p_cfg->mtu_present);
 
         /* send L2CAP configure response */
         memset(p_cfg, 0, sizeof(tL2CAP_CFG_INFO));
@@ -463,7 +463,7 @@ void mca_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
     tMCA_TC_TBL    *p_tbl;
     UINT16         reason = L2CAP_DISC_TIMEOUT;
 
-    MCA_TRACE_DEBUG2("mca_l2c_disconnect_ind_cback lcid: %d, ack_needed: %d",
+    MCA_TRACE_DEBUG("mca_l2c_disconnect_ind_cback lcid: %d, ack_needed: %d",
                      lcid, ack_needed);
     /* look up info for this channel */
     if ((p_tbl = mca_tc_tbl_by_lcid(lcid)) != NULL)
@@ -495,7 +495,7 @@ void mca_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
 {
     tMCA_TC_TBL    *p_tbl;
 
-    MCA_TRACE_DEBUG2("mca_l2c_disconnect_cfm_cback lcid: x%x, result: %d",
+    MCA_TRACE_DEBUG("mca_l2c_disconnect_cfm_cback lcid: x%x, result: %d",
                      lcid, result);
     /* look up info for this channel */
     if ((p_tbl = mca_tc_tbl_by_lcid(lcid)) != NULL)

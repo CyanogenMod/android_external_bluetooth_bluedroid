@@ -87,11 +87,11 @@ BOOLEAN  smp_send_msg_to_L2CAP(BD_ADDR rem_bda, BT_HDR *p_toL2CAP)
 {
     UINT16              l2cap_ret;
 
-    SMP_TRACE_EVENT0("smp_send_msg_to_L2CAP");
+    SMP_TRACE_EVENT("smp_send_msg_to_L2CAP");
 
     if ((l2cap_ret = L2CA_SendFixedChnlData (L2CAP_SMP_CID, rem_bda, p_toL2CAP)) == L2CAP_DW_FAILED)
     {
-        SMP_TRACE_ERROR1("SMP   failed to pass msg:0x%0x to L2CAP",
+        SMP_TRACE_ERROR("SMP   failed to pass msg:0x%0x to L2CAP",
                          *((UINT8 *)(p_toL2CAP + 1) + p_toL2CAP->offset));
         GKI_freebuf(p_toL2CAP);
         return FALSE;
@@ -113,7 +113,7 @@ BOOLEAN smp_send_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     BT_HDR *p_buf;
     BOOLEAN sent = FALSE;
     UINT8 failure = SMP_PAIR_INTERNAL_ERR;
-    SMP_TRACE_EVENT1("smp_send_cmd on l2cap cmd_code=0x%x", cmd_code);
+    SMP_TRACE_EVENT("smp_send_cmd on l2cap cmd_code=0x%x", cmd_code);
     if ( cmd_code < SMP_OPCODE_MAX &&
          smp_cmd_build_act[cmd_code] != NULL)
     {
@@ -154,7 +154,7 @@ void smp_rsp_timeout(TIMER_LIST_ENT *p_tle)
     UINT8 failure = SMP_RSP_TIMEOUT;
     UNUSED(p_tle);
 
-    SMP_TRACE_EVENT1("smp_rsp_timeout state:%d", p_cb->state);
+    SMP_TRACE_EVENT("smp_rsp_timeout state:%d", p_cb->state);
 
     if (smp_get_state() == SMP_ST_RELEASE_DELAY)
     {
@@ -177,7 +177,7 @@ BT_HDR * smp_build_pairing_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 {
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
-    SMP_TRACE_EVENT0("smp_build_pairing_cmd");
+    SMP_TRACE_EVENT("smp_build_pairing_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_PAIRING_REQ_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -211,7 +211,7 @@ static BT_HDR * smp_build_confirm_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UINT8       *p;
     UNUSED(cmd_code);
 
-    SMP_TRACE_EVENT0("smp_build_confirm_cmd");
+    SMP_TRACE_EVENT("smp_build_confirm_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_CONFIRM_CMD_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -238,7 +238,7 @@ static BT_HDR * smp_build_rand_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UINT8       *p;
     UNUSED(cmd_code);
 
-    SMP_TRACE_EVENT0("smp_build_rand_cmd");
+    SMP_TRACE_EVENT("smp_build_rand_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_INIT_CMD_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -265,7 +265,7 @@ static BT_HDR * smp_build_encrypt_info_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UINT8       *p;
     UNUSED(cmd_code);
 
-    SMP_TRACE_EVENT0("smp_build_encrypt_info_cmd");
+    SMP_TRACE_EVENT("smp_build_encrypt_info_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_ENC_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -292,7 +292,7 @@ static BT_HDR * smp_build_master_id_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UINT8       *p;
     UNUSED(cmd_code);
 
-    SMP_TRACE_EVENT0("smp_build_master_id_cmd ");
+    SMP_TRACE_EVENT("smp_build_master_id_cmd ");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_MASTER_ID_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -322,7 +322,7 @@ static BT_HDR * smp_build_identity_info_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UNUSED(cmd_code);
     UNUSED(p_cb);
 
-    SMP_TRACE_EVENT0("smp_build_identity_info_cmd");
+    SMP_TRACE_EVENT("smp_build_identity_info_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_ID_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -353,7 +353,7 @@ static BT_HDR * smp_build_id_addr_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UNUSED(cmd_code);
     UNUSED(p_cb);
 
-    SMP_TRACE_EVENT0("smp_build_id_addr_cmd");
+    SMP_TRACE_EVENT("smp_build_id_addr_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_ID_ADDR_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -383,7 +383,7 @@ static BT_HDR * smp_build_signing_info_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UINT8       *p;
     UNUSED(cmd_code);
 
-    SMP_TRACE_EVENT0("smp_build_signing_info_cmd");
+    SMP_TRACE_EVENT("smp_build_signing_info_cmd");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_SIGN_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -410,7 +410,7 @@ static BT_HDR * smp_build_pairing_fail(UINT8 cmd_code, tSMP_CB *p_cb)
     UINT8       *p;
     UNUSED(cmd_code);
 
-    SMP_TRACE_EVENT0("smp_build_pairing_fail");
+    SMP_TRACE_EVENT("smp_build_pairing_fail");
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + SMP_PAIR_FAIL_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -437,7 +437,7 @@ static BT_HDR * smp_build_security_request(UINT8 cmd_code, tSMP_CB *p_cb)
     UINT8       *p;
     UNUSED(cmd_code);
 
-    SMP_TRACE_EVENT0("smp_build_security_request");
+    SMP_TRACE_EVENT("smp_build_security_request");
 
     if ((p_buf = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR) + 2 + L2CAP_MIN_OFFSET)) != NULL)
     {
@@ -449,7 +449,7 @@ static BT_HDR * smp_build_security_request(UINT8 cmd_code, tSMP_CB *p_cb)
         p_buf->offset = L2CAP_MIN_OFFSET;
         p_buf->len = 2;
 
-        SMP_TRACE_EVENT2("opcode=%d auth_req=0x%x",SMP_OPCODE_SEC_REQ,  p_cb->loc_auth_req );
+        SMP_TRACE_EVENT("opcode=%d auth_req=0x%x",SMP_OPCODE_SEC_REQ,  p_cb->loc_auth_req );
     }
 
     return p_buf;
@@ -471,7 +471,7 @@ void smp_convert_string_to_tk(BT_OCTET16 tk, UINT32 passkey)
 {
     UINT8   *p = tk;
     tSMP_KEY    key;
-    SMP_TRACE_EVENT0("smp_convert_string_to_tk");
+    SMP_TRACE_EVENT("smp_convert_string_to_tk");
     UINT32_TO_STREAM(p, passkey);
 
     key.key_type    = SMP_KEY_TYPE_TK;
@@ -493,7 +493,7 @@ void smp_convert_string_to_tk(BT_OCTET16 tk, UINT32 passkey)
 *******************************************************************************/
 void smp_mask_enc_key(UINT8 loc_enc_size, UINT8 * p_data)
 {
-    SMP_TRACE_EVENT0("smp_mask_enc_key");
+    SMP_TRACE_EVENT("smp_mask_enc_key");
     if (loc_enc_size < BT_OCTET16_LEN)
     {
         for (; loc_enc_size < BT_OCTET16_LEN; loc_enc_size ++)
@@ -515,7 +515,7 @@ void smp_xor_128(BT_OCTET16 a, BT_OCTET16 b)
 {
     UINT8 i, *aa = a, *bb = b;
 
-    SMP_TRACE_EVENT0("smp_xor_128");
+    SMP_TRACE_EVENT("smp_xor_128");
     for (i = 0; i < BT_OCTET16_LEN; i++)
     {
         aa[i] = aa[i] ^ bb[i];
@@ -537,7 +537,7 @@ void smp_cb_cleanup(tSMP_CB   *p_cb)
     tSMP_CALLBACK   *p_callback = p_cb->p_callback;
     UINT8           trace_level = p_cb->trace_level;
 
-    SMP_TRACE_EVENT0("smp_cb_cleanup");
+    SMP_TRACE_EVENT("smp_cb_cleanup");
     memset(p_cb, 0, sizeof(tSMP_CB));
     p_cb->p_callback = p_callback;
     p_cb->trace_level = trace_level;
@@ -555,18 +555,18 @@ void smp_cb_cleanup(tSMP_CB   *p_cb)
 *******************************************************************************/
 void smp_reset_control_value(tSMP_CB *p_cb)
 {
-    SMP_TRACE_EVENT0("smp_reset_control_value");
+    SMP_TRACE_EVENT("smp_reset_control_value");
     btu_stop_timer (&p_cb->rsp_timer_ent);
 #if SMP_CONFORMANCE_TESTING == TRUE
 
-    SMP_TRACE_EVENT1("smp_cb.remove_fixed_channel_disable=%d", smp_cb.remove_fixed_channel_disable);
+    SMP_TRACE_EVENT("smp_cb.remove_fixed_channel_disable=%d", smp_cb.remove_fixed_channel_disable);
     if (!smp_cb.remove_fixed_channel_disable)
     {
         L2CA_RemoveFixedChnl (L2CAP_SMP_CID, p_cb->pairing_bda);
     }
     else
     {
-        SMP_TRACE_EVENT0("disable the removal of the fixed channel");
+        SMP_TRACE_EVENT("disable the removal of the fixed channel");
     }
 
 
@@ -592,7 +592,7 @@ void smp_proc_pairing_cmpl(tSMP_CB *p_cb)
 {
     tSMP_EVT_DATA   evt_data = {0};
 
-    SMP_TRACE_DEBUG0 ("smp_proc_pairing_cmpl ");
+    SMP_TRACE_DEBUG ("smp_proc_pairing_cmpl ");
 
     evt_data.cmplt.reason = p_cb->status;
 
@@ -605,7 +605,7 @@ void smp_proc_pairing_cmpl(tSMP_CB *p_cb)
         evt_data.cmplt.is_pair_cancel = TRUE;
 
 
-    SMP_TRACE_DEBUG2 ("send SMP_COMPLT_EVT reason=0x%0x sec_level=0x%0x",
+    SMP_TRACE_DEBUG ("send SMP_COMPLT_EVT reason=0x%0x sec_level=0x%0x",
                       evt_data.cmplt.reason,
                       evt_data.cmplt.sec_level );
     if (p_cb->p_callback)
@@ -662,7 +662,7 @@ void smp_reject_unexp_pair_req(BD_ADDR bd_addr)
 *******************************************************************************/
 void smp_set_test_confirm_value(BOOLEAN enable, UINT8 *p_c_val)
 {
-    SMP_TRACE_DEBUG1("smp_set_test_confirm_value enable=%d", enable);
+    SMP_TRACE_DEBUG("smp_set_test_confirm_value enable=%d", enable);
     smp_cb.enable_test_confirm_val = enable;
     memcpy(smp_cb.test_confirm, p_c_val, BT_OCTET16_LEN);
 }
@@ -679,7 +679,7 @@ void smp_set_test_confirm_value(BOOLEAN enable, UINT8 *p_c_val)
 *******************************************************************************/
 void smp_set_test_rand_value(BOOLEAN enable, UINT8 *p_c_val)
 {
-    SMP_TRACE_DEBUG1("smp_set_test_rand_value enable=%d", enable);
+    SMP_TRACE_DEBUG("smp_set_test_rand_value enable=%d", enable);
     smp_cb.enable_test_rand_val = enable;
     memcpy(smp_cb.test_rand, p_c_val, BT_OCTET16_LEN);
 }
@@ -696,7 +696,7 @@ void smp_set_test_rand_value(BOOLEAN enable, UINT8 *p_c_val)
 *******************************************************************************/
 void smp_set_test_pair_fail_status (BOOLEAN enable, UINT8 status)
 {
-    SMP_TRACE_DEBUG1("smp_set_test_confirm_value enable=%d", enable);
+    SMP_TRACE_DEBUG("smp_set_test_confirm_value enable=%d", enable);
     smp_cb.enable_test_pair_fail = enable;
     smp_cb.pair_fail_status = status;
 }
@@ -712,7 +712,7 @@ void smp_set_test_pair_fail_status (BOOLEAN enable, UINT8 status)
 *******************************************************************************/
 void smp_remove_fixed_channel_disable (BOOLEAN disable)
 {
-    SMP_TRACE_DEBUG1("smp_remove_fixed_channel_disable disable =%d", disable);
+    SMP_TRACE_DEBUG("smp_remove_fixed_channel_disable disable =%d", disable);
     smp_cb.remove_fixed_channel_disable = disable;
 }
 /*******************************************************************************
@@ -726,7 +726,7 @@ void smp_remove_fixed_channel_disable (BOOLEAN disable)
 *******************************************************************************/
 void smp_skip_compare_check(BOOLEAN enable)
 {
-    SMP_TRACE_DEBUG1("smp_skip_compare_check enable=%d", enable);
+    SMP_TRACE_DEBUG("smp_skip_compare_check enable=%d", enable);
     smp_cb.skip_test_compare_check = enable;
 }
 

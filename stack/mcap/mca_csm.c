@@ -190,9 +190,9 @@ void mca_ccb_event(tMCA_CCB *p_ccb, UINT8 event, tMCA_CCB_EVT *p_data)
     UINT8              action;
 
 #if (BT_TRACE_VERBOSE == TRUE)
-    MCA_TRACE_EVENT3("CCB ccb=%d event=%s state=%s", mca_ccb_to_hdl(p_ccb), mca_ccb_evt_str[event], mca_ccb_st_str[p_ccb->state]);
+    MCA_TRACE_EVENT("CCB ccb=%d event=%s state=%s", mca_ccb_to_hdl(p_ccb), mca_ccb_evt_str[event], mca_ccb_st_str[p_ccb->state]);
 #else
-    MCA_TRACE_EVENT3("CCB ccb=%d event=%d state=%d", mca_ccb_to_hdl(p_ccb), event, p_ccb->state);
+    MCA_TRACE_EVENT("CCB ccb=%d event=%d state=%d", mca_ccb_to_hdl(p_ccb), event, p_ccb->state);
 #endif
 
     /* look up the state table for the current state */
@@ -260,7 +260,7 @@ tMCA_CCB *mca_ccb_alloc(tMCA_HANDLE handle, BD_ADDR bd_addr)
     tMCA_CCB *p_ccb_tmp;
     int       i;
 
-    MCA_TRACE_DEBUG1("mca_ccb_alloc handle:0x%x", handle);
+    MCA_TRACE_DEBUG("mca_ccb_alloc handle:0x%x", handle);
     if (p_rcb)
     {
         i = handle-1;
@@ -295,7 +295,7 @@ void mca_ccb_dealloc(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
     tMCA_CTRL   evt_data;
 
-    MCA_TRACE_DEBUG1("mca_ccb_dealloc ctrl_vpsm:0x%x", p_ccb->ctrl_vpsm);
+    MCA_TRACE_DEBUG("mca_ccb_dealloc ctrl_vpsm:0x%x", p_ccb->ctrl_vpsm);
     mca_dcb_close_by_mdl_id (p_ccb, MCA_ALL_MDL_ID);
     if (p_ccb->ctrl_vpsm)
     {

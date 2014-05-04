@@ -42,7 +42,7 @@ static tAVRC_STS avrc_bld_next_cmd (tAVRC_NEXT_CMD *p_cmd, BT_HDR *p_pkt)
 {
     UINT8   *p_data, *p_start;
 
-    AVRC_TRACE_API0("avrc_bld_next_cmd");
+    AVRC_TRACE_API("avrc_bld_next_cmd");
 
     /* get the existing length, if any, and also the num attributes */
     p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
@@ -75,7 +75,7 @@ static tAVRC_STS avrc_bld_set_abs_volume_cmd (tAVRC_SET_VOLUME_CMD *p_cmd, BT_HD
 {
     UINT8   *p_data, *p_start;
 
-    AVRC_TRACE_API0("avrc_bld_set_abs_volume_cmd");
+    AVRC_TRACE_API("avrc_bld_set_abs_volume_cmd");
     /* get the existing length, if any, and also the num attributes */
     p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
     p_data = p_start + 2; /* pdu + rsvd */
@@ -100,7 +100,7 @@ static tAVRC_STS avrc_bld_vol_change_notfn(BT_HDR * p_pkt)
 {
     UINT8   *p_data, *p_start;
 
-    AVRC_TRACE_API0("avrc_bld_vol_change");
+    AVRC_TRACE_API("avrc_bld_vol_change");
     /* get the existing length, if any, and also the num attributes */
     // Set the notify value
     p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
@@ -131,7 +131,7 @@ static BT_HDR *avrc_bld_init_cmd_buffer(tAVRC_COMMAND *p_cmd)
     UINT8  opcode;
 
     opcode = avrc_opcode_from_pdu(p_cmd->pdu);
-    AVRC_TRACE_API2("avrc_bld_init_cmd_buffer: pdu=%x, opcode=%x", p_cmd->pdu, opcode);
+    AVRC_TRACE_API("avrc_bld_init_cmd_buffer: pdu=%x, opcode=%x", p_cmd->pdu, opcode);
 
     switch (opcode)
     {
@@ -194,10 +194,10 @@ tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt)
     BT_HDR  *p_pkt;
     BOOLEAN alloc = FALSE;
 
-    AVRC_TRACE_API2("AVRC_BldCommand: pdu=%x status=%x", p_cmd->cmd.pdu, p_cmd->cmd.status);
+    AVRC_TRACE_API("AVRC_BldCommand: pdu=%x status=%x", p_cmd->cmd.pdu, p_cmd->cmd.status);
     if (!p_cmd || !pp_pkt)
     {
-        AVRC_TRACE_API2("AVRC_BldCommand. Invalid parameters passed. p_cmd=%p, pp_pkt=%p",
+        AVRC_TRACE_API("AVRC_BldCommand. Invalid parameters passed. p_cmd=%p, pp_pkt=%p",
             p_cmd, pp_pkt);
         return AVRC_STS_BAD_PARAM;
     }
@@ -206,7 +206,7 @@ tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt)
     {
         if ((*pp_pkt = avrc_bld_init_cmd_buffer(p_cmd)) == NULL)
         {
-            AVRC_TRACE_API0("AVRC_BldCommand: Failed to initialize command buffer");
+            AVRC_TRACE_API("AVRC_BldCommand: Failed to initialize command buffer");
             return AVRC_STS_INTERNAL_ERR;
         }
         alloc = TRUE;
@@ -243,7 +243,7 @@ tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt)
         GKI_freebuf(p_pkt);
         *pp_pkt = NULL;
     }
-    AVRC_TRACE_API1("AVRC_BldCommand: returning %d", status);
+    AVRC_TRACE_API("AVRC_BldCommand: returning %d", status);
     return status;
 }
 #endif /* (AVRC_METADATA_INCLUDED == TRUE) */

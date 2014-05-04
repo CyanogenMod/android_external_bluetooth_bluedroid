@@ -205,7 +205,7 @@ UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info)
 
     if (battery_cb.inst_id == BA_MAX_INT_NUM)
     {
-        GATT_TRACE_ERROR0("MAX battery service has been reached");
+        GATT_TRACE_ERROR("MAX battery service has been reached");
         return 0;
     }
 
@@ -219,7 +219,7 @@ UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info)
 
     if (srvc_hdl == 0)
     {
-        GATT_TRACE_ERROR0("Can not create service, Battery_Instantiate() failed!");
+        GATT_TRACE_ERROR("Can not create service, Battery_Instantiate() failed!");
         return 0;
     }
 
@@ -240,7 +240,7 @@ UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info)
                                                 BATTER_LEVEL_PERM,
                                                 prop)) == 0)
     {
-        GATT_TRACE_ERROR0("Can not add Battery Level, Battery_Instantiate() failed!");
+        GATT_TRACE_ERROR("Can not add Battery Level, Battery_Instantiate() failed!");
         status = GATT_ERROR;
     }
     else
@@ -253,7 +253,7 @@ UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info)
                                                            &uuid);
             if (p_inst->clt_cfg_hdl == 0)
             {
-                GATT_TRACE_ERROR0("Add battery level client notification FAILED!");
+                GATT_TRACE_ERROR("Add battery level client notification FAILED!");
             }
         }
         /* need presentation format descriptor? */
@@ -265,7 +265,7 @@ UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info)
                                                                  &uuid))
                                        == 0)
             {
-                GATT_TRACE_ERROR0("Add battery level presentation format descriptor FAILED!");
+                GATT_TRACE_ERROR("Add battery level presentation format descriptor FAILED!");
             }
 
         }
@@ -278,7 +278,7 @@ UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info)
                                                                 &uuid))
                                        == 0)
             {
-                GATT_TRACE_ERROR0("Add battery level report reference descriptor FAILED!");
+                GATT_TRACE_ERROR("Add battery level report reference descriptor FAILED!");
             }
 
         }

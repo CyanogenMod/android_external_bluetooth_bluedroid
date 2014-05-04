@@ -101,7 +101,7 @@ void mca_ccb_snd_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     BOOLEAN is_abort = FALSE;
     tMCA_DCB *p_dcb;
 
-    MCA_TRACE_DEBUG2 ("mca_ccb_snd_req cong=%d req=%d", p_ccb->cong, p_msg->op_code);
+    MCA_TRACE_DEBUG ("mca_ccb_snd_req cong=%d req=%d", p_ccb->cong, p_msg->op_code);
     /* check for abort request */
     if ((p_ccb->status == MCA_CCB_STAT_PENDING) && (p_msg->op_code == MCA_OP_MDL_ABORT_REQ))
     {
@@ -144,7 +144,7 @@ void mca_ccb_snd_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     }
     else
     {
-        MCA_TRACE_WARNING0 ("dropping api req");
+        MCA_TRACE_WARNING ("dropping api req");
         GKI_freebuf (p_data);
     }
 }
@@ -167,7 +167,7 @@ void mca_ccb_snd_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     BOOLEAN chk_mdl = FALSE;
     tMCA_DCB    *p_dcb;
 
-    MCA_TRACE_DEBUG2 ("mca_ccb_snd_rsp cong=%d req=%d", p_ccb->cong, p_msg->op_code);
+    MCA_TRACE_DEBUG ("mca_ccb_snd_rsp cong=%d req=%d", p_ccb->cong, p_msg->op_code);
     /* assume that API functions verified the parameters */
     p_pkt = (BT_HDR *)GKI_getbuf (MCA_CTRL_MTU);
     if (p_pkt)
@@ -232,7 +232,7 @@ void mca_ccb_do_disconn (tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 *******************************************************************************/
 void mca_ccb_cong(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
-    MCA_TRACE_DEBUG2 ("mca_ccb_cong cong=%d/%d", p_ccb->cong, p_data->llcong);
+    MCA_TRACE_DEBUG ("mca_ccb_cong cong=%d/%d", p_ccb->cong, p_data->llcong);
     p_ccb->cong = p_data->llcong;
     if (!p_ccb->cong)
     {
@@ -270,17 +270,17 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     BOOLEAN         check_req = FALSE;
     UINT8           reject_opcode;
 
-    MCA_TRACE_DEBUG1 ("mca_ccb_hdl_req status:%d", p_ccb->status);
+    MCA_TRACE_DEBUG ("mca_ccb_hdl_req status:%d", p_ccb->status);
     p_rx_msg = (tMCA_CCB_MSG *)p_pkt;
     p = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
     evt_data.hdr.op_code = *p++;
     BE_STREAM_TO_UINT16 (evt_data.hdr.mdl_id, p);
     reject_opcode = evt_data.hdr.op_code+1;
 
-    MCA_TRACE_DEBUG1 ("received mdl id: %d ", evt_data.hdr.mdl_id);
+    MCA_TRACE_DEBUG ("received mdl id: %d ", evt_data.hdr.mdl_id);
     if (p_ccb->status == MCA_CCB_STAT_PENDING)
     {
-        MCA_TRACE_DEBUG0 ("received req inpending state");
+        MCA_TRACE_DEBUG ("received req inpending state");
         /* allow abort in pending state */
         if ((p_ccb->status == MCA_CCB_STAT_PENDING) && (evt_data.hdr.op_code == MCA_OP_MDL_ABORT_REQ))
         {
@@ -299,17 +299,17 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     }
     else if (p_ccb->p_rx_msg)
     {
-        MCA_TRACE_DEBUG0 ("still handling prev req");
+        MCA_TRACE_DEBUG ("still handling prev req");
         /* still holding previous message, reject this new one ?? */
 
     }
     else if (p_ccb->p_tx_req)
     {
-        MCA_TRACE_DEBUG1 ("still waiting for a response ctrl_vpsm:0x%x", p_ccb->ctrl_vpsm);
+        MCA_TRACE_DEBUG ("still waiting for a response ctrl_vpsm:0x%x", p_ccb->ctrl_vpsm);
         /* sent a request; waiting for response */
         if (p_ccb->ctrl_vpsm == 0)
         {
-            MCA_TRACE_DEBUG0 ("local is ACP. accept the cmd from INT");
+            MCA_TRACE_DEBUG ("local is ACP. accept the cmd from INT");
             /* local is acceptor, need to handle the request */
             check_req = TRUE;
             reject_code = MCA_RSP_SUCCESS;
@@ -366,12 +366,12 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
                     p_rx_msg->mdep_id = evt_data.create_ind.dep_id;
                     if (!mca_is_valid_dep_id(p_ccb->p_rcb, p_rx_msg->mdep_id))
                     {
-                        MCA_TRACE_ERROR0 ("not a valid local mdep id");
+                        MCA_TRACE_ERROR ("not a valid local mdep id");
                         reject_code = MCA_RSP_BAD_MDEP;
                     }
                     else if (mca_ccb_uses_mdl_id(p_ccb, evt_data.hdr.mdl_id))
                     {
-                        MCA_TRACE_DEBUG0 ("the mdl_id is currently used in the CL(create)");
+                        MCA_TRACE_DEBUG ("the mdl_id is currently used in the CL(create)");
                         mca_dcb_close_by_mdl_id(p_ccb, evt_data.hdr.mdl_id);
                     }
                     else
@@ -379,7 +379,7 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
                         /* check if this dep still have MDL available */
                         if (mca_dep_free_mdl(p_ccb, evt_data.create_ind.dep_id) == 0)
                         {
-                            MCA_TRACE_ERROR0 ("the mdep is currently using max_mdl");
+                            MCA_TRACE_ERROR ("the mdep is currently using max_mdl");
                             reject_code = MCA_RSP_MDEP_BUSY;
                         }
                     }
@@ -388,7 +388,7 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
                 case MCA_OP_MDL_RECONNECT_REQ:
                     if (mca_ccb_uses_mdl_id(p_ccb, evt_data.hdr.mdl_id))
                     {
-                        MCA_TRACE_ERROR0 ("the mdl_id is currently used in the CL(reconn)");
+                        MCA_TRACE_ERROR ("the mdl_id is currently used in the CL(reconn)");
                         reject_code = MCA_RSP_MDL_BUSY;
                     }
                     break;
@@ -494,7 +494,7 @@ void mca_ccb_hdl_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
                 {
                     if (evt_data.hdr.mdl_id != p_dcb->mdl_id)
                     {
-                        MCA_TRACE_ERROR2 ("peer's mdl_id=%d != our mdl_id=%d", evt_data.hdr.mdl_id, p_dcb->mdl_id);
+                        MCA_TRACE_ERROR ("peer's mdl_id=%d != our mdl_id=%d", evt_data.hdr.mdl_id, p_dcb->mdl_id);
                         /* change the response code to be an error */
                         if (evt_data.rsp.rsp_code == MCA_RSP_SUCCESS)
                         {
@@ -544,7 +544,7 @@ void mca_ccb_hdl_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     else
     {
         /* not expecting any response. drop it */
-        MCA_TRACE_WARNING0 ("dropping received rsp (not expecting a response)");
+        MCA_TRACE_WARNING ("dropping received rsp (not expecting a response)");
     }
     GKI_freebuf (p_data);
 }

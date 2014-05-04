@@ -190,16 +190,16 @@ static void gatt_profile_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_
         case GATTS_REQ_TYPE_WRITE_EXEC:
         case GATT_CMD_WRITE:
             ignore = TRUE;
-            GATT_TRACE_EVENT0("Ignore GATT_REQ_EXEC_WRITE/WRITE_CMD" );
+            GATT_TRACE_EVENT("Ignore GATT_REQ_EXEC_WRITE/WRITE_CMD" );
             break;
 
         case GATTS_REQ_TYPE_MTU:
-            GATT_TRACE_EVENT1("Get MTU exchange new mtu size: %d", p_data->mtu);
+            GATT_TRACE_EVENT("Get MTU exchange new mtu size: %d", p_data->mtu);
             ignore = TRUE;
             break;
 
         default:
-            GATT_TRACE_EVENT1("Unknown/unexpected LE GAP ATT request: 0x%02x", type);
+            GATT_TRACE_EVENT("Unknown/unexpected LE GAP ATT request: 0x%02x", type);
             break;
     }
 
@@ -223,7 +223,7 @@ static void gatt_profile_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 co
 {
     UNUSED(gatt_if);
 
-    GATT_TRACE_EVENT5 ("gatt_profile_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",
+    GATT_TRACE_EVENT ("gatt_profile_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",
                        (bda[0]<<24)+(bda[1]<<16)+(bda[2]<<8)+bda[3],
                        (bda[4]<<8)+bda[5], connected, conn_id, reason);
 
@@ -231,7 +231,7 @@ static void gatt_profile_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 co
     {
         if (gatt_profile_clcb_alloc(conn_id, bda, transport) == NULL)
         {
-            GATT_TRACE_ERROR0 ("gatt_profile_connect_cback: no_resource");
+            GATT_TRACE_ERROR ("gatt_profile_connect_cback: no_resource");
             return;
         }
     }
@@ -272,14 +272,14 @@ void gatt_profile_db_init (void)
     gatt_cb.gattp_attr.handle   =
     gatt_cb.handle_of_h_r       = GATTS_AddCharacteristic(service_handle, &uuid, 0, GATT_CHAR_PROP_BIT_INDICATE);
 
-    GATT_TRACE_DEBUG1 ("gatt_profile_db_init:  handle of service changed%d",
+    GATT_TRACE_DEBUG ("gatt_profile_db_init:  handle of service changed%d",
                        gatt_cb.handle_of_h_r  );
 
     /* start service
     */
     status = GATTS_StartService (gatt_cb.gatt_if, service_handle, GATTP_TRANSPORT_SUPPORTED );
 
-    GATT_TRACE_DEBUG2 ("gatt_profile_db_init:  gatt_if=%d   start status%d",
+    GATT_TRACE_DEBUG ("gatt_profile_db_init:  gatt_if=%d   start status%d",
                        gatt_cb.gatt_if,  status);
 }
 
