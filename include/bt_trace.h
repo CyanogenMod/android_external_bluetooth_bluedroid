@@ -295,73 +295,16 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 #define L2CAP_INITIAL_TRACE_LEVEL           BT_TRACE_LEVEL_WARNING
 #endif
 
-#ifndef LLCP_INITIAL_TRACE_LEVEL
-#define LLCP_INITIAL_TRACE_LEVEL            BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef AMP_INITIAL_TRACE_LEVEL
-#define AMP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
 #ifndef RFCOMM_INITIAL_TRACE_LEVEL
 #define RFCOMM_INITIAL_TRACE_LEVEL          BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef OBX_INITIAL_TRACE_LEVEL
-#define OBX_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
 #endif
 
 #ifndef SDP_INITIAL_TRACE_LEVEL
 #define SDP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
 #endif
 
-#ifndef TCS_INITIAL_TRACE_LEVEL
-#define TCS_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
-/* Profile default trace levels */
-#ifndef DUN_INITIAL_TRACE_LEVEL
-#define DUN_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
 #ifndef GAP_INITIAL_TRACE_LEVEL
 #define GAP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef GOEP_INITIAL_TRACE_LEVEL
-#define GOEP_INITIAL_TRACE_LEVEL            BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef HSP2_INITIAL_TRACE_LEVEL
-#define HSP2_INITIAL_TRACE_LEVEL            BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef SPP_INITIAL_TRACE_LEVEL
-#define SPP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef ICP_INITIAL_TRACE_LEVEL
-#define ICP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef CTP_INITIAL_TRACE_LEVEL
-#define CTP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef HCRP_INITIAL_TRACE_LEVEL
-#define HCRP_INITIAL_TRACE_LEVEL            BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef HCRPM_INITIAL_TRACE_LEVEL
-#define HCRPM_INITIAL_TRACE_LEVEL           BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef BPP_INITIAL_TRACE_LEVEL
-#define BPP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef BIP_INITIAL_TRACE_LEVEL
-#define BIP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
 #endif
 
 #ifndef BNEP_INITIAL_TRACE_LEVEL
@@ -372,32 +315,8 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 #define PAN_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
 #endif
 
-#ifndef SAP_INITIAL_TRACE_LEVEL
-#define SAP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef FTP_INITIAL_TRACE_LEVEL
-#define FTP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef OPP_INITIAL_TRACE_LEVEL
-#define OPP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef HFP_INITIAL_TRACE_LEVEL
-#define HFP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef PAP_INITIAL_TRACE_LEVEL
-#define PAP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
 #ifndef A2D_INITIAL_TRACE_LEVEL
 #define A2D_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef VDP_INITIAL_TRACE_LEVEL
-#define VDP_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
 #endif
 
 #ifndef AVDT_INITIAL_TRACE_LEVEL
@@ -420,21 +339,12 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 #define HID_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
 #endif
 
-/* Application and other default trace levels */
-#ifndef RPC_INITIAL_TRACE_LEVEL
-#define RPC_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
-#endif
-
 #ifndef APPL_INITIAL_TRACE_LEVEL
 #define APPL_INITIAL_TRACE_LEVEL            BT_TRACE_LEVEL_WARNING
 #endif
 
 #ifndef BT_TRACE_APPL
 #define BT_TRACE_APPL   BT_USE_TRACES
-#endif
-
-#ifndef NFC_INITIAL_TRACE_LEVEL
-#define NFC_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
 #endif
 
 #ifndef GATT_INITIAL_TRACE_LEVEL
@@ -926,46 +836,6 @@ extern UINT8 btif_trace_level;
 #define APPL_TRACE_VERBOSE(...)
 
 #endif
-
-#if defined(DRV_DEBUG_MSG) && (DRV_DEBUG_MSG == TRUE)
-/* Driver Trace macros
-*/
-#define DRV_TRACE_WARNING0(m)                      APPL_TRACE_WARNING0(m)
-#define DRV_TRACE_WARNING1(m,p1)                   APPL_TRACE_WARNING1(m,p1)
-#define DRV_TRACE_WARNING2(m,p1,p2)                APPL_TRACE_WARNING2(m,p1,p2)
-#define DRV_TRACE_WARNING3(m,p1,p2,p3)             APPL_TRACE_WARNING3(m,p1,p2,p3)
-#define DRV_TRACE_WARNING4(m,p1,p2,p3,p4)          APPL_TRACE_WARNING4(m,p1,p2,p3,p4)
-#define DRV_TRACE_WARNING5(m,p1,p2,p3,p4,p5)       APPL_TRACE_WARNING5(m,p1,p2,p3,p4,p5)
-#define DRV_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6)    APPL_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6)
-#else
-/* Driver Trace macros
-*/
-#define DRV_TRACE_WARNING0(m)
-#define DRV_TRACE_WARNING1(m,p1)
-#define DRV_TRACE_WARNING2(m,p1,p2)
-#define DRV_TRACE_WARNING3(m,p1,p2,p3)
-#define DRV_TRACE_WARNING4(m,p1,p2,p3,p4)
-#define DRV_TRACE_WARNING5(m,p1,p2,p3,p4,p5)
-#define DRV_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6)
-#endif
-
-#define DRV_TRACE_ERROR0(m)                      APPL_TRACE_ERROR0(m)
-#define DRV_TRACE_ERROR1(m,p1)                   APPL_TRACE_ERROR1(m,p1)
-#define DRV_TRACE_ERROR2(m,p1,p2)                APPL_TRACE_ERROR2(m,p1,p2)
-#define DRV_TRACE_ERROR3(m,p1,p2,p3)             APPL_TRACE_ERROR3(m,p1,p2,p3)
-#define DRV_TRACE_ERROR4(m,p1,p2,p3,p4)          APPL_TRACE_ERROR4(m,p1,p2,p3,p4)
-#define DRV_TRACE_ERROR5(m,p1,p2,p3,p4,p5)       APPL_TRACE_ERROR5(m,p1,p2,p3,p4,p5)
-#define DRV_TRACE_ERROR6(m,p1,p2,p3,p4,p5,p6)    APPL_TRACE_ERROR6(m,p1,p2,p3,p4,p5,p6)
-
-/* Driver Trace macros
-*/
-#define DRV_TRACE_DEBUG0(m)                    APPL_TRACE_DEBUG0(m)
-#define DRV_TRACE_DEBUG1(m,p1)                 APPL_TRACE_DEBUG1(m,p1)
-#define DRV_TRACE_DEBUG2(m,p1,p2)              APPL_TRACE_DEBUG2(m,p1,p2)
-#define DRV_TRACE_DEBUG3(m,p1,p2,p3)           APPL_TRACE_DEBUG3(m,p1,p2,p3)
-#define DRV_TRACE_DEBUG4(m,p1,p2,p3,p4)        APPL_TRACE_DEBUG4(m,p1,p2,p3,p4)
-#define DRV_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)     APPL_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)
-#define DRV_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)  APPL_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)
 
 /* Simplified Trace Helper Macro
 */
