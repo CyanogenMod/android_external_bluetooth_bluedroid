@@ -616,85 +616,25 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 
 #if (BT_USE_TRACES == TRUE)
 
-#define BT_TRACE(l,t,...)                           LogMsg((TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | (t)), ##__VA_ARGS__)
+#define BT_TRACE(l,t,...)                         LogMsg((TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | (t)), ##__VA_ARGS__)
 #define BT_ERROR_TRACE(l,...)                     LogMsg(TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | TRACE_TYPE_ERROR, ##__VA_ARGS__)
 
 /* Define tracing for the HCI unit
 */
-#define HCI_TRACE_ERROR0(m)                     {if (btu_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, m);}
-#define HCI_TRACE_ERROR1(m,p1)                  {if (btu_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, m,p1);}
-#define HCI_TRACE_ERROR2(m,p1,p2)               {if (btu_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, m,p1,p2);}
-#define HCI_TRACE_ERROR3(m,p1,p2,p3)            {if (btu_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, m,p1,p2,p3);}
-#define HCI_TRACE_ERROR4(m,p1,p2,p3,p4)         {if (btu_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, m,p1,p2,p3,p4);}
-#define HCI_TRACE_ERROR5(m,p1,p2,p3,p4,p5)      {if (btu_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, m,p1,p2,p3,p4,p5);}
-#define HCI_TRACE_ERROR6(m,p1,p2,p3,p4,p5,p6)   {if (btu_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, m,p1,p2,p3,p4,p5,p6);}
 
-#define HCI_TRACE_WARNING0(m)                   {if (btu_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, m);}
-#define HCI_TRACE_WARNING1(m,p1)                {if (btu_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, m,p1);}
-#define HCI_TRACE_WARNING2(m,p1,p2)             {if (btu_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, m,p1,p2);}
-#define HCI_TRACE_WARNING3(m,p1,p2,p3)          {if (btu_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, m,p1,p2,p3);}
-#define HCI_TRACE_WARNING4(m,p1,p2,p3,p4)       {if (btu_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, m,p1,p2,p3,p4);}
-#define HCI_TRACE_WARNING5(m,p1,p2,p3,p4,p5)    {if (btu_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, m,p1,p2,p3,p4,p5);}
-#define HCI_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6) {if (btu_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, m,p1,p2,p3,p4,p5,p6);}
-
-#define HCI_TRACE_EVENT0(m)                     {if (btu_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, m);}
-#define HCI_TRACE_EVENT1(m,p1)                  {if (btu_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, m, p1);}
-#define HCI_TRACE_EVENT2(m,p1,p2)               {if (btu_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, m,p1,p2);}
-#define HCI_TRACE_EVENT3(m,p1,p2,p3)            {if (btu_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, m,p1,p2,p3);}
-#define HCI_TRACE_EVENT4(m,p1,p2,p3,p4)         {if (btu_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, m,p1,p2,p3,p4);}
-#define HCI_TRACE_EVENT5(m,p1,p2,p3,p4,p5)      {if (btu_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, m,p1,p2,p3,p4,p5);}
-#define HCI_TRACE_EVENT6(m,p1,p2,p3,p4,p5,p6)   {if (btu_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, m,p1,p2,p3,p4,p5,p6);}
-
-#define HCI_TRACE_DEBUG0(m)                     {if (btu_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, m);}
-#define HCI_TRACE_DEBUG1(m,p1)                  {if (btu_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, m,p1);}
-#define HCI_TRACE_DEBUG2(m,p1,p2)               {if (btu_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, m,p1,p2);}
-#define HCI_TRACE_DEBUG3(m,p1,p2,p3)            {if (btu_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, m,p1,p2,p3);}
-#define HCI_TRACE_DEBUG4(m,p1,p2,p3,p4)         {if (btu_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4);}
-#define HCI_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)      {if (btu_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4,p5);}
-#define HCI_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)   {if (btu_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4,p5,p6);}
+#define HCI_TRACE_ERROR(...)                   {if (btu_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, ##__VA_ARGS__);}
+#define HCI_TRACE_WARNING(...)                 {if (btu_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, ##__VA_ARGS__);}
+#define HCI_TRACE_EVENT(...)                   {if (btu_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, ##__VA_ARGS__);}
+#define HCI_TRACE_DEBUG(...)                   {if (btu_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 
 
 /* Define tracing for BTM
 */
-#define BTM_TRACE_ERROR0(m)                     {if (btm_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_ERROR, m);}
-#define BTM_TRACE_ERROR1(m,p1)                  {if (btm_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_ERROR, m,p1);}
-#define BTM_TRACE_ERROR2(m,p1,p2)               {if (btm_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_ERROR, m,p1,p2);}
-#define BTM_TRACE_ERROR3(m,p1,p2,p3)            {if (btm_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_ERROR, m,p1,p2,p3);}
-#define BTM_TRACE_ERROR4(m,p1,p2,p3,p4)         {if (btm_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_ERROR, m,p1,p2,p3,p4);}
-#define BTM_TRACE_ERROR5(m,p1,p2,p3,p4,p5)      {if (btm_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_ERROR, m,p1,p2,p3,p4,p5);}
-#define BTM_TRACE_ERROR6(m,p1,p2,p3,p4,p5,p6)   {if (btm_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_ERROR, m,p1,p2,p3,p4,p5,p6);}
-
-#define BTM_TRACE_WARNING0(m)                   {if (btm_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_WARNING, m);}
-#define BTM_TRACE_WARNING1(m,p1)                {if (btm_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_WARNING, m,p1);}
-#define BTM_TRACE_WARNING2(m,p1,p2)             {if (btm_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_WARNING, m,p1,p2);}
-#define BTM_TRACE_WARNING3(m,p1,p2,p3)          {if (btm_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_WARNING, m,p1,p2,p3);}
-#define BTM_TRACE_WARNING4(m,p1,p2,p3,p4)       {if (btm_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_WARNING, m,p1,p2,p3,p4);}
-#define BTM_TRACE_WARNING5(m,p1,p2,p3,p4,p5)    {if (btm_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_WARNING, m,p1,p2,p3,p4,p5);}
-#define BTM_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6) {if (btm_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_WARNING, m,p1,p2,p3,p4,p5,p6);}
-
-#define BTM_TRACE_API0(m)                       {if (btm_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_API, m);}
-#define BTM_TRACE_API1(m,p1)                    {if (btm_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_API, m, p1);}
-#define BTM_TRACE_API2(m,p1,p2)                 {if (btm_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_API, m,p1,p2);}
-#define BTM_TRACE_API3(m,p1,p2,p3)              {if (btm_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_API, m,p1,p2,p3);}
-#define BTM_TRACE_API4(m,p1,p2,p3,p4)           {if (btm_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_API, m,p1,p2,p3,p4);}
-#define BTM_TRACE_API5(m,p1,p2,p3,p4,p5)        {if (btm_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_API, m,p1,p2,p3,p4,p5);}
-#define BTM_TRACE_API6(m,p1,p2,p3,p4,p5,p6)     {if (btm_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_API, m,p1,p2,p3,p4,p5,p6);}
-
-#define BTM_TRACE_EVENT0(m)                     {if (btm_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_EVENT, m);}
-#define BTM_TRACE_EVENT1(m,p1)                  {if (btm_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_EVENT, m, p1);}
-#define BTM_TRACE_EVENT2(m,p1,p2)               {if (btm_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_EVENT, m,p1,p2);}
-#define BTM_TRACE_EVENT3(m,p1,p2,p3)            {if (btm_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_EVENT, m,p1,p2,p3);}
-#define BTM_TRACE_EVENT4(m,p1,p2,p3,p4)         {if (btm_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_EVENT, m,p1,p2,p3,p4);}
-#define BTM_TRACE_EVENT5(m,p1,p2,p3,p4,p5)      {if (btm_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_EVENT, m,p1,p2,p3,p4,p5);}
-#define BTM_TRACE_EVENT6(m,p1,p2,p3,p4,p5,p6)   {if (btm_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_EVENT, m,p1,p2,p3,p4,p5,p6);}
-
-#define BTM_TRACE_DEBUG0(m)                     {if (btm_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_DEBUG, m);}
-#define BTM_TRACE_DEBUG1(m,p1)                  {if (btm_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_DEBUG, m,p1);}
-#define BTM_TRACE_DEBUG2(m,p1,p2)               {if (btm_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_DEBUG, m,p1,p2);}
-#define BTM_TRACE_DEBUG3(m,p1,p2,p3)            {if (btm_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_DEBUG, m,p1,p2,p3);}
-#define BTM_TRACE_DEBUG4(m,p1,p2,p3,p4)         {if (btm_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4);}
-#define BTM_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)      {if (btm_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4,p5);}
-#define BTM_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)   {if (btm_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_DEBUG, m,p1,p2,p3,p4,p5,p6);}
+#define BTM_TRACE_ERROR(...)                     {if (btm_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_ERROR, ##__VA_ARGS__);}
+#define BTM_TRACE_WARNING(...)                   {if (btm_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_WARNING, ##__VA_ARGS__);}
+#define BTM_TRACE_API(...)                       {if (btm_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_API, ##__VA_ARGS__);}
+#define BTM_TRACE_EVENT(...)                     {if (btm_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_EVENT, ##__VA_ARGS__);}
+#define BTM_TRACE_DEBUG(...)                     {if (btm_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 
 
 /* Define tracing for the L2CAP unit
@@ -2535,80 +2475,19 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 
 /* Define tracing for the HCI unit
 */
-#define HCI_TRACE_ERROR0(m)
-#define HCI_TRACE_ERROR1(m,p1)
-#define HCI_TRACE_ERROR2(m,p1,p2)
-#define HCI_TRACE_ERROR3(m,p1,p2,p3)
-#define HCI_TRACE_ERROR4(m,p1,p2,p3,p4)
-#define HCI_TRACE_ERROR5(m,p1,p2,p3,p4,p5)
-#define HCI_TRACE_ERROR6(m,p1,p2,p3,p4,p5,p6)
-
-#define HCI_TRACE_WARNING0(m)
-#define HCI_TRACE_WARNING1(m,p1)
-#define HCI_TRACE_WARNING2(m,p1,p2)
-#define HCI_TRACE_WARNING3(m,p1,p2,p3)
-#define HCI_TRACE_WARNING4(m,p1,p2,p3,p4)
-#define HCI_TRACE_WARNING5(m,p1,p2,p3,p4,p5)
-#define HCI_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6)
-
-#define HCI_TRACE_EVENT0(m)
-#define HCI_TRACE_EVENT1(m,p1)
-#define HCI_TRACE_EVENT2(m,p1,p2)
-#define HCI_TRACE_EVENT3(m,p1,p2,p3)
-#define HCI_TRACE_EVENT4(m,p1,p2,p3,p4)
-#define HCI_TRACE_EVENT5(m,p1,p2,p3,p4,p5)
-#define HCI_TRACE_EVENT6(m,p1,p2,p3,p4,p5,p6)
-
-#define HCI_TRACE_DEBUG0(m)
-#define HCI_TRACE_DEBUG1(m,p1)
-#define HCI_TRACE_DEBUG2(m,p1,p2)
-#define HCI_TRACE_DEBUG3(m,p1,p2,p3)
-#define HCI_TRACE_DEBUG4(m,p1,p2,p3,p4)
-#define HCI_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)
-#define HCI_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)
+#define HCI_TRACE_ERROR(...)
+#define HCI_TRACE_WARNING(...)
+#define HCI_TRACE_EVENT(...)
+#define HCI_TRACE_DEBUG(...)
 
 
 /* Define tracing for BTM
 */
-#define BTM_TRACE_ERROR0(m)
-#define BTM_TRACE_ERROR1(m,p1)
-#define BTM_TRACE_ERROR2(m,p1,p2)
-#define BTM_TRACE_ERROR3(m,p1,p2,p3)
-#define BTM_TRACE_ERROR4(m,p1,p2,p3,p4)
-#define BTM_TRACE_ERROR5(m,p1,p2,p3,p4,p5)
-#define BTM_TRACE_ERROR6(m,p1,p2,p3,p4,p5,p6)
-
-#define BTM_TRACE_WARNING0(m)
-#define BTM_TRACE_WARNING1(m,p1)
-#define BTM_TRACE_WARNING2(m,p1,p2)
-#define BTM_TRACE_WARNING3(m,p1,p2,p3)
-#define BTM_TRACE_WARNING4(m,p1,p2,p3,p4)
-#define BTM_TRACE_WARNING5(m,p1,p2,p3,p4,p5)
-#define BTM_TRACE_WARNING6(m,p1,p2,p3,p4,p5,p6)
-
-#define BTM_TRACE_API0(m)
-#define BTM_TRACE_API1(m,p1)
-#define BTM_TRACE_API2(m,p1,p2)
-#define BTM_TRACE_API3(m,p1,p2,p3)
-#define BTM_TRACE_API4(m,p1,p2,p3,p4)
-#define BTM_TRACE_API5(m,p1,p2,p3,p4,p5)
-#define BTM_TRACE_API6(m,p1,p2,p3,p4,p5,p6)
-
-#define BTM_TRACE_EVENT0(m)
-#define BTM_TRACE_EVENT1(m,p1)
-#define BTM_TRACE_EVENT2(m,p1,p2)
-#define BTM_TRACE_EVENT3(m,p1,p2,p3)
-#define BTM_TRACE_EVENT4(m,p1,p2,p3,p4)
-#define BTM_TRACE_EVENT5(m,p1,p2,p3,p4,p5)
-#define BTM_TRACE_EVENT6(m,p1,p2,p3,p4,p5,p6)
-
-#define BTM_TRACE_DEBUG0(m)
-#define BTM_TRACE_DEBUG1(m,p1)
-#define BTM_TRACE_DEBUG2(m,p1,p2)
-#define BTM_TRACE_DEBUG3(m,p1,p2,p3)
-#define BTM_TRACE_DEBUG4(m,p1,p2,p3,p4)
-#define BTM_TRACE_DEBUG5(m,p1,p2,p3,p4,p5)
-#define BTM_TRACE_DEBUG6(m,p1,p2,p3,p4,p5,p6)
+#define BTM_TRACE_ERROR(...)
+#define BTM_TRACE_WARNING(...)
+#define BTM_TRACE_API(...)
+#define BTM_TRACE_EVENT(...)
+#define BTM_TRACE_DEBUG(...)
 
 
 /* Define tracing for the L2CAP unit

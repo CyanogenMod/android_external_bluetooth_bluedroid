@@ -110,13 +110,13 @@ BOOLEAN smp_encrypt_data (UINT8 *key, UINT8 key_len,
     SMP_TRACE_DEBUG0 ("smp_encrypt_data");
     if ( (p_out == NULL ) || (key_len != SMP_ENCRYT_KEY_SIZE) )
     {
-        BTM_TRACE_ERROR0 ("smp_encrypt_data Failed");
+        BTM_TRACE_ERROR ("smp_encrypt_data Failed");
         return(FALSE);
     }
 
     if ((p_start = (UINT8 *)GKI_getbuf((SMP_ENCRYT_DATA_SIZE*4))) == NULL)
     {
-        BTM_TRACE_ERROR0 ("smp_encrypt_data Failed unable to allocate buffer");
+        BTM_TRACE_ERROR ("smp_encrypt_data Failed unable to allocate buffer");
         return(FALSE);
     }
 
@@ -686,7 +686,7 @@ static void smp_process_confirm(tSMP_CB *p_cb, tSMP_ENC *p)
 #if SMP_CONFORMANCE_TESTING == TRUE
     if (p_cb->enable_test_confirm_val)
     {
-        BTM_TRACE_DEBUG0 ("Use confirm value from script");
+        BTM_TRACE_DEBUG ("Use confirm value from script");
         memcpy(p_cb->confirm, p_cb->test_confirm, BT_OCTET16_LEN);
     }
     else

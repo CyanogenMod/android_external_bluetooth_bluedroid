@@ -51,7 +51,7 @@
 static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
 {
     tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
-    BTM_TRACE_EVENT0 ("btm_gen_resolve_paddr_cmpl");
+    BTM_TRACE_EVENT ("btm_gen_resolve_paddr_cmpl");
 
     if (p)
     {
@@ -77,7 +77,7 @@ static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
     else
     {
         /* random address set failure */
-        BTM_TRACE_DEBUG0("set random address failed");
+        BTM_TRACE_DEBUG("set random address failed");
     }
 }
 /*******************************************************************************
@@ -96,7 +96,7 @@ void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
     tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
     tSMP_ENC    output;
 
-    BTM_TRACE_EVENT0 ("btm_gen_resolve_paddr_low");
+    BTM_TRACE_EVENT ("btm_gen_resolve_paddr_low");
     if (p)
     {
         p->param_buf[2] &= (~BLE_RESOLVE_ADDR_MASK);
@@ -129,7 +129,7 @@ void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
 *******************************************************************************/
 void btm_gen_resolvable_private_addr (void *p_cmd_cplt_cback)
 {
-    BTM_TRACE_EVENT0 ("btm_gen_resolvable_private_addr");
+    BTM_TRACE_EVENT ("btm_gen_resolvable_private_addr");
     /* generate 3B rand as BD LSB, SRK with it, get BD MSB */
     if (!btsnd_hcic_ble_rand((void *)p_cmd_cplt_cback))
         btm_gen_resolve_paddr_cmpl(NULL);
@@ -152,7 +152,7 @@ static void btm_gen_non_resolve_paddr_cmpl(tBTM_RAND_ENC *p)
     UINT8   *pp;
     BD_ADDR     static_random;
 
-    BTM_TRACE_EVENT0 ("btm_gen_non_resolve_paddr_cmpl");
+    BTM_TRACE_EVENT ("btm_gen_non_resolve_paddr_cmpl");
 
     p_cb->p_generate_cback = NULL;
     if (p)
@@ -169,7 +169,7 @@ static void btm_gen_non_resolve_paddr_cmpl(tBTM_RAND_ENC *p)
     }
     else
     {
-        BTM_TRACE_DEBUG0("btm_gen_non_resolvable_private_addr failed");
+        BTM_TRACE_DEBUG("btm_gen_non_resolvable_private_addr failed");
         if (p_cback)
             (* p_cback)(NULL, p_data);
     }
@@ -188,7 +188,7 @@ void btm_gen_non_resolvable_private_addr (tBTM_BLE_ADDR_CBACK *p_cback, void *p)
 {
     tBTM_LE_RANDOM_CB   *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
 
-    BTM_TRACE_EVENT0 ("btm_gen_non_resolvable_private_addr");
+    BTM_TRACE_EVENT ("btm_gen_non_resolvable_private_addr");
 
     if (p_mgnt_cb->p_generate_cback != NULL)
         return;
@@ -220,7 +220,7 @@ static void btm_ble_resolve_address_cmpl(void)
     tBTM_LE_RANDOM_CB   *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
     tBTM_SEC_DEV_REC    *p_dev_rec = NULL;
 
-    BTM_TRACE_EVENT1 ("btm_ble_resolve_address_cmpl p_mgnt_cb->index = %d", p_mgnt_cb->index);
+    BTM_TRACE_EVENT ("btm_ble_resolve_address_cmpl p_mgnt_cb->index = %d", p_mgnt_cb->index);
 
     if (p_mgnt_cb->index < BTM_SEC_MAX_DEVICE_RECORDS)
     {
@@ -245,7 +245,7 @@ static BOOLEAN btm_ble_proc_resolve_x(tSMP_ENC *p)
 {
     tBTM_LE_RANDOM_CB   *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
     UINT8    comp[3];
-    BTM_TRACE_EVENT0 ("btm_ble_proc_resolve_x");
+    BTM_TRACE_EVENT ("btm_ble_proc_resolve_x");
     /* compare the hash with 3 LSB of bd address */
     comp[0] = p_mgnt_cb->random_bda[5];
     comp[1] = p_mgnt_cb->random_bda[4];
@@ -256,7 +256,7 @@ static BOOLEAN btm_ble_proc_resolve_x(tSMP_ENC *p)
         if (!memcmp(p->param_buf, &comp[0], 3))
         {
             /* match is found */
-            BTM_TRACE_EVENT0 ("match is found");
+            BTM_TRACE_EVENT ("match is found");
             btm_ble_resolve_address_cmpl();
             return TRUE;
         }
@@ -287,13 +287,13 @@ static BOOLEAN btm_ble_match_random_bda(UINT16 rec_index)
     rand[1] = p_mgnt_cb->random_bda[1];
     rand[2] = p_mgnt_cb->random_bda[0];
 
-    BTM_TRACE_EVENT1("btm_ble_match_random_bda rec_index = %d", rec_index);
+    BTM_TRACE_EVENT("btm_ble_match_random_bda rec_index = %d", rec_index);
 
     if (rec_index < BTM_SEC_MAX_DEVICE_RECORDS)
     {
         p_dev_rec = &btm_cb.sec_dev_rec[rec_index];
 
-        BTM_TRACE_DEBUG2("sec_flags = %02x device_type = %d", p_dev_rec->sec_flags, p_dev_rec->device_type);
+        BTM_TRACE_DEBUG("sec_flags = %02x device_type = %d", p_dev_rec->sec_flags, p_dev_rec->device_type);
 
         if ((p_dev_rec->device_type == BT_DEVICE_TYPE_BLE) &&
             (p_dev_rec->ble.key_type & BTM_LE_KEY_PID))
@@ -331,7 +331,7 @@ void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_
 {
     tBTM_LE_RANDOM_CB   *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
 
-    BTM_TRACE_EVENT0 ("btm_ble_resolve_random_addr");
+    BTM_TRACE_EVENT ("btm_ble_resolve_random_addr");
     if ( !p_mgnt_cb->busy)
     {
         p_mgnt_cb->p = p;
@@ -368,7 +368,7 @@ void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_
 tBLE_ADDR_TYPE btm_ble_map_bda_to_conn_bda(BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC    *p_dev_rec = NULL;
-    BTM_TRACE_EVENT0 ("btm_ble_map_bda_to_conn_bda");
+    BTM_TRACE_EVENT ("btm_ble_map_bda_to_conn_bda");
     if ((p_dev_rec = btm_find_dev (bd_addr)) != NULL &&
         p_dev_rec->device_type == BT_DEVICE_TYPE_BLE)
     {
@@ -424,7 +424,7 @@ BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type)
 {
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev_by_public_static_addr(bd_addr);
 
-    BTM_TRACE_EVENT0 ("btm_public_addr_to_random_pseudo");
+    BTM_TRACE_EVENT ("btm_public_addr_to_random_pseudo");
 
     /* evt reported on static address, map static address to random pseudo */
     if (p_dev_rec  != NULL &&
@@ -439,7 +439,7 @@ BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type)
         /* always be a resolvable random if a match is found */
         *p_addr_type = BLE_ADDR_RANDOM;
 
-        BTM_TRACE_ERROR0("matched a public/reconnect address and map to random pseudo");
+        BTM_TRACE_ERROR("matched a public/reconnect address and map to random pseudo");
 
         return TRUE;
     }
@@ -465,7 +465,7 @@ BOOLEAN btm_random_pseudo_to_public(BD_ADDR random_pseudo, UINT8 *p_static_addr_
             BTM_BLE_IS_RESOLVE_BDA(p_dev_rec->bd_addr) &&
             (p_dev_rec->ble.key_type & BTM_LE_KEY_PID) != 0)
         {
-            BTM_TRACE_EVENT0 ("btm_random_pseudo_to_public found the puclic static address!");
+            BTM_TRACE_EVENT ("btm_random_pseudo_to_public found the puclic static address!");
             * p_static_addr_type = p_dev_rec->ble.static_addr_type;
             memcpy(random_pseudo, p_dev_rec->ble.static_addr, BD_ADDR_LEN);
             return TRUE;
@@ -490,7 +490,7 @@ void btm_ble_refresh_rra(BD_ADDR static_bda, BD_ADDR rra)
     UINT8               rra_dummy = FALSE;
     BD_ADDR             dummy_bda = {0};
 
-    BTM_TRACE_ERROR0("btm_ble_refresh_rra");
+    BTM_TRACE_ERROR("btm_ble_refresh_rra");
 
     if (memcmp(dummy_bda, rra, BD_ADDR_LEN) == 0)
         rra_dummy = TRUE;
@@ -518,7 +518,7 @@ void btm_ble_refresh_rra(BD_ADDR static_bda, BD_ADDR rra)
     }
     else
     {
-        BTM_TRACE_ERROR0("No matching known device in record");
+        BTM_TRACE_ERROR("No matching known device in record");
     }
 
 }

@@ -52,7 +52,7 @@ static void btm_resume_wl_activity(tBTM_BLE_WL_STATE wl_state);
 void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy)
 {
     tBTM_BLE_INQ_CB *p_inq = &btm_cb.ble_ctr_cb.inq_var;
-    BTM_TRACE_EVENT0 ("btm_update_scanner_filter_policy");
+    BTM_TRACE_EVENT ("btm_update_scanner_filter_policy");
 
     p_inq->sfp = scan_policy;
     p_inq->scan_type = (p_inq->scan_type == BTM_BLE_SCAN_MODE_NONE) ? BTM_BLE_SCAN_MODE_ACTI: p_inq->scan_type;
@@ -182,7 +182,7 @@ void btm_enq_wl_dev_operation(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 attr)
     }
     else
     {
-        BTM_TRACE_ERROR0("max pending WL operation reached, discard");
+        BTM_TRACE_ERROR("max pending WL operation reached, discard");
     }
     return;
 }
@@ -202,7 +202,7 @@ BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 attr
     if ((to_add && p_cb->num_empty_filter == 0) ||
         (!to_add && p_cb->num_empty_filter == p_cb->max_filter_entries))
     {
-        BTM_TRACE_ERROR1("WL full or empty, unable to update to WL. num_entry available: %d",
+        BTM_TRACE_ERROR("WL full or empty, unable to update to WL. num_entry available: %d",
                           p_cb->num_empty_filter);
         return started;
     }
@@ -224,7 +224,7 @@ BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 attr
 *******************************************************************************/
 void btm_ble_clear_white_list (void)
 {
-    BTM_TRACE_EVENT0 ("btm_ble_clear_white_list");
+    BTM_TRACE_EVENT ("btm_ble_clear_white_list");
     btsnd_hcic_ble_clear_white_list();
 }
 
@@ -240,7 +240,7 @@ void btm_ble_clear_white_list_complete(UINT8 *p_data, UINT16 evt_len)
     UINT8       status;
     UNUSED(evt_len);
 
-    BTM_TRACE_EVENT0 ("btm_ble_clear_white_list_complete");
+    BTM_TRACE_EVENT ("btm_ble_clear_white_list_complete");
     STREAM_TO_UINT8  (status, p_data);
 
     if (status == HCI_SUCCESS)
@@ -256,7 +256,7 @@ void btm_ble_clear_white_list_complete(UINT8 *p_data, UINT16 evt_len)
 void btm_ble_add_2_white_list_complete(UINT8 status)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    BTM_TRACE_EVENT0 ("btm_ble_add_2_white_list_complete");
+    BTM_TRACE_EVENT ("btm_ble_add_2_white_list_complete");
 
     if (status == HCI_SUCCESS)
     {
@@ -274,7 +274,7 @@ void btm_ble_remove_from_white_list_complete(UINT8 *p, UINT16 evt_len)
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
     UNUSED(evt_len);
 
-    BTM_TRACE_EVENT0 ("btm_ble_remove_from_white_list_complete");
+    BTM_TRACE_EVENT ("btm_ble_remove_from_white_list_complete");
     if (*p == HCI_SUCCESS)
     {
         p_cb->num_empty_filter ++;
@@ -316,11 +316,11 @@ BOOLEAN btm_update_bg_conn_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 *p_attr_t
     BOOLEAN             ret = FALSE;
     UNUSED(p_attr_tag);
 
-    BTM_TRACE_EVENT0 ("btm_update_bg_conn_list");
+    BTM_TRACE_EVENT ("btm_update_bg_conn_list");
 
     if ((to_add && (p_cb->bg_dev_num == BTM_BLE_MAX_BG_CONN_DEV_NUM || p_cb->num_empty_filter == 0)))
     {
-        BTM_TRACE_DEBUG1("num_empty_filter = %d", p_cb->num_empty_filter);
+        BTM_TRACE_DEBUG("num_empty_filter = %d", p_cb->num_empty_filter);
         return ret;
     }
 
@@ -342,7 +342,7 @@ BOOLEAN btm_update_bg_conn_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 *p_attr_t
         }
         else if (!p_bg_dev->in_use && to_add)
         {
-            BTM_TRACE_DEBUG0("add new WL entry in bg_dev_list");
+            BTM_TRACE_DEBUG("add new WL entry in bg_dev_list");
 
             memcpy(p_bg_dev->bd_addr, bd_addr, BD_ADDR_LEN);
             p_bg_dev->in_use = TRUE;
@@ -430,7 +430,7 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
         else
         {
 #if 0
-            BTM_TRACE_ERROR1("conn_st = %d, not in auto conn state, can not stop.", p_cb->conn_state);
+            BTM_TRACE_ERROR("conn_st = %d, not in auto conn state, can not stop.", p_cb->conn_state);
             exec = FALSE;
 #endif
         }
@@ -456,7 +456,7 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_c
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
     UINT16 scan_int, scan_win;
 
-    BTM_TRACE_EVENT0 ("btm_ble_start_select_conn");
+    BTM_TRACE_EVENT ("btm_ble_start_select_conn");
 
     scan_int = (p_cb->scan_int == BTM_BLE_CONN_PARAM_UNDEF) ? BTM_BLE_SCAN_FAST_INT : p_cb->scan_int;
     scan_win = (p_cb->scan_win == BTM_BLE_CONN_PARAM_UNDEF) ? BTM_BLE_SCAN_FAST_WIN : p_cb->scan_win;
@@ -483,7 +483,7 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_c
 
             if (!btm_ble_topology_check(BTM_BLE_STATE_PASSIVE_SCAN))
             {
-                BTM_TRACE_ERROR0("peripheral device cannot initiate passive scan for a selective connection");
+                BTM_TRACE_ERROR("peripheral device cannot initiate passive scan for a selective connection");
                 return FALSE;
             }
             else if (p_cb->bg_dev_num > 0 && btm_ble_count_unconn_dev_in_whitelist() > 0 )
@@ -498,7 +498,7 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_c
         }
         else
         {
-            BTM_TRACE_ERROR0("scan active, can not start selective connection procedure");
+            BTM_TRACE_ERROR("scan active, can not start selective connection procedure");
             return FALSE;
         }
     }
@@ -535,12 +535,12 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_c
 *******************************************************************************/
 void btm_ble_initiate_select_conn(BD_ADDR bda)
 {
-    BTM_TRACE_EVENT0 ("btm_ble_initiate_select_conn");
+    BTM_TRACE_EVENT ("btm_ble_initiate_select_conn");
 
     /* use direct connection procedure to initiate connection */
     if (!L2CA_ConnectFixedChnl(L2CAP_ATT_CID, bda))
     {
-        BTM_TRACE_ERROR0("btm_ble_initiate_select_conn failed");
+        BTM_TRACE_ERROR("btm_ble_initiate_select_conn failed");
     }
 }
 /*******************************************************************************
@@ -558,7 +558,7 @@ void btm_ble_initiate_select_conn(BD_ADDR bda)
 void btm_ble_suspend_bg_conn(void)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    BTM_TRACE_EVENT0 ("btm_ble_suspend_bg_conn");
+    BTM_TRACE_EVENT ("btm_ble_suspend_bg_conn");
 
     if (p_cb->bg_conn_type == BTM_BLE_CONN_AUTO)
     {

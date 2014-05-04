@@ -131,7 +131,7 @@ tSMP_STATUS SMP_Pair (BD_ADDR bd_addr)
     tSMP_CB   *p_cb = &smp_cb;
     UINT8     status = SMP_PAIR_INTERNAL_ERR;
 
-    BTM_TRACE_EVENT2 ("SMP_Pair state=%d flag=0x%x ", p_cb->state, p_cb->flags);
+    BTM_TRACE_EVENT ("SMP_Pair state=%d flag=0x%x ", p_cb->state, p_cb->flags);
     if (p_cb->state != SMP_ST_IDLE || p_cb->flags & SMP_PAIR_FLAGS_WE_STARTED_DD)
     {
         /* pending security on going, reject this one */
@@ -172,7 +172,7 @@ BOOLEAN SMP_PairCancel (BD_ADDR bd_addr)
     UINT8     err_code = SMP_PAIR_FAIL_UNKNOWN;
     BOOLEAN   status = FALSE;
 
-    BTM_TRACE_EVENT2 ("SMP_CancelPair state=%d flag=0x%x ", p_cb->state, p_cb->flags);
+    BTM_TRACE_EVENT ("SMP_CancelPair state=%d flag=0x%x ", p_cb->state, p_cb->flags);
     if ( (p_cb->state != SMP_ST_IDLE)  &&
          (!memcmp (p_cb->pairing_bda, bd_addr, BD_ADDR_LEN)) )
     {
