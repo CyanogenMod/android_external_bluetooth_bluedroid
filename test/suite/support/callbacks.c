@@ -25,7 +25,7 @@ void adapter_properties(bt_status_t status,
                         bt_property_t *properties);
 void discovery_state_changed(bt_discovery_state_t state);
 
-void pan_control_state_changed(btpan_control_state_t state, int local_role, bt_status_t error, const char *ifname);
+void pan_control_state_changed(btpan_control_state_t state, bt_status_t error, int local_role, const char *ifname);
 void pan_connection_state_changed(btpan_connection_state_t state, bt_status_t error, const bt_bdaddr_t *bd_addr, int local_role, int remote_role);
 
 static void remote_device_properties(bt_status_t status,
