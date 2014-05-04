@@ -71,7 +71,7 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
 
     if (sdp_handle == 0)
     {
-        PAN_TRACE_ERROR0 ("PAN_SetRole - could not create SDP record");
+        PAN_TRACE_ERROR ("PAN_SetRole - could not create SDP record");
         return 0;
     }
 
@@ -133,7 +133,7 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
          || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_NAP,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_NAP)))
         {
-            PAN_TRACE_ERROR0 ("PAN Security Registration failed for PANU");
+            PAN_TRACE_ERROR ("PAN Security Registration failed for PANU");
         }
     }
 #endif
@@ -145,7 +145,7 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
          || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_GN,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_GN)))
         {
-            PAN_TRACE_ERROR0 ("PAN Security Registration failed for GN");
+            PAN_TRACE_ERROR ("PAN Security Registration failed for GN");
         }
     }
 #endif
@@ -157,7 +157,7 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
          || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_PANU,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_PANU)))
         {
-            PAN_TRACE_ERROR0 ("PAN Security Registration failed for PANU");
+            PAN_TRACE_ERROR ("PAN Security Registration failed for PANU");
         }
     }
 #endif
@@ -332,7 +332,7 @@ void pan_dump_status (void)
     char            buff[200];
     tPAN_CONN      *p_pcb;
 
-    PAN_TRACE_DEBUG3 ("PAN role %x, active role %d, num_conns %d",
+    PAN_TRACE_DEBUG ("PAN role %x, active role %d, num_conns %d",
         pan_cb.role, pan_cb.active_role, pan_cb.num_conns);
 
     for (i = 0, p_pcb = pan_cb.pcb; i < MAX_PAN_CONNS; i++, p_pcb++)
@@ -342,7 +342,7 @@ void pan_dump_status (void)
             p_pcb->rem_bda[0], p_pcb->rem_bda[1], p_pcb->rem_bda[2],
             p_pcb->rem_bda[3], p_pcb->rem_bda[4], p_pcb->rem_bda[5]);
 
-        PAN_TRACE_DEBUG0 (buff);
+        PAN_TRACE_DEBUG (buff);
     }
 #endif
 }

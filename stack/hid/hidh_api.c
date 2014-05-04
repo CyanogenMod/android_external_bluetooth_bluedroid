@@ -445,19 +445,19 @@ tHID_STATUS HID_HostWriteDev( UINT8 dev_handle, UINT8 t_type,
 
     if( !hh_cb.reg_flag )
     {
-        HIDH_TRACE_ERROR0("HID_ERR_NOT_REGISTERED");
+        HIDH_TRACE_ERROR("HID_ERR_NOT_REGISTERED");
         status = HID_ERR_NOT_REGISTERED;
     }
 
     if( (dev_handle >= HID_HOST_MAX_DEVICES) || (!hh_cb.devices[dev_handle].in_use) )
     {
-        HIDH_TRACE_ERROR0("HID_ERR_INVALID_PARAM");
+        HIDH_TRACE_ERROR("HID_ERR_INVALID_PARAM");
         status = HID_ERR_INVALID_PARAM;
     }
 
     else if( hh_cb.devices[dev_handle].state != HID_DEV_CONNECTED )
     {
-        HIDH_TRACE_ERROR1("HID_ERR_NO_CONNECTION dev_handle %d", dev_handle);
+        HIDH_TRACE_ERROR("HID_ERR_NO_CONNECTION dev_handle %d", dev_handle);
         status = HID_ERR_NO_CONNECTION;
     }
 
@@ -504,42 +504,42 @@ tHID_STATUS HID_HostSetSecurityLevel( char serv_name[], UINT8 sec_lvl )
     if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HIDH_SEC_CTRL,
                                sec_lvl, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_SEC_CHN))
     {
-        HIDH_TRACE_ERROR0 ("Security Registration 1 failed");
+        HIDH_TRACE_ERROR ("Security Registration 1 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
     if (!BTM_SetSecurityLevel (TRUE, serv_name, BTM_SEC_SERVICE_HIDH_SEC_CTRL,
                                sec_lvl, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_SEC_CHN))
     {
-        HIDH_TRACE_ERROR0 ("Security Registration 2 failed");
+        HIDH_TRACE_ERROR ("Security Registration 2 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
     if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HIDH_NOSEC_CTRL,
                                BTM_SEC_NONE, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_NOSEC_CHN))
     {
-        HIDH_TRACE_ERROR0 ("Security Registration 3 failed");
+        HIDH_TRACE_ERROR ("Security Registration 3 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
     if (!BTM_SetSecurityLevel (TRUE, serv_name, BTM_SEC_SERVICE_HIDH_NOSEC_CTRL,
                                BTM_SEC_NONE, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_NOSEC_CHN))
     {
-        HIDH_TRACE_ERROR0 ("Security Registration 4 failed");
+        HIDH_TRACE_ERROR ("Security Registration 4 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
     if (!BTM_SetSecurityLevel (TRUE, serv_name, BTM_SEC_SERVICE_HIDH_INTR,
                                BTM_SEC_NONE, HID_PSM_INTERRUPT, BTM_SEC_PROTO_HID, 0))
     {
-        HIDH_TRACE_ERROR0 ("Security Registration 5 failed");
+        HIDH_TRACE_ERROR ("Security Registration 5 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
     if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HIDH_INTR,
                                BTM_SEC_NONE, HID_PSM_INTERRUPT, BTM_SEC_PROTO_HID, 0))
     {
-        HIDH_TRACE_ERROR0 ("Security Registration 6 failed");
+        HIDH_TRACE_ERROR ("Security Registration 6 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
@@ -570,7 +570,7 @@ BOOLEAN hid_known_hid_device (BD_ADDR bd_addr)
         if ((p_inq_info->results.dev_class[1] & BTM_COD_MAJOR_CLASS_MASK)
             == BTM_COD_MAJOR_PERIPHERAL )
         {
-            HIDH_TRACE_DEBUG0("hid_known_hid_device:dev found in InqDB & COD matches HID dev");
+            HIDH_TRACE_DEBUG("hid_known_hid_device:dev found in InqDB & COD matches HID dev");
             return TRUE;
         }
     }
@@ -581,7 +581,7 @@ BOOLEAN hid_known_hid_device (BD_ADDR bd_addr)
         if ((p_dev_rec != NULL) &&
             ((p_dev_rec->dev_class[1] & BTM_COD_MAJOR_CLASS_MASK) == BTM_COD_MAJOR_PERIPHERAL ))
         {
-            HIDH_TRACE_DEBUG0("hid_known_hid_device:dev found in SecDevDB & COD matches HID dev");
+            HIDH_TRACE_DEBUG("hid_known_hid_device:dev found in SecDevDB & COD matches HID dev");
             return TRUE;
         }
     }
@@ -594,6 +594,6 @@ BOOLEAN hid_known_hid_device (BD_ADDR bd_addr)
              return TRUE;
      }
     /* Check if this device is marked as HID Device in IOP Dev */
-    HIDH_TRACE_DEBUG0("hid_known_hid_device:remote is not HID device");
+    HIDH_TRACE_DEBUG("hid_known_hid_device:remote is not HID device");
     return FALSE;
 }

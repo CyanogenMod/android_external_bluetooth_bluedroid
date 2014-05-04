@@ -99,7 +99,7 @@ tBNEP_RESULT bnep_register_with_l2cap (void)
     /* Now, register with L2CAP */
     if (!L2CA_Register (BT_PSM_BNEP, &bnep_cb.reg_info))
     {
-        BNEP_TRACE_ERROR0 ("BNEP - Registration failed");
+        BNEP_TRACE_ERROR ("BNEP - Registration failed");
         return BNEP_SECURITY_FAIL;
     }
 
@@ -147,7 +147,7 @@ static void bnep_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UI
     /* Start timer waiting for config setup */
     btu_start_timer (&p_bcb->conn_tle, BTU_TTYPE_BNEP, BNEP_CONN_TIMEOUT);
 
-    BNEP_TRACE_EVENT1("BNEP - Rcvd L2CAP conn ind, CID: 0x%x", p_bcb->l2cap_cid);
+    BNEP_TRACE_EVENT("BNEP - Rcvd L2CAP conn ind, CID: 0x%x", p_bcb->l2cap_cid);
 
 }
 
@@ -170,7 +170,7 @@ static void bnep_connect_cfm (UINT16 l2cap_cid, UINT16 result)
     /* Find CCB based on CID */
     if ((bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
     {
-        BNEP_TRACE_WARNING1 ("BNEP - Rcvd conn cnf for unknown CID 0x%x", l2cap_cid);
+        BNEP_TRACE_WARNING ("BNEP - Rcvd conn cnf for unknown CID 0x%x", l2cap_cid);
         return;
     }
 
@@ -186,11 +186,11 @@ static void bnep_connect_cfm (UINT16 l2cap_cid, UINT16 result)
         /* Start timer waiting for config results */
         btu_start_timer (&bcb->conn_tle, BTU_TTYPE_BNEP, BNEP_CONN_TIMEOUT);
 
-        BNEP_TRACE_EVENT1 ("BNEP - got conn cnf, sent cfg req, CID: 0x%x", bcb->l2cap_cid);
+        BNEP_TRACE_EVENT ("BNEP - got conn cnf, sent cfg req, CID: 0x%x", bcb->l2cap_cid);
     }
     else
     {
-        BNEP_TRACE_WARNING2 ("BNEP - Rcvd conn cnf with error: 0x%x  CID 0x%x", result, bcb->l2cap_cid);
+        BNEP_TRACE_WARNING ("BNEP - Rcvd conn cnf with error: 0x%x  CID 0x%x", result, bcb->l2cap_cid);
 
         /* Tell the upper layer, if he has a callback */
         if (bnep_cb.p_conn_state_cb &&
@@ -221,11 +221,11 @@ static void bnep_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     /* Find CCB based on CID */
     if ((p_bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
     {
-        BNEP_TRACE_WARNING1 ("BNEP - Rcvd L2CAP cfg ind, unknown CID: 0x%x", l2cap_cid);
+        BNEP_TRACE_WARNING ("BNEP - Rcvd L2CAP cfg ind, unknown CID: 0x%x", l2cap_cid);
         return;
     }
 
-    BNEP_TRACE_EVENT1 ("BNEP - Rcvd cfg ind, CID: 0x%x", l2cap_cid);
+    BNEP_TRACE_EVENT ("BNEP - Rcvd cfg ind, CID: 0x%x", l2cap_cid);
 
     /* Remember the remote MTU size */
     if ((!p_cfg->mtu_present) || (p_cfg->mtu < BNEP_MIN_MTU_SIZE))
@@ -253,7 +253,7 @@ static void bnep_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 
     if (result != L2CAP_CFG_OK)
     {
-        BNEP_TRACE_EVENT2 ("BNEP - Rcvd cfg ind with bad MTU %d, CID: 0x%x", mtu, l2cap_cid);
+        BNEP_TRACE_EVENT ("BNEP - Rcvd cfg ind with bad MTU %d, CID: 0x%x", mtu, l2cap_cid);
         return;
     }
 
@@ -291,12 +291,12 @@ static void bnep_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tBNEP_CONN    *p_bcb;
 
-    BNEP_TRACE_EVENT2 ("BNEP - Rcvd cfg cfm, CID: 0x%x  Result: %d", l2cap_cid, p_cfg->result);
+    BNEP_TRACE_EVENT ("BNEP - Rcvd cfg cfm, CID: 0x%x  Result: %d", l2cap_cid, p_cfg->result);
 
     /* Find CCB based on CID */
     if ((p_bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
     {
-        BNEP_TRACE_WARNING1 ("BNEP - Rcvd L2CAP cfg ind, unknown CID: 0x%x", l2cap_cid);
+        BNEP_TRACE_WARNING ("BNEP - Rcvd L2CAP cfg ind, unknown CID: 0x%x", l2cap_cid);
         return;
     }
 
@@ -356,11 +356,11 @@ static void bnep_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
     /* Find CCB based on CID */
     if ((p_bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
     {
-        BNEP_TRACE_WARNING1 ("BNEP - Rcvd L2CAP disc, unknown CID: 0x%x", l2cap_cid);
+        BNEP_TRACE_WARNING ("BNEP - Rcvd L2CAP disc, unknown CID: 0x%x", l2cap_cid);
         return;
     }
 
-    BNEP_TRACE_EVENT1 ("BNEP - Rcvd L2CAP disc, CID: 0x%x", l2cap_cid);
+    BNEP_TRACE_EVENT ("BNEP - Rcvd L2CAP disc, CID: 0x%x", l2cap_cid);
 
     /* Tell the user if he has a callback */
     if (p_bcb->con_state == BNEP_STATE_CONNECTED)
@@ -391,7 +391,7 @@ static void bnep_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
 *******************************************************************************/
 static void bnep_disconnect_cfm (UINT16 l2cap_cid, UINT16 result)
 {
-    BNEP_TRACE_EVENT2 ("BNEP - Rcvd L2CAP disc cfm, CID: 0x%x, Result 0x%x", l2cap_cid, result);
+    BNEP_TRACE_EVENT ("BNEP - Rcvd L2CAP disc cfm, CID: 0x%x, Result 0x%x", l2cap_cid, result);
 }
 
 
@@ -411,7 +411,7 @@ static void bnep_congestion_ind (UINT16 l2cap_cid, BOOLEAN is_congested)
     /* Find BCB based on CID */
     if ((p_bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
     {
-        BNEP_TRACE_WARNING1 ("BNEP - Rcvd L2CAP cong, unknown CID: 0x%x", l2cap_cid);
+        BNEP_TRACE_WARNING ("BNEP - Rcvd L2CAP cong, unknown CID: 0x%x", l2cap_cid);
         return;
     }
 
@@ -476,7 +476,7 @@ static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_buf)
     /* Find CCB based on CID */
     if ((p_bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
     {
-        BNEP_TRACE_WARNING1 ("BNEP - Rcvd L2CAP data, unknown CID: 0x%x", l2cap_cid);
+        BNEP_TRACE_WARNING ("BNEP - Rcvd L2CAP data, unknown CID: 0x%x", l2cap_cid);
         GKI_freebuf (p_buf);
         return;
     }
@@ -487,7 +487,7 @@ static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_buf)
     type &= 0x7f;
     if ((rem_len <= bnep_frame_hdr_sizes[type]) || (rem_len > BNEP_MTU_SIZE))
     {
-        BNEP_TRACE_EVENT2 ("BNEP - rcvd frame, bad len: %d  type: 0x%02x", p_buf->len, type);
+        BNEP_TRACE_EVENT ("BNEP - rcvd frame, bad len: %d  type: 0x%02x", p_buf->len, type);
         GKI_freebuf (p_buf);
         return;
     }
@@ -498,7 +498,7 @@ static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_buf)
         (!(p_bcb->con_flags & BNEP_FLAGS_CONN_COMPLETED)) &&
         (type != BNEP_FRAME_CONTROL))
     {
-        BNEP_TRACE_WARNING2 ("BNEP - Ignored L2CAP data while in state: %d, CID: 0x%x",
+        BNEP_TRACE_WARNING ("BNEP - Ignored L2CAP data while in state: %d, CID: 0x%x",
                             p_bcb->con_state, l2cap_cid);
 
         if (extension_present)
@@ -537,12 +537,12 @@ static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_buf)
 
     if (type > BNEP_FRAME_COMPRESSED_ETHERNET_DEST_ONLY)
     {
-        BNEP_TRACE_EVENT1 ("BNEP - rcvd frame, unknown type: 0x%02x", type);
+        BNEP_TRACE_EVENT ("BNEP - rcvd frame, unknown type: 0x%02x", type);
         GKI_freebuf (p_buf);
         return;
     }
 
-    BNEP_TRACE_DEBUG3 ("BNEP - rcv frame, type: %d len: %d Ext: %d", type, p_buf->len, extension_present);
+    BNEP_TRACE_DEBUG ("BNEP - rcv frame, type: %d len: %d Ext: %d", type, p_buf->len, extension_present);
 
     /* Initialize addresses to 'not supplied' */
     p_src_addr = p_dst_addr = NULL;
@@ -622,7 +622,7 @@ static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_buf)
         /* if unknown extension present stop processing */
         if (ext_type)
         {
-            BNEP_TRACE_EVENT1 ("Data extension type 0x%x found", ext_type);
+            BNEP_TRACE_EVENT ("Data extension type 0x%x found", ext_type);
             break;
         }
 
@@ -689,12 +689,12 @@ void bnep_process_timeout (TIMER_LIST_ENT  *p_tle)
 
     p_bcb = (tBNEP_CONN *)p_tle->param;
 
-    BNEP_TRACE_EVENT4 ("BNEP - CCB timeout in state: %d  CID: 0x%x flags %x, re_transmit %d",
+    BNEP_TRACE_EVENT ("BNEP - CCB timeout in state: %d  CID: 0x%x flags %x, re_transmit %d",
                        p_bcb->con_state, p_bcb->l2cap_cid, p_bcb->con_flags, p_bcb->re_transmits);
 
     if (p_bcb->con_state == BNEP_STATE_CONN_SETUP)
     {
-        BNEP_TRACE_EVENT2 ("BNEP - CCB timeout in state: %d  CID: 0x%x",
+        BNEP_TRACE_EVENT ("BNEP - CCB timeout in state: %d  CID: 0x%x",
                            p_bcb->con_state, p_bcb->l2cap_cid);
 
         if (!(p_bcb->con_flags & BNEP_FLAGS_IS_ORIG))
@@ -723,7 +723,7 @@ void bnep_process_timeout (TIMER_LIST_ENT  *p_tle)
     }
     else if (p_bcb->con_state != BNEP_STATE_CONNECTED)
     {
-        BNEP_TRACE_EVENT2 ("BNEP - CCB timeout in state: %d  CID: 0x%x",
+        BNEP_TRACE_EVENT ("BNEP - CCB timeout in state: %d  CID: 0x%x",
                            p_bcb->con_state, p_bcb->l2cap_cid);
 
         L2CA_DisconnectReq (p_bcb->l2cap_cid);

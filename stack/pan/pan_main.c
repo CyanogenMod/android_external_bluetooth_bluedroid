@@ -141,7 +141,7 @@ void pan_conn_ind_cb (UINT16 handle,
 
     if (wrong_uuid)
     {
-        PAN_TRACE_ERROR0 ("PAN Connection failed because of wrong remote UUID ");
+        PAN_TRACE_ERROR ("PAN Connection failed because of wrong remote UUID ");
         BNEP_ConnectResp (handle, BNEP_CONN_FAILED_SRC_UUID);
         return;
     }
@@ -175,17 +175,17 @@ void pan_conn_ind_cb (UINT16 handle,
 
     if (wrong_uuid)
     {
-        PAN_TRACE_ERROR0 ("PAN Connection failed because of wrong local UUID ");
+        PAN_TRACE_ERROR ("PAN Connection failed because of wrong local UUID ");
         BNEP_ConnectResp (handle, BNEP_CONN_FAILED_DST_UUID);
         return;
     }
 
-    PAN_TRACE_EVENT5 ("pan_conn_ind_cb - for handle %d, current role %d, dst uuid 0x%x, src uuid 0x%x, role change %s",
+    PAN_TRACE_EVENT ("pan_conn_ind_cb - for handle %d, current role %d, dst uuid 0x%x, src uuid 0x%x, role change %s",
         handle, pan_cb.role, local_uuid->uu.uuid16, remote_uuid->uu.uuid16, is_role_change?"YES":"NO");
     /* The acceptable UUID size is only 2 */
     if (remote_uuid->len != 2)
     {
-        PAN_TRACE_ERROR1 ("PAN Connection failed because of wrong UUID size %d", remote_uuid->len);
+        PAN_TRACE_ERROR ("PAN Connection failed because of wrong UUID size %d", remote_uuid->len);
         BNEP_ConnectResp (handle, BNEP_CONN_FAILED_UUID_SIZE);
         return;
     }
@@ -196,7 +196,7 @@ void pan_conn_ind_cb (UINT16 handle,
         remote_uuid->uu.uuid16 != UUID_SERVCLASS_NAP &&
         remote_uuid->uu.uuid16 != UUID_SERVCLASS_GN)
     {
-        PAN_TRACE_ERROR1 ("Src UUID 0x%x is not valid", remote_uuid->uu.uuid16);
+        PAN_TRACE_ERROR ("Src UUID 0x%x is not valid", remote_uuid->uu.uuid16);
         BNEP_ConnectResp (handle, BNEP_CONN_FAILED_SRC_UUID);
         return;
     }
@@ -206,7 +206,7 @@ void pan_conn_ind_cb (UINT16 handle,
         local_uuid->uu.uuid16 != UUID_SERVCLASS_NAP &&
         local_uuid->uu.uuid16 != UUID_SERVCLASS_GN)
     {
-        PAN_TRACE_ERROR1 ("Dst UUID 0x%x is not valid", remote_uuid->uu.uuid16);
+        PAN_TRACE_ERROR ("Dst UUID 0x%x is not valid", remote_uuid->uu.uuid16);
         BNEP_ConnectResp (handle, BNEP_CONN_FAILED_DST_UUID);
         return;
     }
@@ -219,7 +219,7 @@ void pan_conn_ind_cb (UINT16 handle,
         ((!(pan_cb.role & UUID_SERVCLASS_NAP))
         && local_uuid->uu.uuid16 == UUID_SERVCLASS_NAP))
     {
-        PAN_TRACE_ERROR1 ("PAN Connection failed because of unsupported destination UUID 0x%x", local_uuid->uu.uuid16);
+        PAN_TRACE_ERROR ("PAN Connection failed because of unsupported destination UUID 0x%x", local_uuid->uu.uuid16);
         BNEP_ConnectResp (handle, BNEP_CONN_FAILED_DST_UUID);
         return;
     }
@@ -243,7 +243,7 @@ void pan_conn_ind_cb (UINT16 handle,
             /* There are connections other than this one
             ** so we cann't accept PANU role. Reject
             */
-            PAN_TRACE_ERROR0 ("Dst UUID should be either GN or NAP only because there are other connections");
+            PAN_TRACE_ERROR ("Dst UUID should be either GN or NAP only because there are other connections");
             BNEP_ConnectResp (handle, BNEP_CONN_FAILED_DST_UUID);
             return;
         }
@@ -251,7 +251,7 @@ void pan_conn_ind_cb (UINT16 handle,
         /* If it is already in connected state check for bridging status */
         if (pcb->con_state == PAN_STATE_CONNECTED)
         {
-            PAN_TRACE_EVENT2 ("PAN Role changing New Src 0x%x Dst 0x%x",
+            PAN_TRACE_EVENT ("PAN Role changing New Src 0x%x Dst 0x%x",
                 remote_uuid->uu.uuid16, local_uuid->uu.uuid16);
 
             pcb->prv_src_uuid = pcb->src_uuid;
@@ -282,23 +282,23 @@ void pan_conn_ind_cb (UINT16 handle,
             (local_uuid->uu.uuid16 == UUID_SERVCLASS_PANU ||
             pan_cb.active_role == PAN_ROLE_CLIENT))
         {
-            PAN_TRACE_ERROR0 ("PAN already have a connection and can't be user");
+            PAN_TRACE_ERROR ("PAN already have a connection and can't be user");
             BNEP_ConnectResp (handle, BNEP_CONN_FAILED_DST_UUID);
             return;
         }
     }
 
     /* This is a new connection */
-    PAN_TRACE_DEBUG1 ("New connection indication for handle %d", handle);
+    PAN_TRACE_DEBUG ("New connection indication for handle %d", handle);
     pcb = pan_allocate_pcb (p_bda, handle);
     if (!pcb)
     {
-        PAN_TRACE_ERROR0 ("PAN no control block for new connection");
+        PAN_TRACE_ERROR ("PAN no control block for new connection");
         BNEP_ConnectResp (handle, BNEP_CONN_FAILED);
         return;
     }
 
-    PAN_TRACE_EVENT1 ("PAN connection destination UUID is 0x%x", local_uuid->uu.uuid16);
+    PAN_TRACE_EVENT ("PAN connection destination UUID is 0x%x", local_uuid->uu.uuid16);
     /* Set the latest active PAN role */
     pan_cb.active_role = req_role;
     pcb->src_uuid = local_uuid->uu.uuid16;
@@ -336,11 +336,11 @@ void pan_connect_state_cb (UINT16 handle, BD_ADDR rem_bda, tBNEP_RESULT result, 
     UINT8            peer_role;
     UNUSED(rem_bda);
 
-    PAN_TRACE_EVENT2 ("pan_connect_state_cb - for handle %d, result %d", handle, result);
+    PAN_TRACE_EVENT ("pan_connect_state_cb - for handle %d, result %d", handle, result);
     pcb = pan_get_pcb_by_handle (handle);
     if (!pcb)
     {
-        PAN_TRACE_ERROR1 ("PAN State change indication for wrong handle %d", handle);
+        PAN_TRACE_ERROR ("PAN State change indication for wrong handle %d", handle);
         return;
     }
 
@@ -356,7 +356,7 @@ void pan_connect_state_cb (UINT16 handle, BD_ADDR rem_bda, tBNEP_RESULT result, 
             (pcb->con_flags & PAN_FLAGS_CONN_COMPLETED))
         {
             /* restore the original values */
-            PAN_TRACE_EVENT0 ("restoring the connection state to active");
+            PAN_TRACE_EVENT ("restoring the connection state to active");
             pcb->con_state = PAN_STATE_CONNECTED;
             pcb->con_flags &= (~PAN_FLAGS_CONN_COMPLETED);
 
@@ -406,7 +406,7 @@ void pan_connect_state_cb (UINT16 handle, BD_ADDR rem_bda, tBNEP_RESULT result, 
     /* Create bridge if the destination role is NAP */
     if (pan_cb.pan_bridge_req_cb && pcb->src_uuid == UUID_SERVCLASS_NAP)
     {
-        PAN_TRACE_EVENT0 ("PAN requesting for bridge");
+        PAN_TRACE_EVENT ("PAN requesting for bridge");
         (*pan_cb.pan_bridge_req_cb) (pcb->rem_bda, TRUE);
     }
 }
@@ -455,17 +455,17 @@ void pan_data_ind_cb (UINT16 handle,
     ** send it to the host system
     */
 
-    PAN_TRACE_EVENT1 ("pan_data_ind_cb - for handle %d", handle);
+    PAN_TRACE_EVENT ("pan_data_ind_cb - for handle %d", handle);
     pcb = pan_get_pcb_by_handle (handle);
     if (!pcb)
     {
-        PAN_TRACE_ERROR1 ("PAN Data indication for wrong handle %d", handle);
+        PAN_TRACE_ERROR ("PAN Data indication for wrong handle %d", handle);
         return;
     }
 
     if (pcb->con_state != PAN_STATE_CONNECTED)
     {
-        PAN_TRACE_ERROR2 ("PAN Data indication in wrong state %d for handle %d",
+        PAN_TRACE_ERROR ("PAN Data indication in wrong state %d for handle %d",
             pcb->con_state, handle);
         return;
     }
@@ -473,7 +473,7 @@ void pan_data_ind_cb (UINT16 handle,
     /* Check if it is broadcast packet */
     if (dst[0] & 0x01)
     {
-        PAN_TRACE_DEBUG2 ("PAN received broadcast packet on handle %d, src uuid 0x%x",
+        PAN_TRACE_DEBUG ("PAN received broadcast packet on handle %d, src uuid 0x%x",
             handle, pcb->src_uuid);
         for (i=0; i<MAX_PAN_CONNS; i++)
         {
@@ -554,14 +554,14 @@ void pan_data_buf_ind_cb (UINT16 handle,
     pcb = pan_get_pcb_by_handle (handle);
     if (!pcb)
     {
-        PAN_TRACE_ERROR1 ("PAN Data buffer indication for wrong handle %d", handle);
+        PAN_TRACE_ERROR ("PAN Data buffer indication for wrong handle %d", handle);
         GKI_freebuf (p_buf);
         return;
     }
 
     if (pcb->con_state != PAN_STATE_CONNECTED)
     {
-        PAN_TRACE_ERROR2 ("PAN Data indication in wrong state %d for handle %d",
+        PAN_TRACE_ERROR ("PAN Data indication in wrong state %d for handle %d",
             pcb->con_state, handle);
         GKI_freebuf (p_buf);
         return;
@@ -570,7 +570,7 @@ void pan_data_buf_ind_cb (UINT16 handle,
     p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
     len    = p_buf->len;
 
-    PAN_TRACE_EVENT4 ("pan_data_buf_ind_cb - for handle %d, protocol 0x%x, length %d, ext %d",
+    PAN_TRACE_EVENT ("pan_data_buf_ind_cb - for handle %d, protocol 0x%x, length %d, ext %d",
         handle, protocol, len, ext);
 
    if (pcb->src_uuid == UUID_SERVCLASS_NAP)
@@ -583,7 +583,7 @@ void pan_data_buf_ind_cb (UINT16 handle,
     {
         if (dst[0] & 0x01)
         {
-            PAN_TRACE_DEBUG2 ("PAN received broadcast packet on handle %d, src uuid 0x%x",
+            PAN_TRACE_DEBUG ("PAN received broadcast packet on handle %d, src uuid 0x%x",
                 handle, pcb->src_uuid);
             for (i=0; i<MAX_PAN_CONNS; i++)
             {
@@ -610,10 +610,10 @@ void pan_data_buf_ind_cb (UINT16 handle,
         dst_pcb = pan_get_pcb_by_addr (dst);
         if (dst_pcb)
         {
-            PAN_TRACE_EVENT0 ("pan_data_buf_ind_cb - destination PANU found and sending the data");
+            PAN_TRACE_EVENT ("pan_data_buf_ind_cb - destination PANU found and sending the data");
             result = BNEP_WriteBuf (dst_pcb->handle, dst, p_buf, protocol, src, ext);
             if (result != BNEP_SUCCESS && result != BNEP_IGNORE_CMD)
-                PAN_TRACE_ERROR1 ("Failed to write data for PAN connection handle %d", dst_pcb->handle);
+                PAN_TRACE_ERROR ("Failed to write data for PAN connection handle %d", dst_pcb->handle);
             return;
         }
     }
@@ -682,7 +682,7 @@ void pan_proto_filt_ind_cb (UINT16 handle,
                             UINT8 *p_filters)
 {
 #if (defined (BNEP_SUPPORTS_PROT_FILTERS) && BNEP_SUPPORTS_PROT_FILTERS == TRUE)
-    PAN_TRACE_EVENT4 ("pan_proto_filt_ind_cb - called for handle %d with ind %d, result %d, num %d",
+    PAN_TRACE_EVENT ("pan_proto_filt_ind_cb - called for handle %d with ind %d, result %d, num %d",
                             handle, indication, result, num_filters);
 
     if (pan_cb.pan_pfilt_ind_cb)
@@ -720,7 +720,7 @@ void pan_mcast_filt_ind_cb (UINT16 handle,
                             UINT8 *p_filters)
 {
 #if (defined (BNEP_SUPPORTS_MULTI_FILTERS) && BNEP_SUPPORTS_MULTI_FILTERS == TRUE)
-    PAN_TRACE_EVENT4 ("pan_mcast_filt_ind_cb - called for handle %d with ind %d, result %d, num %d",
+    PAN_TRACE_EVENT ("pan_mcast_filt_ind_cb - called for handle %d with ind %d, result %d, num %d",
                             handle, indication, result, num_filters);
 
     if (pan_cb.pan_mfilt_ind_cb)
