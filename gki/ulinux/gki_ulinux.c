@@ -841,7 +841,6 @@ void GKI_run (void * p_task_id)
              * e.g. power saving you may want to provide more ticks
              */
             GKI_timer_update( 1 );
-            /* BT_TRACE_2( TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, "update: tv_sec: %d, tv_nsec: %d", delay.tv_sec, delay.tv_nsec ); */
         } while ( GKI_TIMER_TICK_RUN_COND == *p_run_cond );
 
         /* currently on reason to exit above loop is no_timer_suspend == GKI_TIMER_TICK_STOP_COND

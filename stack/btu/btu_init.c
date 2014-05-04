@@ -149,7 +149,7 @@ UINT16 BTU_BleAclPktSize(void)
 *******************************************************************************/
 void btu_uipc_rx_cback(BT_HDR *p_msg)
 {
-    BT_TRACE_3 (TRACE_LAYER_BTM, TRACE_TYPE_DEBUG, "btu_uipc_rx_cback event 0x%x, len %d, offset %d",
+    BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_DEBUG, "btu_uipc_rx_cback event 0x%x, len %d, offset %d",
 		p_msg->event, p_msg->len, p_msg->offset);
     GKI_send_msg(BTU_TASK, BTU_HCI_RCV_MBOX, p_msg);
 
