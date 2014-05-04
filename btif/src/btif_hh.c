@@ -768,7 +768,7 @@ void btif_hh_disconnect(bt_bdaddr_t *bd_addr)
 void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type, UINT16 size,
                             UINT8* report)
 {
-    UINT8  hexbuf[20];
+    UINT8  hexbuf[40];
     UINT16 len = size;
     int i = 0;
     if (p_dev->p_buf != NULL) {
@@ -785,7 +785,7 @@ void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type, UINT1
     p_dev->p_buf->offset = BTA_HH_MIN_OFFSET;
 
     //Build a SetReport data buffer
-    memset(hexbuf, 0, 20);
+    memset(hexbuf, 0, 40);
     for(i=0; i<len; i++)
         hexbuf[i] = report[i];
 
