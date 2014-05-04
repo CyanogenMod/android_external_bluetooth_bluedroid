@@ -55,7 +55,7 @@ bt_status_t pan_get_error() {
 }
 
 // callback
-void pan_control_state_changed(btpan_control_state_t state, int local_role, bt_status_t error, const char *ifname) {
+void pan_control_state_changed(btpan_control_state_t state, bt_status_t error, int local_role, const char *ifname) {
   free(pan_ifname);
 
   pan_control_state = state;
