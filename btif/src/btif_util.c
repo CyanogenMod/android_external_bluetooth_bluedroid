@@ -85,7 +85,7 @@ int str2bd(char *str, bt_bdaddr_t *addr)
 {
     int32_t i = 0;
     for (i = 0; i < 6; i++) {
-       addr->address[i] = (uint8_t) strtoul(str, (char **)&str, 16);
+       addr->address[i] = (uint8_t)strtoul(str, &str, 16);
        str++;
     }
     return 0;
@@ -95,10 +95,10 @@ char *bd2str(const bt_bdaddr_t *bdaddr, bdstr_t *bdstr)
 {
     const uint8_t *addr = bdaddr->address;
 
-    snprintf((char*)bdstr, sizeof(*bdstr), "%02x:%02x:%02x:%02x:%02x:%02x",
+    sprintf(*bdstr, "%02x:%02x:%02x:%02x:%02x:%02x",
              addr[0], addr[1], addr[2],
              addr[3], addr[4], addr[5]);
-    return (char *)bdstr;
+    return *bdstr;
 }
 
 UINT32 devclass2uint(DEV_CLASS dev_class)
