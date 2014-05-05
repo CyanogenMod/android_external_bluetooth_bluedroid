@@ -467,7 +467,11 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
             break;
 
         case BTA_AG_AT_A_EVT:
-            hf_idx = idx;
+            if ((btif_hf_cb[0].num_held + btif_hf_cb[0].num_active) == 0)
+                hf_idx = idx;
+            else
+                BTIF_TRACE_DEBUG0("Donot set hf_idx for ATA since already in a call");
+
             HAL_CBACK(bt_hf_callbacks, answer_call_cmd_cb,
                               &btif_hf_cb[idx].connected_bda);
             break;
@@ -475,7 +479,11 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
         /* Java needs to send OK/ERROR for these commands */
         case BTA_AG_AT_BLDN_EVT:
         case BTA_AG_AT_D_EVT:
-            hf_idx = idx;
+            if ((btif_hf_cb[0].num_held + btif_hf_cb[0].num_active) == 0)
+                hf_idx = idx;
+            else
+                BTIF_TRACE_DEBUG0("Donot set hf_idx for BLDN/D since already in a call");
+
             HAL_CBACK(bt_hf_callbacks, dial_call_cmd_cb,
                 (event == BTA_AG_AT_D_EVT) ? p_data->val.str : NULL,
                               &btif_hf_cb[idx].connected_bda);
@@ -1111,9 +1119,13 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
     BOOLEAN activeCallUpdated = FALSE;
     int idx, i;
 
-    /* Set idx to index of HF which sent ATA/BLDN else latest connected HF */
-    idx = (hf_idx == BTIF_HF_INVALID_IDX) ?
-               btif_hf_latest_connected_idx(): hf_idx;
+    /* hf_idx is index of connected HS that sent ATA/BLDN,
+            otherwise index of latest connected HS */
+    if (hf_idx != BTIF_HF_INVALID_IDX)
+        idx = hf_idx;
+    else
+        idx = btif_hf_latest_connected_idx();
+
     BTIF_TRACE_DEBUG1("phone_state_change: idx = %d", idx);
 
     /* Check if SLC is connected */
