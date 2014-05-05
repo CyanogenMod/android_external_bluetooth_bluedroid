@@ -23,11 +23,13 @@
  *
  ******************************************************************************/
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 
+#include "config.h"
 #include "gki.h"
 #include "bte.h"
 
@@ -329,7 +331,7 @@ BTU_API UINT8 BTU_SetTraceLevel( UINT8 new_level )
 
 BOOLEAN trace_conf_enabled = FALSE;
 
-void bte_trace_conf(char *p_conf_name, char *p_conf_value)
+void bte_trace_conf(const char *p_conf_name, const char *p_conf_value)
 {
     tBTTRC_FUNC_MAP *p_f_map = (tBTTRC_FUNC_MAP *) &bttrc_set_level_map[0];
 
@@ -342,6 +344,16 @@ void bte_trace_conf(char *p_conf_name, char *p_conf_value)
         }
         p_f_map++;
     }
+}
+
+void bte_trace_conf_config(const config_t *config) {
+  assert(config != NULL);
+
+  for (tBTTRC_FUNC_MAP *functions = &bttrc_set_level_map[0]; functions->trc_name; ++functions) {
+    int value = config_get_int(config, CONFIG_DEFAULT_SECTION, functions->trc_name, -1);
+    if (value != -1)
+      functions->trace_level = value;
+  }
 }
 
 /********************************************************************************

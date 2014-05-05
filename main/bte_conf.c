@@ -27,6 +27,7 @@
 
 #define LOG_TAG "bte_conf"
 
+#include <assert.h>
 #include <utils/Log.h>
 #include <stdio.h>
 #include <string.h>
@@ -36,6 +37,7 @@
 #include "bt_target.h"
 #include "bta_api.h"
 #include "bt_utils.h"
+#include "config.h"
 
 /******************************************************************************
 **  Externs
@@ -43,12 +45,13 @@
 extern BOOLEAN hci_logging_enabled;
 extern char hci_logfile[256];
 extern BOOLEAN trace_conf_enabled;
-void bte_trace_conf(char *p_name, char *p_conf_value);
-int device_name_cfg(char *p_conf_name, char *p_conf_value);
-int device_class_cfg(char *p_conf_name, char *p_conf_value);
-int logging_cfg_onoff(char *p_conf_name, char *p_conf_value);
-int logging_set_filepath(char *p_conf_name, char *p_conf_value);
-int trace_cfg_onoff(char *p_conf_name, char *p_conf_value);
+void bte_trace_conf(const char *p_name, const char *p_conf_value);
+void bte_trace_conf_config(const config_t *config);
+int device_name_cfg(const char *p_conf_name, const char *p_conf_value);
+int device_class_cfg(const char *p_conf_name, const char *p_conf_value);
+int logging_cfg_onoff(const char *p_conf_name, const char *p_conf_value);
+int logging_set_filepath(const char *p_conf_name, const char *p_conf_value);
+int trace_cfg_onoff(const char *p_conf_name, const char *p_conf_value);
 
 BD_NAME local_device_default_name = BTM_DEF_LOCAL_NAME;
 DEV_CLASS local_device_default_class = {0x40, 0x02, 0x0C};
@@ -70,10 +73,10 @@ DEV_CLASS local_device_default_class = {0x40, 0x02, 0x0C};
 #define CONF_COD_DELIMITERS " {,}\t"
 #define CONF_MAX_LINE_LEN 255
 
-typedef int (conf_action_t)(char *p_conf_name, char *p_conf_value);
+typedef int (conf_action_t)(const char *p_conf_name, const char *p_conf_value);
 
 typedef struct {
-    const char *conf_entry;
+    const char *key_name;
     conf_action_t *p_action;
 } conf_entry_t;
 
@@ -129,20 +132,23 @@ static tKEY_VALUE_PAIRS did_conf_pairs[CONF_DID_MAX] = {
 **   FUNCTIONS
 *****************************************************************************/
 
-int device_name_cfg(char *p_conf_name, char *p_conf_value)
+int device_name_cfg(const char *p_conf_name, const char *p_conf_value)
 {
     UNUSED(p_conf_name);
     strcpy((char *)local_device_default_name, p_conf_value);
     return 0;
 }
 
-int device_class_cfg(char *p_conf_name, char *p_conf_value)
+int device_class_cfg(const char *p_conf_name, const char *p_conf_value)
 {
     char *p_token;
     unsigned int x;
+    char tmp[1024] = { 0 };
+    strncpy(tmp, p_conf_value, sizeof(tmp) - 1);
+
     UNUSED(p_conf_name);
 
-    p_token = strtok(p_conf_value, CONF_COD_DELIMITERS);
+    p_token = strtok(tmp, CONF_COD_DELIMITERS);
     sscanf(p_token, "%x", &x);
     local_device_default_class[0] = (UINT8) x;
     p_token = strtok(NULL, CONF_COD_DELIMITERS);
@@ -155,7 +161,7 @@ int device_class_cfg(char *p_conf_name, char *p_conf_value)
     return 0;
 }
 
-int logging_cfg_onoff(char *p_conf_name, char *p_conf_value)
+int logging_cfg_onoff(const char *p_conf_name, const char *p_conf_value)
 {
     UNUSED(p_conf_name);
     if (strcmp(p_conf_value, "true") == 0)
@@ -165,14 +171,14 @@ int logging_cfg_onoff(char *p_conf_name, char *p_conf_value)
     return 0;
 }
 
-int logging_set_filepath(char *p_conf_name, char *p_conf_value)
+int logging_set_filepath(const char *p_conf_name, const char *p_conf_value)
 {
     UNUSED(p_conf_name);
     strcpy(hci_logfile, p_conf_value);
     return 0;
 }
 
-int trace_cfg_onoff(char *p_conf_name, char *p_conf_value)
+int trace_cfg_onoff(const char *p_conf_name, const char *p_conf_value)
 {
     UNUSED(p_conf_name);
     trace_conf_enabled = (strcmp(p_conf_value, "true") == 0) ? TRUE : FALSE;
@@ -187,75 +193,31 @@ int trace_cfg_onoff(char *p_conf_name, char *p_conf_value)
 **
 ** Function        bte_load_conf
 **
-** Description     Read conf entry from p_path file one by one and call
+** Description     Read conf entry from path file one by one and call
 **                 the corresponding config function
 **
 ** Returns         None
 **
 *******************************************************************************/
-void bte_load_conf(const char *p_path)
-{
-    FILE    *p_file;
-    char    *p_name;
-    char    *p_value;
-    conf_entry_t    *p_entry;
-    char    line[CONF_MAX_LINE_LEN+1]; /* add 1 for \0 char */
-    BOOLEAN name_matched;
+void bte_load_conf(const char *path) {
+  assert(path != NULL);
 
-    ALOGI("Attempt to load stack conf from %s", p_path);
+  ALOGI("%s attempt to load stack conf from %s", __func__, path);
 
-    if ((p_file = fopen(p_path, "r")) != NULL)
-    {
-        /* read line by line */
-        while (fgets(line, CONF_MAX_LINE_LEN+1, p_file) != NULL)
-        {
-            if (line[0] == CONF_COMMENT)
-                continue;
+  config_t *config = config_new(path);
+  if (!config) {
+    ALOGI("%s file >%s< not found", __func__, path);
+    return;
+  }
 
-            p_name = strtok(line, CONF_DELIMITERS);
+  for (const conf_entry_t *entry = &conf_table[0]; entry->key_name; ++entry) {
+    const char *value = config_get_string(config, CONFIG_DEFAULT_SECTION, entry->key_name, NULL);
+    if (value)
+      entry->p_action(entry->key_name, value);
+  }
 
-            if (NULL == p_name)
-            {
-                continue;
-            }
-
-            p_value = strtok(NULL, CONF_VALUES_DELIMITERS);
-
-            if (NULL == p_value)
-            {
-                ALOGW("bte_load_conf: missing value for name: %s", p_name);
-                continue;
-            }
-
-            name_matched = FALSE;
-            p_entry = (conf_entry_t *)conf_table;
-
-            while (p_entry->conf_entry != NULL)
-            {
-                if (strcmp(p_entry->conf_entry, (const char *)p_name) == 0)
-                {
-                    name_matched = TRUE;
-                    if (p_entry->p_action != NULL)
-                        p_entry->p_action(p_name, p_value);
-                    break;
-                }
-
-                p_entry++;
-            }
-
-            if ((name_matched == FALSE) && (trace_conf_enabled == TRUE))
-            {
-                /* Check if this is a TRC config item */
-                bte_trace_conf(p_name, p_value);
-            }
-        }
-
-        fclose(p_file);
-    }
-    else
-    {
-        ALOGI( "bte_load_conf file >%s< not found", p_path);
-    }
+  bte_trace_conf_config(config);
+  config_free(config);
 }
 
 /*******************************************************************************
