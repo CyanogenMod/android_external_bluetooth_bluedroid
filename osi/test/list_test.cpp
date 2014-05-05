@@ -133,3 +133,17 @@ TEST(ListTest, test_list_prepend_multiple) {
 
   list_free(list);
 }
+
+TEST(ListTest, test_list_begin_empty_list) {
+  list_t *list = list_new(NULL);
+  EXPECT_EQ(list_begin(list), list_end(list));
+  list_free(list);
+}
+
+TEST(ListTest, test_list_next) {
+  list_t *list = list_new(NULL);
+  list_append(list, &list);
+  EXPECT_NE(list_begin(list), list_end(list));
+  EXPECT_EQ(list_next(list_begin(list)), list_end(list));
+  list_free(list);
+}
