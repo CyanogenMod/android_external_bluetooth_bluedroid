@@ -197,7 +197,6 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
     if(i> p_bta_dm_pm_cfg[0].app_id)
         return;
 
-    bta_dm_pm_stop_timer(peer_addr);
     /*p_dev = bta_dm_find_peer_device(peer_addr);*/
 
 #if (BTM_SSR_INCLUDED == TRUE)
@@ -276,6 +275,9 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
         /* no service is added or removed. only updating status. */
         bta_dm_conn_srvcs.conn_srvc[j].state = status;
     }
+
+    /* stop timer */
+    bta_dm_pm_stop_timer(peer_addr);
 
     if(p_dev)
     {
