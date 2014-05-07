@@ -783,6 +783,13 @@ BOOLEAN btsnd_hcic_sniff_mode (UINT16 handle, UINT16 max_sniff_period,
     BT_HDR *p;
     UINT8 *pp;
 
+    #ifdef BDCFG_OVERRIDE_SNIFF_MODE_MAX
+    max_sniff_period = BDCFG_OVERRIDE_SNIFF_MODE_MAX;
+    min_sniff_period = BDCFG_OVERRIDE_SNIFF_MODE_MIN;
+    sniff_attempt = BDCFG_OVERRIDE_SNIFF_MODE_ATTEMPT;
+    sniff_timeout = BDCFG_OVERRIDE_SNIFF_MODE_TIMEOUT;
+    #endif
+
     if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_SNIFF_MODE)) == NULL)
         return (FALSE);
 
