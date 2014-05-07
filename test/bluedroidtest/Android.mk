@@ -28,13 +28,9 @@ LOCAL_MODULE_TAGS := eng
 
 LOCAL_MODULE:= bdt
 
-LOCAL_LDLIBS += -lpthread -ldl -llog -lreadline
-LIBS_c += -lreadline
-
 LOCAL_SHARED_LIBRARIES += libcutils   \
                           libutils    \
                           libhardware \
                           libhardware_legacy
 
 include $(BUILD_EXECUTABLE)
-
