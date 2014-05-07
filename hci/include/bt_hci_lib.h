@@ -189,6 +189,13 @@ typedef struct {
 
     /** Closes the interface */
     void  (*cleanup)( void );
+
+#if (BLUETOOTH_QCOM_SW == TRUE)
+    /** SSR cleanup is used in HW reset cases
+     * which would cloese all the client channels
+     * and turns off the chip*/
+    void  (*ssr_cleanup)(void);
+#endif
 } bt_hc_interface_t;
 
 
