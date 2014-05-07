@@ -2514,6 +2514,12 @@ BOOLEAN l2cu_set_acl_priority (BD_ADDR bd_addr, UINT8 priority, BOOLEAN reset_af
         return (FALSE);
     }
 
+    if (p_lcb->acl_priority != priority)
+    {
+        p_lcb->acl_priority = priority;
+        l2c_link_adjust_allocation();
+    }
+
     if (BTM_IS_BRCM_CONTROLLER())
     {
         /* Called from above L2CAP through API; send VSC if changed */
