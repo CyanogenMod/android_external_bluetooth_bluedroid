@@ -82,6 +82,7 @@ LOCAL_MODULE := libbt-brcm_bta
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := libcutils libc
+LOCAL_MULTILIB := 32
 
 LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/include \

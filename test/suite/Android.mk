@@ -38,4 +38,6 @@ LOCAL_SHARED_LIBRARIES += \
 
 LOCAL_CFLAGS += -std=c99 -Wall -Wno-unused-parameter -Wno-missing-field-initializers -Werror
 
+LOCAL_MULTILIB := 32
+
 include $(BUILD_EXECUTABLE)

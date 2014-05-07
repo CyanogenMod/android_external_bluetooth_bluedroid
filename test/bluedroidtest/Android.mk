@@ -38,5 +38,7 @@ LOCAL_SHARED_LIBRARIES += libcutils   \
                           libhardware \
                           libhardware_legacy
 
+LOCAL_MULTILIB := 32
+
 include $(BUILD_EXECUTABLE)
 
