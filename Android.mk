@@ -11,7 +11,7 @@ else
   bdroid_CFLAGS += -DHAS_NO_BDROID_BUILDCFG
 endif
 
-bdroid_CFLAGS += -Wall -Werror
+bdroid_CFLAGS += -Wall -Werror -Wno-error=maybe-uninitialized
 
 include $(call all-subdir-makefiles)
 
