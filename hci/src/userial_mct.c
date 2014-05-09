@@ -361,10 +361,12 @@ uint8_t userial_mct_open(uint8_t port)
     if(pthread_getschedparam(userial_cb.read_thread, &policy, &param)==0)
     {
         policy = BTHC_LINUX_BASE_POLICY;
-#if (BTHC_LINUX_BASE_POLICY!=SCHED_NORMAL)
+#if (BTHC_LINUX_BASE_POLICY != SCHED_NORMAL)
         param.sched_priority = BTHC_USERIAL_READ_THREAD_PRIORITY;
+#else
+        param.sched_priority = 0;
 #endif
-        result=pthread_setschedparam(userial_cb.read_thread,policy,&param);
+        result = pthread_setschedparam(userial_cb.read_thread, policy, &param);
         if (result != 0)
         {
             ALOGW("userial_open: pthread_setschedparam failed (%s)", \

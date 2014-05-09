@@ -268,8 +268,10 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
     if(pthread_getschedparam(hc_cb.worker_thread, &policy, &param)==0)
     {
         policy = BTHC_LINUX_BASE_POLICY;
-#if (BTHC_LINUX_BASE_POLICY!=SCHED_NORMAL)
+#if (BTHC_LINUX_BASE_POLICY != SCHED_NORMAL)
         param.sched_priority = BTHC_MAIN_THREAD_PRIORITY;
+#else
+        param.sched_priority = 0;
 #endif
         result = pthread_setschedparam(hc_cb.worker_thread, policy, &param);
         if (result != 0)
