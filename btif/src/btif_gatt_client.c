@@ -97,7 +97,8 @@ typedef enum {
     BTIF_GATTC_CONFIGURE_MTU,
     BTIF_GATTC_SCAN_FILTER_ENABLE,
     BTIF_GATTC_SCAN_FILTER_CONFIG,
-    BTIF_GATTC_SCAN_FILTER_CLEAR
+    BTIF_GATTC_SCAN_FILTER_CLEAR,
+    BTIF_GATTC_SET_SCAN_PARAMS,
 } btif_gattc_event_t;
 
 #define BTIF_GATT_MAX_OBSERVED_DEV 40
@@ -130,6 +131,8 @@ typedef struct
     uint16_t    conn_id;
     uint16_t    len;
     uint16_t    mask;
+    uint16_t    scan_interval;
+    uint16_t    scan_window;
     uint8_t     client_if;
     uint8_t     action;
     uint8_t     is_direct;
@@ -1060,6 +1063,10 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             BTA_GATTC_ConfigureMTU(p_cb->conn_id, p_cb->len);
             break;
 
+        case BTIF_GATTC_SET_SCAN_PARAMS:
+            BTM_BleSetScanParams(p_cb->scan_interval, p_cb->scan_window, BTM_BLE_SCAN_MODE_ACTI);
+            break;
+
         default:
             ALOGE("%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
@@ -1088,11 +1095,10 @@ static bt_status_t btif_gattc_unregister_app(int client_if )
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_scan( int client_if, bool start )
+static bt_status_t btif_gattc_scan( bool start )
 {
     CHECK_BTGATT_INIT();
     btif_gattc_cb_t btif_cb;
-    btif_cb.client_if = (uint8_t) client_if;
     return btif_transfer_context(btgattc_handle_event, start ? BTIF_GATTC_SCAN_START : BTIF_GATTC_SCAN_STOP,
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
@@ -1541,6 +1547,16 @@ static bt_status_t btif_gattc_scan_filter_clear()
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
+static bt_status_t btif_gattc_set_scan_parameters(int scan_interval, int scan_window)
+{
+    CHECK_BTGATT_INIT();
+    btif_gattc_cb_t btif_cb;
+    btif_cb.scan_interval = scan_interval;
+    btif_cb.scan_window = scan_window;
+    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SET_SCAN_PARAMS,
+                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+}
+
 static int btif_gattc_get_device_type( const bt_bdaddr_t *bd_addr )
 {
     int device_type = 0;
@@ -1586,6 +1602,7 @@ const btgatt_client_interface_t btgattClientInterface = {
     btif_gattc_get_device_type,
     btif_gattc_set_adv_data,
     btif_gattc_configure_mtu,
+    btif_gattc_set_scan_parameters,
     btif_gattc_test_command
 };
 
