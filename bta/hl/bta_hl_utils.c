@@ -1462,6 +1462,8 @@ BOOLEAN  bta_hl_find_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
     tBTA_HL_MDL_CFG     *p_mdl;
     UINT8 i ;
     BOOLEAN found=FALSE;
+
+    *p_mdl_cfg_idx = 0;
     for (i=0; i< BTA_HL_NUM_MDL_CFGS; i++)
     {
         p_mdl = BTA_HL_GET_MDL_CFG_PTR(app_idx, i);
@@ -2724,6 +2726,11 @@ BOOLEAN bta_hl_get_l2cap_cfg(tBTA_HL_MDL_HANDLE mdl_hnd, tBTA_HL_L2CAP_CFG_INFO 
             p_cfg->mtu = L2CAP_DEFAULT_MTU;
         }
         success = TRUE;
+    }
+    else
+    {
+      p_cfg->mtu = L2CAP_DEFAULT_MTU;
+      p_cfg->fcs = BTA_HL_L2C_NO_FCS;
     }
 
 #if BTA_HL_DEBUG == TRUE

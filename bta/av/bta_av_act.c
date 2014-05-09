@@ -870,7 +870,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     BOOLEAN is_inquiry = ((p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_SPEC_INQ) || p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_GEN_INQ);
 #if (AVRC_METADATA_INCLUDED == TRUE)
     tAVRC_STS   res;
-    UINT8       ctype;
+    UINT8       ctype = 0;
     tAVRC_RESPONSE  rc_rsp;
 
     rc_rsp.rsp.status = BTA_AV_STS_NO_RSP;

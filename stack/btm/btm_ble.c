@@ -847,6 +847,7 @@ BOOLEAN btm_get_local_div (BD_ADDR bd_addr, UINT16 *p_div)
                      bd_addr[2],bd_addr[3],
                      bd_addr[4],bd_addr[5]);
 
+    *p_div = 0;
     p_dev_rec = btm_find_dev (bd_addr);
 
     if (p_dev_rec && p_dev_rec->ble.keys.div)
