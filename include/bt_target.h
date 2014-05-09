@@ -1542,7 +1542,7 @@ and USER_HW_DISABLE_API macros */
 
 /* The maximum number of SDP records the server can support. */
 #ifndef SDP_MAX_RECORDS
-#define SDP_MAX_RECORDS             20
+#define SDP_MAX_RECORDS             25
 #endif
 
 /* The maximum number of attributes in each record. */
