@@ -546,10 +546,14 @@ tBTM_STATUS BTM_BleEnableAdvInstance (tBTM_BLE_ADV_PARAMS *p_params,
     UINT8 i;
     tBTM_STATUS rt = BTM_NO_RESOURCES;
     tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.adv_inst[0];
+    tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
+
 
     BTM_TRACE_EVENT("BTM_BleEnableAdvInstance called");
 
-    if (btm_multi_adv_cb.adv_inst_max == 0)
+    BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
+
+    if (0 == cmn_ble_vsc_cb.adv_inst_max)
     {
         BTM_TRACE_ERROR("Controller does not support Multi ADV");
         return BTM_ERR_PROCESSING;
@@ -602,10 +606,13 @@ tBTM_STATUS BTM_BleUpdateAdvInstParam (UINT8 inst_id, tBTM_BLE_ADV_PARAMS *p_par
 {
     tBTM_STATUS rt = BTM_ILLEGAL_VALUE;
     tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.adv_inst[inst_id - 1];
+    tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
     BTM_TRACE_EVENT("BTM_BleUpdateAdvInstParam called with inst_id:%d", inst_id);
 
-    if (btm_multi_adv_cb.adv_inst_max == 0)
+    BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
+
+    if (0 == cmn_ble_vsc_cb.adv_inst_max)
     {
         BTM_TRACE_ERROR("Controller does not support Multi ADV");
         return BTM_ERR_PROCESSING;
@@ -655,8 +662,10 @@ tBTM_STATUS BTM_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
     UINT8       *p_len;
     tBTM_STATUS rt;
     UINT8 *pp_temp = (UINT8*)(param + BTM_BLE_MULTI_ADV_WRITE_DATA_LEN -1);
+    tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
-    if (btm_multi_adv_cb.adv_inst_max == 0)
+    BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
+    if (0 == cmn_ble_vsc_cb.adv_inst_max)
     {
         BTM_TRACE_ERROR("Controller does not support Multi ADV");
         return BTM_ERR_PROCESSING;
@@ -699,10 +708,13 @@ tBTM_STATUS BTM_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
 tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id)
 {
      tBTM_STATUS rt = BTM_ILLEGAL_VALUE;
+     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
      BTM_TRACE_EVENT("BTM_BleDisableAdvInstance with inst_id:%d", inst_id);
 
-     if (btm_multi_adv_cb.adv_inst_max == 0)
+     BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
+
+     if (0 == cmn_ble_vsc_cb.adv_inst_max)
      {
          BTM_TRACE_ERROR("Controller does not support Multi ADV");
          return BTM_ERR_PROCESSING;

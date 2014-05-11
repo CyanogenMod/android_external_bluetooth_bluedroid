@@ -118,6 +118,11 @@ enum
     BTA_DM_API_BLE_MULTI_ADV_PARAM_UPD_EVT,
     BTA_DM_API_BLE_MULTI_ADV_DATA_EVT,
     BTA_DM_API_BLE_MULTI_ADV_DISABLE_EVT,
+    BTA_DM_API_BLE_SETUP_STORAGE_EVT,
+    BTA_DM_API_BLE_ENABLE_BATCH_SCAN_EVT,
+    BTA_DM_API_BLE_DISABLE_BATCH_SCAN_EVT,
+    BTA_DM_API_BLE_READ_SCAN_REPORTS_EVT,
+    BTA_DM_API_BLE_TRACK_ADVERTISER_EVT,
 #endif
 
 #if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
@@ -584,7 +589,6 @@ typedef struct
     UINT8                   inst_id;
 }tBTA_DM_API_BLE_MULTI_ADV_DISABLE;
 
-
 typedef struct
 {
     BT_HDR                  hdr;
@@ -592,6 +596,51 @@ typedef struct
     tBTA_BLE_ADV_DATA       *p_adv_cfg;
     tBTA_SET_ADV_DATA_CMPL_CBACK    *p_adv_data_cback;
 }tBTA_DM_API_SET_ADV_CONFIG;
+
+typedef struct
+{
+    BT_HDR                  hdr;
+    UINT8                   batch_scan_full_max;
+    UINT8                   batch_scan_trunc_max;
+    UINT8                   batch_scan_notify_threshold;
+    tBTA_BLE_SCAN_SETUP_CBACK *p_setup_cback;
+    tBTA_BLE_SCAN_THRESHOLD_CBACK *p_thres_cback;
+    tBTA_BLE_SCAN_REP_CBACK *p_read_rep_cback;
+    tBTA_DM_BLE_REF_VALUE    ref_value;
+} tBTA_DM_API_SET_STORAGE_CONFIG;
+
+typedef struct
+{
+    BT_HDR                  hdr;
+    tBTA_BLE_SCAN_MODE      scan_mode;
+    UINT32                  scan_int;
+    UINT32                  scan_window;
+    tBTA_BLE_DISCARD_RULE   discard_rule;
+    tBLE_ADDR_TYPE          addr_type;
+    tBTA_DM_BLE_REF_VALUE   ref_value;
+} tBTA_DM_API_ENABLE_SCAN;
+
+typedef struct
+{
+    BT_HDR                  hdr;
+    tBTA_DM_BLE_REF_VALUE    ref_value;
+} tBTA_DM_API_DISABLE_SCAN;
+
+typedef struct
+{
+    BT_HDR                  hdr;
+    tBTA_BLE_SCAN_MODE scan_type;
+    tBTA_DM_BLE_REF_VALUE    ref_value;
+} tBTA_DM_API_READ_SCAN_REPORTS;
+
+typedef struct
+{
+    BT_HDR                  hdr;
+    UINT8 track_adv_action;
+    tBLE_ADDR_TYPE addr_type;
+    tBLE_BD_ADDR *p_bda;
+    UINT8 onlost_timeout;
+} tBTA_DM_API_TRACK_ADVERTISER;
 
 #endif /* BLE_INCLUDED */
 
@@ -742,6 +791,12 @@ typedef union
     tBTA_DM_API_BLE_MULTI_ADV_PARAM     ble_multi_adv_param;
     tBTA_DM_API_BLE_MULTI_ADV_DATA      ble_multi_adv_data;
     tBTA_DM_API_BLE_MULTI_ADV_DISABLE   ble_multi_adv_disable;
+
+    tBTA_DM_API_SET_STORAGE_CONFIG      ble_set_storage;
+    tBTA_DM_API_ENABLE_SCAN             ble_enable_scan;
+    tBTA_DM_API_READ_SCAN_REPORTS       ble_read_reports;
+    tBTA_DM_API_DISABLE_SCAN            ble_disable_scan;
+    tBTA_DM_API_TRACK_ADVERTISER        ble_track_advert;
 #endif
 
     tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT set_afh_channel_assessment;
@@ -844,6 +899,8 @@ typedef struct
     BOOLEAN                     is_bta_dm_active;
     tBTA_DM_ACTIVE_LINK         device_list;
     tBTA_DM_SEC_CBACK           *p_sec_cback;
+    tBTA_BLE_SCAN_SETUP_CBACK   *p_setup_cback;
+    void                        *p_ref;
     TIMER_LIST_ENT              signal_strength_timer;
     tBTA_SIG_STRENGTH_MASK      signal_strength_mask;
     UINT16                      state;
@@ -1118,6 +1175,10 @@ extern void bta_dm_ble_multi_adv_data(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_multi_adv_upd_param(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_multi_adv_enb(tBTA_DM_MSG *p_data);
 
+extern void bta_dm_ble_setup_storage(tBTA_DM_MSG *p_data);
+extern void bta_dm_ble_enable_batch_scan(tBTA_DM_MSG * p_data);
+extern void bta_dm_ble_disable_batch_scan(tBTA_DM_MSG * p_data);
+extern void bta_dm_ble_read_scan_reports(tBTA_DM_MSG * p_data);
 #endif
 extern void bta_dm_set_encryption(tBTA_DM_MSG *p_data);
 extern void bta_dm_confirm(tBTA_DM_MSG *p_data);

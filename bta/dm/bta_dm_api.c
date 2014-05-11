@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2003-2012 Broadcom Corporation
+ *  Copyright (C) 2003-2014 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -1571,6 +1571,134 @@ BTA_API extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_AD
         p_msg->p_adv_data_cback = p_adv_data_cback;
         p_msg->p_adv_cfg = p_adv_cfg;
 
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleSetStorageParams
+**
+** Description      This function is called to override the BTA scan response.
+**
+** Parameters       batch_scan_full_max -Max storage space (in %) allocated to full scanning
+**                  batch_scan_trunc_max -Max storage space (in %) allocated to truncated scanning
+**                  batch_scan_notify_threshold -Setup notification level based on total space
+**                  p_setup_cback - Setup callback pointer
+**                  p_thres_cback - Threshold callback pointer
+**                  p_rep_cback - Reports callback pointer
+**                  ref_value - Ref value
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
+                                         UINT8 batch_scan_trunc_max,
+                                         UINT8 batch_scan_notify_threshold,
+                                         tBTA_BLE_SCAN_SETUP_CBACK *p_setup_cback,
+                                         tBTA_BLE_SCAN_THRESHOLD_CBACK *p_thres_cback,
+                                         tBTA_BLE_SCAN_REP_CBACK* p_rep_cback,
+                                         tBTA_DM_BLE_REF_VALUE ref_value)
+{
+    tBTA_DM_API_SET_STORAGE_CONFIG  *p_msg;
+    bta_dm_cb.p_setup_cback = p_setup_cback;
+    if ((p_msg = (tBTA_DM_API_SET_STORAGE_CONFIG *)
+          GKI_getbuf(sizeof(tBTA_DM_API_SET_STORAGE_CONFIG))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_SETUP_STORAGE_EVT;
+        p_msg->p_setup_cback=bta_ble_scan_setup_cb;
+        p_msg->p_thres_cback=p_thres_cback;
+        p_msg->p_read_rep_cback=p_rep_cback;
+        p_msg->ref_value = ref_value;
+        p_msg->batch_scan_full_max = batch_scan_full_max;
+        p_msg->batch_scan_trunc_max = batch_scan_trunc_max;
+        p_msg->batch_scan_notify_threshold = batch_scan_notify_threshold;
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleEnableBatchScan
+**
+** Description      This function is called to enable the batch scan
+**
+** Parameters       scan_mode -Batch scan mode
+**                  scan_interval - Scan interval
+**                  scan_window - Scan window
+**                  discard_rule -Discard rules
+**                  addr_type - Address type
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
+                                         UINT32 scan_interval, UINT32 scan_window,
+                                         tBTA_BLE_DISCARD_RULE discard_rule,
+                                         tBLE_ADDR_TYPE        addr_type,
+                                         tBTA_DM_BLE_REF_VALUE ref_value)
+{
+    tBTA_DM_API_ENABLE_SCAN  *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_ENABLE_SCAN *) GKI_getbuf(sizeof(tBTA_DM_API_ENABLE_SCAN))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_ENABLE_BATCH_SCAN_EVT;
+        p_msg->scan_mode = scan_mode;
+        p_msg->scan_int = scan_interval;
+        p_msg->scan_window = scan_window;
+        p_msg->discard_rule = discard_rule;
+        p_msg->addr_type = addr_type;
+        p_msg->ref_value = ref_value;
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleDisableBatchScan
+**
+** Description      This function is called to disable the batch scan
+**
+** Parameters
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value)
+{
+    tBTA_DM_API_DISABLE_SCAN  *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_DISABLE_SCAN *)
+         GKI_getbuf(sizeof(tBTA_DM_API_DISABLE_SCAN))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_DISABLE_BATCH_SCAN_EVT;
+        p_msg->ref_value = ref_value;
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleReadScanReports
+**
+** Description      This function is called to read scan reports
+**
+** Parameters       scan_type -Batch scan mode
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
+                                             tBTA_DM_BLE_REF_VALUE ref_value)
+{
+    tBTA_DM_API_READ_SCAN_REPORTS  *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_READ_SCAN_REPORTS *)
+          GKI_getbuf(sizeof(tBTA_DM_API_READ_SCAN_REPORTS))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_READ_SCAN_REPORTS_EVT;
+        p_msg->scan_type = scan_type;
+        p_msg->ref_value = ref_value;
         bta_sys_sendmsg(p_msg);
     }
 }

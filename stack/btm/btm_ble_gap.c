@@ -52,9 +52,8 @@
 #define BTM_EXT_BLE_RMT_NAME_TIMEOUT        30
 #define MIN_ADV_LENGTH                       2
 
-extern tBTM_BLE_MULTI_ADV_CB  btm_multi_adv_cb;
+static tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 static tBTM_BLE_CTRL_FEATURES_CBACK    *p_ctrl_le_feature_rd_cmpl_cback = NULL;
-
 
 /*******************************************************************************
 **  Local functions
@@ -434,6 +433,7 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
 *******************************************************************************/
 static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_params)
 {
+#if BLE_VND_INCLUDED == TRUE
     UINT8  status = 0xFF, *p;
     UINT8  rpa_offloading, max_irk_list_sz, filtering_support, max_filter;
     UINT16 scan_result_storage;
@@ -459,13 +459,17 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.filter_support, p);
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.max_filter, p);
     }
+
     p_vcb->irk_avail_size = max_irk_list_sz;
 
     if (p_ctrl_le_feature_rd_cmpl_cback != NULL)
         p_ctrl_le_feature_rd_cmpl_cback(status);
-    btm_multi_adv_cb.adv_inst_max = btm_cb.cmn_ble_vsc_cb.adv_inst_max;
-    BTM_TRACE_DEBUG("btm_ble_vendor_capability_vsc_cmpl_cback:%d, status=%d, max_irk_size=%d",
-        btm_multi_adv_cb.adv_inst_max, status,btm_ble_vendor_cb.irk_avail_size);
+
+    BTM_TRACE_DEBUG("btm_ble_vendor_capability_vsc_cmpl_cback: status=%d, max_irk_size=%d",
+         status, btm_ble_vendor_cb.irk_avail_size);
+#else
+    UNUSED(p_vcs_cplt_params);
+#endif
 }
 
 /*******************************************************************************
@@ -502,6 +506,7 @@ BTM_API extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
 *******************************************************************************/
 BTM_API extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_cback)
 {
+#if BLE_VND_INCLUDED == TRUE
     BTM_TRACE_DEBUG("BTM_BleReadControllerFeatures");
 
     memset(&btm_ble_vendor_cb, 0, sizeof(tBTM_BLE_VENDOR_CB));
@@ -515,6 +520,9 @@ BTM_API extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  
     {
         BTM_TRACE_ERROR("LE Get_Vendor Capabilities Command Failed.");
     }
+#else
+    UNUSED(p_vsc_cback);
+#endif
     return ;
 }
 
@@ -2844,7 +2852,7 @@ void btm_ble_update_mode_operation(UINT8 link_role, BD_ADDR bd_addr, BOOLEAN con
         }
     }
 
-    if (btm_multi_adv_cb.adv_inst_max == 0 &&
+    if (btm_cb.cmn_ble_vsc_cb.adv_inst_max == 0 &&
         btm_cb.ble_ctr_cb.inq_var.connectable_mode == BTM_BLE_CONNECTABLE)
     {
         btm_ble_set_connectability ( btm_cb.ble_ctr_cb.inq_var.connectable_mode );
@@ -3040,6 +3048,7 @@ void btm_ble_init (void)
     BTM_TRACE_EVENT ("btm_ble_init ");
 
     memset(p_cb, 0, sizeof(tBTM_BLE_CB));
+    memset(&btm_cb.cmn_ble_vsc_cb, 0 , sizeof(tBTM_BLE_VSC_CB));
     p_cb->cur_states       = 0;
 
     p_cb->inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
@@ -3057,6 +3066,11 @@ void btm_ble_init (void)
 #if BLE_MULTI_ADV_INCLUDED == TRUE
     btm_ble_multi_adv_init();
 #endif
+
+#if BLE_BATCH_SCAN_INCLUDED == TRUE
+    btm_ble_batchscan_init();
+#endif
+
 }
 
 /*******************************************************************************

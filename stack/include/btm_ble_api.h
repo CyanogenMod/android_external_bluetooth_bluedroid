@@ -46,10 +46,18 @@ typedef UINT8 tBTM_BLE_CHNL_MAP[CHNL_MAP_LEN];
 
 #define BTM_BLE_UNKNOWN_EVT     0xff
 
+typedef UINT8 tBTM_BLE_REF_VALUE;
+
 #define BTM_BLE_SCAN_MODE_PASS      0
 #define BTM_BLE_SCAN_MODE_ACTI      1
 #define BTM_BLE_SCAN_MODE_NONE      0xff
 typedef UINT8 tBTM_BLE_SCAN_MODE;
+
+#define BTM_BLE_BATCH_SCAN_MODE_PASS  1
+#define BTM_BLE_BATCH_SCAN_MODE_ACTI  2
+#define BTM_BLE_BATCH_SCAN_MODE_PASS_ACTI 3
+
+typedef UINT8 tBTM_BLE_BATCH_SCAN_MODE;
 
 /* advertising channel map */
 #define BTM_BLE_ADV_CHNL_37    (0x01 << 0)
@@ -87,6 +95,18 @@ typedef UINT8   tBTM_BLE_SFP;
 /* adv parameter boundary values */
 #define BTM_BLE_ADV_INT_MIN            0x0020
 #define BTM_BLE_ADV_INT_MAX            0x4000
+
+/* Full scan boundary values */
+#define BTM_BLE_ADV_SCAN_FULL_MIN      0x00
+#define BTM_BLE_ADV_SCAN_FULL_MAX      0x64
+
+/* Partial scan boundary values */
+#define BTM_BLE_ADV_SCAN_TRUNC_MIN      BTM_BLE_ADV_SCAN_FULL_MIN
+#define BTM_BLE_ADV_SCAN_TRUNC_MAX      BTM_BLE_ADV_SCAN_FULL_MAX
+
+/* Threshold values */
+#define BTM_BLE_ADV_SCAN_THR_MIN        BTM_BLE_ADV_SCAN_FULL_MIN
+#define BTM_BLE_ADV_SCAN_THR_MAX        BTM_BLE_ADV_SCAN_FULL_MAX
 
 /* connection parameter boundary values */
 #define BTM_BLE_SCAN_INT_MIN            0x0004
@@ -439,9 +459,46 @@ typedef struct
 {
     tBTM_BLE_MULTI_ADV_INST adv_inst[BTM_BLE_MULTI_ADV_MAX];
     tBTM_BLE_MULTI_ADV_OPQ  op_q;
-    UINT8 adv_inst_max;         /* max adv instance supported in controller */
 }tBTM_BLE_MULTI_ADV_CB;
 
+typedef void (tBTM_BLE_SCAN_THRESHOLD_CBACK)(tBTM_BLE_REF_VALUE ref_value);
+typedef void (tBTM_BLE_SCAN_REP_CBACK)(tBTM_BLE_REF_VALUE ref_value, UINT8 report_format,
+                                       UINT8 num_records, UINT16 total_len,
+                            UINT8* p_rep_data, UINT8 status);
+typedef void (tBTM_BLE_SCAN_SETUP_CBACK)(UINT8 evt, tBTM_BLE_REF_VALUE ref_value, UINT8 status);
+
+#ifndef BTM_BLE_BATCH_SCAN_MAX
+#define BTM_BLE_BATCH_SCAN_MAX   5
+#endif
+
+typedef enum
+{
+    BTM_BLE_SCAN_INVALID_STATE=0,
+    BTM_BLE_SCAN_ENABLE_CALLED=1,
+    BTM_BLE_SCAN_ENABLED_STATE=2,
+    BTM_BLE_SCAN_DISABLE_CALLED=3,
+    BTM_BLE_SCAN_DISABLED_STATE=4
+}tBTM_BLE_BATCH_SCAN_STATE;
+
+typedef struct
+{
+    UINT8   sub_code[BTM_BLE_BATCH_SCAN_MAX];
+    tBTM_BLE_BATCH_SCAN_STATE cur_state[BTM_BLE_BATCH_SCAN_MAX];
+    tBTM_BLE_REF_VALUE        ref_value[BTM_BLE_BATCH_SCAN_MAX];
+    UINT8   pending_idx;
+    UINT8   next_idx;
+}tBTM_BLE_BATCH_SCAN_OPQ;
+
+typedef struct
+{
+    tBTM_BLE_BATCH_SCAN_STATE      cur_state;
+    tBTM_BLE_BATCH_SCAN_MODE scan_mode;
+    tBTM_BLE_BATCH_SCAN_OPQ  op_q;
+    tBTM_BLE_SCAN_SETUP_CBACK     *p_setup_cback;
+    tBTM_BLE_SCAN_THRESHOLD_CBACK *p_thres_cback;
+    tBTM_BLE_SCAN_REP_CBACK       *p_scan_rep_cback;
+    tBTM_BLE_REF_VALUE             ref_value;
+}tBTM_BLE_BATCH_SCAN_CB;
 
 /* These are the fields returned in each device adv packet.  It
 ** is returned in the results callback if registered.
@@ -465,6 +522,33 @@ enum
 };
 typedef UINT8   tBTM_BLE_CONN_TYPE;
 
+enum
+{
+    BTM_BLE_DISCARD_OLD_ITEMS,
+    BTM_BLE_DISCARD_LOWER_RSSI_ITEMS
+};
+typedef UINT8 tBTM_BLE_DISCARD_RULE;
+
+enum
+{
+    BTM_BLE_TRACK_ADV_ADD,
+    BTM_BLE_TRACK_ADV_REMOVE
+};
+
+typedef UINT8 tBTM_BLE_TRACK_ADV_ACTION;
+
+#define BTM_BLE_MULTI_ADV_INVALID   0
+
+#define BTM_BLE_BATCH_SCAN_ENABLE_EVT     1
+#define BTM_BLE_BATCH_SCAN_CFG_STRG_EVT   2
+#define BTM_BLE_BATCH_SCAN_READ_REPTS_EVT 3
+#define BTM_BLE_BATCH_SCAN_THR_EVT        4
+#define BTM_BLE_BATCH_SCAN_PARAM_EVT      5
+#define BTM_BLE_BATCH_SCAN_DISABLE_EVT    6
+
+typedef UINT8 tBTM_BLE_BATCH_SCAN_EVT;
+
+
 typedef BOOLEAN (tBTM_BLE_SEL_CBACK)(BD_ADDR random_bda,     UINT8 *p_remote_name);
 typedef void (tBTM_BLE_CTRL_FEATURES_CBACK)(tBTM_STATUS status);
 
@@ -475,6 +559,8 @@ typedef void (tBTM_BLE_VERIFY_CBACK)(void *p_ref_data, BOOLEAN match);
 typedef void (tBTM_BLE_RANDOM_SET_CBACK) (BD_ADDR random_bda);
 
 typedef void (tBTM_BLE_SCAN_REQ_CBACK)(BD_ADDR remote_bda, tBLE_ADDR_TYPE addr_type, UINT8 adv_evt);
+
+tBTM_BLE_SCAN_SETUP_CBACK bta_ble_scan_setup_cb;
 
 /*****************************************************************************
 **  EXTERNAL FUNCTION DECLARATIONS
@@ -564,6 +650,18 @@ BTM_API extern tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK  data_mask,
 BTM_API extern void BTM_BleReadAdvParams (UINT16 *adv_int_min, UINT16 *adv_int_max,
                             tBLE_BD_ADDR *p_dir_bda, tBTM_BLE_ADV_CHNL_MAP *p_chnl_map);
 
+/*******************************************************************************
+**
+** Function         BTM_BleObtainVendorCapabilities
+**
+** Description      This function is called to obatin vendor capabilties
+**
+** Parameters       p_cmn_vsc_cb - Returns the vednor capabilities
+**
+** Returns          void
+**
+*******************************************************************************/
+extern void BTM_BleObtainVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb);
 
 /*******************************************************************************
 **
@@ -592,6 +690,96 @@ BTM_API extern void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_windo
 **
 *******************************************************************************/
 BTM_API extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb);
+/*******************************************************************************
+**
+** Function         BTM_BleSetStorageConfig
+**
+** Description      This function is called to setup storage configuration and setup callbacks.
+**
+** Parameters       UINT8 batch_scan_full_max -Batch scan full maximum
+                    UINT8 batch_scan_trunc_max - Batch scan truncated value maximum
+                    UINT8 batch_scan_notify_threshold - Threshold value
+                    tBTM_BLE_SCAN_SETUP_CBACK *p_setup_cback - Setup callback
+                    tBTM_BLE_SCAN_THRESHOLD_CBACK *p_thres_cback -Threshold callback
+                    void *p_ref - Reference value
+**
+** Returns          tBTM_STATUS
+**
+*******************************************************************************/
+BTM_API extern tBTM_STATUS BTM_BleSetStorageConfig(UINT8 batch_scan_full_max,
+                                        UINT8 batch_scan_trunc_max,
+                                        UINT8 batch_scan_notify_threshold,
+                                        tBTM_BLE_SCAN_SETUP_CBACK *p_setup_cback,
+                                        tBTM_BLE_SCAN_THRESHOLD_CBACK *p_thres_cback,
+                                        tBTM_BLE_SCAN_REP_CBACK* p_cback,
+                                        tBTM_BLE_REF_VALUE ref_value);
+
+/*******************************************************************************
+**
+** Function         BTM_BleEnableBatchScan
+**
+** Description      This function is called to enable batch scan
+**
+** Parameters       tBTM_BLE_BATCH_SCAN_MODE scan_mode - Batch scan mode
+                    UINT32 scan_interval -Scan interval
+                    UINT32 scan_window - Scan window value
+                    tBLE_ADDR_TYPE addr_type - Address type
+                    tBTM_BLE_DISCARD_RULE discard_rule - Data discard rules
+**
+** Returns          tBTM_STATUS
+**
+*******************************************************************************/
+BTM_API extern tBTM_STATUS BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
+                                        UINT32 scan_interval, UINT32 scan_window,
+                                        tBTM_BLE_DISCARD_RULE discard_rule,
+                                        tBLE_ADDR_TYPE addr_type,
+                                        tBTM_BLE_REF_VALUE ref_value);
+
+/*******************************************************************************
+**
+** Function         BTM_BleDisableBatchScan
+**
+** Description      This function is called to disable batch scanning
+**
+** Parameters       void
+**
+** Returns          void
+**
+*******************************************************************************/
+BTM_API extern tBTM_STATUS BTM_BleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value);
+
+/*******************************************************************************
+**
+** Function         BTM_BleReadScanReports
+**
+** Description      This function is called to read batch scan reports
+**
+** Parameters       tBTM_BLE_SCAN_MODE scan_mode - Scan mode report to be read out
+                    tBTM_BLE_SCAN_REP_CBACK* p_cback - Reports callback
+**
+** Returns          tBTM_STATUS
+**
+*******************************************************************************/
+BTM_API extern tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_SCAN_MODE scan_mode,
+                                                  tBTM_BLE_REF_VALUE ref_value);
+
+/*******************************************************************************
+**
+** Function         BTM_BleTrackAdvertiser
+**
+** Description      This function is called to read batch scan reports
+**
+** Parameters       track_adv_action - Track advertiser action
+                    addr_type - address type
+                    p_bda - BD address
+                    onlost_timeout - Timeout for onlost event
+**
+** Returns          tBTM_STATUS
+**
+*******************************************************************************/
+BTM_API extern tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_ACTION track_adv_action,
+                            tBLE_BD_ADDR *p_bda, UINT8 onlost_timeout);
+
 /*******************************************************************************
 **
 ** Function         BTM_BleWriteScanRsp

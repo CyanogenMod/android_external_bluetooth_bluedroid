@@ -671,7 +671,9 @@ void btm_reset_complete (void)
      btm_cb.ble_ctr_cb.p_select_cback = NULL;
      memset(&btm_cb.ble_ctr_cb.bg_dev_list, 0, (sizeof(tBTM_LE_BG_CONN_DEV)*BTM_BLE_MAX_BG_CONN_DEV_NUM));
      gatt_reset_bgdev_list();
+#if BLE_MULTI_ADV_INCLUDED == TRUE
      btm_ble_multi_adv_init();
+#endif
 #endif
     }
 }

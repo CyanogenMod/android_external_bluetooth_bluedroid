@@ -338,7 +338,6 @@ extern tBTM_STATUS btm_ble_stop_adv(void);
 extern tBTM_STATUS btm_ble_start_scan (UINT8 filter_enb);
 
 
-
 /* LE security function from btm_sec.c */
 #if SMP_INCLUDED == TRUE
 extern void btm_ble_link_sec_check(BD_ADDR bd_addr, tBTM_LE_AUTH_REQ auth_req, tBTM_BLE_SEC_REQ_ACT *p_sec_req_act);
@@ -396,6 +395,7 @@ extern void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p);
 
 extern void btm_ble_multi_adv_configure_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst);
 extern void btm_ble_multi_adv_init(void);
+extern void btm_ble_batchscan_init(void);
 extern void btm_ble_multi_adv_reenable(UINT8 inst_id);
 extern void btm_ble_multi_adv_enb_privacy(BOOLEAN enable);
 extern BOOLEAN btm_ble_topology_check(tBTM_BLE_STATE_MASK request);
