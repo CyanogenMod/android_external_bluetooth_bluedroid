@@ -340,6 +340,12 @@
 /* Multi adv OCF */
 #define HCI_BLE_MULTI_ADV_OCF     (0x0154 | HCI_GRP_VENDOR_SPECIFIC)
 
+/* Batch scan OCF */
+#define HCI_BLE_BATCH_SCAN_OCF    (0x0156 | HCI_GRP_VENDOR_SPECIFIC)
+
+/* Tracking OCF */
+#define HCI_BLE_TRACK_ADV_OCF     (0x0158 | HCI_GRP_VENDOR_SPECIFIC)
+
 /* subcode for multi adv feature */
 #define BTM_BLE_MULTI_ADV_SET_PARAM                     0x01
 #define BTM_BLE_MULTI_ADV_WRITE_ADV_DATA                0x02
@@ -349,6 +355,18 @@
 
 /* multi adv VSE subcode */
 #define HCI_VSE_SUBCODE_BLE_MULTI_ADV_ST_CHG       0x55 /* multi adv instance state change */
+
+/* subcode for batch scan feature */
+#define BTM_BLE_BATCH_SCAN_ENB_DISAB_CUST_FEATURE      0x01
+#define BTM_BLE_BATCH_SCAN_SET_STORAGE_PARAM           0x02
+#define BTM_BLE_BATCH_SCAN_SET_PARAMS                  0x03
+#define BTM_BLE_BATCH_SCAN_READ_RESULTS                0x04
+
+/* batch scan VSE subcode */
+#define HCI_VSE_SUBCODE_BLE_THRESHOLD_SUB_EVT      0x54 /* Threshold event */
+
+/* tracking sub event */
+#define HCI_VSE_SUBCODE_BLE_TRACKING_SUB_EVT       0x56 /* Tracking event */
 
 /* LE supported states definition */
 #define HCI_LE_ADV_STATE          0x00000001

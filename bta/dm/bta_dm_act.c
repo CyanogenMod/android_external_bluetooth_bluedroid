@@ -5041,7 +5041,6 @@ void bta_dm_ble_passkey_reply (tBTA_DM_MSG *p_data)
 {
     if (p_data->pin_reply.accept)
     {
-
         BTM_BlePasskeyReply(p_data->ble_passkey_reply.bd_addr, BTM_SUCCESS, p_data->ble_passkey_reply.passkey);
     }
     else
@@ -5324,6 +5323,142 @@ void btm_dm_ble_multi_adv_disable(tBTA_DM_MSG *p_data)
 #if BLE_MULTI_ADV_INCLUDED == TRUE
     BTM_BleDisableAdvInstance(p_data->ble_multi_adv_disable.inst_id);
 #endif
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_ble_setup_storage
+**
+** Description      This function configures up the storage parameters for ADV batch scanning
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_setup_storage (tBTA_DM_MSG *p_data)
+{
+#if BLE_BATCH_SCAN_INCLUDED == TRUE
+    tBTM_STATUS btm_status = 0;
+
+    btm_status = BTM_BleSetStorageConfig(p_data->ble_set_storage.batch_scan_full_max,
+                            p_data->ble_set_storage.batch_scan_trunc_max,
+                            p_data->ble_set_storage.batch_scan_notify_threshold,
+                            p_data->ble_set_storage.p_setup_cback,
+                            p_data->ble_set_storage.p_thres_cback,
+                            p_data->ble_set_storage.p_read_rep_cback,
+                            p_data->ble_set_storage.ref_value);
+
+    if(BTM_CMD_STARTED != btm_status)
+       bta_ble_scan_setup_cb(BTM_BLE_BATCH_SCAN_CFG_STRG_EVT, p_data->ble_set_storage.ref_value,
+                             btm_status);
+#endif
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_ble_enable_batch_scan
+**
+** Description      This function sets up the parameters and enables batch scan
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_enable_batch_scan (tBTA_DM_MSG *p_data)
+{
+#if BLE_BATCH_SCAN_INCLUDED == TRUE
+    tBTM_STATUS btm_status = 0;
+
+    btm_status = BTM_BleEnableBatchScan(p_data->ble_enable_scan.scan_mode,
+                           p_data->ble_enable_scan.scan_int,p_data->ble_enable_scan.scan_window,
+                           p_data->ble_enable_scan.discard_rule, p_data->ble_enable_scan.addr_type,
+                           p_data->ble_enable_scan.ref_value);
+
+    if(BTM_CMD_STARTED != btm_status)
+       bta_ble_scan_setup_cb(BTM_BLE_BATCH_SCAN_ENABLE_EVT, p_data->ble_enable_scan.ref_value,
+                                btm_status);
+
+#endif
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_ble_disable_batch_scan
+**
+** Description      This function disables the batch scan
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_disable_batch_scan (tBTA_DM_MSG *p_data)
+{
+    UNUSED(p_data);
+#if BLE_BATCH_SCAN_INCLUDED == TRUE
+    tBTM_STATUS btm_status = 0;
+
+    btm_status = BTM_BleDisableBatchScan(p_data->ble_disable_scan.ref_value);
+
+    if(BTM_CMD_STARTED != btm_status)
+       bta_ble_scan_setup_cb(BTM_BLE_BATCH_SCAN_DISABLE_EVT, p_data->ble_enable_scan.ref_value,
+                             btm_status);
+#endif
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_ble_read_scan_reports
+**
+** Description      This function reads the batch scan reports
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_read_scan_reports(tBTA_DM_MSG *p_data)
+{
+#if BLE_BATCH_SCAN_INCLUDED == TRUE
+    tBTM_STATUS btm_status = 0;
+
+    btm_status = BTM_BleReadScanReports(p_data->ble_read_reports.scan_type,
+                                        p_data->ble_read_reports.ref_value);
+
+    if(BTM_CMD_STARTED != btm_status)
+       bta_ble_scan_setup_cb(BTM_BLE_BATCH_SCAN_READ_REPTS_EVT, p_data->ble_enable_scan.ref_value,
+                             btm_status);
+#endif
+}
+
+/*******************************************************************************
+**
+** Function         bta_ble_scan_setup_cb
+**
+** Description      Handle the setup callback from BTM layer and forward it to app layer
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_ble_scan_setup_cb(tBTM_BLE_BATCH_SCAN_EVT evt, tBTM_BLE_REF_VALUE ref_value,
+                                  tBTM_STATUS status)
+{
+    tBTA_BLE_BATCH_SCAN_EVT bta_evt = 0;
+
+    switch(evt)
+    {
+        case BTM_BLE_BATCH_SCAN_ENABLE_EVT:
+           bta_evt = BTA_BLE_BATCH_SCAN_ENB_EVT;
+           break;
+        case BTM_BLE_BATCH_SCAN_CFG_STRG_EVT:
+           bta_evt = BTA_BLE_BATCH_SCAN_CFG_STRG_EVT;
+           break;
+        case BTM_BLE_BATCH_SCAN_DISABLE_EVT:
+            bta_evt = BTA_BLE_BATCH_SCAN_DIS_EVT;
+            break;
+        case BTM_BLE_BATCH_SCAN_PARAM_EVT:
+            bta_evt = BTA_BLE_BATCH_SCAN_PARAM_EVT;
+            break;
+        default:
+            break;
+    }
+
+    if(NULL != bta_dm_cb.p_setup_cback)
+       bta_dm_cb.p_setup_cback(bta_evt, ref_value, status);
 }
 
 #if ((defined BTA_GATT_INCLUDED) &&  (BTA_GATT_INCLUDED == TRUE))
@@ -5660,6 +5795,7 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
             break;
     }
 }
+
 #endif /* BTA_GATT_INCLUDED */
 
 #if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE

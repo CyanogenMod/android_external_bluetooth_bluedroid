@@ -68,6 +68,7 @@ LOCAL_SRC_FILES:= \
     ./btm/btm_dev.c \
     ./btm/btm_ble_gap.c \
     ./btm/btm_ble_multi_adv.c \
+    ./btm/btm_ble_batchscan.c \
     ./btm/btm_acl.c \
     ./btm/btm_sco.c \
     ./btm/btm_pm.c \

@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2003-2012 Broadcom Corporation
+ *  Copyright (C) 2003-2014 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -454,6 +454,41 @@ typedef struct
     UINT8               *p_remote_name;
     tBTA_BLE_SERVICE    service;
 } tBTA_BLE_INQ_DATA;
+
+enum
+{
+    BTA_BLE_SCAN_MODE_PASS=1,
+    BTA_BLE_SCAN_MODE_ACTI=2,
+    BTA_BLE_SCAN_MODE_PASS_ACTI=3
+};
+typedef UINT8 tBTA_BLE_SCAN_MODE;
+
+enum
+{
+    BTA_BLE_DISCARD_OLD_ITEMS=0,
+    BTA_BLE_DISCARD_LOWER_RSSI_ITEMS=1
+};
+typedef UINT8 tBTA_BLE_DISCARD_RULE;
+
+enum
+{
+    BTA_BLE_ADV_SEEN_FIRST_TIME=0,
+    BTA_BLE_ADV_TRACKING_TIMEOUT=1
+};
+typedef UINT8 tBTA_BLE_ADV_CHANGE_REASON;
+
+enum
+{
+    BTA_BLE_BATCH_SCAN_ENB_EVT      = 1,
+    BTA_BLE_BATCH_SCAN_CFG_STRG_EVT = 2,
+    BTA_BLE_BATCH_SCAN_DATA_EVT     = 3,
+    BTA_BLE_BATCH_SCAN_THRES_EVT    = 4,
+    BTA_BLE_BATCH_SCAN_PARAM_EVT    = 5,
+    BTA_BLE_BATCH_SCAN_DIS_EVT      = 6
+};
+typedef tBTM_BLE_BATCH_SCAN_EVT tBTA_BLE_BATCH_SCAN_EVT;
+
+typedef tBTM_BLE_TRACK_ADV_ACTION tBTA_BLE_TRACK_ADV_ACTION;
 #endif
 
 /* BLE customer specific feature function type definitions */
@@ -531,8 +566,8 @@ typedef struct
     UINT8                   data_len;       /* <= 20 bytes */
     UINT8                   *p_pattern;
     UINT16                  company_id_mask; /* UUID value mask */
-    UINT8                   *p_pattern_mask; /* Manufactuer data matching mask, same length as data pattern,
-                                                set to all 0xff, match exact data */
+    UINT8                   *p_pattern_mask; /* Manufacturer data matching mask, same length
+                                                as data pattern, set to all 0xff, match exact data */
 }tBTA_DM_BLE_PF_MANU_COND;
 
 typedef struct
@@ -912,6 +947,7 @@ typedef UINT8 tBTA_BLE_MULTI_ADV_EVT;
 /* multi adv callback */
 typedef void (tBTA_BLE_MULTI_ADV_CBACK)(tBTA_BLE_MULTI_ADV_EVT event,
                                         UINT8 inst_id, void *p_ref, tBTA_STATUS status);
+typedef UINT8 tBTA_DM_BLE_REF_VALUE;
 
 /* Vendor Specific Command Callback */
 typedef tBTM_VSC_CMPL_CB        tBTA_VENDOR_CMPL_CBACK;
@@ -1014,6 +1050,14 @@ typedef void (tBTA_DM_ENCRYPT_CBACK) (BD_ADDR bd_addr, tBTA_TRANSPORT transport,
 #define BTA_DM_BLE_SEC_NO_MITM      BTM_BLE_SEC_ENCRYPT_NO_MITM
 #define BTA_DM_BLE_SEC_MITM         BTM_BLE_SEC_ENCRYPT_MITM
 typedef tBTM_BLE_SEC_ACT            tBTA_DM_BLE_SEC_ACT;
+
+typedef void (tBTA_BLE_SCAN_THRESHOLD_CBACK)(tBTA_DM_BLE_REF_VALUE ref_value);
+typedef void (tBTA_BLE_SCAN_REP_CBACK) (tBTA_DM_BLE_REF_VALUE ref_value, UINT8 report_format, 
+                                        UINT8 num_records, UINT16 data_len,
+                                        UINT8* p_rep_data, tBTA_STATUS status);
+typedef void (tBTA_BLE_SCAN_SETUP_CBACK) (tBTA_BLE_BATCH_SCAN_EVT evt, tBTA_DM_BLE_REF_VALUE ref_value,
+                                          tBTA_STATUS status);
+
 #else
 typedef UINT8                       tBTA_DM_BLE_SEC_ACT;
 #endif
@@ -2188,6 +2232,81 @@ BTA_API extern tBTA_STATUS BTA_BleDisableAdvInstance(UINT8 inst_id);
 *******************************************************************************/
 BTA_API extern void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int,
                                    UINT16 max_int, UINT16 latency, UINT16 timeout);
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleSetStorageParams
+**
+** Description      This function is called to set the storage parameters
+**
+** Parameters       batch_scan_full_max -Max storage space (in %) allocated to full scanning
+**                  batch_scan_trunc_max -Max storage space (in %) allocated to truncated scanning
+**                  batch_scan_notify_threshold - Setup notification level based on total space
+**                  consumed by both pools. Setting it to 0 will disable threshold notification
+**                  p_setup_cback - Setup callback
+**                  p_thres_cback - Threshold callback
+**                  p_rep_cback - Reports callback
+**                  p_ref - Ref pointer
+**
+** Returns           None
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
+                                         UINT8 batch_scan_trunc_max,
+                                         UINT8 batch_scan_notify_threshold,
+                                         tBTA_BLE_SCAN_SETUP_CBACK *p_setup_cback,
+                                         tBTA_BLE_SCAN_THRESHOLD_CBACK *p_thres_cback,
+                                         tBTA_BLE_SCAN_REP_CBACK* p_rep_cback, 
+                                         tBTA_DM_BLE_REF_VALUE ref_value);
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleEnableBatchScan
+**
+** Description      This function is called to enable the batch scan
+**
+** Parameters       scan_mode -Batch scan mode
+**                  scan_interval - Scan interval
+**                  scan_window - Scan window
+**                  discard_rule -Discard rules
+**                  addr_type - Address type
+**
+** Returns           None
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
+                                         UINT32 scan_interval, UINT32 scan_window,
+                                         tBTA_BLE_DISCARD_RULE discard_rule,
+                                         tBLE_ADDR_TYPE        addr_type,
+                                         tBTA_DM_BLE_REF_VALUE ref_value);
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleReadScanReports
+**
+** Description      This function is called to read the batch scan reports
+**
+** Parameters       scan_mode -Batch scan mode
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
+                                             tBTA_DM_BLE_REF_VALUE ref_value);
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleDisableBatchScan
+**
+** Description      This function is called to disable the batch scanning
+**
+** Parameters       None
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value);
+
 #endif
 
 #ifdef __cplusplus
