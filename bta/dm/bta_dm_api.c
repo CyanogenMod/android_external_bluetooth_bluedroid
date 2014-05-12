@@ -1820,7 +1820,23 @@ void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, BOOLEAN privacy_enable)
 *******************************************************************************/
 void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable)
 {
+#if BLE_INCLUDED == TRUE
+#if BLE_VND_INCLUDED == TRUE && BLE_PRIVACY_SPT == TRUE
+    tBTA_DM_API_LOCAL_PRIVACY *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_LOCAL_PRIVACY *) GKI_getbuf(sizeof(tBTA_DM_API_ENABLE_PRIVACY))) != NULL)
+    {
+        memset (p_msg, 0, sizeof(tBTA_DM_API_LOCAL_PRIVACY));
+
+        p_msg->hdr.event = BTA_DM_API_LOCAL_PRIVACY_EVT;
+        p_msg->privacy_enable   = privacy_enable;
+
+        bta_sys_sendmsg(p_msg);
+    }
+#endif
+#else
     UNUSED(privacy_enable);
+#endif
 }
 #endif
 
