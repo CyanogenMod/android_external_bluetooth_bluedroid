@@ -1307,6 +1307,9 @@ and USER_HW_DISABLE_API macros */
 #define BLE_MULTI_ADV_INCLUDED  TRUE
 #endif
 
+#ifndef BLE_VND_INCLUDED
+#define BLE_VND_INCLUDED        TRUE
+#endif
 
 /******************************************************************************
 **

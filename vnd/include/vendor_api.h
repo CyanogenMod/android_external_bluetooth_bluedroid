@@ -14,10 +14,21 @@
 #include "bt_types.h"
 #include "btm_api.h"
 
+/****************************************************************************
+**  Resolvable private address offload VSC specific definitions
+******************************************************************************/
 
-/*************************************
-**  VENDOR BLE specific definitions
-**************************************/
+enum
+{
+    BTM_BLE_PRIVACY_ENABLE,
+    BTM_BLE_PRIVACY_DISABLE
+};
+
+
+/****************************************************************************
+**  Advertising packet filter VSC specific definitions
+******************************************************************************/
+
 enum
 {
     BTM_BLE_SCAN_COND_ADD,

@@ -516,9 +516,11 @@ typedef struct
 
 #define BTM_BLE_ADDR_PSEUDO         0   /* address index device record */
 #define BTM_BLE_ADDR_RRA            1   /* cur_rand_addr */
-#define BTM_BLE_ADDR_STATIC         2   /* static_addr  */
-
+#define BTM_BLE_ADDR_RECONN         2   /* reconnection address */
+#define BTM_BLE_ADDR_STATIC         3   /* static_addr  */
     UINT8               active_addr_type;
+
+    BOOLEAN             privacy_enabled;   /* remote device privacy enabled or not */
 #endif
 
 #if SMP_INCLUDED == TRUE
