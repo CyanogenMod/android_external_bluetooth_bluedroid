@@ -456,7 +456,7 @@ typedef struct t_l2c_linkcb
     tL2C_RR_SERV        rr_serv[L2CAP_NUM_CHNL_PRIORITY];
     UINT8               rr_pri;                             /* current serving priority group */
 #endif
-
+    BOOLEAN             is_collision;
 } tL2C_LCB;
 
 /* Define the L2CAP control structure
