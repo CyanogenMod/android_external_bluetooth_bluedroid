@@ -1,5 +1,6 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2014 The Android Open Source Project
  *  Copyright (C) 2004-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,60 +26,14 @@
 
 #include <string.h>
 #include "bta_api.h"
-#include "bta_sys.h"
-#include "bta_ag_api.h"
-#include "bta_ag_int.h"
-#include "bta_ag_co.h"
-#include "btm_api.h"
+#include "bta_hf_client_int.h"
 #include "port_api.h"
-#include "rfcdefs.h"
-#include "gki.h"
 #include "bd.h"
-#include "utl.h"
-
-/* Event mask for RfCOMM port callback */
-#define BTA_AG_PORT_EV_MASK         PORT_EV_RXCHAR
-
-/* each scb has its own rfcomm callbacks */
-void bta_ag_port_cback_1(UINT32 code, UINT16 port_handle);
-void bta_ag_port_cback_2(UINT32 code, UINT16 port_handle);
-void bta_ag_port_cback_3(UINT32 code, UINT16 port_handle);
-
-void bta_ag_mgmt_cback_1(UINT32 code, UINT16 port_handle);
-void bta_ag_mgmt_cback_2(UINT32 code, UINT16 port_handle);
-void bta_ag_mgmt_cback_3(UINT32 code, UINT16 port_handle);
-
-int bta_ag_data_cback_1(UINT16 port_handle, void *p_data, UINT16 len);
-int bta_ag_data_cback_2(UINT16 port_handle, void *p_data, UINT16 len);
-int bta_ag_data_cback_3(UINT16 port_handle, void *p_data, UINT16 len);
-
-/* rfcomm callback function tables */
-typedef tPORT_CALLBACK *tBTA_AG_PORT_CBACK;
-const tBTA_AG_PORT_CBACK bta_ag_port_cback_tbl[] =
-{
-    bta_ag_port_cback_1,
-    bta_ag_port_cback_2,
-    bta_ag_port_cback_3
-};
-
-const tBTA_AG_PORT_CBACK bta_ag_mgmt_cback_tbl[] =
-{
-    bta_ag_mgmt_cback_1,
-    bta_ag_mgmt_cback_2,
-    bta_ag_mgmt_cback_3
-};
-
-typedef tPORT_DATA_CALLBACK *tBTA_AG_DATA_CBACK;
-const tBTA_AG_DATA_CBACK bta_ag_data_cback_tbl[] =
-{
-    bta_ag_data_cback_1,
-    bta_ag_data_cback_2,
-    bta_ag_data_cback_3
-};
+#include "bt_utils.h"
 
 /*******************************************************************************
 **
-** Function         bta_ag_port_cback
+** Function         bta_hf_client_port_cback
 **
 ** Description      RFCOMM Port callback
 **
@@ -86,34 +41,29 @@ const tBTA_AG_DATA_CBACK bta_ag_data_cback_tbl[] =
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_port_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
+static void bta_hf_client_port_cback(UINT32 code, UINT16 port_handle)
 {
     BT_HDR      *p_buf;
-    tBTA_AG_SCB *p_scb;
     UNUSED(code);
 
-    if ((p_scb = bta_ag_scb_by_idx(handle)) != NULL)
+    /* ignore port events for port handles other than connected handle */
+    if (port_handle != bta_hf_client_cb.scb.conn_handle)
     {
-        /* ignore port events for port handles other than connected handle */
-        if (port_handle != p_scb->conn_handle)
-        {
-            APPL_TRACE_DEBUG3("ag_port_cback ignoring handle:%d conn_handle = %d other handle = %d",
-                              port_handle, p_scb->conn_handle, handle);
-            return;
-        }
+        APPL_TRACE_DEBUG2("bta_hf_client_port_cback ignoring handle:%d conn_handle = %d",
+                          port_handle, bta_hf_client_cb.scb.conn_handle);
+        return;
+    }
 
-        if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
-        {
-            p_buf->event = BTA_AG_RFC_DATA_EVT;
-            p_buf->layer_specific = handle;
-            bta_sys_sendmsg(p_buf);
-        }
+    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    {
+        p_buf->event = BTA_HF_CLIENT_RFC_DATA_EVT;
+        bta_sys_sendmsg(p_buf);
     }
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_mgmt_cback
+** Function         bta_hf_client_mgmt_cback
 **
 ** Description      RFCOMM management callback
 **
@@ -121,250 +71,136 @@ static void bta_ag_port_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_mgmt_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
+static void bta_hf_client_mgmt_cback(UINT32 code, UINT16 port_handle)
 {
-    tBTA_AG_RFC     *p_buf;
-    tBTA_AG_SCB     *p_scb;
-    UINT16          event;
-    UINT8           i;
-    BOOLEAN         found_handle = FALSE;
+    tBTA_HF_CLIENT_RFC     *p_buf;
+    UINT16                  event;
 
-    APPL_TRACE_DEBUG3("ag_mgmt_cback : code = %d, port_handle = %d, handle = %d",
-                        code, port_handle, handle);
+    APPL_TRACE_DEBUG4("bta_hf_client_mgmt_cback : code = %d, port_handle = %d, conn_handle = %d, serv_handle = %d",
+                        code, port_handle, bta_hf_client_cb.scb.conn_handle, bta_hf_client_cb.scb.serv_handle);
 
-    if ((p_scb = bta_ag_scb_by_idx(handle)) != NULL)
+    /* ignore close event for port handles other than connected handle */
+    if ((code != PORT_SUCCESS) && (port_handle != bta_hf_client_cb.scb.conn_handle))
     {
-        /* ignore close event for port handles other than connected handle */
-        if ((code != PORT_SUCCESS) && (port_handle != p_scb->conn_handle))
-        {
-            APPL_TRACE_DEBUG1("ag_mgmt_cback ignoring handle:%d", port_handle);
-            return;
-        }
+        APPL_TRACE_DEBUG1("bta_hf_client_mgmt_cback ignoring handle:%d", port_handle);
+        return;
+    }
 
-        if (code == PORT_SUCCESS)
+    if (code == PORT_SUCCESS)
+    {
+        if ((bta_hf_client_cb.scb.conn_handle && (port_handle == bta_hf_client_cb.scb.conn_handle)) || /* outgoing connection */
+                (port_handle == bta_hf_client_cb.scb.serv_handle))                       /* incoming connection */
         {
-            if (p_scb->conn_handle)     /* Outgoing connection */
-            {
-                if (port_handle == p_scb->conn_handle)
-                    found_handle = TRUE;
-            }
-            else                        /* Incoming connection */
-            {
-                for (i = 0; i < BTA_AG_NUM_IDX; i++)
-                {
-                    if (port_handle == p_scb->serv_handle[i])
-                        found_handle = TRUE;
-                }
-            }
-
-            if (!found_handle)
-            {
-                APPL_TRACE_ERROR1 ("bta_ag_mgmt_cback: PORT_SUCCESS, ignoring handle = %d", port_handle);
-                return;
-            }
-
-            event = BTA_AG_RFC_OPEN_EVT;
-        }
-        /* distinguish server close events */
-        else if (port_handle == p_scb->conn_handle)
-        {
-            event = BTA_AG_RFC_CLOSE_EVT;
+            event = BTA_HF_CLIENT_RFC_OPEN_EVT;
         }
         else
         {
-            event = BTA_AG_RFC_SRV_CLOSE_EVT;
-        }
-
-        if ((p_buf = (tBTA_AG_RFC *) GKI_getbuf(sizeof(tBTA_AG_RFC))) != NULL)
-        {
-            p_buf->hdr.event = event;
-            p_buf->hdr.layer_specific = handle;
-            p_buf->port_handle = port_handle;
-            bta_sys_sendmsg(p_buf);
+            APPL_TRACE_ERROR1 ("bta_hf_client_mgmt_cback: PORT_SUCCESS, ignoring handle = %d", port_handle);
+            return;
         }
     }
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_data_cback
-**
-** Description      RFCOMM data callback
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-static int bta_ag_data_cback(UINT16 port_handle, void *p_data, UINT16 len, UINT16 handle)
-{
-    UNUSED(port_handle);
-
-    /* call data call-out directly */
-    bta_ag_co_tx_write(handle, (UINT8 *) p_data, len);
-    return 0;
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_port_cback_1 to 3
-**                  bta_ag_mgmt_cback_1 to 3
-**
-** Description      RFCOMM callback functions.  This is an easy way to
-**                  distinguish scb from the callback.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_mgmt_cback_1(UINT32 code, UINT16 handle) {bta_ag_mgmt_cback(code, handle, 1);}
-void bta_ag_mgmt_cback_2(UINT32 code, UINT16 handle) {bta_ag_mgmt_cback(code, handle, 2);}
-void bta_ag_mgmt_cback_3(UINT32 code, UINT16 handle) {bta_ag_mgmt_cback(code, handle, 3);}
-void bta_ag_port_cback_1(UINT32 code, UINT16 handle) {bta_ag_port_cback(code, handle, 1);}
-void bta_ag_port_cback_2(UINT32 code, UINT16 handle) {bta_ag_port_cback(code, handle, 2);}
-void bta_ag_port_cback_3(UINT32 code, UINT16 handle) {bta_ag_port_cback(code, handle, 3);}
-
-/*******************************************************************************
-**
-** Function         bta_ag_data_cback_1 to 3
-**
-** Description      RFCOMM data callback functions.  This is an easy way to
-**                  distinguish scb from the callback.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-int bta_ag_data_cback_1(UINT16 port_handle, void *p_data, UINT16 len)
-{
-    return bta_ag_data_cback(port_handle, p_data, len, 1);
-}
-int bta_ag_data_cback_2(UINT16 port_handle, void *p_data, UINT16 len)
-{
-    return bta_ag_data_cback(port_handle, p_data, len, 2);
-}
-int bta_ag_data_cback_3(UINT16 port_handle, void *p_data, UINT16 len)
-{
-    return bta_ag_data_cback(port_handle, p_data, len, 3);
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_setup_port
-**
-** Description      Setup RFCOMM port for use by AG.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_setup_port(tBTA_AG_SCB *p_scb, UINT16 handle)
-{
-    UINT16 i = bta_ag_scb_to_idx(p_scb) - 1;
-
-    /* set up data callback if using pass through mode */
-    if (bta_ag_cb.parse_mode == BTA_AG_PASS_THROUGH)
+    /* distinguish server close events */
+    else if (port_handle == bta_hf_client_cb.scb.conn_handle)
     {
-        PORT_SetDataCallback(handle, bta_ag_data_cback_tbl[i]);
+        event = BTA_HF_CLIENT_RFC_CLOSE_EVT;
+    }
+    else
+    {
+        event = BTA_HF_CLIENT_RFC_SRV_CLOSE_EVT;
     }
 
-    PORT_SetEventMask(handle, BTA_AG_PORT_EV_MASK);
-    PORT_SetEventCallback(handle, bta_ag_port_cback_tbl[i]);
+    if ((p_buf = (tBTA_HF_CLIENT_RFC *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_RFC))) != NULL)
+    {
+        p_buf->hdr.event = event;
+        p_buf->port_handle = port_handle;
+        bta_sys_sendmsg(p_buf);
+    }
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_start_servers
+** Function         bta_hf_client_setup_port
 **
-** Description      Setup RFCOMM servers for use by AG.
+** Description      Setup RFCOMM port for use by HF Client.
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_start_servers(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK services)
+void bta_hf_client_setup_port(UINT16 handle)
+{
+    PORT_SetEventMask(handle, PORT_EV_RXCHAR);
+    PORT_SetEventCallback(handle, bta_hf_client_port_cback);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_start_server
+**
+** Description      Setup RFCOMM server for use by HF Client.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_start_server(void)
 {
     int i;
-    int bta_ag_port_status;
+    int port_status;
 
-    services >>= BTA_HSP_SERVICE_ID;
-    for (i = 0; i < BTA_AG_NUM_IDX && services != 0; i++, services >>= 1)
+    if (bta_hf_client_cb.scb.serv_handle > 0)
     {
-        /* if service is set in mask */
-        if (services & 1)
-        {
-            BTM_SetSecurityLevel(FALSE, "", bta_ag_sec_id[i], p_scb->serv_sec_mask,
-                BT_PSM_RFCOMM, BTM_SEC_PROTO_RFCOMM, bta_ag_cb.profile[i].scn);
-
-            bta_ag_port_status =  RFCOMM_CreateConnection(bta_ag_uuid[i], bta_ag_cb.profile[i].scn,
-                TRUE, BTA_AG_MTU, (UINT8 *) bd_addr_any, &(p_scb->serv_handle[i]),
-                bta_ag_mgmt_cback_tbl[bta_ag_scb_to_idx(p_scb) - 1]);
-
-            if( bta_ag_port_status  == PORT_SUCCESS )
-            {
-                bta_ag_setup_port(p_scb, p_scb->serv_handle[i]);
-            }
-            else
-            {
-                /* TODO: CR#137125 to handle to error properly */
-                APPL_TRACE_DEBUG1("bta_ag_start_servers: RFCOMM_CreateConnection returned error:%d", bta_ag_port_status);
-            }
-        }
+        APPL_TRACE_DEBUG2("%s already started, handle: %d", __FUNCTION__, bta_hf_client_cb.scb.serv_handle);
+        return;
     }
+
+    BTM_SetSecurityLevel(FALSE, "", BTM_SEC_SERVICE_HF_HANDSFREE, bta_hf_client_cb.scb.serv_sec_mask,
+        BT_PSM_RFCOMM, BTM_SEC_PROTO_RFCOMM, bta_hf_client_cb.scn);
+
+    port_status =  RFCOMM_CreateConnection(UUID_SERVCLASS_HF_HANDSFREE, bta_hf_client_cb.scn,
+        TRUE, BTA_HF_CLIENT_MTU, (UINT8 *) bd_addr_any, &(bta_hf_client_cb.scb.serv_handle),
+        bta_hf_client_mgmt_cback);
+
+    if (port_status  == PORT_SUCCESS)
+    {
+        bta_hf_client_setup_port(bta_hf_client_cb.scb.serv_handle);
+    }
+    else
+    {
+        /* TODO: can we handle this better? */
+        APPL_TRACE_DEBUG1("bta_hf_client_start_server: RFCOMM_CreateConnection returned error:%d", port_status);
+    }
+
+    APPL_TRACE_DEBUG1("bta_hf_client_start_server handle: %d", bta_hf_client_cb.scb.serv_handle);
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_close_servers
+** Function         bta_hf_client_close_server
 **
-** Description      Close RFCOMM servers port for use by AG.
+** Description      Close RFCOMM server port for use by HF Client.
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_close_servers(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK services)
+void bta_hf_client_close_server(void)
 {
-    int i;
+    APPL_TRACE_DEBUG2("%s %d", __FUNCTION__, bta_hf_client_cb.scb.serv_handle);
 
-    services >>= BTA_HSP_SERVICE_ID;
-    for (i = 0; i < BTA_AG_NUM_IDX && services != 0; i++, services >>= 1)
+    if (bta_hf_client_cb.scb.serv_handle == 0)
     {
-        /* if service is set in mask */
-        if (services & 1)
-        {
-            RFCOMM_RemoveServer(p_scb->serv_handle[i]);
-            p_scb->serv_handle[i] = 0;
-        }
+        APPL_TRACE_DEBUG1("%s already stopped", __FUNCTION__);
+        return;
     }
+
+    RFCOMM_RemoveServer(bta_hf_client_cb.scb.serv_handle);
+    bta_hf_client_cb.scb.serv_handle = 0;
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_is_server_closed
-**
-** Description      Returns TRUE if all servers are closed.
-**
-**
-** Returns          TRUE if all servers are closed, FALSE otherwise
-**
-*******************************************************************************/
-BOOLEAN bta_ag_is_server_closed (tBTA_AG_SCB *p_scb)
-{
-    UINT8 xx;
-    BOOLEAN is_closed = TRUE;
-
-    for (xx = 0; xx < BTA_AG_NUM_IDX; xx++)
-    {
-        if (p_scb->serv_handle[xx] != 0)
-            is_closed = FALSE;
-    }
-
-    return is_closed;
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_rfc_do_open
+** Function         bta_hf_client_rfc_do_open
 **
 ** Description      Open an RFCOMM connection to the peer device.
 **
@@ -372,28 +208,29 @@ BOOLEAN bta_ag_is_server_closed (tBTA_AG_SCB *p_scb)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_rfc_do_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_rfc_do_open(tBTA_HF_CLIENT_DATA *p_data)
 {
-    BTM_SetSecurityLevel(TRUE, "", bta_ag_sec_id[p_scb->conn_service],
-        p_scb->cli_sec_mask, BT_PSM_RFCOMM, BTM_SEC_PROTO_RFCOMM, p_scb->peer_scn);
+    BTM_SetSecurityLevel(TRUE, "", BTM_SEC_SERVICE_HF_HANDSFREE,
+                            bta_hf_client_cb.scb.cli_sec_mask, BT_PSM_RFCOMM,
+                            BTM_SEC_PROTO_RFCOMM, bta_hf_client_cb.scb.peer_scn);
 
-    if (RFCOMM_CreateConnection(bta_ag_uuid[p_scb->conn_service], p_scb->peer_scn,
-            FALSE, BTA_AG_MTU, p_scb->peer_addr, &(p_scb->conn_handle),
-            bta_ag_mgmt_cback_tbl[bta_ag_scb_to_idx(p_scb) - 1]) == PORT_SUCCESS)
+    if (RFCOMM_CreateConnection(UUID_SERVCLASS_HF_HANDSFREE, bta_hf_client_cb.scb.peer_scn,
+            FALSE, BTA_HF_CLIENT_MTU, bta_hf_client_cb.scb.peer_addr, &(bta_hf_client_cb.scb.conn_handle),
+            bta_hf_client_mgmt_cback) == PORT_SUCCESS)
     {
-        bta_ag_setup_port(p_scb, p_scb->conn_handle);
-        APPL_TRACE_DEBUG1("bta_ag_rfc_do_open : conn_handle = %d", p_scb->conn_handle);
+        bta_hf_client_setup_port(bta_hf_client_cb.scb.conn_handle);
+        APPL_TRACE_DEBUG1("bta_hf_client_rfc_do_open : conn_handle = %d", bta_hf_client_cb.scb.conn_handle);
     }
     /* RFCOMM create connection failed; send ourselves RFCOMM close event */
     else
     {
-        bta_ag_sm_execute(p_scb, BTA_AG_RFC_CLOSE_EVT, p_data);
+        bta_hf_client_sm_execute(BTA_HF_CLIENT_RFC_CLOSE_EVT, p_data);
     }
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_rfc_do_close
+** Function         bta_hf_client_rfc_do_close
 **
 ** Description      Close RFCOMM connection.
 **
@@ -401,46 +238,31 @@ void bta_ag_rfc_do_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_rfc_do_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_rfc_do_close(tBTA_HF_CLIENT_DATA *p_data)
 {
-    tBTA_AG_RFC     *p_buf;
+    tBTA_HF_CLIENT_RFC     *p_buf;
     UNUSED(p_data);
 
-    if (p_scb->conn_handle)
+    if (bta_hf_client_cb.scb.conn_handle)
     {
-        RFCOMM_RemoveConnection(p_scb->conn_handle);
+        RFCOMM_RemoveConnection(bta_hf_client_cb.scb.conn_handle);
     }
     else
     {
-        /* Close API was called while AG is in Opening state.               */
+        /* Close API was called while HF Client is in Opening state.        */
         /* Need to trigger the state machine to send callback to the app    */
         /* and move back to INIT state.                                     */
-        if ((p_buf = (tBTA_AG_RFC *) GKI_getbuf(sizeof(tBTA_AG_RFC))) != NULL)
+        if ((p_buf = (tBTA_HF_CLIENT_RFC *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_RFC))) != NULL)
         {
-            p_buf->hdr.event = BTA_AG_RFC_CLOSE_EVT;
-            p_buf->hdr.layer_specific = bta_ag_scb_to_idx(p_scb);
+            p_buf->hdr.event = BTA_HF_CLIENT_RFC_CLOSE_EVT;
             bta_sys_sendmsg(p_buf);
         }
 
         /* Cancel SDP if it had been started. */
-        /*
-        if(p_scb->p_disc_db)
+        if(bta_hf_client_cb.scb.p_disc_db)
         {
-            (void)SDP_CancelServiceSearch (p_scb->p_disc_db);
-        }
-        */
-    }
-
-#ifdef _WIN32_WCE
-    {
-        /* Windows versions of RFCOMM does NOT generate a closed callback when we close */
-        tPORT_CALLBACK *rfc_mgmt_cback = bta_ag_mgmt_cback_tbl[bta_ag_scb_to_idx(p_scb) - 1];
-
-        if (rfc_mgmt_cback)
-        {
-            (rfc_mgmt_cback)(PORT_CLOSED, p_scb->conn_handle);
+            (void)SDP_CancelServiceSearch (bta_hf_client_cb.scb.p_disc_db);
+            bta_hf_client_free_db(NULL);
         }
     }
-#endif
 }
-

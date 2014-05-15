@@ -1,5 +1,6 @@
 /******************************************************************************
  *
+ *  Copyright (c) 2014 The Android Open Source Project
  *  Copyright (C) 2003-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,134 +19,74 @@
 
 /******************************************************************************
  *
- *  This file contains action functions for the audio gateway.
+ *  This file contains action functions for the handsfree client.
  *
  ******************************************************************************/
 
 #include "bta_api.h"
 #include "bd.h"
-#include "bta_sys.h"
-#include "bta_ag_api.h"
-#include "bta_ag_co.h"
-#include "bta_ag_int.h"
-#include "port_api.h"
-#include "utl.h"
-#include <string.h>
+#include "bta_hf_client_api.h"
+#include "bta_hf_client_int.h"
 #include "bta_dm_int.h"
 #include "l2c_api.h"
+#include "port_api.h"
+#include "bta_sys.h"
+#include "utl.h"
+#include "bt_utils.h"
+#include <string.h>
 
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
 
 /* maximum length of data to read from RFCOMM */
-#define BTA_AG_RFC_READ_MAX     512
-
-/* maximum AT command length */
-#define BTA_AG_CMD_MAX          512
-
-const UINT16 bta_ag_uuid[BTA_AG_NUM_IDX] =
-{
-    UUID_SERVCLASS_HEADSET_AUDIO_GATEWAY,
-    UUID_SERVCLASS_AG_HANDSFREE
-};
-
-const UINT8 bta_ag_sec_id[BTA_AG_NUM_IDX] =
-{
-    BTM_SEC_SERVICE_HEADSET_AG,
-    BTM_SEC_SERVICE_AG_HANDSFREE
-};
-
-const tBTA_SERVICE_ID bta_ag_svc_id[BTA_AG_NUM_IDX] =
-{
-    BTA_HSP_SERVICE_ID,
-    BTA_HFP_SERVICE_ID
-};
-
-const tBTA_SERVICE_MASK bta_ag_svc_mask[BTA_AG_NUM_IDX] =
-{
-    BTA_HSP_SERVICE_MASK,
-    BTA_HFP_SERVICE_MASK
-};
-
-typedef void (*tBTA_AG_ATCMD_CBACK)(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
-                                    char *p_arg, INT16 int_arg);
-
-const tBTA_AG_ATCMD_CBACK bta_ag_at_cback_tbl[BTA_AG_NUM_IDX] =
-{
-    bta_ag_at_hsp_cback,
-    bta_ag_at_hfp_cback
-};
+#define BTA_HF_CLIENT_RFC_READ_MAX     512
 
 /*******************************************************************************
 **
-** Function         bta_ag_cback_open
+** Function         bta_hf_client_register
 **
-** Description      Send open callback event to application.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-static void bta_ag_cback_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data, tBTA_AG_STATUS status)
-{
-    tBTA_AG_OPEN    open;
-
-    /* call app callback with open event */
-    open.hdr.handle = bta_ag_scb_to_idx(p_scb);
-    open.hdr.app_id = p_scb->app_id;
-    open.status = status;
-    open.service_id = bta_ag_svc_id[p_scb->conn_service];
-    if(p_data)
-    {
-        /* if p_data is provided then we need to pick the bd address from the open api structure */
-        bdcpy(open.bd_addr, p_data->api_open.bd_addr);
-    }
-    else
-    {
-        bdcpy(open.bd_addr, p_scb->peer_addr);
-    }
-
-    (*bta_ag_cb.p_cback)(BTA_AG_OPEN_EVT, (tBTA_AG *) &open);
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_register
-**
-** Description      This function initializes values of the AG cb and sets up
+** Description      This function initializes values of the scb and sets up
 **                  the SDP record for the services.
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_register(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_register(tBTA_HF_CLIENT_DATA *p_data)
 {
-    tBTA_AG_REGISTER reg;
+    tBTA_HF_CLIENT evt;
+    tBTA_UTL_COD   cod;
+
+    memset(&evt, 0, sizeof(evt));
 
     /* initialize control block */
-    p_scb->reg_services = p_data->api_register.services;
-    p_scb->serv_sec_mask = p_data->api_register.sec_mask;
-    p_scb->features = p_data->api_register.features;
-    p_scb->app_id = p_data->api_register.app_id;
+    bta_hf_client_scb_init();
+
+    bta_hf_client_cb.scb.serv_sec_mask = p_data->api_register.sec_mask;
+    bta_hf_client_cb.scb.features = p_data->api_register.features;
+
+    /* initialize AT control block */
+    bta_hf_client_at_init();
 
     /* create SDP records */
-    bta_ag_create_records(p_scb, p_data);
+    bta_hf_client_create_record(p_data);
 
-    /* start RFCOMM servers */
-    bta_ag_start_servers(p_scb, p_scb->reg_services);
+    /* Set the Audio service class bit */
+    cod.service = BTM_COD_SERVICE_AUDIO;
+    utl_set_device_class(&cod, BTA_UTL_SET_COD_SERVICE_CLASS);
+
+    /* start RFCOMM server */
+    bta_hf_client_start_server();
 
     /* call app callback with register event */
-    reg.hdr.handle = bta_ag_scb_to_idx(p_scb);
-    reg.hdr.app_id = p_scb->app_id;
-    reg.status = BTA_AG_SUCCESS;
-    (*bta_ag_cb.p_cback)(BTA_AG_REGISTER_EVT, (tBTA_AG *) &reg);
+    evt.reg.status = BTA_HF_CLIENT_SUCCESS;
+    (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_REGISTER_EVT, &evt);
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_deregister
+** Function         bta_hf_client_deregister
 **
 ** Description      This function removes the sdp records, closes the RFCOMM
 **                  servers, and deallocates the service control block.
@@ -154,24 +95,23 @@ void bta_ag_register(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_deregister(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_deregister(tBTA_HF_CLIENT_DATA *p_data)
 {
-    /* set dealloc */
-    p_scb->dealloc = TRUE;
+    bta_hf_client_cb.scb.deregister = TRUE;
 
-    /* remove sdp records */
-    bta_ag_del_records(p_scb, p_data);
+    /* remove sdp record */
+    bta_hf_client_del_record(p_data);
 
-    /* remove rfcomm servers */
-    bta_ag_close_servers(p_scb, p_scb->reg_services);
+    /* remove rfcomm server */
+    bta_hf_client_close_server();
 
-    /* dealloc */
-    bta_ag_scb_dealloc(p_scb);
+    /* disable */
+    bta_hf_client_scb_disable();
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_start_dereg
+** Function         bta_hf_client_start_dereg
 **
 ** Description      Start a deregister event.
 **
@@ -179,502 +119,17 @@ void bta_ag_deregister(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_start_dereg(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_start_dereg(tBTA_HF_CLIENT_DATA *p_data)
 {
-    /* set dealloc */
-    p_scb->dealloc = TRUE;
+    bta_hf_client_cb.scb.deregister = TRUE;
 
-    /* remove sdp records */
-    bta_ag_del_records(p_scb, p_data);
+    /* remove sdp record */
+    bta_hf_client_del_record(p_data);
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_start_open
-**
-** Description      This starts an AG open.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_start_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
-{
-    BD_ADDR pending_bd_addr;
-
-    /* store parameters */
-    if (p_data)
-    {
-        bdcpy(p_scb->peer_addr, p_data->api_open.bd_addr);
-        p_scb->open_services = p_data->api_open.services;
-        p_scb->cli_sec_mask = p_data->api_open.sec_mask;
-    }
-
-    /* Check if RFCOMM has any incoming connection to avoid collision. */
-    if (PORT_IsOpening (pending_bd_addr))
-    {
-        /* Let the incoming connection goes through.                        */
-        /* Issue collision for this scb for now.                            */
-        /* We will decide what to do when we find incoming connetion later. */
-        bta_ag_collision_cback (0, BTA_ID_AG, 0, p_scb->peer_addr);
-        return;
-    }
-
-    /* close servers */
-    bta_ag_close_servers(p_scb, p_scb->reg_services);
-
-    /* set role */
-    p_scb->role = BTA_AG_INT;
-
-    /* do service search */
-    bta_ag_do_disc(p_scb, p_scb->open_services);
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_disc_int_res
-**
-** Description      This function handles a discovery result when initiator.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_disc_int_res(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
-{
-    UINT16 event = BTA_AG_DISC_FAIL_EVT;
-
-    APPL_TRACE_DEBUG1 ("bta_ag_disc_int_res: Status: %d", p_data->disc_result.status);
-
-    /* if found service */
-    if (p_data->disc_result.status == SDP_SUCCESS ||
-        p_data->disc_result.status == SDP_DB_FULL)
-    {
-        /* get attributes */
-        if (bta_ag_sdp_find_attr(p_scb, p_scb->open_services))
-        {
-            /* set connected service */
-            p_scb->conn_service = bta_ag_service_to_idx(p_scb->open_services);
-
-            /* send ourselves sdp ok event */
-            event = BTA_AG_DISC_OK_EVT;
-        }
-    }
-
-    /* free discovery db */
-    bta_ag_free_db(p_scb, p_data);
-
-    /* if service not found check if we should search for other service */
-    if ((event == BTA_AG_DISC_FAIL_EVT) &&
-        (p_data->disc_result.status == SDP_SUCCESS ||
-         p_data->disc_result.status == SDP_DB_FULL ||
-         p_data->disc_result.status == SDP_NO_RECS_MATCH))
-    {
-        if ((p_scb->open_services & BTA_HFP_SERVICE_MASK) &&
-            (p_scb->open_services & BTA_HSP_SERVICE_MASK))
-        {
-            /* search for HSP */
-            p_scb->open_services &= ~BTA_HFP_SERVICE_MASK;
-            bta_ag_do_disc(p_scb, p_scb->open_services);
-        }
-        else if ((p_scb->open_services & BTA_HSP_SERVICE_MASK) &&
-                 (p_scb->hsp_version == HSP_VERSION_1_2))
-        {
-            /* search for UUID_SERVCLASS_HEADSET for HSP 1.0 device */
-            p_scb->hsp_version = HSP_VERSION_1_0;
-            bta_ag_do_disc(p_scb, p_scb->open_services);
-        }
-        else
-        {
-            /* send ourselves sdp ok/fail event */
-            bta_ag_sm_execute(p_scb, event, p_data);
-        }
-    }
-    else
-    {
-        /* send ourselves sdp ok/fail event */
-        bta_ag_sm_execute(p_scb, event, p_data);
-    }
-
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_disc_acp_res
-**
-** Description      This function handles a discovery result when acceptor.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_disc_acp_res(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
-{
-    /* if found service */
-    if (p_data->disc_result.status == SDP_SUCCESS ||
-        p_data->disc_result.status == SDP_DB_FULL)
-    {
-        /* get attributes */
-        bta_ag_sdp_find_attr(p_scb, bta_ag_svc_mask[p_scb->conn_service]);
-    }
-
-    /* free discovery db */
-    bta_ag_free_db(p_scb, p_data);
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_disc_fail
-**
-** Description      This function handles a discovery failure.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_disc_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
-{
-    UNUSED(p_data);
-
-    /* reopen registered servers */
-    bta_ag_start_servers(p_scb, p_scb->reg_services);
-
-    /* reinitialize stuff */
-
-    /* call open cback w. failure */
-    bta_ag_cback_open(p_scb, NULL, BTA_AG_FAIL_SDP);
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_open_fail
-**
-** Description      open connection failed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_open_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
-{
-    /* call open cback w. failure */
-    bta_ag_cback_open(p_scb, p_data, BTA_AG_FAIL_RESOURCES);
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_rfc_fail
-**
-** Description      RFCOMM connection failed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_rfc_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
-{
-    UNUSED(p_data);
-
-    /* reinitialize stuff */
-    p_scb->conn_handle = 0;
-    p_scb->conn_service = 0;
-    p_scb->peer_features = 0;
-#if (BTM_WBS_INCLUDED == TRUE )
-    p_scb->peer_codecs = BTA_AG_CODEC_NONE;
-    p_scb->sco_codec = BTA_AG_CODEC_NONE;
-#endif
-    p_scb->role = 0;
-    p_scb->svc_conn = FALSE;
-    p_scb->hsp_version = HSP_VERSION_1_2;
-
-    /* reopen registered servers */
-    bta_ag_start_servers(p_scb, p_scb->reg_services);
-
-    /* call open cback w. failure */
-    bta_ag_cback_open(p_scb, NULL, BTA_AG_FAIL_RFCOMM);
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_rfc_close
-**
-** Description      RFCOMM connection closed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
-{
-    tBTA_AG_HDR    close;
-    tBTA_SERVICE_MASK services;
-    int i, num_active_conn = 0;
-    UNUSED(p_data);
-
-#ifdef  _WIN32_WCE
-    /* The BTE RFCOMM automatically removes the connection when closed, but BTW does not */
-    if (p_scb->conn_handle != 0)
-        RFCOMM_RemoveConnection (p_scb->conn_handle);
-#endif
-
-    /* reinitialize stuff */
-    p_scb->conn_service = 0;
-    p_scb->peer_features = 0;
-#if (BTM_WBS_INCLUDED == TRUE )
-    p_scb->peer_codecs = BTA_AG_CODEC_NONE;
-    p_scb->sco_codec = BTA_AG_CODEC_NONE;
-#endif
-    p_scb->role = 0;
-    p_scb->post_sco = BTA_AG_POST_SCO_NONE;
-    p_scb->svc_conn = FALSE;
-    p_scb->hsp_version = HSP_VERSION_1_2;
-    bta_ag_at_reinit(&p_scb->at_cb);
-
-    /* stop timers */
-    bta_sys_stop_timer(&p_scb->act_timer);
-#if (BTM_WBS_INCLUDED == TRUE)
-    bta_sys_stop_timer(&p_scb->cn_timer);
-#endif
-
-    close.handle = bta_ag_scb_to_idx(p_scb);
-    close.app_id = p_scb->app_id;
-
-    bta_sys_conn_close(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
-
-    /* call close call-out */
-    bta_ag_co_data_close(close.handle);
-
-    /* call close cback */
-    (*bta_ag_cb.p_cback)(BTA_AG_CLOSE_EVT, (tBTA_AG *) &close);
-
-    /* if not deregistering (deallocating) reopen registered servers */
-    if (p_scb->dealloc == FALSE)
-    {
-        /* Clear peer bd_addr so instance can be reused */
-        bdcpy(p_scb->peer_addr, bd_addr_null);
-
-        /* start only unopened server */
-        services = p_scb->reg_services;
-        for (i = 0; i < BTA_AG_NUM_IDX && services != 0; i++)
-        {
-            if(p_scb->serv_handle[i])
-                services &= ~((tBTA_SERVICE_MASK)1 << (BTA_HSP_SERVICE_ID + i));
-        }
-        bta_ag_start_servers(p_scb, services);
-
-        p_scb->conn_handle = 0;
-
-        /* Make sure SCO state is BTA_AG_SCO_SHUTDOWN_ST */
-        bta_ag_sco_shutdown(p_scb, NULL);
-
-        /* Check if all the SLCs are down */
-        for (i = 0; i < BTA_AG_NUM_SCB; i++)
-        {
-            if (bta_ag_cb.scb[i].in_use && bta_ag_cb.scb[i].svc_conn)
-                num_active_conn++;
-        }
-
-        if(!num_active_conn)
-        {
-            bta_sys_sco_unuse(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
-        }
-
-    }
-    /* else close port and deallocate scb */
-    else
-    {
-        RFCOMM_RemoveServer(p_scb->conn_handle);
-        bta_ag_scb_dealloc(p_scb);
-    }
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_rfc_open
-**
-** Description      Handle RFCOMM channel open.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_rfc_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
-{
-    /* initialize AT feature variables */
-    p_scb->clip_enabled = FALSE;
-    p_scb->ccwa_enabled = FALSE;
-    p_scb->cmer_enabled = FALSE;
-    p_scb->cmee_enabled = FALSE;
-    p_scb->inband_enabled = ((p_scb->features & BTA_AG_FEAT_INBAND) == BTA_AG_FEAT_INBAND);
-
-    /* set up AT command interpreter */
-    p_scb->at_cb.p_at_tbl = (tBTA_AG_AT_CMD *) bta_ag_at_tbl[p_scb->conn_service];
-    p_scb->at_cb.p_cmd_cback = (tBTA_AG_AT_CMD_CBACK *) bta_ag_at_cback_tbl[p_scb->conn_service];
-    p_scb->at_cb.p_err_cback = (tBTA_AG_AT_ERR_CBACK *) bta_ag_at_err_cback;
-    p_scb->at_cb.p_user = p_scb;
-    p_scb->at_cb.cmd_max_len = BTA_AG_CMD_MAX;
-    bta_ag_at_init(&p_scb->at_cb);
-
-    /* call app open call-out */
-    bta_ag_co_data_open(bta_ag_scb_to_idx(p_scb), bta_ag_svc_id[p_scb->conn_service]);
-
-    bta_sys_conn_open(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
-
-    bta_ag_cback_open(p_scb, NULL, BTA_AG_SUCCESS);
-
-    if (p_scb->conn_service == BTA_AG_HFP)
-    {
-        /* if hfp start timer for service level conn */
-        bta_sys_start_timer(&p_scb->act_timer, BTA_AG_SVC_TOUT_EVT, p_bta_ag_cfg->conn_tout);
-    }
-    else
-    {
-        /* else service level conn is open */
-        bta_ag_svc_conn_open(p_scb, p_data);
-    }
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_rfc_acp_open
-**
-** Description      Handle RFCOMM channel open when accepting connection.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
-{
-    UINT16          lcid;
-    int             i;
-    tBTA_AG_SCB     *ag_scb, *other_scb;
-    BD_ADDR         dev_addr;
-    int             status;
-
-    /* set role */
-    p_scb->role = BTA_AG_ACP;
-
-    APPL_TRACE_DEBUG2 ("bta_ag_rfc_acp_open: serv_handle0 = %d serv_handle1 = %d",
-                       p_scb->serv_handle[0], p_scb->serv_handle[1]);
-
-    /* get bd addr of peer */
-    if (PORT_SUCCESS != (status=PORT_CheckConnection(p_data->rfc.port_handle, dev_addr, &lcid)))
-    {
-        APPL_TRACE_DEBUG1 ("bta_ag_rfc_acp_open error PORT_CheckConnection returned status %d", status);
-    }
-
-    /* Collision Handling */
-    for (i = 0, ag_scb = &bta_ag_cb.scb[0]; i < BTA_AG_NUM_SCB; i++, ag_scb++)
-    {
-        if ((ag_scb->in_use) && (ag_scb->colli_tmr_on))
-        {
-            /* stop collision timer */
-            ag_scb->colli_tmr_on = FALSE;
-            bta_sys_stop_timer (&ag_scb->colli_timer);
-
-            if (bdcmp (dev_addr, ag_scb->peer_addr) == 0)
-            {
-                /* If incoming and outgoing device are same, nothing more to do.            */
-                /* Outgoing conn will be aborted because we have successful incoming conn.  */
-            }
-            else
-            {
-                /* Resume outgoing connection. */
-                other_scb = bta_ag_get_other_idle_scb (p_scb);
-                if (other_scb)
-                {
-                    bdcpy(other_scb->peer_addr, ag_scb->peer_addr);
-                    other_scb->open_services = ag_scb->open_services;
-                    other_scb->cli_sec_mask = ag_scb->cli_sec_mask;
-
-                    bta_ag_resume_open (other_scb);
-                }
-            }
-
-            break;
-        }
-    }
-
-    bdcpy (p_scb->peer_addr, dev_addr);
-
-    /* determine connected service from port handle */
-    for (i = 0; i < BTA_AG_NUM_IDX; i++)
-    {
-        APPL_TRACE_DEBUG3 ("bta_ag_rfc_acp_open: i = %d serv_handle = %d port_handle = %d",
-                           i, p_scb->serv_handle[i], p_data->rfc.port_handle);
-
-        if (p_scb->serv_handle[i] == p_data->rfc.port_handle)
-        {
-            p_scb->conn_service = i;
-            p_scb->conn_handle = p_data->rfc.port_handle;
-            break;
-        }
-    }
-
-    APPL_TRACE_DEBUG2 ("bta_ag_rfc_acp_open: conn_service = %d conn_handle = %d",
-                       p_scb->conn_service, p_scb->conn_handle);
-
-    /* close any unopened server */
-    bta_ag_close_servers(p_scb, (p_scb->reg_services & ~bta_ag_svc_mask[p_scb->conn_service]));
-
-    /* do service discovery to get features */
-    bta_ag_do_disc(p_scb, bta_ag_svc_mask[p_scb->conn_service]);
-
-    /* continue with common open processing */
-    bta_ag_rfc_open(p_scb, p_data);
-
-
-
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_rfc_data
-**
-** Description      Read and process data from RFCOMM.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_rfc_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
-{
-    UINT16  len;
-    char    buf[BTA_AG_RFC_READ_MAX];
-    UNUSED(p_data);
-
-    memset(buf, 0, BTA_AG_RFC_READ_MAX);
-
-    /* do the following */
-    for(;;)
-    {
-        /* read data from rfcomm; if bad status, we're done */
-        if (PORT_ReadData(p_scb->conn_handle, buf, BTA_AG_RFC_READ_MAX, &len) != PORT_SUCCESS)
-        {
-            break;
-        }
-
-        /* if no data, we're done */
-        if (len == 0)
-        {
-            break;
-        }
-
-        /* run AT command interpreter on data */
-        bta_ag_at_parse(&p_scb->at_cb, buf, len);
-
-        /* no more data to read, we're done */
-        if (len < BTA_AG_RFC_READ_MAX)
-        {
-            break;
-        }
-    }
-}
-
-/*******************************************************************************
-**
-** Function         bta_ag_start_close
+** Function         bta_hf_client_start_close
 **
 ** Description      Start the process of closing SCO and RFCOMM connection.
 **
@@ -682,116 +137,401 @@ void bta_ag_rfc_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_start_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_start_close(tBTA_HF_CLIENT_DATA *p_data)
 {
     /* Take the link out of sniff and set L2C idle time to 0 */
-    bta_dm_pm_active(p_scb->peer_addr);
-    L2CA_SetIdleTimeoutByBdAddr(p_scb->peer_addr, 0);
+    bta_dm_pm_active(bta_hf_client_cb.scb.peer_addr);
+    L2CA_SetIdleTimeoutByBdAddr(bta_hf_client_cb.scb.peer_addr, 0);
 
     /* if SCO is open close SCO and wait on RFCOMM close */
-    if (bta_ag_sco_is_open(p_scb))
+    if (bta_hf_client_cb.scb.sco_state == BTA_HF_CLIENT_SCO_OPEN_ST)
     {
-        p_scb->post_sco = BTA_AG_POST_SCO_CLOSE_RFC;
+        bta_hf_client_cb.scb.sco_close_rfc = TRUE;
     }
     else
     {
-        p_scb->post_sco = BTA_AG_POST_SCO_NONE;
-        bta_ag_rfc_do_close(p_scb, p_data);
+        bta_hf_client_rfc_do_close(p_data);
     }
 
     /* always do SCO shutdown to handle all SCO corner cases */
-    bta_ag_sco_shutdown(p_scb, p_data);
+    bta_hf_client_sco_shutdown(NULL);
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_post_sco_open
+** Function         bta_hf_client_start_open
 **
-** Description      Perform post-SCO open action, if any
+** Description      This starts an HF Client open.
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_post_sco_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_start_open(tBTA_HF_CLIENT_DATA *p_data)
 {
-    switch (p_scb->post_sco)
+    BD_ADDR pending_bd_addr;
+
+    /* store parameters */
+    if (p_data)
     {
-        case BTA_AG_POST_SCO_RING:
-            bta_ag_send_ring(p_scb, p_data);
-            p_scb->post_sco = BTA_AG_POST_SCO_NONE;
-            break;
-
-        case BTA_AG_POST_SCO_CALL_CONN:
-            bta_ag_send_call_inds(p_scb, BTA_AG_IN_CALL_CONN_RES);
-            p_scb->post_sco = BTA_AG_POST_SCO_NONE;
-            break;
-
-        default:
-            break;
+        bdcpy(bta_hf_client_cb.scb.peer_addr, p_data->api_open.bd_addr);
+        bta_hf_client_cb.scb.cli_sec_mask = p_data->api_open.sec_mask;
     }
+
+    /* Check if RFCOMM has any incoming connection to avoid collision. */
+    if (PORT_IsOpening (pending_bd_addr))
+    {
+        /* Let the incoming connection goes through.                        */
+        /* Issue collision for now.                                         */
+        /* We will decide what to do when we find incoming connection later.*/
+        bta_hf_client_collision_cback (0, BTA_ID_HS, 0, bta_hf_client_cb.scb.peer_addr);
+        return;
+    }
+
+    /* close server */
+    bta_hf_client_close_server();
+
+    /* set role */
+    bta_hf_client_cb.scb.role = BTA_HF_CLIENT_INT;
+
+    /* do service search */
+    bta_hf_client_do_disc();
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_post_sco_close
+** Function         bta_hf_client_cback_open
 **
-** Description      Perform post-SCO close action, if any
+** Description      Send open callback event to application.
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_post_sco_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+static void bta_hf_client_cback_open(tBTA_HF_CLIENT_DATA *p_data, tBTA_HF_CLIENT_STATUS status)
 {
-    switch (p_scb->post_sco)
+    tBTA_HF_CLIENT evt;
+
+    memset(&evt, 0, sizeof(evt));
+
+    /* call app callback with open event */
+    evt.open.status = status;
+    if(p_data)
     {
-        case BTA_AG_POST_SCO_CLOSE_RFC:
-            bta_ag_rfc_do_close(p_scb, p_data);
-            p_scb->post_sco = BTA_AG_POST_SCO_NONE;
-            break;
+        /* if p_data is provided then we need to pick the bd address from the open api structure */
+        bdcpy(evt.open.bd_addr, p_data->api_open.bd_addr);
+    }
+    else
+    {
+        bdcpy(evt.open.bd_addr, bta_hf_client_cb.scb.peer_addr);
+    }
 
-        case BTA_AG_POST_SCO_CALL_CONN:
-            bta_ag_send_call_inds(p_scb, BTA_AG_IN_CALL_CONN_RES);
-            p_scb->post_sco = BTA_AG_POST_SCO_NONE;
-            break;
+    (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_OPEN_EVT, &evt);
+}
 
-        case BTA_AG_POST_SCO_CALL_ORIG:
-            bta_ag_send_call_inds(p_scb, BTA_AG_OUT_CALL_ORIG_RES);
-            p_scb->post_sco = BTA_AG_POST_SCO_NONE;
-            break;
+/*******************************************************************************
+**
+** Function         bta_hf_client_rfc_open
+**
+** Description      Handle RFCOMM channel open.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_rfc_open(tBTA_HF_CLIENT_DATA *p_data)
+{
+    UNUSED(p_data);
 
-        case BTA_AG_POST_SCO_CALL_END:
-            bta_ag_send_call_inds(p_scb, BTA_AG_END_CALL_RES);
-            p_scb->post_sco = BTA_AG_POST_SCO_NONE;
-            break;
+    bta_sys_conn_open(BTA_ID_HS, 1, bta_hf_client_cb.scb.peer_addr);
 
-        case BTA_AG_POST_SCO_CALL_END_INCALL:
-            bta_ag_send_call_inds(p_scb, BTA_AG_END_CALL_RES);
+    bta_hf_client_cback_open(NULL, BTA_HF_CLIENT_SUCCESS);
 
-            /* Sending callsetup IND and Ring were defered to after SCO close. */
-            bta_ag_send_call_inds(p_scb, BTA_AG_IN_CALL_RES);
+    /* start SLC procedure */
+    bta_hf_client_slc_seq(FALSE);
+}
 
-            if (bta_ag_inband_enabled(p_scb) && !(p_scb->features & BTA_AG_FEAT_NOSCO))
-            {
-                p_scb->post_sco = BTA_AG_POST_SCO_RING;
-                bta_ag_sco_open(p_scb, p_data);
-            }
-            else
-            {
-                p_scb->post_sco = BTA_AG_POST_SCO_NONE;
-                bta_ag_send_ring(p_scb, p_data);
-            }
-            break;
+/*******************************************************************************
+**
+** Function         bta_hf_client_rfc_acp_open
+**
+** Description      Handle RFCOMM channel open when accepting connection.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_rfc_acp_open(tBTA_HF_CLIENT_DATA *p_data)
+{
+    UINT16          lcid;
+    int             i;
+    BD_ADDR         dev_addr;
+    int             status;
 
-        default:
-            break;
+    /* set role */
+    bta_hf_client_cb.scb.role = BTA_HF_CLIENT_ACP;
+
+    APPL_TRACE_DEBUG2 ("bta_hf_client_rfc_acp_open: serv_handle = %d rfc.port_handle = %d",
+            bta_hf_client_cb.scb.serv_handle, p_data->rfc.port_handle);
+
+    /* get bd addr of peer */
+    if (PORT_SUCCESS != (status=PORT_CheckConnection(p_data->rfc.port_handle, dev_addr, &lcid)))
+    {
+        APPL_TRACE_DEBUG1 ("bta_hf_client_rfc_acp_open error PORT_CheckConnection returned status %d", status);
+    }
+
+    /* Collision Handling */
+    if (bta_hf_client_cb.scb.colli_tmr_on)
+    {
+        /* stop collision timer */
+        bta_hf_client_cb.scb.colli_tmr_on = FALSE;
+        bta_sys_stop_timer (&bta_hf_client_cb.scb.colli_timer);
+
+        if (bdcmp (dev_addr, bta_hf_client_cb.scb.peer_addr) == 0)
+        {
+            /* If incoming and outgoing device are same, nothing more to do.            */
+            /* Outgoing conn will be aborted because we have successful incoming conn.  */
+        }
+        else
+        {
+            /* Resume outgoing connection. */
+            bta_hf_client_resume_open ();
+        }
+    }
+
+    bdcpy (bta_hf_client_cb.scb.peer_addr, dev_addr);
+    bta_hf_client_cb.scb.conn_handle = p_data->rfc.port_handle;
+
+    /* do service discovery to get features */
+    bta_hf_client_do_disc();
+
+    /* continue with open processing */
+    bta_hf_client_rfc_open(p_data);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_rfc_fail
+**
+** Description      RFCOMM connection failed.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_rfc_fail(tBTA_HF_CLIENT_DATA *p_data)
+{
+    UNUSED(p_data);
+
+    /* reinitialize stuff */
+    bta_hf_client_cb.scb.conn_handle = 0;
+    bta_hf_client_cb.scb.peer_features = 0;
+    bta_hf_client_cb.scb.chld_features = 0;
+    bta_hf_client_cb.scb.role = BTA_HF_CLIENT_ACP;
+    bta_hf_client_cb.scb.svc_conn = FALSE;
+    bta_hf_client_cb.scb.send_at_reply = FALSE;
+    bta_hf_client_cb.scb.negotiated_codec = BTM_SCO_CODEC_CVSD;
+
+    bta_hf_client_at_reset();
+
+    /* reopen server */
+    bta_hf_client_start_server();
+
+    /* call open cback w. failure */
+    bta_hf_client_cback_open(NULL, BTA_HF_CLIENT_FAIL_RFCOMM);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_disc_fail
+**
+** Description      This function handles a discovery failure.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_disc_fail(tBTA_HF_CLIENT_DATA *p_data)
+{
+    UNUSED(p_data);
+
+    /* reopen server */
+    bta_hf_client_start_server();
+
+    /* reinitialize stuff */
+
+    /* call open cback w. failure */
+    bta_hf_client_cback_open(NULL, BTA_HF_CLIENT_FAIL_SDP);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_open_fail
+**
+** Description      open connection failed.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_open_fail(tBTA_HF_CLIENT_DATA *p_data)
+{
+    /* call open cback w. failure */
+    bta_hf_client_cback_open(p_data, BTA_HF_CLIENT_FAIL_RESOURCES);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_rfc_close
+**
+** Description      RFCOMM connection closed.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_rfc_close(tBTA_HF_CLIENT_DATA *p_data)
+{
+    int i, num_active_conn = 0;
+    UNUSED(p_data);
+
+    /* reinitialize stuff */
+    bta_hf_client_cb.scb.peer_features = 0;
+    bta_hf_client_cb.scb.chld_features = 0;
+    bta_hf_client_cb.scb.role = BTA_HF_CLIENT_ACP;
+    bta_hf_client_cb.scb.svc_conn = FALSE;
+    bta_hf_client_cb.scb.send_at_reply = FALSE;
+    bta_hf_client_cb.scb.negotiated_codec = BTM_SCO_CODEC_CVSD;
+
+    bta_hf_client_at_reset();
+
+    bta_sys_conn_close(BTA_ID_HS, 1, bta_hf_client_cb.scb.peer_addr);
+
+    /* call close cback */
+    (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_CLOSE_EVT, NULL);
+
+    /* if not deregistering reopen server */
+    if (bta_hf_client_cb.scb.deregister == FALSE)
+    {
+        /* Clear peer bd_addr so instance can be reused */
+        bdcpy(bta_hf_client_cb.scb.peer_addr, bd_addr_null);
+
+        /* start server as it might got closed on open*/
+        bta_hf_client_start_server();
+
+        bta_hf_client_cb.scb.conn_handle = 0;
+
+        /* Make sure SCO is shutdown */
+        bta_hf_client_sco_shutdown(NULL);
+
+        bta_sys_sco_unuse(BTA_ID_HS, 1, bta_hf_client_cb.scb.peer_addr);
+    }
+    /* else close port and deallocate scb */
+    else
+    {
+        bta_hf_client_close_server();
+        bta_hf_client_scb_disable();
     }
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_svc_conn_open
+** Function         bta_hf_client_disc_int_res
+**
+** Description      This function handles a discovery result when initiator.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_disc_int_res(tBTA_HF_CLIENT_DATA *p_data)
+{
+    UINT16 event = BTA_HF_CLIENT_DISC_FAIL_EVT;
+
+    APPL_TRACE_DEBUG1 ("bta_hf_client_disc_int_res: Status: %d", p_data->disc_result.status);
+
+    /* if found service */
+    if (p_data->disc_result.status == SDP_SUCCESS ||
+        p_data->disc_result.status == SDP_DB_FULL)
+    {
+        /* get attributes */
+        if (bta_hf_client_sdp_find_attr())
+        {
+            event = BTA_HF_CLIENT_DISC_OK_EVT;
+        }
+    }
+
+    /* free discovery db */
+    bta_hf_client_free_db(p_data);
+
+    /* send ourselves sdp ok/fail event */
+    bta_hf_client_sm_execute(event, p_data);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_disc_acp_res
+**
+** Description      This function handles a discovery result when acceptor.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_disc_acp_res(tBTA_HF_CLIENT_DATA *p_data)
+{
+    /* if found service */
+    if (p_data->disc_result.status == SDP_SUCCESS ||
+        p_data->disc_result.status == SDP_DB_FULL)
+    {
+        /* get attributes */
+        bta_hf_client_sdp_find_attr();
+    }
+
+    /* free discovery db */
+    bta_hf_client_free_db(p_data);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_rfc_data
+**
+** Description      Read and process data from RFCOMM.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_rfc_data(tBTA_HF_CLIENT_DATA *p_data)
+{
+    UINT16  len;
+    char    buf[BTA_HF_CLIENT_RFC_READ_MAX];
+    UNUSED(p_data);
+
+    memset(buf, 0, sizeof(buf));
+
+    /* read data from rfcomm; if bad status, we're done */
+    while (PORT_ReadData(bta_hf_client_cb.scb.conn_handle, buf, BTA_HF_CLIENT_RFC_READ_MAX, &len) == PORT_SUCCESS)
+    {
+        /* if no data, we're done */
+        if (len == 0)
+        {
+            break;
+        }
+
+        bta_hf_client_at_parse(buf, len);
+
+        /* no more data to read, we're done */
+        if (len < BTA_HF_CLIENT_RFC_READ_MAX)
+        {
+            break;
+        }
+    }
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_svc_conn_open
 **
 ** Description      Service level connection opened
 **
@@ -799,78 +539,230 @@ void bta_ag_post_sco_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_svc_conn_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_svc_conn_open(tBTA_HF_CLIENT_DATA *p_data)
 {
-    tBTA_AG_CONN evt;
+    tBTA_HF_CLIENT evt;
     UNUSED(p_data);
 
-    if (!p_scb->svc_conn)
+    memset(&evt, 0, sizeof(evt));
+
+    if (!bta_hf_client_cb.scb.svc_conn)
     {
         /* set state variable */
-        p_scb->svc_conn = TRUE;
-
-        /* Clear AT+BIA mask from previous SLC if any. */
-        p_scb->bia_masked_out = 0;
-
-        /* stop timer */
-        bta_sys_stop_timer(&p_scb->act_timer);
+        bta_hf_client_cb.scb.svc_conn = TRUE;
 
         /* call callback */
-        evt.hdr.handle = bta_ag_scb_to_idx(p_scb);
-        evt.hdr.app_id = p_scb->app_id;
-        evt.peer_feat = p_scb->peer_features;
-#if (BTM_WBS_INCLUDED == TRUE )
-        evt.peer_codec  = p_scb->peer_codecs;
-#endif
+        evt.conn.peer_feat = bta_hf_client_cb.scb.peer_features;
+        evt.conn.chld_feat = bta_hf_client_cb.scb.chld_features;
 
-        if ((p_scb->call_ind != BTA_AG_CALL_INACTIVE) ||
-            (p_scb->callsetup_ind != BTA_AG_CALLSETUP_NONE))
-        {
-            bta_sys_sco_use(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
-        }
-
-        (*bta_ag_cb.p_cback)(BTA_AG_CONN_EVT, (tBTA_AG *) &evt);
+        (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_CONN_EVT, &evt);
     }
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_ci_rx_data
+** Function         bta_hf_client_cback_ind
 **
-** Description      Send result code
+** Description      Send indicator callback event to application.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_ci_rx_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_ind(tBTA_HF_CLIENT_IND_TYPE type, UINT16 value)
 {
-    UINT16 len;
-    tBTA_AG_CI_RX_WRITE *p_rx_write_msg = (tBTA_AG_CI_RX_WRITE *)p_data;
-    char *p_data_area = (char *)(p_rx_write_msg+1);     /* Point to data area after header */
+    tBTA_HF_CLIENT evt;
 
-    /* send to RFCOMM */
-    PORT_WriteData(p_scb->conn_handle, p_data_area, strlen(p_data_area), &len);
+    memset(&evt, 0, sizeof(evt));
+
+    evt.ind.type = type;
+    evt.ind.value = value;
+
+    (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_IND_EVT, &evt);
 }
 
 /*******************************************************************************
 **
-** Function         bta_ag_rcvd_slc_ready
+** Function         bta_hf_client_evt_val
 **
-** Description      Handles SLC ready call-in in case of pass-through mode.
+** Description      Send event to application.
+**                  This is a generic helper for events with common data.
+**
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_rcvd_slc_ready(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_hf_client_evt_val(tBTA_HF_CLIENT_EVT type, UINT16 value)
 {
-    UNUSED(p_data);
+    tBTA_HF_CLIENT evt;
 
-    APPL_TRACE_DEBUG1("bta_ag_rcvd_slc_ready: handle = %d", bta_ag_scb_to_idx(p_scb));
+    memset(&evt, 0, sizeof(evt));
 
-    if (bta_ag_cb.parse_mode == BTA_AG_PASS_THROUGH)
+    evt.val.value = value;
+
+    (*bta_hf_client_cb.p_cback)(type, &evt);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_operator_name
+**
+** Description      Send operator name event to application.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_operator_name(char *name)
+{
+    tBTA_HF_CLIENT evt;
+
+    memset(&evt, 0, sizeof(evt));
+
+    strlcpy(evt.operator.name, name, BTA_HF_CLIENT_OPERATOR_NAME_LEN + 1);
+    evt.operator.name[BTA_HF_CLIENT_OPERATOR_NAME_LEN] = '\0';
+
+    (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_OPERATOR_NAME_EVT, &evt);
+}
+
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_clip
+**
+** Description      Send CLIP event to application.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_clip(char *number)
+{
+    tBTA_HF_CLIENT evt;
+
+    memset(&evt, 0, sizeof(evt));
+
+    strlcpy(evt.number.number, number, BTA_HF_CLIENT_NUMBER_LEN + 1);
+    evt.number.number[BTA_HF_CLIENT_NUMBER_LEN] = '\0';
+
+    (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_CLIP_EVT, &evt);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_ccwa
+**
+** Description      Send CLIP event to application.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_ccwa(char *number)
+{
+    tBTA_HF_CLIENT evt;
+
+    memset(&evt, 0, sizeof(evt));
+
+    strlcpy(evt.number.number, number, BTA_HF_CLIENT_NUMBER_LEN + 1);
+    evt.number.number[BTA_HF_CLIENT_NUMBER_LEN] = '\0';
+
+    (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_CCWA_EVT, &evt);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_at_result
+**
+** Description      Send AT result event to application.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_at_result(tBTA_HF_CLIENT_AT_RESULT_TYPE type, UINT16 cme)
+{
+    tBTA_HF_CLIENT evt;
+
+    memset(&evt, 0, sizeof(evt));
+
+    evt.result.type = type;
+    evt.result.cme = cme;
+
+    (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_AT_RESULT_EVT, &evt);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_clcc
+**
+** Description      Send clcc event to application.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_clcc(UINT32 idx, BOOLEAN incoming, UINT8 status, BOOLEAN mpty, char *number)
+{
+    tBTA_HF_CLIENT evt;
+
+    memset(&evt, 0, sizeof(evt));
+
+    evt.clcc.idx = idx;
+    evt.clcc.inc = incoming;
+    evt.clcc.status = status;
+    evt.clcc.mpty = mpty;
+
+    if (number)
     {
-        /* In pass-through mode, BTA knows that SLC is ready only through call-in. */
-        bta_ag_svc_conn_open(p_scb, NULL);
+        evt.clcc.number_present = TRUE;
+        strlcpy(evt.clcc.number, number, BTA_HF_CLIENT_NUMBER_LEN + 1);
+        evt.clcc.number[BTA_HF_CLIENT_NUMBER_LEN] = '\0';
     }
+
+    (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_CLCC_EVT, &evt);
 }
 
+/*******************************************************************************
+**
+** Function         bta_hf_client_cnum
+**
+** Description      Send cnum event to application.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_cnum(char *number, UINT16 service)
+{
+    tBTA_HF_CLIENT evt;
+
+    memset(&evt, 0, sizeof(evt));
+
+    evt.cnum.service = service;
+    strlcpy(evt.cnum.number, number, BTA_HF_CLIENT_NUMBER_LEN + 1);
+    evt.cnum.number[BTA_HF_CLIENT_NUMBER_LEN] = '\0';
+
+    (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_CNUM_EVT, &evt);
+}
+
+/*******************************************************************************
+**
+** Function         bta_hf_client_binp
+**
+** Description      Send BINP event to application.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_hf_client_binp(char *number)
+{
+    tBTA_HF_CLIENT evt;
+
+    memset(&evt, 0, sizeof(evt));
+
+    strlcpy(evt.number.number, number, BTA_HF_CLIENT_NUMBER_LEN + 1);
+    evt.number.number[BTA_HF_CLIENT_NUMBER_LEN] = '\0';
+
+    (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_BINP_EVT, &evt);
+}
