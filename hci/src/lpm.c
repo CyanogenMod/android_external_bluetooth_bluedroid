@@ -154,7 +154,7 @@ static void lpm_start_transport_idle_timer(void)
     if (bt_lpm_cb.timer_created == TRUE)
     {
         ts.it_value.tv_sec = bt_lpm_cb.timeout_ms/1000;
-        ts.it_value.tv_nsec = 1000*(bt_lpm_cb.timeout_ms%1000);
+        ts.it_value.tv_nsec = 1000000*(bt_lpm_cb.timeout_ms%1000);
         ts.it_interval.tv_sec = 0;
         ts.it_interval.tv_nsec = 0;
 
