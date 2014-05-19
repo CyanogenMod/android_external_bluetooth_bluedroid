@@ -287,6 +287,15 @@
 #define BTA_HOST_INTERLEAVE_SEARCH FALSE
 #endif
 
+/* This feature is used to skip query of ble read remote features*/
+#ifndef BTA_SKIP_BLE_READ_REMOTE_FEAT
+#define BTA_SKIP_BLE_READ_REMOTE_FEAT FALSE
+#endif
+
+#ifndef BTA_SKIP_BLE_START_ENCRYPTION
+#define BTA_SKIP_BLE_START_ENCRYPTION FALSE
+#endif
+
 #ifndef BT_TRACE_PROTOCOL
 #define BT_TRACE_PROTOCOL  TRUE
 #endif

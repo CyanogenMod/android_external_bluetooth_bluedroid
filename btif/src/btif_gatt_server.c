@@ -193,7 +193,9 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
             bt_bdaddr_t bda;
             bdcpy(bda.address, p_data->conn.remote_bda);
 
+#if (!defined(BTA_SKIP_BLE_START_ENCRYPTION) || BTA_SKIP_BLE_START_ENCRYPTION == FALSE)
             btif_gatt_check_encrypted_link(p_data->conn.remote_bda);
+#endif
 
             HAL_CBACK(bt_gatt_callbacks, server->connection_cb,
                       p_data->conn.conn_id, p_data->conn.server_if, TRUE, &bda);
