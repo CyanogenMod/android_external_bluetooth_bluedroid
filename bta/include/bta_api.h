@@ -1065,6 +1065,96 @@ typedef UINT8 tBTA_DM_PM_ACTTION;
 #define BTA_DM_PM_PARK_IDX      5 /* the actual index to bta_dm_pm_md[] for PARK mode */
 #endif
 
+#ifndef BTA_DM_PM_SNIFF_A2DP_IDX
+#define BTA_DM_PM_SNIFF_A2DP_IDX      BTA_DM_PM_SNIFF
+#endif
+
+#ifndef BTA_DM_PM_SNIFF_HD_IDLE_IDX
+#define BTA_DM_PM_SNIFF_HD_IDLE_IDX   BTA_DM_PM_SNIFF2
+#endif
+
+#ifndef BTA_DM_PM_SNIFF_SCO_OPEN_IDX
+#define BTA_DM_PM_SNIFF_SCO_OPEN_IDX  BTA_DM_PM_SNIFF3
+#endif
+
+#ifndef BTA_DM_PM_SNIFF_HD_ACTIVE_IDX
+#define BTA_DM_PM_SNIFF_HD_ACTIVE_IDX BTA_DM_PM_SNIFF4
+#endif
+
+#ifndef BTA_DM_PM_SNIFF_HH_OPEN_IDX
+#define BTA_DM_PM_SNIFF_HH_OPEN_IDX BTA_DM_PM_SNIFF2
+#endif
+
+#ifndef BTA_DM_PM_SNIFF_HH_ACTIVE_IDX
+#define BTA_DM_PM_SNIFF_HH_ACTIVE_IDX BTA_DM_PM_SNIFF2
+#endif
+
+#ifndef BTA_DM_PM_SNIFF_HH_IDLE_IDX
+#define BTA_DM_PM_SNIFF_HH_IDLE_IDX BTA_DM_PM_SNIFF2
+#endif
+
+
+#ifndef BTA_DM_PM_HH_OPEN_DELAY
+#define BTA_DM_PM_HH_OPEN_DELAY 30000
+#endif
+
+#ifndef BTA_DM_PM_HH_ACTIVE_DELAY
+#define BTA_DM_PM_HH_ACTIVE_DELAY 30000
+#endif
+
+#ifndef BTA_DM_PM_HH_IDLE_DELAY
+#define BTA_DM_PM_HH_IDLE_DELAY 30000
+#endif
+
+/* The Sniff Parameters defined below must be ordered from highest
+ * latency (biggest interval) to lowest latency.  If there is a conflict
+ * among the connected services the setting with the lowest latency will
+ * be selected.  If a device should override a sniff parameter then it
+ * must insure that order is maintained.
+ */
+#ifndef BTA_DM_PM_SNIFF_MAX
+#define BTA_DM_PM_SNIFF_MAX      800
+#define BTA_DM_PM_SNIFF_MIN      400
+#define BTA_DM_PM_SNIFF_ATTEMPT  4
+#define BTA_DM_PM_SNIFF_TIMEOUT  1
+#endif
+
+#ifndef BTA_DM_PM_SNIFF1_MAX
+#define BTA_DM_PM_SNIFF1_MAX     400
+#define BTA_DM_PM_SNIFF1_MIN     200
+#define BTA_DM_PM_SNIFF1_ATTEMPT 4
+#define BTA_DM_PM_SNIFF1_TIMEOUT 1
+#endif
+
+#ifndef BTA_DM_PM_SNIFF2_MAX
+#define BTA_DM_PM_SNIFF2_MAX     180
+#define BTA_DM_PM_SNIFF2_MIN     150
+#define BTA_DM_PM_SNIFF2_ATTEMPT 4
+#define BTA_DM_PM_SNIFF2_TIMEOUT 1
+#endif
+
+#ifndef BTA_DM_PM_SNIFF3_MAX
+#define BTA_DM_PM_SNIFF3_MAX     150
+#define BTA_DM_PM_SNIFF3_MIN     50
+#define BTA_DM_PM_SNIFF3_ATTEMPT 4
+#define BTA_DM_PM_SNIFF3_TIMEOUT 1
+#endif
+
+#ifndef BTA_DM_PM_SNIFF4_MAX
+#define BTA_DM_PM_SNIFF4_MAX     54
+#define BTA_DM_PM_SNIFF4_MIN     30
+#define BTA_DM_PM_SNIFF4_ATTEMPT 4
+#define BTA_DM_PM_SNIFF4_TIMEOUT 1
+#endif
+
+#ifndef BTA_DM_PM_PARK_MAX
+#define BTA_DM_PM_PARK_MAX       800
+#define BTA_DM_PM_PARK_MIN       400
+#define BTA_DM_PM_PARK_ATTEMPT   0
+#define BTA_DM_PM_PARK_TIMEOUT   0
+#endif
+
+
 /* Switch callback events */
 #define BTA_DM_SWITCH_CMPL_EVT      0       /* Completion of the Switch API */
 
