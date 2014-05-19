@@ -2262,7 +2262,7 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY *p_data)
     else if (p_data->char_id.char_id.uuid.uu.uuid16 == GATT_UUID_HID_BT_KB_INPUT)
         app_id = BTA_HH_APP_ID_KB;
 
-    APPL_TRACE_ERROR1("Notification received on report ID: %d", p_rpt->rpt_id);
+    APPL_TRACE_DEBUG1("Notification received on report ID: %d", p_rpt->rpt_id);
 
     /* need to append report ID to the head of data */
     if (p_rpt->rpt_id != 0)
