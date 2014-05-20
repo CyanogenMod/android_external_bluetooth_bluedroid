@@ -122,6 +122,11 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result);
 #endif
 static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr);
 
+#if (defined(RMT_DI_TO_APP_INCLUDED) && (RMT_DI_TO_APP_INCLUDED == TRUE))
+static tBTA_STATUS bta_get_primary_di_record(tBTA_DI_GET_RECORD *p_device_info, UINT8 num_rec,
+                                             tSDP_DISCOVERY_DB *p_db);
+#endif
+
 extern void sdpu_uuid16_to_uuid128(UINT16 uuid16, UINT8* p_uuid128);
 
 const UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID] =
@@ -1363,10 +1368,16 @@ void bta_dm_di_disc_cmpl(tBTA_DM_MSG *p_data)
     memset(&di_disc, 0, sizeof(tBTA_DM_DI_DISC_CMPL));
     bdcpy(di_disc.bd_addr, bta_dm_search_cb.peer_bdaddr);
 
+    APPL_TRACE_DEBUG("bta_dm_di_disc_cmpl");
+
     if((p_data->hdr.offset == SDP_SUCCESS)
         || (p_data->hdr.offset == SDP_DB_FULL))
     {
         di_disc.num_record  = SDP_GetNumDiRecords(bta_dm_di_cb.p_di_db);
+#if (defined(RMT_DI_TO_APP_INCLUDED) && (RMT_DI_TO_APP_INCLUDED == TRUE))
+        di_disc.result = bta_get_primary_di_record(&di_disc.p_device_info,
+                                 di_disc.num_record, bta_dm_di_cb.p_di_db);
+#endif
     }
     else
         di_disc.result      = BTA_FAILURE;
@@ -1634,6 +1645,87 @@ void bta_dm_disc_rmt_name (tBTA_DM_MSG *p_data)
     bta_dm_discover_device(p_data->rem_name.result.disc_res.bd_addr);
 }
 
+#if (defined(RMT_DI_TO_APP_INCLUDED) && (RMT_DI_TO_APP_INCLUDED == TRUE))
+/*******************************************************************************
+**
+** Function         bta_get_primary_di_record
+**
+** Description     Process the all di Records from sdp database &  primary di record is choosen
+**
+** Returns          BTA_SUCCESS if Get primary DI record is succeed
+**                  BTA_FAILURE if Get primary DI record is failed
+**
+*******************************************************************************/
+
+static tBTA_STATUS bta_get_primary_di_record(tBTA_DI_GET_RECORD *p_device_info, UINT8 num_rec,
+                                             tSDP_DISCOVERY_DB *p_db)
+{
+
+    /* copy the information from the SDP record to the DI record */
+    tSDP_DISC_REC *p_curr_record = NULL;
+    tSDP_DISC_ATTR *p_curr_attr = NULL;
+    UINT8 record_index;
+    tBTA_STATUS status = BTA_FAILURE;
+
+    APPL_TRACE_WARNING("bta_get_primary_di_record: No.of Di records: %d", num_rec);
+
+    for(record_index = 1; record_index <= BTA_DI_NUM_MAX && record_index <= num_rec; record_index++)
+    {
+        p_curr_record = SDP_FindServiceInDb(bta_dm_search_cb.p_sdp_db,
+                                UUID_SERVCLASS_PNP_INFORMATION, p_curr_record);
+        if (p_curr_record)
+        {
+            p_curr_attr = SDP_FindAttributeInRec(p_curr_record, ATTR_ID_PRIMARY_RECORD);
+            if (p_curr_attr)
+            {
+                p_device_info->rec.primary_record = (BOOLEAN)p_curr_attr->attr_value.v.u8;
+                APPL_TRACE_DEBUG("primary_record: %d, record_index: %d",
+                        p_device_info->rec.primary_record, record_index);
+
+                if (p_device_info->rec.primary_record == TRUE)
+                {
+                    if (BTA_DmGetDiRecord(record_index, p_device_info, p_db) == BTA_SUCCESS)
+                    {
+                        APPL_TRACE_DEBUG("Successfully fetched primary DI record");
+                        status = BTA_SUCCESS;
+                        break;
+                    }
+                    else
+                    {
+                        APPL_TRACE_ERROR("failed to get primary DI record");
+                        status = BTA_FAILURE;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (record_index == num_rec || record_index == BTA_DI_NUM_MAX)
+                    {
+                       /* Assumption: Choose 1st record as the primary record,
+                       * If there is no primary record found in below cases
+                       * If Only one DI record is recieved from remote device.
+                       * If multiples DI record is recieved from remote device. */
+                       if (BTA_DmGetDiRecord(1, p_device_info, p_db) == BTA_SUCCESS)
+                       {
+                           APPL_TRACE_WARNING("Successfully fetched first DI record");
+                           status = BTA_SUCCESS;
+                           break;
+                       }
+                       else
+                       {
+                           APPL_TRACE_ERROR("failed to get first DI record");
+                           status = BTA_FAILURE;
+                           break;
+                       }
+                    }
+                }
+            }
+        }
+    }
+return status;
+}
+#endif
+
 /*******************************************************************************
 **
 ** Function         bta_dm_sdp_result
@@ -1733,15 +1825,35 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
                     bta_dm_search_cb.services != BTA_ALL_SERVICE_MASK) ||
                     (p_sdp_rec  != NULL))
             {
-                /* If Plug and Play service record, check to see if Broadcom stack */
+                APPL_TRACE_DEBUG("service 0x%x", service);
                 if (service == UUID_SERVCLASS_PNP_INFORMATION)
                 {
                     if (p_sdp_rec)
                     {
+#if (defined(RMT_DI_TO_APP_INCLUDED) && (RMT_DI_TO_APP_INCLUDED == TRUE))
+                        tBTA_DM_DI_DISC_CMPL    di_disc;
+                        memset(&di_disc, 0, sizeof(tBTA_DM_DI_DISC_CMPL));
+                        bdcpy (di_disc.bd_addr, bta_dm_search_cb.peer_bdaddr);
+                        di_disc.num_record = SDP_GetNumDiRecords(bta_dm_search_cb.p_sdp_db);
+                        di_disc.result = bta_get_primary_di_record(&di_disc.p_device_info,
+                                                 di_disc.num_record, bta_dm_search_cb.p_sdp_db);
+                        if (di_disc.result == BTA_SUCCESS)
+                        {
+                            bta_dm_search_cb.p_search_cback(BTA_DM_DI_DISC_CMPL_EVT,
+                                    (tBTA_DM_SEARCH *) &di_disc);
+                        }
+                        else
+                        {
+                            APPL_TRACE_ERROR("Valid DI record is not found in %d records",
+                                    di_disc.num_record);
+                        }
+#else
+                        /* If Plug and Play service record, check to see if Broadcom stack */
                         if (SDP_FindAttributeInRec (p_sdp_rec, ATTR_ID_EXT_BRCM_VERSION))
                         {
                             service_found = TRUE;
                         }
+#endif
                     }
                 }
                 else

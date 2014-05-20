@@ -66,6 +66,21 @@
 #define BTIF_STORAGE_PATH_REMOTE_VER_VER "LmpVer"
 #define BTIF_STORAGE_PATH_REMOTE_VER_SUBVER "LmpSubVer"
 
+#if (defined(RMT_DI_TO_APP_INCLUDED) && (RMT_DI_TO_APP_INCLUDED == TRUE))
+/* Device Identification (DI)
+*/
+#define BTIF_STORAGE_PATH_DI_REMOTE_DID_SUPPORTED "did_supported"
+#define BTIF_STORAGE_PATH_DI_REMOTE_SPECIFICATION_ID "specification_id"
+#define BTIF_STORAGE_PATH_DI_REMOTE_VENDOR_ID "vendor_id"
+#define BTIF_STORAGE_PATH_DI_REMOTE_VENDOR_ID_SOURCE "vendor_id_source"
+#define BTIF_STORAGE_PATH_DI_REMOTE_PRODUCT_ID "product_id"
+#define BTIF_STORAGE_PATH_DI_REMOTE_PRODUCT_VERSION "product_version"
+#define BTIF_STORAGE_PATH_DI_REMOTE_PRIMARY_RECORD "primary_record"
+#define BTIF_STORAGE_PATH_DI_REMOTE_SERVICE_DESCRIPTION "service_description"
+#define BTIF_STORAGE_PATH_DI_REMOTE_CLIENT_EXE_URL "client_exe_url"
+#define BTIF_STORAGE_PATH_DI_REMOTE_DOCUMENTATION_URL "documentation_url"
+#endif
+
 //#define BTIF_STORAGE_PATH_REMOTE_LINKKEYS "remote_linkkeys"
 #define BTIF_STORAGE_PATH_REMOTE_ALIASE "Aliase"
 #define BTIF_STORAGE_PATH_REMOTE_SERVICE "Service"
@@ -306,6 +321,31 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
             btif_config_save();
          } break;
 
+#if (defined(RMT_DI_TO_APP_INCLUDED) && (RMT_DI_TO_APP_INCLUDED == TRUE))
+        case BT_PROPERTY_REMOTE_DI_RECORD:
+        {
+            bt_remote_di_record_t *di_rec = (bt_remote_di_record_t *)prop->val;
+
+            if (!di_rec)
+                return FALSE;
+
+            btif_config_set_int("Remote", bdstr, BTIF_STORAGE_PATH_DI_REMOTE_DID_SUPPORTED,
+                    TRUE);
+            btif_config_set_int("Remote", bdstr, BTIF_STORAGE_PATH_DI_REMOTE_VENDOR_ID,
+                    di_rec->vendor);
+            btif_config_set_int("Remote", bdstr, BTIF_STORAGE_PATH_DI_REMOTE_VENDOR_ID_SOURCE,
+                    di_rec->vendor_id_source);
+            btif_config_set_int("Remote", bdstr, BTIF_STORAGE_PATH_DI_REMOTE_PRODUCT_ID,
+                    di_rec->product);
+            btif_config_set_int("Remote", bdstr, BTIF_STORAGE_PATH_DI_REMOTE_PRODUCT_VERSION,
+                    di_rec->version);
+            btif_config_set_int("Remote", bdstr, BTIF_STORAGE_PATH_DI_REMOTE_SPECIFICATION_ID,
+                    di_rec->spec_id);
+            btif_config_save();
+            break;
+         }
+#endif
+
         default:
              BTIF_TRACE_ERROR("Unknow prop type:%d", prop->type);
              return FALSE;
@@ -420,6 +460,37 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
                                 BTIF_STORAGE_PATH_REMOTE_VER_SUBVER, &info->sub_ver);
             }
          } break;
+
+#if (defined(RMT_DI_TO_APP_INCLUDED) && (RMT_DI_TO_APP_INCLUDED == TRUE))
+        case BT_PROPERTY_REMOTE_DI_RECORD:
+        {
+            bt_remote_di_record_t *di_rec = (bt_remote_di_record_t *)prop->val;
+            BOOLEAN is_did_supported = FALSE;
+            if (!di_rec)
+                return FALSE;
+            ret = btif_config_get_int("Remote", bdstr, BTIF_STORAGE_PATH_DI_REMOTE_DID_SUPPORTED,
+                          (int*) &is_did_supported);
+            if (ret == TRUE && is_did_supported == TRUE)
+            {
+                btif_config_get_int("Remote", bdstr, BTIF_STORAGE_PATH_DI_REMOTE_VENDOR_ID,
+                        (int*)&di_rec->vendor);
+                btif_config_get_int("Remote", bdstr, BTIF_STORAGE_PATH_DI_REMOTE_VENDOR_ID_SOURCE,
+                        (int*)&di_rec->vendor_id_source);
+                btif_config_get_int("Remote", bdstr, BTIF_STORAGE_PATH_DI_REMOTE_PRODUCT_ID,
+                        (int*)&di_rec->product);
+                btif_config_get_int("Remote", bdstr, BTIF_STORAGE_PATH_DI_REMOTE_PRODUCT_VERSION,
+                        (int*)&di_rec->version);
+                btif_config_get_int("Remote", bdstr, BTIF_STORAGE_PATH_DI_REMOTE_SPECIFICATION_ID,
+                        (int*)&di_rec->spec_id);
+            }
+            else
+            {
+                prop->val = NULL;
+                prop->len = 0;
+            }
+            break;
+         }
+#endif
 
         default:
             BTIF_TRACE_ERROR("Unknow prop type:%d", prop->type);
@@ -865,7 +936,12 @@ bt_status_t btif_storage_load_bonded_devices(void)
     uint32_t i = 0;
     bt_property_t adapter_props[6];
     uint32_t num_props = 0;
+#if (defined(RMT_DI_TO_APP_INCLUDED) && (RMT_DI_TO_APP_INCLUDED == TRUE))
+    bt_property_t remote_properties[9];
+    bt_remote_di_record_t di_rec;
+#else
     bt_property_t remote_properties[8];
+#endif
     bt_bdaddr_t addr;
     bt_bdname_t name, alias;
     bt_scan_mode_t mode;
@@ -964,6 +1040,13 @@ bt_status_t btif_storage_load_bonded_devices(void)
                                          remote_uuids, sizeof(remote_uuids),
                                          remote_properties[num_props]);
             num_props++;
+
+#if (defined(RMT_DI_TO_APP_INCLUDED) && (RMT_DI_TO_APP_INCLUDED == TRUE))
+            BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_REMOTE_DI_RECORD,
+                                         &di_rec, sizeof(di_rec),
+                                         remote_properties[num_props]);
+            num_props++;
+#endif
 
             btif_remote_properties_evt(BT_STATUS_SUCCESS, p_remote_addr,
                                        num_props, remote_properties);

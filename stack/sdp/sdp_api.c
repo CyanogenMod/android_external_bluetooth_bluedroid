@@ -1109,39 +1109,69 @@ UINT16 SDP_GetDiRecord( UINT8 get_record_index, tSDP_DI_GET_RECORD *p_device_inf
 
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_SPECIFICATION_ID );
         if ( p_curr_attr )
+        {
             p_device_info->spec_id = p_curr_attr->attr_value.v.u16;
+        }
         else
+        {
+            SDP_TRACE_ERROR("SPECIFICATION ID mandatory attribute is not found");
             result = SDP_ERR_ATTR_NOT_PRESENT;
+        }
 
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_VENDOR_ID );
         if ( p_curr_attr )
+        {
             p_device_info->rec.vendor = p_curr_attr->attr_value.v.u16;
+        }
         else
+        {
+            SDP_TRACE_ERROR("VENDOR ID mandatory attribute is not found");
             result = SDP_ERR_ATTR_NOT_PRESENT;
+        }
 
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_VENDOR_ID_SOURCE );
         if ( p_curr_attr )
+        {
             p_device_info->rec.vendor_id_source = p_curr_attr->attr_value.v.u16;
+        }
         else
+        {
+            SDP_TRACE_ERROR("VENDOR ID SOURCE mandatory attribute is not found");
             result = SDP_ERR_ATTR_NOT_PRESENT;
+        }
 
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_PRODUCT_ID );
         if ( p_curr_attr )
+        {
             p_device_info->rec.product = p_curr_attr->attr_value.v.u16;
+        }
         else
+        {
+            SDP_TRACE_ERROR("PRODUCT ID mandatory attribute is not found");
             result = SDP_ERR_ATTR_NOT_PRESENT;
+        }
 
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_PRODUCT_VERSION );
         if ( p_curr_attr )
+        {
             p_device_info->rec.version = p_curr_attr->attr_value.v.u16;
+        }
         else
+        {
+            SDP_TRACE_ERROR("PRODUCT VERSION mandatory attribute is not found");
             result = SDP_ERR_ATTR_NOT_PRESENT;
+        }
 
         p_curr_attr = SDP_FindAttributeInRec( p_curr_record, ATTR_ID_PRIMARY_RECORD );
         if ( p_curr_attr )
+        {
             p_device_info->rec.primary_record = (BOOLEAN)p_curr_attr->attr_value.v.u8;
+        }
         else
+        {
+            SDP_TRACE_ERROR("PRIMARY RECORD mandatory attribute is not found");
             result = SDP_ERR_ATTR_NOT_PRESENT;
+        }
     }
 
     return result;

@@ -1077,12 +1077,29 @@ typedef struct
     UINT8           num_resps;          /* Number of inquiry responses. */
 } tBTA_DM_INQ_CMPL;
 
+
+/* Device Identification (DI) data structure
+*/
+/* Used to set the DI record */
+typedef tSDP_DI_RECORD          tBTA_DI_RECORD;
+/* Used to get the DI record */
+typedef tSDP_DI_GET_RECORD      tBTA_DI_GET_RECORD;
+/* SDP discovery database */
+typedef tSDP_DISCOVERY_DB       tBTA_DISCOVERY_DB;
+
+#ifndef         BTA_DI_NUM_MAX
+#define         BTA_DI_NUM_MAX       3
+#endif
+
 /* Structure associated with BTA_DM_DI_DISC_CMPL_EVT */
 typedef struct
 {
     BD_ADDR             bd_addr;        /* BD address peer device. */
     UINT8               num_record;     /* Number of DI record */
     tBTA_STATUS         result;
+#if (defined(RMT_DI_TO_APP_INCLUDED) && (RMT_DI_TO_APP_INCLUDED == TRUE))
+    tBTA_DI_GET_RECORD  p_device_info;  /* Primary DI record OR 1st DI record*/
+#endif
 } tBTA_DM_DI_DISC_CMPL;
 
 /* Structure associated with BTA_DM_DISC_RES_EVT */
@@ -1335,19 +1352,6 @@ typedef void (tBTA_DM_SWITCH_CBACK)(tBTA_DM_SWITCH_EVT event, tBTA_STATUS status
 
 typedef UINT8 tBTA_DM_ROUTE_PATH;
 
-
-/* Device Identification (DI) data structure
-*/
-/* Used to set the DI record */
-typedef tSDP_DI_RECORD          tBTA_DI_RECORD;
-/* Used to get the DI record */
-typedef tSDP_DI_GET_RECORD      tBTA_DI_GET_RECORD;
-/* SDP discovery database */
-typedef tSDP_DISCOVERY_DB       tBTA_DISCOVERY_DB;
-
-#ifndef         BTA_DI_NUM_MAX
-#define         BTA_DI_NUM_MAX       3
-#endif
 
 /* Device features mask definitions */
 #define BTA_FEATURE_BYTES_PER_PAGE  BTM_FEATURE_BYTES_PER_PAGE

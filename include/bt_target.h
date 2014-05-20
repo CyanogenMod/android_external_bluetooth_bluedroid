@@ -3332,6 +3332,18 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 
 /******************************************************************************
 **
+** DI
+**
+******************************************************************************/
+#if (defined(SDP_DI_INCLUDED) && (SDP_DI_INCLUDED == TRUE))
+/* TRUE to provide remote device identification record to application */
+#ifndef RMT_DI_TO_APP_INCLUDED
+#define RMT_DI_TO_APP_INCLUDED      TRUE
+#endif
+#endif
+
+/******************************************************************************
+**
 ** PAN
 **
 ******************************************************************************/

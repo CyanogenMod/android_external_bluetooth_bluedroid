@@ -1528,6 +1528,41 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
             }
         break;
 #endif /* BLE_INCLUDED */
+#if (defined(RMT_DI_TO_APP_INCLUDED) && (RMT_DI_TO_APP_INCLUDED == TRUE))
+        case BTA_DM_DI_DISC_CMPL_EVT:
+        {
+            if(NULL != p_data)
+            {
+                bt_property_t properties[1];
+                bt_bdaddr_t bd_addr;
+                int status;
+                BTIF_TRACE_DEBUG("%s: num of DI records:%d, result: %d, vendorID: 0x%x",
+                        __FUNCTION__, p_data->di_disc.num_record, p_data->di_disc.result,
+                        p_data->di_disc.p_device_info.rec.vendor);
+                if (p_data->di_disc.result == BTA_SUCCESS && p_data->di_disc.num_record > 0)
+                {
+                     bt_remote_di_record_t di_rec;
+
+                     di_rec.spec_id = p_data->di_disc.p_device_info.spec_id;
+                     di_rec.product = p_data->di_disc.p_device_info.rec.product;
+                     di_rec.vendor = p_data->di_disc.p_device_info.rec.vendor;
+                     di_rec.vendor_id_source = p_data->di_disc.p_device_info.rec.vendor_id_source;
+                     di_rec.version = p_data->di_disc.p_device_info.rec.version;
+
+                     bdcpy(bd_addr.address, p_data->di_disc.bd_addr);
+                     properties[0].type = BT_PROPERTY_REMOTE_DI_RECORD;
+                     properties[0].val = &di_rec;
+                     properties[0].len = sizeof(bt_remote_di_record_t);
+                     status=btif_storage_set_remote_device_property(&bd_addr, &properties[0]);
+                     ASSERTC(status == BT_STATUS_SUCCESS, "saving DI record", status);
+
+                     HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+                             status, &bd_addr, 1, properties);
+                }
+             }
+        }
+        break;
+#endif
 
         default:
         {
