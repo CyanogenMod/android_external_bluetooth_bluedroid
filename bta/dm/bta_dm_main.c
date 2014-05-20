@@ -108,10 +108,6 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_cfg_filter_cond,         /* BTA_DM_API_CFG_FILTER_COND_EVT */
     bta_dm_enable_scan_filter,      /* BTA_DM_API_ENABLE_SCAN_FILTER_EVT */
 #endif
-    bta_dm_ble_multi_adv_enb,           /*  BTA_DM_API_BLE_MULTI_ADV_ENB_EVT*/
-    bta_dm_ble_multi_adv_upd_param,     /*  BTA_DM_API_BLE_MULTI_ADV_PARAM_UPD_EVT */
-    bta_dm_ble_multi_adv_data,          /*  BTA_DM_API_BLE_MULTI_ADV_DATA_EVT */
-    btm_dm_ble_multi_adv_disable,       /*  BTA_DM_API_BLE_MULTI_ADV_DISABLE_EVT */
 #endif
 
 #if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)

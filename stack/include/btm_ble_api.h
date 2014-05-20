@@ -26,7 +26,6 @@
 #define BTM_BLE_API_H
 
 #include "btm_api.h"
-#include "gki.h"
 
 #define CHNL_MAP_LEN    5
 typedef UINT8 tBTM_BLE_CHNL_MAP[CHNL_MAP_LEN];
@@ -185,6 +184,14 @@ typedef void (tBTM_RAND_ENC_CB) (tBTM_RAND_ENC *p1);
 #define BTM_BLE_POLICY_ALLOW_CONN           0x02    /* relevant to advertiser */
 #define BTM_BLE_POLICY_WHITE_ALL            0x03    /* relevant to both */
 
+typedef struct
+{
+    UINT8               adv_int_min;
+    UINT8               adv_int_max;
+    tBTM_BLE_CHNL_MAP   chnl_map;
+
+}tBTM_BLE_ADV_PARAMS;
+
 /* ADV data flag bit definition used for BTM_BLE_AD_TYPE_FLAG */
 #define BTM_BLE_LIMIT_DISC_FLAG         (0x01 << 0)
 #define BTM_BLE_GEN_DISC_FLAG           (0x01 << 1)
@@ -192,6 +199,7 @@ typedef void (tBTM_RAND_ENC_CB) (tBTM_RAND_ENC *p1);
 /* 4.1 spec adv flag for simultaneous BR/EDR+LE connection support */
 #define BTM_BLE_DMT_CONTROLLER_SPT      (0x01 << 3)
 #define BTM_BLE_DMT_HOST_SPT            (0x01 << 4)
+
 #define BTM_BLE_NON_LIMIT_DISC_FLAG     (0x00 )         /* lowest bit unset */
 #define BTM_BLE_ADV_FLAG_MASK           (BTM_BLE_LIMIT_DISC_FLAG | BTM_BLE_BREDR_NOT_SPT | BTM_BLE_GEN_DISC_FLAG)
 #define BTM_BLE_LIMIT_DISC_MASK         (BTM_BLE_LIMIT_DISC_FLAG )
@@ -211,8 +219,8 @@ typedef void (tBTM_RAND_ENC_CB) (tBTM_RAND_ENC *p1);
 #define BTM_BLE_AD_BIT_RANDOM_ADDR       (0x00000001 << 13)
 #define BTM_BLE_AD_BIT_SERVICE_32        (0x00000001 << 4)
 #define BTM_BLE_AD_BIT_SERVICE_32SOL     (0x00000001 << 14)
+
 #define BTM_BLE_AD_BIT_PROPRIETARY     (0x00000001 << 15)
-#define BTM_BLE_AD_BIT_SERVICE_128      (0x00000001 << 16)      /*128-bit Service UUIDs*/
 
 typedef  UINT32  tBTM_BLE_AD_MASK;
 
@@ -244,14 +252,6 @@ typedef  UINT32  tBTM_BLE_AD_MASK;
 #define BTM_BLE_AD_TYPE_MANU            HCI_EIR_MANUFACTURER_SPECIFIC_TYPE      /* 0xff */
 typedef UINT8   tBTM_BLE_AD_TYPE;
 
-/* adv tx power level */
-#define BTM_BLE_ADV_TX_POWER_MIN        0           /* minimum tx power */
-#define BTM_BLE_ADV_TX_POWER_LOW        1           /* low tx power     */
-#define BTM_BLE_ADV_TX_POWER_MID        2           /* middle tx power  */
-#define BTM_BLE_ADV_TX_POWER_UPPER      3           /* upper tx power   */
-#define BTM_BLE_ADV_TX_POWER_MAX        4           /* maximum tx power */
-typedef UINT8 tBTM_BLE_ADV_TX_POWER;
-
 /* slave preferred connection interval range */
 typedef struct
 {
@@ -268,7 +268,7 @@ typedef struct
     UINT16      *p_uuid;
 }tBTM_BLE_SERVICE;
 
-/* 32 bits Service supported in the device */
+/* Service tag supported in the device */
 typedef struct
 {
     UINT8       num_service;
@@ -276,12 +276,6 @@ typedef struct
     UINT32      *p_uuid;
 }tBTM_BLE_32SERVICE;
 
-/* 128 bits Service supported in the device */
-typedef struct
-{
-    BOOLEAN     list_cmpl;
-    UINT8       uuid128[MAX_UUID_SIZE];
-}tBTM_BLE_128SERVICE;
 
 typedef struct
 {
@@ -296,6 +290,7 @@ typedef struct
     UINT8       len;
     UINT8      *p_val;
 }tBTM_BLE_SERVICE_DATA;
+
 
 typedef struct
 {
@@ -312,74 +307,16 @@ typedef struct
 
 typedef struct
 {
+    tBTM_BLE_SERVICE_DATA   *p_service_data;
+    tBTM_BLE_MANU           manu;           /* manufactuer data */
     tBTM_BLE_INT_RANGE      int_range;      /* slave prefered conn interval range */
-    tBTM_BLE_MANU           *p_manu;           /* manufactuer data */
-    tBTM_BLE_SERVICE        *p_services;       /* services */
-    tBTM_BLE_128SERVICE     *p_services_128b;  /* 128 bits service */
-    tBTM_BLE_32SERVICE      *p_service_32b;     /* 32 bits Service UUID */
-    tBTM_BLE_SERVICE        *p_sol_services;    /* 16 bits services Solicitation UUIDs */
-    tBTM_BLE_32SERVICE      *p_sol_service_32b;    /* List of 32 bit Service Solicitation UUIDs */
-    tBTM_BLE_128SERVICE     *p_sol_service_128b;    /* List of 128 bit Service Solicitation UUIDs */
-    tBTM_BLE_PROPRIETARY    *p_proprietary;
-    tBTM_BLE_SERVICE_DATA   *p_service_data;    /* service data */
+    tBTM_BLE_SERVICE        services;       /* services */
+    tBTM_BLE_32SERVICE      service_32b;     /* 32 bits Service UUID */
+    tBTM_BLE_32SERVICE      sol_service_32b;    /* List of 32 bit Service Solicitation UUIDs */
     UINT16                  appearance;
     UINT8                   flag;
-    UINT8                   tx_power;
+    tBTM_BLE_PROPRIETARY    *p_proprietary;
 }tBTM_BLE_ADV_DATA;
-
-#ifndef BTM_BLE_MULTI_ADV_MAX
-#define BTM_BLE_MULTI_ADV_MAX   4
-#endif
-
-#define BTM_BLE_MULTI_ADV_INVALID   0
-
-#define BTM_BLE_MULTI_ADV_ENB_EVT           1
-#define BTM_BLE_MULTI_ADV_DISABLE_EVT       2
-#define BTM_BLE_MULTI_ADV_PARAM_EVT         3
-#define BTM_BLE_MULTI_ADV_DATA_EVT          4
-typedef UINT8 tBTM_BLE_MULTI_ADV_EVT;
-
-#define BTM_BLE_MULTI_ADV_DEFAULT_STD 0
-
-typedef struct
-{
-    UINT16          adv_int_min;
-    UINT16          adv_int_max;
-    UINT8           adv_type;
-    tBTM_BLE_ADV_CHNL_MAP channel_map;
-    tBTM_BLE_AFP    adv_filter_policy;
-    tBTM_BLE_ADV_TX_POWER tx_power;
-}tBTM_BLE_ADV_PARAMS;
-
-typedef struct
-{
-    UINT8   sub_code[BTM_BLE_MULTI_ADV_MAX];
-    UINT8   inst_id[BTM_BLE_MULTI_ADV_MAX];
-    UINT8   pending_idx;
-    UINT8   next_idx;
-}tBTM_BLE_MULTI_ADV_OPQ;
-
-typedef void (tBTM_BLE_MULTI_ADV_CBACK)(tBTM_BLE_MULTI_ADV_EVT evt, UINT8 inst_id,
-                void *p_ref, tBTM_STATUS status);
-
-typedef struct
-{
-    UINT8                       inst_id;
-    UINT8                       adv_evt;
-    BD_ADDR                     rpa;
-    TIMER_LIST_ENT              raddr_timer_ent;
-    void                        *p_rpa_cback;
-    tBTM_BLE_MULTI_ADV_CBACK    *p_cback;
-    void                        *p_ref;
-}tBTM_BLE_MULTI_ADV_INST;
-
-typedef struct
-{
-    tBTM_BLE_MULTI_ADV_INST adv_inst[BTM_BLE_MULTI_ADV_MAX];
-    tBTM_BLE_MULTI_ADV_OPQ  op_q;
-    UINT8 adv_inst_max;         /* max adv instance supported in controller */
-}tBTM_BLE_MULTI_ADV_CB;
-
 
 /* These are the fields returned in each device adv packet.  It
 ** is returned in the results callback if registered.
@@ -975,74 +912,6 @@ BTM_API extern BOOLEAN BTM_UseLeLink (BD_ADDR bd_addr);
 **
 *******************************************************************************/
 BTM_API extern tBTM_STATUS BTM_BleStackEnable (BOOLEAN enable);
-
-/*******************************************************************************/
-/*                          Multi ADV API                                      */
-/*******************************************************************************
-**
-** Function         BTM_BleEnableAdvInstance
-**
-** Description      This function enable a Multi-ADV instance with the specified
-**                  adv parameters
-**
-** Parameters       p_params: pointer to the adv parameter structure, set as default
-**                            adv parameter when the instance is enabled.
-**                  p_cback: callback function for the adv instance.
-**                  p_ref:  reference data attach to the adv instance to be enabled.
-**
-** Returns          status
-**
-*******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleEnableAdvInstance (tBTM_BLE_ADV_PARAMS *p_params,
-                                      tBTM_BLE_MULTI_ADV_CBACK *p_cback,
-                                      void *p_ref);
-
-/*******************************************************************************
-**
-** Function         BTM_BleUpdateAdvInstParam
-**
-** Description      This function update a Multi-ADV instance with the specififed
-**                  adv parameters.
-**
-** Parameters       inst_id: adv instance ID
-**                  p_params: pointer to the adv parameter structure.
-**
-** Returns          status
-**
-*******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleUpdateAdvInstParam (UINT8 inst_id, tBTM_BLE_ADV_PARAMS *p_params);
-
-/*******************************************************************************
-**
-** Function         BTM_BleCfgAdvInstData
-**
-** Description      This function configure a Multi-ADV instance with the specified
-**                  adv data or scan response data.
-**
-** Parameters       inst_id: adv instance ID
-**                  is_scan_rsp: is this scacn response, if no set as adv data.
-**                  data_mask: adv data mask.
-**                  p_data: pointer to the adv data structure.
-**
-** Returns          status
-**
-*******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
-                                    tBTM_BLE_AD_MASK data_mask,
-                                    tBTM_BLE_ADV_DATA *p_data);
-
-/*******************************************************************************
-**
-** Function         BTM_BleDisableAdvInstance
-**
-** Description      This function disable a Multi-ADV instance.
-**
-** Parameters       inst_id: adv instance ID
-**
-** Returns          status
-**
-*******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id);
 
 #ifdef __cplusplus
 }

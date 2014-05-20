@@ -1444,21 +1444,7 @@ UINT8 btm_ble_io_capabilities_req(tBTM_SEC_DEV_REC *p_dev_rec, tBTM_LE_IO_REQ *p
     if (callback_rc == BTM_SUCCESS)
 #endif
     {
-#if BTM_BLE_CONFORMANCE_TESTING == TRUE
-        if (btm_cb.devcb.keep_rfu_in_auth_req)
-        {
-            BTM_TRACE_DEBUG1 ("btm_ble_io_capabilities_req keep_rfu_in_auth_req = %u",
-                btm_cb.devcb.keep_rfu_in_auth_req);
-            p_data->auth_req &= BTM_LE_AUTH_REQ_MASK_KEEP_RFU;
-            btm_cb.devcb.keep_rfu_in_auth_req = FALSE;
-        }
-        else
-        {   /* default */
-            p_data->auth_req &= BTM_LE_AUTH_REQ_MASK;
-        }
-#else
         p_data->auth_req &= BTM_LE_AUTH_REQ_MASK;
-#endif
 
         BTM_TRACE_DEBUG2 ("btm_ble_io_capabilities_req 1: p_dev_rec->security_required = %d auth_req:%d",
                           p_dev_rec->security_required, p_data->auth_req);
@@ -1673,9 +1659,9 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
     {
         role = HCI_ROLE_UNKNOWN;
 
-        if (status != HCI_ERR_DIRECTED_ADVERTISING_TIMEOUT)
+        if (status == HCI_ERR_DIRECTED_ADVERTISING_TIMEOUT)
         {
-            btm_ble_set_conn_st(BLE_CONN_IDLE);
+            btm_ble_dir_adv_tout();
         }
         /* this is to work around broadcom firmware problem to handle
          * unsolicited command complete event for HCI_LE_Create_Connection_Cancel
@@ -2317,23 +2303,6 @@ void btm_set_random_address(BD_ADDR random_bda)
 
 
 }
-
-/*******************************************************************************
-**
-** Function         btm_ble_set_keep_rfu_in_auth_req
-**
-** Description      This function indicates if RFU bits have to be kept as is
-**                  (by default they have to be set to 0 by the sender).
-**
-** Returns          void
-**
-*******************************************************************************/
-void btm_ble_set_keep_rfu_in_auth_req(BOOLEAN keep_rfu)
-{
-    BTM_TRACE_DEBUG1 ("btm_ble_set_keep_rfu_in_auth_req keep_rfus=%d", keep_rfu);
-    btm_cb.devcb.keep_rfu_in_auth_req = keep_rfu;
-}
-
 #endif /* BTM_BLE_CONFORMANCE_TESTING */
 
 #endif /* BLE_INCLUDED */

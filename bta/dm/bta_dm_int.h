@@ -100,11 +100,6 @@ enum
     BTA_DM_API_BLE_SCAN_PARAM_EVT,
     BTA_DM_API_BLE_OBSERVE_EVT,
     BTA_DM_API_UPDATE_CONN_PARAM_EVT,
-
-#if BLE_PRIVACY_SPT == TRUE
-    BTA_DM_API_LOCAL_PRIVACY_EVT,
-#endif
-
     BTA_DM_API_BLE_ADV_PARAM_EVT,
     BTA_DM_API_BLE_SET_ADV_CONFIG_EVT,
     BTA_DM_API_BLE_SET_SCAN_RSP_EVT,
@@ -114,10 +109,6 @@ enum
     BTA_DM_API_CFG_FILTER_COND_EVT,
     BTA_DM_API_ENABLE_SCAN_FILTER_EVT,
 #endif
-    BTA_DM_API_BLE_MULTI_ADV_ENB_EVT,
-    BTA_DM_API_BLE_MULTI_ADV_PARAM_UPD_EVT,
-    BTA_DM_API_BLE_MULTI_ADV_DATA_EVT,
-    BTA_DM_API_BLE_MULTI_ADV_DISABLE_EVT,
 #endif
 
 #if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
@@ -549,51 +540,11 @@ typedef struct
 typedef struct
 {
     BT_HDR                  hdr;
-    BOOLEAN                 enable;
-
-}tBTA_DM_API_BLE_FEATURE;
-
-/* multi adv data structure */
-typedef struct
-{
-    BT_HDR                      hdr;
-    void                        *p_cback;
-    void                        *p_ref;
-    tBTA_BLE_ADV_PARAMS         *p_params;
-}tBTA_DM_API_BLE_MULTI_ADV_ENB;
-
-typedef struct
-{
-    BT_HDR                      hdr;
-    UINT8                        inst_id;
-    tBTA_BLE_ADV_PARAMS         *p_params;
-}tBTA_DM_API_BLE_MULTI_ADV_PARAM;
-
-typedef struct
-{
-    BT_HDR                  hdr;
-    UINT8                   inst_id;
-    BOOLEAN                 is_scan_rsp;
-    tBTA_BLE_AD_MASK        data_mask;
-    tBTA_BLE_ADV_DATA      *p_data;
-}tBTA_DM_API_BLE_MULTI_ADV_DATA;
-
-typedef struct
-{
-    BT_HDR                  hdr;
-    UINT8                   inst_id;
-}tBTA_DM_API_BLE_MULTI_ADV_DISABLE;
-
-
-typedef struct
-{
-    BT_HDR                  hdr;
     UINT16                  data_mask;
     tBTA_BLE_ADV_DATA       *p_adv_cfg;
-    tBTA_SET_ADV_DATA_CMPL_CBACK    *p_adv_data_cback;
 }tBTA_DM_API_SET_ADV_CONFIG;
 
-#endif /* BLE_INCLUDED */
+#endif
 
 typedef struct
 {
@@ -738,10 +689,6 @@ typedef union
     tBTA_DM_API_CFG_FILTER_COND         ble_cfg_filter_cond;
 #endif
     tBTA_DM_API_UPDATE_CONN_PARAM       ble_update_conn_params;
-    tBTA_DM_API_BLE_MULTI_ADV_ENB       ble_multi_adv_enb;
-    tBTA_DM_API_BLE_MULTI_ADV_PARAM     ble_multi_adv_param;
-    tBTA_DM_API_BLE_MULTI_ADV_DATA      ble_multi_adv_data;
-    tBTA_DM_API_BLE_MULTI_ADV_DISABLE   ble_multi_adv_disable;
 #endif
 
     tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT set_afh_channel_assessment;
@@ -1110,10 +1057,6 @@ extern void bta_dm_ble_broadcast (tBTA_DM_MSG *p_data);
 extern void bta_dm_enable_scan_filter (tBTA_DM_MSG *p_data);
 extern void bta_dm_cfg_filter_cond (tBTA_DM_MSG *p_data);
 #endif
-extern void btm_dm_ble_multi_adv_disable(tBTA_DM_MSG *p_data);
-extern void bta_dm_ble_multi_adv_data(tBTA_DM_MSG *p_data);
-extern void bta_dm_ble_multi_adv_upd_param(tBTA_DM_MSG *p_data);
-extern void bta_dm_ble_multi_adv_enb(tBTA_DM_MSG *p_data);
 
 #endif
 extern void bta_dm_set_encryption(tBTA_DM_MSG *p_data);

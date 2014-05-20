@@ -38,7 +38,6 @@ LOCAL_SRC_FILES += \
     ../btif/src/btif_sock_util.c \
     ../btif/src/btif_pan.c \
     ../btif/src/btif_gatt.c \
-    ../btif/src/btif_gatt_multi_adv_util.c \
     ../btif/src/btif_gatt_client.c \
     ../btif/src/btif_gatt_server.c \
     ../btif/src/btif_gatt_util.c \

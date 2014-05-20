@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2008-2014 Broadcom Corporation
+ *  Copyright (C) 2008-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -46,17 +46,13 @@
 #define BTM_BLE_POLICY_UNKNOWN              0xff
 
 #define BTM_EXT_BLE_RMT_NAME_TIMEOUT        30
-#define MIN_ADV_LENGTH                       2
-
-extern tBTM_BLE_MULTI_ADV_CB  btm_multi_adv_cb;
 
 /*******************************************************************************
 **  Local functions
 *******************************************************************************/
 static void btm_ble_update_adv_flag(UINT8 flag);
 static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt_type, UINT8 *p);
-UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst,
-                              tBTM_BLE_ADV_DATA *p_data);
+static UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst, tBTM_BLE_ADV_DATA *p_data);
 static UINT8 btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB *p_cb,
                                      BD_ADDR_PTR p_addr_ptr,
                                      tBLE_ADDR_TYPE *p_init_addr_type,
@@ -413,62 +409,6 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
 
 /*******************************************************************************
 **
-** Function         btm_vsc_brcm_features_complete
-**
-** Description      Command Complete callback for HCI_BLE_VENDOR_CAP_OCF
-**
-** Returns          void
-**
-*******************************************************************************/
-static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_params)
-{
-    UINT8  status = 0xFF, *p;
-    UINT8  rpa_offloading, max_irk_list_sz, filtering_support, max_filter;
-    UINT16 scan_result_storage;
-
-    /* Check status of command complete event */
-    if((p_vcs_cplt_params->opcode == HCI_BLE_VENDOR_CAP_OCF)
-        &&(p_vcs_cplt_params->param_len > 0 ))
-    {
-        p = p_vcs_cplt_params->p_param_buf;
-        STREAM_TO_UINT8  (status, p);
-    }
-
-    if(status == HCI_SUCCESS)
-    {
-        STREAM_TO_UINT8  (btm_multi_adv_cb.adv_inst_max, p);
-        STREAM_TO_UINT8  (rpa_offloading, p);
-        STREAM_TO_UINT16 (scan_result_storage, p);
-        STREAM_TO_UINT8  (max_irk_list_sz, p);
-        STREAM_TO_UINT8  (filtering_support, p);
-        STREAM_TO_UINT8  (max_filter, p);
-    }
-}
-
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_capability_init
-**
-** Description      LE Get_Vendor Capabilities
-**
-** Returns          None.
-**
-*******************************************************************************/
-void btm_ble_vendor_capability_init(void)
-{
-    if ( BTM_VendorSpecificCommand (HCI_BLE_VENDOR_CAP_OCF,
-                                    0,
-                                    NULL,
-                                    btm_ble_vendor_capability_vsc_cmpl_cback)
-                                    != BTM_CMD_STARTED)
-    {
-        BTM_TRACE_ERROR0("LE Get_Vendor Capabilities Command Failed.");
-    }
-    return ;
-}
-
-/*******************************************************************************
-**
 ** Function         BTM_RegisterScanReqEvt
 **
 ** Description      This function is called to register a scan request callback
@@ -519,7 +459,7 @@ void BTM_BleConfigPrivacy(BOOLEAN enable)
         if (p_cb->privacy)
         {
             /* generate resolvable private address */
-            btm_gen_resolvable_private_addr(NULL);
+            btm_gen_resolvable_private_addr();
         }
         else /* if privacy disabled, always use public address */
         {
@@ -726,7 +666,7 @@ static UINT8 btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB *p_cb,
             !BTM_BLE_IS_RESOLVE_BDA(btm_cb.ble_ctr_cb.addr_mgnt_cb.private_addr))
         {
             /* need to generate RRA and update random addresss in controller */
-            btm_gen_resolvable_private_addr((void *)btm_gen_resolve_paddr_low);
+            btm_gen_resolvable_private_addr();
         }
 #endif
     }
@@ -950,7 +890,7 @@ tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
 
     p_cb_data->p_pad = p;
 
-    if (mask != 0)
+    if (data_mask != 0)
     {
         BTM_TRACE_ERROR0("Partial data write into ADV");
     }
@@ -1011,10 +951,9 @@ UINT8 *BTM_CheckAdvData( UINT8 *p_adv, UINT8 type, UINT8 *p_length)
 **
 ** Description      This function is called build the adv data and rsp data.
 *******************************************************************************/
-UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst,
-                              tBTM_BLE_ADV_DATA *p_data)
+static UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst, tBTM_BLE_ADV_DATA *p_data)
 {
-    UINT32 data_mask = *p_data_mask;
+    UINT16 data_mask = *p_data_mask;
     UINT8   *p = *p_dst,
     *p_flag = NULL;
     UINT16  len = BTM_BLE_AD_DATA_LEN, cp_len = 0;
@@ -1029,7 +968,7 @@ UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst,
         /* flags */
         if (data_mask & BTM_BLE_AD_BIT_FLAGS)
         {
-            *p++ = MIN_ADV_LENGTH;
+            *p++ = 2;
             *p++ = BTM_BLE_AD_TYPE_FLAG;
             p_flag = p;
             if (p_data)
@@ -1053,13 +992,13 @@ UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst,
         }
         /* device name */
 #if BTM_MAX_LOC_BD_NAME_LEN > 0
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_DEV_NAME)
+        if (len > 2 && data_mask & BTM_BLE_AD_BIT_DEV_NAME)
         {
-            if (strlen(btm_cb.cfg.bd_name) > (UINT16)(len - MIN_ADV_LENGTH))
+            if (strlen(btm_cb.cfg.bd_name) > (UINT16)(len - 2))
             {
-                *p++ = len - MIN_ADV_LENGTH + 1;
+                *p++ = len - 2 + 1;
                 *p++ = BTM_BLE_AD_TYPE_NAME_SHORT;
-                ARRAY_TO_STREAM(p, btm_cb.cfg.bd_name, len - MIN_ADV_LENGTH);
+                ARRAY_TO_STREAM(p, btm_cb.cfg.bd_name, len - 2);
             }
             else
             {
@@ -1068,180 +1007,61 @@ UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst,
                 *p++ = BTM_BLE_AD_TYPE_NAME_CMPL;
                 ARRAY_TO_STREAM(p, btm_cb.cfg.bd_name, cp_len);
             }
-            len -= (cp_len + MIN_ADV_LENGTH);
+            len -= (cp_len + 2);
             data_mask &= ~BTM_BLE_AD_BIT_DEV_NAME;
         }
 #endif
         /* manufacturer data */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_MANU &&
-            p_data && p_data->p_manu &&
-            p_data->p_manu->len != 0 && p_data->p_manu->p_val)
+        if (len > 2 && data_mask & BTM_BLE_AD_BIT_MANU &&
+            p_data && p_data->manu.len != 0 && p_data->manu.p_val)
         {
-            if (p_data->p_manu->len > (len - MIN_ADV_LENGTH))
-                cp_len = len - MIN_ADV_LENGTH;
+            if (p_data->manu.len > (len - 2))
+                cp_len = len - 2;
             else
-                cp_len = p_data->p_manu->len;
+                cp_len = p_data->manu.len;
 
             *p++ = cp_len + 1;
             *p++ = BTM_BLE_AD_TYPE_MANU;
-            ARRAY_TO_STREAM(p, p_data->p_manu->p_val, cp_len);
+            ARRAY_TO_STREAM(p, p_data->manu.p_val, cp_len);
 
-            len -= (cp_len + MIN_ADV_LENGTH);
+            len -= (cp_len + 2);
             data_mask &= ~BTM_BLE_AD_BIT_MANU;
         }
         /* TX power */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_TX_PWR)
+        if (len > 2 && data_mask & BTM_BLE_AD_BIT_TX_PWR)
         {
-            *p++ = MIN_ADV_LENGTH;
+            *p++ = 2;
             *p++ = BTM_BLE_AD_TYPE_TX_PWR;
-            *p++ = p_data->tx_power;
+            *p++ = btm_cb.ble_ctr_cb.inq_var.tx_power;
             len -= 3;
 
             data_mask &= ~BTM_BLE_AD_BIT_TX_PWR;
         }
-        /* 16 bits services */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_SERVICE &&
-            p_data && p_data->p_services &&
-            p_data->p_services->num_service != 0 &&
-            p_data->p_services->p_uuid)
+        /* services */
+        if (len > 2 && data_mask & BTM_BLE_AD_BIT_SERVICE &&
+            p_data && p_data->services.num_service != 0 &&
+            p_data->services.p_uuid)
         {
-            if (p_data->p_services->num_service * LEN_UUID_16 > (len - MIN_ADV_LENGTH))
+            if (p_data->services.num_service * 2 > (len - 2))
             {
-                cp_len = (len - MIN_ADV_LENGTH)/LEN_UUID_16;
-                *p ++ = 1 + cp_len * LEN_UUID_16;
+                cp_len = (len - 2)/2;
+                *p ++ = 1 + cp_len * 2;
                 *p++ = BTM_BLE_AD_TYPE_16SRV_PART;
             }
             else
             {
-                cp_len = p_data->p_services->num_service;
-                *p++ = 1 + cp_len * LEN_UUID_16;
+                cp_len = p_data->services.num_service;
+                *p++ = 1 + cp_len * 2;
                 *p++ = BTM_BLE_AD_TYPE_16SRV_CMPL;
             }
             for (i = 0; i < cp_len; i ++)
             {
-                UINT16_TO_STREAM(p, *(p_data->p_services->p_uuid + i));
+                UINT16_TO_STREAM(p, *(p_data->services.p_uuid + i));
             }
 
-            len -= (cp_len * MIN_ADV_LENGTH + MIN_ADV_LENGTH);
+            len -= (cp_len * 2 + 2);
             data_mask &= ~BTM_BLE_AD_BIT_SERVICE;
         }
-        /* 32 bits service uuid */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_SERVICE_32 &&
-            p_data && p_data->p_service_32b &&
-            p_data->p_service_32b->num_service != 0 &&
-            p_data->p_service_32b->p_uuid)
-        {
-            if ((p_data->p_service_32b->num_service * LEN_UUID_32) > (len - MIN_ADV_LENGTH))
-            {
-                cp_len = (len - MIN_ADV_LENGTH)/LEN_UUID_32;
-                *p ++ = 1 + cp_len * LEN_UUID_32;
-                *p++ = BTM_BLE_AD_TYPE_32SRV_PART;
-            }
-            else
-            {
-                cp_len = p_data->p_service_32b->num_service;
-                *p++ = 1 + cp_len * LEN_UUID_32;
-                *p++ = BTM_BLE_AD_TYPE_32SRV_CMPL;
-            }
-            for (i = 0; i < cp_len; i ++)
-            {
-                UINT32_TO_STREAM(p, *(p_data->p_service_32b->p_uuid + i));
-            }
-
-            len -= (cp_len * LEN_UUID_32 + MIN_ADV_LENGTH);
-            data_mask &= ~BTM_BLE_AD_BIT_SERVICE_32;
-        }
-        /* 128 bits services */
-        if (len >= (MAX_UUID_SIZE + 2) && data_mask & BTM_BLE_AD_BIT_SERVICE_128 &&
-            p_data && p_data->p_services_128b)
-        {
-            *p ++ = 1 + MAX_UUID_SIZE;
-            if (!p_data->p_services_128b->list_cmpl)
-                *p++ = BTM_BLE_AD_TYPE_128SRV_PART;
-            else
-                *p++ = BTM_BLE_AD_TYPE_128SRV_CMPL;
-
-            ARRAY_TO_STREAM(p, p_data->p_services_128b->uuid128, MAX_UUID_SIZE);
-
-            len -= (MAX_UUID_SIZE + MIN_ADV_LENGTH);
-            data_mask &= ~BTM_BLE_AD_BIT_SERVICE_128;
-        }
-        /* 32 bits Service Solicitation UUIDs */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_SERVICE_32SOL &&
-            p_data && p_data->p_sol_service_32b &&
-            p_data->p_sol_service_32b->num_service != 0 &&
-            p_data->p_sol_service_32b->p_uuid)
-        {
-            if ((p_data->p_sol_service_32b->num_service * LEN_UUID_32) > (len - MIN_ADV_LENGTH))
-            {
-                cp_len = (len - MIN_ADV_LENGTH)/LEN_UUID_32;
-                *p ++ = 1 + cp_len * LEN_UUID_32;
-            }
-            else
-            {
-                cp_len = p_data->p_sol_service_32b->num_service;
-                *p++ = 1 + cp_len * LEN_UUID_32;
-            }
-
-            *p++ = BTM_BLE_AD_TYPE_32SOL_SRV_UUID;
-            for (i = 0; i < cp_len; i ++)
-            {
-                UINT32_TO_STREAM(p, *(p_data->p_sol_service_32b->p_uuid + i));
-            }
-
-            len -= (cp_len * LEN_UUID_32 + MIN_ADV_LENGTH);
-            data_mask &= ~BTM_BLE_AD_BIT_SERVICE_32SOL;
-        }
-        /* 128 bits Solicitation services UUID */
-        if (len >= (MAX_UUID_SIZE + MIN_ADV_LENGTH) && data_mask & BTM_BLE_AD_BIT_SERVICE_128SOL &&
-            p_data && p_data->p_sol_service_128b)
-        {
-            *p ++ = 1 + MAX_UUID_SIZE;
-            *p++ = BTM_BLE_AD_TYPE_128SOL_SRV_UUID;
-            ARRAY_TO_STREAM(p, p_data->p_sol_service_128b->uuid128, MAX_UUID_SIZE);
-            len -= (MAX_UUID_SIZE + MIN_ADV_LENGTH);
-            data_mask &= ~BTM_BLE_AD_BIT_SERVICE_128SOL;
-        }
-        /* 16bits/32bits/128bits Service Data */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_SERVICE_DATA &&
-            p_data && p_data->p_service_data->len != 0 && p_data->p_service_data->p_val)
-        {
-            if (len  > (p_data->p_service_data->service_uuid.len + MIN_ADV_LENGTH))
-            {
-                if (p_data->p_service_data->len > (len - MIN_ADV_LENGTH))
-                    cp_len = len - MIN_ADV_LENGTH- p_data->p_service_data->service_uuid.len;
-                else
-                    cp_len = p_data->p_service_data->len;
-
-                *p++ = cp_len + 1 + p_data->p_service_data->service_uuid.len;
-                if (p_data->p_service_data->service_uuid.len == LEN_UUID_16)
-                {
-                    *p++ = BTM_BLE_AD_TYPE_SERVICE_DATA;
-                    UINT16_TO_STREAM(p, p_data->p_service_data->service_uuid.uu.uuid16);
-                }
-                else if (p_data->p_service_data->service_uuid.len == LEN_UUID_32)
-                {
-                    *p++ = BTM_BLE_AD_TYPE_32SERVICE_DATA;
-                    UINT32_TO_STREAM(p, p_data->p_service_data->service_uuid.uu.uuid32);
-                }
-                else
-                {
-                    *p++ = BTM_BLE_AD_TYPE_128SERVICE_DATA;
-                    ARRAY_TO_STREAM(p, p_data->p_service_data->service_uuid.uu.uuid128,
-                                    LEN_UUID_128);
-                }
-
-                ARRAY_TO_STREAM(p, p_data->p_service_data->p_val, cp_len);
-
-                len -= (cp_len + MIN_ADV_LENGTH + p_data->p_service_data->service_uuid.len);
-                data_mask &= ~BTM_BLE_AD_BIT_SERVICE_DATA;
-            }
-            else
-            {
-                BTM_TRACE_WARNING0("service data does not fit");
-            }
-        }
-
         if (len >= 6 && data_mask & BTM_BLE_AD_BIT_INT_RANGE &&
             p_data)
         {
@@ -1258,14 +1078,13 @@ UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst,
             {
                 p_elem = p_data->p_proprietary->p_elem  + i;
 
-                if (len >= (MIN_ADV_LENGTH + p_elem->len))/* len byte(1) + ATTR type(1) + Uuid len(2)
-                                                          + value length */
+                if (len >= (2 + p_elem->len))/* len byte(1) + ATTR type(1) + Uuid len(2) + value length */
                 {
                     *p ++ = p_elem->len + 1; /* Uuid len + value length */
                     *p ++ = p_elem->adv_type;
                     ARRAY_TO_STREAM(p, p_elem->p_val, p_elem->len);
 
-                    len -= (MIN_ADV_LENGTH + p_elem->len);
+                    len -= (2 + p_elem->len);
                 }
                 else
                 {
@@ -1381,9 +1200,9 @@ void btm_ble_set_adv_flag(UINT16 connect_mode, UINT16 disc_mode)
 **
 ** Description      This function is called to set BLE discoverable mode.
 **
-** Parameters:      combined_mode: discoverability mode.
+** Parameters:      mode: discoverability mode.
 **
-** Returns          BTM_SUCCESS is status set successfully; otherwise failure.
+** Returns          void
 **
 *******************************************************************************/
 tBTM_STATUS btm_ble_set_discoverability(UINT16 combined_mode)
@@ -1477,9 +1296,9 @@ tBTM_STATUS btm_ble_set_discoverability(UINT16 combined_mode)
 **
 ** Description      This function is called to set BLE connectability mode.
 **
-** Parameters:      combined_mode: connectability mode.
+** Parameters:      mode: connectability mode.
 **
-** Returns          BTM_SUCCESS is status set successfully; otherwise failure.
+** Returns          void
 **
 *******************************************************************************/
 tBTM_STATUS btm_ble_set_connectability(UINT16 combined_mode)
@@ -2592,8 +2411,7 @@ void btm_ble_update_mode_operation(UINT8 link_role, BD_ADDR bd_addr, BOOLEAN con
         }
     }
 
-    if (btm_multi_adv_cb.adv_inst_max == 0 &&
-        btm_cb.ble_ctr_cb.inq_var.connectable_mode == BTM_BLE_CONNECTABLE)
+    if (btm_cb.ble_ctr_cb.inq_var.connectable_mode == BTM_BLE_CONNECTABLE)
     {
         btm_ble_set_connectability ( btm_cb.ble_ctr_cb.inq_var.connectable_mode );
     }
@@ -2664,21 +2482,15 @@ void btm_ble_timeout(TIMER_LIST_ENT *p_tle)
         case BTU_TTYPE_BLE_GAP_LIM_DISC:
             /* lim_timeout expiried, limited discovery should exit now */
             btm_cb.btm_inq_vars.discoverable_mode &= ~BTM_BLE_LIMITED_DISCOVERABLE;
+
             btm_ble_set_adv_flag(btm_cb.btm_inq_vars.connectable_mode, btm_cb.btm_inq_vars.discoverable_mode);
             break;
 
         case BTU_TTYPE_BLE_RANDOM_ADDR:
             if (btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type == BLE_ADDR_RANDOM)
             {
-                if ((void *)(p_tle->param) == NULL)
                 /* refresh the random addr */
-                btm_gen_resolvable_private_addr((void *)btm_gen_resolve_paddr_low);
-                else
-                {
-#if BLE_MULTI_ADV_INCLUDED == TRUE
-                  btm_ble_multi_adv_configure_rpa((tBTM_BLE_MULTI_ADV_INST*)&p_tle->param);
-#endif
-                }
+                btm_gen_resolvable_private_addr();
             }
             break;
 
@@ -2799,11 +2611,6 @@ void btm_ble_init (void)
     p_cb->scan_int = p_cb->scan_win = BTM_BLE_CONN_PARAM_UNDEF;
 
     p_cb->inq_var.evt_type = BTM_BLE_NON_CONNECT_EVT;
-#if BLE_MULTI_ADV_INCLUDED == TRUE
-    btm_ble_multi_adv_init();
-#endif
-
-    btm_ble_vendor_capability_init();
 }
 
 /*******************************************************************************

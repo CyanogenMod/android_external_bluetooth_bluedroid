@@ -33,6 +33,8 @@
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
 #include "btm_ble_int.h"
 #include "smp_api.h"
+#define BTM_BLE_PRIVATE_ADDR_INT    900           /* 15 minutes minimum for
+                                                   random address refreshing */
 
 /*******************************************************************************
 **
@@ -62,13 +64,9 @@ static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
 
         /* start a periodical timer to refresh random addr */
         btu_stop_timer(&p_cb->raddr_timer_ent);
-#if (BTM_BLE_CONFORMANCE_TESTING == TRUE)
-        btu_start_timer (&p_cb->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
-                         btm_cb.ble_ctr_cb.rpa_tout);
-#else
         btu_start_timer (&p_cb->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
                          BTM_BLE_PRIVATE_ADDR_INT);
-#endif
+
     }
     else
     {
@@ -86,7 +84,7 @@ static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
+static void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
 {
 #if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
     tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
@@ -123,11 +121,11 @@ void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_gen_resolvable_private_addr (void *p_cmd_cplt_cback)
+void btm_gen_resolvable_private_addr (void)
 {
     BTM_TRACE_EVENT0 ("btm_gen_resolvable_private_addr");
     /* generate 3B rand as BD LSB, SRK with it, get BD MSB */
-    if (!btsnd_hcic_ble_rand((void *)p_cmd_cplt_cback))
+    if (!btsnd_hcic_ble_rand((void *)btm_gen_resolve_paddr_low))
         btm_gen_resolve_paddr_cmpl(NULL);
 }
 /*******************************************************************************

@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 1999-2014 Broadcom Corporation
+ *  Copyright (C) 1999-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -333,22 +333,6 @@
 #define HCI_BLE_RECEIVER_TEST           (0x001D | HCI_GRP_BLE_CMDS)
 #define HCI_BLE_TRANSMITTER_TEST        (0x001E | HCI_GRP_BLE_CMDS)
 #define HCI_BLE_TEST_END                (0x001F | HCI_GRP_BLE_CMDS)
-
-/* LE Get Vendor Capabilities Command OCF */
-#define HCI_BLE_VENDOR_CAP_OCF    (0x0153 | HCI_GRP_VENDOR_SPECIFIC)
-
-/* Multi adv OCF */
-#define HCI_BLE_MULTI_ADV_OCF     (0x0154 | HCI_GRP_VENDOR_SPECIFIC)
-
-/* subcode for multi adv feature */
-#define BTM_BLE_MULTI_ADV_SET_PARAM                     0x01
-#define BTM_BLE_MULTI_ADV_WRITE_ADV_DATA                0x02
-#define BTM_BLE_MULTI_ADV_WRITE_SCAN_RSP_DATA           0x03
-#define BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR               0x04
-#define BTM_BLE_MULTI_ADV_ENB                           0x05
-
-/* multi adv VSE subcode */
-#define HCI_VSE_SUBCODE_BLE_MULTI_ADV_ST_CHG       0x55 /* multi adv instance state change */
 
 /* LE supported states definition */
 #define HCI_LE_ADV_STATE          0x00000001
