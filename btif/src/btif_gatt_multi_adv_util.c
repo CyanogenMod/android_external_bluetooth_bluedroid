@@ -29,7 +29,7 @@
 #include <stdlib.h>
 
 #define LOG_TAG "BtGatt.btif"
-#if (BLE_INCLUDED == TRUE)
+#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 
 #include "btif_gatt_multi_adv_util.h"
 #include "btif_common.h"
