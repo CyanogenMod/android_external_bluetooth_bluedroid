@@ -28,10 +28,29 @@
 #ifndef VENDOR_HCIDEFS_H
 #define VENDOR_HCIDEFS_H
 
-/* advertising data payload filter VSC */
-#define HCI_VENDOR_BLE_PCF_VSC                (0x0138 | HCI_GRP_VENDOR_SPECIFIC)
+/*****************************************************************************
+** Private address resolution VSC
+******************************************************************************/
 
-/* BLE PCF VSC sub code */
+/* VSC */
+#define HCI_VENDOR_BLE_RPA_VSC                (0x0155 | HCI_GRP_VENDOR_SPECIFIC)
+
+/* Sub codes */
+#define HCI_VENDOR_BLE_RPA_ENABLE       0x01
+#define HCI_VENDOR_BLE_RPA_ADD_IRK      0x02
+#define HCI_VENDOR_BLE_RPA_REMOVE_IRK   0x03
+#define HCI_VENDOR_BLE_RPA_CLEAR_IRK    0x04
+#define HCI_VENDOR_BLE_RPA_READ_IRK     0x05
+
+
+/*****************************************************************************
+** Advertising data payload filter VSC
+******************************************************************************/
+
+/* VSC */
+#define HCI_VENDOR_BLE_PCF_VSC                (0x0157 | HCI_GRP_VENDOR_SPECIFIC)
+
+/* Sub codes */
 #define BTM_BLE_META_PF_ENABLE          0x00
 #define BTM_BLE_META_PF_FEAT_SEL        0x01
 #define BTM_BLE_META_PF_ADDR            0x02

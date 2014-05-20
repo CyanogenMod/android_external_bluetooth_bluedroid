@@ -35,6 +35,9 @@
 #include "gap_api.h"
 #endif
 #if (BLE_INCLUDED == TRUE)
+#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
+#include "vendor_ble.h"
+#endif
 #include "gattdefs.h"
 
 #include "btm_ble_int.h"
@@ -325,6 +328,11 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
                                             btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type,
                                             BTM_BLE_DEFAULT_SFP); /* assume observe always not using white list */
 
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+            /* enable IRK list */
+            btm_ble_vendor_irk_list_known_dev (TRUE);
+#endif
+
             status = btm_ble_start_scan(BTM_BLE_DUPLICATE_DISABLE);
         }
         if (status == BTM_CMD_STARTED)
@@ -525,6 +533,7 @@ void BTM_BleConfigPrivacy(BOOLEAN enable)
         {
             p_cb->addr_mgnt_cb.own_addr_type = BLE_ADDR_PUBLIC;
         }
+        btm_ble_multi_adv_enb_privacy(p_cb->privacy);
     }
 }
 
@@ -1591,6 +1600,13 @@ tBTM_STATUS btm_ble_start_inquiry (UINT8 mode, UINT8   duration)
     if (!BTM_BLE_IS_SCAN_ACTIVE(p_ble_cb->scan_activity))
     {
         btm_update_scanner_filter_policy(SP_ADV_ALL);
+
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
+        /* enable IRK list */
+        btm_ble_vendor_irk_list_known_dev (TRUE);
+#endif
+#endif
         status = btm_ble_start_scan(BTM_BLE_DUPLICATE_DISABLE);
     }
 
@@ -2160,7 +2176,14 @@ void btm_ble_process_adv_pkt (UINT8 *p_data)
     }
 #endif
 
-
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
+    /* map address to security record */
+    btm_public_addr_to_random_pseudo(bda, &addr_type);
+    BTM_TRACE_ERROR6("new address: %02x:%02x:%02x:%02x:%02x:%02x",
+                     bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
+#endif
+#endif
 
     /* Only process the results if the inquiry is still active */
     if (!BTM_BLE_IS_SCAN_ACTIVE(btm_cb.ble_ctr_cb.scan_activity))
@@ -2676,7 +2699,7 @@ void btm_ble_timeout(TIMER_LIST_ENT *p_tle)
                 else
                 {
 #if BLE_MULTI_ADV_INCLUDED == TRUE
-                  btm_ble_multi_adv_configure_rpa((tBTM_BLE_MULTI_ADV_INST*)&p_tle->param);
+                  btm_ble_multi_adv_configure_rpa((tBTM_BLE_MULTI_ADV_INST*)p_tle->param);
 #endif
                 }
             }
@@ -2749,7 +2772,10 @@ void btm_ble_write_adv_enable_complete(UINT8 * p)
         p_cb->adv_mode = !p_cb->adv_mode;
     }
 
-
+#if (BLE_VND_INCLUDED == TRUE && BLE_PRIVACY_SPT == TRUE)
+    if (p_cb->adv_mode == BTM_BLE_ADV_DISABLE)
+        btm_ble_vendor_disable_irk_list();
+#endif
 }
 
 /*******************************************************************************

@@ -30,6 +30,9 @@
 #include "l2c_int.h"
 #include "hcimsgs.h"
 #include "bt_utils.h"
+#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
+#include "vendor_ble.h"
+#endif
 
 #ifndef BTM_BLE_SCAN_PARAM_TOUT
 #define BTM_BLE_SCAN_PARAM_TOUT      50    /* 50 seconds */
@@ -83,6 +86,10 @@ BOOLEAN btm_add_dev_to_controller (BOOLEAN to_add, BD_ADDR bd_addr, UINT8 attr)
         {
             if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_PUBLIC || !BTM_BLE_IS_RESOLVE_BDA(bd_addr))
             {
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+                /* add device into IRK list */
+                btm_ble_vendor_irk_list_load_dev(p_dev_rec);
+#endif
                 started = btsnd_hcic_ble_add_white_list (p_dev_rec->ble.ble_addr_type, bd_addr);
             }
             if (memcmp(p_dev_rec->ble.static_addr, bd_addr, BD_ADDR_LEN) != 0 &&
@@ -412,6 +419,11 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
             btsnd_hcic_ble_create_conn_cancel();
             btm_ble_set_conn_st (BLE_CONN_CANCEL);
 
+#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+            btm_ble_vendor_disable_irk_list();
+#endif
+#endif
         }
         else
         {
@@ -493,6 +505,11 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_c
         p_cb->scan_activity &= ~BTM_LE_SELECT_CONN_ACTIVE;
         p_cb->p_select_cback = NULL;
 
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
+        btm_ble_vendor_disable_irk_list();
+#endif
+#endif
 
         /* stop scanning */
         if (!BTM_BLE_IS_SCAN_ACTIVE(p_cb->scan_activity))
