@@ -1358,8 +1358,10 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 
              btif_enable_bluetooth_evt(p_data->enable.status, p_data->enable.bd_addr);
 
+             #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
              /* Enable local privacy */
              BTA_DmBleConfigLocalPrivacy(TRUE);
+             #endif
         }
         break;
 

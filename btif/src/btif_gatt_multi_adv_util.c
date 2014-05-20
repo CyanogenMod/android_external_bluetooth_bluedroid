@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "bt_target.h"
 
 #define LOG_TAG "BtGatt.btif"
 #if (BLE_INCLUDED == TRUE)
