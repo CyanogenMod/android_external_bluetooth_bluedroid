@@ -1015,6 +1015,7 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 #if BTM_PWR_MGR_INCLUDED == TRUE
         {
             tBTM_PM_PWR_MD settings;
+            memset((void*)&settings, 0, sizeof(settings));
             settings.mode = BTM_PM_MD_ACTIVE;
             BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
         }
@@ -1038,6 +1039,7 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 #if BTM_PWR_MGR_INCLUDED == TRUE
         {
             tBTM_PM_PWR_MD settings;
+            memset((void*)&settings, 0, sizeof(settings));
             settings.mode = BTM_PM_MD_ACTIVE;
             BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
         }
