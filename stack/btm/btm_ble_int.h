@@ -397,17 +397,10 @@ extern void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p);
 extern void btm_ble_multi_adv_configure_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst);
 extern void btm_ble_multi_adv_init(void);
 extern void btm_ble_multi_adv_reenable(UINT8 inst_id);
-extern void btm_ble_multi_adv_enb_privacy(BOOLEAN enable);
+
 extern BOOLEAN btm_ble_topology_check(tBTM_BLE_STATE_MASK request);
 extern BOOLEAN btm_ble_clear_topology_mask(tBTM_BLE_STATE_MASK request_state);
 extern BOOLEAN btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state);
-
-#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
-/* BLE address mapping with CS feature */
-extern BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type);
-extern BOOLEAN btm_random_pseudo_to_public(BD_ADDR random_pseudo, UINT8 *p_static_addr_type);
-extern void btm_ble_refresh_rra(BD_ADDR pseudo_bda, BD_ADDR rra);
-#endif
 
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE
 BT_API extern void btm_ble_set_no_disc_if_pair_fail (BOOLEAN disble_disc);

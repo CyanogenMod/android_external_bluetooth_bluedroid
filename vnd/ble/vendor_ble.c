@@ -346,9 +346,6 @@ tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
     }
     UINT8_TO_STREAM(p, action);
 
-    /* Filter index */
-    UINT8_TO_STREAM(p, 0);
-
     if (action == BTM_BLE_SCAN_COND_ADD ||
         action == BTM_BLE_SCAN_COND_DELETE)
     {
@@ -432,9 +429,6 @@ tBTM_STATUS btm_ble_update_pf_local_name(tBTM_BLE_SCAN_COND_OP action,
     UINT8_TO_STREAM(p, BTM_BLE_META_PF_LOCAL_NAME);
     UINT8_TO_STREAM(p, action);
 
-    /* Filter index */
-    UINT8_TO_STREAM(p, 0);
-
     if (action == BTM_BLE_SCAN_COND_ADD ||
         action == BTM_BLE_SCAN_COND_DELETE)
     {
@@ -486,9 +480,6 @@ tBTM_STATUS btm_ble_update_addr_filter(tBTM_BLE_SCAN_COND_OP action,
 
     UINT8_TO_STREAM(p, BTM_BLE_META_PF_ADDR);
     UINT8_TO_STREAM(p, action);
-
-    /* Filter index */
-    UINT8_TO_STREAM(p, 0);
 
     if (action == BTM_BLE_SCAN_COND_ADD ||
         action == BTM_BLE_SCAN_COND_DELETE)
@@ -562,9 +553,6 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
         UINT8_TO_STREAM(p, BTM_BLE_META_PF_ADDR);
         UINT8_TO_STREAM(p, action);
 
-        /* Filter index */
-        UINT8_TO_STREAM(p, 0);
-
         BDADDR_TO_STREAM(p, p_uuid_cond->p_target_addr->bda);
         UINT8_TO_STREAM(p, p_uuid_cond->p_target_addr->type);
 
@@ -583,12 +571,24 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
     UINT8_TO_STREAM(p, evt_type);
     UINT8_TO_STREAM(p, action);
 
-    /* Filter index */
-    UINT8_TO_STREAM(p, 0);
+    /* per BD ADDR UUID filter */
+    if (p_uuid_cond && p_uuid_cond->p_target_addr)
+    {
+        BDADDR_TO_STREAM(p, p_uuid_cond->p_target_addr->bda);
+        UINT8_TO_STREAM(p, p_uuid_cond->p_target_addr->type);
+    }
+    else /* generic UUID filter */
+    {
+        BDADDR_TO_STREAM(p, na_bda);
+        UINT8_TO_STREAM(p, 0x02);
+    }
 
     if (action == BTM_BLE_SCAN_COND_ADD ||
         action == BTM_BLE_SCAN_COND_DELETE)
     {
+        UINT8_TO_STREAM(p, p_uuid_cond->cond_logic);
+        len ++;
+
         if (p_uuid_cond->uuid.len == LEN_UUID_16)
         {
             UINT16_TO_STREAM(p, p_uuid_cond->uuid.uu.uuid16);
@@ -737,8 +737,16 @@ tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
     UINT8_TO_STREAM(p, BTM_BLE_META_PF_FEAT_SEL);
     UINT8_TO_STREAM(p, BTM_BLE_SCAN_COND_CLEAR);
 
-    /* Filter index */
-    UINT8_TO_STREAM(p, 0);
+    if (p_target != NULL)
+    {
+        BDADDR_TO_STREAM(p, p_target->bda);
+        UINT8_TO_STREAM(p, p_target->type);
+    }
+    else
+    {
+        BDADDR_TO_STREAM(p, na_bda);
+        UINT8_TO_STREAM(p, 0x02);
+    }
 
     /* set PCF selection */
     UINT32_TO_STREAM(p, BTM_BLE_PF_SELECT_NONE);
@@ -807,8 +815,16 @@ tBTM_STATUS BTM_BleEnableFilterCondition(BOOLEAN enable, tBLE_BD_ADDR *p_target,
         UINT8_TO_STREAM(p, BTM_BLE_META_PF_FEAT_SEL);
         UINT8_TO_STREAM(p, BTM_BLE_SCAN_COND_ADD);
 
-        /* Filter index */
-        UINT8_TO_STREAM(p, 0);
+        if (p_target != NULL)
+        {
+            BDADDR_TO_STREAM(p, p_target->bda);
+            UINT8_TO_STREAM(p, p_target->type);
+        }
+        else
+        {
+            BDADDR_TO_STREAM(p, na_bda);
+            UINT8_TO_STREAM(p, 0x02);
+        }
 
         /* set PCF selection */
         UINT32_TO_STREAM(p, p_bda_filter->feat_mask);
@@ -919,595 +935,6 @@ tBTM_STATUS BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
 
     return st;
 }
-
-/*******************************************************************************
-**         Resolve Address Using IRK List functions
-*******************************************************************************/
-
-#if BLE_PRIVACY_SPT == TRUE
-/* Forward declaration */
-tBTM_STATUS BTM_BleEnableIRKFeature(BOOLEAN enable);
-
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_enq_irk_pending
-**
-** Description      add target address into IRK pending operation queue
-**
-** Parameters       target_bda: target device address
-**                  add_entry: TRUE for add entry, FALSE for remove entry
-**
-** Returns          void
-**
-*******************************************************************************/
-void btm_ble_vendor_enq_irk_pending(BD_ADDR target_bda, BD_ADDR psuedo_bda, UINT8 to_add)
-{
-    tBTM_BLE_IRK_Q          *p_q = &btm_ble_vendor_cb.irk_pend_q;
-
-    memcpy(p_q->irk_q[p_q->q_next], target_bda, BD_ADDR_LEN);
-    memcpy(p_q->irk_q_random_pseudo[p_q->q_next], psuedo_bda, BD_ADDR_LEN);
-    p_q->irk_q_action[p_q->q_next] = to_add;
-
-    p_q->q_next ++;
-    p_q->q_next %= BTM_CS_IRK_LIST_MAX;
-
-    return ;
-}
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_find_irk_pending_entry
-**
-** Description      check to see if the action is in pending list
-**
-** Parameters       TRUE: action pending;
-**                  FALSE: new action
-**
-** Returns          void
-**
-*******************************************************************************/
-BOOLEAN btm_ble_vendor_find_irk_pending_entry(BD_ADDR psuedo_addr, UINT8 action)
-{
-    tBTM_BLE_IRK_Q          *p_q = &btm_ble_vendor_cb.irk_pend_q;
-    UINT8   i;
-
-    for (i = p_q->q_pending; i != p_q->q_next; )
-    {
-        if (memcmp(p_q->irk_q_random_pseudo[i], psuedo_addr, BD_ADDR_LEN) == 0 &&
-            action == p_q->irk_q_action[i])
-            return TRUE;
-
-        i ++;
-        i %= BTM_CS_IRK_LIST_MAX;
-    }
-    return FALSE;
-}
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_deq_irk_pending
-**
-** Description      add target address into IRK pending operation queue
-**
-** Parameters       target_bda: target device address
-**                  add_entry: TRUE for add entry, FALSE for remove entry
-**
-** Returns          void
-**
-*******************************************************************************/
-BOOLEAN btm_ble_vendor_deq_irk_pending(BD_ADDR target_bda, BD_ADDR psuedo_addr)
-{
-    tBTM_BLE_IRK_Q          *p_q = &btm_ble_vendor_cb.irk_pend_q;
-
-    if (p_q->q_next != p_q->q_pending)
-    {
-        memcpy(target_bda, p_q->irk_q[p_q->q_pending], BD_ADDR_LEN);
-        memcpy(psuedo_addr, p_q->irk_q_random_pseudo[p_q->q_pending], BD_ADDR_LEN);
-
-        p_q->q_pending ++;
-        p_q->q_pending %= BTM_CS_IRK_LIST_MAX;
-
-        return TRUE;
-    }
-
-    return FALSE;
-
-}
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_find_irk_entry
-**
-** Description      find IRK entry in local host IRK list by static address
-**
-** Returns          IRK list entry pointer
-**
-*******************************************************************************/
-tBTM_BLE_IRK_ENTRY * btm_ble_vendor_find_irk_entry(BD_ADDR target_bda)
-{
-    tBTM_BLE_IRK_ENTRY  *p_irk_entry = &btm_ble_vendor_cb.irk_list[0];
-    UINT8   i;
-
-    for (i = 0; i < BTM_CS_IRK_LIST_MAX; i ++, p_irk_entry++)
-    {
-        if (p_irk_entry->in_use && memcmp(p_irk_entry->bd_addr, target_bda, BD_ADDR_LEN) == 0)
-        {
-            return p_irk_entry ;
-        }
-    }
-    return NULL;
-}
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_find_irk_entry_by_psuedo_addr
-**
-** Description      find IRK entry in local host IRK list by psuedo address
-**
-** Returns          IRK list entry pointer
-**
-*******************************************************************************/
-tBTM_BLE_IRK_ENTRY * btm_ble_vendor_find_irk_entry_by_psuedo_addr (BD_ADDR psuedo_bda)
-{
-    tBTM_BLE_IRK_ENTRY  *p_irk_entry = &btm_ble_vendor_cb.irk_list[0];
-    UINT8   i;
-
-    for (i = 0; i < BTM_CS_IRK_LIST_MAX; i ++, p_irk_entry++)
-    {
-        if (p_irk_entry->in_use && memcmp(p_irk_entry->psuedo_bda, psuedo_bda, BD_ADDR_LEN) == 0)
-        {
-            return p_irk_entry ;
-        }
-    }
-    return NULL;
-}
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_alloc_irk_entry
-**
-** Description      allocate IRK entry in local host IRK list
-**
-** Returns          IRK list index
-**
-*******************************************************************************/
-UINT8 btm_ble_vendor_alloc_irk_entry(BD_ADDR target_bda, BD_ADDR pseudo_bda)
-{
-    tBTM_BLE_IRK_ENTRY  *p_irk_entry = &btm_ble_vendor_cb.irk_list[0];
-    UINT8   i;
-
-    for (i = 0; i < BTM_CS_IRK_LIST_MAX; i ++, p_irk_entry++)
-    {
-        if (!p_irk_entry->in_use)
-        {
-            memcpy(p_irk_entry->bd_addr, target_bda, BD_ADDR_LEN);
-            memcpy(p_irk_entry->psuedo_bda, pseudo_bda, BD_ADDR_LEN);
-
-            p_irk_entry->index = i;
-            p_irk_entry->in_use = TRUE;
-
-            return i;
-        }
-    }
-    return BTM_CS_IRK_LIST_INVALID;
-}
-
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_update_irk_list
-**
-** Description      update IRK entry in local host IRK list
-**
-** Returns          void
-**
-*******************************************************************************/
-void btm_ble_vendor_update_irk_list(BD_ADDR target_bda, BD_ADDR pseudo_bda, BOOLEAN add)
-{
-    tBTM_BLE_IRK_ENTRY   *p_irk_entry = btm_ble_vendor_find_irk_entry(target_bda);
-    UINT8       i;
-
-    if (add)
-    {
-        if (p_irk_entry == NULL)
-        {
-            if ((i = btm_ble_vendor_alloc_irk_entry(target_bda, pseudo_bda)) == BTM_CS_IRK_LIST_INVALID)
-            {
-                BTM_TRACE_ERROR0("max IRK capacity reached");
-            }
-        }
-        else
-        {
-            BTM_TRACE_WARNING0(" IRK already in queue");
-        }
-    }
-    else
-    {
-        if (p_irk_entry != NULL)
-        {
-            memset(p_irk_entry, 0, sizeof(tBTM_BLE_IRK_ENTRY));
-        }
-        else
-        {
-            BTM_TRACE_ERROR0("No IRK exist in list, can not remove");
-        }
-    }
-    return ;
-}
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_irk_vsc_op_cmpl
-**
-** Description      IRK operation VSC complete handler
-**
-** Parameters
-**
-** Returns          void
-**
-*******************************************************************************/
-void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
-{
-    UINT8  status;
-    UINT8  *p = p_params->p_param_buf, op_subcode;
-    UINT16  evt_len = p_params->param_len;
-    UINT8   i;
-    tBTM_BLE_VENDOR_CB  *p_cb = &btm_ble_vendor_cb;
-    BD_ADDR         target_bda, pseudo_bda, rra;
-
-
-    STREAM_TO_UINT8(status, p);
-
-    evt_len--;
-
-    if (evt_len < 2 )
-    {
-        BTM_TRACE_ERROR0("can not interpret IRK  VSC cmpl callback");
-        return;
-    }
-    op_subcode   = *p ++;
-
-    BTM_TRACE_DEBUG1("btm_ble_vendor_irk_vsc_op_cmpl op_subcode = %d", op_subcode);
-
-    if (op_subcode == BTM_BLE_META_CLEAR_IRK_LIST)
-    {
-        if (status == HCI_SUCCESS)
-        {
-            STREAM_TO_UINT8(p_cb->irk_avail_size, p);
-            p_cb->irk_list_size = 0;
-
-            BTM_TRACE_DEBUG1("p_cb->irk_list_size = %d", p_cb->irk_avail_size);
-
-            for (i = 0; i < BTM_CS_IRK_LIST_MAX; i ++)
-                memset(&p_cb->irk_list[i], 0, sizeof(tBTM_BLE_IRK_ENTRY));
-        }
-    }
-    else if (op_subcode == BTM_BLE_META_ADD_IRK_ENTRY)
-    {
-        if (!btm_ble_vendor_deq_irk_pending(target_bda, pseudo_bda))
-        {
-            BTM_TRACE_ERROR0("no pending IRK operation");
-            return;
-        }
-
-        if (status == HCI_SUCCESS)
-        {
-            STREAM_TO_UINT8(p_cb->irk_avail_size, p);
-            btm_ble_vendor_update_irk_list(target_bda, pseudo_bda, TRUE);
-        }
-        else if (status == 0x07) /* BT_ERROR_CODE_MEMORY_CAPACITY_EXCEEDED  */
-        {
-            p_cb->irk_avail_size = 0;
-            BTM_TRACE_ERROR0("IRK Full ");
-        }
-        else
-        {
-            /* give the credit back if invalid parameter failed the operation */
-            p_cb->irk_list_size ++;
-        }
-    }
-    else if (op_subcode == BTM_BLE_META_REMOVE_IRK_ENTRY)
-    {
-        if (!btm_ble_vendor_deq_irk_pending(target_bda, pseudo_bda))
-        {
-            BTM_TRACE_ERROR0("no pending IRK operation");
-            return;
-        }
-        if (status == HCI_SUCCESS)
-        {
-            STREAM_TO_UINT8(p_cb->irk_avail_size, p);
-            btm_ble_vendor_update_irk_list(target_bda, pseudo_bda, FALSE);
-        }
-        else
-        {
-            /* give the credit back if invalid parameter failed the operation */
-            if (p_cb->irk_avail_size > 0)
-                p_cb->irk_list_size --;
-        }
-
-    }
-    else if (op_subcode == BTM_BLE_META_READ_IRK_ENTRY)
-    {
-        if (status == HCI_SUCCESS)
-        {
-            //STREAM_TO_UINT8(index, p);
-            p += (1 + 16 + 1); /* skip index, IRK value, address type */
-            STREAM_TO_BDADDR(target_bda, p);
-            STREAM_TO_BDADDR(rra, p);
-
-            btm_ble_refresh_rra(target_bda, rra);
-        }
-    }
-
-}
-/*******************************************************************************
-**
-** Function         btm_ble_remove_irk_entry
-**
-** Description      This function to remove an IRK entry from the list
-**
-** Parameters       ble_addr_type: address type
-**                  ble_addr: LE adddress
-**
-** Returns          status
-**
-*******************************************************************************/
-tBTM_STATUS btm_ble_remove_irk_entry(tBTM_SEC_DEV_REC *p_dev_rec)
-{
-    UINT8           param[20], *p;
-    tBTM_STATUS     st;
-    tBTM_BLE_VENDOR_CB  *p_cb = &btm_ble_vendor_cb;
-
-    p = param;
-    memset(param, 0, 20);
-
-    UINT8_TO_STREAM(p, BTM_BLE_META_REMOVE_IRK_ENTRY);
-    UINT8_TO_STREAM(p, p_dev_rec->ble.static_addr_type);
-    BDADDR_TO_STREAM(p, p_dev_rec->ble.static_addr);
-
-    if ((st = BTM_VendorSpecificCommand (HCI_VENDOR_BLE_RPA_VSC,
-                                    BTM_BLE_META_REMOVE_IRK_LEN,
-                                    param,
-                                    btm_ble_vendor_irk_vsc_op_cmpl))
-        != BTM_NO_RESOURCES)
-    {
-        btm_ble_vendor_enq_irk_pending(p_dev_rec->ble.static_addr, p_dev_rec->bd_addr, FALSE);
-        p_cb->irk_list_size --;
-    }
-
-    return st;
-
-}
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_clear_irk_list
-**
-** Description      This function clears the IRK entry list
-**
-** Parameters       None.
-**
-** Returns          status
-**
-*******************************************************************************/
-tBTM_STATUS btm_ble_vendor_clear_irk_list(void)
-{
-    UINT8           param[20], *p;
-    tBTM_STATUS     st;
-
-    p = param;
-    memset(param, 0, 20);
-
-    UINT8_TO_STREAM(p, BTM_BLE_META_CLEAR_IRK_LIST);
-
-    st = BTM_VendorSpecificCommand (HCI_VENDOR_BLE_RPA_VSC,
-                                    BTM_BLE_META_CLEAR_IRK_LEN,
-                                    param,
-                                    btm_ble_vendor_irk_vsc_op_cmpl);
-
-    return st;
-
-}
-/*******************************************************************************
-**
-** Function         btm_ble_read_irk_entry
-**
-** Description      This function read an IRK entry by index
-**
-** Parameters       entry index.
-**
-** Returns          status
-**
-*******************************************************************************/
-tBTM_STATUS btm_ble_read_irk_entry(BD_ADDR target_bda)
-{
-    UINT8           param[20], *p;
-    tBTM_STATUS     st = BTM_UNKNOWN_ADDR;
-    tBTM_BLE_IRK_ENTRY *p_entry = btm_ble_vendor_find_irk_entry(target_bda);
-
-    if (p_entry == NULL)
-        return st;
-
-    p = param;
-    memset(param, 0, 20);
-
-    UINT8_TO_STREAM(p, BTM_BLE_META_READ_IRK_ENTRY);
-    UINT8_TO_STREAM(p, p_entry->index);
-
-    st = BTM_VendorSpecificCommand (HCI_VENDOR_BLE_RPA_VSC,
-                                    BTM_BLE_META_READ_IRK_LEN,
-                                    param,
-                                    btm_ble_vendor_irk_vsc_op_cmpl);
-
-    return st;
-
-}
-
-
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_enable_irk_list_known_dev
-**
-** Description      This function add all known device with random address into
-**                  IRK list.
-**
-** Parameters       enable: enable IRK list with known device, or disable it
-**
-** Returns          status
-**
-*******************************************************************************/
-void btm_ble_vendor_irk_list_known_dev(BOOLEAN enable)
-{
-    UINT8               i;
-    UINT8               count = 0;
-    tBTM_SEC_DEV_REC    *p_dev_rec = &btm_cb.sec_dev_rec[0];
-
-    /* add all known device with random address into IRK list */
-    for (i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i ++, p_dev_rec ++)
-    {
-        if (p_dev_rec->sec_flags & BTM_SEC_IN_USE)
-        {
-            if (btm_ble_vendor_irk_list_load_dev(p_dev_rec))
-                count ++;
-        }
-    }
-
-    if ((count > 0 && enable) || !enable)
-        BTM_BleEnableIRKFeature(enable);
-
-    return ;
-}
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_irk_list_load_dev
-**
-** Description      This function add a device which is using RPA into white list
-**
-** Parameters
-**
-** Returns          status
-**
-*******************************************************************************/
-BOOLEAN btm_ble_vendor_irk_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
-{
-    UINT8           param[40], *p;
-    tBTM_BLE_VENDOR_CB  *p_cb = &btm_ble_vendor_cb;
-    BOOLEAN         rt = FALSE;
-    tBTM_BLE_IRK_ENTRY  *p_irk_entry = NULL;
-
-    memset(param, 0, 40);
-
-    if (p_dev_rec != NULL && /* RPA is being used and PID is known */
-        (p_dev_rec->ble.key_type & BTM_LE_KEY_PID) != 0)
-    {
-
-        if ((p_irk_entry = btm_ble_vendor_find_irk_entry_by_psuedo_addr(p_dev_rec->bd_addr)) == NULL &&
-            btm_ble_vendor_find_irk_pending_entry(p_dev_rec->bd_addr, TRUE) == FALSE)
-        {
-
-            if (p_cb->irk_avail_size > 0)
-            {
-                p = param;
-
-                UINT8_TO_STREAM(p, BTM_BLE_META_ADD_IRK_ENTRY);
-                ARRAY_TO_STREAM(p, p_dev_rec->ble.keys.irk, BT_OCTET16_LEN);
-                UINT8_TO_STREAM(p, p_dev_rec->ble.static_addr_type);
-                BDADDR_TO_STREAM(p,p_dev_rec->ble.static_addr);
-
-                if (BTM_VendorSpecificCommand (HCI_VENDOR_BLE_RPA_VSC,
-                                                BTM_BLE_META_ADD_IRK_LEN,
-                                                param,
-                                                btm_ble_vendor_irk_vsc_op_cmpl)
-                       != BTM_NO_RESOURCES)
-                {
-                    btm_ble_vendor_enq_irk_pending(p_dev_rec->ble.static_addr, p_dev_rec->bd_addr, TRUE);
-                    p_cb->irk_list_size ++;
-                    rt = TRUE;
-                }
-            }
-        }
-        else
-        {
-            BTM_TRACE_ERROR0("Device already in IRK list");
-            rt = TRUE;
-        }
-    }
-    else
-    {
-        BTM_TRACE_DEBUG0("Device not a RPA enabled device");
-    }
-    return rt;
-}
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_irk_list_remove_dev
-**
-** Description      This function remove the device from IRK list
-**
-** Parameters
-**
-** Returns          status
-**
-*******************************************************************************/
-void btm_ble_vendor_irk_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec)
-{
-    tBTM_BLE_VENDOR_CB  *p_cs_cb = &btm_ble_vendor_cb;
-    tBTM_BLE_IRK_ENTRY *p_irk_entry;
-
-    if ((p_irk_entry = btm_ble_vendor_find_irk_entry_by_psuedo_addr(p_dev_rec->bd_addr)) != NULL &&
-        btm_ble_vendor_find_irk_pending_entry(p_dev_rec->bd_addr, FALSE) == FALSE)
-    {
-        btm_ble_remove_irk_entry(p_dev_rec);
-    }
-    else
-    {
-        BTM_TRACE_ERROR0("Device not in IRK list");
-    }
-
-    if (p_cs_cb->irk_list_size == 0)
-        BTM_BleEnableIRKFeature(FALSE);
-}
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_disable_irk_list
-**
-** Description      disable LE resolve address feature
-**
-** Parameters
-**
-** Returns          status
-**
-*******************************************************************************/
-void btm_ble_vendor_disable_irk_list(void)
-{
-    BTM_BleEnableIRKFeature(FALSE);
-
-}
-
-/*******************************************************************************
-**
-** Function         BTM_BleEnableIRKFeature
-**
-** Description      This function is called to enable or disable the RRA
-**                  offloading feature.
-**
-** Parameters       enable: enable or disable the RRA offloading feature
-**
-** Returns          BTM_SUCCESS if successful
-**
-*******************************************************************************/
-tBTM_STATUS BTM_BleEnableIRKFeature(BOOLEAN enable)
-{
-    UINT8           param[20], *p;
-    tBTM_STATUS     st = BTM_WRONG_MODE;
-    tBTM_BLE_PF_COUNT *p_bda_filter;
-
-    p = param;
-    memset(param, 0, 20);
-
-    /* select feature based on control block settings */
-    UINT8_TO_STREAM(p, BTM_BLE_META_IRK_ENABLE);
-    UINT8_TO_STREAM(p, enable ? 0x01 : 0x00);
-
-    st = BTM_VendorSpecificCommand (HCI_VENDOR_BLE_RPA_VSC, BTM_BLE_IRK_ENABLE_LEN,
-                               param, btm_ble_vendor_irk_vsc_op_cmpl);
-
-    return st;
-}
-
-#endif
 
 
 /*******************************************************************************

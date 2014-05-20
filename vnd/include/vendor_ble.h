@@ -30,18 +30,9 @@
 #include "btm_ble_api.h"
 #include "vendor_api.h"
 
-/* RPA offload VSC specifics */
-#define BTM_BLE_META_IRK_ENABLE         0x01
-#define BTM_BLE_META_ADD_IRK_ENTRY      0x02
-#define BTM_BLE_META_REMOVE_IRK_ENTRY   0x03
-#define BTM_BLE_META_CLEAR_IRK_LIST     0x04
-#define BTM_BLE_META_READ_IRK_ENTRY     0x05
-#define BTM_BLE_META_CS_RESOLVE_ADDR    0x00000001
-#define BTM_BLE_IRK_ENABLE_LEN          2
-
 /* BLE meta vsc header: 1 bytes of sub_code, 1 byte of PCF action */
 #define BTM_BLE_META_HDR_LENGTH     2
-#define BTM_BLE_PF_FEAT_SEL_LEN     18
+#define BTM_BLE_PF_FEAT_SEL_LEN     12
 #define BTM_BLE_PCF_ENABLE_LEN      2
 #define BTM_BLE_META_ADDR_LEN       7
 #define BTM_BLE_META_UUID_LEN       40
@@ -73,29 +64,6 @@ typedef struct
     UINT8           pf_counter[BTM_BLE_PF_TYPE_MAX]; /* number of filter indexed by tBTM_BLE_PF_COND_TYPE */
 }tBTM_BLE_PF_COUNT;
 
-#ifndef BTM_CS_IRK_LIST_MAX
-#define BTM_CS_IRK_LIST_MAX     0x20
-#endif
-
-#define BTM_CS_IRK_LIST_INVALID     0xff
-
-typedef struct
-{
-    BOOLEAN         in_use;
-    BD_ADDR         bd_addr;        /* must be the address used in controller */
-    BD_ADDR         psuedo_bda;        /* the random pseudo address */
-    UINT8           index;
-}tBTM_BLE_IRK_ENTRY;
-
-
-typedef struct
-{
-    BD_ADDR         irk_q[BTM_CS_IRK_LIST_MAX];
-    BD_ADDR         irk_q_random_pseudo[BTM_CS_IRK_LIST_MAX];
-    UINT8           irk_q_action[BTM_CS_IRK_LIST_MAX];
-    UINT8           q_next;
-    UINT8           q_pending;
-} tBTM_BLE_IRK_Q;
 
 /* control block for BLE customer specific feature */
 typedef struct
@@ -105,11 +73,6 @@ typedef struct
     UINT8               op_type;
     tBTM_BLE_PF_COUNT   addr_filter_count[BTM_BLE_MAX_FILTER_COUNTER]; /* per BDA filter indexed by tBTM_BLE_PF_COND_TYPE */
     tBLE_BD_ADDR        cur_filter_target;
-
-    UINT8               irk_list_size;
-    UINT8               irk_avail_size;
-    tBTM_BLE_IRK_ENTRY  irk_list[BTM_CS_IRK_LIST_MAX];
-    tBTM_BLE_IRK_Q      irk_pend_q;
 
     tBTM_BLE_PF_CMPL_CBACK *p_scan_pf_cback;
 }tBTM_BLE_VENDOR_CB;
@@ -126,12 +89,6 @@ BTM_API extern tBTM_BLE_VENDOR_CB *btm_ble_vendor_ptr;
 #define btm_ble_vendor_cb (*btm_ble_vendor_ptr)
 #endif
 
-extern void btm_ble_vendor_irk_list_known_dev(BOOLEAN enable);
-extern tBTM_STATUS btm_ble_read_irk_entry(BD_ADDR target_bda);
-extern void btm_ble_vendor_disable_irk_list(void);
-extern BOOLEAN btm_ble_vendor_irk_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec);
-extern void btm_ble_vendor_irk_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec);
-extern tBTM_STATUS btm_ble_enable_vendor_feature (BOOLEAN enable, UINT32 feature_bit);
 
 extern void btm_ble_vendor_init(void);
 extern BOOLEAN btm_ble_vendor_write_device_wl_attribute (tBLE_ADDR_TYPE addr_type, BD_ADDR bd_addr, UINT8 attribute);

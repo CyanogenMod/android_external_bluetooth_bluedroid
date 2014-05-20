@@ -31,7 +31,7 @@
 
 /* length of each multi adv sub command */
 #define BTM_BLE_MULTI_ADV_ENB_LEN                       3
-#define BTM_BLE_MULTI_ADV_SET_PARAM_LEN                 24
+#define BTM_BLE_MULTI_ADV_SET_PARAM_LEN                 33
 #define BTM_BLE_MULTI_ADV_WRITE_DATA_LEN                (BTM_BLE_AD_DATA_LEN + 3)
 #define BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN           8
 
@@ -494,31 +494,6 @@ void btm_ble_multi_adv_reenable(UINT8 inst_id)
              p_inst->inst_id = 0;
         }
      }
-}
-
-/*******************************************************************************
-**
-** Function         btm_ble_multi_adv_enb_privacy
-**
-** Description      This function enable/disable privacy setting in multi adv
-**
-** Parameters       enable: enable or disable the adv instance.
-**
-** Returns          none.
-**
-*******************************************************************************/
-void btm_ble_multi_adv_enb_privacy(BOOLEAN enable)
-{
-    UINT8 i;
-    tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.adv_inst[0];
-
-    for (i = 0; i < BTM_BLE_MULTI_ADV_MAX; i ++, p_inst++)
-    {
-        if (enable)
-            btm_ble_multi_adv_configure_rpa (p_inst);
-        else
-            btu_stop_timer(&p_inst->raddr_timer_ent);
-    }
 }
 
 /*******************************************************************************

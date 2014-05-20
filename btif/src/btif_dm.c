@@ -1370,9 +1370,6 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
              btif_storage_load_autopair_device_list();
 
              btif_enable_bluetooth_evt(p_data->enable.status, p_data->enable.bd_addr);
-
-             /* Enable local privacy */
-             BTA_DmBleConfigLocalPrivacy(TRUE);
         }
         break;
 
