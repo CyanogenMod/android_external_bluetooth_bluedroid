@@ -785,6 +785,16 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
     pdu = *(p_vendor->p_vendor_data);
     p_rc_rsp->pdu = pdu;
     *p_ctype = AVRC_RSP_REJ;
+    /* Check for valid Meta Length,
+     *  AVRC_MIN_CMD_LEN is 20. */
+    if ((20 + p_vendor->vendor_len) > AVRC_META_CMD_POOL_SIZE)
+    {
+        /* reject it */
+        evt = 0;
+        p_rc_rsp->rsp.status = AVRC_STS_BAD_PARAM;
+        APPL_TRACE_ERROR1("Invalid param length, we cant handle: %d", p_vendor->vendor_len);
+        return evt;
+    }
     /* Metadata messages only use PANEL sub-unit type */
     if (p_vendor->hdr.subunit_type != AVRC_SUB_PANEL)
     {
