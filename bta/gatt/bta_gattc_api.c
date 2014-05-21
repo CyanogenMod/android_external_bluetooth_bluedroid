@@ -1027,9 +1027,37 @@ void BTA_GATTC_Refresh(BD_ADDR remote_bda)
     if ((p_buf = (tBTA_GATTC_API_OPEN *) GKI_getbuf(sizeof(tBTA_GATTC_API_OPEN))) != NULL)
     {
         p_buf->hdr.event = BTA_GATTC_API_REFRESH_EVT;
+        p_buf->hdr.layer_specific = BTA_GATTC_REFRESH_DISCOVERY;
 
         memcpy(p_buf->remote_bda, remote_bda, BD_ADDR_LEN);
 
+
+        bta_sys_sendmsg(p_buf);
+    }
+    return;
+}
+
+/*******************************************************************************
+**
+** Function         BTA_GATTC_Refresh_No_Discovery
+**
+** Description      Refresh the server cache of the remote device if not connected
+**
+** Parameters       remote_bda: remote device BD address.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_GATTC_Refresh_No_Discovery(BD_ADDR remote_bda)
+{
+    tBTA_GATTC_API_OPEN  *p_buf;
+
+    if ((p_buf = (tBTA_GATTC_API_OPEN *) GKI_getbuf(sizeof(tBTA_GATTC_API_OPEN))) != NULL)
+    {
+        p_buf->hdr.event = BTA_GATTC_API_REFRESH_EVT;
+        p_buf->hdr.layer_specific = BTA_GATTC_REFRESH_NO_DISCOVERY;
+
+        memcpy(p_buf->remote_bda, remote_bda, BD_ADDR_LEN);
 
         bta_sys_sendmsg(p_buf);
     }

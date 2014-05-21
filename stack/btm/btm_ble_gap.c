@@ -1112,7 +1112,7 @@ UINT8 *BTM_CheckAdvData( UINT8 *p_adv, UINT8 type, UINT8 *p_length)
 
     STREAM_TO_UINT8(length, p);
 
-    while ( length && (p - p_adv <= BTM_BLE_CACHE_ADV_DATA_MAX))
+    while ( length && (p - p_adv <= BTM_BLE_ADV_DATA_LEN_MAX))
     {
         STREAM_TO_UINT8(adv_type, p);
 

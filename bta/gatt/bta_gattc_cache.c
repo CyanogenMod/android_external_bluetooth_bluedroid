@@ -330,8 +330,16 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
         p_srvc_cb->p_srvc_cache = p_new_srvc;
 
     /* update buffer managament info */
-    p_srvc_cb->p_free += sizeof(tBTA_GATTC_CACHE);
-    p_srvc_cb->free_byte -= sizeof(tBTA_GATTC_CACHE);
+    if(p_srvc_cb->free_byte > sizeof(tBTA_GATTC_CACHE))
+    {
+        p_srvc_cb->p_free += sizeof(tBTA_GATTC_CACHE);
+        p_srvc_cb->free_byte -= sizeof(tBTA_GATTC_CACHE);
+    }
+    else
+    {
+        p_srvc_cb->free_byte = 0;
+    }
+
 
 
     return status;
@@ -405,8 +413,16 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
         p_attr->inst_id = 0;
 
     /* update service information */
-    p_srvc_cb->p_free += len;
-    p_srvc_cb->free_byte -= len;
+    if(p_srvc_cb->free_byte > len)
+    {
+        p_srvc_cb->p_free += len;
+        p_srvc_cb->free_byte -= len;
+    }
+    else
+    {
+        p_srvc_cb->free_byte = 0;
+    }
+
 
     /* first attribute within the service, update the attribute pointer */
     if (p_srvc_cb->p_cur_srvc->p_attr == NULL)

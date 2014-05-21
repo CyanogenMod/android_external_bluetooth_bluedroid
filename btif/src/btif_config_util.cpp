@@ -869,11 +869,11 @@ int load_bluez_linkkeys(const char* adapter_path)
                         if(*value)
                         {
                             if(load_bluez_dev_value(adapter_path, addr,
-                                                BLUEZ_CLASSES, "DevClass", BTIF_CFG_TYPE_INT) &&
+                                                BLUEZ_CLASSES, "DevClass", BTIF_CFG_TYPE_INT) ||
                                load_bluez_dev_value(adapter_path, addr,
-                                                BLUEZ_NAMES, "Name", BTIF_CFG_TYPE_STR) &&
+                                                BLUEZ_NAMES, "Name", BTIF_CFG_TYPE_STR) ||
                                load_bluez_dev_value(adapter_path, addr,
-                                                BLUEZ_TYPES, "DevType", BTIF_CFG_TYPE_INT) &&
+                                                BLUEZ_TYPES, "DevType", BTIF_CFG_TYPE_INT) ||
                                load_bluez_dev_value(adapter_path, addr,
                                                 BLUEZ_PROFILES, "Service", BTIF_CFG_TYPE_STR))
                             {

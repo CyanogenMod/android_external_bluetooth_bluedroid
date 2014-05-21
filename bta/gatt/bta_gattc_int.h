@@ -83,7 +83,11 @@ typedef UINT16 tBTA_GATTC_INT_EVT;
 
 /* max known devices GATTC can support */
 #ifndef     BTA_GATTC_KNOWN_SR_MAX
+#ifndef MAX_L2CAP_CHANNELS
 #define     BTA_GATTC_KNOWN_SR_MAX    10
+#else
+#define     BTA_GATTC_KNOWN_SR_MAX    MAX_L2CAP_CHANNELS
+#endif
 #endif
 
 #define BTA_GATTC_CONN_MAX      GATT_MAX_PHY_CHANNEL
@@ -342,7 +346,11 @@ typedef struct
 } tBTA_GATTC_SERV;
 
 #ifndef BTA_GATTC_NOTIF_REG_MAX
+#ifndef MAX_L2CAP_CHANNELS
 #define BTA_GATTC_NOTIF_REG_MAX     15
+#else
+#define BTA_GATTC_NOTIF_REG_MAX     MAX_L2CAP_CHANNELS*3
+#endif
 #endif
 
 typedef struct

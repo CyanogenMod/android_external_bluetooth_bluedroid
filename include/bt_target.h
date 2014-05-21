@@ -1425,7 +1425,11 @@ and USER_HW_DISABLE_API macros */
 #endif
 
 #ifndef GATT_MAX_PHY_CHANNEL
+#ifndef MAX_L2CAP_CHANNELS
 #define GATT_MAX_PHY_CHANNEL        7
+#else
+#define GATT_MAX_PHY_CHANNEL        MAX_L2CAP_CHANNELS
+#endif
 #endif
 
 /* Used for conformance testing ONLY */
@@ -2843,7 +2847,11 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #endif
 
 #ifndef HID_HOST_MAX_DEVICES
+#ifndef MAX_L2CAP_CHANNELS
 #define HID_HOST_MAX_DEVICES        7
+#else
+#define HID_HOST_MAX_DEVICES        MAX_L2CAP_CHANNELS
+#endif
 #endif
 
 #ifndef HID_HOST_MTU

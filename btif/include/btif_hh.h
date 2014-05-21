@@ -30,7 +30,12 @@
 **  Constants & Macros
 ********************************************************************************/
 
+#ifndef MAX_L2CAP_CHANNELS
 #define BTIF_HH_MAX_HID         8
+#else
+#define BTIF_HH_MAX_HID         MAX_L2CAP_CHANNELS
+#endif
+
 #define BTIF_HH_MAX_ADDED_DEV   32
 
 #define BTIF_HH_MAX_KEYSTATES            3

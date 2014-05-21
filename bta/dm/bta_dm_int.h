@@ -831,8 +831,12 @@ typedef union
 
 } tBTA_DM_MSG;
 
-
+#ifndef MAX_L2CAP_CHANNELS
 #define BTA_DM_NUM_PEER_DEVICE 7
+#else
+#define BTA_DM_NUM_PEER_DEVICE  MAX_L2CAP_CHANNELS
+#endif
+
 
 #define BTA_DM_NOT_CONNECTED  0
 #define BTA_DM_CONNECTED      1

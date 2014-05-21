@@ -1876,6 +1876,9 @@ void bta_gattc_process_api_refresh(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
     if (p_srvc_cb != NULL)
     {
         /* try to find a CLCB */
+        APPL_TRACE_DEBUG( "%s : connected = %d  num_clcb = %d", __FUNCTION__,
+                               p_srvc_cb->connected, p_srvc_cb->num_clcb );
+
         if (p_srvc_cb->connected && p_srvc_cb->num_clcb != 0)
         {
             for (i = 0; i < BTA_GATTC_CLCB_MAX; i ++, p_clcb ++)
@@ -1888,11 +1891,23 @@ void bta_gattc_process_api_refresh(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
             }
             if (found)
             {
-                bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_DISCOVER_EVT, NULL);
+                APPL_TRACE_DEBUG("%s : found service record in cache, ", __FUNCTION__);
+                if (p_msg->hdr.layer_specific==BTA_GATTC_REFRESH_NO_DISCOVERY)
+                {
+                    APPL_TRACE_DEBUG("%s : NO_DISCOVERY flag set "
+                                        "not invoking discovery", __FUNCTION__ );
+                }
+                else
+                {
+                    APPL_TRACE_DEBUG("%s : invoking discovery", __FUNCTION__ );
+                    bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_DISCOVER_EVT, NULL);
+                }
                 return;
             }
         }
         /* in all other cases, mark it and delete the cache */
+        APPL_TRACE_DEBUG( "%s : Clearing cache ", __FUNCTION__ );
+
         if (p_srvc_cb->p_srvc_cache != NULL)
         {
             while (p_srvc_cb->cache_buffer.p_first)
