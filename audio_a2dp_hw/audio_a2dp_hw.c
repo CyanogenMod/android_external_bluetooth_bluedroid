@@ -591,7 +591,7 @@ static size_t out_get_buffer_size(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    DEBUG("buffer_size : %d", out->buffer_sz);
+    INFO("buffer_size : %d", out->buffer_sz);
 
     return out->buffer_sz;
 }
@@ -944,6 +944,9 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     }
 
     DEBUG("success");
+    /* Delay to ensure Headset is in proper state when START is initiated
+       from DUT immediately after the connection due to ongoing music playback. */
+    usleep(250000);
     return 0;
 
 err_open:

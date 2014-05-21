@@ -339,7 +339,11 @@ static void bte_hci_enable(void)
 void bte_ssr_cleanup(void)
 {
     APPL_TRACE_ERROR1("%s", __FUNCTION__);
+#if (BLUETOOTH_QCOM_SW == TRUE)
+    bt_hc_if->ssr_cleanup();
+#else
     bt_hc_if->set_power(BT_HC_CHIP_PWR_OFF);
+#endif
 
 }
 

@@ -1,5 +1,3 @@
-ifneq ($(TARGET_SIMULATOR),true)
-
 LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
@@ -117,5 +115,3 @@ LOCAL_C_INCLUDES+= . \
 
 
 include $(BUILD_STATIC_LIBRARY)
-
-endif  # TARGET_SIMULATOR != true

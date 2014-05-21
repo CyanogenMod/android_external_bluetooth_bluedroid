@@ -1,5 +1,3 @@
-ifneq ($(TARGET_SIMULATOR),true)
-
 LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
@@ -155,5 +153,3 @@ LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_SHARED_LIBRARIES := libcutils libc
 
 include $(BUILD_STATIC_LIBRARY)
-
-endif  # TARGET_SIMULATOR != true
