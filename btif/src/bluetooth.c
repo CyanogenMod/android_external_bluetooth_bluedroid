@@ -68,8 +68,6 @@ bt_callbacks_t *bt_hal_cbacks = NULL;
 **  Externs
 ************************************************************************************/
 
-extern bt_wakelock_callback config_wakelock_callback;
-
 /* list all extended interfaces here */
 
 /* handsfree profile */
@@ -121,7 +119,6 @@ static int init(bt_callbacks_t* callbacks )
 
     /* store reference to user callbacks */
     bt_hal_cbacks = callbacks;
-    config_wakelock_callback = callbacks->bt_wakelock_cb;
 
     /* add checks for individual callbacks ? */
 

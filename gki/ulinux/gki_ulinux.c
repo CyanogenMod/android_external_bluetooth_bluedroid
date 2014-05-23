@@ -29,7 +29,6 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <sys/times.h>
-#include <hardware/bluetooth.h>
 
 #include <pthread.h>  /* must be 1st header defined  */
 #include <time.h>
@@ -75,6 +74,8 @@
 #define UNLOCK(m) pthread_mutex_unlock(&m)
 #define INIT(m) pthread_mutex_init(&m, NULL)
 
+#define WAKE_LOCK_ID "brcm_btld"
+#define PARTIAL_WAKE_LOCK 1
 
 #if GKI_DYNAMIC_MEMORY == FALSE
 tGKI_CB   gki_cb;
@@ -110,7 +111,6 @@ typedef struct
 
 int g_GkiTimerWakeLockOn = 0;
 gki_pthread_info_t gki_pthread_info[GKI_MAX_TASKS];
-bt_wakelock_callback config_wakelock_callback = NULL;
 
 /*****************************************************************************
 **  Static functions
@@ -120,32 +120,12 @@ bt_wakelock_callback config_wakelock_callback = NULL;
 **  Externs
 ******************************************************************************/
 
-
+extern int acquire_wake_lock(int lock, const char* id);
+extern int release_wake_lock(const char* id);
 
 /*****************************************************************************
 **  Functions
 ******************************************************************************/
-
-/* send a given byte into the wakelock pipe */
-static void wakelock_op_gki(unsigned char op)
-{
-    if (!config_wakelock_callback)
-        GKI_ERROR_LOG("Cannot perform wakelock operation with no callback\n");
-    else
-        config_wakelock_callback(op);
-}
-
-/* release a wakelock by sending a zero down the pipe */
-static void release_wake_lock_gki(void)
-{
-    wakelock_op_gki(0);
-}
-
-/* acquire a wakelock by sending a one down the pipe */
-static void acquire_wake_lock_gki(void)
-{
-    wakelock_op_gki(1);
-}
 
 
 /*****************************************************************************
@@ -549,8 +529,8 @@ void GKI_shutdown(void)
 #endif
     if (g_GkiTimerWakeLockOn)
     {
-        GKI_TRACE("GKI_shutdown :  release_wake_lock_gki()");
-        release_wake_lock_gki();
+        GKI_TRACE("GKI_shutdown :  release_wake_lock(brcm_btld)");
+        release_wake_lock(WAKE_LOCK_ID);
         g_GkiTimerWakeLockOn = 0;
     }
 }
@@ -591,14 +571,14 @@ void gki_system_tick_start_stop_cback(BOOLEAN start)
 
             GKI_TIMER_TRACE(">>> STOP GKI_timer_update(), wake_lock_count:%d", --wake_lock_count);
 
-            release_wake_lock_gki();
+            release_wake_lock(WAKE_LOCK_ID);
             g_GkiTimerWakeLockOn = 0;
         }
     }
     else
     {
         /* restart GKI_timer_update() loop */
-        acquire_wake_lock_gki();
+        acquire_wake_lock(PARTIAL_WAKE_LOCK, WAKE_LOCK_ID);
 
         g_GkiTimerWakeLockOn = 1;
         *p_run_cond = GKI_TIMER_TICK_RUN_COND;
