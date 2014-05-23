@@ -98,13 +98,6 @@ typedef struct
 } tBTIF_MEDIA_SINK_CFG_UPDATE;
 #endif
 
-typedef enum {
-    BTIF_MEDIA_AUDIOFOCUS_LOSS = 0,
-    BTIF_MEDIA_AUDIOFOCUS_GAIN,
-    BTIF_MEDIA_AUDIOFOCUS_LOSS_TRANSIENT
-} btif_media_AudioFocus_state;
-
-
 /*******************************************************************************
  **  Public functions
  *******************************************************************************/
@@ -281,6 +274,9 @@ void btif_a2dp_set_rx_flush(BOOLEAN enable);
 void btif_media_check_iop_exceptions(UINT8 *peer_bda);
 void btif_reset_decoder(UINT8 *p_av);
 BOOLEAN btif_media_task_start_decoding_req(void);
-void btif_a2dp_set_audio_focus_state(btif_media_AudioFocus_state state);
+
+int btif_a2dp_get_track_frequency(UINT8 frequency);
+int btif_a2dp_get_track_channel_count(UINT8 channeltype);
+void btif_a2dp_set_peer_sep(UINT8 sep);
 
 #endif

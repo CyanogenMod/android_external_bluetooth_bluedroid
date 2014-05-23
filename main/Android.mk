@@ -46,8 +46,7 @@ LOCAL_SRC_FILES += \
     ../btif/src/btif_gatt_test.c \
     ../btif/src/btif_config.c \
     ../btif/src/btif_config_util.cpp \
-    ../btif/src/btif_profile_queue.c \
-    ../btif/src/bluetoothTrack.cpp
+    ../btif/src/btif_profile_queue.c
 
 # callouts
 LOCAL_SRC_FILES+= \
@@ -102,7 +101,6 @@ LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../audio_a2dp_hw \
 	$(LOCAL_PATH)/../utils/include \
 	$(bdroid_C_INCLUDES) \
-	$(TOP)/frameworks/av/include/media \
 	external/tinyxml2
 
 LOCAL_CFLAGS += -DBUILDCFG $(bdroid_CFLAGS) -Werror -Wno-error=maybe-uninitialized -Wno-error=uninitialized -Wno-error=unused-parameter
