@@ -1936,7 +1936,6 @@ static void btif_media_task_enc_init(BT_HDR *p_msg)
     btif_media_cb.TxAaMtuSize = ((BTIF_MEDIA_AA_BUF_SIZE-BTIF_MEDIA_AA_SBC_OFFSET-sizeof(BT_HDR))
             < pInitAudio->MtuSize) ? (BTIF_MEDIA_AA_BUF_SIZE - BTIF_MEDIA_AA_SBC_OFFSET
             - sizeof(BT_HDR)) : pInitAudio->MtuSize;
-    btif_media_cb.TxNumSBCFrames = check_for_max_number_of_frames_per_packet();
 
     APPL_TRACE_EVENT3("btif_media_task_enc_init busy %d, mtu %d, peer mtu %d",
                      btif_media_cb.busy_level, btif_media_cb.TxAaMtuSize, pInitAudio->MtuSize);
@@ -1948,6 +1947,7 @@ static void btif_media_task_enc_init(BT_HDR *p_msg)
 
     /* Reset entirely the SBC encoder */
     SBC_Encoder_Init(&(btif_media_cb.encoder));
+    btif_media_cb.TxNumSBCFrames = check_for_max_number_of_frames_per_packet();
     APPL_TRACE_DEBUG1("btif_media_task_enc_init bit pool %d", btif_media_cb.encoder.s16BitPool);
 }
 
@@ -1997,8 +1997,6 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
                                       BTIF_MEDIA_AA_SBC_OFFSET - sizeof(BT_HDR))
                 < pUpdateAudio->MinMtuSize) ? (BTIF_MEDIA_AA_BUF_SIZE - BTIF_MEDIA_AA_SBC_OFFSET
                 - sizeof(BT_HDR)) : pUpdateAudio->MinMtuSize;
-        btif_media_cb.TxNumSBCFrames = check_for_max_number_of_frames_per_packet();
-
         /* Set the initial target bit rate */
         pstrEncParams->u16BitRate = btif_media_task_get_sbc_rate();
 
@@ -2101,6 +2099,7 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
 
         /* make sure we reinitialize encoder with new settings */
         SBC_Encoder_Init(&(btif_media_cb.encoder));
+        btif_media_cb.TxNumSBCFrames = check_for_max_number_of_frames_per_packet();
     }
 }
 
@@ -2572,10 +2571,51 @@ static void btif_media_task_aa_stop_tx(void)
     btif_media_task_feeding_state_reset();
 }
 
+static UINT32 get_frame_length()
+{
+    UINT32 frame_len = 0;
+    APPL_TRACE_DEBUG5("channel mode: %d, sub-band: %d, number of block: %d, \
+            bitpool: %d, sampling frequency: %d",
+            btif_media_cb.encoder.s16ChannelMode,
+            btif_media_cb.encoder.s16NumOfSubBands,
+            btif_media_cb.encoder.s16NumOfBlocks,
+            btif_media_cb.encoder.s16BitPool,
+            btif_media_cb.encoder.s16SamplingFreq);
+
+    switch(btif_media_cb.encoder.s16NumOfChannels)
+    {
+        case SBC_MONO:
+        case SBC_DUAL:
+            frame_len = 4 + ((UINT32)(4 * btif_media_cb.encoder.s16NumOfSubBands *
+                btif_media_cb.encoder.s16NumOfChannels) / 8) +
+                ((UINT32)(btif_media_cb.encoder.s16NumOfBlocks *
+                btif_media_cb.encoder.s16NumOfChannels *
+                btif_media_cb.encoder.s16BitPool) / 8);
+            break;
+        case SBC_STEREO:
+            frame_len = 4 + ((UINT32)(4 * btif_media_cb.encoder.s16NumOfSubBands *
+                btif_media_cb.encoder.s16NumOfChannels) / 8) +
+                ((UINT32)(btif_media_cb.encoder.s16NumOfBlocks *
+                btif_media_cb.encoder.s16BitPool) / 8);
+            break;
+        case SBC_JOINT_STEREO:
+            frame_len = 4 + ((UINT32)(4 * btif_media_cb.encoder.s16NumOfSubBands *
+                btif_media_cb.encoder.s16NumOfChannels) / 8) +
+                ((UINT32)(btif_media_cb.encoder.s16NumOfSubBands +
+                (btif_media_cb.encoder.s16NumOfBlocks *
+                btif_media_cb.encoder.s16BitPool)) / 8);
+            break;
+        default:
+            APPL_TRACE_DEBUG0("Invalid channel number");
+    }
+    return frame_len;
+}
+
 static UINT8 check_for_max_number_of_frames_per_packet()
 {
     UINT16 result = 0;
     UINT16 effective_mtu_size = btif_media_cb.TxAaMtuSize;
+    UINT32 frame_len;
 
     APPL_TRACE_DEBUG1("original AVDTP MTU size: %d", btif_media_cb.TxAaMtuSize);
     if (btif_av_is_peer_edr() && (btif_av_peer_supports_3mbps() == FALSE)) {
@@ -2589,18 +2629,49 @@ static UINT8 check_for_max_number_of_frames_per_packet()
             btif_media_cb.TxAaMtuSize = effective_mtu_size;
         }
     }
-    APPL_TRACE_DEBUG1("effective Tx MTU to be considered: %d", effective_mtu_size);
+
+    if (!btif_media_cb.encoder.s16NumOfSubBands)
+    {
+        APPL_TRACE_ERROR0("Error: SubBands are set to 0, resetting to Max");
+        btif_media_cb.encoder.s16NumOfSubBands = SBC_MAX_NUM_OF_SUBBANDS;
+    }
+    if (!btif_media_cb.encoder.s16NumOfBlocks)
+    {
+        APPL_TRACE_ERROR0("Error: Blocks are set to 0, resetting to Max");
+        btif_media_cb.encoder.s16NumOfBlocks = SBC_MAX_NUM_OF_BLOCKS;
+    }
+    if (!btif_media_cb.encoder.s16NumOfChannels)
+    {
+        APPL_TRACE_ERROR0("Error: Channels are set to 0, resetting to Max");
+        btif_media_cb.encoder.s16NumOfChannels = SBC_MAX_NUM_OF_CHANNELS;
+    }
+    frame_len = get_frame_length();
+
+    APPL_TRACE_DEBUG1("effective Tx MTU to be considered: %d",
+                                            effective_mtu_size);
     switch(btif_media_cb.encoder.s16SamplingFreq)
     {
         case SBC_sf44100:
-            result = (effective_mtu_size - A2DP_HDR_SIZE)
-                                                    / MAX_SBC_HQ_FRAME_SIZE_44_1;
+            if(!frame_len)
+            {
+                APPL_TRACE_ERROR0("Error: Calculating frame length, \
+                                            resetting it to default");
+                frame_len = MAX_SBC_HQ_FRAME_SIZE_44_1;
+            }
+            result = (effective_mtu_size - (AVDTP_HDR_SIZE +
+                                    A2DP_HDR_SIZE)) / frame_len;
             APPL_TRACE_DEBUG1("max number of sbc frames: %d", result);
             break;
 
         case SBC_sf48000:
-            result = (effective_mtu_size - A2DP_HDR_SIZE)
-                                                    / MAX_SBC_HQ_FRAME_SIZE_48;
+            if(!frame_len)
+            {
+                APPL_TRACE_ERROR0("Error: Calculating frame length, \
+                                            resetting it to default");
+                frame_len = MAX_SBC_HQ_FRAME_SIZE_48;
+            }
+            result = (effective_mtu_size - (AVDTP_HDR_SIZE +
+                                    A2DP_HDR_SIZE)) / frame_len;
             APPL_TRACE_DEBUG1("max number of sbc frames: %d", result);
             break;
 
