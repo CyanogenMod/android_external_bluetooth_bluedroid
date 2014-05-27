@@ -86,9 +86,11 @@ BOOLEAN btm_add_dev_to_controller (BOOLEAN to_add, BD_ADDR bd_addr, UINT8 attr)
         {
             if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_PUBLIC || !BTM_BLE_IS_RESOLVE_BDA(bd_addr))
             {
+#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
                 /* add device into IRK list */
                 btm_ble_vendor_irk_list_load_dev(p_dev_rec);
+#endif
 #endif
                 started = btsnd_hcic_ble_add_white_list (p_dev_rec->ble.ble_addr_type, bd_addr);
             }

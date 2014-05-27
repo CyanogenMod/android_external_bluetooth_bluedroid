@@ -328,11 +328,12 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
                                             btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type,
                                             BTM_BLE_DEFAULT_SFP); /* assume observe always not using white list */
 
+#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
             /* enable IRK list */
             btm_ble_vendor_irk_list_known_dev (TRUE);
 #endif
-
+#endif
             status = btm_ble_start_scan(BTM_BLE_DUPLICATE_DISABLE);
         }
         if (status == BTM_CMD_STARTED)

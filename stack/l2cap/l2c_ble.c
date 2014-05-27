@@ -644,7 +644,7 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
         return FALSE;
     }
 #if BLE_PRIVACY_SPT == TRUE
-#if (defined BLE_VND_INCLUDED || BLE_VND_INCLUDED == TRUE)
+#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
     extern tBTM_STATUS BTM_BleEnableIRKFeature(BOOLEAN enable);
     if (btm_ble_vendor_irk_list_load_dev(p_dev_rec))
         BTM_BleEnableIRKFeature(TRUE);
