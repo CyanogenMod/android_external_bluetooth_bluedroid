@@ -591,7 +591,7 @@ static size_t out_get_buffer_size(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    INFO("buffer_size : %d", out->buffer_sz);
+    DEBUG("buffer_size : %d", out->buffer_sz);
 
     return out->buffer_sz;
 }
