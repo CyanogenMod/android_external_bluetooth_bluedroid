@@ -2585,7 +2585,7 @@ void bta_jv_rfcomm_stop_server(tBTA_JV_MSG *p_data)
     tBTA_JV_API_RFCOMM_SERVER *ls = &(p_data->rfcomm_server);
     tBTA_JV_RFC_CB           *p_cb = NULL;
     tBTA_JV_PCB              *p_pcb = NULL;
-    APPL_TRACE_ERROR0("bta_jv_rfcomm_stop_server");
+    APPL_TRACE_DEBUG0("bta_jv_rfcomm_stop_server");
     if(!ls->handle)
     {
         APPL_TRACE_ERROR0("bta_jv_rfcomm_stop_server, jv handle is null");
