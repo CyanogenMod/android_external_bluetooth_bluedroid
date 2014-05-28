@@ -2,6 +2,8 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
+LOCAL_CFLAGS += $(bdroid_CFLAGS)
+
 LOCAL_SRC_FILES := \
         src/bt_hci_bdroid.c \
         src/lpm.c \
@@ -11,7 +13,7 @@ LOCAL_SRC_FILES := \
 
 ifeq ($(BLUETOOTH_HCI_USE_MCT),true)
 
-LOCAL_CFLAGS := -DHCI_USE_MCT
+LOCAL_CFLAGS += -DHCI_USE_MCT
 
 LOCAL_SRC_FILES += \
         src/hci_mct.c \
@@ -27,7 +29,8 @@ endif
 
 LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/include \
-        $(LOCAL_PATH)/../utils/include
+        $(LOCAL_PATH)/../utils/include \
+        $(bdroid_C_INCLUDES)
 
 LOCAL_SHARED_LIBRARIES := \
         libcutils \
