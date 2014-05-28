@@ -2,6 +2,8 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
+LOCAL_CFLAGS += $(bdroid_CFLAGS)
+
 LOCAL_SRC_FILES := \
         src/bt_hci_bdroid.c \
         src/lpm.c \
@@ -31,7 +33,8 @@ LOCAL_CFLAGS += -std=c99
 
 LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/include \
-        $(LOCAL_PATH)/../utils/include
+        $(LOCAL_PATH)/../utils/include \
+        $(bdroid_C_INCLUDES)
 
 LOCAL_SHARED_LIBRARIES := \
         libcutils \
