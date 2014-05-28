@@ -2156,53 +2156,63 @@ void btm_ble_process_adv_pkt (UINT8 *p_data)
     BD_ADDR             bda;
     UINT8               evt_type = 0, *p = p_data;
     UINT8               addr_type = 0;
+    UINT8               num_reports;
+    UINT8               data_len;
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
     BOOLEAN             match = FALSE;
 #endif
 
-    /* always get one device at a time */
-    p ++;
+    /* Extract the number of reports in this event. */
+    STREAM_TO_UINT8(num_reports, p);
 
-    /* Extract inquiry results */
-    STREAM_TO_UINT8    (evt_type, p);
-    STREAM_TO_UINT8    (addr_type, p);
-    STREAM_TO_BDADDR   (bda, p);
+    while (num_reports--)
+    {
+        /* Extract inquiry results */
+        STREAM_TO_UINT8    (evt_type, p);
+        STREAM_TO_UINT8    (addr_type, p);
+        STREAM_TO_BDADDR   (bda, p);
 
 #ifdef BTM_BLE_PC_ADV_TEST_MODE /* For general stack code (e.g. BTInsight testing), we simply do not define it to exclude or set it to TRUE to include */
-    if (BTM_BLE_PC_ADV_TEST_MODE)   /* For stack component, it is always defined and maps to a global variable g_bDraculaAdvertisingMode */
-    {
-        if (btm_cb.ble_ctr_cb.p_scan_req_cback)
-            (*btm_cb.ble_ctr_cb.p_scan_req_cback)(bda, addr_type, evt_type);
-    }
+        if (BTM_BLE_PC_ADV_TEST_MODE)   /* For stack component, it is always defined and maps to a global variable g_bDraculaAdvertisingMode */
+        {
+            if (btm_cb.ble_ctr_cb.p_scan_req_cback)
+                (*btm_cb.ble_ctr_cb.p_scan_req_cback)(bda, addr_type, evt_type);
+        }
 #endif
 
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
 #if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
-    /* map address to security record */
-    btm_public_addr_to_random_pseudo(bda, &addr_type);
-    BTM_TRACE_ERROR6("new address: %02x:%02x:%02x:%02x:%02x:%02x",
+        /* map address to security record */
+        btm_public_addr_to_random_pseudo(bda, &addr_type);
+        BTM_TRACE_ERROR6("new address: %02x:%02x:%02x:%02x:%02x:%02x",
                      bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
 #endif
 #endif
 
-    /* Only process the results if the inquiry is still active */
-    if (!BTM_BLE_IS_SCAN_ACTIVE(btm_cb.ble_ctr_cb.scan_activity))
-        return;
+        /* Only process the results if the inquiry is still active */
+        if (!BTM_BLE_IS_SCAN_ACTIVE(btm_cb.ble_ctr_cb.scan_activity))
+            return;
 
-    BTM_TRACE_DEBUG6("btm_ble_process_adv_pkt:bda= %0x:%0x:%0x:%0x:%0x:%0x",
+        BTM_TRACE_DEBUG6("btm_ble_process_adv_pkt:bda= %0x:%0x:%0x:%0x:%0x:%0x",
                                      bda[0],bda[1],bda[2],bda[3],bda[4],bda[5]);
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
 #if SMP_INCLUDED == TRUE
-    /* always do RRA resolution on host */
-    if (!match && BTM_BLE_IS_RESOLVE_BDA(bda))
-    {
-        btm_ble_resolve_random_addr(bda, btm_ble_resolve_random_addr_on_adv, p_data);
-    }
-    else
+        /* always do RRA resolution on host */
+        if (!match && BTM_BLE_IS_RESOLVE_BDA(bda))
+        {
+            btm_ble_resolve_random_addr(bda, btm_ble_resolve_random_addr_on_adv, p_data);
+        }
+        else
 #endif
 #endif
-    {
-        btm_ble_process_adv_pkt_cont(bda, addr_type, evt_type, p);
+        {
+            btm_ble_process_adv_pkt_cont(bda, addr_type, evt_type, p);
+        }
+
+        STREAM_TO_UINT8(data_len, p);
+
+        /* Advance to the next event data_len + rssi byte */
+        p += data_len + 1;
     }
 }
 
