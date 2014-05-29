@@ -784,6 +784,7 @@ BTM_API extern  void BTM_BleSetPrefConnParams (BD_ADDR bd_addr,
 **
 *******************************************************************************/
 BTM_API extern  void BTM_BleSetConnScanParams (UINT16 scan_interval, UINT16 scan_window);
+BTM_API extern  void btm_ble_vendor_capability_init(void);
 
 /*******************************************************************************
 **

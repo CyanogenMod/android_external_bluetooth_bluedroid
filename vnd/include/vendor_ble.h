@@ -40,7 +40,7 @@
 #define BTM_BLE_IRK_ENABLE_LEN          2
 
 /* BLE meta vsc header: 1 bytes of sub_code, 1 byte of PCF action */
-#define BTM_BLE_META_HDR_LENGTH     2
+#define BTM_BLE_META_HDR_LENGTH     3
 #define BTM_BLE_PF_FEAT_SEL_LEN     18
 #define BTM_BLE_PCF_ENABLE_LEN      2
 #define BTM_BLE_META_ADDR_LEN       7
