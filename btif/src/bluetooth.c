@@ -60,6 +60,9 @@
 
 bt_callbacks_t *bt_hal_cbacks = NULL;
 
+/** Operating System specific callouts for resource management */
+bt_os_callouts_t *bt_os_callouts = NULL;
+
 /************************************************************************************
 **  Static functions
 ************************************************************************************/
@@ -384,6 +387,11 @@ int config_hci_snoop_log(uint8_t enable)
     return btif_config_hci_snoop_log(enable);
 }
 
+static int set_os_callouts(bt_os_callouts_t *callouts) {
+    bt_os_callouts = callouts;
+    return BT_STATUS_SUCCESS;
+}
+
 static const bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -413,7 +421,8 @@ static const bt_interface_t bluetoothInterface = {
 #else
     NULL,
 #endif
-    config_hci_snoop_log
+    config_hci_snoop_log,
+    set_os_callouts,
 };
 
 const bt_interface_t* bluetooth__get_bluetooth_interface ()

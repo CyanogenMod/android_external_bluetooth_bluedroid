@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-
+#include <utils/Log.h>
 #include "gki_int.h"
 
 #ifndef BT_ERROR_TRACE_0
@@ -32,6 +32,11 @@
 #define GKI_NO_NEW_TMRS_STARTED (0x7fffffffL)   /* Largest signed positive timer count */
 #define GKI_UNUSED_LIST_ENTRY   (0x80000000L)   /* Marks an unused timer list entry (initial value) */
 #define GKI_MAX_INT32           (0x7fffffffL)
+
+#define GKI_ERROR(fmt, ...)  ALOGE ("ERROR : %s: " fmt, __FUNCTION__, ## __VA_ARGS__)
+
+// Used for controlling alarms from AlarmService.
+extern void alarm_service_reschedule(void);
 
 /*******************************************************************************
 **
@@ -428,6 +433,9 @@ void GKI_timer_update (INT32 ticks_since_last_update)
     /* No need to update the ticks if no timeout has occurred */
     if (gki_cb.com.OSTicksTilExp > 0)
     {
+        // When using alarms from AlarmService we should
+        // always have work to be done here.
+        GKI_ERROR("No work to be done when expected work\n");
         gki_cb.com.timer_nesting = 0;
         return;
     }
@@ -561,12 +569,6 @@ void GKI_timer_update (INT32 ticks_since_last_update)
 #endif
 
     }
-
-#if GKI_TIMER_LIST_NOPREEMPT == TRUE
-    /* End the critical section */
-    GKI_enable();
-#endif
-
     /* Set the next timer experation value if there is one to start */
     if (next_expiration < GKI_NO_NEW_TMRS_STARTED)
     {
@@ -576,6 +578,16 @@ void GKI_timer_update (INT32 ticks_since_last_update)
     {
         gki_cb.com.OSTicksTilExp = gki_cb.com.OSNumOrigTicks = 0;
     }
+
+    // Set alarm service for next alarm.
+    alarm_service_reschedule();
+
+#if GKI_TIMER_LIST_NOPREEMPT == TRUE
+    /* End the critical section */
+    GKI_enable();
+#endif
+
+//    GKI_ERROR("Timer expired - next expiration ticks:%ld\n", next_expiration);
 
     gki_cb.com.timer_nesting = 0;
 
@@ -1027,6 +1039,7 @@ void gki_adjust_timer_count (INT32 ticks)
         {
             gki_cb.com.OSNumOrigTicks = (gki_cb.com.OSNumOrigTicks - gki_cb.com.OSTicksTilExp) + ticks;
             gki_cb.com.OSTicksTilExp = ticks;
+            alarm_service_reschedule();
         }
     }
 
