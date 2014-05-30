@@ -304,6 +304,17 @@ typedef UINT8   tBTM_BLE_AD_TYPE;
 #define BTM_BLE_ADV_TX_POWER_MAX        4           /* maximum tx power */
 typedef UINT8 tBTM_BLE_ADV_TX_POWER;
 
+
+typedef struct
+{
+    UINT8 adv_inst_max;         /* max adv instance supported in controller */
+    UINT8 rpa_offloading;
+    UINT16 tot_scan_results_strg;
+    UINT8 max_irk_list_sz;
+    UINT8 filter_support;
+    UINT8 max_filter;
+}tBTM_BLE_VSC_CB;
+
 /* slave preferred connection interval range */
 typedef struct
 {
@@ -456,6 +467,7 @@ enum
 typedef UINT8   tBTM_BLE_CONN_TYPE;
 
 typedef BOOLEAN (tBTM_BLE_SEL_CBACK)(BD_ADDR random_bda,     UINT8 *p_remote_name);
+typedef void (tBTM_BLE_CTRL_FEATURES_CBACK)(tBTM_STATUS status);
 
 /* callback function for SMP signing algorithm, signed data in little endian order with tlen bits long */
 typedef void (tBTM_BLE_SIGN_CBACK)(void *p_ref_data, UINT8 *p_signing_data);
@@ -569,7 +581,18 @@ BTM_API extern void BTM_BleReadAdvParams (UINT16 *adv_int_min, UINT16 *adv_int_m
 *******************************************************************************/
 BTM_API extern void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_window,
                                          tBTM_BLE_SCAN_MODE scan_type);
-
+/*******************************************************************************
+**
+** Function         BTM_BleGetVendorCapabilities
+**
+** Description      This function reads local LE features
+**
+** Parameters       p_cmn_vsc_cb : Locala LE capability structure
+**
+** Returns          void
+**
+*******************************************************************************/
+BTM_API extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb);
 /*******************************************************************************
 **
 ** Function         BTM_BleWriteScanRsp
@@ -836,7 +859,19 @@ BTM_API extern  void BTM_BleSetPrefConnParams (BD_ADDR bd_addr,
 **
 *******************************************************************************/
 BTM_API extern  void BTM_BleSetConnScanParams (UINT16 scan_interval, UINT16 scan_window);
-BTM_API extern  void btm_ble_vendor_capability_init(void);
+
+/******************************************************************************
+**
+** Function         BTM_BleReadControllerFeatures
+**
+** Description      Reads BLE specific controller features
+**
+** Parameters:      tBTM_BLE_CTRL_FEATURES_CBACK : Callback to notify when features are read
+**
+** Returns          void
+**
+*******************************************************************************/
+BTM_API extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_cback);
 
 /*******************************************************************************
 **
@@ -909,6 +944,19 @@ BTM_API extern void BTM_RegisterScanReqEvt(tBTM_BLE_SCAN_REQ_CBACK *p_scan_req_c
 **
 *******************************************************************************/
 BTM_API extern void BTM_BleConfigPrivacy(BOOLEAN enable);
+
+/*******************************************************************************
+**
+** Function         BTM_BleLocalPrivacyEnabled
+**
+** Description        Checks if local device supports private address
+**
+** Returns          Return TRUE if local privacy is enabled else FALSE
+**
+*******************************************************************************/
+BTM_API extern BOOLEAN BTM_BleLocalPrivacyEnabled();
+
+
 
 /*******************************************************************************
 **

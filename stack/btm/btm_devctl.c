@@ -672,7 +672,6 @@ void btm_reset_complete (void)
      memset(&btm_cb.ble_ctr_cb.bg_dev_list, 0, (sizeof(tBTM_LE_BG_CONN_DEV)*BTM_BLE_MAX_BG_CONN_DEV_NUM));
      gatt_reset_bgdev_list();
      btm_ble_multi_adv_init();
-     btm_ble_vendor_capability_init();
 #endif
     }
 }

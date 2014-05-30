@@ -112,6 +112,7 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data);
     #endif
 static void bta_dm_observe_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_observe_cmpl_cb (void * p_result);
+static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result);
 
 #ifndef BTA_DM_BLE_ADV_CHNL_MAP
 #define BTA_DM_BLE_ADV_CHNL_MAP (BTM_BLE_ADV_CHNL_37|BTM_BLE_ADV_CHNL_38|BTM_BLE_ADV_CHNL_39)
@@ -3167,6 +3168,10 @@ static void bta_dm_local_name_cback(UINT8 *p_name)
 
     if(bta_dm_cb.p_sec_cback)
         bta_dm_cb.p_sec_cback(BTA_DM_ENABLE_EVT, &sec_event);
+
+#if ( BLE_INCLUDED == TRUE)
+    BTM_BleReadControllerFeatures (bta_dm_ctrl_features_rd_cmpl_cback);
+#endif
 }
 
 /*******************************************************************************
@@ -5697,4 +5702,30 @@ void bta_dm_cfg_filter_cond (tBTA_DM_MSG *p_data)
     bta_sys_vs_hdl(BTA_VS_BLE_SCAN_PF_COND_EVT, (void *)&param);
 }
 #endif  /* BLE_ANDROID_CONTROLLER_SCAN_FILTER */
+
+/*******************************************************************************
+**
+** Function         bta_dm_ctrl_features_rd_cmpl_cback
+**
+** Description      callback to handle controller feature read complete
+**
+** Parameters:
+**
+*******************************************************************************/
+static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result)
+{
+    APPL_TRACE_DEBUG2("%s  status = %d ", __FUNCTION__, result);
+    if (result == BTM_SUCCESS)
+    {
+        if(bta_dm_cb.p_sec_cback)
+            bta_dm_cb.p_sec_cback(BTA_DM_LE_FEATURES_READ, NULL);
+    }
+    else
+    {
+        APPL_TRACE_ERROR2("%s Ctrl BLE feature read failed: status :%d",__FUNCTION__, result);
+    }
+
+}
+
+
 #endif  /* BLE_INCLUDED */
