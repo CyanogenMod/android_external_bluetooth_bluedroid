@@ -848,6 +848,7 @@ typedef struct
     BT_OCTET8               enc_rand;   /* received rand value from LTK request*/
     UINT16                  ediv;       /* received ediv value from LTK request */
     UINT8                   key_size;
+    tBTM_BLE_VSC_CB         cmn_ble_vsc_cb;
 #endif
 
                                             /* Packet types supported by the local device */

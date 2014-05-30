@@ -608,7 +608,7 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
     /* callback to HAL */
     if (status == BTA_SUCCESS)
     {
-#if (BLE_INCLUDED == TRUE && BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
+#if (BLE_INCLUDED == TRUE )
         BTA_BrcmInit();
 #endif
         /* initialize a2dp service */
@@ -1026,7 +1026,30 @@ static void execute_storage_request(UINT16 event, char *p_param)
             prop.type = p_req->read_req.type;
             prop.val = (void*)buf;
             prop.len = sizeof(buf);
-            status = btif_storage_get_adapter_property(&prop);
+            if (prop.type == BT_PROPERTY_LOCAL_LE_FEATURES)
+            {
+                tBTM_BLE_VSC_CB cmn_vsc_cb;
+                bt_local_le_features_t local_le_features;
+
+                /* LE features are not stored in storage. Should be retrived from stack */
+                BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
+                local_le_features.local_privacy_enabled = BTM_BleLocalPrivacyEnabled();
+
+                prop.len = sizeof (bt_local_le_features_t);
+                if (cmn_vsc_cb.filter_support == 1)
+                    local_le_features.max_adv_filter_supported = cmn_vsc_cb.max_filter;
+                else
+                    local_le_features.max_adv_filter_supported = 0;
+                local_le_features.max_adv_instance = cmn_vsc_cb.adv_inst_max;
+                local_le_features.max_irk_list_size = cmn_vsc_cb.max_irk_list_sz;
+                local_le_features.rpa_offload_supported = cmn_vsc_cb.rpa_offloading;
+                local_le_features.scan_result_storage_size = cmn_vsc_cb.tot_scan_results_strg;
+                memcpy(prop.val, &local_le_features, prop.len);
+            }
+            else
+            {
+                status = btif_storage_get_adapter_property(&prop);
+            }
             HAL_CBACK(bt_hal_cbacks, adapter_properties_cb, status, 1, &prop);
         } break;
 

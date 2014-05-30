@@ -591,6 +591,7 @@ typedef UINT8 tBTA_SIG_STRENGTH_MASK;
 // btla-specific --
 #define BTA_DM_DEV_UNPAIRED_EVT         23
 #define BTA_DM_HW_ERROR_EVT             24      /* BT Chip H/W error */
+#define BTA_DM_LE_FEATURES_READ         25      /* Cotroller specific LE features are read */
 typedef UINT8 tBTA_DM_SEC_EVT;
 
 /* Structure associated with BTA_DM_ENABLE_EVT */
