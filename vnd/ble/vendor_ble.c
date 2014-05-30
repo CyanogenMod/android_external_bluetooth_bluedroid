@@ -105,7 +105,6 @@ void btm_ble_vendor_scan_pf_cmpl_cback(tBTM_VSC_CMPL *p_params)
         return;
     }
     op_subcode   = *p ++;
-
         switch (op_subcode)
         {
         case BTM_BLE_META_PF_LOCAL_NAME:
@@ -530,7 +529,7 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
 {
     UINT8       param[BTM_BLE_META_UUID_LEN + BTM_BLE_META_HDR_LENGTH],
                 * p= param,
-                len = BTM_BLE_META_HDR_LENGTH + 7;
+                len = BTM_BLE_META_HDR_LENGTH;
     tBTM_STATUS st = BTM_ILLEGAL_VALUE;
     tBTM_BLE_PF_UUID_COND *p_uuid_cond;
     UINT8           evt_type;
@@ -1153,14 +1152,19 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
 
     evt_len--;
 
+    /*if (evt_len < 2 )
+    {
+        BTM_TRACE_ERROR0("can not interpret IRK  VSC cmpl callback");
+        return;
+    }*/
+    op_subcode   = *p ++;
+    BTM_TRACE_DEBUG1("btm_ble_vendor_irk_vsc_op_cmpl op_subcode = %d", op_subcode);
     if (evt_len < 2 )
     {
         BTM_TRACE_ERROR0("can not interpret IRK  VSC cmpl callback");
         return;
     }
-    op_subcode   = *p ++;
 
-    BTM_TRACE_DEBUG1("btm_ble_vendor_irk_vsc_op_cmpl op_subcode = %d", op_subcode);
 
     if (op_subcode == BTM_BLE_META_CLEAR_IRK_LIST)
     {
@@ -1386,7 +1390,7 @@ BOOLEAN btm_ble_vendor_irk_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
     tBTM_BLE_VENDOR_CB  *p_cb = &btm_ble_vendor_cb;
     BOOLEAN         rt = FALSE;
     tBTM_BLE_IRK_ENTRY  *p_irk_entry = NULL;
-
+    BTM_TRACE_DEBUG1 ("btm_ble_vendor_irk_list_load_dev:max_irk_size=%d", p_cb->irk_avail_size);
     memset(param, 0, 40);
 
     if (p_dev_rec != NULL && /* RPA is being used and PID is known */
@@ -1523,7 +1527,7 @@ tBTM_STATUS BTM_BleEnableIRKFeature(BOOLEAN enable)
 *******************************************************************************/
 void btm_ble_vendor_init(void)
 {
-    memset(&btm_ble_vendor_cb, 0, sizeof(tBTM_BLE_VENDOR_CB));
+    //memset(&btm_ble_vendor_cb, 0, sizeof(tBTM_BLE_VENDOR_CB));
 
     if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
         return;
