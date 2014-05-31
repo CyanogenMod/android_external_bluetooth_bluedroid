@@ -528,12 +528,13 @@ void btpan_close_handle(btpan_conn_t *p)
     memset(&p->peer, 0, 6);
 }
 
-static inline int should_forward(tETH_HDR* hdr)
+static inline bool should_forward(tETH_HDR* hdr)
 {
-    if(ntohs(hdr->h_proto) == ETH_P_IP || ntohs(hdr->h_proto) == ETH_P_ARP)
-        return TRUE;
-    BTIF_TRACE_DEBUG1("unknown proto:%x", ntohs(hdr->h_proto));
-    return FALSE;
+    uint16_t proto = ntohs(hdr->h_proto);
+    if(proto == ETH_P_IP || proto == ETH_P_ARP || proto == ETH_P_IPV6)
+        return true;
+    BTIF_TRACE_DEBUG1("unknown proto:%x", proto);
+    return false;
 }
 
 static int forward_bnep(tETH_HDR* eth_hdr, BT_HDR *hdr) {
