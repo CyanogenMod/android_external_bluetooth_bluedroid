@@ -1232,7 +1232,9 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
             STREAM_TO_BDADDR(target_bda, p);
             STREAM_TO_BDADDR(rra, p);
 
+#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
             btm_ble_refresh_rra(target_bda, rra);
+#endif
         }
     }
 
