@@ -209,6 +209,7 @@ static void btif_rc_upstreams_rsp_evt(UINT16 event, tAVRC_RESPONSE *pavrc_resp, 
 ******************************************************************************/
 static btif_rc_cb_t btif_rc_cb;
 static btrc_callbacks_t *bt_rc_callbacks = NULL;
+static btrc_ctrl_callbacks_t *bt_rc_ctrl_callbacks = NULL;
 
 /*****************************************************************************
 **  Static functions
@@ -448,7 +449,10 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
         }
 #if (AVRC_CTLR_INCLUDED == TRUE)
         bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
-        HAL_CBACK(bt_rc_callbacks, connection_state_cb, 1, &rc_addr);
+        /* report connection state if device is AVRCP target */
+        if (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG) {
+            HAL_CBACK(bt_rc_ctrl_callbacks, connection_state_cb, TRUE, &rc_addr);
+        }
 #endif
     }
     else
@@ -456,10 +460,6 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
         BTIF_TRACE_ERROR2("%s Connect failed with error code: %d",
             __FUNCTION__, p_rc_open->status);
         btif_rc_cb.rc_connected = FALSE;
-#if (AVRC_CTLR_INCLUDED == TRUE)
-        bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
-        HAL_CBACK(bt_rc_callbacks, connection_state_cb, 0, &rc_addr);
-#endif
     }
 }
 
@@ -475,6 +475,7 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
 {
 #if (AVRC_CTLR_INCLUDED == TRUE)
     bt_bdaddr_t rc_addr;
+    tBTA_AV_FEAT features;
 #endif
     BTIF_TRACE_DEBUG2("%s: rc_handle: %d", __FUNCTION__, p_rc_close->rc_handle);
 
@@ -482,6 +483,9 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
     btif_rc_cb.rc_connected = FALSE;
     memset(btif_rc_cb.rc_addr, 0, sizeof(BD_ADDR));
     memset(btif_rc_cb.rc_notif, 0, sizeof(btif_rc_cb.rc_notif));
+#if (AVRC_CTLR_INCLUDED == TRUE)
+    features = btif_rc_cb.rc_features;
+#endif
     btif_rc_cb.rc_features = 0;
     btif_rc_cb.rc_vol_label=MAX_LABEL;
     btif_rc_cb.rc_volume=MAX_VOLUME;
@@ -492,7 +496,10 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
 #endif
     memset(btif_rc_cb.rc_addr, 0, sizeof(BD_ADDR));
 #if (AVRC_CTLR_INCLUDED == TRUE)
-    HAL_CBACK(bt_rc_callbacks, connection_state_cb, 0, &rc_addr);
+    /* report connection state if device is AVRCP target */
+    if (features & BTA_AV_FEAT_RCTG) {
+        HAL_CBACK(bt_rc_ctrl_callbacks, connection_state_cb, FALSE, &rc_addr);
+    }
 #endif
 }
 
@@ -624,23 +631,8 @@ void handle_rc_passthrough_rsp ( tBTA_AV_REMOTE_RSP *p_remote_rsp)
 
         BTIF_TRACE_DEBUG3("%s: rc_id=%d status=%s", __FUNCTION__, p_remote_rsp->rc_id, status);
 
-        switch (p_remote_rsp->rc_id)
-        {
-            case BTA_AV_RC_PLAY:
-            case BTA_AV_RC_PAUSE:
-            case BTA_AV_RC_VOL_UP:
-            case BTA_AV_RC_VOL_DOWN:
-            case BTA_AV_RC_STOP:
-            {
-                release_transaction(p_remote_rsp->label);
-                HAL_CBACK(bt_rc_callbacks, passthrough_rsp_cb, p_remote_rsp->rc_id, key_state);
-                return;
-            }
-            default:
-                BTIF_TRACE_ERROR3("%s AVRCP: not implemented button 0x%02X %s", __FUNCTION__,
-                        p_remote_rsp->rc_id, status);
-        }
-
+        release_transaction(p_remote_rsp->label);
+        HAL_CBACK(bt_rc_ctrl_callbacks, passthrough_rsp_cb, p_remote_rsp->rc_id, key_state);
     }
     else
     {
@@ -1220,6 +1212,32 @@ static bt_status_t init(btrc_callbacks_t* callbacks )
     return result;
 }
 
+/*******************************************************************************
+**
+** Function         init_ctrl
+**
+** Description      Initializes the AVRC interface
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+static bt_status_t init_ctrl(btrc_ctrl_callbacks_t* callbacks )
+{
+    BTIF_TRACE_EVENT1("## %s ##", __FUNCTION__);
+    bt_status_t result = BT_STATUS_SUCCESS;
+
+    if (bt_rc_ctrl_callbacks)
+        return BT_STATUS_DONE;
+
+    bt_rc_ctrl_callbacks = callbacks;
+    memset (&btif_rc_cb, 0, sizeof(btif_rc_cb));
+    btif_rc_cb.rc_vol_label=MAX_LABEL;
+    btif_rc_cb.rc_volume=MAX_VOLUME;
+    lbl_init();
+
+    return result;
+}
+
 /***************************************************************************
 **
 ** Function         get_play_status_rsp
@@ -1564,7 +1582,7 @@ static void cleanup()
 }
 
 
-static bt_status_t send_passthrough_cmd(uint8_t key_code, uint8_t key_state)
+static bt_status_t send_passthrough_cmd(bt_bdaddr_t *bd_addr, uint8_t key_code, uint8_t key_state)
 {
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
 #if (AVRC_CTLR_INCLUDED == TRUE)
@@ -1613,6 +1631,12 @@ static const btrc_interface_t bt_rc_interface = {
     NULL, /* set_player_app_value_rsp */
     register_notification_rsp,
     set_volume,
+    cleanup,
+};
+
+static const btrc_ctrl_interface_t bt_rc_ctrl_interface = {
+    sizeof(bt_rc_ctrl_interface),
+    init_ctrl,
     send_passthrough_cmd,
     cleanup,
 };
@@ -1621,7 +1645,7 @@ static const btrc_interface_t bt_rc_interface = {
 **
 ** Function         btif_rc_get_interface
 **
-** Description      Get the AVRCP callback interface
+** Description      Get the AVRCP Target callback interface
 **
 ** Returns          btav_interface_t
 **
@@ -1630,6 +1654,21 @@ const btrc_interface_t *btif_rc_get_interface(void)
 {
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
     return &bt_rc_interface;
+}
+
+/*******************************************************************************
+**
+** Function         btif_rc_ctrl_get_interface
+**
+** Description      Get the AVRCP Controller callback interface
+**
+** Returns          btav_interface_t
+**
+*******************************************************************************/
+const btrc_ctrl_interface_t *btif_rc_ctrl_get_interface(void)
+{
+    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
+    return &bt_rc_ctrl_interface;
 }
 
 /*******************************************************************************
