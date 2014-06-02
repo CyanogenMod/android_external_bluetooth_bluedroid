@@ -1296,7 +1296,7 @@ and USER_HW_DISABLE_API macros */
 #endif
 
 #ifndef BLE_PRIVACY_SPT
-#define BLE_PRIVACY_SPT      TRUE
+#define BLE_PRIVACY_SPT      FALSE
 #endif
 
 #ifndef BLE_MULTI_ADV_INCLUDED

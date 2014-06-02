@@ -251,7 +251,7 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
     UINT16_TO_STREAM (pp, p_params->adv_int_max);
     UINT8_TO_STREAM  (pp, p_params->adv_type);
 
-#if BLE_PRIVACY_SPT == TRUE
+#if BLE_PRIVACY_SPT
     if (btm_cb.ble_ctr_cb.privacy)
     {
         UINT8_TO_STREAM  (pp, BLE_ADDR_RANDOM);
@@ -295,7 +295,7 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
     {
         p_inst->adv_evt = p_params->adv_type;
 
-#if BLE_PRIVACY_SPT == TRUE
+#if BLE_PRIVACY_SPT
         if (btm_cb.ble_ctr_cb.privacy)
         {
             /* start timer */
@@ -304,7 +304,6 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
                              BTM_BLE_PRIVATE_ADDR_INT);
         }
 #endif
-
         btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_SET_PARAM, p_inst->inst_id, cb_evt);
     }
     return rt;
