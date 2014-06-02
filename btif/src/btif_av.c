@@ -367,6 +367,10 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             {
                 bdcpy(btif_av_cb.peer_bda.address, ((tBTA_AV*)p_data)->pend.bd_addr);
             }
+
+            // Only for AVDTP connection request move to opening state
+            if (event == BTA_AV_PENDING_EVT)
+                btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
             HAL_CBACK(bt_av_callbacks, connection_priority_cb, &(btif_av_cb.peer_bda));
             break;
 
@@ -495,7 +499,11 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
             BTIF_TRACE_WARNING0("Moved from idle by outgoing Connection request");
             BTA_AvDisconnect(((tBTA_AV*)p_data)->pend.bd_addr);
             break;
-
+        case BTIF_AV_DISCONNECT_REQ_EVT:
+            HAL_CBACK(bt_av_callbacks, connection_state_cb,
+                BTAV_CONNECTION_STATE_DISCONNECTED, &(btif_av_cb.peer_bda));
+            btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
+            break;
         CHECK_RC_EVENT(event, p_data);
 
         default:
@@ -1194,12 +1202,10 @@ static void allow_connection(int is_valid)
             {
                 BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
                        TRUE, BTA_SEC_NONE);
-                btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
             }
             else
             {
                 BTA_AvDisconnect(idle_rc_data.pend.bd_addr);
-                memset(&btif_av_cb.peer_bda, 0, sizeof(bt_bdaddr_t));
             }
             break;
 

@@ -4723,6 +4723,9 @@ void bta_dm_encrypt_cback(BD_ADDR bd_addr, void *p_ref_data, tBTM_STATUS result)
         case BTM_BAD_RF:
             bta_status = BTA_BAD_RF;
             break;
+        case BTM_DEVICE_TIMEOUT:
+            bta_status = BTA_TIMEOUT;
+            break;
         default:
             bta_status = BTA_FAILURE;
             break;
@@ -4789,6 +4792,28 @@ void bta_dm_set_afh_channels(tBTA_DM_MSG * p_data)
 void bta_dm_set_afh_channel_assesment (tBTA_DM_MSG * p_data)
 {
     BTM_SetAfhChannelAssessment(p_data->set_afh_channel_assessment.enable_or_disable);
+}
+
+BOOLEAN bta_dm_check_if_only_hd_connected(BD_ADDR peer_addr)
+{
+    UINT8 j;
+    APPL_TRACE_DEBUG1("bta_dm_check_if_only_hd_connected: count(%d)",
+        bta_dm_conn_srvcs.count);
+
+    for(j=0; j<bta_dm_conn_srvcs.count; j++)
+    {
+        /* check if other profiles other than hid are connected */
+        if((bta_dm_conn_srvcs.conn_srvc[j].id != BTA_ID_HD)
+            && !bdcmp(bta_dm_conn_srvcs.conn_srvc[j].peer_bdaddr, peer_addr)) {
+            APPL_TRACE_DEBUG1("bta_dm_check_if_only_hd_connected: "
+                "Some other profile (id=%d) except HID connected",
+                bta_dm_conn_srvcs.conn_srvc[j].id);
+            return FALSE;
+        }
+    }
+
+    APPL_TRACE_DEBUG0("bta_dm_check_if_only_hd_connected: returning TRUE");
+    return TRUE;
 }
 
 #if (BLE_INCLUDED == TRUE)

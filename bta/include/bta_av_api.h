@@ -252,9 +252,10 @@ typedef UINT8 tBTA_AV_ERR;
 #define BTA_AV_BROWSE_MSG_EVT   20      /* Browse MSG EVT */
 #define BTA_AV_MEDIA_SINK_CFG_EVT    21      /* sending command to Media Task */
 #define BTA_AV_MEDIA_DATA_EVT   22      /* sending command to Media Task */
-/* Max BTA event */
-#define BTA_AV_MAX_EVT          23
+#define BTA_AV_SM_PRIORITY_EVT  23       /* if priority of device is 0 then move back to idle */
 
+/* Max BTA event */
+#define BTA_AV_MAX_EVT          24
 
 typedef UINT8 tBTA_AV_EVT;
 

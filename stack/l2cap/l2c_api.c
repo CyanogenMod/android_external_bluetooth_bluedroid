@@ -54,7 +54,7 @@ UINT16 L2CA_Register (UINT16 psm, tL2CAP_APPL_INFO *p_cb_info)
     tL2C_RCB    *p_rcb;
     UINT16      vpsm = psm;
 
-    L2CAP_TRACE_API1 ("L2CAP - L2CA_Register() called for PSM: 0x%04x", psm);
+    L2CAP_TRACE_WARNING1 ("L2CAP - L2CA_Register() called for PSM: 0x%04x", psm);
 
     /* Verify that the required callback info has been filled in
     **      Note:  Connection callbacks are required but not checked
@@ -125,7 +125,7 @@ void L2CA_Deregister (UINT16 psm)
     tL2C_LCB    *p_lcb;
     int         ii;
 
-    L2CAP_TRACE_API1 ("L2CAP - L2CA_Deregister() called for PSM: 0x%04x", psm);
+    L2CAP_TRACE_WARNING1 ("L2CAP - L2CA_Deregister() called for PSM: 0x%04x", psm);
 
     if ((p_rcb = l2cu_find_rcb_by_psm (psm)) != NULL)
     {
@@ -232,8 +232,8 @@ UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO *p_e
     tL2C_CCB        *p_ccb;
     tL2C_RCB        *p_rcb;
 
-    L2CAP_TRACE_API6 ("L2CA_ErtmConnectReq()  PSM: 0x%04x  BDA: %08x%04x  p_ertm_info: 0x%08x allowed:0x%x preferred:%d", psm,
-                      (p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3],
+    L2CAP_TRACE_WARNING6 ("L2CA_ErtmConnectReq()  PSM: 0x%04x  BDA: %08x%04x  p_ertm_info: 0x%08x allowed:0x%x preferred:%d",
+                      psm,(p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3],
                       (p_bd_addr[4]<<8)+p_bd_addr[5], p_ertm_info,
                       (p_ertm_info) ? p_ertm_info->allowed_modes : 0, (p_ertm_info) ? p_ertm_info->preferred_mode : 0);
 
@@ -353,7 +353,7 @@ BOOLEAN L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 re
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
 
-    L2CAP_TRACE_API6 ("L2CA_ErtmConnectRsp()  CID: 0x%04x  Result: %d  Status: %d  BDA: %08x%04x  p_ertm_info:0x%08x",
+    L2CAP_TRACE_WARNING6 ("L2CA_ErtmConnectRsp() CID: 0x%04x Result: %d  Status: %d BDA: %08x%04x p_ertm_info:0x%08x",
                       lcid, result, status,
                       (p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3],
                       (p_bd_addr[4]<<8)+p_bd_addr[5], p_ertm_info);
@@ -531,7 +531,7 @@ BOOLEAN L2CA_DisconnectReq (UINT16 cid)
 {
     tL2C_CCB        *p_ccb;
 
-    L2CAP_TRACE_API1 ("L2CA_DisconnectReq()  CID: 0x%04x", cid);
+    L2CAP_TRACE_WARNING1 ("L2CA_DisconnectReq()  CID: 0x%04x", cid);
 
     /* Find the channel control block. We don't know the link it is on. */
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
@@ -559,7 +559,7 @@ BOOLEAN L2CA_DisconnectRsp (UINT16 cid)
 {
     tL2C_CCB        *p_ccb;
 
-    L2CAP_TRACE_API1 ("L2CA_DisconnectRsp()  CID: 0x%04x", cid);
+    L2CAP_TRACE_WARNING1 ("L2CA_DisconnectRsp()  CID: 0x%04x", cid);
 
     /* Find the channel control block. We don't know the link it is on. */
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
@@ -827,7 +827,7 @@ UINT8 L2CA_SetTraceLevel (UINT8 new_level)
 *******************************************************************************/
 UINT8 L2CA_SetDesireRole (UINT8 new_role)
 {
-    L2CAP_TRACE_API2 ("L2CA_SetDesireRole() new:x%x, disallow_switch:%d",
+    L2CAP_TRACE_WARNING2 ("L2CA_SetDesireRole() new:x%x, disallow_switch:%d",
         new_role, l2cb.disallow_switch);
 
     if (L2CAP_ROLE_CHECK_SWITCH != (L2CAP_ROLE_CHECK_SWITCH & new_role))
@@ -942,7 +942,7 @@ BOOLEAN L2CA_FlowControl (UINT16 cid, BOOLEAN data_enabled)
     tL2C_CCB  *p_ccb;
     BOOLEAN   on_off = !data_enabled;
 
-    L2CAP_TRACE_API2 ("L2CA_FlowControl(%d)  CID: 0x%04x", on_off, cid);
+    L2CAP_TRACE_WARNING2 ("L2CA_FlowControl(%d)  CID: 0x%04x", on_off, cid);
 
     /* Find the channel control block. We don't know the link it is on. */
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)

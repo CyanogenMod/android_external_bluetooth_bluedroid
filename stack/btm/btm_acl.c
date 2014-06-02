@@ -60,6 +60,10 @@ static void btm_save_remote_device_role(BD_ADDR bd_addr, UINT8 role)
 {
     UINT8 i, j;
     if (role == BTM_ROLE_UNDEFINED) return;
+    BTM_TRACE_WARNING6 ("BTM: RemBdAddr: %02x%02x%02x%02x%02x%02x",
+                         bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3],
+                         bd_addr[4], bd_addr[5]);
+    BTM_TRACE_WARNING1 ("BTM: remote role: 0x%02x", role);
 
     for (i = 0; i < BTM_ROLE_DEVICE_NUM; i++) {
         if ((btm_cb.previous_connected_role[i] != BTM_ROLE_UNDEFINED) &&
@@ -196,7 +200,7 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
     tACL_CONN        *p;
     UINT8             xx;
 
-    BTM_TRACE_DEBUG3 ("btm_acl_created hci_handle=%d link_role=%d  is_le_link=%d",
+    BTM_TRACE_WARNING3 ("btm_acl_created hci_handle=%d link_role=%d  is_le_link=%d",
                       hci_handle,link_role, is_le_link);
     /* Ensure we don't have duplicates */
     p = btm_bda_to_acl(bda);
@@ -566,6 +570,10 @@ tBTM_STATUS BTM_GetRole (BD_ADDR remote_bd_addr, UINT8 *p_role)
 
     /* Get the current role */
     *p_role = p->link_role;
+    BTM_TRACE_WARNING1 ("BTM: Local device role : 0x%02x", *p_role );
+    BTM_TRACE_WARNING6 ("BTM: RemBdAddr: %02x%02x%02x%02x%02x%02x",
+                         remote_bd_addr[0], remote_bd_addr[1], remote_bd_addr[2], remote_bd_addr[3],
+                         remote_bd_addr[4], remote_bd_addr[5]);
     return(BTM_SUCCESS);
 }
 

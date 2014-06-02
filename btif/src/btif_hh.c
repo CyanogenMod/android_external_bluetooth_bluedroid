@@ -790,6 +790,7 @@ void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type, UINT1
     int i = 0;
     if (p_dev->p_buf != NULL) {
         GKI_freebuf(p_dev->p_buf);
+        p_dev->p_buf = NULL;
     }
     p_dev->p_buf = GKI_getbuf((UINT16) (len + BTA_HH_MIN_OFFSET + sizeof(BT_HDR)));
     if (p_dev->p_buf == NULL) {
@@ -1031,8 +1032,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             p_data->dev_status.status, p_data->dev_status.handle);
             p_dev = btif_hh_find_connected_dev_by_handle(p_data->dev_status.handle);
             if (p_dev != NULL && p_dev->p_buf != NULL) {
-                BTIF_TRACE_DEBUG0("Freeing buffer..." );
-                GKI_freebuf(p_dev->p_buf);
+                BTIF_TRACE_DEBUG0("Buffer already freed, assigning pointer to NULL" );
                 p_dev->p_buf = NULL;
             }
             break;
@@ -1764,6 +1764,7 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
 
         if (p_dev->p_buf != NULL) {
             GKI_freebuf(p_dev->p_buf);
+            p_dev->p_buf = NULL;
         }
         hexbuf = GKI_getbuf((UINT16) (strlen(report)));
         if (hexbuf == NULL) {
@@ -1839,6 +1840,7 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
 
         if (p_dev->p_buf != NULL) {
             GKI_freebuf(p_dev->p_buf);
+            p_dev->p_buf = NULL;
         }
         hexbuf = GKI_getbuf((UINT16) (strlen(data)));
         if (hexbuf == NULL) {

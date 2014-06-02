@@ -1127,8 +1127,18 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     p_scb->codec_type = p_evt_cfg->codec_info[BTA_AV_CODEC_TYPE_IDX];
     bta_av_save_addr(p_scb, p_data->str_msg.bd_addr);
 
-    /* Clear collision mask */
-    p_scb->coll_mask = 0;
+
+    if (p_scb->coll_mask & BTA_AV_COLL_API_CALLED)
+    {
+        APPL_TRACE_DEBUG0(" bta_av_config_ind ReSetting collision mask  ");
+        /* Clear collision mask */
+        p_scb->coll_mask = 0;
+    }
+    else
+    {
+        APPL_TRACE_WARNING0(" bta_av_config_ind config_ind called before Open");
+        p_scb->coll_mask |= BTA_AV_COLL_SETCONFIG_IND;
+    }
     bta_sys_stop_timer(&bta_av_cb.acp_sig_tmr);
 
     /* if no codec parameters in configuration, fail */
@@ -3009,6 +3019,14 @@ void bta_av_open_at_inc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     memcpy (&(p_scb->open_api), &(p_data->api_open), sizeof(tBTA_AV_API_OPEN));
 
+    if (p_scb->coll_mask & BTA_AV_COLL_SETCONFIG_IND)
+    {
+        APPL_TRACE_WARNING0(" SetConfig is already called, timer stopped");
+        /* make mask 0, timer shld have already been closed in setconfig_ind */
+        p_scb->coll_mask = 0;
+        return;
+    }
+
     if (p_scb->coll_mask & BTA_AV_COLL_INC_TMR)
     {
         p_scb->coll_mask |= BTA_AV_COLL_API_CALLED;
@@ -3020,6 +3038,7 @@ void bta_av_open_at_inc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     {
         /* SNK did not start signalling, API was called N seconds timeout. */
         /* We need to switch to INIT state and start opening connection. */
+        APPL_TRACE_ERROR0(" bta_av_open_at_inc ReSetting collision mask  ");
         p_scb->coll_mask = 0;
         bta_av_set_scb_sst_init (p_scb);
 

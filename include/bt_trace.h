@@ -437,7 +437,7 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 #endif
 
 #ifndef APPL_INITIAL_TRACE_LEVEL
-#define APPL_INITIAL_TRACE_LEVEL            BT_TRACE_LEVEL_WARNING
+#define APPL_INITIAL_TRACE_LEVEL            BT_TRACE_LEVEL_DEBUG
 #endif
 
 #ifndef BT_TRACE_APPL

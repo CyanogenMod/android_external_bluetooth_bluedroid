@@ -1369,6 +1369,8 @@ void btm_ble_encryption_failure(BD_ADDR bd_addr,UINT8 status)
     {
         if (status==HCI_ERR_CONN_FAILED_ESTABLISHMENT)
             btm_sec_dev_rec_cback_event(p_dev_rec, BTM_BAD_RF);
+        else if (status == BTM_DEVICE_TIMEOUT)
+            btm_sec_dev_rec_cback_event(p_dev_rec, BTM_DEVICE_TIMEOUT);
         else
             btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING);
 

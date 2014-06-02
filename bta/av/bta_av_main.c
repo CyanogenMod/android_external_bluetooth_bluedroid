@@ -530,7 +530,11 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             }
 
             /* Set the Capturing service class bit */
+#ifdef BTA_AVK_INCLUDED
+            cod.service = BTM_COD_SERVICE_CAPTURING | BTM_COD_SERVICE_RENDERING;
+#else
             cod.service = BTM_COD_SERVICE_CAPTURING;
+#endif
             utl_set_device_class(&cod, BTA_UTL_SET_COD_SERVICE_CLASS);
         } /* if 1st channel */
 
