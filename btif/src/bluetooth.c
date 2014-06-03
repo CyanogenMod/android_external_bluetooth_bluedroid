@@ -240,7 +240,6 @@ static void cleanup( void )
         return;
 
     btif_shutdown_bluetooth();
-    bt_utils_cleanup();
 
     /* hal callbacks reset upon shutdown complete callback */
 

@@ -161,7 +161,6 @@ extern BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
 extern void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr);
 extern BOOLEAN check_cod_hid(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
 extern int  scru_ascii_2_hex(char *p_ascii, int len, UINT8 *p_hex);
-extern void btm_sec_set_hid_as_paired(BD_ADDR bda, BOOLEAN paired);
 
 /*****************************************************************************
 **  Local Function prototypes
@@ -493,11 +492,6 @@ BOOLEAN btif_hh_add_added_dev(bt_bdaddr_t bda, tBTA_HH_ATTR_MASK attr_mask)
             memcpy(&(btif_hh_cb.added_devices[i].bd_addr), &bda, BD_ADDR_LEN);
             btif_hh_cb.added_devices[i].dev_handle = BTA_HH_INVALID_HANDLE;
             btif_hh_cb.added_devices[i].attr_mask  = attr_mask;
-            /* Set linkkey as known in internal security database for pointing devices */
-            if (check_cod(&bda, COD_HID_POINTING))
-            {
-                btm_sec_set_hid_as_paired(bda.address, TRUE);
-            }
             return TRUE;
         }
     }
@@ -541,20 +535,9 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
         return;
     }
 
-    /* Set linkkey as unknown in internal security database for pointing devices */
-    if (check_cod(&(p_dev->bd_addr), COD_HID_POINTING))
-    {
-        btm_sec_set_hid_as_paired((p_dev->bd_addr).address, FALSE);
-    }
-    //send hal call back to reset the profile conn state here
-    BTIF_TRACE_DEBUG0("sending hal cback to disconnect HH Device");
-    btif_hh_cb.status = BTIF_HH_DEV_DISCONNECTED;
-    p_dev->dev_status = BTHH_CONN_STATE_DISCONNECTED;
-    if (memcmp(&btif_hh_cb.connecting_dev_bd_addr, &(p_dev->bd_addr), BD_ADDR_LEN) == 0)
-    {
-        memset(&btif_hh_cb.connecting_dev_bd_addr, 0, BD_ADDR_LEN);
-    }
-    HAL_CBACK(bt_hh_callbacks, connection_state_cb,&(p_dev->bd_addr), p_dev->dev_status);
+    /* need to notify up-layer device is disconnected to avoid state out of sync with up-layer */
+    HAL_CBACK(bt_hh_callbacks, connection_state_cb, &(p_dev->bd_addr), BTHH_CONN_STATE_DISCONNECTED);
+
     p_dev->dev_status = BTHH_CONN_STATE_UNKNOWN;
     p_dev->dev_handle = BTA_HH_INVALID_HANDLE;
     if (btif_hh_cb.device_num > 0) {
@@ -1083,18 +1066,18 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             }
             {
                 char *cached_name = NULL;
-                bt_property_t remote_property;
-                bt_bdname_t hid_dev_name;
-
-                memset(&remote_property, 0, sizeof(remote_property));
-                BTIF_STORAGE_FILL_PROPERTY(&remote_property, BT_PROPERTY_BDNAME,
-                                           sizeof(hid_dev_name), &hid_dev_name);
-                btif_storage_get_remote_device_property(&p_dev->bd_addr,
-                                                        &remote_property);
-                cached_name = (char *)hid_dev_name.name;
-                char name[] = "Broadcom Bluetooth HID";
-                if (cached_name == NULL) {
-                    cached_name = name;
+                bt_bdname_t bdname;
+                bt_property_t prop_name;
+                BTIF_STORAGE_FILL_PROPERTY(&prop_name, BT_PROPERTY_BDNAME,
+                                           sizeof(bt_bdname_t), &bdname);
+                if (btif_storage_get_remote_device_property(
+                    &p_dev->bd_addr, &prop_name) == BT_STATUS_SUCCESS)
+                {
+                    cached_name = (char *)bdname.name;
+                }
+                else
+                {
+                    cached_name = "Bluetooth HID";
                 }
 
                 BTIF_TRACE_WARNING2("%s: name = %s", __FUNCTION__, cached_name);

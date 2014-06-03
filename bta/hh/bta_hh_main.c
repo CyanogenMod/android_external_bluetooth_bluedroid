@@ -67,7 +67,7 @@ enum
     BTA_HH_START_SEC,
     BTA_HH_SEC_CMPL,
     BTA_HH_LE_UPDATE_SCPP,
-
+    BTA_HH_GATT_ENC_CMPL,
 #endif
     BTA_HH_NUM_ACTIONS
 };
@@ -108,6 +108,7 @@ const tBTA_HH_ACTION bta_hh_action[] =
     ,bta_hh_start_security
     ,bta_hh_security_cmpl
     ,bta_hh_le_update_scpp
+    ,bta_hh_le_notify_enc_cmpl
 #endif
 };
 
@@ -143,6 +144,7 @@ const UINT8 bta_hh_st_idle[][BTA_HH_NUM_COLS] =
 /* READ_DESCR_CMPL_EVT */        ,{BTA_HH_IGNORE,           BTA_HH_IDLE_ST  }
 /* WRITE_DESCR_CMPL_EVT */       ,{BTA_HH_IGNORE,           BTA_HH_IDLE_ST   }
 /* SCPP_UPDATE_EVT */            ,{BTA_HH_IGNORE,           BTA_HH_IDLE_ST   }
+/* BTA_HH_GATT_ENC_CMPL_EVT */   ,{BTA_HH_IGNORE,           BTA_HH_IDLE_ST   }
 #endif
 
 };
@@ -174,6 +176,7 @@ const UINT8 bta_hh_st_w4_conn[][BTA_HH_NUM_COLS] =
 /* READ_DESCR_CMPL_EVT */        ,{BTA_HH_W4_LE_READ_DESCR, BTA_HH_W4_CONN_ST  }
 /* WRITE_DESCR_CMPL_EVT */       ,{BTA_HH_WRITE_DESCR,   BTA_HH_W4_CONN_ST   }
 /* SCPP_UPDATE_EVT */            ,{BTA_HH_IGNORE,           BTA_HH_W4_CONN_ST   }
+/* BTA_HH_GATT_ENC_CMPL_EVT */   ,{BTA_HH_IGNORE,        BTA_HH_W4_CONN_ST }
 #endif
 };
 
@@ -204,6 +207,7 @@ const UINT8 bta_hh_st_connected[][BTA_HH_NUM_COLS] =
 /* READ_DESCR_CMPL_EVT */        ,{BTA_HH_LE_READ_DESCR, BTA_HH_CONN_ST     }   /* do not currently read any descr when connection up */
 /* WRITE_DESCR_CMPL_EVT */       ,{BTA_HH_WRITE_DESCR,   BTA_HH_CONN_ST     }   /* do not currently write any descr when connection up */
 /* SCPP_UPDATE_EVT */            ,{BTA_HH_LE_UPDATE_SCPP,  BTA_HH_CONN_ST   }
+/* BTA_HH_GATT_ENC_CMPL_EVT */   ,{BTA_HH_IGNORE,        BTA_HH_CONN_ST     }
 #endif
 };
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
@@ -232,6 +236,7 @@ const UINT8 bta_hh_st_w4_sec[][BTA_HH_NUM_COLS] =
 /* READ_DESCR_CMPL_EVT */         {BTA_HH_IGNORE,        BTA_HH_W4_SEC   },
 /* WRITE_DESCR_CMPL_EVT */        {BTA_HH_IGNORE,        BTA_HH_W4_SEC   }
 /* SCPP_UPDATE_EVT */            ,{BTA_HH_IGNORE,        BTA_HH_W4_SEC   }
+/* BTA_HH_GATT_ENC_CMPL_EVT */   ,{BTA_HH_GATT_ENC_CMPL, BTA_HH_W4_SEC   }
 };
 #endif
 

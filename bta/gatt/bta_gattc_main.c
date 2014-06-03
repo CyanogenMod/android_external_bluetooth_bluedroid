@@ -385,7 +385,15 @@ BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
         case BTA_GATTC_API_LISTEN_EVT:
             bta_gattc_listen(p_cb, (tBTA_GATTC_DATA *) p_msg);
             break;
+        case BTA_GATTC_API_BROADCAST_EVT:
+            bta_gattc_broadcast(p_cb, (tBTA_GATTC_DATA *) p_msg);
+            break;
 #endif
+
+        case BTA_GATTC_ENC_CMPL_EVT:
+            bta_gattc_process_enc_cmpl(p_cb, (tBTA_GATTC_DATA *) p_msg);
+            break;
+
         default:
             if (p_msg->event == BTA_GATTC_INT_CONN_EVT)
                 p_clcb = bta_gattc_find_int_conn_clcb((tBTA_GATTC_DATA *) p_msg);

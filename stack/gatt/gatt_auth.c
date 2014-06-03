@@ -228,9 +228,18 @@ void gatt_notify_enc_cmpl(BD_ADDR bd_addr)
     tGATT_TCB   *p_tcb;
     tGATT_PENDING_ENC_CLCB  *p_buf;
     UINT16       count;
+    UINT8        i = 0;
 
     if ((p_tcb = gatt_find_tcb_by_addr(bd_addr)) != NULL)
     {
+        for (i = 0; i < GATT_MAX_APPS; i++)
+        {
+            if (gatt_cb.cl_rcb[i].in_use && gatt_cb.cl_rcb[i].app_cb.p_enc_cmpl_cb)
+            {
+                (*gatt_cb.cl_rcb[i].app_cb.p_enc_cmpl_cb)(gatt_cb.cl_rcb[i].gatt_if, bd_addr);
+            }
+        }
+
         if (gatt_get_sec_act(p_tcb) == GATT_SEC_ENC_PENDING)
         {
             gatt_set_sec_act(p_tcb, GATT_SEC_NONE);

@@ -1156,7 +1156,6 @@ L2C_API extern BOOLEAN L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, BOOLEAN 
 *******************************************************************************/
 L2C_API void L2CA_HandleConnUpdateEvent (UINT16 handle, UINT8 status);
 
-
 /*******************************************************************************
 **
 ** Function         L2CA_GetBleConnRole

@@ -573,7 +573,8 @@ typedef void (tGATT_CONN_CBACK) (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, 
 /* attribute request callback for ATT server */
 typedef void  (tGATT_REQ_CBACK )(UINT16 conn_id, UINT32 trans_id, tGATTS_REQ_TYPE type, tGATTS_DATA *p_data);
 
-
+/* Define a callback function when encryption is established. */
+typedef void (tGATT_ENC_CMPL_CB)(tGATT_IF gatt_if, BD_ADDR bda);
 
 
 /* Define the structure that applications use to register with
@@ -587,6 +588,7 @@ typedef struct
     tGATT_DISC_RES_CB               *p_disc_res_cb;
     tGATT_DISC_CMPL_CB              *p_disc_cmpl_cb;
     tGATT_REQ_CBACK                 *p_req_cb;
+    tGATT_ENC_CMPL_CB               *p_enc_cmpl_cb;
 } tGATT_CBACK;
 
 /***********************  Start Handle Management Definitions   **********************

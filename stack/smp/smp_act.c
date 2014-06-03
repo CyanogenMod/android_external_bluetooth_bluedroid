@@ -310,9 +310,6 @@ void smp_proc_sec_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
             p_cb->peer_auth_req = auth_req;
             p_cb->loc_r_key = p_cb->loc_i_key = SMP_SEC_DEFAULT_KEY ;
             p_cb->cb_evt = SMP_SEC_REQUEST_EVT;
-            btu_stop_timer (&p_cb->rsp_timer_ent);
-            btu_start_timer (&p_cb->rsp_timer_ent, BTU_TTYPE_SMP_PAIRING_CMD,
-                   SMP_WAIT_FOR_RSP_TOUT);
             break;
 
         case BTM_BLE_SEC_REQ_ACT_DISCARD:
@@ -908,15 +905,13 @@ void smp_pair_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_delay_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
-    SMP_TRACE_DEBUG2 ("smp_delay_terminate reason=%d, status=%d",p_data->reason, p_cb->status);
+    SMP_TRACE_DEBUG0 ("smp_delay_terminate ");
 
     btu_stop_timer (&p_cb->rsp_timer_ent);
 
-    /* if remote user terminate connection and host did not cancel the pairing, finish SMP pairing as normal */
-    if (p_data->reason == HCI_ERR_PEER_USER && p_cb->status !=SMP_PAIR_FAIL_UNKNOWN
-            && p_cb->status != SMP_PASSKEY_ENTRY_FAIL)
-        p_cb->status = SMP_SUCCESS;
-    else
+    /* if remote user terminate connection, keep the previous status */
+    /* this is to avoid reporting reverse status to uplayer */
+    if (p_data->reason != HCI_ERR_PEER_USER)
         p_cb->status = SMP_CONN_TOUT;
 
     smp_proc_pairing_cmpl(p_cb);

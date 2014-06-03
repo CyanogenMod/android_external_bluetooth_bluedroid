@@ -1056,5 +1056,31 @@ void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR target
     return;
 }
 
+/*******************************************************************************
+**
+** Function         BTA_GATTC_Broadcast
+**
+** Description      Start broadcasting (non-connectable advertisements)
+**
+** Parameters       client_if: client interface.
+**                  start: to start or stop listening for connection
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, BOOLEAN start)
+{
+    tBTA_GATTC_API_LISTEN  *p_buf;
+
+    if ((p_buf = (tBTA_GATTC_API_LISTEN *) GKI_getbuf((UINT16)(sizeof(tBTA_GATTC_API_LISTEN) + BD_ADDR_LEN))) != NULL)
+    {
+        p_buf->hdr.event = BTA_GATTC_API_BROADCAST_EVT;
+        p_buf->client_if = client_if;
+        p_buf->start = start;
+        bta_sys_sendmsg(p_buf);
+    }
+    return;
+}
+
 #endif /* BTA_GATT_INCLUDED */
 
