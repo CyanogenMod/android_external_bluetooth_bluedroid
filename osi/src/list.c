@@ -185,7 +185,7 @@ const list_node_t *list_begin(const list_t *list) {
 // this function returns the value of an invalid iterator for the given list.
 // When an iterator has the same value as what's returned by this function, you
 // may no longer call |list_next| with the iterator. |list| may not be NULL.
-const list_node_t *list_end(UNUSED const list_t *list) {
+const list_node_t *list_end(UNUSED_ATTR const list_t *list) {
   assert(list != NULL);
   return NULL;
 }
