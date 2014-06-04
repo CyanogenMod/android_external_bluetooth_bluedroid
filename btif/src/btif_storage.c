@@ -42,7 +42,9 @@
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "bd.h"
+#include "config.h"
 #include "gki.h"
+#include "osi.h"
 #include "bta_hh_api.h"
 #include "btif_hh.h"
 
@@ -82,9 +84,6 @@
 #define BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR "DynamicAddressBlacklist"
 
 #define BTIF_AUTO_PAIR_CONF_VALUE_SEPARATOR ","
-#define BTIF_AUTO_PAIR_CONF_SPACE ' '
-#define BTIF_AUTO_PAIR_CONF_COMMENT '#'
-#define BTIF_AUTO_PAIR_CONF_KEY_VAL_DELIMETER "="
 
 
 /* This is a local property to add a device found */
@@ -1521,59 +1520,34 @@ bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size)
 **                  BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
-
-bt_status_t btif_storage_load_autopair_device_list()
-{
-    char *key_name, *key_value;
-    int i=0;
-    char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
-    char *line;
-    FILE *fp;
-
-    if(!btif_config_exist("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST, NULL))
-    {
-        /* first time loading of auto pair blacklist configuration  */
-
-        fp = fopen (BTIF_AUTO_PAIR_CONF_FILE, "r");
-
-        if (fp == NULL)
-        {
-            ALOGE("%s: Failed to open auto pair blacklist conf file at %s", __FUNCTION__,BTIF_AUTO_PAIR_CONF_FILE );
-            return BT_STATUS_FAIL;
-        }
-
-        /* read through auto_pairing.conf file and create the key value pairs specific to  auto pair blacklist devices */
-        while (fgets(linebuf, BTIF_STORAGE_MAX_LINE_SZ, fp) != NULL)
-        {
-            /* trip  leading white spaces */
-            while (linebuf[i] == BTIF_AUTO_PAIR_CONF_SPACE)
-                i++;
-
-            /* skip  commented lines */
-            if (linebuf[i] == BTIF_AUTO_PAIR_CONF_COMMENT)
-                continue;
-
-            line = (char*)&(linebuf[i]);
-
-            if (line == NULL)
-                continue;
-
-            key_name = strtok(line, BTIF_AUTO_PAIR_CONF_KEY_VAL_DELIMETER);
-
-            if (key_name == NULL)
-                continue;
-            else if((strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_ADDR) == 0) ||
-                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_EXACTNAME) ==0) ||
-                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST) ==0 ) ||
-                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_PARTIALNAME) == 0) ||
-                    (strcmp(key_name, BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR) == 0))
-            {
-                key_value = strtok(NULL, BTIF_AUTO_PAIR_CONF_KEY_VAL_DELIMETER);
-                btif_config_set_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST, key_name, key_value);
-            }
-        }
-        fclose(fp);
+bt_status_t btif_storage_load_autopair_device_list() {
+    // Configuration has already been loaded. No need to reload.
+    if (btif_config_exist("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST, NULL)) {
+        return BT_STATUS_SUCCESS;
     }
+
+    static const char *key_names[] = {
+        BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_ADDR,
+        BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_EXACTNAME,
+        BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST,
+        BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_PARTIALNAME,
+        BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR,
+    };
+
+    config_t *config = config_new(BTIF_AUTO_PAIR_CONF_FILE);
+    if (!config) {
+        ALOGE("%s failed to open auto pair blacklist conf file '%s'.", __func__, BTIF_AUTO_PAIR_CONF_FILE);
+        return BT_STATUS_FAIL;
+    }
+
+    for (size_t i = 0; i < ARRAY_SIZE(key_names); ++i) {
+        const char *value = config_get_string(config, CONFIG_DEFAULT_SECTION, key_names[i], NULL);
+        if (value) {
+            btif_config_set_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST, key_names[i], value);
+        }
+    }
+
+    config_free(config);
     return BT_STATUS_SUCCESS;
 }
 
