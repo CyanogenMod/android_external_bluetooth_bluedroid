@@ -30,6 +30,7 @@
 #include "srvc_api.h"
 #include "btm_int.h"
 #include "utl.h"
+#include "bta_dm_int.h"
 
 #ifndef BTA_HH_LE_RECONN
 #define BTA_HH_LE_RECONN    TRUE
@@ -50,6 +51,8 @@
 #define BTA_HH_SCPP_INST_DEF            0
 
 #define BTA_HH_LE_DISC_CHAR_NUM     8
+
+#define BTA_DM_DISC_CLOSE_HH_TIMER 1000
 static const UINT16 bta_hh_le_disc_char_uuid[BTA_HH_LE_DISC_CHAR_NUM] =
 {
     GATT_UUID_HID_INFORMATION,
@@ -899,6 +902,14 @@ void bta_hh_le_open_cmpl(tBTA_HH_DEV_CB *p_cb)
             bta_hh_le_add_dev_bg_conn(p_cb, TRUE);
         }
 #endif
+    }
+    /* After the completion of service discovery,
+       stop the timer and proceed with the timeout procedure */
+    if(bta_dm_search_cb.gatt_close_timer.in_use)
+    {
+        bta_sys_stop_timer(&bta_dm_search_cb.gatt_close_timer);
+        bta_sys_start_timer(&bta_dm_search_cb.gatt_close_timer, BTA_DM_DISC_CLOSE_TOUT_EVT,
+                             BTA_DM_DISC_CLOSE_HH_TIMER);
     }
 }
 
