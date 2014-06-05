@@ -135,12 +135,15 @@ typedef UINT8 tBTA_GATT_STATUS;
 #define BTA_GATTC_MULT_ADV_DATA_EVT 22  /* Multi ADV data event */
 #define BTA_GATTC_MULT_ADV_DIS_EVT  23  /* Disable Multi ADV event */
 #define BTA_GATTC_CONGEST_EVT       24  /* Congestion event */
-#define BTA_GATTC_BTH_SCAN_ENB_EVT  25 /* Enable batch scan event */
-#define BTA_GATTC_BTH_SCAN_CFG_EVT  26 /* Config storage event */
-#define BTA_GATTC_BTH_SCAN_RD_EVT   27 /* Batch scan reports read event */
-#define BTA_GATTC_BTH_SCAN_THR_EVT  28 /* Batch scan threshold event */
-#define BTA_GATTC_BTH_SCAN_PARAM_EVT 29 /* Batch scan param event */
-#define BTA_GATTC_BTH_SCAN_DIS_EVT  30 /* Disable batch scan event */
+#define BTA_GATTC_BTH_SCAN_ENB_EVT  24 /* Enable batch scan event */
+#define BTA_GATTC_BTH_SCAN_CFG_EVT  25 /* Config storage event */
+#define BTA_GATTC_BTH_SCAN_RD_EVT   26 /* Batch scan reports read event */
+#define BTA_GATTC_BTH_SCAN_THR_EVT  27 /* Batch scan threshold event */
+#define BTA_GATTC_BTH_SCAN_PARAM_EVT 28 /* Batch scan param event */
+#define BTA_GATTC_BTH_SCAN_DIS_EVT  29 /* Disable batch scan event */
+#define BTA_GATTC_SCAN_FLT_CFG_EVT  30 /* Scan filter config event */
+#define BTA_GATTC_SCAN_FLT_PARAM_EVT 31 /* Param filter event */
+#define BTA_GATTC_SCAN_FLT_STATUS_EVT 32 /* Filter status event */
 
 typedef UINT8 tBTA_GATTC_EVT;
 

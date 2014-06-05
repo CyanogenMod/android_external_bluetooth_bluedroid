@@ -32,32 +32,9 @@
 #include "vendor_api.h"
 
 
-#define BTA_DM_BLE_PF_ENABLE_EVT       BTM_BLE_PF_ENABLE
-#define BTA_DM_BLE_PF_CONFIG_EVT       BTM_BLE_PF_CONFIG
-typedef UINT8 tBTA_DM_BLE_PF_EVT;
-
-/* Search callback */
-typedef void (tBTA_DM_SCAN_PF_CBACK)(tBTA_DM_BLE_PF_EVT event, tBTA_DM_BLE_PF_COND_TYPE cfg_cond, tBTA_STATUS status);;
 
 
 #if (BLE_INCLUDED == TRUE && BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
-/*******************************************************************************
-**
-** Function         BTA_DmBleEnableFilterCondition
-**
-** Description      This function is called to enable the adv data payload filter
-**                  condition.
-**
-** Parameters       p_target: enabble the filter condition on a target device; if NULL
-**                            enable the generic scan condition.
-**                  enable: enable or disable the filter condition
-**
-** Returns          void
-**
-*******************************************************************************/
-BTA_API extern void BTA_DmBleEnableFilterCondition(BOOLEAN enable,
-                                                   tBLE_BD_ADDR *p_target,
-                                                   tBTA_DM_SCAN_PF_CBACK *p_cmpl_cback);
 
 /*******************************************************************************
 **
@@ -70,25 +47,6 @@ BTA_API extern void BTA_DmBleEnableFilterCondition(BOOLEAN enable,
 *******************************************************************************/
 BTA_API extern void BTA_BrcmInit (void);
 
-
-/*******************************************************************************
-**
-** Function         BTA_DmBleCfgFilterCondition
-**
-** Description      This function is called to configure the adv data payload filter
-**                  condition.
-**
-** Parameters       action: to read/write/clear
-**                  cond_type: filter condition type.
-**                  p_cond: filter condition paramter
-**
-** Returns          void
-**
-*******************************************************************************/
-BTA_API extern void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
-                                                 tBTA_DM_BLE_PF_COND_TYPE cond_type,
-                                                 tBTA_DM_BLE_PF_COND_PARAM *p_cond,
-                                                 tBTA_DM_SCAN_PF_CBACK *p_cmpl_cback);
 #endif
 
 #ifdef __cplusplus
