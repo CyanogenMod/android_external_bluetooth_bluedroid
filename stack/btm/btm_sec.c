@@ -3233,7 +3233,7 @@ False-positive: evt_data.bd_addr is set at the beginning with:     STREAM_TO_BDA
             p_dev_rec->p_cur_service &&
             (p_dev_rec->p_cur_service->security_flags & BTM_SEC_OUT_AUTHENTICATE))
         {
-            evt_data.auth_req = (p_dev_rec->p_cur_service->security_flags & BTM_SEC_OUT_MITM) ? BTM_AUTH_SP_YES : BTM_AUTH_SP_NO;
+            evt_data.auth_req = (p_dev_rec->p_cur_service->security_flags & BTM_SEC_OUT_MITM) ? BTM_AUTH_SPGB_YES : BTM_AUTH_SPGB_NO;
         }
     }
 
