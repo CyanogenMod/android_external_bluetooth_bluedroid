@@ -253,6 +253,8 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
             strncpy(value, (char*)prop->val, prop->len);
             value[prop->len]='\0';
             btif_config_set_str("Remote", bdstr, BTIF_STORAGE_PATH_REMOTE_ALIASE, value);
+            /* save friendly name immediately */
+            btif_config_save();
             break;
         case BT_PROPERTY_ADAPTER_SCAN_MODE:
             btif_config_set_int("Local", "Adapter",
