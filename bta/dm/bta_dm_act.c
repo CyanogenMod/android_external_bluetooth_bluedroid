@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2003-2012 Broadcom Corporation
+ *  Copyright (C) 2003-2014 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -5462,6 +5462,162 @@ void bta_ble_scan_setup_cb(tBTM_BLE_BATCH_SCAN_EVT evt, tBTM_BLE_REF_VALUE ref_v
        bta_dm_cb.p_setup_cback(bta_evt, ref_value, status);
 }
 
+
+#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+/*******************************************************************************
+**
+** Function         bta_ble_scan_pf_cmpl
+**
+** Description      ADV payload filtering operation complete callback
+**
+**
+** Returns         TRUE if handled, otherwise FALSE.
+**
+*******************************************************************************/
+static void bta_ble_scan_cfg_cmpl(tBTM_BLE_PF_ACTION action, tBTM_BLE_SCAN_COND_OP cfg_op,
+                                 tBTM_BLE_PF_AVBL_SPACE avbl_space, tBTM_STATUS status,
+                                 tBTM_BLE_REF_VALUE ref_value)
+{
+    tBTA_STATUS st = (status == BTM_SUCCESS) ? BTA_SUCCESS: BTA_FAILURE;
+
+    APPL_TRACE_DEBUG("bta_ble_scan_cfg_cmpl: %d, %d, %d, %d", action, cfg_op, avbl_space, status);
+
+    if(bta_dm_cb.p_scan_filt_cfg_cback)
+       bta_dm_cb.p_scan_filt_cfg_cback(action, cfg_op, avbl_space, st, ref_value);
+}
+
+/*******************************************************************************
+**
+** Function         bta_ble_enable_scan_cmpl
+**
+** Description      ADV payload filtering enable / disable complete callback
+**
+**
+** Returns          None
+**
+*******************************************************************************/
+static void bta_ble_status_cmpl(tBTM_BLE_PF_ACTION action, tBTM_BLE_REF_VALUE ref_value,
+                                    tBTM_STATUS status)
+{
+    tBTA_STATUS st = (status == BTM_SUCCESS) ? BTA_SUCCESS: BTA_FAILURE;
+
+    APPL_TRACE_DEBUG("bta_ble_status_cmpl: %d, %d", action, status);
+
+    if(bta_dm_cb.p_scan_filt_status_cback)
+       bta_dm_cb.p_scan_filt_status_cback(action, ref_value, st);
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_cfg_filter_cond
+**
+** Description      This function configure adv payload filtering condition
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_cfg_filter_cond (tBTA_DM_MSG *p_data)
+{
+    tBTM_STATUS st = BTM_MODE_UNSUPPORTED;
+    tBTA_STATUS status = BTA_FAILURE;
+
+    tBTM_BLE_VSC_CB cmn_vsc_cb;
+
+    APPL_TRACE_DEBUG("bta_dm_cfg_filter_cond");
+    BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
+    if(0 != cmn_vsc_cb.filter_support)
+    {
+        if ((st = BTM_BleCfgFilterCondition(p_data->ble_cfg_filter_cond.action,
+                            p_data->ble_cfg_filter_cond.cond_type,
+                            (tBTM_BLE_PF_FILT_INDEX)p_data->ble_cfg_filter_cond.filt_index,
+                            (tBTM_BLE_PF_COND_PARAM *)p_data->ble_cfg_filter_cond.p_cond_param,
+                            bta_ble_scan_cfg_cmpl, p_data->ble_cfg_filter_cond.ref_value))
+                == BTM_CMD_STARTED)
+        {
+            bta_dm_cb.p_scan_filt_cfg_cback = p_data->ble_cfg_filter_cond.p_filt_cfg_cback;
+            return;
+        }
+    }
+
+    if (p_data->ble_cfg_filter_cond.p_filt_cfg_cback)
+        p_data->ble_cfg_filter_cond.p_filt_cfg_cback(BTA_DM_BLE_PF_CONFIG_EVT,
+                                            p_data->ble_cfg_filter_cond.cond_type, 0, status,
+                                            p_data->ble_cfg_filter_cond.ref_value);
+    return;
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_enable_scan_filter
+**
+** Description      This function enable/disable adv payload filtering condition
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_enable_scan_filter(tBTA_DM_MSG *p_data)
+{
+    tBTM_STATUS st = BTM_MODE_UNSUPPORTED;
+    tBTA_STATUS status = BTA_FAILURE;
+
+    tBTM_BLE_VSC_CB cmn_vsc_cb;
+    APPL_TRACE_DEBUG("bta_dm_enable_scan_filter");
+    BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
+
+    if(0 != cmn_vsc_cb.filter_support)
+    {
+        if((st = BTM_BleEnableDisableFilterFeature(p_data->ble_enable_scan_filt.action,
+                   p_data->ble_enable_scan_filt.p_filt_status_cback,
+                   (tBTM_BLE_REF_VALUE)p_data->ble_enable_scan_filt.ref_value)) == BTM_CMD_STARTED)
+        bta_dm_cb.p_scan_filt_status_cback = p_data->ble_enable_scan_filt.p_filt_status_cback;
+        return;
+    }
+
+    if (p_data->ble_enable_scan_filt.p_filt_status_cback)
+        p_data->ble_enable_scan_filt.p_filt_status_cback (BTA_DM_BLE_PF_ENABLE_EVT,
+                                            p_data->ble_enable_scan_filt.ref_value, status);
+
+}
+/*******************************************************************************
+**
+** Function         bta_dm_scan_filter_param_setup
+**
+** Description      This function sets up scan filter params
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_scan_filter_param_setup (tBTA_DM_MSG *p_data)
+{
+    tBTM_STATUS st = BTM_MODE_UNSUPPORTED;
+    tBTA_STATUS status = BTA_FAILURE;
+
+    tBTM_BLE_VSC_CB cmn_vsc_cb;
+
+    APPL_TRACE_DEBUG("bta_dm_scan_filter_param_setup");
+    BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
+    if(0 != cmn_vsc_cb.filter_support)
+    {
+        if ((st = BTM_BleAdvFilterParamSetup(p_data->ble_scan_filt_param_setup.action,
+                   p_data->ble_scan_filt_param_setup.filt_index,
+                  (tBTM_BLE_PF_FILT_PARAMS *)p_data->ble_scan_filt_param_setup.p_filt_params,
+                   p_data->ble_scan_filt_param_setup.p_target,
+                   p_data->ble_scan_filt_param_setup.p_filt_param_cback,
+                   p_data->ble_scan_filt_param_setup.ref_value)) == BTM_CMD_STARTED)
+        {
+            bta_dm_cb.p_scan_filt_param_cback = p_data->ble_scan_filt_param_setup.p_filt_param_cback;
+            return;
+        }
+    }
+
+    if (p_data->ble_scan_filt_param_setup.p_filt_param_cback)
+        p_data->ble_scan_filt_param_setup.p_filt_param_cback (BTA_DM_BLE_PF_ENABLE_EVT, 0,
+                                        p_data->ble_scan_filt_param_setup.ref_value, status);
+
+    return;
+}
+#endif
+
 #if ((defined BTA_GATT_INCLUDED) &&  (BTA_GATT_INCLUDED == TRUE))
 #ifndef BTA_DM_GATT_CLOSE_DELAY_TOUT
 #define BTA_DM_GATT_CLOSE_DELAY_TOUT    1000
@@ -5798,49 +5954,6 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 }
 
 #endif /* BTA_GATT_INCLUDED */
-
-#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
-/*******************************************************************************
-**
-** Function         bta_dm_enable_scan_filter
-**
-** Description      This function enable/disable adv payload filtering condition
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_dm_enable_scan_filter (tBTA_DM_MSG *p_data)
-{
-    tBTA_SYS_VS_BLE_SCAN_PF_ENABLE  param;
-
-    param.enable = p_data->ble_enable_scan_filter.enable;
-    param.p_target = p_data->ble_enable_scan_filter.p_target;
-    param.p_cmpl_cback = p_data->ble_enable_scan_filter.p_cmpl_cback;
-
-    bta_sys_vs_hdl(BTA_VS_BLE_SCAN_PF_ENABLE_EVT, (void *)&param);
-}
-
-/*******************************************************************************
-**
-** Function         bta_dm_cfg_filter_cond
-**
-** Description      This function configure adv payload filtering condition
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_dm_cfg_filter_cond (tBTA_DM_MSG *p_data)
-{
-    tBTA_SYS_VS_BLE_SCAN_PF_COND  param;
-
-    param.action = p_data->ble_cfg_filter_cond.action;
-    param.cond_type = p_data->ble_cfg_filter_cond.cond_type;
-    param.p_cond = (void *)p_data->ble_cfg_filter_cond.p_cond_param;
-    param.p_cmpl_cback = p_data->ble_cfg_filter_cond.p_cmpl_cback;
-
-    bta_sys_vs_hdl(BTA_VS_BLE_SCAN_PF_COND_EVT, (void *)&param);
-}
-#endif  /* BLE_ANDROID_CONTROLLER_SCAN_FILTER */
 
 /*******************************************************************************
 **

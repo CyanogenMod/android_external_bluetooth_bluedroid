@@ -343,6 +343,9 @@
 /* Batch scan OCF */
 #define HCI_BLE_BATCH_SCAN_OCF    (0x0156 | HCI_GRP_VENDOR_SPECIFIC)
 
+/* ADV filter OCF */
+#define HCI_BLE_ADV_FILTER_OCF    (0x0157 | HCI_GRP_VENDOR_SPECIFIC)
+
 /* Tracking OCF */
 #define HCI_BLE_TRACK_ADV_OCF     (0x0158 | HCI_GRP_VENDOR_SPECIFIC)
 

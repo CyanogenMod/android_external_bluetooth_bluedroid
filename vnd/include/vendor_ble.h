@@ -51,7 +51,6 @@
 #define BTM_BLE_META_READ_IRK_LEN       2
 #define BTM_BLE_META_ADD_WL_ATTR_LEN    9
 
-#define BTM_BLE_PF_BIT_TO_MASK(x)          (UINT32)(1 << (x))
 #define BTM_BLE_PF_SELECT_NONE              0
 #define BTM_BLE_PF_ADDR_FILTER_BIT          BTM_BLE_PF_BIT_TO_MASK(BTM_BLE_PF_ADDR_FILTER)
 #define BTM_BLE_PF_SRVC_DATA_BIT            BTM_BLE_PF_BIT_TO_MASK(BTM_BLE_PF_SRVC_DATA)
@@ -62,16 +61,6 @@
 #define BTM_BLE_PF_SRVC_DATA_PATTERN_BIT    BTM_BLE_PF_BIT_TO_MASK(BTM_BLE_PF_SRVC_DATA_PATTERN)
 typedef UINT8 tBTM_BLE_PF_SEL_MASK;
 
-
-#define BTM_BLE_MAX_FILTER_COUNTER  (BTM_BLE_MAX_ADDR_FILTER + 1) /* per device filter + one generic filter indexed by 0 */
-
-typedef struct
-{
-    BOOLEAN         in_use;
-    BD_ADDR         bd_addr;
-    UINT32          feat_mask;      /* per BD_ADDR feature mask */
-    UINT8           pf_counter[BTM_BLE_PF_TYPE_MAX]; /* number of filter indexed by tBTM_BLE_PF_COND_TYPE */
-}tBTM_BLE_PF_COUNT;
 
 #ifndef BTM_CS_IRK_LIST_MAX
 #define BTM_CS_IRK_LIST_MAX     0x20

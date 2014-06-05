@@ -50,15 +50,5 @@
 /* VSC */
 #define HCI_VENDOR_BLE_PCF_VSC                (0x0157 | HCI_GRP_VENDOR_SPECIFIC)
 
-/* Sub codes */
-#define BTM_BLE_META_PF_ENABLE          0x00
-#define BTM_BLE_META_PF_FEAT_SEL        0x01
-#define BTM_BLE_META_PF_ADDR            0x02
-#define BTM_BLE_META_PF_UUID            0x03
-#define BTM_BLE_META_PF_SOL_UUID        0x04
-#define BTM_BLE_META_PF_LOCAL_NAME      0x05
-#define BTM_BLE_META_PF_MANU_DATA       0x06
-#define BTM_BLE_META_PF_SRVC_DATA       0x07
-
 #endif
 

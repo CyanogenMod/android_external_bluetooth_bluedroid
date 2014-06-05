@@ -1628,6 +1628,7 @@ BTA_API extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
 **                  scan_window - Scan window
 **                  discard_rule -Discard rules
 **                  addr_type - Address type
+**                  ref_value - Reference value
 **
 ** Returns          None
 **
@@ -1659,7 +1660,7 @@ BTA_API extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
 **
 ** Description      This function is called to disable the batch scan
 **
-** Parameters
+** Parameters       ref_value - Reference value
 **
 ** Returns          None
 **
@@ -1684,6 +1685,7 @@ BTA_API extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value)
 ** Description      This function is called to read scan reports
 **
 ** Parameters       scan_type -Batch scan mode
+**                  ref_value - Reference value
 **
 ** Returns          None
 **
@@ -2132,6 +2134,212 @@ tBTA_STATUS BTA_BleDisableAdvInstance (UINT8  inst_id)
         }
     }
     return BTA_FAILURE;
+}
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleCfgFilterCondition
+**
+** Description      This function is called to configure the adv data payload filter
+**                  condition.
+**
+** Parameters       action: to read/write/clear
+**                  cond_type: filter condition type
+**                  filt_index - Filter index
+**                  p_cond: filter condition parameter
+**                  p_cmpl_back - Command completed callback
+**                  ref_value - Reference value
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
+                                 tBTA_DM_BLE_PF_COND_TYPE cond_type,
+                                 tBTA_DM_BLE_PF_FILT_INDEX filt_index,
+                                 tBTA_DM_BLE_PF_COND_PARAM *p_cond,
+                                 tBTA_DM_BLE_PF_CFG_CBACK *p_cmpl_cback,
+                                 tBTA_DM_BLE_REF_VALUE ref_value)
+{
+#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+    tBTA_DM_API_CFG_FILTER_COND *p_msg;
+    APPL_TRACE_API ("BTA_DmBleCfgFilterCondition: %d, %d", action, cond_type);
+
+    UINT16  len = sizeof(tBTA_DM_API_CFG_FILTER_COND) + sizeof(tBTA_DM_BLE_PF_COND_PARAM) + \
+                BTM_BLE_PF_STR_LEN_MAX + BTM_BLE_PF_STR_LEN_MAX + sizeof(tBTA_DM_BLE_PF_COND_MASK);
+
+    UINT8 *p;
+
+    if ((p_msg = (tBTA_DM_API_CFG_FILTER_COND *) GKI_getbuf(len)) != NULL)
+    {
+        memset (p_msg, 0, len);
+
+        p_msg->hdr.event        = BTA_DM_API_CFG_FILTER_COND_EVT;
+        p_msg->action           = action;
+        p_msg->cond_type        = cond_type;
+        p_msg->filt_index       = filt_index;
+        p_msg->p_filt_cfg_cback = p_cmpl_cback;
+        p_msg->ref_value        = ref_value;
+        if (p_cond)
+        {
+            p_msg->p_cond_param = (tBTA_DM_BLE_PF_COND_PARAM *)(p_msg + 1);
+            memcpy(p_msg->p_cond_param, p_cond, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
+
+            p = (UINT8 *)(p_msg->p_cond_param + 1);
+
+            if (cond_type == BTA_DM_BLE_PF_SRVC_DATA_PATTERN ||
+                cond_type == BTA_DM_BLE_PF_MANU_DATA)
+            {
+                p_msg->p_cond_param->manu_data.p_pattern = p;
+                p_msg->p_cond_param->manu_data.data_len = p_cond->manu_data.data_len;
+                memcpy(p_msg->p_cond_param->manu_data.p_pattern, p_cond->manu_data.p_pattern,
+                    p_cond->manu_data.data_len);
+                p += p_cond->manu_data.data_len;
+
+                if (cond_type == BTA_DM_BLE_PF_MANU_DATA)
+                {
+                    p_msg->p_cond_param->manu_data.company_id_mask =
+                        p_cond->manu_data.company_id_mask;
+                    if ( p_cond->manu_data.p_pattern_mask != NULL)
+                    {
+                        p_msg->p_cond_param->manu_data.p_pattern_mask = p;
+                        memcpy(p_msg->p_cond_param->manu_data.p_pattern_mask,
+                            p_cond->manu_data.p_pattern_mask, p_cond->manu_data.data_len);
+                    }
+                }
+            }
+            else if (cond_type == BTA_DM_BLE_PF_LOCAL_NAME)
+            {
+                p_msg->p_cond_param->local_name.p_data = p;
+                memcpy(p_msg->p_cond_param->local_name.p_data,
+                    p_cond->local_name.p_data, p_cond->local_name.data_len);
+            }
+            else if ((cond_type == BTM_BLE_PF_SRVC_UUID || cond_type == BTM_BLE_PF_SRVC_SOL_UUID))
+            {
+                if (p_cond->srvc_uuid.p_target_addr != NULL)
+                {
+                    p_msg->p_cond_param->srvc_uuid.p_target_addr = (tBLE_BD_ADDR *)(p);
+                    p_msg->p_cond_param->srvc_uuid.p_target_addr->type =
+                        p_cond->srvc_uuid.p_target_addr->type;
+                    memcpy(p_msg->p_cond_param->srvc_uuid.p_target_addr->bda,
+                        p_cond->srvc_uuid.p_target_addr->bda, BD_ADDR_LEN);
+                    p = (UINT8*)( p_msg->p_cond_param->srvc_uuid.p_target_addr + 1);
+                }
+                if (p_cond->srvc_uuid.p_uuid_mask)
+                {
+                    p_msg->p_cond_param->srvc_uuid.p_uuid_mask = (tBTA_DM_BLE_PF_COND_MASK *)p;
+                    memcpy(p_msg->p_cond_param->srvc_uuid.p_uuid_mask,
+                        p_cond->srvc_uuid.p_uuid_mask, sizeof(tBTA_DM_BLE_PF_COND_MASK));
+                }
+            }
+        }
+
+        bta_sys_sendmsg(p_msg);
+    }
+#else
+    UNUSED(action);
+    UNUSED(cond_type);
+    UNUSED(filt_index);
+    UNUSED(p_cond);
+    UNUSED(p_cmpl_cback);
+    UNUSED(ref_value);
+#endif
+}
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleScanFilterSetup
+**
+** Description      This function is called to setup the adv data payload filter param
+**
+** Parameters       p_target: enable the filter condition on a target device; if NULL
+**                  filt_index - Filter index
+**                  p_filt_params -Filter parameters
+**                  ref_value - Reference value
+**                  action - Add, delete or clear
+**                  p_cmpl_back - Command completed callback
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmBleScanFilterSetup(UINT8 action, tBTA_DM_BLE_PF_FILT_INDEX filt_index,
+                                    tBTA_DM_BLE_PF_FILT_PARAMS *p_filt_params,
+                                    tBLE_BD_ADDR *p_target,
+                                    tBTA_DM_BLE_PF_PARAM_CBACK *p_cmpl_cback,
+                                    tBTA_DM_BLE_REF_VALUE ref_value)
+{
+#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+    tBTA_DM_API_SCAN_FILTER_PARAM_SETUP *p_msg;
+    APPL_TRACE_API ("BTA_DmBleScanFilterSetup: %d", action);
+
+    UINT16  len = sizeof(tBTA_DM_API_SCAN_FILTER_PARAM_SETUP) + sizeof(tBLE_BD_ADDR);
+
+    if ((p_msg = (tBTA_DM_API_SCAN_FILTER_PARAM_SETUP *) GKI_getbuf(len)) != NULL)
+    {
+        memset (p_msg, 0, len);
+
+        p_msg->hdr.event        = BTA_DM_API_SCAN_FILTER_SETUP_EVT;
+        p_msg->action       = action;
+        p_msg->filt_index = filt_index;
+        p_msg->p_filt_params = p_filt_params;
+        p_msg->p_filt_param_cback = p_cmpl_cback;
+        p_msg->ref_value        = ref_value;
+
+        if (p_target)
+        {
+            p_msg->p_target = (tBLE_BD_ADDR *)(p_msg + 1);
+            memcpy(p_msg->p_target, p_target, sizeof(tBLE_BD_ADDR));
+        }
+
+        bta_sys_sendmsg(p_msg);
+    }
+#else
+    UNUSED(action);
+    UNUSED(filt_index);
+    UNUSED(p_filt_params);
+    UNUSED(p_target);
+    UNUSED(p_cmpl_cback);
+    UNUSED(ref_value);
+#endif
+}
+
+/*******************************************************************************
+**
+** Function         BTA_DmEnableScanFilter
+**
+** Description      This function is called to enable the adv data payload filter
+**
+** Parameters      action - enable or disable the APCF feature
+**                  p_cmpl_cback - Command completed callback
+**                  ref_value - Reference value
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmEnableScanFilter(UINT8 action, tBTA_DM_BLE_PF_STATUS_CBACK *p_cmpl_cback,
+                                    tBTA_DM_BLE_REF_VALUE ref_value)
+{
+#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+    tBTA_DM_API_ENABLE_SCAN_FILTER *p_msg;
+    APPL_TRACE_API ("BTA_DmEnableScanFilter: %d", action);
+
+    UINT16  len = sizeof(tBTA_DM_API_ENABLE_SCAN_FILTER) + sizeof(tBLE_BD_ADDR);
+
+    if ((p_msg = (tBTA_DM_API_ENABLE_SCAN_FILTER *) GKI_getbuf(len)) != NULL)
+    {
+        memset (p_msg, 0, len);
+
+        p_msg->hdr.event        = BTA_DM_API_SCAN_FILTER_ENABLE_EVT;
+        p_msg->action       = action;
+        p_msg->ref_value    = ref_value;
+        p_msg->p_filt_status_cback = p_cmpl_cback;
+
+        bta_sys_sendmsg(p_msg);
+    }
+#else
+    UNUSED(action);
+    UNUSED(p_cmpl_cback);
+    UNUSED(ref_value);
+#endif
 }
 
 /*******************************************************************************

@@ -464,7 +464,7 @@ typedef struct
 typedef void (tBTM_BLE_SCAN_THRESHOLD_CBACK)(tBTM_BLE_REF_VALUE ref_value);
 typedef void (tBTM_BLE_SCAN_REP_CBACK)(tBTM_BLE_REF_VALUE ref_value, UINT8 report_format,
                                        UINT8 num_records, UINT16 total_len,
-                            UINT8* p_rep_data, UINT8 status);
+                                       UINT8* p_rep_data, UINT8 status);
 typedef void (tBTM_BLE_SCAN_SETUP_CBACK)(UINT8 evt, tBTM_BLE_REF_VALUE ref_value, UINT8 status);
 
 #ifndef BTM_BLE_BATCH_SCAN_MAX
@@ -499,6 +499,203 @@ typedef struct
     tBTM_BLE_SCAN_REP_CBACK       *p_scan_rep_cback;
     tBTM_BLE_REF_VALUE             ref_value;
 }tBTM_BLE_BATCH_SCAN_CB;
+
+/* filter selection bit index  */
+#define BTM_BLE_PF_ADDR_FILTER          0
+#define BTM_BLE_PF_SRVC_DATA            1
+#define BTM_BLE_PF_SRVC_UUID            2
+#define BTM_BLE_PF_SRVC_SOL_UUID        3
+#define BTM_BLE_PF_LOCAL_NAME           4
+#define BTM_BLE_PF_MANU_DATA            5
+#define BTM_BLE_PF_SRVC_DATA_PATTERN    6
+#define BTM_BLE_PF_TYPE_ALL             7  /* when passed in payload filter type all, only clear action is applicable */
+#define BTM_BLE_PF_TYPE_MAX             8
+
+/* max number of filter spot for different filter type */
+#ifndef BTM_BLE_MAX_UUID_FILTER
+#define BTM_BLE_MAX_UUID_FILTER     8
+#endif
+#ifndef BTM_BLE_MAX_ADDR_FILTER
+#define BTM_BLE_MAX_ADDR_FILTER     8
+#endif
+#ifndef BTM_BLE_PF_STR_COND_MAX
+#define BTM_BLE_PF_STR_COND_MAX     4   /* apply to manu data , or local name */
+#endif
+#ifndef BTM_BLE_PF_STR_LEN_MAX
+#define BTM_BLE_PF_STR_LEN_MAX      29  /* match for first 29 bytes */
+#endif
+
+typedef UINT8   tBTM_BLE_PF_COND_TYPE;
+
+#define BTM_BLE_PF_LOGIC_OR              0
+#define BTM_BLE_PF_LOGIC_AND             1
+typedef UINT8 tBTM_BLE_PF_LOGIC_TYPE;
+
+#define BTM_BLE_PF_ENABLE       1
+#define BTM_BLE_PF_CONFIG       2
+typedef UINT8 tBTM_BLE_PF_ACTION;
+
+typedef UINT8 tBTM_BLE_PF_FILT_INDEX;
+
+typedef UINT8 tBTM_BLE_PF_AVBL_SPACE;
+
+#define BTM_BLE_PF_BRDCAST_ADDR_FILT  1
+#define BTM_BLE_PF_SERV_DATA_CHG_FILT 2
+#define BTM_BLE_PF_SERV_UUID          4
+#define BTM_BLE_PF_SERV_SOLC_UUID     8
+#define BTM_BLE_PF_LOC_NAME_CHECK    16
+#define BTM_BLE_PF_MANUF_NAME_CHECK  32
+#define BTM_BLE_PF_SERV_DATA_CHECK   64
+typedef UINT16 tBTM_BLE_PF_FEAT_SEL;
+
+#define BTM_BLE_PF_LIST_LOGIC_OR   1
+#define BTM_BLE_PF_LIST_LOGIC_AND  2
+typedef UINT16 tBTM_BLE_PF_LIST_LOGIC_TYPE;
+
+#define BTM_BLE_PF_FILT_LOGIC_OR   0
+#define BTM_BLE_PF_FILT_LOGIC_AND  1
+typedef UINT16 tBTM_BLE_PF_FILT_LOGIC_TYPE;
+
+typedef UINT8  tBTM_BLE_PF_RSSI_THRESHOLD;
+typedef UINT8  tBTM_BLE_PF_DELIVERY_MODE;
+typedef UINT16 tBTM_BLE_PF_TIMEOUT;
+typedef UINT8  tBTM_BLE_PF_TIMEOUT_CNT;
+
+typedef struct
+{
+    tBTM_BLE_PF_FEAT_SEL feat_seln;
+    tBTM_BLE_PF_LIST_LOGIC_TYPE logic_type;
+    tBTM_BLE_PF_FILT_LOGIC_TYPE filt_logic_type;
+    tBTM_BLE_PF_RSSI_THRESHOLD  rssi_high_thres;
+    tBTM_BLE_PF_RSSI_THRESHOLD  rssi_low_thres;
+    tBTM_BLE_PF_DELIVERY_MODE dely_mode;
+    tBTM_BLE_PF_TIMEOUT found_timeout;
+    tBTM_BLE_PF_TIMEOUT lost_timeout;
+    tBTM_BLE_PF_TIMEOUT_CNT found_timeout_cnt;
+}tBTM_BLE_PF_FILT_PARAMS;
+
+enum
+{
+    BTM_BLE_SCAN_COND_ADD,
+    BTM_BLE_SCAN_COND_DELETE,
+    BTM_BLE_SCAN_COND_CLEAR = 2
+};
+typedef UINT8 tBTM_BLE_SCAN_COND_OP;
+
+enum
+{
+    BTM_BLE_FILT_DISABLE = 0,
+    BTM_BLE_FILT_ENABLE = 1
+};
+typedef UINT8 tBTM_BLE_FILT_OP;
+
+/* BLE adv payload filtering config complete callback */
+typedef void (tBTM_BLE_PF_CFG_CBACK)(tBTM_BLE_PF_ACTION action, tBTM_BLE_SCAN_COND_OP cfg_op,
+                                      tBTM_BLE_PF_AVBL_SPACE avbl_space, tBTM_STATUS status,
+                                      tBTM_BLE_REF_VALUE ref_value);
+
+typedef void (tBTM_BLE_PF_CMPL_CBACK) (tBTM_BLE_PF_CFG_CBACK);
+
+/* BLE adv payload filtering status setup complete callback */
+typedef void (tBTM_BLE_PF_STATUS_CBACK) (UINT8 action, tBTM_STATUS status,
+                                        tBTM_BLE_REF_VALUE ref_value);
+
+/* BLE adv payload filtering param setup complete callback */
+typedef void (tBTM_BLE_PF_PARAM_CBACK) (tBTM_BLE_PF_ACTION action_type,
+                                        tBTM_BLE_PF_AVBL_SPACE avbl_space,
+                                        tBTM_BLE_REF_VALUE ref_value, tBTM_STATUS status);
+
+typedef union
+{
+      UINT16              uuid16_mask;
+      UINT32              uuid32_mask;
+      UINT8               uuid128_mask[LEN_UUID_128];
+}tBTM_BLE_PF_COND_MASK;
+
+typedef struct
+{
+    tBLE_BD_ADDR            *p_target_addr;     /* target address, if NULL, generic UUID filter */
+    tBT_UUID                uuid;           /* UUID condition */
+    tBTM_BLE_PF_LOGIC_TYPE  cond_logic;    /* AND/OR */
+    tBTM_BLE_PF_COND_MASK   *p_uuid_mask;           /* UUID mask */
+}tBTM_BLE_PF_UUID_COND;
+
+typedef struct
+{
+    UINT8                   data_len;       /* <= 20 bytes */
+    UINT8                   *p_data;
+}tBTM_BLE_PF_LOCAL_NAME_COND;
+
+typedef struct
+{
+    UINT16                  company_id;     /* company ID */
+    UINT8                   data_len;       /* <= 20 bytes */
+    UINT8                   *p_pattern;
+    UINT16                  company_id_mask; /* UUID value mask */
+    UINT8                   *p_pattern_mask; /* Manufactuer data matching mask, same length as data pattern,
+                                                set to all 0xff, match exact data */
+}tBTM_BLE_PF_MANU_COND;
+
+typedef struct
+{
+    UINT16                  uuid;     /* service ID */
+    UINT8                   data_len;       /* <= 20 bytes */
+    UINT8                   *p_pattern;
+    UINT8                   *p_pattern_mask; /* Service data matching mask, same length as data pattern,
+                                                set to all 0xff, match exact data */
+}tBTM_BLE_PF_SRVC_PATTERN_COND;
+
+
+typedef union
+{
+    tBLE_BD_ADDR                            target_addr;
+    tBTM_BLE_PF_LOCAL_NAME_COND             local_name; /* lcoal name filtering */
+    tBTM_BLE_PF_MANU_COND                   manu_data;  /* manufactuer data filtering */
+    tBTM_BLE_PF_UUID_COND                   srvc_uuid;  /* service UUID filtering */
+    tBTM_BLE_PF_UUID_COND                   solicitate_uuid;   /* solicitated service UUID filtering */
+    tBTM_BLE_PF_SRVC_PATTERN_COND           srvc_data;      /* service data pattern */
+}tBTM_BLE_PF_COND_PARAM;
+
+typedef struct
+{
+    UINT8   action_condtype[BTM_BLE_PF_TYPE_MAX];
+    tBTM_BLE_REF_VALUE  ref_value[BTM_BLE_PF_TYPE_MAX];
+    UINT8   pending_idx;
+    UINT8   next_idx;
+}tBTM_BLE_ADV_FILTER_ADV_OPQ;
+
+#define BTM_BLE_MAX_FILTER_COUNTER  (BTM_BLE_MAX_ADDR_FILTER + 1) /* per device filter + one generic filter indexed by 0 */
+
+typedef struct
+{
+    BOOLEAN    in_use;
+    BD_ADDR    bd_addr;
+    UINT16     feat_mask;      /* per BD_ADDR feature mask */
+    UINT8      pf_counter[BTM_BLE_PF_TYPE_MAX]; /* number of filter indexed by tBTM_BLE_PF_COND_TYPE */
+}tBTM_BLE_PF_COUNT;
+
+typedef struct
+{
+    BOOLEAN             enable;
+    UINT8               op_type;
+    tBTM_BLE_PF_COUNT   addr_filter_count[BTM_BLE_MAX_FILTER_COUNTER]; /* per BDA filter indexed by tBTM_BLE_PF_COND_TYPE */
+    tBLE_BD_ADDR        cur_filter_target;
+    tBTM_BLE_PF_CFG_CBACK    *p_scan_cfg_cback;
+    tBTM_BLE_PF_PARAM_CBACK  *p_filt_param_cback;
+    tBTM_BLE_PF_STATUS_CBACK *p_filt_stat_cback;
+    tBTM_BLE_ADV_FILTER_ADV_OPQ  op_q;
+}tBTM_BLE_ADV_FILTER_CB;
+
+/* Sub codes */
+#define BTM_BLE_META_PF_ENABLE          0x00
+#define BTM_BLE_META_PF_FEAT_SEL        0x01
+#define BTM_BLE_META_PF_ADDR            0x02
+#define BTM_BLE_META_PF_UUID            0x03
+#define BTM_BLE_META_PF_SOL_UUID        0x04
+#define BTM_BLE_META_PF_LOCAL_NAME      0x05
+#define BTM_BLE_META_PF_MANU_DATA       0x06
+#define BTM_BLE_META_PF_SRVC_DATA       0x07
+#define BTM_BLE_META_PF_ALL             0x08
 
 /* These are the fields returned in each device adv packet.  It
 ** is returned in the results callback if registered.
@@ -1345,6 +1542,64 @@ BTM_API extern tBTM_STATUS BTM_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan
 **
 *******************************************************************************/
 BTM_API extern tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id);
+
+/*******************************************************************************
+**
+** Function         BTM_BleAdvFilterParamSetup
+**
+** Description      This function is called to setup the adv data payload filter
+**                  condition.
+**
+** Parameters       p_target: enabble the filter condition on a target device; if NULL
+**                            enable the generic scan condition.
+**                  enable: enable or disable the filter condition
+**
+** Returns          void
+**
+*******************************************************************************/
+BTM_API extern tBTM_STATUS BTM_BleAdvFilterParamSetup(int action,
+                                tBTM_BLE_PF_FILT_INDEX filt_index,
+                                tBTM_BLE_PF_FILT_PARAMS *p_filt_params,
+                                tBLE_BD_ADDR *p_target, tBTM_BLE_PF_PARAM_CBACK *p_cmpl_cback,
+                                tBTM_BLE_REF_VALUE ref_value);
+
+/*******************************************************************************
+**
+** Function         BTM_BleCfgFilterCondition
+**
+** Description      This function is called to configure the adv data payload filter
+**                  condition.
+**
+** Parameters       action: to read/write/clear
+**                  cond_type: filter condition type.
+**                  p_cond: filter condition paramter
+**
+** Returns          tBTM_STATUS
+**
+*******************************************************************************/
+BTM_API extern tBTM_STATUS BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
+                                      tBTM_BLE_PF_COND_TYPE cond_type,
+                                      tBTM_BLE_PF_FILT_INDEX filt_index,
+                                      tBTM_BLE_PF_COND_PARAM *p_cond,
+                                      tBTM_BLE_PF_CFG_CBACK *p_cmpl_cback,
+                                      tBTM_BLE_REF_VALUE ref_value);
+
+/*******************************************************************************
+**
+** Function         BTM_BleEnableDisableFilterFeature
+**
+** Description      This function is called to enable or disable the APCF feature
+**
+** Parameters       enable - TRUE - enables the APCF, FALSE - disables the APCF
+**                       ref_value - Ref value
+**
+** Returns          tBTM_STATUS
+**
+*******************************************************************************/
+BTM_API extern tBTM_STATUS BTM_BleEnableDisableFilterFeature(UINT8 enable,
+                                               tBTM_BLE_PF_STATUS_CBACK *p_stat_cback,
+                                               tBTM_BLE_REF_VALUE ref_value);
+
 
 #ifdef __cplusplus
 }

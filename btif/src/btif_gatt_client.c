@@ -51,7 +51,6 @@
 #include "btif_dm.h"
 #include "btif_storage.h"
 
-#include "bta_vendor_api.h"
 #include "vendor_api.h"
 
 /*******************************************************************************
@@ -93,9 +92,10 @@ typedef enum {
     BTIF_GATTC_LISTEN,
     BTIF_GATTC_SET_ADV_DATA,
     BTIF_GATTC_CONFIGURE_MTU,
-    BTIF_GATTC_SCAN_FILTER_ENABLE,
+    BTIF_GATTC_SCAN_FILTER_PARAM_SETUP,
     BTIF_GATTC_SCAN_FILTER_CONFIG,
     BTIF_GATTC_SCAN_FILTER_CLEAR,
+    BTIF_GATTC_SCAN_FILTER_ENABLE,
     BTIF_GATTC_SET_SCAN_PARAMS,
     BTIF_GATTC_ADV_INSTANCE_ENABLE,
     BTIF_GATTC_ADV_INSTANCE_UPDATE,
@@ -141,6 +141,31 @@ typedef struct
     tBLE_ADDR_TYPE        addr_type;
     btgatt_batch_reports read_reports;
 } btgatt_batch_track_cb_t;
+
+typedef tBTA_DM_BLE_PF_FILT_PARAMS btgatt_adv_filt_param_t;
+
+typedef struct
+{
+    uint8_t     client_if;
+    uint8_t     action;
+    tBTA_DM_BLE_PF_COND_TYPE filt_type;
+    bt_bdaddr_t bd_addr;
+    uint8_t     value[BTGATT_MAX_ATTR_LEN];
+    uint8_t     value_len;
+    uint8_t     filt_index;
+    uint16_t    conn_id;
+    uint16_t    company_id_mask;
+    bt_uuid_t   uuid;
+    bt_uuid_t   uuid_mask;
+    uint8_t     value_mask[BTGATT_MAX_ATTR_LEN];
+    uint8_t     value_mask_len;
+    uint8_t     has_mask;
+    uint8_t     addr_type;
+    uint8_t     status;
+    tBTA_DM_BLE_PF_AVBL_SPACE avbl_space;
+    tBTA_DM_BLE_SCAN_COND_OP cond_op;
+    btgatt_adv_filt_param_t adv_filt_param;
+} btgatt_adv_filter_cb_t;
 
 typedef struct
 {
@@ -580,14 +605,6 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_SCAN_FILTER_EVT:
-        {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
-            HAL_CBACK(bt_gatt_callbacks, client->scan_filter_cb, p_btif_cb->action,
-                      p_btif_cb->status);
-            break;
-        }
-
         case BTA_GATTC_MULT_ADV_ENB_EVT:
         {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
@@ -701,6 +718,36 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             break;
         }
 
+        case BTA_GATTC_SCAN_FLT_CFG_EVT:
+        {
+            btgatt_adv_filter_cb_t *p_btif_cb = (btgatt_adv_filter_cb_t*)p_param;
+            HAL_CBACK(bt_gatt_callbacks, client->scan_filter_cfg_cb, p_btif_cb->action,
+                      p_btif_cb->client_if, p_btif_cb->status, p_btif_cb->cond_op,
+                      p_btif_cb->avbl_space);
+            break;
+        }
+
+        case BTA_GATTC_SCAN_FLT_PARAM_EVT:
+        {
+            btgatt_adv_filter_cb_t *p_data = (btgatt_adv_filter_cb_t*) p_param;
+            BTIF_TRACE_DEBUG("BTA_GATTC_SCAN_FLT_PARAM_EVT: %d, %d, %d, %d",p_data->client_if,
+                p_data->action, p_data->avbl_space, p_data->status);
+             HAL_CBACK(bt_gatt_callbacks, client->scan_filter_param_cb
+                    , p_data->action, p_data->client_if, p_data->status
+                    , p_data->avbl_space);
+            break;
+        }
+
+        case BTA_GATTC_SCAN_FLT_STATUS_EVT:
+        {
+            btgatt_adv_filter_cb_t *p_data = (btgatt_adv_filter_cb_t*) p_param;
+            BTIF_TRACE_DEBUG("BTA_GATTC_SCAN_FLT_STATUS_EVT: %d, %d, %d",p_data->client_if,
+                p_data->action, p_data->status);
+             HAL_CBACK(bt_gatt_callbacks, client->scan_filter_status_cb
+                    , p_data->action, p_data->client_if, p_data->status);
+            break;
+        }
+
         default:
             BTIF_TRACE_ERROR("%s: Unhandled event (%d)!", __FUNCTION__, event);
             break;
@@ -783,7 +830,7 @@ static void bta_batch_scan_setup_cb (tBTA_BLE_BATCH_SCAN_EVT evt,
 
     btif_scan_track_cb.status = status;
     btif_scan_track_cb.client_if = ref_value;
-    BTIF_TRACE_DEBUG3("bta_batch_scan_setup_cb-Status:%x, client_if:%d, evt=%d",
+    BTIF_TRACE_DEBUG("bta_batch_scan_setup_cb-Status:%x, client_if:%d, evt=%d",
             status, ref_value, evt);
 
     switch(evt)
@@ -833,7 +880,7 @@ static void bta_batch_scan_threshold_cb(tBTA_DM_BLE_REF_VALUE ref_value)
     btif_scan_track_cb.status = 0;
     btif_scan_track_cb.client_if = ref_value;
 
-    BTIF_TRACE_DEBUG2("%s - client_if:%d",__FUNCTION__, ref_value);
+    BTIF_TRACE_DEBUG("%s - client_if:%d",__FUNCTION__, ref_value);
 
     btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_BTH_SCAN_THR_EVT,
                           (char*) &btif_scan_track_cb, sizeof(btif_gattc_cb_t), NULL);
@@ -844,7 +891,7 @@ static void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value, UINT8 rep
                                             UINT8* p_rep_data, tBTA_STATUS status)
 {
     btgatt_batch_track_cb_t btif_scan_track_cb;
-    BTIF_TRACE_DEBUG5("%s - client_if:%d, %d, %d, %d",__FUNCTION__, ref_value, status, num_records,
+    BTIF_TRACE_DEBUG("%s - client_if:%d, %d, %d, %d",__FUNCTION__, ref_value, status, num_records,
                                     data_len);
 
     btif_scan_track_cb.status = status;
@@ -920,14 +967,44 @@ static void btm_read_rssi_cb (tBTM_RSSI_RESULTS *p_result)
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static void bta_scan_filter_cmpl_cb(tBTA_DM_BLE_PF_EVT event,
-                        tBTA_DM_BLE_PF_COND_TYPE cfg_cond, tBTA_STATUS status)
+static void bta_scan_filt_cfg_cb(tBTA_DM_BLE_PF_ACTION action, tBTA_DM_BLE_SCAN_COND_OP cfg_op,
+                                tBTA_DM_BLE_PF_AVBL_SPACE avbl_space, tBTA_STATUS status,
+                                tBTA_DM_BLE_REF_VALUE ref_value)
 {
-    btif_gattc_cb_t btif_cb;
+    btgatt_adv_filter_cb_t btif_cb;
     btif_cb.status = status;
-    btif_cb.action = event;
-    btif_transfer_context(btif_gattc_upstreams_evt, BTIF_GATTC_SCAN_FILTER_EVT,
-                          (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+    btif_cb.action = action;
+    btif_cb.cond_op = cfg_op;
+    btif_cb.avbl_space = avbl_space;
+    btif_cb.client_if = ref_value;
+    btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_SCAN_FLT_CFG_EVT,
+                          (char*) &btif_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
+}
+
+static void bta_scan_filt_param_setup_cb(UINT8 action_type,
+                                        tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
+                                        tBTA_DM_BLE_REF_VALUE ref_value, tBTA_STATUS status)
+{
+    btgatt_adv_filter_cb_t btif_cb;
+
+    btif_cb.status = status;
+    btif_cb.action = action_type;
+    btif_cb.client_if = ref_value;
+    btif_cb.avbl_space = avbl_space;
+    btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_SCAN_FLT_PARAM_EVT,
+                          (char*) &btif_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
+}
+
+static void bta_scan_filt_status_cb(UINT8 action, tBTA_STATUS status,
+                                    tBTA_DM_BLE_REF_VALUE ref_value)
+{
+    btgatt_adv_filter_cb_t btif_cb;
+
+    btif_cb.status = status;
+    btif_cb.action = action;
+    btif_cb.client_if = ref_value;
+    btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_SCAN_FLT_STATUS_EVT,
+                          (char*) &btif_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
 }
 
 static void btgattc_handle_event(uint16_t event, char* p_param)
@@ -948,6 +1025,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
     btif_adv_data_t *p_adv_data = NULL;
     btgatt_multi_adv_inst_cb *p_inst_cb = NULL;
     btgatt_batch_track_cb_t *p_scan_track_cb = NULL;
+    btgatt_adv_filter_cb_t *p_adv_filt_cb = NULL;
 
     if(BTIF_GATTC_ADV_INSTANCE_ENABLE == event || BTIF_GATTC_ADV_INSTANCE_DISABLE == event ||
         BTIF_GATTC_ADV_INSTANCE_UPDATE == event)
@@ -963,10 +1041,14 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
            || BTIF_GATTC_READ_BATCH_SCAN_REPORTS == event || BTIF_GATTC_DISABLE_BATCH_SCAN == event)
             p_scan_track_cb = (btgatt_batch_track_cb_t *) p_param;
         else
+        if(BTIF_GATTC_SCAN_FILTER_PARAM_SETUP == event || BTIF_GATTC_SCAN_FILTER_CONFIG == event
+            || BTIF_GATTC_SCAN_FILTER_CLEAR == event || BTIF_GATTC_SCAN_FILTER_ENABLE == event)
+            p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
+        else
             p_cb = (btif_gattc_cb_t*)p_param;
     }
 
-    if (!p_cb && !p_adv_data && !p_inst_cb && !p_scan_track_cb) return;
+    if (!p_cb && !p_adv_data && !p_inst_cb && !p_scan_track_cb && !p_adv_filt_cb) return;
 
     BTIF_TRACE_EVENT("%s: Event %d", __FUNCTION__, event);
 
@@ -1236,29 +1318,38 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             BTM_ReadRSSI (p_cb->bd_addr.address, (tBTM_CMPL_CB *)btm_read_rssi_cb);
             break;
 
-        case BTIF_GATTC_SCAN_FILTER_ENABLE:
-            BTA_DmBleEnableFilterCondition(p_cb->action, NULL, bta_scan_filter_cmpl_cb);
+        case BTIF_GATTC_SCAN_FILTER_PARAM_SETUP:
+        {
+            if(NULL == p_adv_filt_cb)
+               return;
+            BTA_DmBleScanFilterSetup(p_adv_filt_cb->action, p_adv_filt_cb->filt_index,
+                &p_adv_filt_cb->adv_filt_param, NULL, bta_scan_filt_param_setup_cb,
+                p_adv_filt_cb->client_if);
             break;
+        }
 
         case BTIF_GATTC_SCAN_FILTER_CONFIG:
         {
+            if(NULL == p_adv_filt_cb)
+               return;
             tBTA_DM_BLE_PF_COND_PARAM cond;
             memset(&cond, 0, sizeof(cond));
 
-            switch (p_cb->action)
+            switch (p_adv_filt_cb->filt_type)
             {
                 case BTA_DM_BLE_PF_ADDR_FILTER: // 0
-                    bdcpy(cond.target_addr.bda, p_cb->bd_addr.address);
-                    cond.target_addr.type = p_cb->addr_type;
-                    BTA_DmBleCfgFilterCondition(BTA_DM_BLE_SCAN_COND_ADD,
-                                              p_cb->action, &cond,
-                                              bta_scan_filter_cmpl_cb);
+                    bdcpy(cond.target_addr.bda, p_adv_filt_cb->bd_addr.address);
+                    cond.target_addr.type = p_adv_filt_cb->addr_type;
+                    BTA_DmBleCfgFilterCondition(p_adv_filt_cb->action,
+                                              p_adv_filt_cb->filt_type, p_adv_filt_cb->filt_index,
+                                              &cond, bta_scan_filt_cfg_cb,
+                                              p_adv_filt_cb->client_if);
                     break;
 
                 case BTA_DM_BLE_PF_SRVC_DATA: // 1
-                    BTA_DmBleCfgFilterCondition(BTA_DM_BLE_SCAN_COND_ADD,
-                                              p_cb->action, NULL,
-                                              bta_scan_filter_cmpl_cb);
+                    BTA_DmBleCfgFilterCondition(p_adv_filt_cb->action,
+                                            p_adv_filt_cb->filt_type, p_adv_filt_cb->filt_index,
+                                            NULL, bta_scan_filt_cfg_cb, p_adv_filt_cb->client_if);
                     break;
 
                 case BTA_DM_BLE_PF_SRVC_UUID: // 2
@@ -1267,17 +1358,18 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
                     cond.srvc_uuid.p_target_addr = NULL;
                     cond.srvc_uuid.cond_logic = BTA_DM_BLE_PF_LOGIC_AND;
-                    btif_to_bta_uuid(&cond.srvc_uuid.uuid, &p_cb->uuid);
+                    btif_to_bta_uuid(&cond.srvc_uuid.uuid, &p_adv_filt_cb->uuid);
 
                     cond.srvc_uuid.p_uuid_mask = NULL;
-                    if (p_cb->has_mask)
+                    if (p_adv_filt_cb->has_mask)
                     {
-                        btif_to_bta_uuid_mask(&uuid_mask, &p_cb->uuid_mask);
+                        btif_to_bta_uuid_mask(&uuid_mask, &p_adv_filt_cb->uuid_mask);
                         cond.srvc_uuid.p_uuid_mask = &uuid_mask;
                     }
-                    BTA_DmBleCfgFilterCondition(BTA_DM_BLE_SCAN_COND_ADD,
-                                              p_cb->action, &cond,
-                                              bta_scan_filter_cmpl_cb);
+                    BTA_DmBleCfgFilterCondition(p_adv_filt_cb->action,
+                                              p_adv_filt_cb->filt_type, p_adv_filt_cb->filt_index,
+                                              &cond, bta_scan_filt_cfg_cb,
+                                              p_adv_filt_cb->client_if);
                     break;
                 }
 
@@ -1285,34 +1377,49 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                 {
                     cond.solicitate_uuid.p_target_addr = NULL;
                     cond.solicitate_uuid.cond_logic = BTA_DM_BLE_PF_LOGIC_AND;
-                    btif_to_bta_uuid(&cond.solicitate_uuid.uuid, &p_cb->uuid);
-                    BTA_DmBleCfgFilterCondition(BTA_DM_BLE_SCAN_COND_ADD,
-                                              p_cb->action, &cond,
-                                              bta_scan_filter_cmpl_cb);
+                    btif_to_bta_uuid(&cond.solicitate_uuid.uuid, &p_adv_filt_cb->uuid);
+                    BTA_DmBleCfgFilterCondition(p_adv_filt_cb->action,
+                                              p_adv_filt_cb->filt_type, p_adv_filt_cb->filt_index,
+                                              &cond, bta_scan_filt_cfg_cb,
+                                              p_adv_filt_cb->client_if);
                     break;
                 }
 
                 case BTA_DM_BLE_PF_LOCAL_NAME: // 4
                 {
-                    cond.local_name.data_len = p_cb->len;
-                    cond.local_name.p_data = p_cb->value;
-                    BTA_DmBleCfgFilterCondition(BTA_DM_BLE_SCAN_COND_ADD,
-                                              p_cb->action, &cond,
-                                              bta_scan_filter_cmpl_cb);
+                    cond.local_name.data_len = p_adv_filt_cb->value_len;
+                    cond.local_name.p_data = p_adv_filt_cb->value;
+                    BTA_DmBleCfgFilterCondition(p_adv_filt_cb->action,
+                                              p_adv_filt_cb->filt_type, p_adv_filt_cb->filt_index,
+                                              &cond, bta_scan_filt_cfg_cb,
+                                              p_adv_filt_cb->client_if);
                     break;
                 }
 
                 case BTA_DM_BLE_PF_MANU_DATA: // 5
                 {
-                    cond.manu_data.company_id = p_cb->conn_id;
-                    cond.manu_data.company_id_mask = p_cb->mask;
-                    cond.manu_data.data_len = p_cb->len;
-                    cond.manu_data.p_pattern = p_cb->value;
-                    cond.manu_data.p_pattern_mask = &p_cb->value[p_cb->len];
-                    BTA_DmBleCfgFilterCondition(BTA_DM_BLE_SCAN_COND_ADD,
-                                              p_cb->action, &cond,
-                                              bta_scan_filter_cmpl_cb);
+                    cond.manu_data.company_id = p_adv_filt_cb->conn_id;
+                    cond.manu_data.company_id_mask = p_adv_filt_cb->company_id_mask;
+                    cond.manu_data.data_len = p_adv_filt_cb->value_len;
+                    cond.manu_data.p_pattern = p_adv_filt_cb->value;
+                    cond.manu_data.p_pattern_mask = p_adv_filt_cb->value_mask;
+                    BTA_DmBleCfgFilterCondition(p_adv_filt_cb->action,
+                                              p_adv_filt_cb->filt_type, p_adv_filt_cb->filt_index,
+                                              &cond, bta_scan_filt_cfg_cb,
+                                              p_adv_filt_cb->client_if);
                     break;
+                }
+
+                case BTA_DM_BLE_PF_SRVC_DATA_PATTERN: //6
+                {
+                    cond.srvc_data.data_len = p_adv_filt_cb->value_len;
+                    cond.srvc_data.p_pattern = p_adv_filt_cb->value;
+                    cond.srvc_data.p_pattern_mask = p_adv_filt_cb->value_mask;
+                    BTA_DmBleCfgFilterCondition(p_adv_filt_cb->action,
+                                                p_adv_filt_cb->filt_type, p_adv_filt_cb->filt_index,
+                                                &cond, bta_scan_filt_cfg_cb,
+                                                p_adv_filt_cb->client_if);
+                   break;
                 }
 
                 default:
@@ -1324,8 +1431,19 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_SCAN_FILTER_CLEAR:
         {
+            if(NULL == p_adv_filt_cb)
+                return;
             BTA_DmBleCfgFilterCondition(BTA_DM_BLE_SCAN_COND_CLEAR, BTA_DM_BLE_PF_TYPE_ALL,
-                                      NULL, bta_scan_filter_cmpl_cb);
+                                        0, NULL, bta_scan_filt_cfg_cb, p_adv_filt_cb->client_if);
+            break;
+        }
+
+        case BTIF_GATTC_SCAN_FILTER_ENABLE:
+        {
+            if(NULL == p_adv_filt_cb)
+               return;
+            BTA_DmEnableScanFilter(p_adv_filt_cb->action, bta_scan_filt_status_cb,
+                                   p_adv_filt_cb->client_if);
             break;
         }
 
@@ -1777,50 +1895,97 @@ static bt_status_t btif_gattc_configure_mtu(int conn_id, int mtu)
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_scan_filter_enable(int enable )
+static bt_status_t btif_gattc_scan_filter_param_setup(int client_if, int action,
+    int filt_index, int feat_seln, int list_logic_type, int filt_logic_type, int rssi_high_thres,
+    int rssi_low_thres, int dely_mode, int found_timeout, int lost_timeout, int found_timeout_cnt)
 {
     CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.action = enable;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SCAN_FILTER_ENABLE,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+    BTIF_TRACE_DEBUG("%s", __FUNCTION__);
+    btgatt_adv_filter_cb_t btif_filt_cb;
+    btif_filt_cb.action = action;
+    btif_filt_cb.client_if = client_if;
+    btif_filt_cb.filt_index = filt_index;
+    btif_filt_cb.adv_filt_param.feat_seln = feat_seln;
+    btif_filt_cb.adv_filt_param.list_logic_type = list_logic_type;
+    btif_filt_cb.adv_filt_param.filt_logic_type = filt_logic_type;
+    btif_filt_cb.adv_filt_param.rssi_high_thres = rssi_high_thres;
+    btif_filt_cb.adv_filt_param.rssi_low_thres = rssi_low_thres;
+    btif_filt_cb.adv_filt_param.dely_mode = dely_mode;
+    btif_filt_cb.adv_filt_param.found_timeout = found_timeout;
+    btif_filt_cb.adv_filt_param.lost_timeout = lost_timeout;
+    btif_filt_cb.adv_filt_param.found_timeout_cnt = found_timeout_cnt;
+    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SCAN_FILTER_PARAM_SETUP,
+                                 (char*) &btif_filt_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_scan_filter_add(int type, int company_id, int company_mask,
-                              int len, const bt_uuid_t *p_uuid, const bt_uuid_t *p_uuid_mask,
-                              const bt_bdaddr_t *bd_addr, char addr_type, const char* p_value)
+static bt_status_t btif_gattc_scan_filter_add_remove(int client_if, int action,
+                              int filt_type, int filt_index, int company_id,
+                              int company_id_mask, const bt_uuid_t *p_uuid,
+                              const bt_uuid_t *p_uuid_mask, const bt_bdaddr_t *bd_addr,
+                              char addr_type, int data_len, char* p_data, int mask_len,
+                              char* p_mask)
 {
     CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
+    btgatt_adv_filter_cb_t btif_filt_cb;
+    BTIF_TRACE_DEBUG("%s, %d, %d", __FUNCTION__, action, filt_type);
 
-    if (len > (BTGATT_MAX_ATTR_LEN / 2))
-        len = BTGATT_MAX_ATTR_LEN / 2;
+    /* If data is passed, both mask and data have to be the same length */
+    if(data_len != mask_len && NULL != p_data && NULL != p_mask)
+        return BT_STATUS_PARM_INVALID;
 
-    btif_cb.action = type;
-    btif_cb.len = len;
-    btif_cb.conn_id = company_id;
-    btif_cb.mask = company_mask ? company_mask : 0xFFFF;
+    btif_filt_cb.client_if = client_if;
+    btif_filt_cb.action = action;
+    btif_filt_cb.filt_index = filt_index;
+    btif_filt_cb.filt_type = filt_type;
+    btif_filt_cb.conn_id = company_id;
+    btif_filt_cb.company_id_mask = company_id_mask ? company_id_mask : 0xFFFF;
     if(bd_addr)
-      bdcpy(btif_cb.bd_addr.address, bd_addr->address);
-    btif_cb.addr_type = addr_type;
-    btif_cb.has_mask = (p_uuid_mask != NULL);
+      bdcpy(btif_filt_cb.bd_addr.address, bd_addr->address);
+
+    btif_filt_cb.addr_type = addr_type;
+    btif_filt_cb.has_mask = (p_uuid_mask != NULL);
 
     if (p_uuid != NULL)
-        memcpy(&btif_cb.uuid, p_uuid, sizeof(bt_uuid_t));
+        memcpy(&btif_filt_cb.uuid, p_uuid, sizeof(bt_uuid_t));
     if (p_uuid_mask != NULL)
-        memcpy(&btif_cb.uuid_mask, p_uuid_mask, sizeof(bt_uuid_t));
-    if (p_value != NULL && len != 0)
-        memcpy(btif_cb.value, p_value, len * 2 /* PATTERN CONTAINS MASK */);
+        memcpy(&btif_filt_cb.uuid_mask, p_uuid_mask, sizeof(bt_uuid_t));
+    if (p_data != NULL && data_len != 0)
+    {
+        memcpy(btif_filt_cb.value, p_data, data_len);
+        btif_filt_cb.value_len = data_len;
+        memcpy(btif_filt_cb.value_mask, p_mask, mask_len);
+        btif_filt_cb.value_mask_len = mask_len;
+    }
     return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SCAN_FILTER_CONFIG,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+                                 (char*) &btif_filt_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_scan_filter_clear()
+static bt_status_t btif_gattc_scan_filter_clear(int client_if, int filt_index)
 {
     CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SCAN_FILTER_CLEAR,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+    BTIF_TRACE_DEBUG("%s, %d", __FUNCTION__, filt_index);
+
+    btgatt_adv_filter_cb_t btif_filt_cb;
+    btif_filt_cb.client_if = client_if;
+    btif_filt_cb.filt_index = filt_index;
+    btif_filt_cb.action = BTA_DM_BLE_SCAN_COND_CLEAR;
+    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SCAN_FILTER_CONFIG,
+                                 (char*) &btif_filt_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
+}
+
+static bt_status_t btif_gattc_scan_filter_enable(int client_if, bool enable)
+{
+    int action = 0;
+    CHECK_BTGATT_INIT();
+    BTIF_TRACE_DEBUG("%s, %d", __FUNCTION__, enable);
+
+    btgatt_adv_filter_cb_t btif_filt_cb;
+    btif_filt_cb.client_if = client_if;
+    if(true == enable)
+        action = 1;
+    btif_filt_cb.action = action;
+    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SCAN_FILTER_ENABLE,
+                                 (char*) &btif_filt_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
 }
 
 static bt_status_t btif_gattc_set_scan_parameters(int scan_interval, int scan_window)
@@ -1997,9 +2162,10 @@ const btgatt_client_interface_t btgattClientInterface = {
     btif_gattc_reg_for_notification,
     btif_gattc_dereg_for_notification,
     btif_gattc_read_remote_rssi,
-    btif_gattc_scan_filter_enable,
-    btif_gattc_scan_filter_add,
+    btif_gattc_scan_filter_param_setup,
+    btif_gattc_scan_filter_add_remove,
     btif_gattc_scan_filter_clear,
+    btif_gattc_scan_filter_enable,
     btif_gattc_get_device_type,
     btif_gattc_set_adv_data,
     btif_gattc_configure_mtu,

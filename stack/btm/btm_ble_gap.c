@@ -485,7 +485,7 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
 *******************************************************************************/
 BTM_API extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
 {
-    BTM_TRACE_DEBUG("btm_ble_vendor_capability_init");
+    BTM_TRACE_DEBUG("BTM_BleGetVendorCapabilities");
 
     if(NULL != p_cmn_vsc_cb)
     {
@@ -3071,6 +3071,9 @@ void btm_ble_init (void)
     btm_ble_batchscan_init();
 #endif
 
+#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+    btm_ble_adv_filter_init();
+#endif
 }
 
 /*******************************************************************************

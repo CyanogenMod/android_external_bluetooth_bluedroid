@@ -30,27 +30,6 @@
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
-/* ADV payload filtering vendor specific call event */
-enum
-{
-    BTA_VS_BLE_SCAN_PF_ENABLE_EVT = 7,
-    BTA_VS_BLE_SCAN_PF_COND_EVT
-};
-
-typedef struct
-{
-    BOOLEAN         enable;
-    tBLE_BD_ADDR    *p_target;
-    void            *p_cmpl_cback;
-}tBTA_SYS_VS_BLE_SCAN_PF_ENABLE;
-
-typedef struct
-{
-    UINT8       action;
-    INT8        cond_type;
-    void        *p_cond;
-    void        *p_cmpl_cback;
-}tBTA_SYS_VS_BLE_SCAN_PF_COND;
 
 /* vendor specific event handler function type */
 typedef BOOLEAN (tBTA_SYS_VS_EVT_HDLR)(UINT16 evt, void *p);
