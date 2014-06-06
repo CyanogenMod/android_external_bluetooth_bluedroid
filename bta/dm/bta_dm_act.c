@@ -5164,7 +5164,7 @@ void bta_dm_ble_observe (tBTA_DM_MSG *p_data)
         /*Save the  callback to be called when a scan results are available */
         bta_dm_search_cb.p_scan_cback = p_data->ble_observe.p_cback;
         if ((status = BTM_BleObserve(TRUE, p_data->ble_observe.duration,
-                                bta_dm_observe_results_cb, bta_dm_observe_cmpl_cb))!= BTM_SUCCESS)
+                            bta_dm_observe_results_cb, bta_dm_observe_cmpl_cb))!= BTM_CMD_STARTED)
         {
             tBTA_DM_SEARCH  data;
             APPL_TRACE_WARNING2(" %s BTM_BleObserve  failed. status %d",__FUNCTION__,status);
