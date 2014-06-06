@@ -68,9 +68,7 @@ BTA_API tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK *p_cback)
     }
 
     /* register with BTA system manager */
-    GKI_sched_lock();
     bta_sys_register(BTA_ID_HS, &bta_hf_client_reg);
-    GKI_sched_unlock();
 
     if ((p_buf = (tBTA_HF_CLIENT_API_ENABLE *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_API_ENABLE))) != NULL)
     {

@@ -71,14 +71,11 @@ tBTA_STATUS BTA_EnableBluetooth(tBTA_DM_SEC_CBACK *p_cback)
 
     memset(&bta_dm_cb, 0, sizeof(bta_dm_cb));
 
-    GKI_sched_lock();
     bta_sys_register (BTA_ID_DM, &bta_dm_reg );
     bta_sys_register (BTA_ID_DM_SEARCH, &bta_dm_search_reg );
 
     /* if UUID list is not provided as static data */
     bta_sys_eir_register(bta_dm_eir_update_uuid);
-
-    GKI_sched_unlock();
 
     if ((p_msg = (tBTA_DM_API_ENABLE *) GKI_getbuf(sizeof(tBTA_DM_API_ENABLE))) != NULL)
     {
@@ -179,14 +176,7 @@ void BTA_DisableTestMode(void)
 *******************************************************************************/
 BOOLEAN BTA_DmIsDeviceUp(void)
 {
-
-    BOOLEAN status;
-
-    GKI_sched_lock();
-    status = BTM_IsDeviceUp();
-    GKI_sched_unlock();
-    return status;
-
+    return BTM_IsDeviceUp();
 }
 
 /*******************************************************************************

@@ -63,9 +63,7 @@ void BTA_AvEnable(tBTA_SEC sec_mask, tBTA_AV_FEAT features, tBTA_AV_CBACK *p_cba
     tBTA_AV_API_ENABLE  *p_buf;
 
     /* register with BTA system manager */
-    GKI_sched_lock();
     bta_sys_register(BTA_ID_AV, &bta_av_reg);
-    GKI_sched_unlock();
 
     if ((p_buf = (tBTA_AV_API_ENABLE *) GKI_getbuf(sizeof(tBTA_AV_API_ENABLE))) != NULL)
     {

@@ -91,9 +91,7 @@ void BTA_GATTC_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTC_CBACK *p_client_cb)
 
     if (bta_sys_is_register(BTA_ID_GATTC) == FALSE)
     {
-        GKI_sched_lock();
         bta_sys_register(BTA_ID_GATTC, &bta_gattc_reg);
-        GKI_sched_unlock();
     }
 
     if ((p_buf = (tBTA_GATTC_API_REG *) GKI_getbuf(sizeof(tBTA_GATTC_API_REG))) != NULL)
@@ -909,9 +907,6 @@ tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF client_if,
         return status;
     }
 
-    /* lock other GKI task */
-    GKI_sched_lock();
-
     if ((p_clreg = bta_gattc_cl_get_regcb(client_if)) != NULL)
     {
         for (i = 0; i < BTA_GATTC_NOTIF_REG_MAX; i ++)
@@ -956,8 +951,6 @@ tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF client_if,
         APPL_TRACE_ERROR1("Client_if: %d Not Registered", client_if);
     }
 
-    GKI_sched_unlock();
-
     return status;
 }
 
@@ -988,9 +981,6 @@ tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF client_if,
         return status;
     }
 
-    /* lock other GKI task */
-    GKI_sched_lock();
-
     if ((p_clreg = bta_gattc_cl_get_regcb(client_if)) != NULL)
     {
         for (i = 0; i < BTA_GATTC_NOTIF_REG_MAX; i ++)
@@ -1016,8 +1006,6 @@ tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF client_if,
     {
         APPL_TRACE_ERROR1("Client_if: %d Not Registered", client_if);
     }
-
-    GKI_sched_unlock();
 
     return status;
 }

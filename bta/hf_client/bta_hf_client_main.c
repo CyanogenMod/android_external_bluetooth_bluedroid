@@ -417,9 +417,7 @@ static void bta_hf_client_api_disable(tBTA_HF_CLIENT_DATA *p_data)
     }
 
     /* De-register with BTA system manager */
-    GKI_sched_lock();
     bta_sys_deregister(BTA_ID_HS);
-    GKI_sched_unlock();
 
     bta_hf_client_sm_execute(BTA_HF_CLIENT_API_DEREGISTER_EVT, p_data);
 

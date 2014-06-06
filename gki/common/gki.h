@@ -461,8 +461,6 @@ GKI_API extern void    GKI_timer_queue_register_callback(SYSTEM_TICK_CBACK *);
 */
 GKI_API extern void    GKI_enable(void);
 GKI_API extern void    GKI_disable(void);
-GKI_API extern void    GKI_sched_lock(void);
-GKI_API extern void    GKI_sched_unlock(void);
 
 /* Allocate (Free) memory from an OS
 */

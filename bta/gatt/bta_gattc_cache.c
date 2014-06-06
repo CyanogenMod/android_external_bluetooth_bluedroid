@@ -1440,9 +1440,6 @@ tBTA_GATT_STATUS bta_gattc_query_cache(UINT16 conn_id,
     tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
     tBTA_GATT_STATUS status = BTA_GATT_ILLEGAL_PARAMETER;
 
-    /* lock other GKI task */
-    GKI_sched_lock();
-
     if (p_clcb != NULL )
     {
         if (p_clcb->state == BTA_GATTC_CONN_ST)
@@ -1476,7 +1473,6 @@ tBTA_GATT_STATUS bta_gattc_query_cache(UINT16 conn_id,
     {
         APPL_TRACE_ERROR1("Unknown conn ID: %d", conn_id);
     }
-    GKI_sched_unlock();
 
     return status;
 }

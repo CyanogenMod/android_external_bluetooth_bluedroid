@@ -413,8 +413,6 @@ tBTA_HH_STATUS bta_hh_read_ssr_param(BD_ADDR bd_addr, UINT16 *p_max_ssr_lat, UIN
     tBTA_HH_CB  *p_cb = &bta_hh_cb;
     UINT8       i;
     UINT16      ssr_max_latency;
-    /* lock other GKI task */
-    GKI_sched_lock();
     for (i = 0; i < BTA_HH_MAX_KNOWN; i ++)
     {
         if (memcmp(p_cb->kdev[i].addr, bd_addr, BD_ADDR_LEN) == 0)
@@ -449,7 +447,6 @@ tBTA_HH_STATUS bta_hh_read_ssr_param(BD_ADDR bd_addr, UINT16 *p_max_ssr_lat, UIN
             break;
         }
     }
-    GKI_sched_unlock();
 
     return status;
 }
