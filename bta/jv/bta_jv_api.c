@@ -74,9 +74,7 @@ tBTA_JV_STATUS BTA_JvEnable(tBTA_JV_DM_CBACK *p_cback)
         }
 
         /* register with BTA system manager */
-        GKI_sched_lock();
         bta_sys_register(BTA_ID_JV, &bta_jv_reg);
-        GKI_sched_unlock();
 
         if (p_cback && (p_buf = (tBTA_JV_API_ENABLE *) GKI_getbuf(sizeof(tBTA_JV_API_ENABLE))) != NULL)
         {

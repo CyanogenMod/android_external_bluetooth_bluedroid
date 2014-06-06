@@ -71,9 +71,7 @@ tBTA_STATUS BTA_AgEnable(tBTA_AG_PARSE_MODE parse_mode, tBTA_AG_CBACK *p_cback)
     }
 
     /* register with BTA system manager */
-    GKI_sched_lock();
     bta_sys_register(BTA_ID_AG, &bta_ag_reg);
-    GKI_sched_unlock();
 
     if ((p_buf = (tBTA_AG_API_ENABLE *) GKI_getbuf(sizeof(tBTA_AG_API_ENABLE))) != NULL)
     {

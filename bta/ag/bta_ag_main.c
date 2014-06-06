@@ -713,9 +713,7 @@ static void bta_ag_api_disable(tBTA_AG_DATA *p_data)
     }
 
     /* De-register with BTA system manager */
-    GKI_sched_lock();
     bta_sys_deregister(BTA_ID_AG);
-    GKI_sched_unlock();
 
     for (i = 0; i < BTA_AG_NUM_SCB; i++, p_scb++)
     {

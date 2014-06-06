@@ -90,11 +90,9 @@ void BTA_GATTS_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTS_CBACK *p_cback)
     tBTA_GATTS_API_REG  *p_buf;
 
     /* register with BTA system manager */
-   if (bta_sys_is_register(BTA_ID_GATTS) == FALSE)
-   {
-        GKI_sched_lock();
+    if (bta_sys_is_register(BTA_ID_GATTS) == FALSE)
+    {
         bta_sys_register(BTA_ID_GATTS, &bta_gatts_reg);
-        GKI_sched_unlock();
     }
 
     if ((p_buf = (tBTA_GATTS_API_REG *) GKI_getbuf(sizeof(tBTA_GATTS_API_REG))) != NULL)

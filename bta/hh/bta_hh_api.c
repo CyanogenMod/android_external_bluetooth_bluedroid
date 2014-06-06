@@ -63,9 +63,7 @@ void BTA_HhEnable(tBTA_SEC sec_mask, tBTA_HH_CBACK *p_cback)
     tBTA_HH_API_ENABLE *p_buf;
 
     /* register with BTA system manager */
-    GKI_sched_lock();
     bta_sys_register(BTA_ID_HH, &bta_hh_reg);
-    GKI_sched_unlock();
 
     APPL_TRACE_ERROR0("Calling BTA_HhEnable");
     p_buf = (tBTA_HH_API_ENABLE *)GKI_getbuf((UINT16)sizeof(tBTA_HH_API_ENABLE));

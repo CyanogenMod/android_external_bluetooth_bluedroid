@@ -60,9 +60,7 @@ void BTA_PanEnable(tBTA_PAN_CBACK p_cback)
     tBTA_PAN_API_ENABLE  *p_buf;
 
     /* register with BTA system manager */
-    GKI_sched_lock();
     bta_sys_register(BTA_ID_PAN, &bta_pan_reg);
-    GKI_sched_unlock();
 
     if ((p_buf = (tBTA_PAN_API_ENABLE *) GKI_getbuf(sizeof(tBTA_PAN_API_ENABLE))) != NULL)
     {
