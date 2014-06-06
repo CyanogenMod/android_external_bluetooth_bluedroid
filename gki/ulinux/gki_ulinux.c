@@ -205,8 +205,7 @@ void alarm_service_reschedule() {
 ** Returns         void
 **
 *******************************************************************************/
-
-void gki_task_entry(UINT32 params)
+static void gki_task_entry(UINT32 params)
 {
     gki_pthread_info_t *p_pthread_info = (gki_pthread_info_t *)params;
     gki_cb.os.thread_id[p_pthread_info->task_id] = pthread_self();
@@ -224,7 +223,6 @@ void gki_task_entry(UINT32 params)
 
     pthread_exit(0);    /* GKI tasks have no return value */
 }
-/* end android */
 
 /*******************************************************************************
 **
@@ -285,8 +283,7 @@ void GKI_init(void)
 *******************************************************************************/
 UINT32 GKI_get_os_tick_count(void)
 {
-     /* TODO - add any OS specific code here */
-    return (gki_cb.com.OSTicks);
+    return gki_cb.com.OSTicks;
 }
 
 /*******************************************************************************
@@ -1024,10 +1021,7 @@ INT8 *GKI_map_taskname (UINT8 task_id)
 *******************************************************************************/
 void GKI_enable (void)
 {
-    //GKI_TRACE("GKI_enable");
     pthread_mutex_unlock(&gki_cb.os.GKI_mutex);
-    //GKI_TRACE("Leaving GKI_enable");
-    return;
 }
 
 
@@ -1043,12 +1037,7 @@ void GKI_enable (void)
 
 void GKI_disable (void)
 {
-    //GKI_TRACE("GKI_disable");
-
     pthread_mutex_lock(&gki_cb.os.GKI_mutex);
-
-    //GKI_TRACE("Leaving GKI_disable");
-    return;
 }
 
 
@@ -1160,28 +1149,6 @@ INT8 *GKI_get_time_stamp (INT8 *tbuf)
 
 /*******************************************************************************
 **
-** Function         GKI_register_mempool
-**
-** Description      This function registers a specific memory pool.
-**
-** Parameters:      p_mem -  (input) pointer to the memory pool
-**
-** Returns          void
-**
-** NOTE             This function is NOT called by the Broadcom stack and
-**                  profiles. If your OS has different memory pools, you
-**                  can tell GKI the pool to use by calling this function.
-**
-*******************************************************************************/
-void GKI_register_mempool (void *p_mem)
-{
-    gki_cb.com.p_user_mempool = p_mem;
-
-    return;
-}
-
-/*******************************************************************************
-**
 ** Function         GKI_os_malloc
 **
 ** Description      This function allocates memory
@@ -1197,7 +1164,7 @@ void GKI_register_mempool (void *p_mem)
 *******************************************************************************/
 void *GKI_os_malloc (UINT32 size)
 {
-    return (malloc(size));
+    return malloc(size);
 }
 
 /*******************************************************************************
@@ -1217,61 +1184,7 @@ void *GKI_os_malloc (UINT32 size)
 *******************************************************************************/
 void GKI_os_free (void *p_mem)
 {
-    if(p_mem != NULL)
-        free(p_mem);
-    return;
-}
-
-
-/*******************************************************************************
-**
-** Function         GKI_suspend_task()
-**
-** Description      This function suspends the task specified in the argument.
-**
-** Parameters:      task_id  - (input) the id of the task that has to suspended
-**
-** Returns          GKI_SUCCESS if all OK, else GKI_FAILURE
-**
-** NOTE             This function is NOT called by the Broadcom stack and
-**                  profiles. If you want to implement task suspension capability,
-**                  put specific code here.
-**
-*******************************************************************************/
-UINT8 GKI_suspend_task (UINT8 task_id)
-{
-    UNUSED(task_id);
-    GKI_TRACE("GKI_suspend_task %d - NOT implemented", task_id);
-
-    GKI_TRACE("GKI_suspend_task %d done", task_id);
-
-    return (GKI_SUCCESS);
-}
-
-
-/*******************************************************************************
-**
-** Function         GKI_resume_task()
-**
-** Description      This function resumes the task specified in the argument.
-**
-** Parameters:      task_id  - (input) the id of the task that has to resumed
-**
-** Returns          GKI_SUCCESS if all OK
-**
-** NOTE             This function is NOT called by the Broadcom stack and
-**                  profiles. If you want to implement task suspension capability,
-**                  put specific code here.
-**
-*******************************************************************************/
-UINT8 GKI_resume_task (UINT8 task_id)
-{
-    UNUSED(task_id);
-    GKI_TRACE("GKI_resume_task %d - NOT implemented", task_id);
-
-    GKI_TRACE("GKI_resume_task %d done", task_id);
-
-    return (GKI_SUCCESS);
+    free(p_mem);
 }
 
 
@@ -1302,8 +1215,6 @@ void GKI_exit_task (UINT8 task_id)
     pthread_cond_destroy (&gki_cb.os.thread_timeout_cond[task_id]);
 
     GKI_enable();
-
-    //GKI_send_event(task_id, EVENT_MASK(GKI_SHUTDOWN_EVT));
 
     GKI_INFO("GKI_exit_task %d done", task_id);
     return;

@@ -22,10 +22,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifndef NULL
-#  define NULL     (void *)0
-#endif
-
 #ifndef FALSE
 #  define FALSE  false
 #endif
@@ -52,10 +48,6 @@ typedef UINT32          TIME_STAMP;
 #else
 #  define PACKED
 #  define INLINE
-#endif
-
-#ifndef BIG_ENDIAN
-#define BIG_ENDIAN FALSE
 #endif
 
 #define BCM_STRCPY_S(x1,x2,x3)      strcpy((x1),(x3))

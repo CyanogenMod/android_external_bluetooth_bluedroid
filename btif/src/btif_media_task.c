@@ -1146,7 +1146,7 @@ BOOLEAN btif_media_task_send_cmd_evt(UINT16 Evt)
  *******************************************************************************/
 static void btif_media_flush_q(BUFFER_Q *p_q)
 {
-    while (GKI_IS_QUEUE_EMPTY(p_q) == FALSE)
+    while (!GKI_queue_is_empty(p_q))
     {
         GKI_freebuf(GKI_dequeue(p_q));
     }

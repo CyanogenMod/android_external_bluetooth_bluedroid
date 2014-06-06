@@ -52,9 +52,6 @@
 **  Misc constants
 *********************************************************************/
 
-#define GKI_MAX_INT32           (0x7fffffffL)
-#define GKI_MAX_TIMESTAMP       (0xffffffffL)
-
 /********************************************************************
 **  Buffer Management Data Structures
 *********************************************************************/
@@ -64,14 +61,14 @@ typedef struct _buffer_hdr
     struct _buffer_hdr *p_next;   /* next buffer in the queue */
 	UINT8   q_id;                 /* id of the queue */
 	UINT8   task_id;              /* task which allocated the buffer*/
-    UINT8   status;               /* FREE, UNLINKED or QUEUED */
+	UINT8   status;               /* FREE, UNLINKED or QUEUED */
 	UINT8   Type;
 } BUFFER_HDR_T;
 
 typedef struct _free_queue
 {
 	BUFFER_HDR_T *p_first;      /* first buffer in the queue */
-    BUFFER_HDR_T *p_last;       /* last buffer in the queue */
+	BUFFER_HDR_T *p_last;       /* last buffer in the queue */
 	UINT16		 size;          /* size of the buffers in the pool */
 	UINT16		 total;         /* toatal number of buffers */
 	UINT16		 cur_cnt;       /* number of  buffers currently allocated */
@@ -356,13 +353,6 @@ extern void      gki_adjust_timer_count (INT32);
 #ifdef GKI_USE_DEFERED_ALLOC_BUF_POOLS
 extern void      gki_dealloc_free_queue(void);
 #endif
-
-extern void    OSStartRdy(void);
-extern void	   OSCtxSw(void);
-extern void	   OSIntCtxSw(void);
-extern void    OSSched(void);
-extern void    OSIntEnter(void);
-extern void    OSIntExit(void);
 
 
 /* Debug aids

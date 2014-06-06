@@ -19,16 +19,7 @@
 #define GKI_H
 
 
-/* Include platform-specific over-rides */
-#if (defined(NFC_STANDALONE) && (NFC_STANDALONE == TRUE))
-    #include "gki_target.h"
-#else
-    /* For non-nfc_standalone, include Bluetooth definitions */
-    #include "bt_target.h"
-#endif
-
-
-
+#include "bt_target.h"
 #include "bt_types.h"
 
 /* Error codes */
@@ -92,228 +83,11 @@
 #define GKI_MAX_TIMER_QUEUES    3
 #endif
 
-/************************************************************************
-**  Macro to determine the pool buffer size based on the GKI POOL ID at compile time.
-**  Pool IDs index from 0 to GKI_NUM_FIXED_BUF_POOLS - 1
-*/
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 1)
-
-#ifndef GKI_POOL_ID_0
-#define GKI_POOL_ID_0                0
-#endif /* ifndef GKI_POOL_ID_0 */
-
-#ifndef GKI_BUF0_SIZE
-#define GKI_BUF0_SIZE                0
-#endif /* ifndef GKI_BUF0_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 1 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 2)
-
-#ifndef GKI_POOL_ID_1
-#define GKI_POOL_ID_1                0
-#endif /* ifndef GKI_POOL_ID_1 */
-
-#ifndef GKI_BUF1_SIZE
-#define GKI_BUF1_SIZE                0
-#endif /* ifndef GKI_BUF1_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 2 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 3)
-
-#ifndef GKI_POOL_ID_2
-#define GKI_POOL_ID_2                0
-#endif /* ifndef GKI_POOL_ID_2 */
-
-#ifndef GKI_BUF2_SIZE
-#define GKI_BUF2_SIZE                0
-#endif /* ifndef GKI_BUF2_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 3 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 4)
-
-#ifndef GKI_POOL_ID_3
-#define GKI_POOL_ID_3                0
-#endif /* ifndef GKI_POOL_ID_4 */
-
-#ifndef GKI_BUF3_SIZE
-#define GKI_BUF3_SIZE                0
-#endif /* ifndef GKI_BUF3_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 4 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 5)
-
-#ifndef GKI_POOL_ID_4
-#define GKI_POOL_ID_4                0
-#endif /* ifndef GKI_POOL_ID_4 */
-
-#ifndef GKI_BUF4_SIZE
-#define GKI_BUF4_SIZE                0
-#endif /* ifndef GKI_BUF4_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 5 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 6)
-
-#ifndef GKI_POOL_ID_5
-#define GKI_POOL_ID_5                0
-#endif /* ifndef GKI_POOL_ID_5 */
-
-#ifndef GKI_BUF5_SIZE
-#define GKI_BUF5_SIZE                0
-#endif /* ifndef GKI_BUF5_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 6 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 7)
-
-#ifndef GKI_POOL_ID_6
-#define GKI_POOL_ID_6                0
-#endif /* ifndef GKI_POOL_ID_6 */
-
-#ifndef GKI_BUF6_SIZE
-#define GKI_BUF6_SIZE                0
-#endif /* ifndef GKI_BUF6_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 7 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 8)
-
-#ifndef GKI_POOL_ID_7
-#define GKI_POOL_ID_7                0
-#endif /* ifndef GKI_POOL_ID_7 */
-
-#ifndef GKI_BUF7_SIZE
-#define GKI_BUF7_SIZE                0
-#endif /* ifndef GKI_BUF7_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 8 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 9)
-
-#ifndef GKI_POOL_ID_8
-#define GKI_POOL_ID_8                0
-#endif /* ifndef GKI_POOL_ID_8 */
-
-#ifndef GKI_BUF8_SIZE
-#define GKI_BUF8_SIZE                0
-#endif /* ifndef GKI_BUF8_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 9 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 10)
-
-#ifndef GKI_POOL_ID_9
-#define GKI_POOL_ID_9                0
-#endif /* ifndef GKI_POOL_ID_9 */
-
-#ifndef GKI_BUF9_SIZE
-#define GKI_BUF9_SIZE                0
-#endif /* ifndef GKI_BUF9_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 10 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 11)
-
-#ifndef GKI_POOL_ID_10
-#define GKI_POOL_ID_10                0
-#endif /* ifndef GKI_POOL_ID_10 */
-
-#ifndef GKI_BUF10_SIZE
-#define GKI_BUF10_SIZE                0
-#endif /* ifndef GKI_BUF10_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 11 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 12)
-
-#ifndef GKI_POOL_ID_11
-#define GKI_POOL_ID_11                0
-#endif /* ifndef GKI_POOL_ID_11 */
-
-#ifndef GKI_BUF11_SIZE
-#define GKI_BUF11_SIZE                0
-#endif /* ifndef GKI_BUF11_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 12 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 13)
-
-#ifndef GKI_POOL_ID_12
-#define GKI_POOL_ID_12                0
-#endif /* ifndef GKI_POOL_ID_12 */
-
-#ifndef GKI_BUF12_SIZE
-#define GKI_BUF12_SIZE                0
-#endif /* ifndef GKI_BUF12_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 13 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 14)
-
-#ifndef GKI_POOL_ID_13
-#define GKI_POOL_ID_13                0
-#endif /* ifndef GKI_POOL_ID_13 */
-
-#ifndef GKI_BUF13_SIZE
-#define GKI_BUF13_SIZE                0
-#endif /* ifndef GKI_BUF13_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 14 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 15)
-
-#ifndef GKI_POOL_ID_14
-#define GKI_POOL_ID_14                0
-#endif /* ifndef GKI_POOL_ID_14 */
-
-#ifndef GKI_BUF14_SIZE
-#define GKI_BUF14_SIZE                0
-#endif /* ifndef GKI_BUF14_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 15 */
-
-
-#if (GKI_NUM_FIXED_BUF_POOLS < 16)
-
-#ifndef GKI_POOL_ID_15
-#define GKI_POOL_ID_15                0
-#endif /* ifndef GKI_POOL_ID_15 */
-
-#ifndef GKI_BUF15_SIZE
-#define GKI_BUF15_SIZE                0
-#endif /* ifndef GKI_BUF15_SIZE */
-
-#endif /* GKI_NUM_FIXED_BUF_POOLS < 16 */
-
-
 /* Timer list entry callback type
 */
 typedef void (TIMER_CBACK)(void *p_tle);
 #ifndef TIMER_PARAM_TYPE
-#ifdef  WIN2000
-#define TIMER_PARAM_TYPE    void *
-#else
 #define TIMER_PARAM_TYPE    UINT32
-#endif
 #endif
 /* Define a timer list entry
 */
@@ -348,8 +122,6 @@ typedef struct
     UINT16   count;
 } BUFFER_Q;
 
-#define GKI_IS_QUEUE_EMPTY(p_q) ((p_q)->count == 0)
-
 /* Task constants
 */
 #ifndef TASKPTR
@@ -378,17 +150,9 @@ GKI_API extern UINT8   GKI_get_taskid(void);
 GKI_API extern void    GKI_init(void);
 GKI_API extern void    GKI_shutdown(void);
 GKI_API extern INT8   *GKI_map_taskname(UINT8);
-GKI_API extern UINT8   GKI_resume_task(UINT8);
 GKI_API extern void    GKI_run(void *);
 GKI_API extern void    GKI_freeze(void);
 GKI_API extern void    GKI_stop(void);
-GKI_API extern UINT8   GKI_suspend_task(UINT8);
-GKI_API extern UINT8   GKI_is_task_running(UINT8);
-
-/* memory management
-*/
-GKI_API extern void GKI_shiftdown (UINT8 *p_mem, UINT32 len, UINT32 shift_amount);
-GKI_API extern void GKI_shiftup (UINT8 *p_dest, UINT8 *p_src, UINT32 len);
 
 /* To send buffers and events between tasks
 */
@@ -401,10 +165,6 @@ GKI_API extern UINT8   GKI_send_event (UINT8, UINT16);
 
 /* To get and release buffers, change owner and get size
 */
-GKI_API extern void    GKI_change_buf_owner (void *, UINT8);
-GKI_API extern UINT8   GKI_create_pool (UINT16, UINT16, UINT8, void *);
-GKI_API extern void    GKI_delete_pool (UINT8);
-GKI_API extern void   *GKI_find_buf_start (void *);
 GKI_API extern void    GKI_freebuf (void *);
 GKI_API extern void   *GKI_getbuf (UINT16);
 GKI_API extern UINT16  GKI_get_buf_size (void *);
@@ -412,8 +172,6 @@ GKI_API extern void   *GKI_getpoolbuf (UINT8);
 GKI_API extern UINT16  GKI_poolcount (UINT8);
 GKI_API extern UINT16  GKI_poolfreecount (UINT8);
 GKI_API extern UINT16  GKI_poolutilization (UINT8);
-GKI_API extern void    GKI_register_mempool (void *p_mem);
-GKI_API extern UINT8   GKI_set_pool_permission(UINT8, UINT8);
 
 
 /* User buffer queue management
@@ -489,4 +247,3 @@ GKI_API extern void    GKI_print_task(void);
 
 
 #endif
-
