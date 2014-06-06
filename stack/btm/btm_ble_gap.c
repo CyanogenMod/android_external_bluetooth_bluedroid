@@ -461,7 +461,7 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
 
     if (p_ctrl_le_feature_rd_cmpl_cback != NULL)
         p_ctrl_le_feature_rd_cmpl_cback(status);
-
+    btm_multi_adv_cb.adv_inst_max = btm_cb.cmn_ble_vsc_cb.adv_inst_max;
     BTM_TRACE_DEBUG("btm_ble_vendor_capability_vsc_cmpl_cback:%d, status=%d, max_irk_size=%d",
         btm_multi_adv_cb.adv_inst_max, status,btm_ble_vendor_cb.irk_avail_size);
 }
