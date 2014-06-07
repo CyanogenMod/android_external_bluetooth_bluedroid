@@ -578,21 +578,6 @@ void BTM_BleConfigPrivacy(BOOLEAN enable)
     }
 }
 
-
-/*******************************************************************************
-**
-** Function         BTM_BleLocalPrivacyEnabled
-**
-** Description        Checks if local device supports private address
-**
-** Returns          Return TRUE if local privacy is enabled else FALSE
-**
-*******************************************************************************/
-BOOLEAN BTM_BleLocalPrivacyEnabled()
-{
-    return btm_cb.ble_ctr_cb.privacy;
-}
-
 /*******************************************************************************
 **
 ** Function         btm_ble_resolve_random_addr_on_adv
@@ -634,6 +619,24 @@ static void btm_ble_resolve_random_addr_on_adv(void * p_rec, void *p)
     return;
 }
 #endif
+
+/*******************************************************************************
+**
+** Function         BTM_BleLocalPrivacyEnabled
+**
+** Description        Checks if local device supports private address
+**
+** Returns          Return TRUE if local privacy is enabled else FALSE
+**
+*******************************************************************************/
+BOOLEAN BTM_BleLocalPrivacyEnabled()
+{
+#if BLE_PRIVACY_SPT == TRUE
+    return btm_cb.ble_ctr_cb.privacy;
+#else
+    return false;
+#endif
+}
 
 /*******************************************************************************
 **
