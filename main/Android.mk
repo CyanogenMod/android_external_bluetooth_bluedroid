@@ -128,6 +128,7 @@ LOCAL_STATIC_LIBRARIES := \
 	libbt-brcm_stack \
 	libbt-hci \
 	libbt-utils \
+	libbt-qcom_sbc_decoder \
 	libosi \
 	libtinyxml2
 
