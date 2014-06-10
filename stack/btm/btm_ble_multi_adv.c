@@ -714,7 +714,7 @@ tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id)
             == BTM_CMD_STARTED)
          {
             btu_stop_timer(&btm_multi_adv_cb.adv_inst[inst_id-1].raddr_timer_ent);
-
+            btm_ble_multi_adv_configure_rpa(&btm_multi_adv_cb.adv_inst[inst_id-1]);
             btm_multi_adv_cb.adv_inst[inst_id-1].inst_id = 0;
          }
      }
