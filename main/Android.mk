@@ -20,7 +20,6 @@ LOCAL_SRC_FILES += \
 
 # BTIF
 LOCAL_SRC_FILES += \
-<<<<<<< HEAD
 	../btif/src/btif_av.c \
 	../btif/src/btif_config.c \
 	../btif/src/btif_config_util.cpp \
