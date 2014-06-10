@@ -97,6 +97,7 @@ typedef struct _tle
     struct _tle  *p_prev;
     TIMER_CBACK  *p_cback;
     INT32         ticks;
+    INT32         ticks_initial;
     TIMER_PARAM_TYPE   param;
     UINT16        event;
     UINT8         in_use;
@@ -205,6 +206,14 @@ GKI_API extern void    GKI_timer_update(INT32);
 GKI_API extern UINT16  GKI_update_timer_list (TIMER_LIST_Q *, INT32);
 GKI_API extern UINT32  GKI_get_remaining_ticks (TIMER_LIST_Q *, TIMER_LIST_ENT  *);
 GKI_API extern UINT16  GKI_wait(UINT16, UINT32);
+GKI_API extern BOOLEAN GKI_timer_queue_is_empty(const TIMER_LIST_Q *timer_q);
+GKI_API extern TIMER_LIST_ENT *GKI_timer_getfirst(const TIMER_LIST_Q *timer_q);
+GKI_API extern TIMER_LIST_ENT *GKI_timer_getlast(const TIMER_LIST_Q *timer_q);
+GKI_API extern INT32 GKI_timer_ticks_getlast(const TIMER_LIST_Q *timer_q);
+GKI_API extern TIMER_LIST_ENT *GKI_timer_entry_next(const TIMER_LIST_ENT *tle);
+GKI_API extern INT32 GKI_timer_ticks_getcurrent(const TIMER_LIST_ENT *tle);
+GKI_API extern INT32 GKI_timer_ticks_getinitial(const TIMER_LIST_ENT *tle);
+GKI_API extern BOOLEAN GKI_timer_in_use(const TIMER_LIST_ENT *tle);
 
 /* Start and Stop system time tick callback
  * true for start system tick if time queue is not empty
