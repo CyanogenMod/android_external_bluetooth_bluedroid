@@ -2590,13 +2590,13 @@ static UINT8 check_for_max_number_of_frames_per_packet()
     switch(btif_media_cb.encoder.s16SamplingFreq)
     {
         case SBC_sf44100:
-            result = (effective_mtu_size - (AVDTP_HDR_SIZE + A2DP_HDR_SIZE))
+            result = (effective_mtu_size - A2DP_HDR_SIZE)
                                                     / MAX_SBC_HQ_FRAME_SIZE_44_1;
             APPL_TRACE_DEBUG1("max number of sbc frames: %d", result);
             break;
 
         case SBC_sf48000:
-            result = (effective_mtu_size - (AVDTP_HDR_SIZE + A2DP_HDR_SIZE))
+            result = (effective_mtu_size - A2DP_HDR_SIZE)
                                                     / MAX_SBC_HQ_FRAME_SIZE_48;
             APPL_TRACE_DEBUG1("max number of sbc frames: %d", result);
             break;
