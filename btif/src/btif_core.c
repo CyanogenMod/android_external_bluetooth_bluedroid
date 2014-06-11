@@ -1028,6 +1028,7 @@ static void execute_storage_request(UINT16 event, char *p_param)
             prop.len = sizeof(buf);
             if (prop.type == BT_PROPERTY_LOCAL_LE_FEATURES)
             {
+                #if (BLE_INCLUDED == TRUE)
                 tBTM_BLE_VSC_CB cmn_vsc_cb;
                 bt_local_le_features_t local_le_features;
 
@@ -1045,6 +1046,7 @@ static void execute_storage_request(UINT16 event, char *p_param)
                 local_le_features.rpa_offload_supported = cmn_vsc_cb.rpa_offloading;
                 local_le_features.scan_result_storage_size = cmn_vsc_cb.tot_scan_results_strg;
                 memcpy(prop.val, &local_le_features, prop.len);
+                #endif
             }
             else
             {
