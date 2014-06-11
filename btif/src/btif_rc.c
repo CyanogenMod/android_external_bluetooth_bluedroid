@@ -518,6 +518,8 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
     int pressed, i;
 
     BTIF_TRACE_DEBUG("%s: p_remote_cmd->rc_id=%d", __FUNCTION__, p_remote_cmd->rc_id);
+    if (p_remote_cmd == NULL)
+        return;
 
     /* If AVRC is open and peer sends PLAY but there is no AVDT, then we queue-up this PLAY */
     if (p_remote_cmd)

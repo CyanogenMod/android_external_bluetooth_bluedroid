@@ -1031,7 +1031,8 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         break;
 
     case L2CEVT_L2CAP_DATA:                         /* Peer data packet rcvd    */
-        (*p_ccb->p_rcb->api.pL2CA_DataInd_Cb)(p_ccb->local_cid, (BT_HDR *)p_data);
+        if((p_ccb->p_rcb) && (p_ccb->p_rcb->api.pL2CA_DataInd_Cb))
+            (*p_ccb->p_rcb->api.pL2CA_DataInd_Cb)(p_ccb->local_cid, (BT_HDR *)p_data);
         break;
 
     case L2CEVT_L2CA_DISCONNECT_REQ:                 /* Upper wants to disconnect */

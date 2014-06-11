@@ -641,6 +641,12 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
     if (p_tle->ticks < 0)
         return;
 
+    if (p_timer_listq == NULL || p_tle == NULL)
+    {
+       BT_ERROR_TRACE(TRACE_LAYER_GKI, "ERROR :GKI_add_to_timer_list:either node or List is NULL");
+       return;
+    }
+
     p_tle->p_prev = NULL;
     p_tle->p_next = NULL;
     p_tle->in_use = true;

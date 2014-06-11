@@ -56,10 +56,17 @@
 #endif
 
 #define MAX_SERIAL_PORT (USERIAL_PORT_3 + 1)
+#define MAX_RETRIAL_CLOSE 10
 
 enum {
     USERIAL_RX_EXIT,
 };
+
+typedef enum {
+    USERIAL_STATE_OPENING,
+    USERIAL_STATE_OPENED,
+    USERIAL_STATE_IDLE
+} tUSERIAL_STATE;
 
 /******************************************************************************
 **  Externs
@@ -87,6 +94,8 @@ typedef struct
 
 static tUSERIAL_CB userial_cb;
 static volatile uint8_t userial_running = 0;
+static volatile uint8_t userial_close_pending = FALSE;
+static volatile tUSERIAL_STATE userial_state = USERIAL_STATE_IDLE;
 
 /******************************************************************************
 **  Static functions
@@ -234,6 +243,7 @@ bool userial_init(void)
 bool userial_open(userial_port_t port)
 {
     int result;
+    userial_state = USERIAL_STATE_OPENING;
 
     USERIALDBG("userial_open(port:%d)", port);
 
@@ -247,7 +257,8 @@ bool userial_open(userial_port_t port)
     if (port >= MAX_SERIAL_PORT)
     {
         ALOGE("Port > MAX_SERIAL_PORT");
-        return false;
+        userial_state = USERIAL_STATE_IDLE;
+        return FALSE;
     }
 
     result = vendor_send_command(BT_VND_OP_USERIAL_OPEN, &userial_cb.fd);
@@ -257,7 +268,19 @@ bool userial_open(userial_port_t port)
                 result);
         ALOGE("userial_open: HCI MCT expects 2 or 4 open file descriptors");
         vendor_send_command(BT_VND_OP_USERIAL_CLOSE, NULL);
-        return false;
+        userial_state = USERIAL_STATE_IDLE;
+        return FALSE;
+    }
+
+    //This check handles the situation where userial_open takes time in BT_VND_OP_USERIAL_OPEN
+    //opening and meanwhile the close request comes.This way it will lead to crash since call
+    //flow will be like open-->close-->userial Rx thread created.
+    if(userial_close_pending == TRUE)
+    {
+        ALOGW("userial_open:Already got close request for userial port so not opening");
+        userial_close_pending = FALSE;
+        userial_state = USERIAL_STATE_IDLE;
+        return FALSE;
     }
 
     ALOGI("CMD=%d, EVT=%d, ACL_Out=%d, ACL_In=%d", \
@@ -269,7 +292,8 @@ bool userial_open(userial_port_t port)
     {
         ALOGE("userial_open: failed to open BT transport");
         vendor_send_command(BT_VND_OP_USERIAL_CLOSE, NULL);
-        return false;
+        userial_state = USERIAL_STATE_IDLE;
+        return FALSE;
     }
 
     userial_cb.port = port;
@@ -279,10 +303,12 @@ bool userial_open(userial_port_t port)
     {
         ALOGE("pthread_create failed!");
         vendor_send_command(BT_VND_OP_USERIAL_CLOSE, NULL);
-        return false;
+        userial_state = USERIAL_STATE_IDLE;
+        return FALSE;
     }
 
-    return true;
+    userial_state = USERIAL_STATE_OPENED;
+    return TRUE;
 }
 
 /*******************************************************************************
@@ -355,16 +381,26 @@ void userial_close_reader(void) {
 void userial_close(void)
 {
     int idx, result;
+    int i = 0;
 
     USERIALDBG("userial_close");
+    userial_close_pending = TRUE;
+    while((userial_state == USERIAL_STATE_OPENING) || (i< MAX_RETRIAL_CLOSE))
+    {
+        usleep(200);
+        i++;
+    }
 
     if (userial_running)
         send_wakeup_signal(USERIAL_RX_EXIT);
 
-    if ((result=pthread_join(userial_cb.read_thread, NULL)) < 0)
+    if ((result=pthread_join(userial_cb.read_thread, NULL)) != 0)
         ALOGE( "pthread_join() FAILED result:%d", result);
 
     vendor_send_command(BT_VND_OP_USERIAL_CLOSE, NULL);
+
+    userial_state = USERIAL_STATE_IDLE;
+    userial_close_pending = FALSE;
 
     for (idx=0; idx < CH_MAX; idx++)
         userial_cb.fd[idx] = -1;
