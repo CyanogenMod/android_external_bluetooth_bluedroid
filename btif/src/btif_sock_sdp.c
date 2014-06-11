@@ -798,7 +798,7 @@ int add_l2c_sdp_rec(const char* name, const uint8_t* uuid, int psm)
 
     if (IS_UUID(UUID_OBEX_OBJECT_PUSH,uuid))
     {
-        sdp_handle = add_ops_sdp(name, RESERVED_PSM_OPS, psm);
+        sdp_handle = add_ops_sdp(name, RESERVED_SCN_OPS, psm);
     }
     return sdp_handle;
 }
