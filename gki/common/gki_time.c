@@ -83,11 +83,6 @@ void gki_timers_init(void)
 #endif
     }
 
-    for (tt = 0; tt < GKI_MAX_TIMER_QUEUES; tt++)
-    {
-        gki_cb.com.timer_queues[tt] = NULL;
-    }
-
     gki_cb.com.p_tick_cb = NULL;
     gki_cb.com.system_tick_running = FALSE;
 
@@ -594,32 +589,6 @@ void GKI_timer_update (INT32 ticks_since_last_update)
     return;
 }
 
-
-/*******************************************************************************
-**
-** Function         GKI_timer_queue_empty
-**
-** Description      This function is called by applications to see whether the timer
-**                  queue is empty
-**
-** Parameters
-**
-** Returns          BOOLEAN
-**
-*******************************************************************************/
-BOOLEAN GKI_timer_queue_empty (void)
-{
-    UINT8 tt;
-
-    for (tt = 0; tt < GKI_MAX_TIMER_QUEUES; tt++)
-    {
-        if (gki_cb.com.timer_queues[tt])
-            return FALSE;
-    }
-
-    return TRUE;
-}
-
 /*******************************************************************************
 **
 ** Function         GKI_timer_queue_register_callback
@@ -933,26 +902,7 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
         }
 
         p_tle->in_use = TRUE;
-
-        /* if we already add this timer queue to the array */
-        for (tt = 0; tt < GKI_MAX_TIMER_QUEUES; tt++)
-        {
-             if (gki_cb.com.timer_queues[tt] == p_timer_listq)
-                 return;
-        }
-        /* add this timer queue to the array */
-        for (tt = 0; tt < GKI_MAX_TIMER_QUEUES; tt++)
-        {
-             if (gki_cb.com.timer_queues[tt] == NULL)
-                 break;
-        }
-        if (tt < GKI_MAX_TIMER_QUEUES)
-        {
-            gki_cb.com.timer_queues[tt] = p_timer_listq;
-        }
     }
-
-    return;
 }
 
 
@@ -1035,21 +985,6 @@ void GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p
     p_tle->p_next = p_tle->p_prev = NULL;
     p_tle->ticks = GKI_UNUSED_LIST_ENTRY;
     p_tle->in_use = FALSE;
-
-    /* if timer queue is empty */
-    if (p_timer_listq->p_first == NULL && p_timer_listq->p_last == NULL)
-    {
-        for (tt = 0; tt < GKI_MAX_TIMER_QUEUES; tt++)
-        {
-            if (gki_cb.com.timer_queues[tt] == p_timer_listq)
-            {
-                gki_cb.com.timer_queues[tt] = NULL;
-                break;
-            }
-        }
-    }
-
-    return;
 }
 
 

@@ -76,13 +76,6 @@
 
 #define EVENT_MASK(evt)       ((UINT16)(0x0001 << (evt)))
 
-/************************************************************************
-**  Max Time Queue
-**/
-#ifndef GKI_MAX_TIMER_QUEUES
-#define GKI_MAX_TIMER_QUEUES    3
-#endif
-
 /* Timer list entry callback type
 */
 typedef void (TIMER_CBACK)(void *p_tle);
@@ -223,7 +216,6 @@ typedef void (SYSTEM_TICK_CBACK)(BOOLEAN);
 
 /* Time queue management for system ticks
 */
-GKI_API extern BOOLEAN GKI_timer_queue_empty (void);
 GKI_API extern void    GKI_timer_queue_register_callback(SYSTEM_TICK_CBACK *);
 
 /* Disable Interrupts, Enable Interrupts
