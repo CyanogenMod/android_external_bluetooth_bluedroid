@@ -82,7 +82,7 @@
 
 /* The number of GKI timers in the software system. */
 #ifndef GKI_NUM_TIMERS
-#define GKI_NUM_TIMERS              3
+#define GKI_NUM_TIMERS              4
 #endif
 
 /* A conversion value for translating ticks to calculate GKI timer.  */

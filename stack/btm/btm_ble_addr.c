@@ -65,12 +65,12 @@ static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
         p_cb->own_addr_type = BLE_ADDR_RANDOM;
 
         /* start a periodical timer to refresh random addr */
-        btu_stop_timer(&p_cb->raddr_timer_ent);
+        btu_stop_timer_oneshot(&p_cb->raddr_timer_ent);
 #if (BTM_BLE_CONFORMANCE_TESTING == TRUE)
-        btu_start_timer (&p_cb->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
+        btu_start_timer_oneshot(&p_cb->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
                          btm_cb.ble_ctr_cb.rpa_tout);
 #else
-        btu_start_timer (&p_cb->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
+        btu_start_timer_oneshot(&p_cb->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
                          BTM_BLE_PRIVATE_ADDR_INT);
 #endif
     }

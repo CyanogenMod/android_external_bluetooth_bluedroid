@@ -233,6 +233,7 @@ typedef struct
 
     TIMER_LIST_Q  quick_timer_queue;        /* Timer queue for transport level (100/10 msec)*/
     TIMER_LIST_Q  timer_queue;              /* Timer queue for normal BTU task (1 second)   */
+    TIMER_LIST_Q  timer_queue_oneshot;      /* Timer queue for oneshot BTU tasks */
 
     TIMER_LIST_ENT   cmd_cmpl_timer;        /* Command complete timer */
 
@@ -271,6 +272,9 @@ BTU_API extern const BD_ADDR        BT_BD_ANY;
 */
 BTU_API extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
 BTU_API extern void btu_stop_timer (TIMER_LIST_ENT *p_tle);
+BTU_API extern void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
+BTU_API extern void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle);
+
 BTU_API extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
 
 BTU_API extern void btu_uipc_rx_cback(BT_HDR *p_msg);

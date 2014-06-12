@@ -300,7 +300,7 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
         {
             /* start timer */
             p_inst->raddr_timer_ent.param = (TIMER_PARAM_TYPE) p_inst;
-            btu_start_timer (&p_inst->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
+            btu_start_timer_oneshot(&p_inst->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
                              BTM_BLE_PRIVATE_ADDR_INT);
         }
 #endif
@@ -521,7 +521,7 @@ void btm_ble_multi_adv_enb_privacy(BOOLEAN enable)
         if (enable)
             btm_ble_multi_adv_configure_rpa (p_inst);
         else
-            btu_stop_timer(&p_inst->raddr_timer_ent);
+            btu_stop_timer_oneshot(&p_inst->raddr_timer_ent);
     }
 }
 

@@ -337,6 +337,26 @@ BTU_API UINT32 btu_task (UINT32 param)
                         GKI_freebuf (p_msg);
                         break;
 
+                    case BT_EVT_TO_START_TIMER_ONESHOT:
+                        if (!GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
+                            TIMER_LIST_ENT *tle = GKI_timer_getfirst(&btu_cb.timer_queue_oneshot);
+                            // Start non-repeating timer.
+                            GKI_start_timer(TIMER_3, tle->ticks, FALSE);
+                        } else {
+                            BTM_TRACE_WARNING("Oneshot timer queue empty when received start request");
+                        }
+                        GKI_freebuf(p_msg);
+                        break;
+
+                    case BT_EVT_TO_STOP_TIMER_ONESHOT:
+                        if (GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
+                            GKI_stop_timer(TIMER_3);
+                        } else {
+                            BTM_TRACE_WARNING("Oneshot timer queue not empty when received stop request");
+                        }
+                        GKI_freebuf (p_msg);
+                        break;
+
 #if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
                     case BT_EVT_TO_START_QUICK_TIMER :
                         GKI_start_timer (TIMER_2, QUICK_TIMER_TICKS, TRUE);
@@ -472,7 +492,6 @@ BTU_API UINT32 btu_task (UINT32 param)
 #if (defined(BLE_INCLUDED) && BLE_INCLUDED == TRUE)
                     case BTU_TTYPE_BLE_INQUIRY:
                     case BTU_TTYPE_BLE_GAP_LIM_DISC:
-                    case BTU_TTYPE_BLE_RANDOM_ADDR:
                     case BTU_TTYPE_BLE_GAP_FAST_ADV:
                     case BTU_TTYPE_BLE_OBSERVE:
                         btm_ble_timeout(p_tle);
@@ -562,6 +581,44 @@ BTU_API UINT32 btu_task (UINT32 param)
         }
 #endif
 
+        if (event & TIMER_3_EVT_MASK) {
+            BTM_TRACE_API("Received oneshot timer event complete");
+            if (!GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
+                TIMER_LIST_ENT *p_tle = GKI_timer_getfirst(&btu_cb.timer_queue_oneshot);
+                INT32 ticks_since_last_update = GKI_timer_ticks_getinitial(GKI_timer_getfirst(&btu_cb.timer_queue_oneshot));
+                GKI_update_timer_list(&btu_cb.timer_queue_oneshot, ticks_since_last_update);
+            }
+
+            while (!GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
+                TIMER_LIST_ENT *p_tle = GKI_timer_getfirst(&btu_cb.timer_queue_oneshot);
+                if (p_tle->ticks != 0)
+                    break;
+
+                GKI_remove_from_timer_list(&btu_cb.timer_queue_oneshot, p_tle);
+
+                switch (p_tle->event) {
+                    case BTU_TTYPE_BLE_RANDOM_ADDR:
+                        btm_ble_timeout(p_tle);
+                        break;
+
+                    default:
+                        // FAIL
+                        BTM_TRACE_WARNING("Received unexpected oneshot timer event:0x%x\n",
+                            p_tle->event);
+                        break;
+                }
+            }
+
+            /* Update GKI timer with new tick value from first timer. */
+            if (!GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
+                TIMER_LIST_ENT *p_tle = GKI_timer_getfirst(&btu_cb.timer_queue_oneshot);
+                if (p_tle->ticks > 0)
+                  GKI_start_timer(TIMER_3, p_tle->ticks, FALSE);
+            } else {
+                GKI_stop_timer(TIMER_3);
+            }
+        }
+
         if (event & EVENT_MASK(APPL_EVT_7))
             break;
     }
@@ -607,7 +664,8 @@ void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
     GKI_remove_from_timer_list (&btu_cb.timer_queue, p_tle);
 
     p_tle->event = type;
-    p_tle->ticks = timeout;         /* Save the number of seconds for the timer */
+    p_tle->ticks = timeout;
+    p_tle->ticks_initial = timeout;
 
     GKI_add_to_timer_list (&btu_cb.timer_queue, p_tle);
     GKI_enable();
@@ -702,7 +760,8 @@ void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
     GKI_remove_from_timer_list (&btu_cb.quick_timer_queue, p_tle);
 
     p_tle->event = type;
-    p_tle->ticks = timeout; /* Save the number of ticks for the timer */
+    p_tle->ticks = timeout;
+    p_tle->ticks_initial = timeout;
 
     GKI_add_to_timer_list (&btu_cb.quick_timer_queue, p_tle);
     GKI_enable();
@@ -785,7 +844,59 @@ void process_quick_timer_evt(TIMER_LIST_Q *p_tlq)
 }
 #endif /* defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0) */
 
+/*
+ * Starts a oneshot timer with a timeout in seconds.
+ */
+void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_in_secs) {
+    INT32 timeout_in_ticks = GKI_SECS_TO_TICKS(timeout_in_secs);
+    BTM_TRACE_DEBUG("Starting oneshot timer type:%d timeout:%ds", type, timeout_in_secs);
+    GKI_disable();
+    if (GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
+        /* RPC to BTU thread if timer start request from non-BTU task */
+        if (GKI_get_taskid() != BTU_TASK) {
+            /* post event to start timer in BTU task */
+            BTM_TRACE_WARNING("Posting oneshot timer event to btu_task");
+            BT_HDR *p_msg = (BT_HDR *)GKI_getbuf(BT_HDR_SIZE);
+            if (p_msg != NULL) {
+                p_msg->event = BT_EVT_TO_START_TIMER_ONESHOT;
+                GKI_send_msg (BTU_TASK, TASK_MBOX_0, p_msg);
+            }
+        } else {
+            GKI_start_timer(TIMER_3, timeout_in_ticks, FALSE);
+        }
+    }
 
+    GKI_remove_from_timer_list(&btu_cb.timer_queue_oneshot, p_tle);
+
+    p_tle->event = type;
+    p_tle->ticks = timeout_in_ticks;
+    p_tle->ticks_initial = timeout_in_ticks;
+
+    GKI_add_to_timer_list(&btu_cb.timer_queue_oneshot, p_tle);
+    GKI_enable();
+}
+
+void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle) {
+    GKI_disable();
+    GKI_remove_from_timer_list(&btu_cb.timer_queue_oneshot, p_tle);
+
+    if (GKI_get_taskid() != BTU_TASK) {
+        /* post event to stop timer in BTU task */
+        BT_HDR *p_msg = (BT_HDR *)GKI_getbuf(BT_HDR_SIZE);
+        if (p_msg != NULL) {
+            p_msg->event = BT_EVT_TO_STOP_TIMER_ONESHOT;
+            GKI_send_msg (BTU_TASK, TASK_MBOX_0, p_msg);
+        }
+    } else {
+        if (GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
+            BTM_TRACE_WARNING("Stopping oneshot timer");
+            GKI_stop_timer(TIMER_3);
+        } else {
+            BTM_TRACE_WARNING("Request to stop oneshot timer with non empty queue");
+        }
+    }
+    GKI_enable();
+}
 
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
 /*******************************************************************************
