@@ -806,6 +806,16 @@ void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data)
             break;
 #endif
         case BTM_PM_STS_SNIFF:
+            if (p_data->pm_status.hci_status == 0)
+            {
+                /* Stop PM timer now if already active for
+                 * particular device since link is already
+                 * put in sniff mode by remote device, and
+                 * PM timer sole purpose is to put the link
+                 * in sniff mode from host side.
+                 */
+                bta_dm_pm_stop_timer(p_data->pm_status.bd_addr);
+            }
             p_dev->info &= ~(BTA_DM_DI_SET_SNIFF|BTA_DM_DI_INT_SNIFF|BTA_DM_DI_ACP_SNIFF);
             if (info & BTA_DM_DI_SET_SNIFF)
                 p_dev->info |= BTA_DM_DI_INT_SNIFF;
