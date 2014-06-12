@@ -864,6 +864,12 @@ void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data)
             break;
 #endif
         case BTM_PM_STS_SNIFF:
+            if (p_data->pm_status.hci_status == 0)
+            {
+                APPL_TRACE_WARNING0("bta_dm_pm_btm_status  stopping timer if active"
+                    "since sniff mode is enabled");
+                bta_dm_pm_stop_timer(p_data->pm_status.bd_addr);
+            }
             p_dev->info &= ~(BTA_DM_DI_SET_SNIFF|BTA_DM_DI_INT_SNIFF|BTA_DM_DI_ACP_SNIFF);
             if (info & BTA_DM_DI_SET_SNIFF)
                 p_dev->info |= BTA_DM_DI_INT_SNIFF;
