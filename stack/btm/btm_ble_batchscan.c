@@ -30,6 +30,7 @@
 #if (BLE_INCLUDED == TRUE && BLE_BATCH_SCAN_INCLUDED == TRUE)
 
 tBTM_BLE_BATCH_SCAN_CB ble_batchscan_cb;
+tBTM_BLE_ADV_TRACK_CB ble_advtrack_cb;
 
 
 /* length of each batch scan command */
@@ -40,6 +41,8 @@ tBTM_BLE_BATCH_SCAN_CB ble_batchscan_cb;
 
 #define BTM_BLE_BATCH_SCAN_CB_EVT_MASK       0xF0
 #define BTM_BLE_BATCH_SCAN_SUBCODE_MASK      0x0F
+
+#define BTM_BLE_TRACK_ADV_CMD_LEN               9
 
 /*******************************************************************************
 **  Local functions
@@ -56,9 +59,8 @@ tBTM_BLE_BATCH_SCAN_CB ble_batchscan_cb;
 *******************************************************************************/
 void btm_ble_batchscan_filter_track_adv_vse_cback(UINT8 len, UINT8 *p)
 {
-    UINT8   sub_event;
-    UINT8   reason;
-
+    UINT8   sub_event = 0, filt_index = 0, addr_type = 0, adv_state = 0;
+    BD_ADDR bd_addr;
     STREAM_TO_UINT8(sub_event, p);
 
     BTM_TRACE_EVENT("btm_ble_batchscan_filter_track_adv_vse_cback called with event:%x", sub_event);
@@ -66,6 +68,21 @@ void btm_ble_batchscan_filter_track_adv_vse_cback(UINT8 len, UINT8 *p)
         NULL != ble_batchscan_cb.p_thres_cback)
     {
         ble_batchscan_cb.p_thres_cback(ble_batchscan_cb.ref_value);
+        return;
+    }
+
+    if (HCI_VSE_SUBCODE_BLE_TRACKING_SUB_EVT == sub_event && NULL != ble_advtrack_cb.p_track_cback)
+    {
+        if(len < 10)
+            return;
+        STREAM_TO_UINT8(filt_index, p);
+        STREAM_TO_UINT8(addr_type, p);
+        STREAM_TO_BDADDR(bd_addr, p);
+        STREAM_TO_UINT8(adv_state, p);
+        BTM_TRACE_EVENT("track_adv_vse_cback called: %d, %d, %d", filt_index, addr_type, adv_state);
+        ble_advtrack_cb.p_track_cback(filt_index, addr_type, bd_addr, adv_state,
+            ble_advtrack_cb.ref_value);
+        return;
     }
 }
 
@@ -636,6 +653,39 @@ tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
 
 /*******************************************************************************
 **
+** Function         BTM_BleTrackAdvertiser
+**
+** Description      This function is called to setup the callback for tracking advertisers
+**
+** Parameters:      p_track_cback - Tracking callback pointer
+**                  ref_value - Reference value
+**
+** Returns          tBTM_STATUS
+**
+*******************************************************************************/
+tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK *p_track_cback,
+                                        tBTM_BLE_REF_VALUE ref_value)
+{
+    tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
+    BTM_TRACE_EVENT (" BTM_BleTrackAdvertiser");
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return BTM_ILLEGAL_VALUE;
+
+    BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
+
+    if (0 == cmn_ble_vsc_cb.tot_scan_results_strg)
+    {
+        BTM_TRACE_ERROR("Controller does not support scan storage");
+        return BTM_ERR_PROCESSING;
+    }
+
+    ble_advtrack_cb.p_track_cback = p_track_cback;
+    ble_advtrack_cb.ref_value = ref_value;
+    return BTM_SUCCESS;
+}
+
+/*******************************************************************************
+**
 ** Function         btm_ble_batchscan_init
 **
 ** Description      This function initialize the batch scan control block.
@@ -649,6 +699,7 @@ void btm_ble_batchscan_init(void)
 {
     BTM_TRACE_EVENT (" btm_ble_batchscan_init");
     memset(&ble_batchscan_cb, 0, sizeof(tBTM_BLE_BATCH_SCAN_CB));
+    memset(&ble_advtrack_cb, 0, sizeof(tBTM_BLE_ADV_TRACK_CB));
     BTM_RegisterForVSEvents(btm_ble_batchscan_filter_track_adv_vse_cback, TRUE);
 }
 
