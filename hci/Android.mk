@@ -28,6 +28,7 @@ LOCAL_CFLAGS += -std=c99
 
 LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/include \
+	$(LOCAL_PATH)/../osi/include \
 	$(LOCAL_PATH)/../utils/include
 
 LOCAL_MODULE := libbt-hci
