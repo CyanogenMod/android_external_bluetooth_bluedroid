@@ -675,6 +675,17 @@ enum
 };
 typedef UINT8 tBTM_BLE_DISCARD_RULE;
 
+typedef void (tBTM_BLE_TRACK_ADV_CBACK)(int filt_index, tBLE_ADDR_TYPE addr_type, BD_ADDR bda,
+                                        int adv_state, tBTM_BLE_REF_VALUE ref_value);
+
+typedef UINT8 tBTM_BLE_TRACK_ADV_EVT;
+
+typedef struct
+{
+    tBTM_BLE_REF_VALUE             ref_value;
+    tBTM_BLE_TRACK_ADV_CBACK *p_track_cback;
+}tBTM_BLE_ADV_TRACK_CB;
+
 enum
 {
     BTM_BLE_TRACK_ADV_ADD,
@@ -693,7 +704,6 @@ typedef UINT8 tBTM_BLE_TRACK_ADV_ACTION;
 #define BTM_BLE_BATCH_SCAN_DISABLE_EVT    6
 
 typedef UINT8 tBTM_BLE_BATCH_SCAN_EVT;
-
 
 typedef BOOLEAN (tBTM_BLE_SEL_CBACK)(BD_ADDR random_bda,     UINT8 *p_remote_name);
 typedef void (tBTM_BLE_CTRL_FEATURES_CBACK)(tBTM_STATUS status);
@@ -915,16 +925,14 @@ BTM_API extern tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_SCAN_MODE scan_mode,
 **
 ** Description      This function is called to read batch scan reports
 **
-** Parameters       track_adv_action - Track advertiser action
-                    addr_type - address type
-                    p_bda - BD address
-                    onlost_timeout - Timeout for onlost event
+** Parameters       p_track_cback - Tracking callback
+**                  ref_value - Reference value
 **
 ** Returns          tBTM_STATUS
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_ACTION track_adv_action,
-                            tBLE_BD_ADDR *p_bda, UINT8 onlost_timeout);
+BTM_API extern tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK *p_track_cback,
+                                                  tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
 **

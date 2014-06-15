@@ -5427,6 +5427,21 @@ void bta_dm_ble_read_scan_reports(tBTA_DM_MSG *p_data)
 
 /*******************************************************************************
 **
+** Function         bta_dm_ble_track_advertiser
+**
+** Description      This function tracks the specific advertiser
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_track_advertiser(tBTA_DM_MSG *p_data)
+{
+    BTM_BleTrackAdvertiser(p_data->ble_track_advert.p_track_adv_cback,
+                           p_data->ble_track_advert.ref_value);
+}
+
+/*******************************************************************************
+**
 ** Function         bta_ble_scan_setup_cb
 **
 ** Description      Handle the setup callback from BTM layer and forward it to app layer

@@ -1707,6 +1707,33 @@ BTA_API extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
 
 /*******************************************************************************
 **
+** Function         BTA_DmBleTrackAdvertiser
+**
+** Description      This function is called to track advertiser
+**
+** Parameters       ref_value - Reference value
+**                  p_track_adv_cback - Track ADV callback
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
+                            tBTA_BLE_TRACK_ADV_CBACK *p_track_adv_cback)
+{
+    tBTA_DM_API_TRACK_ADVERTISER  *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_TRACK_ADVERTISER *)
+         GKI_getbuf(sizeof(tBTA_DM_API_TRACK_ADVERTISER))) != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BLE_TRACK_ADVERTISER_EVT;
+        p_msg->p_track_adv_cback = p_track_adv_cback;
+        p_msg->ref_value = ref_value;
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         BTA_DmBleBroadcast
 **
 ** Description      This function starts or stops LE broadcasting.
@@ -2308,7 +2335,7 @@ void BTA_DmBleScanFilterSetup(UINT8 action, tBTA_DM_BLE_PF_FILT_INDEX filt_index
 **
 ** Description      This function is called to enable the adv data payload filter
 **
-** Parameters      action - enable or disable the APCF feature
+** Parameters       action - enable or disable the APCF feature
 **                  p_cmpl_cback - Command completed callback
 **                  ref_value - Reference value
 **

@@ -1132,8 +1132,15 @@ typedef void (tBTA_BLE_SCAN_THRESHOLD_CBACK)(tBTA_DM_BLE_REF_VALUE ref_value);
 typedef void (tBTA_BLE_SCAN_REP_CBACK) (tBTA_DM_BLE_REF_VALUE ref_value, UINT8 report_format,
                                         UINT8 num_records, UINT16 data_len,
                                         UINT8* p_rep_data, tBTA_STATUS status);
+
 typedef void (tBTA_BLE_SCAN_SETUP_CBACK) (tBTA_BLE_BATCH_SCAN_EVT evt, tBTA_DM_BLE_REF_VALUE ref_value,
                                           tBTA_STATUS status);
+
+typedef void (tBTA_BLE_TRACK_ADV_CMPL_CBACK)(int action, tBTA_STATUS status,
+                                tBTA_DM_BLE_PF_AVBL_SPACE avbl_space, tBTA_DM_BLE_REF_VALUE ref_value);
+
+typedef void (tBTA_BLE_TRACK_ADV_CBACK)(int filt_index, tBLE_ADDR_TYPE addr_type, BD_ADDR bda,
+                                        int adv_state, tBTA_DM_BLE_REF_VALUE ref_value);
 
 #else
 typedef UINT8                       tBTA_DM_BLE_SEC_ACT;
@@ -2323,7 +2330,7 @@ BTA_API extern void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_
 **                  p_setup_cback - Setup callback
 **                  p_thres_cback - Threshold callback
 **                  p_rep_cback - Reports callback
-**                  p_ref - Ref pointer
+**                  ref_value - Reference value
 **
 ** Returns           None
 **
@@ -2347,6 +2354,7 @@ BTA_API extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
 **                  scan_window - Scan window
 **                  discard_rule -Discard rules
 **                  addr_type - Address type
+**                  ref_value - Reference value
 **
 ** Returns           None
 **
@@ -2364,6 +2372,7 @@ BTA_API extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
 ** Description      This function is called to read the batch scan reports
 **
 ** Parameters       scan_mode -Batch scan mode
+**                  ref_value - Reference value
 **
 ** Returns          None
 **
@@ -2377,7 +2386,7 @@ BTA_API extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
 **
 ** Description      This function is called to disable the batch scanning
 **
-** Parameters       None
+** Parameters       ref_value - Reference value
 **
 ** Returns          None
 **
@@ -2390,7 +2399,9 @@ BTA_API extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value);
 **
 ** Description      This function is called to enable the adv data payload filter
 **
-** Parameters     action -1: enable the filter condition, 0 - disables the filter condition
+** Parameters       action - enable or disable the APCF feature
+**                  p_cmpl_cback - Command completed callback
+**                  ref_value - Reference value
 **
 ** Returns          void
 **
@@ -2405,8 +2416,12 @@ BTA_API extern void BTA_DmEnableScanFilter(UINT8 action,
 **
 ** Description      This function is called to setup the filter params
 **
-** Parameters      action: to read/write/clear
-**                      filt_index - filter index
+** Parameters       p_target: enable the filter condition on a target device; if NULL
+**                  filt_index - Filter index
+**                  p_filt_params -Filter parameters
+**                  ref_value - Reference value
+**                  action - Add, delete or clear
+**                  p_cmpl_back - Command completed callback
 **
 ** Returns          void
 **
@@ -2426,10 +2441,11 @@ BTA_API extern void BTA_DmBleScanFilterSetup(UINT8 action,
 **                  condition.
 **
 ** Parameters       action: to read/write/clear
-**                  cond_type: filter condition type.
-**                  filt_index - filter index
+**                  cond_type: filter condition type
+**                  filt_index - Filter index
 **                  p_cond: filter condition parameter
-**                  ref_value:    Reference
+**                  p_cmpl_back - Command completed callback
+**                  ref_value - Reference value
 **
 ** Returns          void
 **
@@ -2440,6 +2456,22 @@ BTA_API extern void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
                                                  tBTA_DM_BLE_PF_COND_PARAM *p_cond,
                                                  tBTA_DM_BLE_PF_CFG_CBACK *p_cmpl_cback,
                                                  tBTA_DM_BLE_REF_VALUE ref_value);
+
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleTrackAdvertiser
+**
+** Description      This function is called to track the advertiser
+**
+** Parameters    ref_value - Reference value
+**               p_track_adv_cback - ADV callback
+**
+** Returns          None
+**
+*******************************************************************************/
+BTA_API extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
+                            tBTA_BLE_TRACK_ADV_CBACK *p_track_adv_cback);
 
 #endif
 

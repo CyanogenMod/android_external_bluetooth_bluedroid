@@ -637,10 +637,8 @@ typedef struct
 typedef struct
 {
     BT_HDR                  hdr;
-    UINT8 track_adv_action;
-    tBLE_ADDR_TYPE addr_type;
-    tBLE_BD_ADDR *p_bda;
-    UINT8 onlost_timeout;
+    tBTA_DM_BLE_REF_VALUE ref_value;
+    tBTA_BLE_TRACK_ADV_CBACK *p_track_adv_cback;
 } tBTA_DM_API_TRACK_ADVERTISER;
 
 #endif /* BLE_INCLUDED */
@@ -914,7 +912,9 @@ typedef struct
     BOOLEAN                     is_bta_dm_active;
     tBTA_DM_ACTIVE_LINK         device_list;
     tBTA_DM_SEC_CBACK           *p_sec_cback;
+#if ((defined BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     tBTA_BLE_SCAN_SETUP_CBACK   *p_setup_cback;
+#endif
     tBTA_DM_BLE_PF_CFG_CBACK     *p_scan_filt_cfg_cback;
     tBTA_DM_BLE_PF_STATUS_CBACK  *p_scan_filt_status_cback;
     tBTA_DM_BLE_PF_PARAM_CBACK   *p_scan_filt_param_cback;
@@ -1197,6 +1197,8 @@ extern void bta_dm_ble_setup_storage(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_enable_batch_scan(tBTA_DM_MSG * p_data);
 extern void bta_dm_ble_disable_batch_scan(tBTA_DM_MSG * p_data);
 extern void bta_dm_ble_read_scan_reports(tBTA_DM_MSG * p_data);
+extern void bta_dm_ble_track_advertiser(tBTA_DM_MSG * p_data);
+
 #endif
 extern void bta_dm_set_encryption(tBTA_DM_MSG *p_data);
 extern void bta_dm_confirm(tBTA_DM_MSG *p_data);
