@@ -4,11 +4,11 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
 	src/bt_hci_bdroid.c \
-	src/bt_hw.c \
 	src/btsnoop.c \
 	src/btsnoop_net.c \
 	src/lpm.c \
-	src/utils.c
+	src/utils.c \
+	src/vendor.c
 
 ifeq ($(BLUETOOTH_HCI_USE_MCT),true)
 

@@ -35,6 +35,7 @@
 #include "bt_hci_bdroid.h"
 #include "userial.h"
 #include "utils.h"
+#include "vendor.h"
 #include "bt_vendor_lib.h"
 #include "bt_utils.h"
 
@@ -65,8 +66,6 @@ enum {
 /******************************************************************************
 **  Externs
 ******************************************************************************/
-
-extern bt_vendor_interface_t *bt_vnd_if;
 uint16_t hci_mct_receive_evt_msg(void);
 uint16_t hci_mct_receive_acl_msg(void);
 
@@ -140,6 +139,8 @@ static inline int is_signaled(fd_set* set)
 *******************************************************************************/
 static void *userial_read_thread(void *arg)
 {
+    UNUSED(arg);
+
     fd_set input;
     int n;
     char reason = 0;
@@ -268,24 +269,13 @@ bool userial_open(userial_port_t port)
         return false;
     }
 
-    /* Calling vendor-specific part */
-    if (bt_vnd_if)
+    result = vendor_send_command(BT_VND_OP_USERIAL_OPEN, &userial_cb.fd);
+    if ((result != 2) && (result != 4))
     {
-        result = bt_vnd_if->op(BT_VND_OP_USERIAL_OPEN, &userial_cb.fd);
-
-        if ((result != 2) && (result != 4))
-        {
-            ALOGE("userial_open: wrong numbers of open fd in vendor lib [%d]!",
-                    result);
-            ALOGE("userial_open: HCI MCT expects 2 or 4 open file descriptors");
-            bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
-            return false;
-        }
-    }
-    else
-    {
-        ALOGE("userial_open: missing vendor lib interface !!!");
-        ALOGE("userial_open: unable to open BT transport");
+        ALOGE("userial_open: wrong numbers of open fd in vendor lib [%d]!",
+                result);
+        ALOGE("userial_open: HCI MCT expects 2 or 4 open file descriptors");
+        vendor_send_command(BT_VND_OP_USERIAL_CLOSE, NULL);
         return false;
     }
 
@@ -297,7 +287,7 @@ bool userial_open(userial_port_t port)
         (userial_cb.fd[CH_ACL_OUT] == -1) || (userial_cb.fd[CH_ACL_IN] == -1))
     {
         ALOGE("userial_open: failed to open BT transport");
-        bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
+        vendor_send_command(BT_VND_OP_USERIAL_CLOSE, NULL);
         return false;
     }
 
@@ -310,7 +300,7 @@ bool userial_open(userial_port_t port)
                        userial_read_thread, NULL) != 0 )
     {
         ALOGE("pthread_create failed!");
-        bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
+        vendor_send_command(BT_VND_OP_USERIAL_CLOSE, NULL);
         return false;
     }
 
@@ -399,9 +389,7 @@ void userial_close(void)
     if ((result=pthread_join(userial_cb.read_thread, NULL)) < 0)
         ALOGE( "pthread_join() FAILED result:%d", result);
 
-    /* Calling vendor-specific part */
-    if (bt_vnd_if)
-        bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
+    vendor_send_command(BT_VND_OP_USERIAL_CLOSE, NULL);
 
     for (idx=0; idx < CH_MAX; idx++)
         userial_cb.fd[idx] = -1;

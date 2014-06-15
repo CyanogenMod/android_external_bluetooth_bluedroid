@@ -35,6 +35,7 @@
 #include "utils.h"
 #include "hci.h"
 #include "userial.h"
+#include "vendor.h"
 #include "bt_utils.h"
 #include "btsnoop.h"
 #include <sys/prctl.h>
@@ -58,7 +59,6 @@
 **  Externs
 ******************************************************************************/
 
-extern bt_vendor_interface_t *bt_vnd_if;
 extern int num_hci_cmd_pkts;
 void lpm_init(void);
 void lpm_cleanup(void);
@@ -198,7 +198,7 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
     /* store reference to user callbacks */
     bt_hc_cbacks = (bt_hc_callbacks_t *) p_cb;
 
-    init_vnd_if(local_bdaddr);
+    vendor_open(local_bdaddr);
 
     utils_init();
 #ifdef HCI_USE_MCT
@@ -265,10 +265,7 @@ static void set_power(bt_hc_chip_power_state_t state)
     /* Calling vendor-specific part */
     pwr_state = (state == BT_HC_CHIP_PWR_ON) ? BT_VND_PWR_ON : BT_VND_PWR_OFF;
 
-    if (bt_vnd_if)
-        bt_vnd_if->op(BT_VND_OP_POWER_CTRL, &pwr_state);
-    else
-        ALOGE("vendor lib is missing!");
+    vendor_send_command(BT_VND_OP_POWER_CTRL, &pwr_state);
 }
 
 
@@ -406,9 +403,8 @@ static void cleanup( void )
     p_hci_if->cleanup();
     utils_cleanup();
 
-    /* Calling vendor-specific part */
-    if (bt_vnd_if)
-        bt_vnd_if->cleanup();
+    set_power(BT_VND_PWR_OFF);
+    vendor_close();
 
     fwcfg_acked = FALSE;
     bt_hc_cbacks = NULL;
@@ -480,17 +476,7 @@ static void *bt_hc_worker_thread(void *arg)
         if (events & HC_EVENT_PRELOAD)
         {
             userial_open(USERIAL_PORT_1);
-
-            /* Calling vendor-specific part */
-            if (bt_vnd_if)
-            {
-                bt_vnd_if->op(BT_VND_OP_FW_CFG, NULL);
-            }
-            else
-            {
-                if (bt_hc_cbacks)
-                    bt_hc_cbacks->preload_cb(NULL, BT_HC_PRELOAD_FAIL);
-            }
+            vendor_send_command(BT_VND_OP_FW_CFG, NULL);
         }
 
         if (events & HC_EVENT_POSTLOAD)
@@ -499,12 +485,7 @@ static void *bt_hc_worker_thread(void *arg)
              * is required. Then, follow with reading requests of getting
              * ACL data length for both BR/EDR and LE.
              */
-            int result = -1;
-
-            /* Calling vendor-specific part */
-            if (bt_vnd_if)
-                result = bt_vnd_if->op(BT_VND_OP_SCO_CFG, NULL);
-
+            int result = vendor_send_command(BT_VND_OP_SCO_CFG, NULL);
             if (result == -1)
                 p_hci_if->get_acl_max_len();
         }
@@ -585,11 +566,7 @@ static void *bt_hc_worker_thread(void *arg)
 
         if (events & HC_EVENT_EPILOG)
         {
-            /* Calling vendor-specific part */
-            if (bt_vnd_if)
-                bt_vnd_if->op(BT_VND_OP_EPILOG, NULL);
-            else
-                break;  // equivalent to HC_EVENT_EXIT
+            vendor_send_command(BT_VND_OP_EPILOG, NULL);
         }
 
         if (events & HC_EVENT_EXIT)
