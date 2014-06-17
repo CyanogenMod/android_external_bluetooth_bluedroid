@@ -31,6 +31,8 @@
 #include "btm_api.h"
 
 #include <string.h>
+#include <cutils/properties.h>
+#include <utils/Log.h>
 
 
 static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
@@ -334,6 +336,8 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
     tBTA_DM_PM_SPEC     *p_pm_spec;
     tBTA_DM_PM_ACTN     *p_act0, *p_act1;
     tBTA_DM_SRVCS       *p_srvcs;
+    char buf[PROPERTY_VALUE_MAX];
+    int len = 0, temp = 0;
 
 
     if(!bta_dm_cb.device_list.count)
@@ -432,6 +436,12 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
                 bta_dm_cb.pm_timer[i].in_use = TRUE;
                 bdcpy(bta_dm_cb.pm_timer[i].peer_bdaddr, peer_addr);
                 bta_dm_cb.pm_timer[i].timer.p_cback = bta_dm_pm_timer_cback;
+                len = property_get("bluetooth.force_pm_timer", buf, NULL);
+                if(len > 0)
+                {
+                    sscanf(buf, "%d", &temp);
+                    timeout = temp;
+                }
                 bta_sys_start_timer(&bta_dm_cb.pm_timer[i].timer, 0, timeout);
                 APPL_TRACE_DEBUG2("start dm_pm_timer:%d, %d", i, timeout);
                 return;
