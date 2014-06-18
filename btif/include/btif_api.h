@@ -232,6 +232,17 @@ bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr);
 
 /*******************************************************************************
 **
+** Function         btif_dm_get_connection_state
+**
+** Description      Returns whether the remote device is currently connected
+**
+** Returns          0 if not connected
+**
+*******************************************************************************/
+uint16_t btif_dm_get_connection_state(const bt_bdaddr_t *bd_addr);
+
+/*******************************************************************************
+**
 ** Function         btif_dm_pin_reply
 **
 ** Description      BT legacy pairing - PIN code reply

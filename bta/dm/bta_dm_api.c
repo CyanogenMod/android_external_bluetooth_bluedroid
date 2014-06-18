@@ -1092,6 +1092,22 @@ BOOLEAN BTA_DmUseSsr( BD_ADDR bd_addr )
 }
 
 /*******************************************************************************
+**
+** Function         BTA_DmGetConnectionState
+**
+** Description      Returns whether the remote device is currently connected.
+**
+** Returns          0 if the device is NOT connected.
+**
+*******************************************************************************/
+UINT16 BTA_DmGetConnectionState( BD_ADDR bd_addr )
+{
+    tBTA_DM_PEER_DEVICE * p_dev = bta_dm_find_peer_device(bd_addr);
+    return (p_dev && p_dev->conn_state == BTA_DM_CONNECTED);
+}
+
+
+/*******************************************************************************
 **                   Device Identification (DI) Server Functions
 *******************************************************************************/
 /*******************************************************************************

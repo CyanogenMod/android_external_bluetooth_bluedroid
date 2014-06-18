@@ -289,6 +289,15 @@ static int remove_bond(const bt_bdaddr_t *bd_addr)
     return btif_dm_remove_bond(bd_addr);
 }
 
+static int get_connection_state(const bt_bdaddr_t *bd_addr)
+{
+    /* sanity check */
+    if (interface_ready() == FALSE)
+        return 0;
+
+    return btif_dm_get_connection_state(bd_addr);
+}
+
 static int pin_reply(const bt_bdaddr_t *bd_addr, uint8_t accept,
                  uint8_t pin_len, bt_pin_code_t *pin_code)
 {
@@ -426,6 +435,7 @@ static const bt_interface_t bluetoothInterface = {
     create_bond,
     remove_bond,
     cancel_bond,
+    get_connection_state,
     pin_reply,
     ssp_reply,
     get_profile_interface,

@@ -1634,6 +1634,17 @@ BTA_API extern void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_servic
 *******************************************************************************/
 BTA_API extern BOOLEAN BTA_DmUseSsr( BD_ADDR bd_addr );
 
+/*******************************************************************************
+**
+** Function         BTA_DmGetConnectionState
+**
+** Description      Returns whether the remote device is currently connected.
+**
+** Returns          0 if the device is NOT connected.
+**
+*******************************************************************************/
+BTA_API extern UINT16 BTA_DmGetConnectionState( BD_ADDR bd_addr );
+
 
 /*******************************************************************************
 **
