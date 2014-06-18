@@ -554,6 +554,20 @@ void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr)
 
 /*******************************************************************************
 **
+** Function         btif_dm_get_connection_state
+**
+** Description      Returns whether the remote device is currently connected
+**
+** Returns          0 if not connected
+**
+*******************************************************************************/
+uint16_t btif_dm_get_connection_state(const bt_bdaddr_t *bd_addr)
+{
+    return BTA_DmGetConnectionState((UINT8 *)bd_addr->address);
+}
+
+/*******************************************************************************
+**
 ** Function         search_devices_copy_cb
 **
 ** Description      Deep copy callback for search devices event
