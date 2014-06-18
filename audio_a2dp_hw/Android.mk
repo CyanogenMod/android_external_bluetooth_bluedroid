@@ -10,6 +10,8 @@ LOCAL_CFLAGS := -Wno-unused-parameter
 
 LOCAL_CFLAGS += -std=c99
 
+LOCAL_CFLAGS += -std=c99
+
 LOCAL_SHARED_LIBRARIES := \
 	libcutils liblog
 
