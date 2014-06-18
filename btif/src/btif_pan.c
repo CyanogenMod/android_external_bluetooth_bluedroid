@@ -308,6 +308,16 @@ static int tap_if_up(const char *devname, BD_ADDR addr)
     /*         ifr.ifr_hwaddr.sa_data[0], ifr.ifr_hwaddr.sa_data[1], ifr.ifr_hwaddr.sa_data[2], */
     /*         ifr.ifr_hwaddr.sa_data[3], ifr.ifr_hwaddr.sa_data[4], ifr.ifr_hwaddr.sa_data[5]); */
 
+    /* The IEEE has specified that the most significant bit of the most significant byte is used to
+     * determine a multicast address. If its a 1, that means multicast, 0 means unicast.
+     * Kernel returns an error if we try to set a multicast address for the tun-tap ethernet interface.
+     * Mask this bit to avoid any issue with auto generated address.
+     */
+    if (ifr.ifr_hwaddr.sa_data[0] & 0x01) {
+        BTIF_TRACE_WARNING0("Not a unicast MAC address, force multicast bit flipping");
+        ifr.ifr_hwaddr.sa_data[0] &= ~0x01;
+    }
+
     err = ioctl(sk, SIOCSIFHWADDR, (caddr_t)&ifr);
 
     if (err < 0) {
