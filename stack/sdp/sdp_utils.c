@@ -265,9 +265,9 @@ UINT8 *sdpu_build_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr)
             UINT8_TO_BE_STREAM (p_out, (p_attr->type << 3) | SIZE_IN_NEXT_BYTE);
             UINT8_TO_BE_STREAM (p_out, p_attr->len);
         }
-
-        ARRAY_TO_BE_STREAM (p_out, p_attr->value_ptr, (int)p_attr->len);
-
+        if(p_attr->value_ptr != NULL){
+            ARRAY_TO_BE_STREAM (p_out, p_attr->value_ptr, (int)p_attr->len);
+        }
         return (p_out);
     }
 
@@ -294,9 +294,9 @@ UINT8 *sdpu_build_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr)
         UINT8_TO_BE_STREAM (p_out, p_attr->len);
         break;
     }
-
-    ARRAY_TO_BE_STREAM (p_out, p_attr->value_ptr, (int)p_attr->len);
-
+    if(p_attr->value_ptr != NULL){
+        ARRAY_TO_BE_STREAM (p_out, p_attr->value_ptr, (int)p_attr->len);
+    }
     return (p_out);
 }
 
