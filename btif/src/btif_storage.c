@@ -427,6 +427,44 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
     return ret;
 }
 
+/*******************************************************************************
+**
+** Function         btif_in_fetch_bonded_devices
+**
+** Description      Internal helper function to fetch the bonded devices
+**                  from NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+static bt_status_t btif_in_fetch_bonded_device(char *bdstr)
+{
+    BOOLEAN bt_linkkey_file_found=FALSE;
+    int device_type;
+
+        int type = BTIF_CFG_TYPE_BIN;
+        LINK_KEY link_key;
+        int size = sizeof(link_key);
+        if(btif_config_get("Remote", bdstr, "LinkKey", (char*)link_key, &size, &type))
+        {
+            int linkkey_type;
+            if(btif_config_get_int("Remote", bdstr, "LinkKeyType", &linkkey_type))
+            {
+                bt_linkkey_file_found = TRUE;
+            }
+            else
+            {
+                bt_linkkey_file_found = FALSE;
+            }
+        }
+        if((btif_in_fetch_bonded_ble_device(bdstr, FALSE, NULL) != BT_STATUS_SUCCESS)
+                && (!bt_linkkey_file_found))
+        {
+            BTIF_TRACE_DEBUG1("Remote device:%s, no link key or ble key found", bdstr);
+            return BT_STATUS_FAIL;
+        }
+    return BT_STATUS_SUCCESS;
+}
 
 /*******************************************************************************
 **
@@ -1130,6 +1168,7 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
     bt_bdaddr_t bd_addr;
     BD_ADDR bta_bd_addr;
     BOOLEAN is_device_added =FALSE;
+    BOOLEAN key_found = FALSE;
     tBTA_LE_KEY_VALUE *p;
 
     if(!btif_config_get_int("Remote", remote_bd_addr,"DevType", &device_type))
@@ -1171,6 +1210,7 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
                     BTIF_TRACE_DEBUG1("p->penc_key.key_size=0x%02x",p->penc_key.key_size);
                     BTA_DmAddBleKey (bta_bd_addr, (tBTA_LE_KEY_VALUE *)buf, BTIF_DM_LE_KEY_PENC);
                 }
+                key_found = TRUE;
             }
 
             memset(buf, 0, sizeof(buf));
@@ -1194,6 +1234,7 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
 
                     BTA_DmAddBleKey (bta_bd_addr, (tBTA_LE_KEY_VALUE *)buf, BTIF_DM_LE_KEY_PID);
                 }
+                key_found = TRUE;
             }
 
             memset(buf, 0, sizeof(buf));
@@ -1220,6 +1261,7 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
 
                     BTA_DmAddBleKey (bta_bd_addr, (tBTA_LE_KEY_VALUE *)buf, BTIF_DM_LE_KEY_PCSRK);
                 }
+                key_found = TRUE;
             }
 
             memset(buf, 0, sizeof(buf));
@@ -1242,6 +1284,7 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
 
                     BTA_DmAddBleKey (bta_bd_addr, (tBTA_LE_KEY_VALUE *)buf, BTIF_DM_LE_KEY_LENC);
                 }
+                key_found = TRUE;
             }
 
             memset(buf, 0, sizeof(buf));
@@ -1264,6 +1307,7 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
 
                     BTA_DmAddBleKey (bta_bd_addr, (tBTA_LE_KEY_VALUE *)buf, BTIF_DM_LE_KEY_LCSRK);
                 }
+                key_found = TRUE;
             }
 
             /* Fill in the bonded devices */
@@ -1273,7 +1317,10 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
                 btif_gatts_add_bonded_dev_from_nv(bta_bd_addr);
             }
 
-            return BT_STATUS_SUCCESS;
+            if(key_found)
+                return BT_STATUS_SUCCESS;
+            else
+                return BT_STATUS_FAIL;
     }
     return BT_STATUS_FAIL;
 }
@@ -1375,51 +1422,62 @@ bt_status_t btif_storage_load_bonded_hid_info(void)
         kpos = btif_config_next_key(kpos, "Remote", kname, &kname_size);
         BTIF_TRACE_DEBUG2("Remote device:%s, size:%d", kname, kname_size);
         int value;
-        if(btif_config_get_int("Remote", kname, "HidAttrMask", &value))
+        if(btif_in_fetch_bonded_device(kname) == BT_STATUS_SUCCESS)
         {
-            attr_mask = (uint16_t)value;
-
-            btif_config_get_int("Remote", kname, "HidSubClass", &value);
-            sub_class = (uint8_t)value;
-
-            btif_config_get_int("Remote", kname, "HidAppId", &value);
-            app_id = (uint8_t)value;
-
-            btif_config_get_int("Remote", kname, "HidVendorId", &value);
-            dscp_info.vendor_id = (uint16_t) value;
-
-            btif_config_get_int("Remote", kname, "HidProductId", &value);
-            dscp_info.product_id = (uint16_t) value;
-
-            btif_config_get_int("Remote", kname, "HidVersion", &value);
-            dscp_info.version = (uint8_t) value;
-
-            btif_config_get_int("Remote", kname, "HidCountryCode", &value);
-            dscp_info.ctry_code = (uint8_t) value;
-
-            value = 0;
-            btif_config_get_int("Remote", kname, "HidSSRMaxLatency", &value);
-            dscp_info.ssr_max_latency = (uint16_t) value;
-
-            value = 0;
-            btif_config_get_int("Remote", kname, "HidSSRMinTimeout", &value);
-            dscp_info.ssr_min_tout = (uint16_t) value;
-
-            int len = 0;
-            int type;
-            btif_config_get("Remote", kname, "HidDescriptor", NULL, &len, &type);
-            if(len > 0)
+            if(btif_config_get_int("Remote", kname, "HidAttrMask", &value))
             {
-                dscp_info.descriptor.dl_len = (uint16_t)len;
-                dscp_info.descriptor.dsc_list = (uint8_t*)alloca(len);
-                btif_config_get("Remote", kname, "HidDescriptor", (char*)dscp_info.descriptor.dsc_list, &len, &type);
+                attr_mask = (uint16_t)value;
+
+                btif_config_get_int("Remote", kname, "HidSubClass", &value);
+                sub_class = (uint8_t)value;
+
+                btif_config_get_int("Remote", kname, "HidAppId", &value);
+                app_id = (uint8_t)value;
+
+                btif_config_get_int("Remote", kname, "HidVendorId", &value);
+                dscp_info.vendor_id = (uint16_t) value;
+
+                btif_config_get_int("Remote", kname, "HidProductId", &value);
+                dscp_info.product_id = (uint16_t) value;
+
+                btif_config_get_int("Remote", kname, "HidVersion", &value);
+                dscp_info.version = (uint8_t) value;
+
+                btif_config_get_int("Remote", kname, "HidCountryCode", &value);
+                dscp_info.ctry_code = (uint8_t) value;
+
+                value = 0;
+                btif_config_get_int("Remote", kname, "HidSSRMaxLatency", &value);
+                dscp_info.ssr_max_latency = (uint16_t) value;
+
+                value = 0;
+                btif_config_get_int("Remote", kname, "HidSSRMinTimeout", &value);
+                dscp_info.ssr_min_tout = (uint16_t) value;
+
+                int len = 0;
+                int type;
+                btif_config_get("Remote", kname, "HidDescriptor", NULL, &len, &type);
+                if(len > 0)
+                {
+                    dscp_info.descriptor.dl_len = (uint16_t)len;
+                    dscp_info.descriptor.dsc_list = (uint8_t*)alloca(len);
+                    btif_config_get("Remote", kname, "HidDescriptor", (char*)dscp_info.descriptor.dsc_list, &len, &type);
+                }
+                str2bd(kname, &bd_addr);
+                // add extracted information to BTA HH
+                if (btif_hh_add_added_dev(bd_addr,attr_mask))
+                {
+                    BTA_HhAddDev(bd_addr.address, attr_mask, sub_class,
+                            app_id, dscp_info);
+                }
             }
-            str2bd(kname, &bd_addr);
-            // add extracted information to BTA HH
-            if (btif_hh_add_added_dev(bd_addr,attr_mask))
+        }
+        else
+        {
+            if(btif_config_get_int("Remote", kname, "HidAttrMask", &value))
             {
-                BTA_HhAddDev(bd_addr.address, attr_mask, sub_class,
-                        app_id, dscp_info);
+                btif_storage_remove_hid_info(&bd_addr);
+                str2bd(kname, &bd_addr);
             }
         }
     } while(kpos != -1);
