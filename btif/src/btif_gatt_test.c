@@ -233,15 +233,15 @@ bt_status_t btif_gattc_test_command_impl(uint16_t command, btgatt_test_params_t*
 
         case 0x02: /* Connect */
         {
-            ALOGD("%s: CONNECT - device=%02x:%02x:%02x:%02x:%02x:%02x (dev_type=%d)",
+            ALOGD("%s: CONNECT - device=%02x:%02x:%02x:%02x:%02x:%02x (dev_type=%d, addr_type=%d)",
                 __FUNCTION__,
                 params->bda1->address[0], params->bda1->address[1],
                 params->bda1->address[2], params->bda1->address[3],
                 params->bda1->address[4], params->bda1->address[5],
-                params->u1);
+                params->u1, params->u2);
 
             if (params->u1 == BT_DEVICE_TYPE_BLE)
-                BTM_SecAddBleDevice(params->bda1->address, NULL, BT_DEVICE_TYPE_BLE, 0);
+                BTM_SecAddBleDevice(params->bda1->address, NULL, BT_DEVICE_TYPE_BLE, params->u2);
 
             if ( !GATT_Connect(test_cb.gatt_if, params->bda1->address, TRUE, BT_TRANSPORT_LE) )
             {
