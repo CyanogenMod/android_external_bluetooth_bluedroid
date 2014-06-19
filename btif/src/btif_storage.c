@@ -460,7 +460,7 @@ static bt_status_t btif_in_fetch_bonded_device(char *bdstr)
         if((btif_in_fetch_bonded_ble_device(bdstr, FALSE, NULL) != BT_STATUS_SUCCESS)
                 && (!bt_linkkey_file_found))
         {
-            BTIF_TRACE_DEBUG1("Remote device:%s, no link key or ble key found", bdstr);
+            BTIF_TRACE_DEBUG("Remote device:%s, no link key or ble key found", bdstr);
             return BT_STATUS_FAIL;
         }
     return BT_STATUS_SUCCESS;
