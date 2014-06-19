@@ -551,7 +551,7 @@ void BTM_BleSetPrefConnParams (BD_ADDR bd_addr,
                 if (supervision_tout != BTM_BLE_CONN_PARAM_UNDEF)
                     p_dev_rec->conn_params.supervision_tout = supervision_tout;
                 else
-                    p_dev_rec->conn_params.slave_latency = BTM_BLE_CONN_TIMEOUT_DEF;
+                    p_dev_rec->conn_params.supervision_tout = BTM_BLE_CONN_TIMEOUT_DEF;
 
             }
 

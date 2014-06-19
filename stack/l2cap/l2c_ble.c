@@ -623,9 +623,9 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
         (UINT16) ((p_dev_rec->conn_params.max_conn_int != BTM_BLE_CONN_PARAM_UNDEF) ?
         p_dev_rec->conn_params.max_conn_int : BTM_BLE_CONN_INT_MAX_DEF),  /* conn_int_max  */
         (UINT16) ((p_dev_rec->conn_params.slave_latency != BTM_BLE_CONN_PARAM_UNDEF) ?
-        p_dev_rec->conn_params.slave_latency : 0), /* UINT16 conn_latency  */
+        p_dev_rec->conn_params.slave_latency : BTM_BLE_CONN_SLAVE_LATENCY_DEF), /* UINT16 conn_latency  */
         (UINT16) ((p_dev_rec->conn_params.supervision_tout != BTM_BLE_CONN_PARAM_UNDEF) ?
-        p_dev_rec->conn_params.supervision_tout : BTM_BLE_CONN_SUP_TOUT_DEF), /* conn_timeout */
+        p_dev_rec->conn_params.supervision_tout : BTM_BLE_CONN_TIMEOUT_DEF), /* conn_timeout */
                                         0,                       /* UINT16 min_len       */
                                         0))                      /* UINT16 max_len       */
     {
