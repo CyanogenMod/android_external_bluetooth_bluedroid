@@ -552,8 +552,6 @@ void hci_mct_init(void)
      */
     mct_cb.hc_acl_data_size = 1021;
     mct_cb.hc_ble_acl_data_size = 27;
-
-    btsnoop_init();
 }
 
 /*******************************************************************************
