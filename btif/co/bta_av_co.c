@@ -281,6 +281,16 @@ BOOLEAN bta_av_co_audio_init(UINT8 *p_codec_type, UINT8 *p_codec_info, UINT8 *p_
 
     APPL_TRACE_DEBUG("bta_av_co_audio_init: %d", index);
 
+    /* By default - no content protection info */
+    *p_num_protect = 0;
+    *p_protect_info = 0;
+
+    /* reset remote preference through setconfig */
+    bta_av_co_cb.codec_cfg_setconfig.id = BTIF_AV_CODEC_NONE;
+
+    switch (index)
+    {
+    case BTIF_SV_AV_AA_SBC_INDEX:
 #if defined(BTA_AV_CO_CP_SCMS_T) && (BTA_AV_CO_CP_SCMS_T == TRUE)
     {
         UINT8 *p = p_protect_info;
@@ -291,18 +301,7 @@ BOOLEAN bta_av_co_audio_init(UINT8 *p_codec_type, UINT8 *p_codec_info, UINT8 *p_
         UINT16_TO_STREAM(p, BTA_AV_CP_SCMS_T_ID);
 
     }
-#else
-    /* By default - no content protection info */
-    *p_num_protect = 0;
-    *p_protect_info = 0;
 #endif
-
-    /* reset remote preference through setconfig */
-    bta_av_co_cb.codec_cfg_setconfig.id = BTIF_AV_CODEC_NONE;
-
-    switch (index)
-    {
-    case BTIF_SV_AV_AA_SBC_INDEX:
         /* Set up for SBC codec  for SRC*/
         *p_codec_type = BTA_AV_CODEC_SBC;
 
@@ -553,19 +552,8 @@ UINT8 bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
                 *p_num_protect = 0;
 
 #if defined(BTA_AV_CO_CP_SCMS_T) && (BTA_AV_CO_CP_SCMS_T == TRUE)
-                /* Check if this sink supports SCMS */
-                if (bta_av_co_audio_sink_has_scmst(p_sink))
-                {
-                    p_peer->cp_active = TRUE;
-                    bta_av_co_cb.cp.active = TRUE;
-                    *p_num_protect = BTA_AV_CP_INFO_LEN;
-                    memcpy(p_protect_info, bta_av_co_cp_scmst, BTA_AV_CP_INFO_LEN);
-                }
-                else
-                {
                     p_peer->cp_active = FALSE;
                     bta_av_co_cb.cp.active = FALSE;
-                }
 #endif
 
                     *p_sep_info_idx = p_src->sep_info_idx;
@@ -1508,7 +1496,7 @@ BOOLEAN bta_av_co_audio_codec_supported(tBTIF_STATUS *p_status)
 #if defined(BTA_AV_CO_CP_SCMS_T) && (BTA_AV_CO_CP_SCMS_T == TRUE)
                     if (!bta_av_co_audio_codec_build_config(p_sink->codec_caps, codec_cfg))
                     {
-                        APPL_TRACE_DEBUG2("%s:index %d doesn't support codec", __FUNCTION__, index);
+                        APPL_TRACE_DEBUG("%s:index %d doesn't support codec", __FUNCTION__, index);
                         return FALSE;
                     }
                     return TRUE;
