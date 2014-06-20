@@ -423,7 +423,7 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
                  BTM_SEC_LINK_KEY_KNOWN)
             {
                 tACL_CONN         *p;
-                p = btm_bda_to_acl(p_tcb->peer_bda);
+                p = btm_bda_to_acl(p_tcb->peer_bda, BT_TRANSPORT_LE);
                 if ((p != NULL) && (p->link_role == BTM_ROLE_MASTER))
                 {
                     tBTM_BLE_SEC_ACT sec_act = BTM_BLE_SEC_ENCRYPT;
