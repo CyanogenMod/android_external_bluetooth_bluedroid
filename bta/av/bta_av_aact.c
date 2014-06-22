@@ -979,13 +979,13 @@ void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     if (bta_av_cb.features & BTA_AV_FEAT_MASTER)
     {
-    L2CA_SetDesireRole(L2CAP_ROLE_DISALLOW_SWITCH);
+        L2CA_SetDesireRole(L2CAP_ROLE_DISALLOW_SWITCH);
 
-    if (bta_av_cb.audio_open_cnt == 1)
-    {
-        /* there's already an A2DP connection. do not allow switch */
-        bta_sys_clear_default_policy(BTA_ID_AV, HCI_ENABLE_MASTER_SLAVE_SWITCH);
-    }
+        if (bta_av_cb.audio_open_cnt == 1)
+        {
+            /* there's already an A2DP connection. do not allow switch */
+            bta_sys_clear_default_policy(BTA_ID_AV, HCI_ENABLE_MASTER_SLAVE_SWITCH);
+        }
     }
     /* store peer addr other parameters */
     bta_av_save_addr(p_scb, p_data->api_open.bd_addr);
