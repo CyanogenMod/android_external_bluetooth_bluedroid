@@ -995,20 +995,20 @@ static bt_status_t connect_int(bt_bdaddr_t *bd_addr, uint16_t uuid)
     return BT_STATUS_SUCCESS;
 }
 
-static bt_status_t connect_src(bt_bdaddr_t *bd_addr)
-{
-    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
-    CHECK_BTAV_INIT();
-
-    return btif_queue_connect(UUID_SERVCLASS_AUDIO_SINK, bd_addr, connect_int);
-}
-
-static bt_status_t connect_sink(bt_bdaddr_t *bd_addr)
+static bt_status_t src_connect_sink(bt_bdaddr_t *bd_addr)
 {
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
     CHECK_BTAV_INIT();
 
     return btif_queue_connect(UUID_SERVCLASS_AUDIO_SOURCE, bd_addr, connect_int);
+}
+
+static bt_status_t sink_connect_src(bt_bdaddr_t *bd_addr)
+{
+    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
+    CHECK_BTAV_INIT();
+
+    return btif_queue_connect(UUID_SERVCLASS_AUDIO_SINK, bd_addr, connect_int);
 }
 
 /*******************************************************************************
@@ -1078,7 +1078,7 @@ static void cleanup_sink(void) {
 static const btav_interface_t bt_av_src_interface = {
     sizeof(btav_interface_t),
     init_src,
-    connect_src,
+    src_connect_sink,
     disconnect,
     cleanup_src,
 };
@@ -1086,7 +1086,7 @@ static const btav_interface_t bt_av_src_interface = {
 static const btav_interface_t bt_av_sink_interface = {
     sizeof(btav_interface_t),
     init_sink,
-    connect_sink,
+    sink_connect_src,
     disconnect,
     cleanup_sink,
 };
