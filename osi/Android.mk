@@ -9,6 +9,7 @@ LOCAL_SRC_FILES := \
     ./src/config.c \
     ./src/fixed_queue.c \
     ./src/list.c \
+    ./src/reactor.c \
     ./src/semaphore.c
 
 LOCAL_CFLAGS := -std=c99 -Wall -Werror
@@ -28,7 +29,8 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_SRC_FILES := \
     ./test/config_test.cpp \
-    ./test/list_test.cpp
+    ./test/list_test.cpp \
+    ./test/reactor_test.cpp
 
 LOCAL_CFLAGS := -Wall -Werror
 LOCAL_MODULE := ositests
