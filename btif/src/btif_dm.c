@@ -1660,7 +1660,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
              bt_status_t status;
              bt_property_t prop;
              prop.type = BT_PROPERTY_BDNAME;
-             prop.len = BD_NAME_LEN;
+             prop.len = BD_NAME_LEN + 1;
              prop.val = (void*)bdname;
 
              status = btif_storage_get_adapter_property(&prop);
