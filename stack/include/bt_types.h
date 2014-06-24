@@ -205,10 +205,11 @@
 */
 typedef struct
 {
-    UINT16          event;
-    UINT16          len;
-    UINT16          offset;
-    UINT16          layer_specific;
+    uint16_t          event;
+    uint16_t          len;
+    uint16_t          offset;
+    uint16_t          layer_specific;
+    uint8_t           data[];
 } BT_HDR;
 
 #define BT_HDR_SIZE (sizeof (BT_HDR))
