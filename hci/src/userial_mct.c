@@ -59,8 +59,6 @@
 
 enum {
     USERIAL_RX_EXIT,
-    USERIAL_RX_FLOW_OFF,
-    USERIAL_RX_FLOW_ON
 };
 
 /******************************************************************************
@@ -102,7 +100,6 @@ static volatile uint8_t userial_running = 0;
 **      - signal_fds[1]: trigger from userial_close
 *****************************************************************************/
 static int signal_fds[2]={0,1};
-static uint8_t rx_flow_on = TRUE;
 static inline int create_signal_fds(fd_set* set)
 {
     if(signal_fds[0]==0 && socketpair(AF_UNIX, SOCK_STREAM, 0, signal_fds)<0)
@@ -147,7 +144,6 @@ static void *userial_read_thread(void *arg)
 
     USERIALDBG("Entering userial_read_thread()");
 
-    rx_flow_on = TRUE;
     userial_running = 1;
 
     raise_priority_a2dp(TASK_HIGH_USERIAL_READ);
@@ -156,11 +152,8 @@ static void *userial_read_thread(void *arg)
     {
         /* Initialize the input fd set */
         FD_ZERO(&input);
-        if (rx_flow_on == TRUE)
-        {
-            FD_SET(userial_cb.fd[CH_EVT], &input);
-            FD_SET(userial_cb.fd[CH_ACL_IN], &input);
-        }
+        FD_SET(userial_cb.fd[CH_EVT], &input);
+        FD_SET(userial_cb.fd[CH_ACL_IN], &input);
 
         int fd_max = create_signal_fds(&input);
         fd_max = (fd_max>userial_cb.fd[CH_EVT]) ? fd_max : userial_cb.fd[CH_EVT];
@@ -177,16 +170,6 @@ static void *userial_read_thread(void *arg)
                 ALOGI("exiting userial_read_thread");
                 userial_running = 0;
                 break;
-            }
-            else if (reason == USERIAL_RX_FLOW_OFF)
-            {
-                USERIALDBG("RX flow OFF");
-                rx_flow_on = FALSE;
-            }
-            else if (reason == USERIAL_RX_FLOW_ON)
-            {
-                USERIALDBG("RX flow ON");
-                rx_flow_on = TRUE;
             }
         }
 
@@ -393,14 +376,4 @@ void userial_close(void)
 
     for (idx=0; idx < CH_MAX; idx++)
         userial_cb.fd[idx] = -1;
-}
-
-void userial_pause_reading(void) {
-    if (userial_running)
-        send_wakeup_signal(USERIAL_RX_FLOW_OFF);
-}
-
-void userial_resume_reading(void) {
-    if (userial_running)
-        send_wakeup_signal(USERIAL_RX_FLOW_ON);
 }

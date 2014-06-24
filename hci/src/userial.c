@@ -64,9 +64,7 @@
 // Note that the values must be >= 0x8000000000000000 to guarantee delivery
 // of the message (see eventfd(2) for details on blocking behaviour).
 enum {
-    USERIAL_RX_EXIT     = 0x8000000000000000ULL,
-    USERIAL_RX_FLOW_OFF = 0x8000000000000001ULL,
-    USERIAL_RX_FLOW_ON  = 0x8000000000000002ULL,
+    USERIAL_RX_EXIT     = 0x8000000000000000ULL
 };
 
 /******************************************************************************
@@ -101,7 +99,6 @@ static volatile uint8_t userial_running = 0;
 **      - signal_fds[1]: trigger from userial_close
 *****************************************************************************/
 static int event_fd = -1;
-static uint8_t rx_flow_on = TRUE;
 
 static inline int add_event_fd(fd_set *set) {
     if (event_fd == -1) {
@@ -155,10 +152,7 @@ static int select_read(int fd, uint8_t *pbuf, int len)
     {
         /* Initialize the input fd set */
         FD_ZERO(&input);
-        if (rx_flow_on == TRUE)
-        {
-            FD_SET(fd, &input);
-        }
+        FD_SET(fd, &input);
         int fd_max = add_event_fd(&input);
         fd_max = fd_max > fd ? fd_max : fd;
 
@@ -168,14 +162,6 @@ static int select_read(int fd, uint8_t *pbuf, int len)
         {
             uint64_t event = read_event();
             switch (event) {
-                case USERIAL_RX_FLOW_ON:
-                    USERIALDBG("RX flow ON");
-                    rx_flow_on = TRUE;
-                    break;
-                case USERIAL_RX_FLOW_OFF:
-                    USERIALDBG("RX flow OFF");
-                    rx_flow_on = FALSE;
-                    break;
                 case USERIAL_RX_EXIT:
                     USERIALDBG("RX termination");
                     return -1;
@@ -214,7 +200,6 @@ static void *userial_read_thread(void *arg)
     USERIALDBG("Entering userial_read_thread()");
     prctl(PR_SET_NAME, (unsigned long)"userial_read", 0, 0, 0);
 
-    rx_flow_on = TRUE;
     userial_running = 1;
 
     raise_priority_a2dp(TASK_HIGH_USERIAL_READ);
@@ -411,14 +396,4 @@ void userial_close(void) {
         bt_hc_cbacks->dealloc(buf);
 
     userial_cb.fd = -1;
-}
-
-void userial_pause_reading(void) {
-    if (userial_running)
-        send_event(USERIAL_RX_FLOW_OFF);
-}
-
-void userial_resume_reading(void) {
-    if (userial_running)
-        send_event(USERIAL_RX_FLOW_ON);
 }
