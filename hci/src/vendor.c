@@ -144,7 +144,7 @@ static void *buffer_alloc(int size) {
 // |buffer_alloc|.
 static void buffer_free(void *buffer) {
   assert(bt_hc_cbacks != NULL);
-  bt_hc_cbacks->dealloc(buffer, (char *)buffer + sizeof(HC_BT_HDR));
+  bt_hc_cbacks->dealloc(buffer);
 }
 
 // Called back from vendor library when it wants to send an HCI command.

@@ -115,7 +115,7 @@ typedef void (*lpm_result_cb)(bt_hc_lpm_request_result_t result);
 typedef char* (*alloc_mem_cb)(int size);
 
 /* datapath buffer deallocation callback (callout) */
-typedef int (*dealloc_mem_cb)(TRANSAC transac, char *p_buf);
+typedef void (*dealloc_mem_cb)(TRANSAC transac);
 
 /* transmit result callback */
 typedef int (*tx_result_cb)(TRANSAC transac, char *p_buf, bt_hc_transmit_result_t result);

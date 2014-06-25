@@ -201,7 +201,7 @@ void get_acl_data_length_cback(void *p_mem)
         if ((status = hci_mct_send_int_cmd(HCI_LE_READ_BUFFER_SIZE, p_buf, \
                                            get_acl_data_length_cback)) == FALSE)
         {
-            bt_hc_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
+            bt_hc_cbacks->dealloc(p_buf);
             bt_hc_cbacks->postload_cb(NULL, BT_HC_POSTLOAD_SUCCESS);
         }
     }
@@ -212,7 +212,7 @@ void get_acl_data_length_cback(void *p_mem)
 
         if (bt_hc_cbacks)
         {
-            bt_hc_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
+            bt_hc_cbacks->dealloc(p_buf);
             ALOGE("hci lib postload completed");
             bt_hc_cbacks->postload_cb(NULL, BT_HC_POSTLOAD_SUCCESS);
         }
@@ -274,8 +274,7 @@ uint8_t internal_event_intercept(void)
                     // Release the p_rcv_msg buffer.
                     if (bt_hc_cbacks)
                     {
-                        bt_hc_cbacks->dealloc((TRANSAC) p_cb->rcv_evt.p_rcv_msg, \
-                                              (char *) (p_cb->rcv_evt.p_rcv_msg + 1));
+                        bt_hc_cbacks->dealloc(p_cb->rcv_evt.p_rcv_msg);
                     }
                 }
                 p_cb->int_cmd_rd_idx = ((p_cb->int_cmd_rd_idx+1) & \
@@ -374,8 +373,7 @@ static HC_BT_HDR *acl_rx_frame_buffer_alloc (void)
 
             if (bt_hc_cbacks)
             {
-                bt_hc_cbacks->dealloc((TRANSAC) p_return_buf, \
-                                          (char *) (p_return_buf + 1));
+                bt_hc_cbacks->dealloc(p_return_buf);
             }
             p_return_buf = NULL;
         }
@@ -690,7 +688,7 @@ void hci_mct_send_msg(HC_BT_HDR *p_msg)
             (p_msg->layer_specific == lay_spec))
         {
             /* dealloc buffer of internal command */
-            bt_hc_cbacks->dealloc((TRANSAC) p_msg, (char *) (p_msg + 1));
+            bt_hc_cbacks->dealloc(p_msg);
         }
         else
         {
@@ -1141,7 +1139,7 @@ void hci_mct_get_acl_data_length(void)
         if ((ret = hci_mct_send_int_cmd(HCI_READ_BUFFER_SIZE, p_buf, \
                                        get_acl_data_length_cback)) == FALSE)
         {
-            bt_hc_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
+            bt_hc_cbacks->dealloc(p_buf);
         }
         else
             return;
