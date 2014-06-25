@@ -94,6 +94,7 @@ typedef union {
 
 typedef enum {
     BTIF_CORE_STATE_DISABLED = 0,
+    BTIF_CORE_STATE_INITIALIZED,
     BTIF_CORE_STATE_ENABLING,
     BTIF_CORE_STATE_ENABLED,
     BTIF_CORE_STATE_DISABLING
@@ -506,7 +507,7 @@ bt_status_t btif_init_bluetooth()
 
     if (status != GKI_SUCCESS)
         return BT_STATUS_FAIL;
-
+    btif_core_state = BTIF_CORE_STATE_INITIALIZED;
     return BT_STATUS_SUCCESS;
 }
 
@@ -544,7 +545,8 @@ bt_status_t btif_enable_bluetooth(void)
 {
     BTIF_TRACE_DEBUG("BTIF ENABLE BLUETOOTH");
 
-    if (btif_core_state != BTIF_CORE_STATE_DISABLED)
+    if (btif_core_state != BTIF_CORE_STATE_DISABLED &&
+        btif_core_state != BTIF_CORE_STATE_INITIALIZED)
     {
         ALOGD("not disabled\n");
         return BT_STATUS_DONE;
@@ -788,7 +790,6 @@ bt_status_t btif_shutdown_bluetooth(void)
     {
         /*variable to avoid the double cleanup*/
         bt_disabled = TRUE;
-
         if (btif_core_state == BTIF_CORE_STATE_ENABLING)
         {
             // Java layer abort BT ENABLING, could be due to ENABLE TIMEOUT
@@ -804,6 +805,17 @@ bt_status_t btif_shutdown_bluetooth(void)
         bte_main_shutdown();
 
         btif_dut_mode = 0;
+    }
+    else if (btif_core_state == BTIF_CORE_STATE_INITIALIZED)
+    {
+       // Java Layer called cleanup before calling enable due to START TIMEOUT
+       // Cleanup GKI task to reset the hal callback handle
+       BTIF_TRACE_WARNING("shutdown...cleanup called before enable");
+       GKI_destroy_task(BTIF_TASK);
+       btif_queue_release();
+       bte_main_shutdown();
+       btif_core_state = BTIF_CORE_STATE_DISABLED;
+       btif_dut_mode = 0;
     }
     unlock_slot(&mutex_bt_disable);
 
