@@ -298,8 +298,8 @@ static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_TRANSPORT transpo
     UNUSED(bd_addr);
     UNUSED(transport);
 
-    if (result != BTA_SUCCESS && result != BTA_BUSY &&
-        result != BTA_FAILED_ESTABLISH && result != BTA_TIMEOUT)
+    if (result != BTA_SUCCESS && result != BTA_BUSY && result != BTA_HOST_DISCONN &&
+        result != BTA_FAILED_ESTABLISH && result != BTA_TIMEOUT && result != BTA_WRONG_MODE)
     {
         BTIF_TRACE_WARNING("%s() - Encryption failed (%d)", __FUNCTION__, result);
     }
