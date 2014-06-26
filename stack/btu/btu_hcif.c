@@ -402,8 +402,7 @@ void btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_msg)
         case HCI_BLE_EVENT:
             STREAM_TO_UINT8  (ble_sub_code, p);
 
-            BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, "BLE HCI(id=%d) event = 0x%02x)",
-                        hci_evt_code,  ble_sub_code);
+            HCI_TRACE_EVENT("BLE HCI(id=%d) event = 0x%02x)", hci_evt_code,  ble_sub_code);
 
             switch (ble_sub_code)
             {
@@ -505,7 +504,7 @@ void btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_buf)
             else
             {
                 /* Unknown controller */
-                BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, "BTU HCI(ctrl id=%d) controller ID not recognized", controller_id);
+                HCI_TRACE_WARNING("BTU HCI(ctrl id=%d) controller ID not recognized", controller_id);
                 GKI_freebuf(p_buf);;
             }
 
@@ -1515,8 +1514,7 @@ static void btu_hcif_command_status_evt (UINT8 controller_id, UINT8 *p)
     }
     else
     {
-        BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING,
-                    "No command in queue matching opcode %d", opcode);
+        HCI_TRACE_WARNING("No command in queue matching opcode %d", opcode);
     }
 
     /* See if we can forward any more commands */
@@ -1544,7 +1542,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
 #if (defined(BTU_CMD_CMPL_TOUT_DOUBLE_CHECK) && BTU_CMD_CMPL_TOUT_DOUBLE_CHECK == TRUE)
     if (!(p_hci_cmd_cb->checked_hcisu))
     {
-        BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, "BTU HCI(id=%d) command timeout - double check HCISU", controller_id);
+        HCI_TRACE_WARNING("BTU HCI(id=%d) command timeout - double check HCISU", controller_id);
 
         /* trigger HCISU to read any pending data in transport buffer */
         GKI_send_event(HCISU_TASK, HCISU_EVT_MASK);
@@ -1566,7 +1564,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
     /* get queued command */
     if ((p_cmd = (BT_HDR *) GKI_dequeue (&(p_hci_cmd_cb->cmd_cmpl_q))) == NULL)
     {
-        BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, "Cmd timeout; no cmd in queue");
+        HCI_TRACE_WARNING("Cmd timeout; no cmd in queue");
         return;
     }
 
@@ -1589,7 +1587,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
     if (controller_id == NFC_CONTROLLER_ID)
     {
         //TODO call nfc_ncif_cmd_timeout
-        BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, "BTU NCI command timeout - header 0x%02x%02x", p[0], p[1]);
+        HCI_TRACE_WARNING("BTU NCI command timeout - header 0x%02x%02x", p[0], p[1]);
         return;
     }
 #endif
@@ -1605,7 +1603,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
     ALOGE("#");
     ALOGE("######################################################################");
 #else
-    BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, "BTU HCI(id=%d) command timeout. opcode=0x%x", controller_id, opcode);
+    HCI_TRACE_WARNING("BTU HCI(id=%d) command timeout. opcode=0x%x", controller_id, opcode);
 #endif
 // btla-specific ++
 
@@ -1661,8 +1659,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
      times, Bluetooth process will be killed and restarted */
     if (num_hci_cmds_timed_out >= BTM_MAX_HCI_CMD_TOUT_BEFORE_RESTART)
     {
-        BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR,
-                  "Num consecutive HCI Cmd tout =%d Restarting BT process",num_hci_cmds_timed_out);
+        HCI_TRACE_ERROR("Num consecutive HCI Cmd tout =%d Restarting BT process",num_hci_cmds_timed_out);
 
         usleep(10000); /* 10 milliseconds */
         /* Killing the process to force a restart as part of fault tolerance */
@@ -1670,8 +1667,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
     }
     else
     {
-        BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, "HCI Cmd timeout counter %d",
-                    num_hci_cmds_timed_out);
+        HCI_TRACE_WARNING("HCI Cmd timeout counter %d", num_hci_cmds_timed_out);
 
         /* If anyone wants device status notifications, give him one */
         btm_report_device_status (BTM_DEV_STATUS_CMD_TOUT);
@@ -1691,7 +1687,7 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
 *******************************************************************************/
 static void btu_hcif_hardware_error_evt (UINT8 *p)
 {
-    BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, "Ctlr H/w error event - code:0x%x", *p);
+    HCI_TRACE_ERROR("Ctlr H/w error event - code:0x%x", *p);
 
     /* If anyone wants device status notifications, give him one. */
     btm_report_device_status (BTM_DEV_STATUS_DOWN);
@@ -2260,7 +2256,7 @@ static void btu_hcif_encryption_key_refresh_cmpl_evt (UINT8 *p)
 
 static void btu_ble_process_adv_pkt (UINT8 *p)
 {
-    BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, "btu_ble_process_adv_pkt");
+    HCI_TRACE_EVENT("btu_ble_process_adv_pkt");
 
     btm_ble_process_adv_pkt(p);
 }
