@@ -424,6 +424,9 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
     bt_status_t result = BT_STATUS_SUCCESS;
     int i;
     char bd_str[18];
+#if (AVRC_CTLR_INCLUDED == TRUE)
+    bt_bdaddr_t rc_addr;
+#endif
 
     if(p_rc_open->status == BTA_AV_SUCCESS)
     {
@@ -786,6 +789,15 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
             handle_rc_passthrough_cmd( (&p_data->remote_cmd) );
         }
         break;
+#if (AVRC_CTLR_INCLUDED == TRUE)
+        case BTA_AV_REMOTE_RSP_EVT:
+        {
+            BTIF_TRACE_DEBUG2("RSP: rc_id:0x%x key_state:%d", p_data->remote_rsp.rc_id,
+                               p_data->remote_rsp.key_state);
+            handle_rc_passthrough_rsp( (&p_data->remote_rsp) );
+        }
+        break;
+#endif
         case BTA_AV_RC_FEAT_EVT:
         {
             BTIF_TRACE_DEBUG1("Peer_features:%x", p_data->rc_feat.peer_features);
