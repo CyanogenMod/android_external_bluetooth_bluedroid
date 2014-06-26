@@ -415,7 +415,6 @@ tBTA_GATT_STATUS  BTA_GATTC_GetFirstCharDescr (UINT16 conn_id, tBTA_GATTC_CHAR_I
         memcpy(&p_descr_result->descr_id, &p_descr_result->char_id.char_id, sizeof(tBTA_GATT_ID));
         memcpy(&p_descr_result->char_id, p_char_id, sizeof(tBTA_GATTC_CHAR_ID));
     }
-
     return status;
 
 }
@@ -427,7 +426,7 @@ tBTA_GATT_STATUS  BTA_GATTC_GetFirstCharDescr (UINT16 conn_id, tBTA_GATTC_CHAR_I
 **                  of the characterisctic.
 **
 ** Parameters       conn_id: connection ID which identify the server.
-**                  p_start_descr_id: start the characteristic search from the next record
+**                  p_start_descr_id: start the descriptor search from the next record
 **                           after the one identified by p_start_descr_id.
 **                  p_descr_uuid_cond: Characteristic descriptor UUID, if NULL find
 **                               the first available characteristic descriptor.
