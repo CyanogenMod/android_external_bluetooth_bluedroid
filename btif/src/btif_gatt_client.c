@@ -60,10 +60,10 @@
 
 #define CHECK_BTGATT_INIT() if (bt_gatt_callbacks == NULL)\
     {\
-        ALOGW("%s: BTGATT not initialized", __FUNCTION__);\
+        BTIF_TRACE_WARNING1("%s: BTGATT not initialized", __FUNCTION__);\
         return BT_STATUS_NOT_READY;\
     } else {\
-        ALOGD("%s", __FUNCTION__);\
+        BTIF_TRACE_DEBUG1("%s", __FUNCTION__);\
     }
 
 
@@ -265,7 +265,7 @@ static void btif_gattc_add_remote_bdaddr (BD_ADDR p_bda, uint8_t addr_type)
             memcpy(p_dev_cb->remote_dev[i].bd_addr.address, p_bda, BD_ADDR_LEN);
             p_dev_cb->addr_type = addr_type;
             p_dev_cb->remote_dev[i].in_use = TRUE;
-            ALOGD("%s device added idx=%d", __FUNCTION__, i  );
+            BTIF_TRACE_DEBUG2("%s device added idx=%d", __FUNCTION__, i  );
             break;
         }
     }
@@ -276,7 +276,7 @@ static void btif_gattc_add_remote_bdaddr (BD_ADDR p_bda, uint8_t addr_type)
         memcpy(p_dev_cb->remote_dev[i].bd_addr.address, p_bda, BD_ADDR_LEN);
         p_dev_cb->addr_type = addr_type;
         p_dev_cb->remote_dev[i].in_use = TRUE;
-        ALOGD("%s device overwrite idx=%d", __FUNCTION__, i  );
+        BTIF_TRACE_DEBUG2("%s device overwrite idx=%d", __FUNCTION__, i  );
         p_dev_cb->next_storage_idx++;
         if(p_dev_cb->next_storage_idx >= BTIF_GATT_MAX_OBSERVED_DEV)
                p_dev_cb->next_storage_idx = 0;
@@ -314,10 +314,10 @@ static void btif_gattc_update_properties ( btif_gattc_cb_t *p_btif_cb )
 
     if(p_eir_remote_name)
     {
-         memcpy(bdname.name, p_eir_remote_name, remote_name_len);
-         bdname.name[remote_name_len]='\0';
+        memcpy(bdname.name, p_eir_remote_name, remote_name_len);
+        bdname.name[remote_name_len]='\0';
 
-        ALOGD("%s BLE device name=%s len=%d dev_type=%d", __FUNCTION__, bdname.name,
+        BTIF_TRACE_DEBUG4("%s BLE device name=%s len=%d dev_type=%d", __FUNCTION__, bdname.name,
               remote_name_len, p_btif_cb->device_type  );
         btif_dm_update_ble_remote_properties( p_btif_cb->bd_addr.address,   bdname.name,
                                                p_btif_cb->device_type);
@@ -328,7 +328,7 @@ static void btif_gattc_update_properties ( btif_gattc_cb_t *p_btif_cb )
 
 static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 {
-    ALOGD("%s: Event %d", __FUNCTION__, event);
+    BTIF_TRACE_EVENT2("%s: Event %d", __FUNCTION__, event);
 
     tBTA_GATTC *p_data = (tBTA_GATTC*)p_param;
     switch (event)
@@ -470,7 +470,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         }
 
         case BTA_GATTC_ACL_EVT:
-            ALOGD("BTA_GATTC_ACL_EVT: status = %d", p_data->status);
+            BTIF_TRACE_EVENT1("BTA_GATTC_ACL_EVT: status = %d", p_data->status);
             /* Ignore for now */
             break;
 
@@ -609,7 +609,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         }
 
         default:
-            ALOGE("%s: Unhandled event (%d)!", __FUNCTION__, event);
+            BTIF_TRACE_ERROR2("%s: Unhandled event (%d)!", __FUNCTION__, event);
             break;
     }
 
@@ -779,7 +779,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
     if (!p_cb && !p_adv_data && !p_inst_cb) return;
 
-    ALOGD("%s: Event %d", __FUNCTION__, event);
+    BTIF_TRACE_EVENT2("%s: Event %d", __FUNCTION__, event);
 
     switch (event)
     {
@@ -1127,7 +1127,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                 }
 
                 default:
-                    ALOGE("%s: Unknown filter type (%d)!", __FUNCTION__, p_cb->action);
+                    BTIF_TRACE_ERROR2("%s: Unknown filter type (%d)!", __FUNCTION__, p_cb->action);
                     break;
             }
             break;
@@ -1259,7 +1259,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
 
         default:
-            ALOGE("%s: Unknown event (%d)!", __FUNCTION__, event);
+            BTIF_TRACE_ERROR2("%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
     }
 }
