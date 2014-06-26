@@ -500,7 +500,7 @@ tBTA_HH_LE_RPT * bta_hh_le_find_rpt_by_idtype(tBTA_HH_LE_RPT*p_head, UINT8 mode,
     UINT8   i;
 
 #if BTA_HH_DEBUG == TRUE
-    APPL_TRACE_DEBUG2("bta_hh_le_find_rpt_by_idtype: r_tpye: %d rpt_id: %d", r_type, rpt_id);
+    APPL_TRACE_DEBUG2("bta_hh_le_find_rpt_by_idtype: r_type: %d rpt_id: %d", r_type, rpt_id);
 #endif
 
     for (i = 0 ; i < BTA_HH_LE_RPT_MAX; i ++, p_rpt++)
@@ -1828,6 +1828,7 @@ void bta_hh_le_proc_get_rpt_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_da
             hs_data.status  = BTA_HH_OK;
             p_buf->len = p_data->p_value->unformat.len + 1;
             p_buf->layer_specific = 0;
+            p_buf->offset = 0;
 
             /* attach report ID as the first byte of the report before sending it to USB HID driver */
             pp = (UINT8*)(p_buf + 1);
