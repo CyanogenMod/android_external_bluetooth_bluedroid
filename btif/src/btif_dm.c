@@ -77,6 +77,8 @@
 #define BTIF_DM_INTERLEAVE_DURATION_LE_TWO    4
 #endif
 
+#define MAX_SDP_BL_ENTRIES 3
+
 typedef struct
 {
     bt_bond_state_t state;
@@ -135,10 +137,23 @@ typedef struct
     uint64_t energy_used;
 } btif_activity_energy_info_cb_t;
 
+typedef struct
+{
+    unsigned int   manufact_id;
+}skip_sdp_entry_t;
+
 #define BTA_SERVICE_ID_TO_SERVICE_MASK(id)       (1 << (id))
+
+#define MAX_SDP_BL_ENTRIES 3
+#define UUID_HUMAN_INTERFACE_DEVICE "00001124-0000-1000-8000-00805f9b34fb"
+
+static skip_sdp_entry_t sdp_blacklist[] = {{76}}; //Apple Mouse and Keyboard
+
 
 /* This flag will be true if HCI_Inquiry is in progress */
 static BOOLEAN btif_dm_inquiry_in_progress = FALSE;
+
+
 
 /************************************************************************************
 **  Static variables
@@ -357,6 +372,59 @@ BOOLEAN check_hid_le(const bt_bdaddr_t *remote_bdaddr)
     }
     return FALSE;
 }
+
+/*****************************************************************************
+**
+** Function        check_sdp_bl
+**
+** Description     Checks if a given device is blacklisted to skip sdp
+**
+** Parameters     skip_sdp_entry
+**
+** Returns         TRUE if the device is present in blacklist, else FALSE
+**
+*******************************************************************************/
+BOOLEAN check_sdp_bl(const bt_bdaddr_t *remote_bdaddr)
+{
+    UINT8 i = 0;
+    UINT16 manufacturer = 0;
+    UINT8 lmp_ver = 0;
+    UINT16 lmp_subver = 0;
+    tBTM_STATUS btm_status;
+    bt_property_t prop_name;
+    bt_remote_version_t info;
+    bt_status_t status;
+
+
+    if (remote_bdaddr == NULL)
+        return FALSE;
+
+/* fetch additional info about remote device used in iop query */
+    btm_status = BTM_ReadRemoteVersion(*(BD_ADDR*)remote_bdaddr, &lmp_ver,
+                    &manufacturer, &lmp_subver);
+
+
+
+ /* if not available yet, try fetching from config database */
+    BTIF_STORAGE_FILL_PROPERTY(&prop_name, BT_PROPERTY_REMOTE_VERSION_INFO,
+                            sizeof(bt_remote_version_t), &info);
+
+    if (btif_storage_get_remote_device_property((bt_bdaddr_t *)remote_bdaddr,
+                                              &prop_name) != BT_STATUS_SUCCESS)
+    {
+
+        return FALSE;
+    }
+    manufacturer = info.manufacturer;
+
+    for (int i = 0; i < MAX_SDP_BL_ENTRIES; i++)
+    {
+        if (manufacturer == sdp_blacklist[i].manufact_id)
+            return TRUE;
+    }
+    return FALSE;
+}
+
 
 static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond_state_t state)
 {
@@ -866,6 +934,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
     bt_bdaddr_t bd_addr;
     bt_status_t status = BT_STATUS_FAIL;
     bt_bond_state_t state = BT_BOND_STATE_NONE;
+    BOOLEAN skip_sdp = FALSE;
 
     bdcpy(bd_addr.address, p_auth_cmpl->bd_addr);
     if ( (p_auth_cmpl->success == TRUE) && (p_auth_cmpl->key_present) )
@@ -894,19 +963,51 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             }
         }
     }
+
+    // Skip SDP for certain  HID Devices
     if (p_auth_cmpl->success)
     {
         status = BT_STATUS_SUCCESS;
         state = BT_BOND_STATE_BONDED;
+        bdcpy(bd_addr.address, p_auth_cmpl->bd_addr);
 
-        /* Trigger SDP on the device */
-        pairing_cb.sdp_attempts = 1;;
+        if (check_sdp_bl(&bd_addr) && check_cod_hid(&bd_addr, COD_HID_MAJOR))
+        {
+            ALOGW("%s:skip SDP",
+                              __FUNCTION__);
+            skip_sdp = TRUE;
+        }
+        if(!pairing_cb.is_local_initiated && skip_sdp)
+        {
+            bond_state_changed(status, &bd_addr, state);
 
-        if(btif_dm_inquiry_in_progress)
-            btif_dm_cancel_discovery();
+            ALOGW("%s: Incoming HID Connection",__FUNCTION__);
+            bt_property_t prop;
+            bt_bdaddr_t bd_addr;
+            bt_uuid_t  uuid;
+            char uuid_str[128] = UUID_HUMAN_INTERFACE_DEVICE;
 
-        btif_dm_get_remote_services(&bd_addr);
-        /* Do not call bond_state_changed_cb yet. Wait till fetch remote service is complete */
+            string_to_uuid(uuid_str, &uuid);
+
+            prop.type = BT_PROPERTY_UUIDS;
+            prop.val = uuid.uu;
+            prop.len = MAX_UUID_SIZE;
+
+            /* Send the event to the BTIF */
+            HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+                             BT_STATUS_SUCCESS, &bd_addr, 1, &prop);
+        }
+        else
+        {
+            /* Trigger SDP on the device */
+            pairing_cb.sdp_attempts = 1;;
+
+            if(btif_dm_inquiry_in_progress)
+                btif_dm_cancel_discovery();
+
+            btif_dm_get_remote_services(&bd_addr);
+            }
+            /* Do not call bond_state_changed_cb yet. Wait till fetch remote service is complete */
     }
     else
     {
