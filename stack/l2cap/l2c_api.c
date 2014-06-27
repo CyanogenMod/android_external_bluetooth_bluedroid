@@ -1435,6 +1435,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
      ||  (l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb == NULL) )
     {
         L2CAP_TRACE_ERROR1 ("L2CA_SendFixedChnlData()  Invalid CID: 0x%04x", fixed_cid);
+        GKI_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
     }
 
@@ -1442,6 +1443,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
     if (!BTM_IsDeviceUp())
     {
         L2CAP_TRACE_WARNING1 ("L2CA_SendFixedChnlData(0x%04x) - BTU not ready", fixed_cid);
+        GKI_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
     }
 
@@ -1451,12 +1453,14 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
         p_lcb->link_state == LST_DISCONNECTING)
     {
         L2CAP_TRACE_WARNING1 ("L2CA_SendFixedChnlData(0x%04x) - no LCB", fixed_cid);
+        GKI_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
     }
 
     if ((p_lcb->peer_chnl_mask[0] & (1 << fixed_cid)) == 0)
     {
         L2CAP_TRACE_WARNING1 ("L2CA_SendFixedChnlData() - peer does not support fixed chnl: 0x%04x", fixed_cid);
+        GKI_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
     }
 
@@ -1468,8 +1472,20 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
         if (!l2cu_initialize_fixed_ccb (p_lcb, fixed_cid, &l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].fixed_chnl_opts))
         {
             L2CAP_TRACE_WARNING1 ("L2CA_SendFixedChnlData() - no CCB for chnl: 0x%4x", fixed_cid);
+            GKI_freebuf (p_buf);
             return (L2CAP_DW_FAILED);
         }
+    }
+
+    /* If already congested, do not accept any more packets */
+    if (p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->cong_sent)
+    {
+        L2CAP_TRACE_ERROR3 ("L2CAP - CID: 0x%04x cannot send, already congested \
+            xmit_hold_q.count: %u buff_quota: %u", fixed_cid,
+            p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->xmit_hold_q.count,
+            p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->buff_quota);
+        GKI_freebuf (p_buf);
+        return (L2CAP_DW_FAILED);
     }
 
     l2c_enqueue_peer_data (p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL], p_buf);
@@ -1481,6 +1497,9 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
     {
         l2cu_no_dynamic_ccbs (p_lcb);
     }
+
+    if (p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->cong_sent)
+        return (L2CAP_DW_CONGESTED);
 
     return (L2CAP_DW_SUCCESS);
 }

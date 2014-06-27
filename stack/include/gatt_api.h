@@ -61,6 +61,7 @@
 #define  GATT_ENCRYPED_MITM                  GATT_SUCCESS
 #define  GATT_ENCRYPED_NO_MITM               0x8d
 #define  GATT_NOT_ENCRYPTED                  0x8e
+#define  GATT_CONGESTED                      0x8f
 
                                              /* 0xE0 ~ 0xFC reserved for future use */
 #define  GATT_CCC_CFG_ERR                    0xFD /* Client Characteristic Configuration Descriptor Improperly Configured */
@@ -573,6 +574,9 @@ typedef void (tGATT_CONN_CBACK) (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, 
 typedef void  (tGATT_REQ_CBACK )(UINT16 conn_id, UINT32 trans_id, tGATTS_REQ_TYPE type,
                                 tGATTS_DATA *p_data);
 
+/* channel congestion/uncongestion callback */
+typedef void (tGATT_CONGESTION_CBACK )(UINT16 conn_id, BOOLEAN congested);
+
 /* Define a callback function when encryption is established. */
 typedef void (tGATT_ENC_CMPL_CB)(tGATT_IF gatt_if, BD_ADDR bda);
 
@@ -589,6 +593,7 @@ typedef struct
     tGATT_DISC_CMPL_CB              *p_disc_cmpl_cb;
     tGATT_REQ_CBACK                 *p_req_cb;
     tGATT_ENC_CMPL_CB               *p_enc_cmpl_cb;
+    tGATT_CONGESTION_CBACK          *p_congestion_cb;
 } tGATT_CBACK;
 
 /***********************  Start Handle Management Definitions   **********************

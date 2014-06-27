@@ -3250,6 +3250,7 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
 
             if ((p_buf = l2c_fcr_get_next_xmit_sdu_seg(p_ccb, 0)) != NULL)
             {
+                l2cu_check_channel_congestion (p_ccb);
                 l2cu_set_acl_hci_header (p_buf, p_ccb);
                 return (p_buf);
             }
@@ -3264,6 +3265,7 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
                     L2CAP_TRACE_ERROR0("l2cu_get_buffer_to_send: No data to be sent");
                     return (NULL);
                 }
+                l2cu_check_channel_congestion (p_ccb);
                 l2cu_set_acl_hci_header (p_buf, p_ccb);
                 return (p_buf);
             }
@@ -3391,7 +3393,7 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
     /* If the CCB queue limit is subject to a quota, check for congestion */
 
     /* if this channel has outgoing traffic */
-    if ((p_ccb->p_rcb)&&(p_ccb->buff_quota != 0))
+    if (p_ccb->buff_quota != 0)
     {
         /* If this channel was congested */
         if ( p_ccb->cong_sent )
@@ -3400,7 +3402,7 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
             if (q_count <= (p_ccb->buff_quota / 2))
             {
                 p_ccb->cong_sent = FALSE;
-                if (p_ccb->p_rcb->api.pL2CA_CongestionStatus_Cb)
+                if (p_ccb->p_rcb && p_ccb->p_rcb->api.pL2CA_CongestionStatus_Cb)
                 {
                     L2CAP_TRACE_DEBUG3 ("L2CAP - Calling CongestionStatus_Cb (FALSE), CID: 0x%04x  xmit_hold_q.count: %u  buff_quota: %u",
                                       p_ccb->local_cid, q_count, p_ccb->buff_quota);
@@ -3411,7 +3413,7 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
                     l2cb.is_cong_cback_context = FALSE;
                 }
 #if (L2CAP_UCD_INCLUDED == TRUE)
-                else if ( p_ccb->local_cid == L2CAP_CONNECTIONLESS_CID )
+                else if ( p_ccb->p_rcb && p_ccb->local_cid == L2CAP_CONNECTIONLESS_CID )
                 {
                     if ( p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Congestion_Status_Cb )
                     {
@@ -3419,6 +3421,21 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
                                              p_ccb->p_lcb->ucd_out_sec_pending_q.count,
                                              p_ccb->xmit_hold_q.count, p_ccb->buff_quota);
                         p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Congestion_Status_Cb( p_ccb->p_lcb->remote_bd_addr, FALSE );
+                    }
+                }
+#endif
+#if (L2CAP_NUM_FIXED_CHNLS > 0)
+                else
+                {
+                    UINT8 xx;
+                    for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx ++)
+                    {
+                        if (p_ccb->p_lcb->p_fixed_ccbs[xx] == p_ccb)
+                        {
+                            if (l2cb.fixed_reg[xx].pL2CA_FixedCong_Cb != NULL)
+                                (* l2cb.fixed_reg[xx].pL2CA_FixedCong_Cb)(p_ccb->p_lcb->remote_bd_addr, FALSE);
+                            break;
+                        }
                     }
                 }
 #endif
@@ -3430,7 +3447,7 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
             if (q_count > p_ccb->buff_quota)
             {
                 p_ccb->cong_sent = TRUE;
-                if (p_ccb->p_rcb->api.pL2CA_CongestionStatus_Cb)
+                if (p_ccb->p_rcb && p_ccb->p_rcb->api.pL2CA_CongestionStatus_Cb)
                 {
                     L2CAP_TRACE_DEBUG3 ("L2CAP - Calling CongestionStatus_Cb (TRUE),CID:0x%04x,XmitQ:%u,Quota:%u",
                         p_ccb->local_cid, q_count, p_ccb->buff_quota);
@@ -3438,7 +3455,7 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
                     (*p_ccb->p_rcb->api.pL2CA_CongestionStatus_Cb)(p_ccb->local_cid, TRUE);
                 }
 #if (L2CAP_UCD_INCLUDED == TRUE)
-                else if ( p_ccb->local_cid == L2CAP_CONNECTIONLESS_CID )
+                else if ( p_ccb->p_rcb && p_ccb->local_cid == L2CAP_CONNECTIONLESS_CID )
                 {
                     if ( p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Congestion_Status_Cb )
                     {
@@ -3446,6 +3463,21 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
                                              p_ccb->p_lcb->ucd_out_sec_pending_q.count,
                                              p_ccb->xmit_hold_q.count, p_ccb->buff_quota);
                         p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Congestion_Status_Cb( p_ccb->p_lcb->remote_bd_addr, TRUE );
+                    }
+                }
+#endif
+#if (L2CAP_NUM_FIXED_CHNLS > 0)
+                else
+                {
+                    UINT8 xx;
+                    for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx ++)
+                    {
+                        if (p_ccb->p_lcb->p_fixed_ccbs[xx] == p_ccb)
+                        {
+                            if (l2cb.fixed_reg[xx].pL2CA_FixedCong_Cb != NULL)
+                                (* l2cb.fixed_reg[xx].pL2CA_FixedCong_Cb)(p_ccb->p_lcb->remote_bd_addr, TRUE);
+                            break;
+                        }
                     }
                 }
 #endif

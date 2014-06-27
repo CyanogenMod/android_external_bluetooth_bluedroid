@@ -549,6 +549,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
                 , p_data->cfg_mtu.status , p_data->cfg_mtu.mtu);
             break;
         }
+
         case BTIF_GATTC_SCAN_FILTER_EVT:
         {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
@@ -607,6 +608,13 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             /* No HAL callback available */
             break;
         }
+
+        case BTA_GATTC_CONGEST_EVT:
+            HAL_CBACK(bt_gatt_callbacks, client->congestion_cb
+                , p_data->congest.conn_id
+                , p_data->congest.congested
+            );
+            break;
 
         default:
             BTIF_TRACE_ERROR2("%s: Unhandled event (%d)!", __FUNCTION__, event);

@@ -46,6 +46,8 @@ static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
 static void bta_gatts_send_request_cback (UINT16 conn_id,
                                           UINT32 trans_id,
                                           tGATTS_REQ_TYPE req_type, tGATTS_DATA *p_data);
+static void bta_gatts_cong_cback (UINT16 conn_id, BOOLEAN congested);
+
 static tGATT_CBACK bta_gatts_cback =
 {
     bta_gatts_conn_cback,
@@ -53,7 +55,8 @@ static tGATT_CBACK bta_gatts_cback =
     NULL,
     NULL,
     bta_gatts_send_request_cback,
-    NULL
+    NULL,
+    bta_gatts_cong_cback
 };
 
 tGATT_APPL_INFO bta_gatts_nv_cback =
@@ -633,10 +636,12 @@ void bta_gatts_send_rsp (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 {
     tBTA_GATTS_SRVC_CB  *p_srvc_cb;
+    tBTA_GATTS_RCB      *p_rcb = NULL;
     tBTA_GATT_STATUS    status = BTA_GATT_ILLEGAL_PARAMETER;
     tGATT_IF            gatt_if;
     BD_ADDR             remote_bda;
     tBTA_TRANSPORT transport;
+    tBTA_GATTS          cb_data;
 
     p_srvc_cb = bta_gatts_find_srvc_cb_by_attr_id (p_cb, p_msg->api_indicate.attr_id);
 
@@ -645,6 +650,8 @@ void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
         if (GATT_GetConnectionInfor(p_msg->api_indicate.hdr.layer_specific,
             &gatt_if, remote_bda, &transport))
         {
+            p_rcb = bta_gatts_find_app_rcb_by_app_if(gatt_if);
+
             if (p_msg->api_indicate.need_confirm)
 
                 status = GATTS_HandleValueIndication (p_msg->api_indicate.hdr.layer_specific,
@@ -669,10 +676,14 @@ void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
             APPL_TRACE_ERROR1("Unknown connection ID: %d fail sending notification",
                               p_msg->api_indicate.hdr.layer_specific);
         }
+
         if ((status != GATT_SUCCESS || !p_msg->api_indicate.need_confirm) &&
-            p_cb->rcb[p_srvc_cb->rcb_idx].p_cback)
+            p_rcb && p_cb->rcb[p_srvc_cb->rcb_idx].p_cback)
         {
-            (*p_cb->rcb[p_srvc_cb->rcb_idx].p_cback)(BTA_GATTS_CONF_EVT, (tBTA_GATTS *)&status);
+            cb_data.req_data.status = status;
+            cb_data.req_data.conn_id = p_msg->api_indicate.hdr.layer_specific;
+
+            (*p_rcb->p_cback)(BTA_GATTS_CONF_EVT, &cb_data);
         }
     }
     else
@@ -938,6 +949,36 @@ static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
     else
     {
         APPL_TRACE_ERROR1("bta_gatts_conn_cback server_if=%d not found",gatt_if);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         bta_gatts_cong_cback
+**
+** Description      congestion callback.
+**
+** Returns          none.
+**
+*******************************************************************************/
+static void bta_gatts_cong_cback (UINT16 conn_id, BOOLEAN congested)
+{
+    tBTA_GATTS_RCB *p_rcb;
+    tGATT_IF gatt_if;
+    tBTA_GATT_TRANSPORT transport;
+    tBTA_GATTS cb_data;
+
+    if (GATT_GetConnectionInfor(conn_id, &gatt_if, cb_data.req_data.remote_bda, &transport))
+    {
+        p_rcb = bta_gatts_find_app_rcb_by_app_if(gatt_if);
+
+        if (p_rcb && p_rcb->p_cback)
+        {
+            cb_data.congest.conn_id = conn_id;
+            cb_data.congest.congested = congested;
+
+            (*p_rcb->p_cback)(BTA_GATTS_CONGEST_EVT, &cb_data);
+        }
     }
 }
 #endif /* BTA_GATT_INCLUDED */

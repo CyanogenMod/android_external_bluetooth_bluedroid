@@ -322,8 +322,12 @@ BOOLEAN bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_D
         if ((action = state_table[event][i]) != BTA_GATTC_IGNORE)
         {
             (*bta_gattc_action[action])(p_clcb, p_data);
-             p_clcb->buf_held = FALSE;
-             rt = FALSE;
+
+            if (p_clcb->buf_held)
+            {
+                p_clcb->buf_held = FALSE;
+                rt = FALSE;
+            }
         }
         else
         {

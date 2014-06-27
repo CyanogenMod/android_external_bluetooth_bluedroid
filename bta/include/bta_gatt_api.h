@@ -93,10 +93,11 @@ typedef struct
 #define  BTA_GATT_ENCRYPED_MITM             GATT_ENCRYPED_MITM                 /* GATT_SUCCESS */
 #define  BTA_GATT_ENCRYPED_NO_MITM          GATT_ENCRYPED_NO_MITM              /* 0x8d */
 #define  BTA_GATT_NOT_ENCRYPTED             GATT_NOT_ENCRYPTED                 /* 0x8e */
+#define  BTA_GATT_CONGESTED                 GATT_CONGESTED                     /* 0x8f */
 
-#define  BTA_GATT_DUP_REG                   0x8f                                /* 0x8f */
-#define  BTA_GATT_ALREADY_OPEN              0x90                                /* 0x90 */
-#define  BTA_GATT_CANCEL                    0x91                                /* 0x91 */
+#define  BTA_GATT_DUP_REG                   0x90                               /* 0x90 */
+#define  BTA_GATT_ALREADY_OPEN              0x91                               /* 0x91 */
+#define  BTA_GATT_CANCEL                    0x92                               /* 0x92 */
 
                                              /* 0xE0 ~ 0xFC reserved for future use */
 #define  BTA_GATT_CCC_CFG_ERR                GATT_CCC_CFG_ERR     /* 0xFD Client Characteristic Configuration Descriptor Improperly Configured */
@@ -133,6 +134,7 @@ typedef UINT8 tBTA_GATT_STATUS;
 #define BTA_GATTC_MULT_ADV_UPD_EVT  21  /* Update parameter event */
 #define BTA_GATTC_MULT_ADV_DATA_EVT 22  /* Multi ADV data event */
 #define BTA_GATTC_MULT_ADV_DIS_EVT  23  /* Disable Multi ADV event */
+#define BTA_GATTC_CONGEST_EVT       24  /* Congestion event */
 
 typedef UINT8 tBTA_GATTC_EVT;
 
@@ -365,6 +367,12 @@ typedef struct
     BOOLEAN             is_notify;
 }tBTA_GATTC_NOTIFY;
 
+typedef struct
+{
+    UINT16 conn_id;
+    BOOLEAN congested; /* congestion indicator */
+}tBTA_GATTC_CONGEST;
+
 // btla-specific ++
 typedef struct
 {
@@ -397,6 +405,7 @@ typedef union
     tBTA_GATTC_ENC_CMPL_CB  enc_cmpl;
     BD_ADDR                 remote_bda;     /* service change event */
     tBTA_GATTC_CFG_MTU      cfg_mtu;        /* configure MTU operation */
+    tBTA_GATTC_CONGEST      congest;
 } tBTA_GATTC;
 
 /* GATTC enable callback function */
@@ -428,6 +437,7 @@ typedef void (tBTA_GATTC_CBACK)(tBTA_GATTC_EVT event, tBTA_GATTC *p_data);
 #define BTA_GATTS_CANCEL_OPEN_EVT                       17
 #define BTA_GATTS_CLOSE_EVT                             18
 #define BTA_GATTS_LISTEN_EVT                            19
+#define BTA_GATTS_CONGEST_EVT                           20
 
 typedef UINT8  tBTA_GATTS_EVT;
 typedef tGATT_IF tBTA_GATTS_IF;
@@ -513,6 +523,7 @@ typedef tGATTS_DATA tBTA_GATTS_REQ_DATA;
 
 typedef struct
 {
+    tBTA_GATT_STATUS    status;
     BD_ADDR             remote_bda;
     UINT32              trans_id;
     UINT16              conn_id;
@@ -569,19 +580,32 @@ typedef struct
     tBTA_GATT_TRANSPORT transport;
 }tBTA_GATTS_CONN;
 
+typedef struct
+{
+    UINT16 conn_id;
+    BOOLEAN congested; /* report channel congestion indicator */
+}tBTA_GATTS_CONGEST;
+
+typedef struct
+{
+    UINT16 conn_id; /* connection ID */
+    tBTA_GATT_STATUS status; /* notification/indication status */
+}tBTA_GATTS_CONF;
+
 /* GATTS callback data */
 typedef union
 {
     tBTA_GATTS_REG_OPER     reg_oper;
     tBTA_GATTS_CREATE       create;
     tBTA_GATTS_SRVC_OPER    srvc_oper;
-    tBTA_GATT_STATUS        status; /*  BTA_GATTS_CONF_EVT or BTA_GATTS_LISTEN_EVT */
+    tBTA_GATT_STATUS        status;      /* BTA_GATTS_LISTEN_EVT */
     tBTA_GATTS_ADD_RESULT   add_result;  /* add included service: BTA_GATTS_ADD_INCL_SRVC_EVT
                                            add char : BTA_GATTS_ADD_CHAR_EVT
                                            add char descriptor: BTA_GATTS_ADD_CHAR_DESCR_EVT */
     tBTA_GATTS_REQ          req_data;
     tBTA_GATTS_CONN         conn;       /* BTA_GATTS_CONN_EVT */
-
+    tBTA_GATTS_CONGEST      congest;    /* BTA_GATTS_CONGEST_EVT callback data */
+    tBTA_GATTS_CONF         confirm;    /* BTA_GATTS_CONF_EVT callback data */
 }tBTA_GATTS;
 
 /* GATTS enable callback function */
