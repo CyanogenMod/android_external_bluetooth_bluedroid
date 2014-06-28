@@ -117,7 +117,7 @@ void bta_gatts_enable(tBTA_GATTS_CB *p_cb)
 
     if (p_cb->enabled)
     {
-        APPL_TRACE_DEBUG0("GATTS already enabled.");
+        APPL_TRACE_DEBUG("GATTS already enabled.");
     }
     else
     {
@@ -132,11 +132,11 @@ void bta_gatts_enable(tBTA_GATTS_CB *p_cb)
             index++;
         }
 
-        APPL_TRACE_DEBUG1("bta_gatts_enable: num of handle range added=%d", index);
+        APPL_TRACE_DEBUG("bta_gatts_enable: num of handle range added=%d", index);
 
         if (!GATTS_NVRegister(&bta_gatts_nv_cback))
         {
-            APPL_TRACE_ERROR0("BTA GATTS NV register failed.");
+            APPL_TRACE_ERROR("BTA GATTS NV register failed.");
             status = BTA_GATT_ERROR;
         }
     }
@@ -169,7 +169,7 @@ void bta_gatts_api_disable(tBTA_GATTS_CB *p_cb)
     }
     else
     {
-        APPL_TRACE_ERROR0("GATTS not enabled");
+        APPL_TRACE_ERROR("GATTS not enabled");
     }
 }
 
@@ -200,7 +200,7 @@ void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
         {
             if (bta_gatts_uuid_compare(p_cb->rcb[i].app_uuid, p_msg->api_reg.app_uuid))
             {
-                APPL_TRACE_ERROR0("application already registered.");
+                APPL_TRACE_ERROR("application already registered.");
                 status = BTA_GATT_DUP_REG;
                 break;
             }
@@ -224,7 +224,7 @@ void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
 // btla-specific --
         if (first_unuse != 0xff)
         {
-            APPL_TRACE_ERROR1("register application first_unuse rcb_idx = %d", first_unuse);
+            APPL_TRACE_ERROR("register application first_unuse rcb_idx = %d", first_unuse);
 
             p_cb->rcb[first_unuse].in_use = TRUE;
             p_cb->rcb[first_unuse].p_cback = p_msg->api_reg.p_cback;
@@ -284,7 +284,7 @@ void bta_gatts_start_if(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
     }
     else
     {
-        APPL_TRACE_ERROR1("Unable to start app.: Unknown interface =%d",
+        APPL_TRACE_ERROR("Unable to start app.: Unknown interface =%d",
             p_msg->int_start_if.server_if );
     }
 }
@@ -330,7 +330,7 @@ void bta_gatts_deregister(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
     }
     else
     {
-        APPL_TRACE_ERROR0("application not registered.");
+        APPL_TRACE_ERROR("application not registered.");
     }
 }
 /*******************************************************************************
@@ -353,7 +353,7 @@ void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 
     rcb_idx = bta_gatts_find_app_rcb_idx_by_app_if(p_cb, p_msg->api_create_svc.server_if);
 
-    APPL_TRACE_ERROR1("create service rcb_idx = %d", rcb_idx);
+    APPL_TRACE_ERROR("create service rcb_idx = %d", rcb_idx);
 
     if (rcb_idx != BTA_GATTS_INVALID_APP)
     {
@@ -385,7 +385,7 @@ void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
             {
                 cb_data.status  = BTA_GATT_ERROR;
                 memset(&p_cb->srvc_cb[srvc_idx], 0, sizeof(tBTA_GATTS_SRVC_CB));
-                APPL_TRACE_ERROR0("service creation failed.");
+                APPL_TRACE_ERROR("service creation failed.");
             }
 // btla-specific ++
             memcpy(&cb_data.create.uuid, &p_msg->api_create_svc.service_uuid, sizeof(tBT_UUID));
@@ -397,7 +397,7 @@ void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
     }
     else /* application not registered */
     {
-        APPL_TRACE_ERROR0("Application not registered");
+        APPL_TRACE_ERROR("Application not registered");
     }
 }
 /*******************************************************************************
@@ -565,7 +565,7 @@ void bta_gatts_start_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_
                            p_srvc_cb->service_id,
                            p_msg->api_start.transport) ==  GATT_SUCCESS)
     {
-        APPL_TRACE_DEBUG1("bta_gatts_start_service service_id= %d", p_srvc_cb->service_id);
+        APPL_TRACE_DEBUG("bta_gatts_start_service service_id= %d", p_srvc_cb->service_id);
         cb_data.srvc_oper.status = BTA_GATT_OK;
     }
     else
@@ -596,7 +596,7 @@ void bta_gatts_stop_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_m
     cb_data.srvc_oper.server_if = p_rcb->gatt_if;
     cb_data.srvc_oper.service_id = p_srvc_cb->service_id;
     cb_data.srvc_oper.status = BTA_GATT_OK;
-    APPL_TRACE_ERROR1("bta_gatts_stop_service service_id= %d", p_srvc_cb->service_id);
+    APPL_TRACE_ERROR("bta_gatts_stop_service service_id= %d", p_srvc_cb->service_id);
 
     if (p_rcb->p_cback)
         (*p_rcb->p_cback)(BTA_GATTS_STOP_EVT, &cb_data);
@@ -620,7 +620,7 @@ void bta_gatts_send_rsp (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
                         p_msg->api_rsp.status,
                         (tGATTS_RSP *)p_msg->api_rsp.p_rsp) != GATT_SUCCESS)
     {
-        APPL_TRACE_ERROR0("Sending response failed");
+        APPL_TRACE_ERROR("Sending response failed");
     }
 
 }
@@ -673,7 +673,7 @@ void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
         }
         else
         {
-            APPL_TRACE_ERROR1("Unknown connection ID: %d fail sending notification",
+            APPL_TRACE_ERROR("Unknown connection ID: %d fail sending notification",
                               p_msg->api_indicate.hdr.layer_specific);
         }
 
@@ -688,7 +688,7 @@ void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
     }
     else
     {
-        APPL_TRACE_ERROR1("Not an registered servce attribute ID: 0x%04x",
+        APPL_TRACE_ERROR("Not an registered servce attribute ID: 0x%04x",
                           p_msg->api_indicate.attr_id);
     }
 }
@@ -727,7 +727,7 @@ void bta_gatts_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
     }
     else
     {
-        APPL_TRACE_ERROR1("Inavlide server_if=%d", p_msg->api_open.server_if);
+        APPL_TRACE_ERROR("Inavlide server_if=%d", p_msg->api_open.server_if);
     }
 
     if (p_rcb && p_rcb->p_cback)
@@ -754,7 +754,7 @@ void bta_gatts_cancel_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
         if (!GATT_CancelConnect(p_rcb->gatt_if, p_msg->api_cancel_open.remote_bda,
                                 p_msg->api_cancel_open.is_direct))
         {
-            APPL_TRACE_ERROR0("bta_gatts_cancel_open failed for open request");
+            APPL_TRACE_ERROR("bta_gatts_cancel_open failed for open request");
         }
         else
         {
@@ -763,7 +763,7 @@ void bta_gatts_cancel_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
     }
     else
     {
-        APPL_TRACE_ERROR1("Inavlide server_if=%d", p_msg->api_cancel_open.server_if);
+        APPL_TRACE_ERROR("Inavlide server_if=%d", p_msg->api_cancel_open.server_if);
     }
 
     if (p_rcb && p_rcb->p_cback)
@@ -792,7 +792,7 @@ void bta_gatts_close (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
     {
         if (GATT_Disconnect(p_msg->hdr.layer_specific) != GATT_SUCCESS)
         {
-            APPL_TRACE_ERROR1("bta_gatts_close fail conn_id=%d", p_msg->hdr.layer_specific);
+            APPL_TRACE_ERROR("bta_gatts_close fail conn_id=%d", p_msg->hdr.layer_specific);
         }
         else
         {
@@ -811,7 +811,7 @@ void bta_gatts_close (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
     }
     else
     {
-        APPL_TRACE_ERROR1("Unknown connection ID: %d", p_msg->hdr.layer_specific);
+        APPL_TRACE_ERROR("Unknown connection ID: %d", p_msg->hdr.layer_specific);
     }
 
 }
@@ -835,7 +835,7 @@ void bta_gatts_listen(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 
     if (p_rcb == NULL)
     {
-        APPL_TRACE_ERROR0("Unknown GATTS application");
+        APPL_TRACE_ERROR("Unknown GATTS application");
         return;
     }
 
@@ -844,7 +844,7 @@ void bta_gatts_listen(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
                      p_msg->api_listen.remote_bda))
     {
         cb_data.status = BTA_GATT_ERROR;
-        APPL_TRACE_ERROR0("bta_gatts_listen Listen failed");
+        APPL_TRACE_ERROR("bta_gatts_listen Listen failed");
     }
 
     if (p_rcb->p_cback)
@@ -875,7 +875,7 @@ static void bta_gatts_send_request_cback (UINT16 conn_id,
     {
         p_rcb = bta_gatts_find_app_rcb_by_app_if(gatt_if);
 
-        APPL_TRACE_DEBUG3 ("bta_gatts_send_request_cback conn_id=%d trans_id=%d req_type=%d",
+        APPL_TRACE_DEBUG ("bta_gatts_send_request_cback conn_id=%d trans_id=%d req_type=%d",
                             conn_id, trans_id, req_type);
 
         if (p_rcb && p_rcb->p_cback)
@@ -895,12 +895,12 @@ static void bta_gatts_send_request_cback (UINT16 conn_id,
         }
         else
         {
-            APPL_TRACE_ERROR1("connection request on gatt_if[%d] is not interested", gatt_if);
+            APPL_TRACE_ERROR("connection request on gatt_if[%d] is not interested", gatt_if);
         }
     }
     else
     {
-        APPL_TRACE_ERROR1("request received on unknown connectino ID: %d", conn_id);
+        APPL_TRACE_ERROR("request received on unknown connectino ID: %d", conn_id);
     }
 }
 
@@ -921,9 +921,9 @@ static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
     UINT8           evt = connected ? BTA_GATTS_CONNECT_EVT: BTA_GATTS_DISCONNECT_EVT;
     tBTA_GATTS_RCB  *p_reg;
 
-    APPL_TRACE_DEBUG4 ("bta_gatts_conn_cback gatt_if=%d conn_id=%d connected=%d reason = 0x%04d",
+    APPL_TRACE_DEBUG ("bta_gatts_conn_cback gatt_if=%d conn_id=%d connected=%d reason = 0x%04d",
                         gatt_if, conn_id, connected, reason);
-    APPL_TRACE_DEBUG6("bta_gatts_conn_cback  bda :%02x-%02x-%02x-%02x-%02x-%02x ",
+    APPL_TRACE_DEBUG("bta_gatts_conn_cback  bda :%02x-%02x-%02x-%02x-%02x-%02x ",
                       bda[0],  bda[1], bda[2],  bda[3], bda[4],  bda[5]);
 
     p_reg = bta_gatts_find_app_rcb_by_app_if(gatt_if);
@@ -948,7 +948,7 @@ static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
     }
     else
     {
-        APPL_TRACE_ERROR1("bta_gatts_conn_cback server_if=%d not found",gatt_if);
+        APPL_TRACE_ERROR("bta_gatts_conn_cback server_if=%d not found",gatt_if);
     }
 }
 

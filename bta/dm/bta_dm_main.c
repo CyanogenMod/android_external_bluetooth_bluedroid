@@ -312,7 +312,7 @@ BOOLEAN bta_dm_sm_execute(BT_HDR *p_msg)
 {
     UINT16  event = p_msg->event & 0x00ff;
 
-    APPL_TRACE_EVENT1("bta_dm_sm_execute event:0x%x", event);
+    APPL_TRACE_EVENT("bta_dm_sm_execute event:0x%x", event);
 
     /* execute action functions */
     if(event < BTA_DM_NUM_ACTIONS)
@@ -356,7 +356,7 @@ BOOLEAN bta_dm_search_sm_execute(BT_HDR *p_msg)
     UINT8               action;
     int                 i;
 
-    APPL_TRACE_EVENT2("bta_dm_search_sm_execute state:%d, event:0x%x",
+    APPL_TRACE_EVENT("bta_dm_search_sm_execute state:%d, event:0x%x",
         bta_dm_search_cb.state, p_msg->event);
 
     /* look up the state table for the current state */

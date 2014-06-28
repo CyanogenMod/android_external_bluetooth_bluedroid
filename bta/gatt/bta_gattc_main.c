@@ -301,7 +301,7 @@ BOOLEAN bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_D
 #if BTA_GATT_DEBUG == TRUE
     tBTA_GATTC_STATE in_state = p_clcb->state;
     UINT16         in_event = event;
-    APPL_TRACE_DEBUG4("bta_gattc_sm_execute: State 0x%02x [%s], Event 0x%x[%s]", in_state,
+    APPL_TRACE_DEBUG("bta_gattc_sm_execute: State 0x%02x [%s], Event 0x%x[%s]", in_state,
                       gattc_state_code(in_state),
                       in_event,
                       gattc_evt_code(in_event));
@@ -338,7 +338,7 @@ BOOLEAN bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_D
 #if BTA_GATT_DEBUG == TRUE
     if (in_state != p_clcb->state)
     {
-        APPL_TRACE_DEBUG3("GATTC State Change: [%s] -> [%s] after Event [%s]",
+        APPL_TRACE_DEBUG("GATTC State Change: [%s] -> [%s] after Event [%s]",
                           gattc_state_code(in_state),
                           gattc_state_code(p_clcb->state),
                           gattc_evt_code(in_event));
@@ -364,7 +364,7 @@ BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
     tBTA_GATTC_RCB      *p_clreg;
     BOOLEAN             rt = TRUE;
 #if BTA_GATT_DEBUG == TRUE
-    APPL_TRACE_DEBUG1("bta_gattc_hdl_event: Event [%s]", gattc_evt_code(p_msg->event));
+    APPL_TRACE_DEBUG("bta_gattc_hdl_event: Event [%s]", gattc_evt_code(p_msg->event));
 #endif
     switch (p_msg->event)
     {
@@ -424,7 +424,7 @@ BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
             }
             else
             {
-                APPL_TRACE_DEBUG1("Ignore unknown conn ID: %d", p_msg->layer_specific);
+                APPL_TRACE_DEBUG("Ignore unknown conn ID: %d", p_msg->layer_specific);
             }
 
             break;

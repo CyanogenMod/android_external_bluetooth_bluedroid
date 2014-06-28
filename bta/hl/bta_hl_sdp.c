@@ -286,7 +286,7 @@ tBTA_HL_STATUS bta_hl_sdp_update (UINT8 app_id)
                 mdep_id = (UINT8)p_cb->sup_feature.mdep[i].mdep_id;
                 mdep_role = (UINT8)p_cb->sup_feature.mdep[i].mdep_cfg.mdep_role;
 
-                APPL_TRACE_DEBUG1("num_of_mdep_data_types %d ", p_cb->sup_feature.mdep[i].mdep_cfg.num_of_mdep_data_types);
+                APPL_TRACE_DEBUG("num_of_mdep_data_types %d ", p_cb->sup_feature.mdep[i].mdep_cfg.num_of_mdep_data_types);
                 for (j=0; j<p_cb->sup_feature.mdep[i].mdep_cfg.num_of_mdep_data_types; j++)
                 {
                     sup_feature_list.list_elem[cnt].mdep_id = mdep_id;
@@ -338,7 +338,7 @@ tBTA_HL_STATUS bta_hl_sdp_update (UINT8 app_id)
         for(i=0; i < num_services; i++)
         {
             bta_sys_add_uuid(svc_class_id_list[i]);
-            APPL_TRACE_DEBUG2("dbg bta_sys_add_uuid i=%d uuid=0x%x", i, svc_class_id_list[i]); //todo
+            APPL_TRACE_DEBUG("dbg bta_sys_add_uuid i=%d uuid=0x%x", i, svc_class_id_list[i]); //todo
         }
     }
     else
@@ -351,7 +351,7 @@ tBTA_HL_STATUS bta_hl_sdp_update (UINT8 app_id)
         status = BTA_HL_STATUS_SDP_FAIL;
     }
 #if BTA_HL_DEBUG == TRUE
-    APPL_TRACE_DEBUG1("bta_hl_sdp_update status=%s", bta_hl_status_code(status));
+    APPL_TRACE_DEBUG("bta_hl_sdp_update status=%s", bta_hl_status_code(status));
 #endif
     return status;
 }
@@ -390,7 +390,7 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
     tBTA_HL_STATUS                  status = BTA_HL_STATUS_OK;
 
 #if BTA_HL_DEBUG == TRUE
-    APPL_TRACE_DEBUG1("bta_hl_sdp_register app_idx=%d",app_idx);
+    APPL_TRACE_DEBUG("bta_hl_sdp_register app_idx=%d",app_idx);
 #endif
 
     if ((p_cb->sup_feature.app_role_mask == BTA_HL_MDEP_ROLE_MASK_SOURCE) &&
@@ -545,7 +545,7 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
         for(i=0; i < num_services; i++)
         {
             bta_sys_add_uuid(svc_class_id_list[i]);
-            APPL_TRACE_DEBUG2("dbg bta_sys_add_uuid i=%d uuid=0x%x", i, svc_class_id_list[i]); //todo
+            APPL_TRACE_DEBUG("dbg bta_sys_add_uuid i=%d uuid=0x%x", i, svc_class_id_list[i]); //todo
         }
     }
     else
@@ -558,7 +558,7 @@ tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx)
         status = BTA_HL_STATUS_SDP_FAIL;
     }
 #if BTA_HL_DEBUG == TRUE
-    APPL_TRACE_DEBUG1("bta_hl_sdp_register status=%s", bta_hl_status_code(status));
+    APPL_TRACE_DEBUG("bta_hl_sdp_register status=%s", bta_hl_status_code(status));
 #endif
     return status;
 }
@@ -628,7 +628,7 @@ tSDP_DISC_REC *bta_hl_find_sink_or_src_srv_class_in_db (const tSDP_DISCOVERY_DB 
     /* If here, no matching UUID found */
 
 #if BTA_HL_DEBUG == TRUE
-    APPL_TRACE_DEBUG0("bta_hl_find_sink_or_src_srv_class_in_db failed");
+    APPL_TRACE_DEBUG("bta_hl_find_sink_or_src_srv_class_in_db failed");
 #endif
 
     return(NULL);

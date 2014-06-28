@@ -74,7 +74,7 @@ static void bta_ag_sdp_cback(UINT16 status, UINT8 idx)
     UINT16              event;
     tBTA_AG_SCB         *p_scb;
 
-    APPL_TRACE_DEBUG1("bta_ag_sdp_cback status:0x%x", status);
+    APPL_TRACE_DEBUG("bta_ag_sdp_cback status:0x%x", status);
 
     if ((p_scb = bta_ag_scb_by_idx(idx)) != NULL)
     {
@@ -140,7 +140,7 @@ BOOLEAN bta_ag_add_record(UINT16 service_uuid, char *p_service_name, UINT8 scn,
     BOOLEAN             codec_supported = FALSE;
     UINT8               buf[2];
 
-    APPL_TRACE_DEBUG1("bta_ag_add_record uuid: %x", service_uuid);
+    APPL_TRACE_DEBUG("bta_ag_add_record uuid: %x", service_uuid);
 
     memset( proto_elem_list, 0 , BTA_AG_NUM_PROTO_ELEMS*sizeof(tSDP_PROTOCOL_ELEM));
 
@@ -280,7 +280,7 @@ void bta_ag_del_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
         /* if service registered for this scb and not registered for any other scb */
         if (((services & 1) == 1) && ((others & 1) == 0))
         {
-            APPL_TRACE_DEBUG1("bta_ag_del_records %d", i);
+            APPL_TRACE_DEBUG("bta_ag_del_records %d", i);
             if (bta_ag_cb.profile[i].sdp_handle != 0)
             {
                 SDP_DeleteRecord(bta_ag_cb.profile[i].sdp_handle);

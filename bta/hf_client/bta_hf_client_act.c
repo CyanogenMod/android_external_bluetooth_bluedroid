@@ -271,13 +271,13 @@ void bta_hf_client_rfc_acp_open(tBTA_HF_CLIENT_DATA *p_data)
     /* set role */
     bta_hf_client_cb.scb.role = BTA_HF_CLIENT_ACP;
 
-    APPL_TRACE_DEBUG2 ("bta_hf_client_rfc_acp_open: serv_handle = %d rfc.port_handle = %d",
+    APPL_TRACE_DEBUG ("bta_hf_client_rfc_acp_open: serv_handle = %d rfc.port_handle = %d",
             bta_hf_client_cb.scb.serv_handle, p_data->rfc.port_handle);
 
     /* get bd addr of peer */
     if (PORT_SUCCESS != (status=PORT_CheckConnection(p_data->rfc.port_handle, dev_addr, &lcid)))
     {
-        APPL_TRACE_DEBUG1 ("bta_hf_client_rfc_acp_open error PORT_CheckConnection returned status %d", status);
+        APPL_TRACE_DEBUG ("bta_hf_client_rfc_acp_open error PORT_CheckConnection returned status %d", status);
     }
 
     /* Collision Handling */
@@ -448,7 +448,7 @@ void bta_hf_client_disc_int_res(tBTA_HF_CLIENT_DATA *p_data)
 {
     UINT16 event = BTA_HF_CLIENT_DISC_FAIL_EVT;
 
-    APPL_TRACE_DEBUG1 ("bta_hf_client_disc_int_res: Status: %d", p_data->disc_result.status);
+    APPL_TRACE_DEBUG ("bta_hf_client_disc_int_res: Status: %d", p_data->disc_result.status);
 
     /* if found service */
     if (p_data->disc_result.status == SDP_SUCCESS ||

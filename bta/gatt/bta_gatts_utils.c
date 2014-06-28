@@ -133,13 +133,13 @@ UINT8 bta_gatts_find_app_rcb_idx_by_app_if(tBTA_GATTS_CB *p_cb, tBTA_GATTS_IF se
 tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_srvc_id(tBTA_GATTS_CB *p_cb, UINT16 service_id)
 {
     UINT8 i;
-    APPL_TRACE_DEBUG1("bta_gatts_find_srvc_cb_by_srvc_id  service_id=%d", service_id);
+    APPL_TRACE_DEBUG("bta_gatts_find_srvc_cb_by_srvc_id  service_id=%d", service_id);
     for (i = 0; i < BTA_GATTS_MAX_SRVC_NUM; i ++)
     {
         if (p_cb->srvc_cb[i].in_use &&
             p_cb->srvc_cb[i].service_id == service_id)
         {
-            APPL_TRACE_DEBUG1("bta_gatts_find_srvc_cb_by_srvc_id  found service cb index =%d", i);
+            APPL_TRACE_DEBUG("bta_gatts_find_srvc_cb_by_srvc_id  found service cb index =%d", i);
             return &p_cb->srvc_cb[i];
         }
     }

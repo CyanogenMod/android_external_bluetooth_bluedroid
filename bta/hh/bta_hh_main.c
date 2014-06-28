@@ -357,7 +357,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
 
             default:
                 /* invalid handle, call bad API event */
-                APPL_TRACE_ERROR1("wrong device handle: [%d]", p_data->hdr.layer_specific);
+                APPL_TRACE_ERROR("wrong device handle: [%d]", p_data->hdr.layer_specific);
                 /* Free the callback buffer now */
                 if (p_data != NULL && p_data->hid_cback.p_data != NULL)
                 {
@@ -375,14 +375,14 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
     {
 #if BTA_HH_DEBUG == TRUE
         in_state = p_cb->state;
-        APPL_TRACE_EVENT3("bta_hh_sm_execute: State 0x%02x [%s], Event [%s]",
+        APPL_TRACE_EVENT("bta_hh_sm_execute: State 0x%02x [%s], Event [%s]",
                           in_state, bta_hh_state_code(in_state),
                           bta_hh_evt_code(debug_event));
 #endif
 
         if ((p_cb->state == BTA_HH_NULL_ST) || (p_cb->state >= BTA_HH_INVALID_ST))
         {
-            APPL_TRACE_ERROR2("bta_hh_sm_execute: Invalid state State = 0x%x, Event = %d",
+            APPL_TRACE_ERROR("bta_hh_sm_execute: Invalid state State = 0x%x, Event = %d",
                               p_cb->state,event);
             return;
         }
@@ -400,7 +400,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
 #if BTA_HH_DEBUG == TRUE
         if (in_state != p_cb->state)
         {
-            APPL_TRACE_DEBUG3("HH State Change: [%s] -> [%s] after Event [%s]",
+            APPL_TRACE_DEBUG("HH State Change: [%s] -> [%s] after Event [%s]",
                           bta_hh_state_code(in_state),
                           bta_hh_state_code(p_cb->state),
                           bta_hh_evt_code(debug_event));
@@ -481,7 +481,7 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
                 p_cb = &bta_hh_cb.kdev[index];
 
 #if BTA_HH_DEBUG
-            APPL_TRACE_DEBUG2("bta_hh_hdl_event:: handle = %d dev_cb[%d] ", p_msg->layer_specific, index);
+            APPL_TRACE_DEBUG("bta_hh_hdl_event:: handle = %d dev_cb[%d] ", p_msg->layer_specific, index);
 #endif
             bta_hh_sm_execute(p_cb, p_msg->event, (tBTA_HH_DATA *) p_msg);
     }

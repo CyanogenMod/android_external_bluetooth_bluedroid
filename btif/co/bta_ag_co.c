@@ -76,7 +76,7 @@ void bta_ag_co_init(void)
 void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state)
 {
     UNUSED(app_id);
-    BTIF_TRACE_DEBUG2("bta_ag_co_audio_state: handle %d, state %d", handle, state);
+    BTIF_TRACE_DEBUG("bta_ag_co_audio_state: handle %d, state %d", handle, state);
 }
 
 
@@ -95,7 +95,7 @@ void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state)
 *******************************************************************************/
 void bta_ag_co_data_open(UINT16 handle, tBTA_SERVICE_ID service)
 {
-    BTIF_TRACE_DEBUG2("bta_ag_co_data_open handle:%d service:%d", handle, service);
+    BTIF_TRACE_DEBUG("bta_ag_co_data_open handle:%d service:%d", handle, service);
 }
 
 /*******************************************************************************
@@ -111,7 +111,7 @@ void bta_ag_co_data_open(UINT16 handle, tBTA_SERVICE_ID service)
 *******************************************************************************/
 void bta_ag_co_data_close(UINT16 handle)
 {
-    BTIF_TRACE_DEBUG1("bta_ag_co_data_close handle:%d", handle);
+    BTIF_TRACE_DEBUG("bta_ag_co_data_close handle:%d", handle);
 }
 
 
@@ -130,6 +130,6 @@ void bta_ag_co_data_close(UINT16 handle)
 void bta_ag_co_tx_write(UINT16 handle, UINT8 * p_data, UINT16 len)
 {
     UNUSED(p_data);
-    BTIF_TRACE_DEBUG2( "bta_ag_co_tx_write: handle: %d, len: %d", handle, len );
+    BTIF_TRACE_DEBUG( "bta_ag_co_tx_write: handle: %d, len: %d", handle, len );
 }
 

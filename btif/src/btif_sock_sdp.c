@@ -114,7 +114,7 @@ static int add_sdp_by_uuid(const char *name,  const uint8_t *service_uuid, UINT1
             }
         }
     }
-    else APPL_TRACE_ERROR1("failed to create sdp record, service_name:%s", name);
+    else APPL_TRACE_ERROR("failed to create sdp record, service_name:%s", name);
     return 0;
 }
 
@@ -143,11 +143,11 @@ static int add_pbap_sdp(const char* p_service_name, int scn)
     UINT32              sdp_handle = 0;
     tBTA_PBS_CFG *p_bta_pbs_cfg = (tBTA_PBS_CFG *)&bta_pbs_cfg;
 
-    APPL_TRACE_DEBUG2("add_pbap_sdd:scn %d, service name %s", scn, p_service_name);
+    APPL_TRACE_DEBUG("add_pbap_sdd:scn %d, service name %s", scn, p_service_name);
 
     if ((sdp_handle = SDP_CreateRecord()) == 0)
     {
-        APPL_TRACE_ERROR0("PBS SDP: Unable to register PBS Service");
+        APPL_TRACE_ERROR("PBS SDP: Unable to register PBS Service");
         return sdp_handle;
     }
 
@@ -198,12 +198,12 @@ static int add_pbap_sdp(const char* p_service_name, int scn)
     {
         SDP_DeleteRecord(sdp_handle);
         sdp_handle = 0;
-        APPL_TRACE_ERROR0("bta_pbs_sdp_register FAILED");
+        APPL_TRACE_ERROR("bta_pbs_sdp_register FAILED");
     }
     else
     {
         bta_sys_add_uuid(pbs_service);  /* UUID_SERVCLASS_PBAP_PSE */
-        APPL_TRACE_DEBUG1("PBS:  SDP Registered (handle 0x%08x)", sdp_handle);
+        APPL_TRACE_DEBUG("PBS:  SDP Registered (handle 0x%08x)", sdp_handle);
     }
 
     return sdp_handle;
@@ -248,11 +248,11 @@ static int add_maps_sdp(const char* p_service_name, int scn)
     // TODO: To add support for EMAIL set below depending on the scn to either SMS or Email
     const tBTA_MAPS_CFG *p_bta_maps_cfg = &bta_maps_cfg_sms;
 
-    APPL_TRACE_DEBUG2("add_maps_sdd:scn %d, service name %s", scn, p_service_name);
+    APPL_TRACE_DEBUG("add_maps_sdd:scn %d, service name %s", scn, p_service_name);
 
     if ((sdp_handle = SDP_CreateRecord()) == 0)
     {
-        APPL_TRACE_ERROR0("MAPS SDP: Unable to register MAPS Service");
+        APPL_TRACE_ERROR("MAPS SDP: Unable to register MAPS Service");
         return sdp_handle;
     }
 
@@ -304,12 +304,12 @@ static int add_maps_sdp(const char* p_service_name, int scn)
     {
         SDP_DeleteRecord(sdp_handle);
         sdp_handle = 0;
-        APPL_TRACE_ERROR0("bta_mass_sdp_register FAILED");
+        APPL_TRACE_ERROR("bta_mass_sdp_register FAILED");
     }
     else
     {
         bta_sys_add_uuid(service);  /* UUID_SERVCLASS_MESSAGE_ACCESS */
-        APPL_TRACE_DEBUG1("MAPSS:  SDP Registered (handle 0x%08x)", sdp_handle);
+        APPL_TRACE_DEBUG("MAPSS:  SDP Registered (handle 0x%08x)", sdp_handle);
     }
 
     return sdp_handle;
@@ -353,7 +353,7 @@ static int add_ops_sdp(const char *p_service_name,int scn)
     UINT32 sdp_handle;
     tBTA_OP_FMT_MASK    formats = BTUI_OPS_FORMATS;
 
-    APPL_TRACE_DEBUG2("scn %d, service name %s", scn, p_service_name);
+    APPL_TRACE_DEBUG("scn %d, service name %s", scn, p_service_name);
 
     sdp_handle = SDP_CreateRecord();
 
@@ -416,7 +416,7 @@ static int add_spp_sdp(const char *service_name, int scn)
     tSDP_PROTOCOL_ELEM  proto_elem_list[SPP_NUM_PROTO_ELEMS];
     int              sdp_handle;
 
-    APPL_TRACE_DEBUG2("scn %d, service name %s", scn, service_name);
+    APPL_TRACE_DEBUG("scn %d, service name %s", scn, service_name);
 
     /* register the service */
     if ((sdp_handle = SDP_CreateRecord()) != FALSE)
@@ -450,12 +450,11 @@ static int add_spp_sdp(const char *service_name, int scn)
 }
 
 
-
 static int add_rfc_sdp_by_uuid(const char* name, const uint8_t* uuid, int scn)
 {
     int handle = 0;
 
-    APPL_TRACE_DEBUG2("name:%s, scn:%d", name, scn);
+    APPL_TRACE_DEBUG("name:%s, scn:%d", name, scn);
 
     /*
         Bluetooth Socket API relies on having preregistered bluez sdp records for HSAG, HFAG, OPP & PBAP
@@ -546,7 +545,7 @@ int add_rfc_sdp_rec(const char* name, const uint8_t* uuid, int scn)
 
 void del_rfc_sdp_rec(int handle)
 {
-    APPL_TRACE_DEBUG1("del_rfc_sdp_rec: handle:0x%x", handle);
+    APPL_TRACE_DEBUG("del_rfc_sdp_rec: handle:0x%x", handle);
     if(handle != -1 && handle != 0)
         BTA_JvDeleteRecord( handle );
 }

@@ -135,7 +135,7 @@ static void bte_main_in_hw_init(void)
     if ( (bt_hc_if = (bt_hc_interface_t *) bt_hc_get_interface()) \
          == NULL)
     {
-        APPL_TRACE_ERROR0("!!! Failed to get BtHostControllerInterface !!!");
+        APPL_TRACE_ERROR("!!! Failed to get BtHostControllerInterface !!!");
     }
 
     memset(&preload_retry_cb, 0, sizeof(bt_preload_retry_cb_t));
@@ -191,7 +191,7 @@ void bte_main_shutdown()
 ******************************************************************************/
 void bte_main_enable()
 {
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     /* Initialize BTE control block */
     BTE_Init();
@@ -219,7 +219,7 @@ void bte_main_enable()
 ******************************************************************************/
 void bte_main_disable(void)
 {
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     preload_stop_wait_timer();
     bte_hci_disable();
@@ -267,14 +267,14 @@ void bte_main_config_hci_logging(BOOLEAN enable, BOOLEAN bt_disabled)
 ******************************************************************************/
 static void bte_hci_enable(void)
 {
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     preload_start_wait_timer();
 
     if (bt_hc_if)
     {
         int result = bt_hc_if->init(&hc_callbacks, btif_local_bd_addr.address);
-        APPL_TRACE_EVENT1("libbt-hci init returns %d", result);
+        APPL_TRACE_EVENT("libbt-hci init returns %d", result);
 
         assert(result == BT_HC_STATUS_SUCCESS);
 
@@ -282,7 +282,7 @@ static void bte_hci_enable(void)
             bt_hc_if->logging(BT_HC_LOGGING_ON, hci_logfile);
 
 #if (defined (BT_CLEAN_TURN_ON_DISABLED) && BT_CLEAN_TURN_ON_DISABLED == TRUE)
-        APPL_TRACE_DEBUG1("%s  Not Turninig Off the BT before Turninig ON", __FUNCTION__);
+        APPL_TRACE_DEBUG("%s  Not Turninig Off the BT before Turninig ON", __FUNCTION__);
 
         /* Do not power off the chip before powering on  if BT_CLEAN_TURN_ON_DISABLED flag
          is defined and set to TRUE to avoid below mentioned issue.
@@ -316,7 +316,7 @@ static void bte_hci_enable(void)
 ******************************************************************************/
 static void bte_hci_disable(void)
 {
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (bt_hc_if)
     {
@@ -340,7 +340,7 @@ static void preload_wait_timeout(union sigval arg)
 {
     UNUSED(arg);
 
-    APPL_TRACE_ERROR2("...preload_wait_timeout (retried:%d/max-retry:%d)...",
+    APPL_TRACE_ERROR("...preload_wait_timeout (retried:%d/max-retry:%d)...",
                         preload_retry_cb.retry_counts,
                         PRELOAD_MAX_RETRY_ATTEMPTS);
 
@@ -395,7 +395,7 @@ static void preload_start_wait_timer(void)
 
         status = timer_settime(preload_retry_cb.timer_id, 0, &ts, 0);
         if (status == -1)
-            APPL_TRACE_ERROR0("Failed to fire preload watchdog timer");
+            APPL_TRACE_ERROR("Failed to fire preload watchdog timer");
     }
 }
 
@@ -451,7 +451,7 @@ void bte_main_enable_lpm(BOOLEAN enable)
         (enable == TRUE) ? BT_HC_LPM_ENABLE : BT_HC_LPM_DISABLE \
         );
 
-    APPL_TRACE_EVENT2("HC lib lpm enable=%d return %d", enable, result);
+    APPL_TRACE_EVENT("HC lib lpm enable=%d return %d", enable, result);
 }
 
 /******************************************************************************
@@ -470,7 +470,7 @@ void bte_main_lpm_allow_bt_device_sleep()
     if ((bt_hc_if) && (lpm_enabled == TRUE))
         result = bt_hc_if->lpm(BT_HC_LPM_WAKE_DEASSERT);
 
-    APPL_TRACE_DEBUG1("HC lib lpm deassertion return %d", result);
+    APPL_TRACE_DEBUG("HC lib lpm deassertion return %d", result);
 }
 
 /******************************************************************************
@@ -489,7 +489,7 @@ void bte_main_lpm_wake_bt_device()
     if ((bt_hc_if) && (lpm_enabled == TRUE))
         result = bt_hc_if->lpm(BT_HC_LPM_WAKE_ASSERT);
 
-    APPL_TRACE_DEBUG1("HC lib lpm assertion return %d", result);
+    APPL_TRACE_DEBUG("HC lib lpm assertion return %d", result);
 }
 #endif  // HCILP_INCLUDED
 
@@ -524,7 +524,7 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
     }
     else
     {
-        APPL_TRACE_ERROR0("Invalid Controller ID. Discarding message.");
+        APPL_TRACE_ERROR("Invalid Controller ID. Discarding message.");
         GKI_freebuf(p_msg);
     }
 }
@@ -564,7 +564,7 @@ static void preload_cb(TRANSAC transac, bt_hc_preload_result_t result)
 {
     UNUSED(transac);
 
-    APPL_TRACE_EVENT1("HC preload_cb %d [0:SUCCESS 1:FAIL]", result);
+    APPL_TRACE_EVENT("HC preload_cb %d [0:SUCCESS 1:FAIL]", result);
 
     if (result == BT_HC_PRELOAD_SUCCESS)
     {
@@ -589,7 +589,7 @@ static void postload_cb(TRANSAC transac, bt_hc_postload_result_t result)
 {
     UNUSED(transac);
 
-    APPL_TRACE_EVENT1("HC postload_cb %d", result);
+    APPL_TRACE_EVENT("HC postload_cb %d", result);
 }
 
 /******************************************************************************
@@ -604,7 +604,7 @@ static void postload_cb(TRANSAC transac, bt_hc_postload_result_t result)
 ******************************************************************************/
 static void lpm_cb(bt_hc_lpm_request_result_t result)
 {
-    APPL_TRACE_EVENT1("HC lpm_result_cb %d", result);
+    APPL_TRACE_EVENT("HC lpm_result_cb %d", result);
     lpm_enabled = (result == BT_HC_LPM_ENABLED) ? TRUE : FALSE;
 }
 
@@ -620,7 +620,7 @@ static void lpm_cb(bt_hc_lpm_request_result_t result)
 ******************************************************************************/
 static void hostwake_ind(bt_hc_low_power_event_t event)
 {
-    APPL_TRACE_EVENT1("HC hostwake_ind %d", event);
+    APPL_TRACE_EVENT("HC hostwake_ind %d", event);
 }
 
 /******************************************************************************
@@ -638,13 +638,13 @@ static char *alloc(int size)
     BT_HDR *p_hdr = NULL;
 
     /*
-    APPL_TRACE_DEBUG1("HC alloc size=%d", size);
+    APPL_TRACE_DEBUG("HC alloc size=%d", size);
     */
 
     /* Requested buffer size cannot exceed GKI_MAX_BUF_SIZE. */
     if (size > GKI_MAX_BUF_SIZE)
     {
-         APPL_TRACE_ERROR2("HCI DATA SIZE %d greater than MAX %d",
+         APPL_TRACE_ERROR("HCI DATA SIZE %d greater than MAX %d",
                            size, GKI_MAX_BUF_SIZE);
          return NULL;
     }
@@ -653,7 +653,7 @@ static char *alloc(int size)
 
     if (p_hdr == NULL)
     {
-        APPL_TRACE_WARNING1("alloc returns NO BUFFER! (sz %d)", size);
+        APPL_TRACE_WARNING("alloc returns NO BUFFER! (sz %d)", size);
     }
 
     return ((char *) p_hdr);
@@ -710,7 +710,7 @@ static int data_ind(TRANSAC transac, char *p_buf, int len)
     UNUSED(len);
 
     /*
-    APPL_TRACE_DEBUG2("HC data_ind event=0x%04X (len=%d)", p_msg->event, len);
+    APPL_TRACE_DEBUG("HC data_ind event=0x%04X (len=%d)", p_msg->event, len);
     */
 
     GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, transac);
@@ -741,7 +741,7 @@ static int tx_result(TRANSAC transac, char *p_buf, bt_hc_transmit_result_t resul
 {
     UNUSED(p_buf);
     /*
-    APPL_TRACE_DEBUG2("HC tx_result %d (event=%04X)", result, \
+    APPL_TRACE_DEBUG("HC tx_result %d (event=%04X)", result, \
                       ((BT_HDR *)transac)->event);
     */
 

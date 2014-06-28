@@ -65,7 +65,7 @@ tBTA_STATUS BTA_AgEnable(tBTA_AG_PARSE_MODE parse_mode, tBTA_AG_CBACK *p_cback)
     {
         if (bta_ag_cb.scb[idx].in_use)
         {
-            APPL_TRACE_ERROR0 ("BTA_AgEnable: FAILED, AG already enabled.");
+            APPL_TRACE_ERROR ("BTA_AgEnable: FAILED, AG already enabled.");
             return BTA_FAILURE;
         }
     }

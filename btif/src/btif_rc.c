@@ -62,10 +62,10 @@
 #define MAX_CMD_QUEUE_LEN 8
 
 #define CHECK_RC_CONNECTED                                                                  \
-    BTIF_TRACE_DEBUG1("## %s ##", __FUNCTION__);                                            \
+    BTIF_TRACE_DEBUG("## %s ##", __FUNCTION__);                                            \
     if(btif_rc_cb.rc_connected == FALSE)                                                    \
     {                                                                                       \
-        BTIF_TRACE_WARNING1("Function %s() called when RC is not connected", __FUNCTION__); \
+        BTIF_TRACE_WARNING("Function %s() called when RC is not connected", __FUNCTION__); \
         return BT_STATUS_NOT_READY;                                                         \
     }
 
@@ -80,7 +80,7 @@
 {                                                                                              \
     if(btif_rc_cb.rc_pdu_info[index].is_rsp_pending == FALSE)                                  \
     {                                                                                          \
-        BTIF_TRACE_WARNING1("%s Not sending response as no PDU was registered", __FUNCTION__); \
+        BTIF_TRACE_WARNING("%s Not sending response as no PDU was registered", __FUNCTION__); \
         return BT_STATUS_UNHANDLED;                                                            \
     }                                                                                          \
     send_metamsg_rsp(btif_rc_cb.rc_handle, btif_rc_cb.rc_pdu_info[index].label,                \
@@ -232,7 +232,7 @@ extern BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
 int send_event (int fd, uint16_t type, uint16_t code, int32_t value)
 {
     struct uinput_event event;
-    BTIF_TRACE_DEBUG4("%s type:%u code:%u value:%d", __FUNCTION__,
+    BTIF_TRACE_DEBUG("%s type:%u code:%u value:%d", __FUNCTION__,
         type, code, value);
     memset(&event, 0, sizeof(event));
     event.type  = type;
@@ -244,7 +244,7 @@ int send_event (int fd, uint16_t type, uint16_t code, int32_t value)
 
 void send_key (int fd, uint16_t key, int pressed)
 {
-    BTIF_TRACE_DEBUG4("%s fd:%d key:%u pressed:%d", __FUNCTION__,
+    BTIF_TRACE_DEBUG("%s fd:%d key:%u pressed:%d", __FUNCTION__,
         fd, key, pressed);
 
     if (fd < 0)
@@ -252,7 +252,7 @@ void send_key (int fd, uint16_t key, int pressed)
         return;
     }
 
-    BTIF_TRACE_DEBUG3("AVRCP: Send key %d (%d) fd=%d", key, pressed, fd);
+    BTIF_TRACE_DEBUG("AVRCP: Send key %d (%d) fd=%d", key, pressed, fd);
     send_event(fd, EV_KEY, key, pressed);
     send_event(fd, EV_SYN, SYN_REPORT, 0);
 }
@@ -267,7 +267,7 @@ int uinput_driver_check()
            return 0;
         }
     }
-    BTIF_TRACE_ERROR1("%s ERROR: uinput device is not in the system", __FUNCTION__);
+    BTIF_TRACE_ERROR("%s ERROR: uinput device is not in the system", __FUNCTION__);
     return -1;
 }
 
@@ -284,7 +284,7 @@ int uinput_create(char *name)
         break;
     }
     if (x == MAX_UINPUT_PATHS) {
-        BTIF_TRACE_ERROR1("%s ERROR: uinput device open failed", __FUNCTION__);
+        BTIF_TRACE_ERROR("%s ERROR: uinput device open failed", __FUNCTION__);
         return -1;
     }
     memset(&dev, 0, sizeof(dev));
@@ -297,7 +297,7 @@ int uinput_create(char *name)
     dev.id.version = 0x0000;
 
     if (write(fd, &dev, sizeof(dev)) < 0) {
-        BTIF_TRACE_ERROR1("%s Unable to write device information", __FUNCTION__);
+        BTIF_TRACE_ERROR("%s Unable to write device information", __FUNCTION__);
         close(fd);
         return -1;
     }
@@ -313,7 +313,7 @@ int uinput_create(char *name)
         ioctl(fd, UI_SET_KEYBIT, x);
 
     if (ioctl(fd, UI_DEV_CREATE, NULL) < 0) {
-        BTIF_TRACE_ERROR1("%s Unable to create uinput device", __FUNCTION__);
+        BTIF_TRACE_ERROR("%s Unable to create uinput device", __FUNCTION__);
         close(fd);
         return -1;
     }
@@ -324,13 +324,13 @@ int init_uinput (void)
 {
     char *name = "AVRCP";
 
-    BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
+    BTIF_TRACE_DEBUG("%s", __FUNCTION__);
     uinput_fd = uinput_create(name);
     if (uinput_fd < 0) {
-        BTIF_TRACE_ERROR3("%s AVRCP: Failed to initialize uinput for %s (%d)",
+        BTIF_TRACE_ERROR("%s AVRCP: Failed to initialize uinput for %s (%d)",
                           __FUNCTION__, name, uinput_fd);
     } else {
-        BTIF_TRACE_DEBUG3("%s AVRCP: Initialized uinput for %s (fd=%d)",
+        BTIF_TRACE_DEBUG("%s AVRCP: Initialized uinput for %s (fd=%d)",
                           __FUNCTION__, name, uinput_fd);
     }
     return uinput_fd;
@@ -338,7 +338,7 @@ int init_uinput (void)
 
 void close_uinput (void)
 {
-    BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
+    BTIF_TRACE_DEBUG("%s", __FUNCTION__);
     if (uinput_fd > 0) {
         ioctl(uinput_fd, UI_DEV_DESTROY);
 
@@ -371,11 +371,11 @@ void handle_rc_features()
     {
         rc_features |= BTRC_FEAT_METADATA;
     }
-    BTIF_TRACE_DEBUG2("%s: rc_features=0x%x", __FUNCTION__, rc_features);
+    BTIF_TRACE_DEBUG("%s: rc_features=0x%x", __FUNCTION__, rc_features);
     HAL_CBACK(bt_rc_callbacks, remote_features_cb, &rc_addr, rc_features)
 
 #if (AVRC_ADV_CTRL_INCLUDED == TRUE)
-     BTIF_TRACE_DEBUG1("Checking for feature flags in btif_rc_handler with label %d",
+     BTIF_TRACE_DEBUG("Checking for feature flags in btif_rc_handler with label %d",
                         btif_rc_cb.rc_vol_label);
      // Register for volume change on connect
       if(btif_rc_cb.rc_features & BTA_AV_FEAT_ADV_CTRL &&
@@ -392,7 +392,7 @@ void handle_rc_features()
             p_transaction=get_transaction_by_lbl(btif_rc_cb.rc_vol_label);
             if(NULL!=p_transaction)
             {
-               BTIF_TRACE_DEBUG1("register_volumechange already in progress for label %d",
+               BTIF_TRACE_DEBUG("register_volumechange already in progress for label %d",
                                   btif_rc_cb.rc_vol_label);
                return;
             }
@@ -420,7 +420,7 @@ void handle_rc_features()
  ***************************************************************************/
 void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
 {
-    BTIF_TRACE_DEBUG2("%s: rc_handle: %d", __FUNCTION__, p_rc_open->rc_handle);
+    BTIF_TRACE_DEBUG("%s: rc_handle: %d", __FUNCTION__, p_rc_open->rc_handle);
     bt_status_t result = BT_STATUS_SUCCESS;
     int i;
     char bd_str[18];
@@ -457,7 +457,7 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
     }
     else
     {
-        BTIF_TRACE_ERROR2("%s Connect failed with error code: %d",
+        BTIF_TRACE_ERROR("%s Connect failed with error code: %d",
             __FUNCTION__, p_rc_open->status);
         btif_rc_cb.rc_connected = FALSE;
     }
@@ -477,7 +477,7 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
     bt_bdaddr_t rc_addr;
     tBTA_AV_FEAT features;
 #endif
-    BTIF_TRACE_DEBUG2("%s: rc_handle: %d", __FUNCTION__, p_rc_close->rc_handle);
+    BTIF_TRACE_DEBUG("%s: rc_handle: %d", __FUNCTION__, p_rc_close->rc_handle);
 
     btif_rc_cb.rc_handle = 0;
     btif_rc_cb.rc_connected = FALSE;
@@ -517,7 +517,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
     const char *status;
     int pressed, i;
 
-    BTIF_TRACE_DEBUG2("%s: p_remote_cmd->rc_id=%d", __FUNCTION__, p_remote_cmd->rc_id);
+    BTIF_TRACE_DEBUG("%s: p_remote_cmd->rc_id=%d", __FUNCTION__, p_remote_cmd->rc_id);
 
     /* If AVRC is open and peer sends PLAY but there is no AVDT, then we queue-up this PLAY */
     if (p_remote_cmd)
@@ -527,7 +527,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
         {
             if (p_remote_cmd->key_state == AVRC_STATE_PRESS)
             {
-                APPL_TRACE_WARNING1("%s: AVDT not open, queuing the PLAY command", __FUNCTION__);
+                APPL_TRACE_WARNING("%s: AVDT not open, queuing the PLAY command", __FUNCTION__);
                 btif_rc_cb.rc_pending_play = TRUE;
             }
             return;
@@ -535,7 +535,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
 
         if ((p_remote_cmd->rc_id == BTA_AV_RC_PAUSE) && (btif_rc_cb.rc_pending_play))
         {
-            APPL_TRACE_WARNING1("%s: Clear the pending PLAY on PAUSE received", __FUNCTION__);
+            APPL_TRACE_WARNING("%s: Clear the pending PLAY on PAUSE received", __FUNCTION__);
             btif_rc_cb.rc_pending_play = FALSE;
             return;
         }
@@ -559,7 +559,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
        (btif_hf_call_terminated_recently() == TRUE) &&
        (check_cod( (const bt_bdaddr_t*)&(btif_rc_cb.rc_addr), COD_AV_HEADSETS) != TRUE))
     {
-        BTIF_TRACE_DEBUG2("%s:Dropping the play/Pause command received right after call end cmd:%d",
+        BTIF_TRACE_DEBUG("%s:Dropping the play/Pause command received right after call end cmd:%d",
                            __FUNCTION__,p_remote_cmd->rc_id);
         return;
     }
@@ -571,7 +571,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
 
     for (i = 0; key_map[i].name != NULL; i++) {
         if (p_remote_cmd->rc_id == key_map[i].avrcp) {
-            BTIF_TRACE_DEBUG3("%s: %s %s", __FUNCTION__, key_map[i].name, status);
+            BTIF_TRACE_DEBUG("%s: %s %s", __FUNCTION__, key_map[i].name, status);
 
            /* MusicPlayer uses a long_press_timeout of 1 second for PLAYPAUSE button
             * and maps that to autoshuffle. So if for some reason release for PLAY/PAUSE
@@ -582,7 +582,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
             */
             if ((key_map[i].release_quirk == 1) && (pressed == 0))
             {
-                BTIF_TRACE_DEBUG2("%s: AVRC %s Release Faked earlier, drowned now",
+                BTIF_TRACE_DEBUG("%s: AVRC %s Release Faked earlier, drowned now",
                                   __FUNCTION__, key_map[i].name);
                 return;
             }
@@ -590,7 +590,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
             if ((key_map[i].release_quirk == 1) && (pressed == 1))
             {
                 GKI_delay(30); // 30ms
-                BTIF_TRACE_DEBUG2("%s: AVRC %s Release quirk enabled, send release now",
+                BTIF_TRACE_DEBUG("%s: AVRC %s Release quirk enabled, send release now",
                                   __FUNCTION__, key_map[i].name);
                 send_key(uinput_fd, key_map[i].mapped_id, 0);
             }
@@ -599,7 +599,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
     }
 
     if (key_map[i].name == NULL)
-        BTIF_TRACE_ERROR3("%s AVRCP: unknown button 0x%02X %s", __FUNCTION__,
+        BTIF_TRACE_ERROR("%s AVRCP: unknown button 0x%02X %s", __FUNCTION__,
                         p_remote_cmd->rc_id, status);
 }
 
@@ -629,17 +629,17 @@ void handle_rc_passthrough_rsp ( tBTA_AV_REMOTE_RSP *p_remote_rsp)
             key_state = 0;
         }
 
-        BTIF_TRACE_DEBUG3("%s: rc_id=%d status=%s", __FUNCTION__, p_remote_rsp->rc_id, status);
+        BTIF_TRACE_DEBUG("%s: rc_id=%d status=%s", __FUNCTION__, p_remote_rsp->rc_id, status);
 
         release_transaction(p_remote_rsp->label);
         HAL_CBACK(bt_rc_ctrl_callbacks, passthrough_rsp_cb, p_remote_rsp->rc_id, key_state);
     }
     else
     {
-        BTIF_TRACE_ERROR1("%s DUT does not support AVRCP controller role", __FUNCTION__);
+        BTIF_TRACE_ERROR("%s DUT does not support AVRCP controller role", __FUNCTION__);
     }
 #else
-    BTIF_TRACE_ERROR1("%s AVRCP controller role is not enabled", __FUNCTION__);
+    BTIF_TRACE_ERROR("%s AVRCP controller role is not enabled", __FUNCTION__);
 #endif
 }
 
@@ -676,16 +676,16 @@ void handle_rc_metamsg_cmd (tBTA_AV_META_MSG *pmeta_msg)
     tAVRC_STS status;
     int param_len;
 
-    BTIF_TRACE_EVENT1("+ %s", __FUNCTION__);
+    BTIF_TRACE_EVENT("+ %s", __FUNCTION__);
 
     if (pmeta_msg->p_msg->hdr.opcode != AVRC_OP_VENDOR)
     {
-        BTIF_TRACE_WARNING1("Invalid opcode: %x", pmeta_msg->p_msg->hdr.opcode);
+        BTIF_TRACE_WARNING("Invalid opcode: %x", pmeta_msg->p_msg->hdr.opcode);
         return;
     }
     if (pmeta_msg->len < 3)
     {
-        BTIF_TRACE_WARNING2("Invalid length.Opcode: 0x%x, len: 0x%x", pmeta_msg->p_msg->hdr.opcode,
+        BTIF_TRACE_WARNING("Invalid length.Opcode: 0x%x, len: 0x%x", pmeta_msg->p_msg->hdr.opcode,
             pmeta_msg->len);
         return;
     }
@@ -702,14 +702,14 @@ void handle_rc_metamsg_cmd (tBTA_AV_META_MSG *pmeta_msg)
      }
      else
      {
-         BTIF_TRACE_DEBUG3("%s:Discard vendor dependent rsp. code: %d label:%d.",
+         BTIF_TRACE_DEBUG("%s:Discard vendor dependent rsp. code: %d label:%d.",
              __FUNCTION__, pmeta_msg->code, pmeta_msg->label);
      }
      return;
 }
 #else
 {
-        BTIF_TRACE_DEBUG3("%s:Received vendor dependent rsp. code: %d len: %d. Not processing it.",
+        BTIF_TRACE_DEBUG("%s:Received vendor dependent rsp. code: %d len: %d. Not processing it.",
             __FUNCTION__, pmeta_msg->code, pmeta_msg->len);
         return;
 }
@@ -717,13 +717,13 @@ void handle_rc_metamsg_cmd (tBTA_AV_META_MSG *pmeta_msg)
       }
 
     status=AVRC_ParsCommand(pmeta_msg->p_msg, &avrc_command, scratch_buf, sizeof(scratch_buf));
-    BTIF_TRACE_DEBUG3("Received vendor command.code,PDU and label: %d, %d,%d",pmeta_msg->code,
+    BTIF_TRACE_DEBUG("Received vendor command.code,PDU and label: %d, %d,%d",pmeta_msg->code,
                        avrc_command.cmd.pdu, pmeta_msg->label);
 
     if (status != AVRC_STS_NO_ERROR)
     {
         /* return error */
-        BTIF_TRACE_WARNING2("%s: Error in parsing received metamsg command. status: 0x%02x",
+        BTIF_TRACE_WARNING("%s: Error in parsing received metamsg command. status: 0x%02x",
             __FUNCTION__, status);
         send_reject_response(pmeta_msg->rc_handle, pmeta_msg->label, avrc_command.pdu, status);
     }
@@ -735,7 +735,7 @@ void handle_rc_metamsg_cmd (tBTA_AV_META_MSG *pmeta_msg)
         {
             UINT8 event_id = avrc_command.reg_notif.event_id;
             param_len = sizeof(tAVRC_REG_NOTIF_CMD);
-            BTIF_TRACE_EVENT4("%s:New register notification received.event_id:%s,label:0x%x,code:%x",
+            BTIF_TRACE_EVENT("%s:New register notification received.event_id:%s,label:0x%x,code:%x",
             __FUNCTION__,dump_rc_notification_event_id(event_id), pmeta_msg->label,pmeta_msg->code);
             btif_rc_cb.rc_notif[event_id-1].bNotify = TRUE;
             btif_rc_cb.rc_notif[event_id-1].label = pmeta_msg->label;
@@ -748,7 +748,7 @@ void handle_rc_metamsg_cmd (tBTA_AV_META_MSG *pmeta_msg)
 
         }
 
-        BTIF_TRACE_EVENT2("%s: Passing received metamsg command to app. pdu: %s",
+        BTIF_TRACE_EVENT("%s: Passing received metamsg command to app. pdu: %s",
             __FUNCTION__, dump_rc_pdu(avrc_command.cmd.pdu));
 
         /* Since handle_rc_metamsg_cmd() itself is called from
@@ -768,12 +768,12 @@ void handle_rc_metamsg_cmd (tBTA_AV_META_MSG *pmeta_msg)
  ***************************************************************************/
 void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
 {
-    BTIF_TRACE_DEBUG2 ("%s event:%s", __FUNCTION__, dump_rc_event(event));
+    BTIF_TRACE_DEBUG ("%s event:%s", __FUNCTION__, dump_rc_event(event));
     switch (event)
     {
         case BTA_AV_RC_OPEN_EVT:
         {
-            BTIF_TRACE_DEBUG1("Peer_features:%x", p_data->rc_open.peer_features);
+            BTIF_TRACE_DEBUG("Peer_features:%x", p_data->rc_open.peer_features);
             handle_rc_connect( &(p_data->rc_open) );
         }break;
 
@@ -784,7 +784,7 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
 
         case BTA_AV_REMOTE_CMD_EVT:
         {
-            BTIF_TRACE_DEBUG2("rc_id:0x%x key_state:%d", p_data->remote_cmd.rc_id,
+            BTIF_TRACE_DEBUG("rc_id:0x%x key_state:%d", p_data->remote_cmd.rc_id,
                                p_data->remote_cmd.key_state);
             handle_rc_passthrough_cmd( (&p_data->remote_cmd) );
         }
@@ -792,7 +792,7 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
 #if (AVRC_CTLR_INCLUDED == TRUE)
         case BTA_AV_REMOTE_RSP_EVT:
         {
-            BTIF_TRACE_DEBUG2("RSP: rc_id:0x%x key_state:%d", p_data->remote_rsp.rc_id,
+            BTIF_TRACE_DEBUG("RSP: rc_id:0x%x key_state:%d", p_data->remote_rsp.rc_id,
                                p_data->remote_rsp.key_state);
             handle_rc_passthrough_rsp( (&p_data->remote_rsp) );
         }
@@ -800,23 +800,23 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
 #endif
         case BTA_AV_RC_FEAT_EVT:
         {
-            BTIF_TRACE_DEBUG1("Peer_features:%x", p_data->rc_feat.peer_features);
+            BTIF_TRACE_DEBUG("Peer_features:%x", p_data->rc_feat.peer_features);
             btif_rc_cb.rc_features = p_data->rc_feat.peer_features;
             handle_rc_features();
         }
         break;
         case BTA_AV_META_MSG_EVT:
         {
-            BTIF_TRACE_DEBUG2("BTA_AV_META_MSG_EVT  code:%d label:%d", p_data->meta_msg.code,
+            BTIF_TRACE_DEBUG("BTA_AV_META_MSG_EVT  code:%d label:%d", p_data->meta_msg.code,
                 p_data->meta_msg.label);
-            BTIF_TRACE_DEBUG3("  company_id:0x%x len:%d handle:%d", p_data->meta_msg.company_id,
+            BTIF_TRACE_DEBUG("  company_id:0x%x len:%d handle:%d", p_data->meta_msg.company_id,
                 p_data->meta_msg.len, p_data->meta_msg.rc_handle);
             /* handle the metamsg command */
             handle_rc_metamsg_cmd(&(p_data->meta_msg));
         }
         break;
         default:
-            BTIF_TRACE_DEBUG1("Unhandled RC event : 0x%x", event);
+            BTIF_TRACE_DEBUG("Unhandled RC event : 0x%x", event);
     }
 }
 
@@ -849,13 +849,13 @@ void btif_rc_check_handle_pending_play (BD_ADDR peer_addr, BOOLEAN bSendToApp)
 {
     UNUSED(peer_addr);
 
-    BTIF_TRACE_DEBUG2("%s: bSendToApp=%d", __FUNCTION__, bSendToApp);
+    BTIF_TRACE_DEBUG("%s: bSendToApp=%d", __FUNCTION__, bSendToApp);
     if (btif_rc_cb.rc_pending_play)
     {
         if (bSendToApp)
         {
             tBTA_AV_REMOTE_CMD remote_cmd;
-            APPL_TRACE_DEBUG1("%s: Sending queued PLAYED event to app", __FUNCTION__);
+            APPL_TRACE_DEBUG("%s: Sending queued PLAYED event to app", __FUNCTION__);
 
             memset (&remote_cmd, 0, sizeof(tBTA_AV_REMOTE_CMD));
             remote_cmd.rc_handle  = btif_rc_cb.rc_handle;
@@ -895,7 +895,7 @@ static void send_reject_response (UINT8 rc_handle, UINT8 label, UINT8 pdu, UINT8
 
     if (AVRC_STS_NO_ERROR == (status = AVRC_BldResponse(rc_handle, &avrc_rsp, &p_msg)) )
     {
-        BTIF_TRACE_DEBUG4("%s:Sending error notification to handle:%d. pdu:%s,status:0x%02x",
+        BTIF_TRACE_DEBUG("%s:Sending error notification to handle:%d. pdu:%s,status:0x%02x",
             __FUNCTION__, rc_handle, dump_rc_pdu(pdu), status);
         BTA_AvMetaRsp(rc_handle, label, ctype, p_msg);
     }
@@ -921,11 +921,11 @@ static void send_metamsg_rsp (UINT8 rc_handle, UINT8 label, tBTA_AV_CODE code,
 
     if (!pmetamsg_resp)
     {
-        BTIF_TRACE_WARNING1("%s: Invalid response received from application", __FUNCTION__);
+        BTIF_TRACE_WARNING("%s: Invalid response received from application", __FUNCTION__);
         return;
     }
 
-    BTIF_TRACE_EVENT5("+%s: rc_handle: %d, label: %d, code: 0x%02x, pdu: %s", __FUNCTION__,
+    BTIF_TRACE_EVENT("+%s: rc_handle: %d, label: %d, code: 0x%02x, pdu: %s", __FUNCTION__,
         rc_handle, label, code, dump_rc_pdu(pmetamsg_resp->rsp.pdu));
 
     if (pmetamsg_resp->rsp.status != AVRC_STS_NO_ERROR)
@@ -964,7 +964,7 @@ static void send_metamsg_rsp (UINT8 rc_handle, UINT8 label, tBTA_AV_CODE code,
 
         /* de-register this notification for a CHANGED response */
         btif_rc_cb.rc_notif[event_id-1].bNotify = FALSE;
-        BTIF_TRACE_DEBUG4("%s rc_handle: %d. event_id: 0x%02d bNotify:%u", __FUNCTION__,
+        BTIF_TRACE_DEBUG("%s rc_handle: %d. event_id: 0x%02d bNotify:%u", __FUNCTION__,
              btif_rc_cb.rc_handle, event_id, bNotify);
         if (bNotify)
         {
@@ -974,7 +974,7 @@ static void send_metamsg_rsp (UINT8 rc_handle, UINT8 label, tBTA_AV_CODE code,
             if (AVRC_STS_NO_ERROR == (status = AVRC_BldResponse(btif_rc_cb.rc_handle,
                 pmetamsg_resp, &p_msg)) )
             {
-                BTIF_TRACE_DEBUG3("%s Sending notification to rc_handle: %d. event_id: 0x%02d",
+                BTIF_TRACE_DEBUG("%s Sending notification to rc_handle: %d. event_id: 0x%02d",
                      __FUNCTION__, btif_rc_cb.rc_handle, event_id);
                 bSent = TRUE;
                 BTA_AvMetaRsp(btif_rc_cb.rc_handle, btif_rc_cb.rc_notif[event_id-1].label,
@@ -982,7 +982,7 @@ static void send_metamsg_rsp (UINT8 rc_handle, UINT8 label, tBTA_AV_CODE code,
             }
             else
             {
-                BTIF_TRACE_WARNING2("%s failed to build metamsg response. status: 0x%02x",
+                BTIF_TRACE_WARNING("%s failed to build metamsg response. status: 0x%02x",
                     __FUNCTION__, status);
             }
 
@@ -990,7 +990,7 @@ static void send_metamsg_rsp (UINT8 rc_handle, UINT8 label, tBTA_AV_CODE code,
 
         if (!bSent)
         {
-            BTIF_TRACE_DEBUG2("%s: Notification not sent, as there are no RC connections or the \
+            BTIF_TRACE_DEBUG("%s: Notification not sent, as there are no RC connections or the \
                 CT has not subscribed for event_id: %s", __FUNCTION__, dump_rc_notification_event_id(event_id));
         }
     }
@@ -1009,7 +1009,7 @@ static void send_metamsg_rsp (UINT8 rc_handle, UINT8 label, tBTA_AV_CODE code,
         }
         else
         {
-            BTIF_TRACE_ERROR2("%s: failed to build metamsg response. status: 0x%02x",
+            BTIF_TRACE_ERROR("%s: failed to build metamsg response. status: 0x%02x",
                 __FUNCTION__, status);
         }
     }
@@ -1045,7 +1045,7 @@ static UINT8 opcode_from_pdu(UINT8 pdu)
 *******************************************************************************/
 static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 ctype, UINT8 label)
 {
-    BTIF_TRACE_EVENT5("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
+    BTIF_TRACE_EVENT("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
         dump_rc_pdu(pavrc_cmd->pdu), btif_rc_cb.rc_handle, ctype, label);
 
     switch (event)
@@ -1104,7 +1104,7 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
             if(pavrc_cmd->reg_notif.event_id == BTRC_EVT_PLAY_POS_CHANGED &&
                 pavrc_cmd->reg_notif.param == 0)
             {
-                BTIF_TRACE_WARNING1("%s Device registering position changed with illegal param 0.",
+                BTIF_TRACE_WARNING("%s Device registering position changed with illegal param 0.",
                     __FUNCTION__);
                 send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
                 /* de-register this notification for a rejected response */
@@ -1118,7 +1118,7 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
         case AVRC_PDU_INFORM_DISPLAY_CHARSET:
         {
             tAVRC_RESPONSE avrc_rsp;
-            BTIF_TRACE_EVENT1("%s() AVRC_PDU_INFORM_DISPLAY_CHARSET", __FUNCTION__);
+            BTIF_TRACE_EVENT("%s() AVRC_PDU_INFORM_DISPLAY_CHARSET", __FUNCTION__);
             if(btif_rc_cb.rc_connected == TRUE)
             {
                 memset(&(avrc_rsp.inform_charset), 0, sizeof(tAVRC_RSP));
@@ -1152,7 +1152,7 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
 *******************************************************************************/
 static void btif_rc_upstreams_rsp_evt(UINT16 event, tAVRC_RESPONSE *pavrc_resp, UINT8 ctype, UINT8 label)
 {
-    BTIF_TRACE_EVENT5("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
+    BTIF_TRACE_EVENT("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
         dump_rc_pdu(pavrc_resp->pdu), btif_rc_cb.rc_handle, ctype, label);
 
 #if (AVRC_ADV_CTRL_INCLUDED == TRUE)
@@ -1168,7 +1168,7 @@ static void btif_rc_upstreams_rsp_evt(UINT16 event, tAVRC_RESPONSE *pavrc_resp, 
 
         case AVRC_PDU_SET_ABSOLUTE_VOLUME:
         {
-            BTIF_TRACE_DEBUG2("Set absolute volume change event received: volume %d,ctype %d",
+            BTIF_TRACE_DEBUG("Set absolute volume change event received: volume %d,ctype %d",
                 pavrc_resp->volume.volume,ctype);
             if(AVRC_RSP_ACCEPT==ctype)
                 btif_rc_cb.rc_volume=pavrc_resp->volume.volume;
@@ -1197,7 +1197,7 @@ static void btif_rc_upstreams_rsp_evt(UINT16 event, tAVRC_RESPONSE *pavrc_resp, 
 *******************************************************************************/
 static bt_status_t init(btrc_callbacks_t* callbacks )
 {
-    BTIF_TRACE_EVENT1("## %s ##", __FUNCTION__);
+    BTIF_TRACE_EVENT("## %s ##", __FUNCTION__);
     bt_status_t result = BT_STATUS_SUCCESS;
 
     if (bt_rc_callbacks)
@@ -1223,7 +1223,7 @@ static bt_status_t init(btrc_callbacks_t* callbacks )
 *******************************************************************************/
 static bt_status_t init_ctrl(btrc_ctrl_callbacks_t* callbacks )
 {
-    BTIF_TRACE_EVENT1("## %s ##", __FUNCTION__);
+    BTIF_TRACE_EVENT("## %s ##", __FUNCTION__);
     bt_status_t result = BT_STATUS_SUCCESS;
 
     if (bt_rc_ctrl_callbacks)
@@ -1298,7 +1298,7 @@ static bt_status_t get_element_attr_rsp(uint8_t num_attr, btrc_element_attr_val_
             element_attrs[i].name.charset_id = AVRC_CHARSET_ID_UTF8;
             element_attrs[i].name.str_len = (UINT16)strlen((char *)p_attrs[i].text);
             element_attrs[i].name.p_str = p_attrs[i].text;
-            BTIF_TRACE_DEBUG5("%s attr_id:0x%x, charset_id:0x%x, str_len:%d, str:%s",
+            BTIF_TRACE_DEBUG("%s attr_id:0x%x, charset_id:0x%x, str_len:%d, str:%s",
                 __FUNCTION__, (unsigned int)element_attrs[i].attr_id,
                 element_attrs[i].name.charset_id, element_attrs[i].name.str_len,
                 element_attrs[i].name.p_str);
@@ -1329,10 +1329,10 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
 {
     tAVRC_RESPONSE avrc_rsp;
     CHECK_RC_CONNECTED
-    BTIF_TRACE_EVENT2("## %s ## event_id:%s", __FUNCTION__, dump_rc_notification_event_id(event_id));
+    BTIF_TRACE_EVENT("## %s ## event_id:%s", __FUNCTION__, dump_rc_notification_event_id(event_id));
     if (btif_rc_cb.rc_notif[event_id-1].bNotify == FALSE)
     {
-        BTIF_TRACE_ERROR1("Avrcp Event id not registered: event_id = %x", event_id);
+        BTIF_TRACE_ERROR("Avrcp Event id not registered: event_id = %x", event_id);
         return BT_STATUS_NOT_READY;
     }
     memset(&(avrc_rsp.reg_notif), 0, sizeof(tAVRC_REG_NOTIF_RSP));
@@ -1350,7 +1350,7 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
             avrc_rsp.reg_notif.param.play_pos = p_param->song_pos;
             break;
         default:
-            BTIF_TRACE_WARNING2("%s : Unhandled event ID : 0x%x", __FUNCTION__, event_id);
+            BTIF_TRACE_WARNING("%s : Unhandled event ID : 0x%x", __FUNCTION__, event_id);
             return BT_STATUS_UNHANDLED;
     }
 
@@ -1380,7 +1380,7 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
 ***************************************************************************/
 static bt_status_t set_volume(uint8_t volume)
 {
-    BTIF_TRACE_DEBUG1("%s", __FUNCTION__);
+    BTIF_TRACE_DEBUG("%s", __FUNCTION__);
     CHECK_RC_CONNECTED
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
     rc_transaction_t *p_transaction=NULL;
@@ -1388,7 +1388,7 @@ static bt_status_t set_volume(uint8_t volume)
     if(btif_rc_cb.rc_volume==volume)
     {
         status=BT_STATUS_DONE;
-        BTIF_TRACE_ERROR2("%s: volume value already set earlier: 0x%02x",__FUNCTION__, volume);
+        BTIF_TRACE_ERROR("%s: volume value already set earlier: 0x%02x",__FUNCTION__, volume);
         return status;
     }
 
@@ -1398,7 +1398,7 @@ static bt_status_t set_volume(uint8_t volume)
         tAVRC_COMMAND avrc_cmd = {0};
         BT_HDR *p_msg = NULL;
 
-        BTIF_TRACE_DEBUG2("%s: Peer supports absolute volume. newVolume=%d", __FUNCTION__, volume);
+        BTIF_TRACE_DEBUG("%s: Peer supports absolute volume. newVolume=%d", __FUNCTION__, volume);
         avrc_cmd.volume.opcode = AVRC_OP_VENDOR;
         avrc_cmd.volume.pdu = AVRC_PDU_SET_ABSOLUTE_VOLUME;
         avrc_cmd.volume.status = AVRC_STS_NO_ERROR;
@@ -1409,7 +1409,7 @@ static bt_status_t set_volume(uint8_t volume)
             bt_status_t tran_status=get_transaction(&p_transaction);
             if(BT_STATUS_SUCCESS == tran_status && NULL!=p_transaction)
             {
-                BTIF_TRACE_DEBUG2("%s msgreq being sent out with label %d",
+                BTIF_TRACE_DEBUG("%s msgreq being sent out with label %d",
                                    __FUNCTION__,p_transaction->lbl);
                 BTA_AvMetaCmd(btif_rc_cb.rc_handle,p_transaction->lbl, AVRC_CMD_CTRL, p_msg);
                 status =  BT_STATUS_SUCCESS;
@@ -1418,14 +1418,14 @@ static bt_status_t set_volume(uint8_t volume)
             {
                 if(NULL!=p_msg)
                    GKI_freebuf(p_msg);
-                BTIF_TRACE_ERROR2("%s: failed to obtain transaction details. status: 0x%02x",
+                BTIF_TRACE_ERROR("%s: failed to obtain transaction details. status: 0x%02x",
                                     __FUNCTION__, tran_status);
                 status = BT_STATUS_FAIL;
             }
         }
         else
         {
-            BTIF_TRACE_ERROR2("%s: failed to build absolute volume command. status: 0x%02x",
+            BTIF_TRACE_ERROR("%s: failed to build absolute volume command. status: 0x%02x",
                                 __FUNCTION__, status);
             status = BT_STATUS_FAIL;
         }
@@ -1455,7 +1455,7 @@ static void register_volumechange (UINT8 lbl)
     bt_status_t tran_status;
     rc_transaction_t *p_transaction=NULL;
 
-    BTIF_TRACE_DEBUG2("%s called with label:%d",__FUNCTION__,lbl);
+    BTIF_TRACE_DEBUG("%s called with label:%d",__FUNCTION__,lbl);
 
     avrc_cmd.cmd.opcode=0x00;
     avrc_cmd.pdu = AVRC_PDU_REGISTER_NOTIFICATION;
@@ -1469,17 +1469,17 @@ static void register_volumechange (UINT8 lbl)
          if(NULL!=p_transaction)
          {
              BTA_AvMetaCmd(btif_rc_cb.rc_handle,p_transaction->lbl, AVRC_CMD_NOTIF, p_msg);
-             BTIF_TRACE_DEBUG1("%s:BTA_AvMetaCmd called",__FUNCTION__);
+             BTIF_TRACE_DEBUG("%s:BTA_AvMetaCmd called",__FUNCTION__);
          }
          else
          {
             if(NULL!=p_msg)
                GKI_freebuf(p_msg);
-            BTIF_TRACE_ERROR2("%s transaction not obtained with label: %d",__FUNCTION__,lbl);
+            BTIF_TRACE_ERROR("%s transaction not obtained with label: %d",__FUNCTION__,lbl);
          }
     }
     else
-        BTIF_TRACE_ERROR2("%s failed to build command:%d",__FUNCTION__,BldResp);
+        BTIF_TRACE_ERROR("%s failed to build command:%d",__FUNCTION__,BldResp);
 }
 
 
@@ -1503,7 +1503,7 @@ static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg)
       || AVRC_RSP_REJ==pmeta_msg->code || AVRC_RSP_NOT_IMPL==pmeta_msg->code))
     {
         status=AVRC_ParsResponse(pmeta_msg->p_msg, &avrc_response, scratch_buf, sizeof(scratch_buf));
-        BTIF_TRACE_DEBUG6("%s: code %d,event ID %d,PDU %x,parsing status %d, label:%d",
+        BTIF_TRACE_DEBUG("%s: code %d,event ID %d,PDU %x,parsing status %d, label:%d",
           __FUNCTION__,pmeta_msg->code,avrc_response.reg_notif.event_id,avrc_response.reg_notif.pdu,
           status, pmeta_msg->label);
 
@@ -1527,14 +1527,14 @@ static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg)
             && btif_rc_cb.rc_vol_label!=pmeta_msg->label)
             {
                 // Just discard the message, if the device sends back with an incorrect label
-                BTIF_TRACE_DEBUG3("%s:Discarding register notfn in rsp.code: %d and label %d",
+                BTIF_TRACE_DEBUG("%s:Discarding register notfn in rsp.code: %d and label %d",
                 __FUNCTION__, pmeta_msg->code, pmeta_msg->label);
                 return;
             }
     }
     else
     {
-        BTIF_TRACE_DEBUG3("%s:Received vendor dependent in adv ctrl rsp. code: %d len: %d. Not processing it.",
+        BTIF_TRACE_DEBUG("%s:Received vendor dependent in adv ctrl rsp. code: %d len: %d. Not processing it.",
         __FUNCTION__, pmeta_msg->code, pmeta_msg->len);
         return;
     }
@@ -1553,7 +1553,7 @@ static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg)
           release_transaction(pmeta_msg->label);
      }
 
-     BTIF_TRACE_EVENT2("%s: Passing received metamsg response to app. pdu: %s",
+     BTIF_TRACE_EVENT("%s: Passing received metamsg response to app. pdu: %s",
              __FUNCTION__, dump_rc_pdu(avrc_response.pdu));
      btif_rc_upstreams_rsp_evt((uint16_t)avrc_response.rsp.pdu, &avrc_response, pmeta_msg->code,
                                 pmeta_msg->label);
@@ -1571,7 +1571,7 @@ static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg)
 ***************************************************************************/
 static void cleanup()
 {
-    BTIF_TRACE_EVENT1("## %s ##", __FUNCTION__);
+    BTIF_TRACE_EVENT("## %s ##", __FUNCTION__);
     close_uinput();
     if (bt_rc_callbacks)
     {
@@ -1588,7 +1588,7 @@ static bt_status_t send_passthrough_cmd(bt_bdaddr_t *bd_addr, uint8_t key_code, 
 #if (AVRC_CTLR_INCLUDED == TRUE)
     CHECK_RC_CONNECTED
     rc_transaction_t *p_transaction=NULL;
-    BTIF_TRACE_DEBUG3("%s: key-code: %d, key-state: %d", __FUNCTION__,
+    BTIF_TRACE_DEBUG("%s: key-code: %d, key-state: %d", __FUNCTION__,
                                                     key_code, key_state);
     if (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG)
     {
@@ -1599,21 +1599,21 @@ static bt_status_t send_passthrough_cmd(bt_bdaddr_t *bd_addr, uint8_t key_code, 
             BTA_AvRemoteCmd(btif_rc_cb.rc_handle, p_transaction->lbl,
                 (tBTA_AV_RC)key_code, (tBTA_AV_STATE)key_state);
             status =  BT_STATUS_SUCCESS;
-            BTIF_TRACE_DEBUG1("%s: succesfully sent passthrough command to BTA", __FUNCTION__);
+            BTIF_TRACE_DEBUG("%s: succesfully sent passthrough command to BTA", __FUNCTION__);
         }
         else
         {
             status =  BT_STATUS_FAIL;
-            BTIF_TRACE_DEBUG1("%s: error in fetching transaction", __FUNCTION__);
+            BTIF_TRACE_DEBUG("%s: error in fetching transaction", __FUNCTION__);
         }
     }
     else
     {
         status =  BT_STATUS_FAIL;
-        BTIF_TRACE_DEBUG1("%s: feature not supported", __FUNCTION__);
+        BTIF_TRACE_DEBUG("%s: feature not supported", __FUNCTION__);
     }
 #else
-    BTIF_TRACE_DEBUG1("%s: feature not enabled", __FUNCTION__);
+    BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
 #endif
     return status;
 }
@@ -1652,7 +1652,7 @@ static const btrc_ctrl_interface_t bt_rc_ctrl_interface = {
 *******************************************************************************/
 const btrc_interface_t *btif_rc_get_interface(void)
 {
-    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
+    BTIF_TRACE_EVENT("%s", __FUNCTION__);
     return &bt_rc_interface;
 }
 
@@ -1667,7 +1667,7 @@ const btrc_interface_t *btif_rc_get_interface(void)
 *******************************************************************************/
 const btrc_ctrl_interface_t *btif_rc_ctrl_get_interface(void)
 {
-    BTIF_TRACE_EVENT1("%s", __FUNCTION__);
+    BTIF_TRACE_EVENT("%s", __FUNCTION__);
     return &bt_rc_ctrl_interface;
 }
 
@@ -1748,7 +1748,7 @@ rc_transaction_t *get_transaction_by_lbl(UINT8 lbl)
         else
         {
             transaction = &(device.transaction[lbl]);
-            BTIF_TRACE_DEBUG2("%s: Got transaction.label: %d",__FUNCTION__,lbl);
+            BTIF_TRACE_DEBUG("%s: Got transaction.label: %d",__FUNCTION__,lbl);
         }
     }
 
@@ -1776,7 +1776,7 @@ bt_status_t  get_transaction(rc_transaction_t **ptransaction)
     {
         if (FALSE==device.transaction[i].in_use)
         {
-            BTIF_TRACE_DEBUG2("%s:Got transaction.label: %d",__FUNCTION__,device.transaction[i].lbl);
+            BTIF_TRACE_DEBUG("%s:Got transaction.label: %d",__FUNCTION__,device.transaction[i].lbl);
             device.transaction[i].in_use = TRUE;
             *ptransaction = &(device.transaction[i]);
             result = BT_STATUS_SUCCESS;
@@ -1804,7 +1804,7 @@ void release_transaction(UINT8 lbl)
     /* If the transaction is in use... */
     if (transaction != NULL)
     {
-        BTIF_TRACE_DEBUG2("%s: lbl: %d", __FUNCTION__, lbl);
+        BTIF_TRACE_DEBUG("%s: lbl: %d", __FUNCTION__, lbl);
         initialize_transaction(lbl);
     }
 }
@@ -1840,7 +1840,7 @@ static BOOLEAN dev_blacklisted_for_absolute_volume(BD_ADDR peer_dev)
         if (rc_white_addr_prefix[i][0] == peer_dev[0] &&
             rc_white_addr_prefix[i][1] == peer_dev[1] &&
             rc_white_addr_prefix[i][2] == peer_dev[2]) {
-            BTIF_TRACE_DEBUG3("whitelist absolute volume for %02x:%02x:%02x",
+            BTIF_TRACE_DEBUG("whitelist absolute volume for %02x:%02x:%02x",
                               peer_dev[0], peer_dev[1], peer_dev[2]);
             return FALSE;
         }
@@ -1851,13 +1851,13 @@ static BOOLEAN dev_blacklisted_for_absolute_volume(BD_ADDR peer_dev)
     if (dev_name_str != NULL) {
         for (i = 0; i < whitelist_size; i++) {
             if (strcmp(dev_name_str, rc_white_name[i]) == 0) {
-                BTIF_TRACE_DEBUG1("whitelist absolute volume for %s", dev_name_str);
+                BTIF_TRACE_DEBUG("whitelist absolute volume for %s", dev_name_str);
                 return FALSE;
             }
         }
     }
 
-    BTIF_TRACE_WARNING4("blacklist absolute volume for %02x:%02x:%02x, name = %s",
+    BTIF_TRACE_WARNING("blacklist absolute volume for %02x:%02x:%02x, name = %s",
                         peer_dev[0], peer_dev[1], peer_dev[2], dev_name_str);
     return TRUE;
 }

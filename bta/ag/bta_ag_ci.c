@@ -65,7 +65,7 @@ void bta_ag_ci_rx_write(UINT16 handle, char *p_data, UINT16 len)
 
         bta_sys_sendmsg(p_buf);
         } else {
-        APPL_TRACE_ERROR1("ERROR: Unable to allocate buffer to hold AT response code. len=%i", len);
+        APPL_TRACE_ERROR("ERROR: Unable to allocate buffer to hold AT response code. len=%i", len);
             break;
         }
 

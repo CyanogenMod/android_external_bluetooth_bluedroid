@@ -128,7 +128,7 @@ BOOLEAN bta_gatts_hdl_event(BT_HDR *p_msg)
             }
             else
             {
-                APPL_TRACE_ERROR0("service not created");
+                APPL_TRACE_ERROR("service not created");
             }
             break;
 

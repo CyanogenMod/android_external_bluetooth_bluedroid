@@ -76,10 +76,10 @@ void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap, tBTA_OOB_DATA *p_o
     btif_dm_set_oob_for_io_req(p_oob_data);
 #endif
     btif_dm_proc_io_req(bd_addr, p_io_cap, p_oob_data, p_auth_req, is_orig);
-    BTIF_TRACE_DEBUG1("bta_dm_co_io_req *p_oob_data = %d", *p_oob_data);
-    BTIF_TRACE_DEBUG1("bta_dm_co_io_req *p_io_cap = %d", *p_io_cap);
-    BTIF_TRACE_DEBUG1("bta_dm_co_io_req *p_auth_req = %d", *p_auth_req);
-    BTIF_TRACE_DEBUG1("bta_dm_co_io_req is_orig = %d", is_orig);
+    BTIF_TRACE_DEBUG("bta_dm_co_io_req *p_oob_data = %d", *p_oob_data);
+    BTIF_TRACE_DEBUG("bta_dm_co_io_req *p_io_cap = %d", *p_io_cap);
+    BTIF_TRACE_DEBUG("bta_dm_co_io_req *p_auth_req = %d", *p_auth_req);
+    BTIF_TRACE_DEBUG("bta_dm_co_io_req is_orig = %d", is_orig);
 }
 
 /*******************************************************************************
@@ -139,7 +139,7 @@ void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, BOOLEAN *p_upgrade )
 *******************************************************************************/
 void bta_dm_co_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
 {
-    BTIF_TRACE_DEBUG1("bta_dm_co_loc_oob, valid = %d", valid);
+    BTIF_TRACE_DEBUG("bta_dm_co_loc_oob, valid = %d", valid);
 #ifdef BTIF_DM_OOB_TEST
     btif_dm_proc_loc_oob(valid, c, r);
 #endif
@@ -168,7 +168,7 @@ void bta_dm_co_rmt_oob(BD_ADDR bd_addr)
     result = btif_dm_proc_rmt_oob(bd_addr, p_c, p_r);
 #endif
 
-    BTIF_TRACE_DEBUG1("bta_dm_co_rmt_oob: result=%d",result);
+    BTIF_TRACE_DEBUG("bta_dm_co_rmt_oob: result=%d",result);
     bta_dm_ci_rmt_oob(result, bd_addr, p_c, p_r);
 }
 
@@ -210,7 +210,7 @@ tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx_bw,
 {
     tBTM_SCO_ROUTE_TYPE route = BTA_DM_SCO_ROUTE_PCM;
 
-    BTIF_TRACE_DEBUG0("bta_dm_sco_co_init");
+    BTIF_TRACE_DEBUG("bta_dm_sco_co_init");
 
     /* set up SCO routing configuration if SCO over HCI app ID is used and run time
         configuration is set to SCO over HCI */
@@ -230,7 +230,7 @@ tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx_bw,
         /* initialize SCO codec */
         if (!btui_sco_codec_init(rx_bw, tx_bw))
         {
-            BTIF_TRACE_ERROR0("codec initialization exception!");
+            BTIF_TRACE_ERROR("codec initialization exception!");
         }
     }
 
@@ -255,7 +255,7 @@ void bta_dm_sco_co_open(UINT16 handle, UINT8 pkt_size, UINT16 event)
 
     if (btui_cb.sco_hci)
     {
-        BTIF_TRACE_DEBUG2("bta_dm_sco_co_open handle:%d pkt_size:%d", handle, pkt_size);
+        BTIF_TRACE_DEBUG("bta_dm_sco_co_open handle:%d pkt_size:%d", handle, pkt_size);
         /* use dedicated SCO buffer pool for SCO TX data */
         cfg.pool_id = HCI_SCO_POOL_ID;
         cfg.p_cback = btui_sco_codec_callback;
@@ -281,7 +281,7 @@ void bta_dm_sco_co_close(void)
 {
     if (btui_cb.sco_hci)
     {
-        BTIF_TRACE_DEBUG0("bta_dm_sco_co_close close codec");
+        BTIF_TRACE_DEBUG("bta_dm_sco_co_close close codec");
         /* close sco codec */
         btui_sco_codec_close();
 
@@ -344,9 +344,9 @@ void bta_dm_co_le_io_key_req(BD_ADDR bd_addr, UINT8 *p_max_key_size,
                              tBTA_LE_KEY_TYPE  *p_resp_key )
 {
     UNUSED(bd_addr);
-    BTIF_TRACE_ERROR0("##################################");
-    BTIF_TRACE_ERROR0("bta_dm_co_le_io_key_req: only setting max size to 16");
-    BTIF_TRACE_ERROR0("##################################");
+    BTIF_TRACE_ERROR("##################################");
+    BTIF_TRACE_ERROR("bta_dm_co_le_io_key_req: only setting max size to 16");
+    BTIF_TRACE_ERROR("##################################");
     *p_max_key_size = 16;
     *p_init_key = *p_resp_key =
                   (BTA_LE_KEY_PENC|BTA_LE_KEY_PID|BTA_LE_KEY_PCSRK|BTA_LE_KEY_LENC|BTA_LE_KEY_LID|BTA_LE_KEY_LCSRK);
@@ -368,9 +368,9 @@ void bta_dm_co_le_io_key_req(BD_ADDR bd_addr, UINT8 *p_max_key_size,
 void bta_dm_co_ble_load_local_keys(tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mask, BT_OCTET16 er,
                                    tBTA_BLE_LOCAL_ID_KEYS *p_id_keys)
 {
-    BTIF_TRACE_DEBUG0("##################################");
-    BTIF_TRACE_DEBUG0("bta_dm_co_ble_load_local_keys:  Load local keys if any are persisted");
-    BTIF_TRACE_DEBUG0("##################################");
+    BTIF_TRACE_DEBUG("##################################");
+    BTIF_TRACE_DEBUG("bta_dm_co_ble_load_local_keys:  Load local keys if any are persisted");
+    BTIF_TRACE_DEBUG("##################################");
     btif_dm_get_ble_local_keys( p_key_mask, er, p_id_keys);
 }
 

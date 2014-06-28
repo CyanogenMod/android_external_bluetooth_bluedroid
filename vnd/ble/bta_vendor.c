@@ -133,7 +133,7 @@ BOOLEAN bta_vendor_evt_hdlr(UINT16 event, void *p)
 {
     BOOLEAN   st = TRUE;
 
-    APPL_TRACE_EVENT1("bta_vendor_evt_hdlr :0x%04x", event);
+    APPL_TRACE_EVENT("bta_vendor_evt_hdlr :0x%04x", event);
 
     switch (event)
     {
@@ -148,7 +148,7 @@ BOOLEAN bta_vendor_evt_hdlr(UINT16 event, void *p)
 #endif
 
     default:
-        APPL_TRACE_EVENT1("Unknown BTA VS event: %d", event);
+        APPL_TRACE_EVENT("Unknown BTA VS event: %d", event);
         st = FALSE;
         break;
     }
@@ -295,7 +295,7 @@ void BTA_DmBleEnableFilterCondition(BOOLEAN enable, tBLE_BD_ADDR *p_target, tBTA
 *******************************************************************************/
 void BTA_BrcmInit (void)
 {
-    APPL_TRACE_API0("BTA_BrcmInit");
+    APPL_TRACE_API("BTA_BrcmInit");
     bta_sys_cb.p_vs_evt_hdlr = bta_vendor_evt_hdlr;
 #if BLE_INCLUDED == TRUE && BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
     btm_ble_vendor_init();

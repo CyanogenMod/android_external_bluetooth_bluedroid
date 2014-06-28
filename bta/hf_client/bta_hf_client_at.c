@@ -108,7 +108,7 @@ static void bta_hf_client_queue_at(tBTA_HF_CLIENT_AT_CMD cmd, const char *buf, U
 {
     tBTA_HF_CLIENT_AT_QCMD *new_cmd;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if ((new_cmd = (tBTA_HF_CLIENT_AT_QCMD *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_AT_QCMD))) != NULL)
     {
@@ -139,7 +139,7 @@ static void bta_hf_client_at_resp_timer_cback (TIMER_LIST_ENT *p_tle)
     {
         bta_hf_client_cb.scb.at_cb.resp_timer_on = FALSE;
 
-        APPL_TRACE_ERROR0("HFPClient: AT response timeout, disconnecting");
+        APPL_TRACE_ERROR("HFPClient: AT response timeout, disconnecting");
 
         bta_hf_client_sm_execute(BTA_HF_CLIENT_API_CLOSE_EVT, NULL);
     }
@@ -175,7 +175,7 @@ static void bta_hf_client_send_at(tBTA_HF_CLIENT_AT_CMD cmd, char *buf, UINT16 b
         UINT16  len;
 
 #ifdef BTA_HF_CLIENT_AT_DUMP
-        APPL_TRACE_DEBUG3("%s %.*s", __FUNCTION__, buf_len - 1, buf);
+        APPL_TRACE_DEBUG("%s %.*s", __FUNCTION__, buf_len - 1, buf);
 #endif
 
         bta_hf_client_cb.scb.at_cb.current_cmd = cmd;
@@ -194,7 +194,7 @@ static void bta_hf_client_send_queued_at(void)
     tBTA_HF_CLIENT_AT_QCMD *cur = bta_hf_client_cb.scb.at_cb.queued_cmd;
     tBTA_HF_CLIENT_AT_QCMD *next;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (cur != NULL)
     {
@@ -210,7 +210,7 @@ static void bta_hf_client_send_queued_at(void)
 
 static void bta_hf_client_at_hold_timer_cback(TIMER_LIST_ENT *p_tle)
 {
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (p_tle)
     {
@@ -221,7 +221,7 @@ static void bta_hf_client_at_hold_timer_cback(TIMER_LIST_ENT *p_tle)
 
 static void bta_hf_client_stop_at_hold_timer(void)
 {
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (bta_hf_client_cb.scb.at_cb.hold_timer_on)
     {
@@ -234,7 +234,7 @@ static void bta_hf_client_start_at_hold_timer(void)
 {
     TIMER_LIST_ENT *timer = &bta_hf_client_cb.scb.at_cb.hold_timer;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (bta_hf_client_cb.scb.at_cb.hold_timer_on)
     {
@@ -256,7 +256,7 @@ static void bta_hf_client_start_at_hold_timer(void)
 
 static void bta_hf_client_handle_ok()
 {
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     bta_hf_client_stop_at_resp_timer();
 
@@ -299,7 +299,7 @@ static void bta_hf_client_handle_ok()
 
 static void bta_hf_client_handle_error(tBTA_HF_CLIENT_AT_RESULT_TYPE type, UINT16 cme)
 {
-    APPL_TRACE_DEBUG3("%s %u %u", __FUNCTION__, type, cme);
+    APPL_TRACE_DEBUG("%s %u %u", __FUNCTION__, type, cme);
 
     bta_hf_client_stop_at_resp_timer();
 
@@ -338,13 +338,13 @@ static void bta_hf_client_handle_error(tBTA_HF_CLIENT_AT_RESULT_TYPE type, UINT1
 
 static void bta_hf_client_handle_ring()
 {
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
     bta_hf_client_evt_val(BTA_HF_CLIENT_RING_INDICATION,0);
 }
 
 static void bta_hf_client_handle_brsf(UINT32 value)
 {
-    APPL_TRACE_DEBUG2("%s 0x%x", __FUNCTION__, value);
+    APPL_TRACE_DEBUG("%s 0x%x", __FUNCTION__, value);
     bta_hf_client_cb.scb.peer_features = value;
 }
 
@@ -354,7 +354,7 @@ static void bta_hf_client_handle_cind_list_item(char *name, UINT32 min, UINT32 m
 
     UINT8 i = 0;
 
-    APPL_TRACE_DEBUG5("%s %lu.%s <%lu:%lu>", __FUNCTION__, index, name, min, max);
+    APPL_TRACE_DEBUG("%s %lu.%s <%lu:%lu>", __FUNCTION__, index, name, min, max);
 
     /* look for a matching indicator on list of supported ones */
     for(i = 0; i < BTA_HF_CLIENT_AT_SUPPORTED_INDICATOR_COUNT; i++)
@@ -379,7 +379,7 @@ static void bta_hf_client_handle_cind_list_item(char *name, UINT32 min, UINT32 m
 
 static void bta_hf_client_handle_cind_value(UINT32 index, UINT32 value)
 {
-    APPL_TRACE_DEBUG3("%s index: %u value: %u", __FUNCTION__, index, value);
+    APPL_TRACE_DEBUG("%s index: %u value: %u", __FUNCTION__, index, value);
 
     if (index >= BTA_HF_CLIENT_AT_INDICATOR_COUNT)
     {
@@ -418,7 +418,7 @@ static void bta_hf_client_handle_cind_value(UINT32 index, UINT32 value)
 
 static void bta_hf_client_handle_chld(UINT32 mask)
 {
-    APPL_TRACE_DEBUG2("%s 0x%x", __FUNCTION__, mask);
+    APPL_TRACE_DEBUG("%s 0x%x", __FUNCTION__, mask);
 
     bta_hf_client_cb.scb.chld_features |= mask;
 }
@@ -427,7 +427,7 @@ static void bta_hf_client_handle_ciev(UINT32 index, UINT32 value)
 {
     INT8 realind = -1;
 
-    APPL_TRACE_DEBUG3("%s index: %u value: %u", __FUNCTION__, index, value);
+    APPL_TRACE_DEBUG("%s index: %u value: %u", __FUNCTION__, index, value);
 
     if(index == 0 || index >= BTA_HF_CLIENT_AT_INDICATOR_COUNT)
     {
@@ -452,7 +452,7 @@ static void bta_hf_client_handle_ciev(UINT32 index, UINT32 value)
 
 static void bta_hf_client_handle_bcs(UINT32 codec)
 {
-    APPL_TRACE_DEBUG2("%s %u", __FUNCTION__, codec);
+    APPL_TRACE_DEBUG("%s %u", __FUNCTION__, codec);
 
     if (codec == BTM_SCO_CODEC_CVSD ||
             (codec == BTM_SCO_CODEC_MSBC && bta_hf_client_cb.msbc_enabled == TRUE))
@@ -469,7 +469,7 @@ static void bta_hf_client_handle_bcs(UINT32 codec)
 
 static void bta_hf_client_handle_bsir(UINT32 provided)
 {
-    APPL_TRACE_DEBUG2("%s %u", __FUNCTION__, provided);
+    APPL_TRACE_DEBUG("%s %u", __FUNCTION__, provided);
 
     bta_hf_client_evt_val(BTA_HF_CLIENT_BSIR_EVT, provided);
 }
@@ -481,7 +481,7 @@ static void bta_hf_client_handle_cmeerror(UINT32 code)
 
 static void bta_hf_client_handle_vgm(UINT32 value)
 {
-    APPL_TRACE_DEBUG2("%s %lu", __FUNCTION__, value);
+    APPL_TRACE_DEBUG("%s %lu", __FUNCTION__, value);
 
     if(value <= BTA_HF_CLIENT_VGM_MAX)
     {
@@ -491,7 +491,7 @@ static void bta_hf_client_handle_vgm(UINT32 value)
 
 static void bta_hf_client_handle_vgs(UINT32 value)
 {
-    APPL_TRACE_DEBUG2("%s %lu", __FUNCTION__, value);
+    APPL_TRACE_DEBUG("%s %lu", __FUNCTION__, value);
 
     if(value <= BTA_HF_CLIENT_VGS_MAX)
     {
@@ -501,7 +501,7 @@ static void bta_hf_client_handle_vgs(UINT32 value)
 
 static void bta_hf_client_handle_bvra(UINT32 value)
 {
-    APPL_TRACE_DEBUG2("%s %lu", __FUNCTION__, value);
+    APPL_TRACE_DEBUG("%s %lu", __FUNCTION__, value);
 
     if (value > 1)
     {
@@ -513,40 +513,40 @@ static void bta_hf_client_handle_bvra(UINT32 value)
 
 static void bta_hf_client_handle_clip(char *numstr, UINT32 type)
 {
-    APPL_TRACE_DEBUG3("%s %u %s", __FUNCTION__, type, numstr);
+    APPL_TRACE_DEBUG("%s %u %s", __FUNCTION__, type, numstr);
 
     bta_hf_client_clip(numstr);
 }
 
 static void bta_hf_client_handle_ccwa(char *numstr, UINT32 type)
 {
-    APPL_TRACE_DEBUG3("%s %u %s", __FUNCTION__, type, numstr);
+    APPL_TRACE_DEBUG("%s %u %s", __FUNCTION__, type, numstr);
 
     bta_hf_client_ccwa(numstr);
 }
 
 static void bta_hf_client_handle_cops(char *opstr, UINT32 mode)
 {
-    APPL_TRACE_DEBUG3("%s %u %s", __FUNCTION__, mode, opstr);
+    APPL_TRACE_DEBUG("%s %u %s", __FUNCTION__, mode, opstr);
 
     bta_hf_client_operator_name(opstr);
 }
 
 static void bta_hf_client_handle_binp(char *numstr)
 {
-    APPL_TRACE_DEBUG2("%s %s", __FUNCTION__, numstr);
+    APPL_TRACE_DEBUG("%s %s", __FUNCTION__, numstr);
 
     bta_hf_client_binp(numstr);
 }
 
 static void bta_hf_client_handle_clcc(UINT16 idx, UINT16 dir, UINT16 status, UINT16 mode, UINT16 mpty, char *numstr, UINT16 type)
 {
-    APPL_TRACE_DEBUG6("%s idx: %u dir: %u status: %u mode: %u mpty: %u",
+    APPL_TRACE_DEBUG("%s idx: %u dir: %u status: %u mode: %u mpty: %u",
                         __FUNCTION__, idx, dir, status, mode, mpty);
 
     if (numstr)
     {
-        APPL_TRACE_DEBUG3("%s number: %s  type: %u", __FUNCTION__, numstr, type);
+        APPL_TRACE_DEBUG("%s number: %s  type: %u", __FUNCTION__, numstr, type);
     }
 
     bta_hf_client_clcc(idx, dir, status, mpty, numstr);
@@ -554,7 +554,7 @@ static void bta_hf_client_handle_clcc(UINT16 idx, UINT16 dir, UINT16 status, UIN
 
 static void bta_hf_client_handle_cnum( char *numstr, UINT16 type, UINT16 service)
 {
-    APPL_TRACE_DEBUG4("%s number: %s type: %u service: %u", __FUNCTION__, numstr, type, service);
+    APPL_TRACE_DEBUG("%s number: %s type: %u service: %u", __FUNCTION__, numstr, type, service);
 
     /* TODO: should number be modified according to type? */
     bta_hf_client_cnum(numstr, service);
@@ -562,7 +562,7 @@ static void bta_hf_client_handle_cnum( char *numstr, UINT16 type, UINT16 service
 
 static void bta_hf_client_handle_btrh( UINT16 code)
 {
-    APPL_TRACE_DEBUG2("%s %lu", __FUNCTION__, code);
+    APPL_TRACE_DEBUG("%s %lu", __FUNCTION__, code);
 
     bta_hf_client_evt_val(BTA_HF_CLIENT_BTRH_EVT, code);
 }
@@ -582,7 +582,7 @@ static void bta_hf_client_handle_btrh( UINT16 code)
 /* check for <cr><lf> and forward buffer if match */
 #define AT_CHECK_RN(buf) \
     if (strncmp("\r\n", buf, sizeof("\r\n") - 1) != 0) { \
-        APPL_TRACE_DEBUG1("%s missing end <cr><lf>", __FUNCTION__); \
+        APPL_TRACE_DEBUG("%s missing end <cr><lf>", __FUNCTION__); \
         return NULL;} \
     buf += sizeof("\r\n") - 1;
 
@@ -1199,7 +1199,7 @@ static char *bta_hf_client_skip_unknown(char *buffer)
 
     buffer = tmp + 2;
 
-    APPL_TRACE_DEBUG3("%s %.*s", __FUNCTION__, buffer - start - 2, start);
+    APPL_TRACE_DEBUG("%s %.*s", __FUNCTION__, buffer - start - 2, start);
 
     return buffer;
 }
@@ -1283,7 +1283,7 @@ static void bta_hf_client_dump_at(void)
 
     *p2 = '\0';
 
-    APPL_TRACE_DEBUG2("%s %s", __FUNCTION__, dump);
+    APPL_TRACE_DEBUG("%s %s", __FUNCTION__, dump);
 }
 #endif
 
@@ -1291,7 +1291,7 @@ static void bta_hf_client_at_parse_start(void)
 {
     char *buf = bta_hf_client_cb.scb.at_cb.buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
 #ifdef BTA_HF_CLIENT_AT_DUMP
     bta_hf_client_dump_at();
@@ -1307,7 +1307,7 @@ static void bta_hf_client_at_parse_start(void)
             tmp = bta_hf_client_parser_cb[i](buf);
             if (tmp == NULL)
             {
-                APPL_TRACE_ERROR0("HFPCient: AT event/reply parsing failed, skipping");
+                APPL_TRACE_ERROR("HFPCient: AT event/reply parsing failed, skipping");
                 tmp = bta_hf_client_skip_unknown(buf);
                 break;
             }
@@ -1324,7 +1324,7 @@ static void bta_hf_client_at_parse_start(void)
         /* could not skip unknown (received garbage?)... disconnect */
         if (tmp == NULL)
         {
-            APPL_TRACE_ERROR0("HFPCient: could not skip unknown AT event, disconnecting");
+            APPL_TRACE_ERROR("HFPCient: could not skip unknown AT event, disconnecting");
             bta_hf_client_at_reset();
             bta_hf_client_sm_execute(BTA_HF_CLIENT_API_CLOSE_EVT, NULL);
             return;
@@ -1347,7 +1347,7 @@ static BOOLEAN bta_hf_client_check_at_complete(void)
         }
     }
 
-    APPL_TRACE_DEBUG2("%s %d", __FUNCTION__, ret);
+    APPL_TRACE_DEBUG("%s %d", __FUNCTION__, ret);
 
     return ret;
 }
@@ -1366,7 +1366,7 @@ static void bta_hf_client_at_clear_buf(void)
 *******************************************************************************/
 void bta_hf_client_at_parse(char *buf, unsigned int len)
 {
-    APPL_TRACE_DEBUG3("%s offset: %u len: %u", __FUNCTION__, bta_hf_client_cb.scb.at_cb.offset, len);
+    APPL_TRACE_DEBUG("%s offset: %u len: %u", __FUNCTION__, bta_hf_client_cb.scb.at_cb.offset, len);
 
     if (len + bta_hf_client_cb.scb.at_cb.offset > BTA_HF_CLIENT_AT_PARSER_MAX_LEN)
     {
@@ -1374,7 +1374,7 @@ void bta_hf_client_at_parse(char *buf, unsigned int len)
         unsigned int tmp = bta_hf_client_cb.scb.at_cb.offset;
         unsigned int space_left = BTA_HF_CLIENT_AT_PARSER_MAX_LEN - bta_hf_client_cb.scb.at_cb.offset;
 
-        APPL_TRACE_DEBUG1("%s overrun, trying to recover", __FUNCTION__);
+        APPL_TRACE_DEBUG("%s overrun, trying to recover", __FUNCTION__);
 
         /* fill up parser buffer */
         memcpy(bta_hf_client_cb.scb.at_cb.buf + bta_hf_client_cb.scb.at_cb.offset, buf, space_left);
@@ -1386,7 +1386,7 @@ void bta_hf_client_at_parse(char *buf, unsigned int len)
         while(bta_hf_client_check_at_complete() == FALSE)
         {
             if (bta_hf_client_cb.scb.at_cb.offset == 0) {
-                APPL_TRACE_ERROR0("HFPClient: AT parser buffer overrun, disconnecting");
+                APPL_TRACE_ERROR("HFPClient: AT parser buffer overrun, disconnecting");
 
                 bta_hf_client_at_reset();
                 bta_hf_client_sm_execute(BTA_HF_CLIENT_API_CLOSE_EVT, NULL);
@@ -1426,7 +1426,7 @@ void bta_hf_client_send_at_brsf(void)
     char buf[BTA_HF_CLIENT_AT_MAX_LEN];
     int at_len;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     at_len = snprintf(buf, sizeof(buf), "AT+BRSF=%u\r", bta_hf_client_cb.scb.features);
 
@@ -1437,7 +1437,7 @@ void bta_hf_client_send_at_bac(void)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (bta_hf_client_cb.msbc_enabled)
     {
@@ -1456,7 +1456,7 @@ void bta_hf_client_send_at_bcs(UINT32 codec)
     char buf[BTA_HF_CLIENT_AT_MAX_LEN];
     int at_len;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     at_len = snprintf(buf, sizeof(buf), "AT+BCS=%u\r", codec);
 
@@ -1468,7 +1468,7 @@ void bta_hf_client_send_at_cind(BOOLEAN status)
     char *buf;
     tBTA_HF_CLIENT_AT_CMD cmd;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (status)
     {
@@ -1488,7 +1488,7 @@ void bta_hf_client_send_at_cmer(BOOLEAN activate)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (activate)
         buf = "AT+CMER=3,0,0,1\r";
@@ -1503,7 +1503,7 @@ void bta_hf_client_send_at_chld(char cmd, UINT32 idx)
     char buf[BTA_HF_CLIENT_AT_MAX_LEN];
     int at_len;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (idx > 0)
         at_len = snprintf(buf, sizeof(buf), "AT+CHLD=%c%u\r", cmd, idx);
@@ -1517,7 +1517,7 @@ void bta_hf_client_send_at_clip(BOOLEAN activate)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (activate)
         buf = "AT+CLIP=1\r";
@@ -1531,7 +1531,7 @@ void bta_hf_client_send_at_ccwa(BOOLEAN activate)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (activate)
         buf = "AT+CCWA=1\r";
@@ -1546,7 +1546,7 @@ void bta_hf_client_send_at_cmee(BOOLEAN activate)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (activate)
         buf = "AT+CMEE=1\r";
@@ -1560,11 +1560,11 @@ void bta_hf_client_send_at_cops(BOOLEAN query)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (!service_availability)
     {
-        APPL_TRACE_DEBUG0("Skip AT+COPS no service");
+        APPL_TRACE_DEBUG("Skip AT+COPS no service");
         return;
     }
     if (query)
@@ -1579,7 +1579,7 @@ void bta_hf_client_send_at_clcc(void)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     buf = "AT+CLCC\r";
 
@@ -1590,7 +1590,7 @@ void bta_hf_client_send_at_bvra(BOOLEAN enable)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (enable)
         buf = "AT+BVRA=1\r";
@@ -1605,7 +1605,7 @@ void bta_hf_client_send_at_vgs(UINT32 volume)
     char buf[BTA_HF_CLIENT_AT_MAX_LEN];
     int at_len;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     at_len = snprintf(buf, sizeof(buf), "AT+VGS=%u\r", volume);
 
@@ -1617,7 +1617,7 @@ void bta_hf_client_send_at_vgm(UINT32 volume)
     char buf[BTA_HF_CLIENT_AT_MAX_LEN];
     int at_len;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     at_len = snprintf(buf, sizeof(buf), "AT+VGM=%u\r", volume);
 
@@ -1629,7 +1629,7 @@ void bta_hf_client_send_at_atd(char *number, UINT32 memory)
     char buf[BTA_HF_CLIENT_AT_MAX_LEN];
     int at_len;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (number[0] != '\0')
     {
@@ -1647,7 +1647,7 @@ void bta_hf_client_send_at_bldn(void)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     buf = "AT+BLDN\r";
 
@@ -1658,7 +1658,7 @@ void bta_hf_client_send_at_ata(void)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     buf = "ATA\r";
 
@@ -1669,7 +1669,7 @@ void bta_hf_client_send_at_chup(void)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     buf = "AT+CHUP\r";
 
@@ -1681,7 +1681,7 @@ void bta_hf_client_send_at_btrh(BOOLEAN query, UINT32 val)
     char buf[BTA_HF_CLIENT_AT_MAX_LEN];
     int at_len;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (query == TRUE)
     {
@@ -1700,7 +1700,7 @@ void bta_hf_client_send_at_vts(char code)
     char buf[BTA_HF_CLIENT_AT_MAX_LEN];
     int at_len;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     at_len = snprintf(buf, sizeof(buf), "AT+VTS=%c\r", code);
 
@@ -1711,7 +1711,7 @@ void bta_hf_client_send_at_bcc(void)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     buf = "AT+BCC\r";
 
@@ -1722,11 +1722,11 @@ void bta_hf_client_send_at_cnum(void)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (!service_availability)
     {
-        APPL_TRACE_DEBUG0("Skip AT+CNUM no Service");
+        APPL_TRACE_DEBUG("Skip AT+CNUM no Service");
         return;
     }
     buf = "AT+CNUM\r";
@@ -1738,11 +1738,11 @@ void bta_hf_client_send_at_nrec(void)
 {
     char *buf;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (!(bta_hf_client_cb.scb.peer_features & BTA_HF_CLIENT_PEER_FEAT_ECNR))
     {
-        APPL_TRACE_DEBUG0("Remote does not support NREC.");
+        APPL_TRACE_DEBUG("Remote does not support NREC.");
         return;
     }
 
@@ -1756,7 +1756,7 @@ void bta_hf_client_send_at_binp(UINT32 action)
     char buf[BTA_HF_CLIENT_AT_MAX_LEN];
     int at_len;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     at_len = snprintf(buf, sizeof(buf), "AT+BINP=%u\r", action);
 
@@ -1769,10 +1769,10 @@ void bta_hf_client_send_at_bia(void)
     int at_len;
     int i;
 
-    APPL_TRACE_DEBUG1("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __FUNCTION__);
     if (bta_hf_client_cb.scb.peer_version < HFP_VERSION_1_6)
     {
-        APPL_TRACE_DEBUG0("Remote does not Support AT+BIA");
+        APPL_TRACE_DEBUG("Remote does not Support AT+BIA");
         return;
     }
 

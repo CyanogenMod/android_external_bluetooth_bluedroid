@@ -172,7 +172,7 @@ tBTA_PAN_SCB *bta_pan_scb_alloc(void)
         if (!p_scb->in_use)
         {
             p_scb->in_use = TRUE;
-            APPL_TRACE_DEBUG1("bta_pan_scb_alloc %d", i);
+            APPL_TRACE_DEBUG("bta_pan_scb_alloc %d", i);
             break;
         }
     }
@@ -181,7 +181,7 @@ tBTA_PAN_SCB *bta_pan_scb_alloc(void)
     {
         /* out of scbs */
         p_scb = NULL;
-        APPL_TRACE_WARNING0("Out of scbs");
+        APPL_TRACE_WARNING("Out of scbs");
     }
     return p_scb;
 }
@@ -202,7 +202,7 @@ static void bta_pan_sm_execute(tBTA_PAN_SCB *p_scb, UINT16 event, tBTA_PAN_DATA 
     UINT8               action;
     int                 i;
 
-    APPL_TRACE_EVENT3("PAN scb=%d event=0x%x state=%d", bta_pan_scb_to_idx(p_scb), event, p_scb->state);
+    APPL_TRACE_EVENT("PAN scb=%d event=0x%x state=%d", bta_pan_scb_to_idx(p_scb), event, p_scb->state);
 
     /* look up the state table for the current state */
     state_table = bta_pan_st_tbl[p_scb->state];
@@ -304,7 +304,7 @@ static void bta_pan_api_open(tBTA_PAN_DATA *p_data)
 *******************************************************************************/
 void bta_pan_scb_dealloc(tBTA_PAN_SCB *p_scb)
 {
-    APPL_TRACE_DEBUG1("bta_pan_scb_dealloc %d", bta_pan_scb_to_idx(p_scb));
+    APPL_TRACE_DEBUG("bta_pan_scb_dealloc %d", bta_pan_scb_to_idx(p_scb));
     memset(p_scb, 0, sizeof(tBTA_PAN_SCB));
 }
 
@@ -350,7 +350,7 @@ tBTA_PAN_SCB *bta_pan_scb_by_handle(UINT16 handle)
     }
 
 
-    APPL_TRACE_WARNING1("No scb for handle %d", handle);
+    APPL_TRACE_WARNING("No scb for handle %d", handle);
 
     return NULL;
 }

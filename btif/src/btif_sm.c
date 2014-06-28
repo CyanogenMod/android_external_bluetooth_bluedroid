@@ -79,7 +79,7 @@ btif_sm_handle_t btif_sm_init(const btif_sm_handler_t *p_handlers, btif_sm_state
 
     if (p_handlers == NULL)
     {
-        BTIF_TRACE_ERROR1("%s : p_handlers is NULL", __FUNCTION__);
+        BTIF_TRACE_ERROR("%s : p_handlers is NULL", __FUNCTION__);
         return NULL;
     }
 
@@ -108,7 +108,7 @@ void btif_sm_shutdown(btif_sm_handle_t handle)
 
     if (p_cb == NULL)
     {
-        BTIF_TRACE_ERROR1("%s : Invalid handle", __FUNCTION__);
+        BTIF_TRACE_ERROR("%s : Invalid handle", __FUNCTION__);
         return;
     }
     GKI_os_free((void*)p_cb);
@@ -129,7 +129,7 @@ btif_sm_state_t btif_sm_get_state(btif_sm_handle_t handle)
 
     if (p_cb == NULL)
     {
-        BTIF_TRACE_ERROR1("%s : Invalid handle", __FUNCTION__);
+        BTIF_TRACE_ERROR("%s : Invalid handle", __FUNCTION__);
         return 0;
     }
 
@@ -156,7 +156,7 @@ bt_status_t btif_sm_dispatch(btif_sm_handle_t handle, btif_sm_event_t event,
 
     if (p_cb == NULL)
     {
-        BTIF_TRACE_ERROR1("%s : Invalid handle", __FUNCTION__);
+        BTIF_TRACE_ERROR("%s : Invalid handle", __FUNCTION__);
         return BT_STATUS_FAIL;
     }
 
@@ -186,7 +186,7 @@ bt_status_t btif_sm_change_state(btif_sm_handle_t handle, btif_sm_state_t state)
 
     if (p_cb == NULL)
     {
-        BTIF_TRACE_ERROR1("%s : Invalid handle", __FUNCTION__);
+        BTIF_TRACE_ERROR("%s : Invalid handle", __FUNCTION__);
         return BT_STATUS_FAIL;
     }
 

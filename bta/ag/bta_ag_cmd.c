@@ -356,7 +356,7 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
             if(*(p+COLON_IDX_4_VGSVGM) == ':')
             {
                 #if defined(BTA_AG_RESULT_DEBUG) && (BTA_AG_RESULT_DEBUG == TRUE)
-                APPL_TRACE_DEBUG0("[HSP] ':'symbol is changed as '=' for HSP compatibility");
+                APPL_TRACE_DEBUG("[HSP] ':'symbol is changed as '=' for HSP compatibility");
                 #endif
                 *(p+COLON_IDX_4_VGSVGM) = '=';
             }
@@ -382,7 +382,7 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
     *p++ = '\n';
 
 #if defined(BTA_AG_RESULT_DEBUG) && (BTA_AG_RESULT_DEBUG == TRUE)
-    APPL_TRACE_DEBUG1("bta_ag_send_result: %s", buf);
+    APPL_TRACE_DEBUG("bta_ag_send_result: %s", buf);
 #endif
 
     /* send to RFCOMM */
@@ -409,7 +409,7 @@ static void bta_ag_send_multi_result(tBTA_AG_SCB *p_scb, tBTA_AG_MULTI_RESULT_CB
 
     if((!m_res_cb) || (m_res_cb->num_result == 0) || (m_res_cb->num_result > BTA_AG_AT_MULTI_LEN))
     {
-        APPL_TRACE_DEBUG0("m_res_cb is NULL or num_result is out of range.");
+        APPL_TRACE_DEBUG("m_res_cb is NULL or num_result is out of range.");
         return;
     }
 
@@ -446,7 +446,7 @@ static void bta_ag_send_multi_result(tBTA_AG_SCB *p_scb, tBTA_AG_MULTI_RESULT_CB
     }
 
 #if defined(BTA_AG_RESULT_DEBUG) && (BTA_AG_RESULT_DEBUG == TRUE)
-    APPL_TRACE_DEBUG1("send_result: %s", buf);
+    APPL_TRACE_DEBUG("send_result: %s", buf);
 #endif
 
     /* send to RFCOMM */
@@ -684,7 +684,7 @@ static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB *p_scb, char *p_s)
             case UUID_CODEC_CVSD:   retval |= BTA_AG_CODEC_CVSD;     break;
             case UUID_CODEC_MSBC:   retval |= BTA_AG_CODEC_MSBC;     break;
             default:
-                APPL_TRACE_ERROR1("Unknown Codec UUID(%d) received", uuid_codec);
+                APPL_TRACE_ERROR("Unknown Codec UUID(%d) received", uuid_codec);
                 return BTA_AG_CODEC_NONE;
         }
 
@@ -826,7 +826,7 @@ void bta_ag_at_hsp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 {
     tBTA_AG_VAL val;
 
-    APPL_TRACE_DEBUG4("AT cmd:%d arg_type:%d arg:%d arg:%s", cmd, arg_type,
+    APPL_TRACE_DEBUG("AT cmd:%d arg_type:%d arg:%d arg:%s", cmd, arg_type,
                       int_arg, p_arg);
 
     /* send OK */
@@ -864,7 +864,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
     tBTA_AG_PEER_CODEC  codec_type, codec_sent;
 #endif
 
-    APPL_TRACE_DEBUG4("HFP AT cmd:%d arg_type:%d arg:%d arg:%s", cmd, arg_type,
+    APPL_TRACE_DEBUG("HFP AT cmd:%d arg_type:%d arg:%d arg:%s", cmd, arg_type,
                       int_arg, p_arg);
 
     val.hdr.handle = bta_ag_scb_to_idx(p_scb);
@@ -1196,12 +1196,12 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                 if (p_scb->peer_codecs & BTA_AG_CODEC_MSBC)
                 {
                     p_scb->sco_codec = UUID_CODEC_MSBC;
-                    APPL_TRACE_DEBUG0("Received AT+BAC, updating sco codec to MSBC");
+                    APPL_TRACE_DEBUG("Received AT+BAC, updating sco codec to MSBC");
                 }
                 else
                 {
                     p_scb->sco_codec = UUID_CODEC_CVSD;
-                    APPL_TRACE_DEBUG0("Received AT+BAC, updating sco codec to CVSD");
+                    APPL_TRACE_DEBUG("Received AT+BAC, updating sco codec to CVSD");
                 }
 
                 /* Received BAC while in codec negotiation. */
@@ -1213,7 +1213,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
             else
             {
                 p_scb->peer_codecs = BTA_AG_CODEC_NONE;
-                APPL_TRACE_ERROR0("Unexpected CMD:AT+BAC, Codec Negotiation is not supported");
+                APPL_TRACE_ERROR("Unexpected CMD:AT+BAC, Codec Negotiation is not supported");
             }
             break;
 
@@ -1226,7 +1226,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                 case UUID_CODEC_CVSD:   codec_type = BTA_AG_CODEC_CVSD;     break;
                 case UUID_CODEC_MSBC:   codec_type = BTA_AG_CODEC_MSBC;     break;
                 default:
-                    APPL_TRACE_ERROR1("Unknown codec_uuid %d", int_arg);
+                    APPL_TRACE_ERROR("Unknown codec_uuid %d", int_arg);
                     codec_type = 0xFFFF;
                     break;
             }
@@ -1278,7 +1278,7 @@ void bta_ag_at_err_cback(tBTA_AG_SCB *p_scb, BOOLEAN unknown, char *p_arg)
 
     if(unknown && (!strlen(p_arg)))
     {
-        APPL_TRACE_DEBUG0("Empty AT cmd string received");
+        APPL_TRACE_DEBUG("Empty AT cmd string received");
         bta_ag_send_ok(p_scb);
         return;
     }
@@ -1313,7 +1313,7 @@ void bta_ag_hsp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 {
     UINT8 code = bta_ag_trans_result[p_result->result];
 
-    APPL_TRACE_DEBUG1("bta_ag_hsp_result : res = %d", p_result->result);
+    APPL_TRACE_DEBUG("bta_ag_hsp_result : res = %d", p_result->result);
 
     switch(p_result->result)
     {
@@ -1386,7 +1386,7 @@ void bta_ag_hsp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 
         case BTA_AG_INBAND_RING_RES:
             p_scb->inband_enabled = p_result->data.state;
-            APPL_TRACE_DEBUG1("inband_enabled set to %d", p_scb->inband_enabled);
+            APPL_TRACE_DEBUG("inband_enabled set to %d", p_scb->inband_enabled);
             break;
 
         case BTA_AG_UNAT_RES:
@@ -1426,7 +1426,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 {
     UINT8 code = bta_ag_trans_result[p_result->result];
 
-    APPL_TRACE_DEBUG1("bta_ag_hfp_result : res = %d", p_result->result);
+    APPL_TRACE_DEBUG("bta_ag_hfp_result : res = %d", p_result->result);
 
     switch(p_result->result)
     {
@@ -1449,7 +1449,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
                     p_result->data.num = BTA_AG_CLIP_TYPE_DEFAULT;
             }
 
-            APPL_TRACE_DEBUG1("CLIP type :%d", p_result->data.num);
+            APPL_TRACE_DEBUG("CLIP type :%d", p_result->data.num);
             p_scb->clip[0] = 0;
             if (p_result->data.str[0] != 0)
                 sprintf(p_scb->clip,"%s,%d", p_result->data.str, p_result->data.num);
@@ -1597,7 +1597,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 
         case BTA_AG_INBAND_RING_RES:
             p_scb->inband_enabled = p_result->data.state;
-            APPL_TRACE_DEBUG1("inband_enabled set to %d", p_scb->inband_enabled);
+            APPL_TRACE_DEBUG("inband_enabled set to %d", p_scb->inband_enabled);
             bta_ag_send_result(p_scb, code, NULL, p_result->data.state);
             break;
 
@@ -1609,7 +1609,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             p_scb->signal_ind = p_result->data.str[6] - '0';
             p_scb->roam_ind = p_result->data.str[8] - '0';
             p_scb->battchg_ind = p_result->data.str[10] - '0';
-            APPL_TRACE_DEBUG2("cind call:%d callsetup:%d", p_scb->call_ind, p_scb->callsetup_ind);
+            APPL_TRACE_DEBUG("cind call:%d callsetup:%d", p_scb->call_ind, p_scb->callsetup_ind);
 
             bta_ag_send_result(p_scb, code, p_result->data.str, 0);
             bta_ag_send_ok(p_scb);
@@ -1642,7 +1642,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
                 if (p_result->data.str[0] != 0)
                 {
                     bta_ag_process_unat_res(p_result->data.str);
-                    APPL_TRACE_DEBUG1("BTA_AG_RES :%s",p_result->data.str);
+                    APPL_TRACE_DEBUG("BTA_AG_RES :%s",p_result->data.str);
                     bta_ag_send_result(p_scb, code, p_result->data.str, 0);
                 }
 
@@ -1738,7 +1738,7 @@ void bta_ag_setcodec(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
        (codec_type != BTA_AG_CODEC_CVSD) &&
        (codec_type != BTA_AG_CODEC_MSBC))
     {
-        APPL_TRACE_ERROR1("bta_ag_setcodec error: unsupported codec type %d", codec_type);
+        APPL_TRACE_ERROR("bta_ag_setcodec error: unsupported codec type %d", codec_type);
         return;
     }
 
@@ -1746,11 +1746,11 @@ void bta_ag_setcodec(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     {
         p_scb->sco_codec = codec_type;
         p_scb->codec_updated = TRUE;
-        APPL_TRACE_DEBUG1("bta_ag_setcodec: Updated codec type %d", codec_type);
+        APPL_TRACE_DEBUG("bta_ag_setcodec: Updated codec type %d", codec_type);
     }
     else
     {
-        APPL_TRACE_ERROR1("bta_ag_setcodec error: unsupported codec type %d", codec_type);
+        APPL_TRACE_ERROR("bta_ag_setcodec error: unsupported codec type %d", codec_type);
     }
 #else
     UNUSED(p_scb);
@@ -1785,7 +1785,7 @@ void bta_ag_send_bcs(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
             case BTA_AG_CODEC_CVSD:     codec_uuid = UUID_CODEC_CVSD;   break;
             case BTA_AG_CODEC_MSBC:     codec_uuid = UUID_CODEC_MSBC;   break;
             default:
-                APPL_TRACE_ERROR1("bta_ag_send_bcs: unknown codec %d, use CVSD", p_scb->sco_codec);
+                APPL_TRACE_ERROR("bta_ag_send_bcs: unknown codec %d, use CVSD", p_scb->sco_codec);
                 codec_uuid = UUID_CODEC_CVSD;
                 break;
         }

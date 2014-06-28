@@ -72,14 +72,14 @@ UINT8  bta_hh_find_cb(BD_ADDR bda)
               bdcmp(bda, bd_addr_null) != 0) )
         {
 #if BTA_HH_DEBUG
-            APPL_TRACE_DEBUG2("found kdev_cb[%d] hid_handle = %d ", xx,
+            APPL_TRACE_DEBUG("found kdev_cb[%d] hid_handle = %d ", xx,
                                 bta_hh_cb.kdev[xx].hid_handle)
 #endif
             return xx;
         }
 #if BTA_HH_DEBUG
         else
-            APPL_TRACE_DEBUG4("in_use ? [%d] kdev[%d].hid_handle = %d state = [%d]",
+            APPL_TRACE_DEBUG("in_use ? [%d] kdev[%d].hid_handle = %d state = [%d]",
                             bta_hh_cb.kdev[xx].in_use, xx,
                             bta_hh_cb.kdev[xx].hid_handle,
                             bta_hh_cb.kdev[xx].state);
@@ -97,7 +97,7 @@ UINT8  bta_hh_find_cb(BD_ADDR bda)
     }
     /* If device list full, report BTA_HH_IDX_INVALID */
 #if BTA_HH_DEBUG
-    APPL_TRACE_DEBUG2("bta_hh_find_cb:: index = %d while max = %d",
+    APPL_TRACE_DEBUG("bta_hh_find_cb:: index = %d while max = %d",
                         xx, BTA_HH_MAX_DEVICE);
 #endif
 
@@ -157,7 +157,7 @@ void bta_hh_update_di_info(tBTA_HH_DEV_CB *p_cb, UINT16 vendor_id, UINT16 produc
                            UINT16 version, UINT8 flag)
 {
 #if BTA_HH_DEBUG
-    APPL_TRACE_DEBUG3("vendor_id = 0x%2x product_id = 0x%2x version = 0x%2x",
+    APPL_TRACE_DEBUG("vendor_id = 0x%2x product_id = 0x%2x version = 0x%2x",
                         vendor_id, product_id, version);
 #endif
     p_cb->dscp_info.vendor_id     =   vendor_id;
@@ -187,7 +187,7 @@ void bta_hh_add_device_to_list(tBTA_HH_DEV_CB *p_cb, UINT8 handle,
                                UINT8 app_id)
 {
 #if BTA_HH_DEBUG
-    APPL_TRACE_DEBUG1("subclass = 0x%2x", sub_class);
+    APPL_TRACE_DEBUG("subclass = 0x%2x", sub_class);
 #endif
 
     p_cb->hid_handle = handle;
@@ -237,13 +237,13 @@ BOOLEAN bta_hh_tod_spt(tBTA_HH_DEV_CB *p_cb,UINT8 sub_class)
         {
             p_cb->app_id = p_bta_hh_cfg->p_devt_list[xx].app_id;
 #if BTA_HH_DEBUG
-            APPL_TRACE_EVENT1("bta_hh_tod_spt sub_class:0x%x supported", sub_class);
+            APPL_TRACE_EVENT("bta_hh_tod_spt sub_class:0x%x supported", sub_class);
 #endif
             return TRUE;
         }
     }
 #if BTA_HH_DEBUG
-            APPL_TRACE_EVENT1("bta_hh_tod_spt sub_class:0x%x NOT supported", sub_class);
+            APPL_TRACE_EVENT("bta_hh_tod_spt sub_class:0x%x NOT supported", sub_class);
 #endif
     return FALSE;
 }
@@ -269,7 +269,7 @@ void bta_hh_parse_keybd_rpt(tBTA_HH_BOOT_RPT *p_kb_data, UINT8 *p_report,
     UINT8        this_report[BTA_HH_MAX_RPT_CHARS];
 
 #if BTA_HH_DEBUG
-    APPL_TRACE_DEBUG2("bta_hh_parse_keybd_rpt:  (report=%p, report_len=%d) called",
+    APPL_TRACE_DEBUG("bta_hh_parse_keybd_rpt:  (report=%p, report_len=%d) called",
             p_report, report_len);
 #endif
 
@@ -291,7 +291,7 @@ void bta_hh_parse_keybd_rpt(tBTA_HH_BOOT_RPT *p_kb_data, UINT8 *p_report,
     {
         if (ctl_shift & bta_hh_mod_key_mask[xx])
         {
-            APPL_TRACE_DEBUG1("Mod Key[%02x] pressed", bta_hh_mod_key_mask[xx] );
+            APPL_TRACE_DEBUG("Mod Key[%02x] pressed", bta_hh_mod_key_mask[xx] );
             p_kb->mod_key[xx] = TRUE;
         }
         else if (p_kb->mod_key[xx])
@@ -321,7 +321,7 @@ void bta_hh_parse_keybd_rpt(tBTA_HH_BOOT_RPT *p_kb_data, UINT8 *p_report,
     for (xx = 0; xx < report_len; xx++)
     {
 #if BTA_HH_DEBUG
-        APPL_TRACE_DEBUG1("this_char = %02x", this_report[xx]);
+        APPL_TRACE_DEBUG("this_char = %02x", this_report[xx]);
 #endif
         if ((this_char = this_report[xx]) == 0)
             continue;
@@ -334,7 +334,7 @@ void bta_hh_parse_keybd_rpt(tBTA_HH_BOOT_RPT *p_kb_data, UINT8 *p_report,
             p_data->this_char[key_idx ++] = this_char;
 
 #if BTA_HH_DEBUG
-        APPL_TRACE_DEBUG1("found keycode %02x ",  this_report[xx]);
+        APPL_TRACE_DEBUG("found keycode %02x ",  this_report[xx]);
 #endif
         p_data->caps_lock   = p_kb->caps_lock;
         p_data->num_lock      = p_kb->num_lock;
@@ -362,7 +362,7 @@ void bta_hh_parse_mice_rpt(tBTA_HH_BOOT_RPT *p_mice_data, UINT8 *p_report,
 #if BTA_HH_DEBUG
     UINT8       xx;
 
-    APPL_TRACE_DEBUG2("bta_hh_parse_mice_rpt:  bta_keybd_rpt_rcvd(report=%p, \
+    APPL_TRACE_DEBUG("bta_hh_parse_mice_rpt:  bta_keybd_rpt_rcvd(report=%p, \
                 report_len=%d) called", p_report, report_len);
 #endif
 
@@ -375,7 +375,7 @@ void bta_hh_parse_mice_rpt(tBTA_HH_BOOT_RPT *p_mice_data, UINT8 *p_report,
 #if BTA_HH_DEBUG
     for (xx = 0; xx < report_len; xx++)
     {
-        APPL_TRACE_DEBUG1("this_char = %02x", p_report[xx]);
+        APPL_TRACE_DEBUG("this_char = %02x", p_report[xx]);
     }
 #endif
 
@@ -389,8 +389,8 @@ void bta_hh_parse_mice_rpt(tBTA_HH_BOOT_RPT *p_mice_data, UINT8 *p_report,
     p_data->delta_y     = p_report[2];
 
 #if BTA_HH_DEBUG
-    APPL_TRACE_DEBUG1("mice button: 0x%2x", p_data->mouse_button);
-    APPL_TRACE_DEBUG2("mice move: x = %d y = %d", p_data->delta_x,
+    APPL_TRACE_DEBUG("mice button: 0x%2x", p_data->mouse_button);
+    APPL_TRACE_DEBUG("mice move: x = %d y = %d", p_data->delta_x,
                         p_data->delta_y );
 #endif
 
@@ -496,7 +496,7 @@ UINT8 bta_hh_dev_handle_to_cb_idx(UINT8 dev_handle)
         if (BTA_HH_IS_LE_DEV_HDL_VALID(dev_handle))
             index = bta_hh_cb.le_cb_index[BTA_HH_GET_LE_CB_IDX(dev_handle)];
 #if BTA_HH_DEBUG == TRUE
-        APPL_TRACE_DEBUG2("bta_hh_dev_handle_to_cb_idx dev_handle = %d index = %d", dev_handle, index);
+        APPL_TRACE_DEBUG("bta_hh_dev_handle_to_cb_idx dev_handle = %d index = %d", dev_handle, index);
 #endif
     }
     else
@@ -522,18 +522,18 @@ void bta_hh_trace_dev_db(void)
 {
     UINT8    xx;
 
-    APPL_TRACE_DEBUG0("bta_hh_trace_dev_db:: Device DB list********************");
+    APPL_TRACE_DEBUG("bta_hh_trace_dev_db:: Device DB list********************");
 
     for (xx = 0; xx < BTA_HH_MAX_DEVICE; xx++)
     {
-        APPL_TRACE_DEBUG3("kdev[%d] in_use[%d]  handle[%d] ",xx,
+        APPL_TRACE_DEBUG("kdev[%d] in_use[%d]  handle[%d] ",xx,
             bta_hh_cb.kdev[xx].in_use, bta_hh_cb.kdev[xx].hid_handle);
 
-        APPL_TRACE_DEBUG4("\t\t\t attr_mask[%04x] state [%d] sub_class[%02x] index = %d",
+        APPL_TRACE_DEBUG("\t\t\t attr_mask[%04x] state [%d] sub_class[%02x] index = %d",
             bta_hh_cb.kdev[xx].attr_mask, bta_hh_cb.kdev[xx].state,
             bta_hh_cb.kdev[xx].sub_class, bta_hh_cb.kdev[xx].index);
     }
-    APPL_TRACE_DEBUG0("*********************************************************");
+    APPL_TRACE_DEBUG("*********************************************************");
 }
 #endif
 #endif /* HL_INCLUDED */
