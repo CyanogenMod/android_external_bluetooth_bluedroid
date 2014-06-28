@@ -36,6 +36,7 @@
 #include "hci.h"
 #include "userial.h"
 #include "utils.h"
+#include "vendor.h"
 
 /******************************************************************************
 **  Constants & Macros

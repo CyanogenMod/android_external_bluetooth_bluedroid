@@ -41,6 +41,7 @@
 #include "bt_vendor_lib.h"
 #include "userial.h"
 #include "utils.h"
+#include "vendor.h"
 
 /******************************************************************************
 **  Constants & Macros
@@ -70,8 +71,6 @@ enum {
 /******************************************************************************
 **  Externs
 ******************************************************************************/
-
-extern bt_vendor_interface_t *bt_vnd_if;
 
 /******************************************************************************
 **  Local type definitions
@@ -290,11 +289,6 @@ bool userial_open(userial_port_t port) {
         return false;
     }
 
-    if (!bt_vnd_if) {
-        ALOGE("%s no vendor interface, cannot open serial port.", __func__);
-        return false;
-    }
-
     if (userial_running) {
         userial_close();
         utils_delay(50);
@@ -302,7 +296,7 @@ bool userial_open(userial_port_t port) {
 
     // Call in to the vendor-specific library to open the serial port.
     int fd_array[CH_MAX];
-    int num_ports = bt_vnd_if->op(BT_VND_OP_USERIAL_OPEN, &fd_array);
+    int num_ports = vendor_send_command(BT_VND_OP_USERIAL_OPEN, &fd_array);
 
     if (num_ports > 1) {
         ALOGE("%s opened wrong number of ports: got %d, expected 1.", __func__, num_ports);
@@ -325,7 +319,7 @@ bool userial_open(userial_port_t port) {
     return true;
 
 error:
-    bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
+    vendor_send_command(BT_VND_OP_USERIAL_CLOSE, NULL);
     return false;
 }
 
@@ -397,7 +391,6 @@ uint16_t userial_write(uint16_t msg_id, const uint8_t *p_data, uint16_t len) {
 }
 
 void userial_close(void) {
-    assert(bt_vnd_if != NULL);
     assert(bt_hc_cbacks != NULL);
 
     // Join the reader thread if it's still running.
@@ -409,7 +402,7 @@ void userial_close(void) {
     }
 
     // Ask the vendor-specific library to close the serial port.
-    bt_vnd_if->op(BT_VND_OP_USERIAL_CLOSE, NULL);
+    vendor_send_command(BT_VND_OP_USERIAL_CLOSE, NULL);
 
     // Free all buffers still waiting in the RX queue.
     // TODO: use list data structure and clean this up.

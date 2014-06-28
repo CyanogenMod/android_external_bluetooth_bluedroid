@@ -6,11 +6,11 @@ LOCAL_CFLAGS += $(bdroid_CFLAGS)
 
 LOCAL_SRC_FILES := \
 	src/bt_hci_bdroid.c \
-	src/bt_hw.c \
 	src/btsnoop.c \
 	src/btsnoop_net.c \
 	src/lpm.c \
-	src/utils.c
+	src/utils.c \
+	src/vendor.c
 
 LOCAL_CFLAGS := -Wno-unused-parameter
 

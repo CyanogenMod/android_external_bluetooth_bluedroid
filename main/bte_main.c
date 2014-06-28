@@ -320,10 +320,9 @@ static void bte_hci_disable(void)
 
     if (bt_hc_if)
     {
-        bt_hc_if->cleanup();
-        bt_hc_if->set_power(BT_HC_CHIP_PWR_OFF);
         if (hci_logging_enabled == TRUE ||  hci_logging_config == TRUE)
             bt_hc_if->logging(BT_HC_LOGGING_OFF, hci_logfile);
+        bt_hc_if->cleanup();
     }
 }
 
