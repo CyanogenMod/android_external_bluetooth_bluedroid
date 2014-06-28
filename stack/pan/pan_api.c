@@ -147,14 +147,14 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
     if ((!(role & (PAN_ROLE_CLIENT | PAN_ROLE_GN_SERVER | PAN_ROLE_NAP_SERVER))) &&
         role != PAN_ROLE_INACTIVE)
     {
-        PAN_TRACE_ERROR1 ("PAN role %d is invalid", role);
+        PAN_TRACE_ERROR ("PAN role %d is invalid", role);
         return PAN_FAILURE;
     }
 
     /* If the current active role is same as the role being set do nothing */
     if (pan_cb.role == role)
     {
-        PAN_TRACE_EVENT1 ("PAN role already was set to: %d", role);
+        PAN_TRACE_EVENT ("PAN role already was set to: %d", role);
         return PAN_SUCCESS;
     }
 
@@ -164,7 +164,7 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
         p_sec = sec_mask;
 
     /* Register all the roles with SDP */
-    PAN_TRACE_API1 ("PAN_SetRole() called with role 0x%x", role);
+    PAN_TRACE_API ("PAN_SetRole() called with role 0x%x", role);
 #if (defined (PAN_SUPPORTS_ROLE_NAP) && PAN_SUPPORTS_ROLE_NAP == TRUE)
     /* Check the service name */
     if ((p_nap_name == NULL) || (*p_nap_name == 0))
@@ -265,7 +265,7 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
         pan_close_all_connections ();
 
     pan_cb.role = role;
-    PAN_TRACE_EVENT1 ("PAN role set to: %d", role);
+    PAN_TRACE_EVENT ("PAN role set to: %d", role);
     return PAN_SUCCESS;
 }
 
@@ -311,7 +311,7 @@ tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16
     /* Check if PAN is active or not */
     if (!(pan_cb.role & src_role))
     {
-        PAN_TRACE_ERROR1 ("PAN is not active for the role %d", src_role);
+        PAN_TRACE_ERROR ("PAN is not active for the role %d", src_role);
         return PAN_FAILURE;
     }
 
@@ -319,7 +319,7 @@ tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16
     if ((src_role != PAN_ROLE_CLIENT && src_role != PAN_ROLE_GN_SERVER && src_role != PAN_ROLE_NAP_SERVER) ||
         (dst_role != PAN_ROLE_CLIENT && dst_role != PAN_ROLE_GN_SERVER && dst_role != PAN_ROLE_NAP_SERVER))
     {
-        PAN_TRACE_ERROR2 ("Either source %d or destination role %d is invalid", src_role, dst_role);
+        PAN_TRACE_ERROR ("Either source %d or destination role %d is invalid", src_role, dst_role);
         return PAN_FAILURE;
     }
 
@@ -336,7 +336,7 @@ tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16
             ** because if there is already a connection we cannot accept
             ** another connection in PANU role
             */
-            PAN_TRACE_ERROR0 ("Cannot make PANU connections when there are more than one connection");
+            PAN_TRACE_ERROR ("Cannot make PANU connections when there are more than one connection");
             return PAN_INVALID_SRC_ROLE;
         }
 
@@ -363,7 +363,7 @@ tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16
     {
         if (pan_cb.num_conns && pan_cb.active_role == PAN_ROLE_CLIENT && !pcb)
         {
-            PAN_TRACE_ERROR0 ("Device already have a connection in PANU role");
+            PAN_TRACE_ERROR ("Device already have a connection in PANU role");
             return PAN_INVALID_SRC_ROLE;
         }
 
@@ -383,7 +383,7 @@ tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16
     /* The role combination is not valid */
     else
     {
-        PAN_TRACE_ERROR2 ("Source %d and Destination roles %d are not valid combination",
+        PAN_TRACE_ERROR ("Source %d and Destination roles %d are not valid combination",
             src_role, dst_role);
         return PAN_FAILURE;
     }
@@ -393,12 +393,12 @@ tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16
         pcb = pan_allocate_pcb (rem_bda, BNEP_INVALID_HANDLE);
     if (!pcb)
     {
-        PAN_TRACE_ERROR0 ("PAN Connection failed because of no resources");
+        PAN_TRACE_ERROR ("PAN Connection failed because of no resources");
         return PAN_NO_RESOURCES;
     }
     BTM_SetOutService(rem_bda, BTM_SEC_SERVICE_BNEP_PANU, mx_chan_id);
 
-    PAN_TRACE_API6 ("PAN_Connect() for BD Addr %x.%x.%x.%x.%x.%x",
+    PAN_TRACE_API ("PAN_Connect() for BD Addr %x.%x.%x.%x.%x.%x",
         rem_bda[0], rem_bda[1], rem_bda[2], rem_bda[3], rem_bda[4], rem_bda[5]);
     if (pcb->con_state == PAN_STATE_IDLE)
     {
@@ -429,7 +429,7 @@ tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16
         return result;
     }
 
-    PAN_TRACE_DEBUG1 ("PAN_Connect() current active role set to %d", src_role);
+    PAN_TRACE_DEBUG ("PAN_Connect() current active role set to %d", src_role);
     pan_cb.prv_active_role = pan_cb.active_role;
     pan_cb.active_role = src_role;
     *handle = pcb->handle;
@@ -461,7 +461,7 @@ tPAN_RESULT PAN_Disconnect (UINT16 handle)
     pcb = pan_get_pcb_by_handle (handle);
     if(!pcb)
     {
-        PAN_TRACE_ERROR1 ("PAN connection not found for the handle %d", handle);
+        PAN_TRACE_ERROR ("PAN connection not found for the handle %d", handle);
         return PAN_FAILURE;
     }
 
@@ -476,11 +476,11 @@ tPAN_RESULT PAN_Disconnect (UINT16 handle)
 
     if (result != BNEP_SUCCESS)
     {
-        PAN_TRACE_EVENT0 ("Error in closing PAN connection");
+        PAN_TRACE_EVENT ("Error in closing PAN connection");
         return PAN_FAILURE;
     }
 
-    PAN_TRACE_EVENT0 ("PAN connection closed");
+    PAN_TRACE_EVENT ("PAN connection closed");
     return PAN_SUCCESS;
 }
 
@@ -512,7 +512,7 @@ tPAN_RESULT PAN_Write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol, 
     BT_HDR *buffer;
 
     if (pan_cb.role == PAN_ROLE_INACTIVE || !pan_cb.num_conns) {
-        PAN_TRACE_ERROR1("%s PAN is not active, data write failed.", __func__);
+        PAN_TRACE_ERROR("%s PAN is not active, data write failed.", __func__);
         return PAN_FAILURE;
     }
 
@@ -531,7 +531,7 @@ tPAN_RESULT PAN_Write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol, 
 
     buffer = (BT_HDR *)GKI_getpoolbuf(PAN_POOL_ID);
     if (!buffer) {
-        PAN_TRACE_ERROR1("%s unable to acquire buffer from pool.", __func__);
+        PAN_TRACE_ERROR("%s unable to acquire buffer from pool.", __func__);
         return PAN_NO_RESOURCES;
     }
 
@@ -574,7 +574,7 @@ tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoc
 
     if (pan_cb.role == PAN_ROLE_INACTIVE || (!(pan_cb.num_conns)))
     {
-        PAN_TRACE_ERROR0 ("PAN is not active Data write failed");
+        PAN_TRACE_ERROR ("PAN is not active Data write failed");
         GKI_freebuf (p_buf);
         return PAN_FAILURE;
     }
@@ -604,7 +604,7 @@ tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoc
 
         if (i == MAX_PAN_CONNS)
         {
-            PAN_TRACE_ERROR0 ("PAN Don't have any user connections");
+            PAN_TRACE_ERROR ("PAN Don't have any user connections");
             GKI_freebuf (p_buf);
             return PAN_FAILURE;
         }
@@ -612,16 +612,16 @@ tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoc
         result = BNEP_WriteBuf (pan_cb.pcb[i].handle, dst, p_buf, protocol, src, ext);
         if (result == BNEP_IGNORE_CMD)
         {
-            PAN_TRACE_DEBUG0 ("PAN ignored data write for PANU connection");
+            PAN_TRACE_DEBUG ("PAN ignored data write for PANU connection");
             return result;
         }
         else if (result != BNEP_SUCCESS)
         {
-            PAN_TRACE_ERROR0 ("PAN failed to write data for the PANU connection");
+            PAN_TRACE_ERROR ("PAN failed to write data for the PANU connection");
             return result;
         }
 
-        PAN_TRACE_DEBUG0 ("PAN successfully wrote data for the PANU connection");
+        PAN_TRACE_DEBUG ("PAN successfully wrote data for the PANU connection");
         return PAN_SUCCESS;
     }
 
@@ -629,14 +629,14 @@ tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoc
     pcb = pan_get_pcb_by_handle (handle);
     if (!pcb)
     {
-        PAN_TRACE_ERROR0 ("PAN Buf write for wrong handle");
+        PAN_TRACE_ERROR ("PAN Buf write for wrong handle");
         GKI_freebuf (p_buf);
         return PAN_FAILURE;
     }
 
     if (pcb->con_state != PAN_STATE_CONNECTED)
     {
-        PAN_TRACE_ERROR0 ("PAN Buf write when conn is not active");
+        PAN_TRACE_ERROR ("PAN Buf write when conn is not active");
         GKI_freebuf (p_buf);
         return PAN_FAILURE;
     }
@@ -644,16 +644,16 @@ tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoc
     result = BNEP_WriteBuf (pcb->handle, dst, p_buf, protocol, src, ext);
     if (result == BNEP_IGNORE_CMD)
     {
-        PAN_TRACE_DEBUG0 ("PAN ignored data buf write to PANU");
+        PAN_TRACE_DEBUG ("PAN ignored data buf write to PANU");
         return result;
     }
     else if (result != BNEP_SUCCESS)
     {
-        PAN_TRACE_ERROR0 ("PAN failed to send data buf to the PANU");
+        PAN_TRACE_ERROR ("PAN failed to send data buf to the PANU");
         return result;
     }
 
-    PAN_TRACE_DEBUG0 ("PAN successfully sent data buf to the PANU");
+    PAN_TRACE_DEBUG ("PAN successfully sent data buf to the PANU");
     return PAN_SUCCESS;
 }
 
@@ -687,18 +687,18 @@ tPAN_RESULT PAN_SetProtocolFilters (UINT16 handle,
     pcb = pan_get_pcb_by_handle (handle);
     if(!pcb)
     {
-        PAN_TRACE_ERROR1 ("PAN connection not found for the handle %d", handle);
+        PAN_TRACE_ERROR ("PAN connection not found for the handle %d", handle);
         return PAN_FAILURE;
     }
 
     result = BNEP_SetProtocolFilters (pcb->handle, num_filters, p_start_array, p_end_array);
     if (result != BNEP_SUCCESS)
     {
-        PAN_TRACE_ERROR1 ("PAN failed to set protocol filters for handle %d", handle);
+        PAN_TRACE_ERROR ("PAN failed to set protocol filters for handle %d", handle);
         return result;
     }
 
-    PAN_TRACE_API1 ("PAN successfully sent protocol filters for handle %d", handle);
+    PAN_TRACE_API ("PAN successfully sent protocol filters for handle %d", handle);
     return PAN_SUCCESS;
 #else
     return PAN_FAILURE;
@@ -736,7 +736,7 @@ tBNEP_RESULT PAN_SetMulticastFilters (UINT16 handle,
     pcb = pan_get_pcb_by_handle (handle);
     if(!pcb)
     {
-        PAN_TRACE_ERROR1 ("PAN connection not found for the handle %d", handle);
+        PAN_TRACE_ERROR ("PAN connection not found for the handle %d", handle);
         return PAN_FAILURE;
     }
 
@@ -744,11 +744,11 @@ tBNEP_RESULT PAN_SetMulticastFilters (UINT16 handle,
                             num_mcast_filters, p_start_array, p_end_array);
     if (result != BNEP_SUCCESS)
     {
-        PAN_TRACE_ERROR1 ("PAN failed to set multicast filters for handle %d", handle);
+        PAN_TRACE_ERROR ("PAN failed to set multicast filters for handle %d", handle);
         return result;
     }
 
-    PAN_TRACE_API1 ("PAN successfully sent multicast filters for handle %d", handle);
+    PAN_TRACE_API ("PAN successfully sent multicast filters for handle %d", handle);
     return PAN_SUCCESS;
 #else
     return PAN_FAILURE;

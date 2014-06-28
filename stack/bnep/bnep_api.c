@@ -140,7 +140,7 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
     UINT16          cid;
     tBNEP_CONN      *p_bcb = bnepu_find_bcb_by_bd_addr (p_rem_bda);
 
-    BNEP_TRACE_API6 ("BNEP_Connect()  BDA: %02x-%02x-%02x-%02x-%02x-%02x",
+    BNEP_TRACE_API ("BNEP_Connect()  BDA: %02x-%02x-%02x-%02x-%02x-%02x",
                      p_rem_bda[0], p_rem_bda[1], p_rem_bda[2],
                      p_rem_bda[3], p_rem_bda[4], p_rem_bda[5]);
 
@@ -181,7 +181,7 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
         /* Transition to the next appropriate state, waiting for connection confirm. */
         p_bcb->con_state = BNEP_STATE_SEC_CHECKING;
 
-        BNEP_TRACE_API1 ("BNEP initiating security procedures for src uuid 0x%x",
+        BNEP_TRACE_API ("BNEP initiating security procedures for src uuid 0x%x",
             p_bcb->src_uuid.uu.uuid16);
 
 #if (defined (BNEP_DO_AUTH_FOR_ROLE_SWITCH) && BNEP_DO_AUTH_FOR_ROLE_SWITCH == TRUE)
@@ -206,7 +206,7 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
         }
         else
         {
-            BNEP_TRACE_ERROR0 ("BNEP - Originate failed");
+            BNEP_TRACE_ERROR ("BNEP - Originate failed");
             if (bnep_cb.p_conn_state_cb)
                 (*bnep_cb.p_conn_state_cb) (p_bcb->handle, p_bcb->rem_bda, BNEP_CONN_FAILED, FALSE);
             bnepu_release_bcb (p_bcb);
@@ -251,7 +251,7 @@ tBNEP_RESULT BNEP_ConnectResp (UINT16 handle, tBNEP_RESULT resp)
         (!(p_bcb->con_flags & BNEP_FLAGS_SETUP_RCVD)))
         return (BNEP_WRONG_STATE);
 
-    BNEP_TRACE_API2 ("BNEP_ConnectResp()  for handle %d, responce %d", handle, resp);
+    BNEP_TRACE_API ("BNEP_ConnectResp()  for handle %d, responce %d", handle, resp);
 
     /* Form appropriate responce based on profile responce */
     if      (resp == BNEP_CONN_FAILED_SRC_UUID)   resp_code = BNEP_SETUP_INVALID_SRC_UUID;
@@ -327,7 +327,7 @@ tBNEP_RESULT BNEP_Disconnect (UINT16 handle)
     if (p_bcb->con_state == BNEP_STATE_IDLE)
         return (BNEP_WRONG_HANDLE);
 
-    BNEP_TRACE_API1 ("BNEP_Disconnect()  for handle %d", handle);
+    BNEP_TRACE_API ("BNEP_Disconnect()  for handle %d", handle);
 
     L2CA_DisconnectReq (p_bcb->l2cap_cid);
 
@@ -378,7 +378,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
     /* Check MTU size */
     if (p_buf->len > BNEP_MTU_SIZE)
     {
-        BNEP_TRACE_ERROR2 ("BNEP_Write() length %d exceeded MTU %d", p_buf->len, BNEP_MTU_SIZE);
+        BNEP_TRACE_ERROR ("BNEP_Write() length %d exceeded MTU %d", p_buf->len, BNEP_MTU_SIZE);
         GKI_freebuf (p_buf);
         return (BNEP_MTU_EXCEDED);
     }
@@ -485,7 +485,7 @@ tBNEP_RESULT  BNEP_Write (UINT16 handle,
     /* Check MTU size. Consider the possibility of having extension headers */
     if (len > BNEP_MTU_SIZE)
     {
-        BNEP_TRACE_ERROR2 ("BNEP_Write() length %d exceeded MTU %d", len, BNEP_MTU_SIZE);
+        BNEP_TRACE_ERROR ("BNEP_Write() length %d exceeded MTU %d", len, BNEP_MTU_SIZE);
         return (BNEP_MTU_EXCEDED);
     }
 
@@ -544,7 +544,7 @@ tBNEP_RESULT  BNEP_Write (UINT16 handle,
     /* Get a buffer to copy teh data into */
     if ((p_buf = (BT_HDR *)GKI_getpoolbuf (BNEP_POOL_ID)) == NULL)
     {
-        BNEP_TRACE_ERROR0 ("BNEP_Write() not able to get buffer");
+        BNEP_TRACE_ERROR ("BNEP_Write() not able to get buffer");
         return (BNEP_NO_RESOURCES);
     }
 
