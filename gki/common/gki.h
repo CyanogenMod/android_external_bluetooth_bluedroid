@@ -122,6 +122,8 @@ typedef struct
     UINT16   count;
 } BUFFER_Q;
 
+#define GKI_IS_QUEUE_EMPTY(p_q) ((p_q)->count == 0)
+
 /* Task constants
 */
 #ifndef TASKPTR
