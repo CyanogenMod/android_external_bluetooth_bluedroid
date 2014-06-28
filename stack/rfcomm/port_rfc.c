@@ -56,12 +56,12 @@ int port_open_continue (tPORT *p_port)
 {
     tRFC_MCB *p_mcb;
 
-    RFCOMM_TRACE_EVENT1 ("port_open_continue, p_port:%p", p_port);
+    RFCOMM_TRACE_EVENT ("port_open_continue, p_port:%p", p_port);
 
     /* Check if multiplexer channel has already been established */
     if ((p_mcb = rfc_alloc_multiplexer_channel (p_port->bd_addr, TRUE)) == NULL)
     {
-        RFCOMM_TRACE_WARNING0 ("port_open_continue no mx channel");
+        RFCOMM_TRACE_WARNING ("port_open_continue no mx channel");
         port_release_port (p_port);
         return (PORT_NO_RESOURCES);
     }
@@ -89,7 +89,7 @@ int port_open_continue (tPORT *p_port)
     {
         /* MX state machine ignores RFC_MX_EVENT_START_REQ in these states */
         /* When it enters RFC_MX_STATE_CONNECTED, it will check any openning ports */
-        RFCOMM_TRACE_DEBUG1 ("port_open_continue: mx state(%d) mx channel is openning", p_mcb->state);
+        RFCOMM_TRACE_DEBUG ("port_open_continue: mx state(%d) mx channel is openning", p_mcb->state);
     }
     return (PORT_SUCCESS);
 }
@@ -203,7 +203,7 @@ void PORT_StartCnf (tRFC_MCB *p_mcb, UINT16 result)
     int     i;
     BOOLEAN no_ports_up = TRUE;
 
-    RFCOMM_TRACE_EVENT1 ("PORT_StartCnf result:%d", result);
+    RFCOMM_TRACE_EVENT ("PORT_StartCnf result:%d", result);
 
     p_port = &rfc_cb.port.port[0];
     for (i = 0; i < MAX_RFC_PORTS; i++, p_port++)
@@ -216,7 +216,7 @@ void PORT_StartCnf (tRFC_MCB *p_mcb, UINT16 result)
                 RFCOMM_ParNegReq (p_mcb, p_port->dlci, p_port->mtu);
             else
             {
-                RFCOMM_TRACE_WARNING1 ("PORT_StartCnf failed result:%d", result);
+                RFCOMM_TRACE_WARNING ("PORT_StartCnf failed result:%d", result);
 
                 /* Warning: result is also set to 4 when l2cap connection
                    fails due to l2cap connect cnf (no_resources) */
@@ -264,7 +264,7 @@ void PORT_StartInd (tRFC_MCB *p_mcb)
     tPORT *p_port;
     int   i;
 
-    RFCOMM_TRACE_EVENT0 ("PORT_StartInd");
+    RFCOMM_TRACE_EVENT ("PORT_StartInd");
 
     p_port = &rfc_cb.port.port[0];
     for (i = 0; i < MAX_RFC_PORTS; i++, p_port++)
@@ -272,7 +272,7 @@ void PORT_StartInd (tRFC_MCB *p_mcb)
         if ((p_port->rfc.p_mcb == NULL)
          || (p_port->rfc.p_mcb == p_mcb))
         {
-            RFCOMM_TRACE_DEBUG1("PORT_StartInd, RFCOMM_StartRsp RFCOMM_SUCCESS: p_mcb:%p", p_mcb);
+            RFCOMM_TRACE_DEBUG("PORT_StartInd, RFCOMM_StartRsp RFCOMM_SUCCESS: p_mcb:%p", p_mcb);
             RFCOMM_StartRsp (p_mcb, RFCOMM_SUCCESS);
             return;
         }
@@ -297,7 +297,7 @@ void PORT_ParNegInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k)
     UINT8 our_cl;
     UINT8 our_k;
 
-    RFCOMM_TRACE_EVENT2 ("PORT_ParNegInd dlci:%d mtu:%d", dlci, mtu);
+    RFCOMM_TRACE_EVENT ("PORT_ParNegInd dlci:%d mtu:%d", dlci, mtu);
 
     if (!p_port)
     {
@@ -310,7 +310,7 @@ void PORT_ParNegInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k)
             /* check if this is the last port open, some headsets have
             problem, they don't disconnect if we send DM */
             rfc_check_mcb_active( p_mcb );
-            RFCOMM_TRACE_EVENT0( "PORT_ParNegInd: port not found" );
+            RFCOMM_TRACE_EVENT( "PORT_ParNegInd: port not found" );
             return;
         }
         p_mcb->port_inx[dlci] = p_port->inx;
@@ -386,7 +386,7 @@ void PORT_ParNegCnf (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k)
 {
     tPORT   *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
-    RFCOMM_TRACE_EVENT4 ("PORT_ParNegCnf dlci:%d mtu:%d cl: %d k: %d", dlci, mtu, cl, k);
+    RFCOMM_TRACE_EVENT ("PORT_ParNegCnf dlci:%d mtu:%d cl: %d k: %d", dlci, mtu, cl, k);
 
     if (!p_port)
         return;
@@ -447,8 +447,8 @@ void PORT_DlcEstablishInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
-    RFCOMM_TRACE_DEBUG4 ("PORT_DlcEstablishInd p_mcb:%p, dlci:%d mtu:%di, p_port:%p", p_mcb, dlci, mtu, p_port);
-    RFCOMM_TRACE_DEBUG6 ("PORT_DlcEstablishInd p_mcb addr:%02x:%02x:%02x:%02x:%02x:%02x",
+    RFCOMM_TRACE_DEBUG ("PORT_DlcEstablishInd p_mcb:%p, dlci:%d mtu:%di, p_port:%p", p_mcb, dlci, mtu, p_port);
+    RFCOMM_TRACE_DEBUG ("PORT_DlcEstablishInd p_mcb addr:%02x:%02x:%02x:%02x:%02x:%02x",
                          p_mcb->bd_addr[0], p_mcb->bd_addr[1], p_mcb->bd_addr[2],
                          p_mcb->bd_addr[3], p_mcb->bd_addr[4], p_mcb->bd_addr[5]);
 
@@ -499,7 +499,7 @@ void PORT_DlcEstablishCnf (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT16 resul
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
-    RFCOMM_TRACE_EVENT3 ("PORT_DlcEstablishCnf dlci:%d mtu:%d result:%d", dlci, mtu, result);
+    RFCOMM_TRACE_EVENT ("PORT_DlcEstablishCnf dlci:%d mtu:%d result:%d", dlci, mtu, result);
 
     if (!p_port)
         return;
@@ -551,7 +551,7 @@ void PORT_PortNegInd (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars,
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
-    RFCOMM_TRACE_EVENT0 ("PORT_PortNegInd");
+    RFCOMM_TRACE_EVENT ("PORT_PortNegInd");
 
     if (!p_port)
     {
@@ -584,11 +584,11 @@ void PORT_PortNegCnf (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars, UINT16 r
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
     UNUSED(p_pars);
 
-    RFCOMM_TRACE_EVENT0 ("PORT_PortNegCnf");
+    RFCOMM_TRACE_EVENT ("PORT_PortNegCnf");
 
     if (!p_port)
     {
-        RFCOMM_TRACE_WARNING0 ("PORT_PortNegCnf no port");
+        RFCOMM_TRACE_WARNING ("PORT_PortNegCnf no port");
         return;
     }
     /* Port negotiation failed. Drop the connection */
@@ -608,7 +608,7 @@ void PORT_PortNegCnf (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars, UINT16 r
     }
     else
     {
-        RFCOMM_TRACE_WARNING0 ("PORT_PortNegCnf Control Already sent");
+        RFCOMM_TRACE_WARNING ("PORT_PortNegCnf Control Already sent");
     }
 }
 
@@ -627,7 +627,7 @@ void PORT_ControlInd (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars)
     UINT32 event;
     UINT8  old_signals;
 
-    RFCOMM_TRACE_EVENT0 ("PORT_ControlInd");
+    RFCOMM_TRACE_EVENT ("PORT_ControlInd");
 
     if (!p_port)
         return;
@@ -663,7 +663,7 @@ void PORT_ControlInd (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars)
     if (event && p_port->p_callback)
         (p_port->p_callback)(event, p_port->inx);
 
-    RFCOMM_TRACE_EVENT4 ("PORT_ControlInd DTR_DSR : %d, RTS_CTS : %d, RI : %d, DCD : %d",
+    RFCOMM_TRACE_EVENT ("PORT_ControlInd DTR_DSR : %d, RTS_CTS : %d, RI : %d, DCD : %d",
         ((p_port->peer_ctrl.modem_signal & MODEM_SIGNAL_DTRDSR) ? 1 : 0),
         ((p_port->peer_ctrl.modem_signal & MODEM_SIGNAL_RTSCTS) ? 1 : 0),
         ((p_port->peer_ctrl.modem_signal & MODEM_SIGNAL_RI) ? 1 : 0),
@@ -686,7 +686,7 @@ void PORT_ControlCnf (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars)
     UINT32 event = 0;
     UNUSED(p_pars);
 
-    RFCOMM_TRACE_EVENT0 ("PORT_ControlCnf");
+    RFCOMM_TRACE_EVENT ("PORT_ControlCnf");
 
     if (!p_port)
         return;
@@ -723,7 +723,7 @@ void PORT_LineStatusInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 line_status)
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
     UINT32 event = 0;
 
-    RFCOMM_TRACE_EVENT0 ("PORT_LineStatusInd");
+    RFCOMM_TRACE_EVENT ("PORT_LineStatusInd");
 
     if (!p_port)
         return;
@@ -756,7 +756,7 @@ void PORT_DlcReleaseInd (tRFC_MCB *p_mcb, UINT8 dlci)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
-    RFCOMM_TRACE_EVENT0 ("PORT_DlcReleaseInd");
+    RFCOMM_TRACE_EVENT ("PORT_DlcReleaseInd");
 
     if (!p_port)
         return;
@@ -778,7 +778,7 @@ void PORT_CloseInd (tRFC_MCB *p_mcb)
     tPORT  *p_port;
     int    i;
 
-    RFCOMM_TRACE_EVENT0 ("PORT_CloseInd");
+    RFCOMM_TRACE_EVENT ("PORT_CloseInd");
 
     p_port = &rfc_cb.port.port[0];
     for (i = 0; i < MAX_RFC_PORTS; i++, p_port++)
@@ -804,7 +804,7 @@ void Port_TimeOutCloseMux (tRFC_MCB *p_mcb)
     tPORT  *p_port;
     int    i;
 
-    RFCOMM_TRACE_EVENT0 ("Port_TimeOutCloseMux");
+    RFCOMM_TRACE_EVENT ("Port_TimeOutCloseMux");
 
     p_port = &rfc_cb.port.port[0];
     for (i = 0; i < MAX_RFC_PORTS; i++, p_port++)
@@ -833,7 +833,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
     UINT8  *p;
     int    i;
 
-    RFCOMM_TRACE_EVENT4("PORT_DataInd with data length %d, p_mcb:%p,p_port:%p,dlci:%d",
+    RFCOMM_TRACE_EVENT("PORT_DataInd with data length %d, p_mcb:%p,p_port:%p,dlci:%d",
                         p_buf->len, p_mcb, p_port, dlci);
     if (!p_port)
     {
@@ -851,7 +851,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
         //GKI_freebuf (p_buf);
         return;
     }
-    else RFCOMM_TRACE_ERROR1("PORT_DataInd, p_port:%p, p_data_co_callback is null", p_port);
+    else RFCOMM_TRACE_ERROR("PORT_DataInd, p_port:%p, p_data_co_callback is null", p_port);
     /* If client registered callback we can just deliver receive data */
     if (p_port->p_data_callback)
     {
@@ -867,7 +867,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
     if ((p_port->rx.queue_size + p_buf->len > PORT_RX_CRITICAL_WM)
      || (p_port->rx.queue.count + 1 > p_port->rx_buf_critical))
     {
-        RFCOMM_TRACE_EVENT0 ("PORT_DataInd. Buffer over run. Dropping the buffer");
+        RFCOMM_TRACE_EVENT ("PORT_DataInd. Buffer over run. Dropping the buffer");
         GKI_freebuf (p_buf);
 
         RFCOMM_LineStatusReq (p_mcb, dlci, LINE_STATUS_OVERRUN);
@@ -932,7 +932,7 @@ void PORT_FlowInd (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN enable_data)
     UINT32 events = 0;
     int    i;
 
-    RFCOMM_TRACE_EVENT1 ("PORT_FlowInd fc:%d", enable_data);
+    RFCOMM_TRACE_EVENT ("PORT_FlowInd fc:%d", enable_data);
 
     if (dlci == 0)
     {
@@ -1006,7 +1006,7 @@ UINT32 port_rfc_send_tx_data (tPORT *p_port)
 
                 PORT_SCHEDULE_UNLOCK;
 
-                RFCOMM_TRACE_DEBUG1 ("Sending RFCOMM_DataReq tx.queue_size=%d", p_port->tx.queue_size);
+                RFCOMM_TRACE_DEBUG ("Sending RFCOMM_DataReq tx.queue_size=%d", p_port->tx.queue_size);
 
                 RFCOMM_DataReq (p_port->rfc.p_mcb, p_port->dlci, p_buf);
 
@@ -1050,7 +1050,7 @@ void port_rfc_closed (tPORT *p_port, UINT8 res)
     if ((p_port->state == PORT_STATE_OPENING) && (p_port->is_server))
     {
         /* The servr side has not been informed that connection is up, ignore */
-        RFCOMM_TRACE_EVENT0 ("port_rfc_closed in OPENING state ignored");
+        RFCOMM_TRACE_EVENT ("port_rfc_closed in OPENING state ignored");
 
         rfc_port_timer_stop (p_port);
         p_port->rfc.state = RFC_STATE_CLOSED;
@@ -1085,7 +1085,7 @@ void port_rfc_closed (tPORT *p_port, UINT8 res)
         if(p_port->ev_mask & PORT_EV_CONNECT_ERR)
             events |= PORT_EV_CONNECT_ERR;
     }
-    RFCOMM_TRACE_EVENT2 ("port_rfc_closed state:%d sending events:%x", p_port->state, events);
+    RFCOMM_TRACE_EVENT ("port_rfc_closed state:%d sending events:%x", p_port->state, events);
 
     if ((p_port->p_callback != NULL) && events)
         p_port->p_callback (events, p_port->inx);

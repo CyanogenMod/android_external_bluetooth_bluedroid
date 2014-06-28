@@ -127,7 +127,7 @@ UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
     UINT16       cid;
     tBT_UUID    bt_uuid = {2, {GAP_PROTOCOL_ID}};
 
-    GAP_TRACE_EVENT0 ("GAP_CONN - Open Request");
+    GAP_TRACE_EVENT ("GAP_CONN - Open Request");
 
     /* Allocate a new CCB. Return if none available. */
     if ((p_ccb = gap_allocate_ccb()) == NULL)
@@ -152,7 +152,7 @@ UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
     if (!p_ccb->rem_addr_specified && !is_server)
     {
         gap_release_ccb (p_ccb);
-        GAP_TRACE_ERROR0 ("GAP ERROR: Client must specify a remote BD ADDR to connect to!");
+        GAP_TRACE_ERROR ("GAP ERROR: Client must specify a remote BD ADDR to connect to!");
         return (GAP_INVALID_HANDLE);
     }
 
@@ -178,7 +178,7 @@ UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
     /* Register the PSM with L2CAP */
     if ((p_ccb->psm = L2CA_REGISTER (psm, &gap_cb.conn.reg_info, AMP_AUTOSWITCH_ALLOWED|AMP_USE_AMP_IF_POSSIBLE)) == 0)
     {
-        GAP_TRACE_ERROR1 ("GAP_ConnOpen: Failure registering PSM 0x%04x", psm);
+        GAP_TRACE_ERROR ("GAP_ConnOpen: Failure registering PSM 0x%04x", psm);
         gap_release_ccb (p_ccb);
         return (GAP_INVALID_HANDLE);
     }
@@ -187,7 +187,7 @@ UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
     p_ccb->service_id = service_id;
     if (!BTM_SetSecurityLevel ((UINT8)!is_server, p_serv_name, p_ccb->service_id, security, p_ccb->psm, 0, 0))
     {
-        GAP_TRACE_ERROR0 ("GAP_CONN - Security Error");
+        GAP_TRACE_ERROR ("GAP_CONN - Security Error");
         gap_release_ccb (p_ccb);
         return (GAP_INVALID_HANDLE);
     }
@@ -254,7 +254,7 @@ UINT16 GAP_ConnClose (UINT16 gap_handle)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
 
-    GAP_TRACE_EVENT1 ("GAP_CONN - close  handle: 0x%x", gap_handle);
+    GAP_TRACE_EVENT ("GAP_CONN - close  handle: 0x%x", gap_handle);
 
     if (p_ccb)
     {
@@ -337,7 +337,7 @@ UINT16 GAP_ConnReadData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT1
 
     GKI_enable();
 
-    GAP_TRACE_EVENT2 ("GAP_ConnReadData - rx_queue_size left=%d, *p_len=%d",
+    GAP_TRACE_EVENT ("GAP_ConnReadData - rx_queue_size left=%d, *p_len=%d",
                                        p_ccb->rx_queue_size, *p_len);
 
     return (BT_PASS);
@@ -374,7 +374,7 @@ int GAP_GetRxQueueCnt (UINT16 handle, UINT32 *p_rx_queue_count)
     else
         rc = GAP_INVALID_HANDLE;
 
-    GAP_TRACE_EVENT2 ("GAP_GetRxQueueCnt - rc = 0x%04x, rx_queue_count=%d",
+    GAP_TRACE_EVENT ("GAP_GetRxQueueCnt - rc = 0x%04x, rx_queue_count=%d",
                                        rc , *p_rx_queue_count);
 
     return (rc);
@@ -538,7 +538,7 @@ UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT
         max_len -= p_buf->len;
         p_data  += p_buf->len;
 
-        GAP_TRACE_EVENT1 ("GAP_WriteData %d bytes", p_buf->len);
+        GAP_TRACE_EVENT ("GAP_WriteData %d bytes", p_buf->len);
 
         GKI_enqueue (&p_ccb->tx_queue, p_buf);
     }
@@ -652,18 +652,18 @@ UINT8 *GAP_ConnGetRemoteAddr (UINT16 gap_handle)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
 
-    GAP_TRACE_EVENT1 ("GAP_ConnGetRemoteAddr gap_handle = %d", gap_handle);
+    GAP_TRACE_EVENT ("GAP_ConnGetRemoteAddr gap_handle = %d", gap_handle);
 
     if ((p_ccb) && (p_ccb->con_state > GAP_CCB_STATE_LISTENING))
     {
-        GAP_TRACE_EVENT6("GAP_ConnGetRemoteAddr bda :0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n", \
+        GAP_TRACE_EVENT("GAP_ConnGetRemoteAddr bda :0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n", \
                          p_ccb->rem_dev_address[0],p_ccb->rem_dev_address[1],p_ccb->rem_dev_address[2],
                          p_ccb->rem_dev_address[3],p_ccb->rem_dev_address[4],p_ccb->rem_dev_address[5]);
         return (p_ccb->rem_dev_address);
     }
     else
     {
-        GAP_TRACE_EVENT0 ("GAP_ConnGetRemoteAddr return Error ");
+        GAP_TRACE_EVENT ("GAP_ConnGetRemoteAddr return Error ");
         return (NULL);
     }
 }
@@ -742,9 +742,9 @@ static void gap_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UIN
 
     if (xx == GAP_MAX_CONNECTIONS)
     {
-        GAP_TRACE_WARNING0("*******");
-        GAP_TRACE_WARNING0("WARNING: GAP Conn Indication for Unexpected Bd Addr...Disconnecting");
-        GAP_TRACE_WARNING0("*******");
+        GAP_TRACE_WARNING("*******");
+        GAP_TRACE_WARNING("WARNING: GAP Conn Indication for Unexpected Bd Addr...Disconnecting");
+        GAP_TRACE_WARNING("*******");
 
         /* Disconnect because it is an unexpected connection */
         L2CA_DISCONNECT_REQ (l2cap_cid);
@@ -761,7 +761,7 @@ static void gap_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UIN
     /* Send response to the L2CAP layer. */
     L2CA_CONNECT_RSP (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_OK, L2CAP_CONN_OK, &p_ccb->ertm_info, &bt_uuid);
 
-    GAP_TRACE_EVENT1("GAP_CONN - Rcvd L2CAP conn ind, CID: 0x%x", p_ccb->connection_id);
+    GAP_TRACE_EVENT("GAP_CONN - Rcvd L2CAP conn ind, CID: 0x%x", p_ccb->connection_id);
 
     /* Send a Configuration Request. */
     L2CA_CONFIG_REQ (l2cap_cid, &p_ccb->cfg);
@@ -779,7 +779,7 @@ static void gap_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UIN
 *******************************************************************************/
 static void gap_checks_con_flags (tGAP_CCB    *p_ccb)
 {
-    GAP_TRACE_EVENT1 ("gap_checks_con_flags conn_flags:0x%x, ", p_ccb->con_flags);
+    GAP_TRACE_EVENT ("gap_checks_con_flags conn_flags:0x%x, ", p_ccb->con_flags);
     /* if all the required con_flags are set, report the OPEN event now */
     if ((p_ccb->con_flags & GAP_CCB_FLAGS_CONN_DONE) == GAP_CCB_FLAGS_CONN_DONE)
     {
@@ -805,7 +805,7 @@ static void gap_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT transport, vo
     UNUSED(bd_addr);
     UNUSED (transport);
 
-    GAP_TRACE_EVENT3 ("gap_sec_check_complete conn_state:%d, conn_flags:0x%x, status:%d",
+    GAP_TRACE_EVENT ("gap_sec_check_complete conn_state:%d, conn_flags:0x%x, status:%d",
         p_ccb->con_state, p_ccb->con_flags, res);
     if (p_ccb->con_state == GAP_CCB_STATE_IDLE)
         return;
@@ -969,7 +969,7 @@ static void gap_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
 {
     tGAP_CCB    *p_ccb;
 
-    GAP_TRACE_EVENT1 ("GAP_CONN - Rcvd L2CAP disc, CID: 0x%x", l2cap_cid);
+    GAP_TRACE_EVENT ("GAP_CONN - Rcvd L2CAP disc, CID: 0x%x", l2cap_cid);
 
     /* Find CCB based on CID */
     if ((p_ccb = gap_find_ccb_by_cid (l2cap_cid)) == NULL)
@@ -1009,7 +1009,7 @@ static void gap_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
 
         p_ccb->rx_queue_size += p_msg->len;
         /*
-        GAP_TRACE_EVENT2 ("gap_data_ind - rx_queue_size=%d, msg len=%d",
+        GAP_TRACE_EVENT ("gap_data_ind - rx_queue_size=%d, msg len=%d",
                                        p_ccb->rx_queue_size, p_msg->len);
          */
 
@@ -1037,7 +1037,7 @@ static void gap_congestion_ind (UINT16 lcid, BOOLEAN is_congested)
     BT_HDR      *p_buf;
     UINT8        status;
 
-    GAP_TRACE_EVENT2 ("GAP_CONN - Rcvd L2CAP Is Congested (%d), CID: 0x%x",
+    GAP_TRACE_EVENT ("GAP_CONN - Rcvd L2CAP Is Congested (%d), CID: 0x%x",
                       is_congested, lcid);
 
     /* Find CCB based on CID */
@@ -1219,7 +1219,7 @@ void gap_send_event (UINT16 gap_handle)
     }
     else
     {
-        GAP_TRACE_ERROR0("Unable to allocate message buffer for event.");
+        GAP_TRACE_ERROR("Unable to allocate message buffer for event.");
     }
 }
 

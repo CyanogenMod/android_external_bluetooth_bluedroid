@@ -113,7 +113,7 @@ void rfc_mx_sm_execute (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 *******************************************************************************/
 void rfc_mx_sm_state_idle (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 {
-    RFCOMM_TRACE_EVENT1 ("rfc_mx_sm_state_idle - evt:%d", event);
+    RFCOMM_TRACE_EVENT ("rfc_mx_sm_state_idle - evt:%d", event);
     switch (event)
     {
     case RFC_MX_EVENT_START_REQ:
@@ -136,7 +136,7 @@ void rfc_mx_sm_state_idle (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
     case RFC_MX_EVENT_CONN_CNF:
     case RFC_MX_EVENT_CONF_IND:
     case RFC_MX_EVENT_CONF_CNF:
-        RFCOMM_TRACE_ERROR2 ("Mx error state %d event %d", p_mcb->state, event);
+        RFCOMM_TRACE_ERROR ("Mx error state %d event %d", p_mcb->state, event);
         return;
 
     case RFC_MX_EVENT_CONN_IND:
@@ -164,7 +164,7 @@ void rfc_mx_sm_state_idle (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         rfc_send_dm (p_mcb, RFCOMM_MX_DLCI, FALSE);
         return;
     }
-    RFCOMM_TRACE_EVENT2 ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
+    RFCOMM_TRACE_EVENT ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
 }
 
 
@@ -180,11 +180,11 @@ void rfc_mx_sm_state_idle (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 *******************************************************************************/
 void rfc_mx_sm_state_wait_conn_cnf (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 {
-    RFCOMM_TRACE_EVENT1 ("rfc_mx_sm_state_wait_conn_cnf - evt:%d", event);
+    RFCOMM_TRACE_EVENT ("rfc_mx_sm_state_wait_conn_cnf - evt:%d", event);
     switch (event)
     {
     case RFC_MX_EVENT_START_REQ:
-        RFCOMM_TRACE_ERROR2 ("Mx error state %d event %d", p_mcb->state, event);
+        RFCOMM_TRACE_ERROR ("Mx error state %d event %d", p_mcb->state, event);
         return;
 
     /* There is some new timing so that Config Ind comes before security is completed
@@ -220,7 +220,7 @@ void rfc_mx_sm_state_wait_conn_cnf (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
             UINT16 i;
             UINT8  idx;
 
-            RFCOMM_TRACE_DEBUG2 ("RFCOMM MX retry as acceptor in collision case - evt:%d in state:%d", event, p_mcb->state);
+            RFCOMM_TRACE_DEBUG ("RFCOMM MX retry as acceptor in collision case - evt:%d in state:%d", event, p_mcb->state);
 
             rfc_save_lcid_mcb (NULL, p_mcb->lcid);
             p_mcb->lcid = p_mcb->pending_lcid;
@@ -236,7 +236,7 @@ void rfc_mx_sm_state_wait_conn_cnf (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
                     p_mcb->port_inx[i] = 0;
                     p_mcb->port_inx[i+1] = idx;
                     rfc_cb.port.port[idx - 1].dlci += 1;
-                    RFCOMM_TRACE_DEBUG2 ("RFCOMM MX - DLCI:%d -> %d", i, rfc_cb.port.port[idx - 1].dlci);
+                    RFCOMM_TRACE_DEBUG ("RFCOMM MX - DLCI:%d -> %d", i, rfc_cb.port.port[idx - 1].dlci);
                 }
             }
 
@@ -248,7 +248,7 @@ void rfc_mx_sm_state_wait_conn_cnf (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         }
         return;
     }
-    RFCOMM_TRACE_EVENT2 ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
+    RFCOMM_TRACE_EVENT ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
 }
 
 
@@ -264,13 +264,13 @@ void rfc_mx_sm_state_wait_conn_cnf (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 *******************************************************************************/
 void rfc_mx_sm_state_configure (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 {
-    RFCOMM_TRACE_EVENT1 ("rfc_mx_sm_state_configure - evt:%d", event);
+    RFCOMM_TRACE_EVENT ("rfc_mx_sm_state_configure - evt:%d", event);
     switch (event)
     {
     case RFC_MX_EVENT_START_REQ:
     case RFC_MX_EVENT_CONN_CNF:
 
-        RFCOMM_TRACE_ERROR2 ("Mx error state %d event %d", p_mcb->state, event);
+        RFCOMM_TRACE_ERROR ("Mx error state %d event %d", p_mcb->state, event);
         return;
 
     case RFC_MX_EVENT_CONF_IND:
@@ -293,7 +293,7 @@ void rfc_mx_sm_state_configure (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         PORT_StartCnf (p_mcb, RFCOMM_ERROR);
         return;
     }
-    RFCOMM_TRACE_EVENT2 ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
+    RFCOMM_TRACE_EVENT ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
 }
 
 
@@ -311,12 +311,12 @@ void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 {
     UNUSED(p_data);
 
-    RFCOMM_TRACE_EVENT1 ("rfc_mx_sm_sabme_wait_ua - evt:%d", event);
+    RFCOMM_TRACE_EVENT ("rfc_mx_sm_sabme_wait_ua - evt:%d", event);
     switch (event)
     {
     case RFC_MX_EVENT_START_REQ:
     case RFC_MX_EVENT_CONN_CNF:
-        RFCOMM_TRACE_ERROR2 ("Mx error state %d event %d", p_mcb->state, event);
+        RFCOMM_TRACE_ERROR ("Mx error state %d event %d", p_mcb->state, event);
         return;
 
     /* workaround: we don't support reconfig */
@@ -357,7 +357,7 @@ void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         PORT_StartCnf (p_mcb, RFCOMM_ERROR);
         return;
     }
-    RFCOMM_TRACE_EVENT2 ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
+    RFCOMM_TRACE_EVENT ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
 }
 
 /*******************************************************************************
@@ -372,7 +372,7 @@ void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 *******************************************************************************/
 void rfc_mx_sm_state_wait_sabme (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 {
-    RFCOMM_TRACE_EVENT1 ("rfc_mx_sm_state_wait_sabme - evt:%d", event);
+    RFCOMM_TRACE_EVENT ("rfc_mx_sm_state_wait_sabme - evt:%d", event);
     switch (event)
     {
     case RFC_MX_EVENT_DISC_IND:
@@ -423,7 +423,7 @@ void rfc_mx_sm_state_wait_sabme (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         PORT_CloseInd (p_mcb);
         return;
     }
-    RFCOMM_TRACE_EVENT2 ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
+    RFCOMM_TRACE_EVENT ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
 }
 
 
@@ -441,7 +441,7 @@ void rfc_mx_sm_state_connected (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 {
     UNUSED(p_data);
 
-    RFCOMM_TRACE_EVENT1 ("rfc_mx_sm_state_connected - evt:%d", event);
+    RFCOMM_TRACE_EVENT ("rfc_mx_sm_state_connected - evt:%d", event);
 
     switch (event)
     {
@@ -469,7 +469,7 @@ void rfc_mx_sm_state_connected (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         PORT_CloseInd (p_mcb);
         return;
     }
-    RFCOMM_TRACE_EVENT2 ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
+    RFCOMM_TRACE_EVENT ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
 }
 
 
@@ -487,7 +487,7 @@ void rfc_mx_sm_state_disc_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 {
     BT_HDR *p_buf;
 
-    RFCOMM_TRACE_EVENT1 ("rfc_mx_sm_state_disc_wait_ua - evt:%d", event);
+    RFCOMM_TRACE_EVENT ("rfc_mx_sm_state_disc_wait_ua - evt:%d", event);
     switch (event)
     {
     case RFC_EVENT_UA:
@@ -547,7 +547,7 @@ void rfc_mx_sm_state_disc_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
     case RFC_MX_EVENT_QOS_VIOLATION_IND:
         break;
     }
-    RFCOMM_TRACE_EVENT2 ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
+    RFCOMM_TRACE_EVENT ("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
 }
 
 
@@ -563,7 +563,7 @@ static void rfc_mx_send_config_req (tRFC_MCB *p_mcb)
 {
     tL2CAP_CFG_INFO cfg;
 
-    RFCOMM_TRACE_EVENT0 ("rfc_mx_send_config_req");
+    RFCOMM_TRACE_EVENT ("rfc_mx_send_config_req");
 
     memset (&cfg, 0, sizeof (tL2CAP_CFG_INFO));
 
@@ -594,7 +594,7 @@ static void rfc_mx_send_config_req (tRFC_MCB *p_mcb)
 *******************************************************************************/
 static void rfc_mx_conf_cnf (tRFC_MCB *p_mcb, tL2CAP_CFG_INFO *p_cfg)
 {
-    RFCOMM_TRACE_EVENT2 ("rfc_mx_conf_cnf p_cfg:%08x res:%d ", p_cfg, (p_cfg) ? p_cfg->result : 0);
+    RFCOMM_TRACE_EVENT ("rfc_mx_conf_cnf p_cfg:%08x res:%d ", p_cfg, (p_cfg) ? p_cfg->result : 0);
 
     if (p_cfg->result != L2CAP_CFG_OK)
     {

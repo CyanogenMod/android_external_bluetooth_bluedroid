@@ -58,18 +58,18 @@ static void btm_cback(UINT16 index, void *p_data)
 
             p_data = &inq_cmpl;
 
-            GAP_TRACE_EVENT2("   GAP Inquiry Complete Event (Status 0x%04x, Result(s) %d)",
+            GAP_TRACE_EVENT("   GAP Inquiry Complete Event (Status 0x%04x, Result(s) %d)",
                             inq_cmpl.status, inq_cmpl.num_results);
             break;
 
         case GAP_EVT_DISCOVERY_COMPLETE:
             if (*((UINT16 *) p_data))
             {
-                GAP_TRACE_EVENT1("   GAP Discovery Complete Event(SDP Result: 0x%04x)", *((UINT16 *) p_data));
+                GAP_TRACE_EVENT("   GAP Discovery Complete Event(SDP Result: 0x%04x)", *((UINT16 *) p_data));
             }
             else
             {
-                GAP_TRACE_EVENT0("   GAP Discovery Successfully Completed");
+                GAP_TRACE_EVENT("   GAP Discovery Successfully Completed");
             }
 
             break;
@@ -79,7 +79,7 @@ static void btm_cback(UINT16 index, void *p_data)
             ((tGAP_REMOTE_DEV_NAME *)p_data)->status =
                     gap_convert_btm_status ((tBTM_STATUS)((tBTM_REMOTE_DEV_NAME *)p_data)->status);
 
-            GAP_TRACE_EVENT1("   GAP Remote Name Complete Event (status 0x%04x)", ((tGAP_REMOTE_DEV_NAME *)p_data)->status);
+            GAP_TRACE_EVENT("   GAP Remote Name Complete Event (status 0x%04x)", ((tGAP_REMOTE_DEV_NAME *)p_data)->status);
 
             break;
         };
@@ -119,11 +119,11 @@ void gap_inq_results_cb(tBTM_INQ_RESULTS *p_results, UINT8 *p_eir)
     UINT8        index;
     UNUSED(p_eir);
 
-    GAP_TRACE_EVENT6 ("GAP Inquiry Results Callback (bdaddr [%02x%02x%02x%02x%02x%02x])",
+    GAP_TRACE_EVENT ("GAP Inquiry Results Callback (bdaddr [%02x%02x%02x%02x%02x%02x])",
                 p_results->remote_bd_addr[0], p_results->remote_bd_addr[1],
                 p_results->remote_bd_addr[2], p_results->remote_bd_addr[3],
                 p_results->remote_bd_addr[4], p_results->remote_bd_addr[5]);
-    GAP_TRACE_EVENT4 ("                             (COD [%02x%02x%02x], clkoff 0x%04x)",
+    GAP_TRACE_EVENT ("                             (COD [%02x%02x%02x], clkoff 0x%04x)",
                 p_results->dev_class[0], p_results->dev_class[1], p_results->dev_class[2],
                 p_results->clock_offset);
 
@@ -167,7 +167,7 @@ void gap_find_addr_name_cb (tBTM_REMOTE_DEV_NAME *p)
     {
         if (p->status == BTM_SUCCESS)
         {
-            GAP_TRACE_EVENT2("   GAP: FindAddrByName Rem Name Cmpl Evt (Status 0x%04x, Name [%s])",
+            GAP_TRACE_EVENT("   GAP: FindAddrByName Rem Name Cmpl Evt (Status 0x%04x, Name [%s])",
                                 p->status, p->remote_bd_name);
 
             /* See if the returned name matches the desired name; if not initiate another search */
@@ -194,7 +194,7 @@ void gap_find_addr_name_cb (tBTM_REMOTE_DEV_NAME *p)
         }
         else
         {
-            GAP_TRACE_EVENT1("   GAP: FindAddrByName Rem Name Cmpl Evt (Status 0x%04x)", p->status);
+            GAP_TRACE_EVENT("   GAP: FindAddrByName Rem Name Cmpl Evt (Status 0x%04x)", p->status);
             p_result->status = gap_convert_btm_status ((tBTM_STATUS) p->status);
         }
 
@@ -232,7 +232,7 @@ void gap_find_addr_inq_cb (tBTM_INQUIRY_CMPL *p)
     if (p_cb->in_use)
     {
 
-        GAP_TRACE_EVENT2("   GAP: FindAddrByName Inq Cmpl Evt (Status 0x%04x, Result(s) %d)",
+        GAP_TRACE_EVENT("   GAP: FindAddrByName Inq Cmpl Evt (Status 0x%04x, Result(s) %d)",
             p->status, p->num_resp);
 
         if (p->status == BTM_SUCCESS)
