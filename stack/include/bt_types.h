@@ -128,6 +128,12 @@
 
 #define BT_EVT_TO_NFCCSIM_NCI       0x4a00      /* events to NFCC simulation (NCI packets) */
 
+/* start timer */
+#define BT_EVT_TO_START_TIMER_ONESHOT 0x4c00
+
+/* stop timer */
+#define BT_EVT_TO_STOP_TIMER_ONESHOT  0x4d00
+
 /* HCISU Events */
 
 #define BT_EVT_HCISU                0x5000
