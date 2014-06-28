@@ -53,21 +53,6 @@
 #define GKI_LINUX_TIMER_TICK_PRIORITY GKI_LINUX_BASE_PRIORITY+2
 #endif
 
-/* the AV timer should preferably run above the gki timer tick to ensure precise AV timing
- * If you observe AV jitter under have load you may increase this one */
-#ifndef GKI_LINUX_AV_TIMER_PRIORITY
-#define GKI_LINUX_AV_TIMER_PRIORITY GKI_LINUX_BASE_PRIORITY+3
-#endif
-
-/* defines by how much the nice value of the PROCESS should be changed. Values allowed:
- * -19 to +19. a negative value give higher priority to btld compared to the default nice value
- * of 20. in case of SCHED_NORMAL, a level of -5 should give a good btld/bt performance.
- * In case of real time scheduling, leave default value.
- */
-#ifndef GKI_LINUX_DEFAULT_NICE_INC
-#define GKI_LINUX_DEFAULT_NICE_INC -7
-#endif
-
 typedef struct
 {
     pthread_mutex_t     GKI_mutex;
@@ -114,4 +99,3 @@ GKI_API extern tGKI_CB *gki_cb_ptr;
 #endif
 
 #endif
-

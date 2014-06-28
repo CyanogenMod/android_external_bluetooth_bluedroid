@@ -31,7 +31,6 @@
 
 #define GKI_NO_NEW_TMRS_STARTED (0x7fffffffL)   /* Largest signed positive timer count */
 #define GKI_UNUSED_LIST_ENTRY   (0x80000000L)   /* Marks an unused timer list entry (initial value) */
-#define GKI_MAX_INT32           (0x7fffffffL)
 
 #define GKI_ERROR(fmt, ...)  ALOGE ("ERROR : %s: " fmt, __FUNCTION__, ## __VA_ARGS__)
 
@@ -247,12 +246,12 @@ void GKI_start_timer (UINT8 tnum, INT32 ticks, BOOLEAN is_continuous)
     ** Note that this works when no timers are active since
     ** both OSNumOrigTicks and OSTicksTilExp are 0.
     */
-    if (GKI_MAX_INT32 - (gki_cb.com.OSNumOrigTicks - gki_cb.com.OSTicksTilExp) > ticks)
+    if (INT32_MAX - (gki_cb.com.OSNumOrigTicks - gki_cb.com.OSTicksTilExp) > ticks)
     {
         ticks += gki_cb.com.OSNumOrigTicks - gki_cb.com.OSTicksTilExp;
     }
     else
-        ticks = GKI_MAX_INT32;
+        ticks = INT32_MAX;
 
     switch (tnum)
     {
