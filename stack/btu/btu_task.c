@@ -331,8 +331,7 @@ BTU_API UINT32 btu_task (UINT32 param)
                         break;
 
                     case BT_EVT_TO_STOP_TIMER:
-                        if (btu_cb.timer_queue.p_first == NULL)
-                        {
+                        if (GKI_timer_queue_is_empty(&btu_cb.timer_queue)) {
                             GKI_stop_timer(TIMER_0);
                         }
                         GKI_freebuf (p_msg);
@@ -374,19 +373,17 @@ BTU_API UINT32 btu_task (UINT32 param)
         }
 
 
-        if (event & TIMER_0_EVT_MASK)
-        {
-            TIMER_LIST_ENT  *p_tle;
-
+        if (event & TIMER_0_EVT_MASK) {
             GKI_update_timer_list (&btu_cb.timer_queue, 1);
 
-            while ((btu_cb.timer_queue.p_first) && (!btu_cb.timer_queue.p_first->ticks))
-            {
-                p_tle = btu_cb.timer_queue.p_first;
-                GKI_remove_from_timer_list (&btu_cb.timer_queue, p_tle);
+            while (!GKI_timer_queue_is_empty(&btu_cb.timer_queue)) {
+                TIMER_LIST_ENT *p_tle = GKI_timer_getfirst(&btu_cb.timer_queue);
+                if (p_tle->ticks != 0)
+                    break;
 
-                switch (p_tle->event)
-                {
+                GKI_remove_from_timer_list(&btu_cb.timer_queue, p_tle);
+
+                switch (p_tle->event) {
                     case BTU_TTYPE_BTM_DEV_CTL:
                         btm_dev_timeout(p_tle);
                         break;

@@ -137,6 +137,7 @@ void ptim_start_timer(tPTIM_CB *p_cb, TIMER_LIST_ENT *p_tle, UINT16 type, INT32 
 
     p_tle->event = type;
     p_tle->ticks = timeout;
+    p_tle->ticks_initial = timeout;
 
     GKI_add_to_timer_list(&p_cb->timer_queue, p_tle);
 }

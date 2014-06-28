@@ -16,6 +16,7 @@
  *
  ******************************************************************************/
 
+#include <assert.h>
 #include <utils/Log.h>
 #include "gki_int.h"
 
@@ -651,13 +652,31 @@ void GKI_timer_queue_register_callback (SYSTEM_TICK_CBACK *p_callback)
 ** Returns          void
 **
 *******************************************************************************/
-void GKI_init_timer_list (TIMER_LIST_Q *p_timer_listq)
-{
-    p_timer_listq->p_first    = NULL;
-    p_timer_listq->p_last     = NULL;
-    p_timer_listq->last_ticks = 0;
+void GKI_init_timer_list(TIMER_LIST_Q *timer_q) {
+    timer_q->p_first    = NULL;
+    timer_q->p_last     = NULL;
+    timer_q->last_ticks = 0;
+}
 
-    return;
+bool GKI_timer_queue_is_empty(const TIMER_LIST_Q *timer_q) {
+    assert(timer_q != NULL);
+    return (timer_q->p_first == NULL);
+}
+
+TIMER_LIST_ENT *GKI_timer_getfirst(const TIMER_LIST_Q *timer_q) {
+    assert(timer_q != NULL);
+    return timer_q->p_first;
+}
+
+TIMER_LIST_ENT *GKI_timer_getlast(const TIMER_LIST_Q *timer_q) {
+    assert(timer_q != NULL);
+    return timer_q->p_last;
+}
+
+/* Returns the number of ticks of the last entry in the queue. */
+INT32 GKI_timer_ticks_getlast(const TIMER_LIST_Q *timer_q) {
+    assert(timer_q != NULL);
+    return timer_q->last_ticks;
 }
 
 /*******************************************************************************
@@ -673,14 +692,36 @@ void GKI_init_timer_list (TIMER_LIST_Q *p_timer_listq)
 ** Returns          void
 **
 *******************************************************************************/
-void GKI_init_timer_list_entry (TIMER_LIST_ENT  *p_tle)
-{
-    p_tle->p_next  = NULL;
-    p_tle->p_prev  = NULL;
-    p_tle->ticks   = GKI_UNUSED_LIST_ENTRY;
-    p_tle->in_use  = FALSE;
+void GKI_init_timer_list_entry(TIMER_LIST_ENT *tle) {
+    tle->p_next  = NULL;
+    tle->p_prev  = NULL;
+    tle->ticks   = GKI_UNUSED_LIST_ENTRY;
+    tle->ticks_initial = 0;
+    tle->in_use  = FALSE;
 }
 
+/* Returns the next linked entry from this tle or NULL. */
+TIMER_LIST_ENT *GKI_timer_entry_next(const TIMER_LIST_ENT *tle) {
+    assert(tle != NULL);
+    return tle->p_next;
+}
+
+/* Returns the current number of ticks for this timer entry. */
+INT32 GKI_timer_ticks_getcurrent(const TIMER_LIST_ENT *tle) {
+    assert(tle != NULL);
+    return tle->ticks;
+}
+
+/* Returns the initial number of ticks for this timer entry. */
+INT32 GKI_timer_ticks_getinitial(const TIMER_LIST_ENT *tle) {
+    assert(tle != NULL);
+    return tle->ticks_initial;
+}
+
+BOOLEAN GKI_timer_in_use(const TIMER_LIST_ENT *tle) {
+    assert(tle != NULL);
+    return tle->in_use;
+}
 
 /*******************************************************************************
 **
