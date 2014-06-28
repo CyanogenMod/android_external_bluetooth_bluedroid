@@ -857,7 +857,7 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
             if (p_temp == NULL)
             {
                 /* list is corrupted, exit to avoid crash */
-                GKI_TRACE_ERROR_0("GKI_add_to_timer_list : Timerlist Q is empty");
+                GKI_ERROR("GKI_add_to_timer_list : Timerlist Q is empty");
                 GKI_exception(GKI_ERROR_TIMER_LIST_CORRUPTED, "*** "
                         "GKI_add_to_timer_list(): timer list corrupted! ***");
                 return;
