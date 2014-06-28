@@ -49,7 +49,7 @@
 void SMP_Init(void)
 {
 
-    SMP_TRACE_EVENT0 ("SMP_Init");
+    SMP_TRACE_EVENT ("SMP_Init");
     memset(&smp_cb, 0, sizeof(tSMP_CB));
 
 #if defined(SMP_INITIAL_TRACE_LEVEL)
@@ -102,11 +102,11 @@ SMP_API extern UINT8 SMP_SetTraceLevel (UINT8 new_level)
 *******************************************************************************/
 BOOLEAN SMP_Register (tSMP_CALLBACK *p_cback)
 {
-    SMP_TRACE_EVENT1 ("SMP_Register state=%d", smp_cb.state);
+    SMP_TRACE_EVENT ("SMP_Register state=%d", smp_cb.state);
 
     if (smp_cb.p_callback != NULL)
     {
-        SMP_TRACE_ERROR0 ("SMP_Register: duplicate registration, overwrite it");
+        SMP_TRACE_ERROR ("SMP_Register: duplicate registration, overwrite it");
     }
     smp_cb.p_callback = p_cback;
 
@@ -145,7 +145,7 @@ tSMP_STATUS SMP_Pair (BD_ADDR bd_addr)
 
         if (!L2CA_ConnectFixedChnl (L2CAP_SMP_CID, bd_addr))
         {
-            SMP_TRACE_ERROR0("SMP_Pair: L2C connect fixed channel failed.");
+            SMP_TRACE_ERROR("SMP_Pair: L2C connect fixed channel failed.");
             smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
             return status;
         }
@@ -177,7 +177,7 @@ BOOLEAN SMP_PairCancel (BD_ADDR bd_addr)
          (!memcmp (p_cb->pairing_bda, bd_addr, BD_ADDR_LEN)) )
     {
         p_cb->is_pair_cancel = TRUE;
-        SMP_TRACE_DEBUG0("Cancel Pairing: set fail reason Unknown");
+        SMP_TRACE_DEBUG("Cancel Pairing: set fail reason Unknown");
         smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &err_code);
         status = TRUE;
     }
@@ -199,7 +199,7 @@ BOOLEAN SMP_PairCancel (BD_ADDR bd_addr)
 *******************************************************************************/
 void SMP_SecurityGrant(BD_ADDR bd_addr, UINT8 res)
 {
-    SMP_TRACE_EVENT0 ("SMP_SecurityGrant ");
+    SMP_TRACE_EVENT ("SMP_SecurityGrant ");
     if (smp_cb.state != SMP_ST_WAIT_APP_RSP ||
         smp_cb.cb_evt != SMP_SEC_REQUEST_EVT ||
         memcmp (smp_cb.pairing_bda, bd_addr, BD_ADDR_LEN))
@@ -230,32 +230,32 @@ void SMP_PasskeyReply (BD_ADDR bd_addr, UINT8 res, UINT32 passkey)
     UINT8   failure = SMP_PASSKEY_ENTRY_FAIL;
     tBTM_SEC_DEV_REC *p_dev_rec;
 
-    SMP_TRACE_EVENT2 ("SMP_PasskeyReply: Key: %d  Result:%d",
+    SMP_TRACE_EVENT ("SMP_PasskeyReply: Key: %d  Result:%d",
                       passkey, res);
 
     /* If timeout already expired or has been canceled, ignore the reply */
     if (p_cb->cb_evt != SMP_PASSKEY_REQ_EVT)
     {
-        SMP_TRACE_WARNING1 ("SMP_PasskeyReply() - Wrong State: %d", p_cb->state);
+        SMP_TRACE_WARNING ("SMP_PasskeyReply() - Wrong State: %d", p_cb->state);
         return;
     }
 
     if (memcmp (bd_addr, p_cb->pairing_bda, BD_ADDR_LEN) != 0)
     {
-        SMP_TRACE_ERROR0 ("SMP_PasskeyReply() - Wrong BD Addr");
+        SMP_TRACE_ERROR ("SMP_PasskeyReply() - Wrong BD Addr");
         return;
     }
 
     if ((p_dev_rec = btm_find_dev (bd_addr)) == NULL)
     {
-        SMP_TRACE_ERROR0 ("SMP_PasskeyReply() - no dev CB");
+        SMP_TRACE_ERROR ("SMP_PasskeyReply() - no dev CB");
         return;
     }
 
 
     if (passkey > BTM_MAX_PASSKEY_VAL || res != SMP_SUCCESS)
     {
-        SMP_TRACE_WARNING1 ("SMP_PasskeyReply() - Wrong key len: %d or passkey entry fail", passkey);
+        SMP_TRACE_WARNING ("SMP_PasskeyReply() - Wrong key len: %d or passkey entry fail", passkey);
         /* send pairing failure */
         smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
 
@@ -287,7 +287,7 @@ void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, UINT8 len, UINT8 *p_data
     tSMP_KEY        key;
     UNUSED(bd_addr);
 
-    SMP_TRACE_EVENT2 ("SMP_OobDataReply State: %d  res:%d",
+    SMP_TRACE_EVENT ("SMP_OobDataReply State: %d  res:%d",
                       smp_cb.state, res);
 
     /* If timeout already expired or has been canceled, ignore the reply */

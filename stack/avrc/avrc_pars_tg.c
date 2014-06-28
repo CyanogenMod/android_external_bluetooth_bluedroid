@@ -52,10 +52,10 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
     UINT16  size_needed;
 
     p_result->pdu = *p++;
-    AVRC_TRACE_DEBUG1("avrc_pars_vendor_cmd() pdu:0x%x", p_result->pdu);
+    AVRC_TRACE_DEBUG("avrc_pars_vendor_cmd() pdu:0x%x", p_result->pdu);
     if (!AVRC_IsValidAvcType (p_result->pdu, p_msg->hdr.ctype))
     {
-        AVRC_TRACE_DEBUG0("avrc_pars_vendor_cmd() detects wrong AV/C type!");
+        AVRC_TRACE_DEBUG("avrc_pars_vendor_cmd() detects wrong AV/C type!");
         status = AVRC_STS_BAD_CMD;
     }
 
@@ -132,14 +132,14 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
             }
             if (xx != p_result->set_app_val.num_val)
             {
-                AVRC_TRACE_ERROR2("AVRC_PDU_SET_PLAYER_APP_VALUE not enough room:%d orig num_val:%d",
+                AVRC_TRACE_ERROR("AVRC_PDU_SET_PLAYER_APP_VALUE not enough room:%d orig num_val:%d",
                     xx, p_result->set_app_val.num_val);
                 p_result->set_app_val.num_val = xx;
             }
         }
         else
         {
-            AVRC_TRACE_ERROR0("AVRC_PDU_SET_PLAYER_APP_VALUE NULL decode buffer or bad len");
+            AVRC_TRACE_ERROR("AVRC_PDU_SET_PLAYER_APP_VALUE NULL decode buffer or bad len");
             status = AVRC_STS_INTERNAL_ERR;
         }
         break;
@@ -301,13 +301,13 @@ tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result, UINT8 *p_
             break;
 
         default:
-            AVRC_TRACE_ERROR1("AVRC_ParsCommand() unknown opcode:0x%x", p_msg->hdr.opcode);
+            AVRC_TRACE_ERROR("AVRC_ParsCommand() unknown opcode:0x%x", p_msg->hdr.opcode);
             break;
         }
         p_result->cmd.opcode = p_msg->hdr.opcode;
         p_result->cmd.status = status;
     }
-    AVRC_TRACE_DEBUG1("AVRC_ParsCommand() return status:0x%x", status);
+    AVRC_TRACE_DEBUG("AVRC_ParsCommand() return status:0x%x", status);
     return status;
 }
 

@@ -81,7 +81,7 @@ const tSDP_PROTO_LIST_ELEM  avrc_add_proto_list [] =
 ******************************************************************************/
 static void avrc_sdp_cback(UINT16 status)
 {
-    AVRC_TRACE_API1("avrc_sdp_cback status: %d", status);
+    AVRC_TRACE_API("avrc_sdp_cback status: %d", status);
 
     /* reset service_uuid, so can start another find service */
     avrc_cb.service_uuid = 0;
@@ -141,7 +141,7 @@ UINT16 AVRC_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
                                    ATTR_ID_SUPPORTED_FEATURES,
                                    ATTR_ID_PROVIDER_NAME};
 
-    AVRC_TRACE_API1("AVRC_FindService uuid: %x", service_uuid);
+    AVRC_TRACE_API("AVRC_FindService uuid: %x", service_uuid);
     if( (service_uuid != UUID_SERVCLASS_AV_REM_CTRL_TARGET && service_uuid != UUID_SERVCLASS_AV_REMOTE_CONTROL) ||
         p_db == NULL || p_db->p_db == NULL || p_cback == NULL)
         return AVRC_BAD_PARAM;
@@ -220,7 +220,7 @@ UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
     UINT16      class_list[2];
 
 
-    AVRC_TRACE_API1("AVRC_AddRecord uuid: %x", service_uuid);
+    AVRC_TRACE_API("AVRC_AddRecord uuid: %x", service_uuid);
 
     if( service_uuid != UUID_SERVCLASS_AV_REM_CTRL_TARGET && service_uuid != UUID_SERVCLASS_AV_REMOTE_CONTROL )
         return AVRC_BAD_PARAM;

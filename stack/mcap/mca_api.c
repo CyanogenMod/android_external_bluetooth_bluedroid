@@ -128,7 +128,7 @@ tMCA_HANDLE MCA_Register(tMCA_REG *p_reg, tMCA_CTRL_CBACK *p_cback)
     WC_ASSERT(p_reg != NULL );
     WC_ASSERT(p_cback != NULL );
 
-    MCA_TRACE_API2 ("MCA_Register: ctrl_psm:0x%x, data_psm:0x%x", p_reg->ctrl_psm, p_reg->data_psm);
+    MCA_TRACE_API ("MCA_Register: ctrl_psm:0x%x, data_psm:0x%x", p_reg->ctrl_psm, p_reg->data_psm);
 
     if ( (p_rcb = mca_rcb_alloc (p_reg)) != NULL)
     {
@@ -136,7 +136,7 @@ tMCA_HANDLE MCA_Register(tMCA_REG *p_reg, tMCA_CTRL_CBACK *p_cback)
         {
             if (L2C_INVALID_PSM(p_reg->ctrl_psm) || L2C_INVALID_PSM(p_reg->data_psm))
             {
-                MCA_TRACE_ERROR0 ("INVALID_PSM");
+                MCA_TRACE_ERROR ("INVALID_PSM");
                 return 0;
             }
 
@@ -161,7 +161,7 @@ tMCA_HANDLE MCA_Register(tMCA_REG *p_reg, tMCA_CTRL_CBACK *p_cback)
             }
             else
             {
-                MCA_TRACE_ERROR0 ("Failed to register to L2CAP");
+                MCA_TRACE_ERROR ("Failed to register to L2CAP");
                 return 0;
             }
         }
@@ -190,7 +190,7 @@ void MCA_Deregister(tMCA_HANDLE handle)
 {
     tMCA_RCB *p_rcb = mca_rcb_by_handle(handle);
 
-    MCA_TRACE_API1 ("MCA_Deregister: %d", handle);
+    MCA_TRACE_API ("MCA_Deregister: %d", handle);
     if (p_rcb && p_rcb->reg.ctrl_psm)
     {
         L2CA_Deregister(p_rcb->reg.ctrl_psm);
@@ -225,12 +225,12 @@ tMCA_RESULT MCA_CreateDep(tMCA_HANDLE handle, tMCA_DEP *p_dep, tMCA_CS *p_cs)
     WC_ASSERT(p_cs != NULL );
     WC_ASSERT(p_cs->p_data_cback != NULL );
 
-    MCA_TRACE_API1 ("MCA_CreateDep: %d", handle);
+    MCA_TRACE_API ("MCA_CreateDep: %d", handle);
     if (p_rcb)
     {
         if (p_cs->max_mdl > MCA_NUM_MDLS)
         {
-            MCA_TRACE_ERROR1 ("max_mdl: %d is too big", p_cs->max_mdl );
+            MCA_TRACE_ERROR ("max_mdl: %d is too big", p_cs->max_mdl );
             result = MCA_BAD_PARAMS;
         }
         else
@@ -240,7 +240,7 @@ tMCA_RESULT MCA_CreateDep(tMCA_HANDLE handle, tMCA_DEP *p_dep, tMCA_CS *p_cs)
             {
                 if (p_depcs->p_data_cback)
                 {
-                    MCA_TRACE_ERROR0 ("Already has ECHO MDEP");
+                    MCA_TRACE_ERROR ("Already has ECHO MDEP");
                     return MCA_NO_RESOURCES;
                 }
                 memcpy (p_depcs, p_cs, sizeof (tMCA_CS));
@@ -292,7 +292,7 @@ tMCA_RESULT MCA_DeleteDep(tMCA_HANDLE handle, tMCA_DEP dep)
     int      i, max;
     tMCA_CS  *p_depcs;
 
-    MCA_TRACE_API2 ("MCA_DeleteDep: %d dep:%d", handle, dep);
+    MCA_TRACE_API ("MCA_DeleteDep: %d dep:%d", handle, dep);
     if (p_rcb)
     {
         if (dep < MCA_NUM_DEPS && p_rcb->dep[dep].p_data_cback)
@@ -339,12 +339,12 @@ tMCA_RESULT MCA_ConnectReq(tMCA_HANDLE handle, BD_ADDR bd_addr,
     tMCA_CCB    *p_ccb;
     tMCA_TC_TBL *p_tbl;
 
-    MCA_TRACE_API2 ("MCA_ConnectReq: %d psm:0x%x", handle, ctrl_psm);
+    MCA_TRACE_API ("MCA_ConnectReq: %d psm:0x%x", handle, ctrl_psm);
     if ((p_ccb = mca_ccb_by_bd(handle, bd_addr)) == NULL)
         p_ccb = mca_ccb_alloc(handle, bd_addr);
     else
     {
-        MCA_TRACE_ERROR0 ("control channel already exists");
+        MCA_TRACE_ERROR ("control channel already exists");
         return MCA_BUSY;
     }
 
@@ -393,7 +393,7 @@ tMCA_RESULT MCA_DisconnectReq(tMCA_CL mcl)
     tMCA_RESULT result = MCA_BAD_HANDLE;
     tMCA_CCB *p_ccb = mca_ccb_by_hdl(mcl);
 
-    MCA_TRACE_API1 ("MCA_DisconnectReq: %d ", mcl);
+    MCA_TRACE_API ("MCA_DisconnectReq: %d ", mcl);
     if (p_ccb)
     {
         result = MCA_SUCCESS;
@@ -429,24 +429,24 @@ tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
     tMCA_CCB_MSG    *p_evt_data;
     tMCA_DCB        *p_dcb;
 
-    MCA_TRACE_API4 ("MCA_CreateMdl: %d dep=%d mdl_id=%d peer_dep_id=%d", mcl, dep, mdl_id, peer_dep_id);
+    MCA_TRACE_API ("MCA_CreateMdl: %d dep=%d mdl_id=%d peer_dep_id=%d", mcl, dep, mdl_id, peer_dep_id);
     if (p_ccb)
     {
         if (p_ccb->p_tx_req || p_ccb->p_rx_msg || p_ccb->cong)
         {
-            MCA_TRACE_ERROR0 ("pending req");
+            MCA_TRACE_ERROR ("pending req");
             return MCA_BUSY;
         }
 
         if ((peer_dep_id > MCA_MAX_MDEP_ID) || (!MCA_IS_VALID_MDL_ID(mdl_id)))
         {
-            MCA_TRACE_ERROR2 ("bad peer dep id:%d or bad mdl id: %d ", peer_dep_id, mdl_id);
+            MCA_TRACE_ERROR ("bad peer dep id:%d or bad mdl id: %d ", peer_dep_id, mdl_id);
             return MCA_BAD_PARAMS;
         }
 
         if (mca_ccb_uses_mdl_id(p_ccb, mdl_id))
         {
-            MCA_TRACE_ERROR1 ("mdl id: %d is used in the control link", mdl_id);
+            MCA_TRACE_ERROR ("mdl id: %d is used in the control link", mdl_id);
             return MCA_BAD_MDL_ID;
         }
 
@@ -507,13 +507,13 @@ tMCA_RESULT MCA_CreateMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
     tMCA_CCB_MSG    evt_data;
     tMCA_DCB        *p_dcb;
 
-    MCA_TRACE_API5 ("MCA_CreateMdlRsp: %d dep=%d mdl_id=%d cfg=%d rsp_code=%d", mcl, dep, mdl_id, cfg, rsp_code);
+    MCA_TRACE_API ("MCA_CreateMdlRsp: %d dep=%d mdl_id=%d cfg=%d rsp_code=%d", mcl, dep, mdl_id, cfg, rsp_code);
     WC_ASSERT(p_chnl_cfg != NULL );
     if (p_ccb)
     {
         if (p_ccb->cong)
         {
-            MCA_TRACE_ERROR0 ("congested");
+            MCA_TRACE_ERROR ("congested");
             return MCA_BUSY;
         }
         if (p_ccb->p_rx_msg && (p_ccb->p_rx_msg->mdep_id == dep )
@@ -548,7 +548,7 @@ tMCA_RESULT MCA_CreateMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
         }
         else
         {
-            MCA_TRACE_ERROR0 ("The given MCL is not expecting a MCA_CreateMdlRsp with the given parameters" );
+            MCA_TRACE_ERROR ("The given MCL is not expecting a MCA_CreateMdlRsp with the given parameters" );
             result = MCA_BAD_PARAMS;
         }
     }
@@ -571,7 +571,7 @@ tMCA_RESULT MCA_CloseReq(tMCA_DL mdl)
     tMCA_RESULT     result = MCA_BAD_HANDLE;
     tMCA_DCB *p_dcb = mca_dcb_by_hdl(mdl);
 
-    MCA_TRACE_API1 ("MCA_CloseReq: %d ", mdl);
+    MCA_TRACE_API ("MCA_CloseReq: %d ", mdl);
     if (p_dcb)
     {
         result = MCA_SUCCESS;
@@ -604,25 +604,25 @@ tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
     tMCA_CCB_MSG    *p_evt_data;
     tMCA_DCB        *p_dcb;
 
-    MCA_TRACE_API1 ("MCA_ReconnectMdl: %d ", mcl);
+    MCA_TRACE_API ("MCA_ReconnectMdl: %d ", mcl);
     WC_ASSERT(p_chnl_cfg != NULL );
     if (p_ccb)
     {
         if (p_ccb->p_tx_req || p_ccb->p_rx_msg || p_ccb->cong)
         {
-            MCA_TRACE_ERROR0 ("pending req");
+            MCA_TRACE_ERROR ("pending req");
             return MCA_BUSY;
         }
 
         if (!MCA_IS_VALID_MDL_ID(mdl_id))
         {
-            MCA_TRACE_ERROR1 ("bad mdl id: %d ", mdl_id);
+            MCA_TRACE_ERROR ("bad mdl id: %d ", mdl_id);
             return MCA_BAD_PARAMS;
         }
 
         if (mca_ccb_uses_mdl_id(p_ccb, mdl_id))
         {
-            MCA_TRACE_ERROR1 ("mdl id: %d is used in the control link", mdl_id);
+            MCA_TRACE_ERROR ("mdl id: %d is used in the control link", mdl_id);
             return MCA_BAD_MDL_ID;
         }
 
@@ -673,13 +673,13 @@ tMCA_RESULT MCA_ReconnectMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
     tMCA_CCB_MSG    evt_data;
     tMCA_DCB        *p_dcb;
 
-    MCA_TRACE_API1 ("MCA_ReconnectMdlRsp: %d ", mcl);
+    MCA_TRACE_API ("MCA_ReconnectMdlRsp: %d ", mcl);
     WC_ASSERT(p_chnl_cfg != NULL );
     if (p_ccb)
     {
         if (p_ccb->cong)
         {
-            MCA_TRACE_ERROR0 ("congested");
+            MCA_TRACE_ERROR ("congested");
             return MCA_BUSY;
         }
         if (p_ccb->p_rx_msg && (p_ccb->p_rx_msg->mdl_id == mdl_id) &&
@@ -698,7 +698,7 @@ tMCA_RESULT MCA_ReconnectMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
                 }
                 else
                 {
-                    MCA_TRACE_ERROR0 ("Out of MDL for this MDEP");
+                    MCA_TRACE_ERROR ("Out of MDL for this MDEP");
                     rsp_code = MCA_RSP_MDEP_BUSY;
                     result = MCA_NO_RESOURCES;
                 }
@@ -711,7 +711,7 @@ tMCA_RESULT MCA_ReconnectMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
         }
         else
         {
-            MCA_TRACE_ERROR0 ("The given MCL is not expecting a MCA_ReconnectMdlRsp with the given parameters" );
+            MCA_TRACE_ERROR ("The given MCL is not expecting a MCA_ReconnectMdlRsp with the given parameters" );
             result = MCA_BAD_PARAMS;
         }
     }
@@ -738,7 +738,7 @@ tMCA_RESULT MCA_DataChnlCfg(tMCA_CL mcl, const tMCA_CHNL_CFG *p_chnl_cfg)
     tMCA_DCB        *p_dcb;
     tMCA_TC_TBL *p_tbl;
 
-    MCA_TRACE_API1 ("MCA_DataChnlCfg: %d ", mcl);
+    MCA_TRACE_API ("MCA_DataChnlCfg: %d ", mcl);
     WC_ASSERT(p_chnl_cfg != NULL );
     if (p_ccb)
     {
@@ -746,7 +746,7 @@ tMCA_RESULT MCA_DataChnlCfg(tMCA_CL mcl, const tMCA_CHNL_CFG *p_chnl_cfg)
         if ((p_ccb->p_tx_req == NULL) || (p_ccb->status != MCA_CCB_STAT_PENDING) ||
             ((p_dcb = mca_dcb_by_hdl(p_ccb->p_tx_req->dcb_idx)) == NULL))
         {
-            MCA_TRACE_ERROR1 ("The given MCL is not expecting this API:%d", p_ccb->status);
+            MCA_TRACE_ERROR ("The given MCL is not expecting this API:%d", p_ccb->status);
             return result;
         }
 
@@ -785,7 +785,7 @@ tMCA_RESULT MCA_Abort(tMCA_CL mcl)
     tMCA_CCB_MSG    *p_evt_data;
     tMCA_DCB        *p_dcb;
 
-    MCA_TRACE_API1 ("MCA_Abort: %d", mcl);
+    MCA_TRACE_API ("MCA_Abort: %d", mcl);
     if (p_ccb)
     {
         result = MCA_NO_RESOURCES;
@@ -793,13 +793,13 @@ tMCA_RESULT MCA_Abort(tMCA_CL mcl)
         if ((p_ccb->p_tx_req == NULL) || (p_ccb->status != MCA_CCB_STAT_PENDING) ||
             ((p_dcb = mca_dcb_by_hdl(p_ccb->p_tx_req->dcb_idx)) == NULL))
         {
-            MCA_TRACE_ERROR1 ("The given MCL is not expecting this API:%d", p_ccb->status);
+            MCA_TRACE_ERROR ("The given MCL is not expecting this API:%d", p_ccb->status);
             return result;
         }
 
         if (p_ccb->cong)
         {
-            MCA_TRACE_ERROR0 ("congested");
+            MCA_TRACE_ERROR ("congested");
             return MCA_BUSY;
         }
 
@@ -834,17 +834,17 @@ tMCA_RESULT MCA_Delete(tMCA_CL mcl, UINT16 mdl_id)
     tMCA_CCB        *p_ccb = mca_ccb_by_hdl(mcl);
     tMCA_CCB_MSG    *p_evt_data;
 
-    MCA_TRACE_API1 ("MCA_Delete: %d ", mcl);
+    MCA_TRACE_API ("MCA_Delete: %d ", mcl);
     if (p_ccb)
     {
         if (p_ccb->cong)
         {
-            MCA_TRACE_ERROR0 ("congested");
+            MCA_TRACE_ERROR ("congested");
             return MCA_BUSY;
         }
         if (!MCA_IS_VALID_MDL_ID(mdl_id) && (mdl_id != MCA_ALL_MDL_ID))
         {
-            MCA_TRACE_ERROR1 ("bad mdl id: %d ", mdl_id);
+            MCA_TRACE_ERROR ("bad mdl id: %d ", mdl_id);
             return MCA_BAD_PARAMS;
         }
         p_evt_data = (tMCA_CCB_MSG *)GKI_getbuf (sizeof(tMCA_CCB_MSG));
@@ -886,7 +886,7 @@ tMCA_RESULT MCA_WriteReq(tMCA_DL mdl, BT_HDR *p_pkt)
     tMCA_DCB *p_dcb = mca_dcb_by_hdl(mdl);
     tMCA_DCB_EVT    evt_data;
 
-    MCA_TRACE_API1 ("MCA_WriteReq: %d ", mdl);
+    MCA_TRACE_API ("MCA_WriteReq: %d ", mdl);
     if (p_dcb)
     {
         if (p_dcb->cong)
@@ -917,7 +917,7 @@ UINT16 MCA_GetL2CapChannel (tMCA_DL mdl)
     UINT16  lcid = 0;
     tMCA_DCB *p_dcb = mca_dcb_by_hdl(mdl);
 
-    MCA_TRACE_API1 ("MCA_GetL2CapChannel: %d ", mdl);
+    MCA_TRACE_API ("MCA_GetL2CapChannel: %d ", mdl);
     if (p_dcb)
         lcid = p_dcb->lcid;
     return lcid;

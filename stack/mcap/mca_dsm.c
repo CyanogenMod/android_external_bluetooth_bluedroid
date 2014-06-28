@@ -142,9 +142,9 @@ void mca_dcb_event(tMCA_DCB *p_dcb, UINT8 event, tMCA_DCB_EVT *p_data)
     if (p_dcb == NULL)
         return;
 #if (BT_TRACE_VERBOSE == TRUE)
-    MCA_TRACE_EVENT3("DCB dcb=%d event=%s state=%s", mca_dcb_to_hdl(p_dcb), mca_dcb_evt_str[event], mca_dcb_st_str[p_dcb->state]);
+    MCA_TRACE_EVENT("DCB dcb=%d event=%s state=%s", mca_dcb_to_hdl(p_dcb), mca_dcb_evt_str[event], mca_dcb_st_str[p_dcb->state]);
 #else
-    MCA_TRACE_EVENT3("DCB dcb=%d event=%d state=%d", mca_dcb_to_hdl(p_dcb), event, p_dcb->state);
+    MCA_TRACE_EVENT("DCB dcb=%d event=%d state=%d", mca_dcb_to_hdl(p_dcb), event, p_dcb->state);
 #endif
 
     /* look up the state table for the current state */
@@ -238,7 +238,7 @@ UINT8 mca_dep_free_mdl(tMCA_CCB *p_ccb, tMCA_DEP dep)
     else
     {
         max = 0;
-        MCA_TRACE_WARNING0("Invalid Dep ID");
+        MCA_TRACE_WARNING("Invalid Dep ID");
     }
     left = max - count;
     return left;
@@ -259,7 +259,7 @@ void mca_dcb_dealloc(tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
     UINT8    event = MCA_CLOSE_IND_EVT;
     tMCA_CTRL   evt_data;
 
-    MCA_TRACE_DEBUG0("mca_dcb_dealloc");
+    MCA_TRACE_DEBUG("mca_dcb_dealloc");
     mca_free_buf ((void **)&p_dcb->p_data);
     if (p_data)
     {
@@ -325,7 +325,7 @@ void mca_dcb_close_by_mdl_id(tMCA_CCB*p_ccb, UINT16 mdl_id)
     tMCA_DCB *p_dcb;
     int       i;
 
-    MCA_TRACE_DEBUG1("mca_dcb_close_by_mdl_id mdl_id=%d", mdl_id);
+    MCA_TRACE_DEBUG("mca_dcb_close_by_mdl_id mdl_id=%d", mdl_id);
     i = mca_ccb_to_hdl(p_ccb)-1;
     p_dcb = &mca_cb.dcb[i*MCA_NUM_MDLS];
     for (i=0; i<MCA_NUM_MDLS; i++, p_dcb++)

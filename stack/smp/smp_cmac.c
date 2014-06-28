@@ -53,11 +53,11 @@ void print128(BT_OCTET16 x, const UINT8 *key_name)
     UINT8  *p = (UINT8 *)x;
     UINT8  i;
 
-    SMP_TRACE_WARNING1("%s(MSB ~ LSB) = ", key_name);
+    SMP_TRACE_WARNING("%s(MSB ~ LSB) = ", key_name);
 
     for (i = 0; i < 4; i ++)
     {
-        SMP_TRACE_WARNING4("%02x %02x %02x %02x",
+        SMP_TRACE_WARNING("%02x %02x %02x %02x",
                            p[BT_OCTET16_LEN - i*4 -1], p[BT_OCTET16_LEN - i*4 -2],
                            p[BT_OCTET16_LEN - i*4 -3], p[BT_OCTET16_LEN - i*4 -4]);
     }
@@ -95,7 +95,7 @@ static void padding ( BT_OCTET16 dest, UINT8 length )
 static void leftshift_onebit(UINT8 *input, UINT8 *output)
 {
     UINT8   i, overflow = 0 , next_overflow = 0;
-    SMP_TRACE_EVENT0 ("leftshift_onebit ");
+    SMP_TRACE_EVENT ("leftshift_onebit ");
     /* input[0] is LSB */
     for ( i = 0; i < BT_OCTET16_LEN ; i ++ )
     {
@@ -139,7 +139,7 @@ static BOOLEAN cmac_aes_k_calculate(BT_OCTET16 key, UINT8 *p_signature, UINT16 t
     UINT8    x[16] = {0};
     UINT8   *p_mac;
 
-    SMP_TRACE_EVENT0 ("cmac_aes_k_calculate ");
+    SMP_TRACE_EVENT ("cmac_aes_k_calculate ");
 
     while (i <= cmac_cb.round)
     {
@@ -160,10 +160,10 @@ static BOOLEAN cmac_aes_k_calculate(BT_OCTET16 key, UINT8 *p_signature, UINT16 t
         p_mac = output.param_buf + (BT_OCTET16_LEN - tlen);
         memcpy(p_signature, p_mac, tlen);
 
-        SMP_TRACE_DEBUG2("tlen = %d p_mac = %d", tlen, p_mac);
-        SMP_TRACE_DEBUG4("p_mac[0] = 0x%02x p_mac[1] = 0x%02x p_mac[2] = 0x%02x p_mac[3] = 0x%02x",
+        SMP_TRACE_DEBUG("tlen = %d p_mac = %d", tlen, p_mac);
+        SMP_TRACE_DEBUG("p_mac[0] = 0x%02x p_mac[1] = 0x%02x p_mac[2] = 0x%02x p_mac[3] = 0x%02x",
                          *p_mac, *(p_mac + 1), *(p_mac + 2), *(p_mac + 3));
-        SMP_TRACE_DEBUG4("p_mac[4] = 0x%02x p_mac[5] = 0x%02x p_mac[6] = 0x%02x p_mac[7] = 0x%02x",
+        SMP_TRACE_DEBUG("p_mac[4] = 0x%02x p_mac[5] = 0x%02x p_mac[6] = 0x%02x p_mac[7] = 0x%02x",
                          *(p_mac + 4), *(p_mac + 5), *(p_mac + 6), *(p_mac + 7));
 
         return TRUE;
@@ -187,11 +187,11 @@ static void cmac_prepare_last_block (BT_OCTET16 k1, BT_OCTET16 k2)
 //    UINT8       x[16] = {0};
     BOOLEAN      flag;
 
-    SMP_TRACE_EVENT0 ("cmac_prepare_last_block ");
+    SMP_TRACE_EVENT ("cmac_prepare_last_block ");
     /* last block is a complete block set flag to 1 */
     flag = ((cmac_cb.len % BT_OCTET16_LEN) == 0 && cmac_cb.len != 0)  ? TRUE : FALSE;
 
-    SMP_TRACE_WARNING2("flag = %d round = %d", flag, cmac_cb.round);
+    SMP_TRACE_WARNING("flag = %d round = %d", flag, cmac_cb.round);
 
     if ( flag )
     { /* last block is complete block */
@@ -217,7 +217,7 @@ static void cmac_subkey_cont(tSMP_ENC *p)
 {
     UINT8 k1[BT_OCTET16_LEN], k2[BT_OCTET16_LEN];
     UINT8 *pp = p->param_buf;
-    SMP_TRACE_EVENT0 ("cmac_subkey_cont ");
+    SMP_TRACE_EVENT ("cmac_subkey_cont ");
     print128(pp, (const UINT8 *)"K1 before shift");
 
     /* If MSB(L) = 0, then K1 = L << 1 */
@@ -265,7 +265,7 @@ static BOOLEAN cmac_generate_subkey(BT_OCTET16 key)
     BT_OCTET16 z = {0};
     BOOLEAN     ret = TRUE;
     tSMP_ENC output;
-    SMP_TRACE_EVENT0 (" cmac_generate_subkey");
+    SMP_TRACE_EVENT (" cmac_generate_subkey");
 
     if (SMP_Encrypt(key, BT_OCTET16_LEN, z, BT_OCTET16_LEN, &output))
     {
@@ -298,12 +298,12 @@ BOOLEAN AES_CMAC ( BT_OCTET16 key, UINT8 *input, UINT16 length,
     UINT16  n = (length + BT_OCTET16_LEN - 1) / BT_OCTET16_LEN;       /* n is number of rounds */
     BOOLEAN ret = FALSE;
 
-    SMP_TRACE_EVENT0 ("AES_CMAC  ");
+    SMP_TRACE_EVENT ("AES_CMAC  ");
 
     if (n == 0)  n = 1;
     len = n * BT_OCTET16_LEN;
 
-    SMP_TRACE_WARNING1("AES128_CMAC started, allocate buffer size = %d", len);
+    SMP_TRACE_WARNING("AES128_CMAC started, allocate buffer size = %d", len);
     /* allocate a memory space of multiple of 16 bytes to hold text  */
     if ((cmac_cb.text = (UINT8 *)GKI_getbuf(len)) != NULL)
     {
@@ -332,7 +332,7 @@ BOOLEAN AES_CMAC ( BT_OCTET16 key, UINT8 *input, UINT16 length,
     else
     {
         ret = FALSE;
-        SMP_TRACE_ERROR0("No resources");
+        SMP_TRACE_ERROR("No resources");
     }
 
     return ret;
@@ -341,13 +341,13 @@ BOOLEAN AES_CMAC ( BT_OCTET16 key, UINT8 *input, UINT16 length,
     #if 0 /* testing code, sample data from spec */
 void test_cmac_cback(UINT8 *p_mac, UINT16 tlen)
 {
-    SMP_TRACE_EVENT0 ("test_cmac_cback ");
-    SMP_TRACE_ERROR0("test_cmac_cback");
+    SMP_TRACE_EVENT ("test_cmac_cback ");
+    SMP_TRACE_ERROR("test_cmac_cback");
 }
 
 void test_cmac(void)
 {
-    SMP_TRACE_EVENT0 ("test_cmac ");
+    SMP_TRACE_EVENT ("test_cmac ");
     UINT8 M[64] = {
         0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96,
         0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a,
@@ -378,7 +378,7 @@ void test_cmac(void)
 
     memset(&cmac_cb, 0, sizeof(tCMAC_CB));
 
-    SMP_TRACE_WARNING1("\n Example 1: len = %d\n", len);
+    SMP_TRACE_WARNING("\n Example 1: len = %d\n", len);
 
     AES_CMAC(key, M, len, 128, test_cmac_cback, 0);
 

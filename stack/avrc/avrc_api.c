@@ -128,7 +128,7 @@ static void avrc_prep_end_frag(UINT8 handle)
     UINT8   *p_data, *p_orig_data;
     UINT8   rsp_type;
 
-    AVRC_TRACE_DEBUG0 ("avrc_prep_end_frag" );
+    AVRC_TRACE_DEBUG ("avrc_prep_end_frag" );
     p_fcb = &avrc_cb.fcb[handle];
 
     /* The response type of the end fragment should be the same as the the PDU of "End Fragment
@@ -172,7 +172,7 @@ static void avrc_send_continue_frag(UINT8 handle, UINT8 label)
     p_fcb = &avrc_cb.fcb[handle];
     p_pkt = p_fcb->p_fmsg;
 
-    AVRC_TRACE_DEBUG1 ("avrc_send_continue_frag len(%d) / AVRC_MAX_CTRL_DATA_LEN", p_pkt->len );
+    AVRC_TRACE_DEBUG ("avrc_send_continue_frag len(%d) / AVRC_MAX_CTRL_DATA_LEN", p_pkt->len );
     if (p_pkt->len > AVRC_MAX_CTRL_DATA_LEN)
     {
         p_pkt_old = p_fcb->p_fmsg;
@@ -202,7 +202,7 @@ static void avrc_send_continue_frag(UINT8 handle, UINT8 label)
             p_pkt = p_fcb->p_fmsg;
             p_fcb->p_fmsg = NULL;
             p_fcb->frag_enabled = FALSE;
-            AVRC_TRACE_ERROR0 ("AVRC_MsgReq no buffers for fragmentation - send internal error" );
+            AVRC_TRACE_ERROR ("AVRC_MsgReq no buffers for fragmentation - send internal error" );
             p_data = (UINT8 *)(p_pkt+1) + p_pkt->offset;
             *p_data++ = AVRC_PDU_REQUEST_CONTINUATION_RSP;
             *p_data++ = 0;
@@ -250,7 +250,7 @@ static BT_HDR * avrc_proc_vendor_command(UINT8 handle, UINT8 label,
     if (pkt_type != AVRC_PKT_SINGLE)
     {
         /* reject - commands can only be in single packets at AVRCP level */
-        AVRC_TRACE_ERROR1 ("commands must be in single packet pdu:0x%x", *p_data );
+        AVRC_TRACE_ERROR ("commands must be in single packet pdu:0x%x", *p_data );
         /* use the current GKI buffer to send the reject */
         status = AVRC_STS_BAD_CMD;
     }
@@ -291,7 +291,7 @@ static BT_HDR * avrc_proc_vendor_command(UINT8 handle, UINT8 label,
                 else
                 {
                     /* the pdu id does not match - reject the command using the current GKI buffer */
-                    AVRC_TRACE_ERROR2("avrc_proc_vendor_command continue pdu: 0x%x does not match \
+                    AVRC_TRACE_ERROR("avrc_proc_vendor_command continue pdu: 0x%x does not match \
                     current re-assembly pdu: 0x%x",
                         *(p_data + 4), p_fcb->frag_pdu);
                     status = AVRC_STS_BAD_PARAM;
@@ -366,7 +366,7 @@ static UINT8 avrc_proc_far_msg(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR **pp_
     p_data += AVRC_VENDOR_HDR_SIZE;
 
     pkt_type = *(p_data + 1) & AVRC_PKT_TYPE_MASK;
-    AVRC_TRACE_DEBUG1 ("pkt_type %d", pkt_type );
+    AVRC_TRACE_DEBUG ("pkt_type %d", pkt_type );
     p_rcb = &avrc_cb.rcb[handle];
     if (p_msg->company_id == AVRC_CO_METADATA)
     {
@@ -409,7 +409,7 @@ static UINT8 avrc_proc_far_msg(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR **pp_
                 {
                     /* Unable to allocate buffer for fragmented avrc message. Reuse START
                                       buffer for reassembly (re-assembled message may fit into ACL buf) */
-                    AVRC_TRACE_DEBUG0 ("Unable to allocate buffer for fragmented avrc message, \
+                    AVRC_TRACE_DEBUG ("Unable to allocate buffer for fragmented avrc message, \
                                        reusing START buffer for reassembly");
                     p_rcb->rasm_offset = p_pkt->offset;
                     p_rcb->p_rmsg = p_pkt;
@@ -423,7 +423,7 @@ static UINT8 avrc_proc_far_msg(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR **pp_
             {
                 /* Received a CONTINUE/END, but no corresponding START
                               (or previous fragmented response was dropped) */
-                AVRC_TRACE_DEBUG0 ("Received a CONTINUE/END without no corresponding START \
+                AVRC_TRACE_DEBUG ("Received a CONTINUE/END without no corresponding START \
                                    (or previous fragmented response was dropped)");
                 drop = 5;
                 GKI_freebuf(p_pkt);
@@ -439,7 +439,7 @@ static UINT8 avrc_proc_far_msg(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR **pp_
                 /* verify length */
                 if ((p_rcb->p_rmsg->offset + p_pkt->len) > buf_len)
                 {
-                    AVRC_TRACE_WARNING0("Fragmented message too big! - report the partial message");
+                    AVRC_TRACE_WARNING("Fragmented message too big! - report the partial message");
                     p_pkt->len = buf_len - p_rcb->p_rmsg->offset;
                     pkt_type = AVRC_PKT_END;
                 }
@@ -463,7 +463,7 @@ static UINT8 avrc_proc_far_msg(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR **pp_
                     p_data = p_msg->p_vendor_data + 1; /* skip pdu */
                     *p_data++ = AVRC_PKT_SINGLE;
                     UINT16_TO_BE_STREAM(p_data, (p_msg->vendor_len - AVRC_MIN_META_HDR_SIZE));
-                    AVRC_TRACE_DEBUG3("end frag:%d, total len:%d, offset:%d", p_pkt->len,
+                    AVRC_TRACE_DEBUG("end frag:%d, total len:%d, offset:%d", p_pkt->len,
                         p_pkt_new->len, p_pkt_new->offset);
                 }
                 else
@@ -563,7 +563,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
     memset(&msg, 0, sizeof(tAVRC_MSG) );
     {
         msg.hdr.ctype           = p_data[0] & AVRC_CTYPE_MASK;
-        AVRC_TRACE_DEBUG4("avrc_msg_cback handle:%d, ctype:%d, offset:%d, len: %d",
+        AVRC_TRACE_DEBUG("avrc_msg_cback handle:%d, ctype:%d, offset:%d, len: %d",
                 handle, msg.hdr.ctype, p_pkt->offset, p_pkt->len);
         msg.hdr.subunit_type    = (p_data[1] & AVRC_SUBTYPE_MASK) >> AVRC_SUBTYPE_SHIFT;
         msg.hdr.subunit_id      = p_data[1] & AVRC_SUBID_MASK;
@@ -770,7 +770,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
 #if (BT_USE_TRACES == TRUE)
     else
     {
-        AVRC_TRACE_WARNING5("avrc_msg_cback %s msg handle:%d, control:%d, cr:%d, opcode:x%x",
+        AVRC_TRACE_WARNING("avrc_msg_cback %s msg handle:%d, control:%d, cr:%d, opcode:x%x",
                 p_drop_msg,
                 handle, avrc_cb.ccb[handle].control, cr, opcode);
     }
@@ -905,7 +905,7 @@ UINT16 AVRC_Open(UINT8 *p_handle, tAVRC_CONN_CB *p_ccb, BD_ADDR_PTR peer_addr)
         memset(&avrc_cb.rcb[*p_handle], 0, sizeof(tAVRC_RASM_CB));
 #endif
     }
-    AVRC_TRACE_DEBUG4("AVRC_Open role: %d, control:%d status:%d, handle:%d", cc.role, cc.control,
+    AVRC_TRACE_DEBUG("AVRC_Open role: %d, control:%d status:%d, handle:%d", cc.role, cc.control,
         status, *p_handle);
 
     return status;
@@ -931,7 +931,7 @@ UINT16 AVRC_Open(UINT8 *p_handle, tAVRC_CONN_CB *p_ccb, BD_ADDR_PTR peer_addr)
 ******************************************************************************/
 UINT16 AVRC_Close(UINT8 handle)
 {
-    AVRC_TRACE_DEBUG1("AVRC_Close handle:%d", handle);
+    AVRC_TRACE_DEBUG("AVRC_Close handle:%d", handle);
     return AVCT_RemoveConn(handle);
 }
 
@@ -1013,7 +1013,7 @@ UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt)
     {
         if (p_pkt->len > AVRC_MAX_CTRL_DATA_LEN)
         {
-            AVRC_TRACE_DEBUG1 ("p_pkt->len(%d) > AVRC_MAX_CTRL_DATA_LEN", p_pkt->len );
+            AVRC_TRACE_DEBUG ("p_pkt->len(%d) > AVRC_MAX_CTRL_DATA_LEN", p_pkt->len );
             p_pkt_new = (BT_HDR *)GKI_getbuf((UINT16)(AVRC_PACKET_LEN + AVCT_MSG_OFFSET
                 + BT_HDR_SIZE));
             if (p_pkt_new)
@@ -1040,11 +1040,11 @@ UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt)
 
                 /* prepare the left over for as an end fragment */
                 avrc_prep_end_frag (handle);
-                AVRC_TRACE_DEBUG3 ("p_pkt len:%d/%d, next len:%d", p_pkt->len, len, p_fcb->p_fmsg->len );
+                AVRC_TRACE_DEBUG ("p_pkt len:%d/%d, next len:%d", p_pkt->len, len, p_fcb->p_fmsg->len );
             }
             else
             {
-                AVRC_TRACE_ERROR0 ("AVRC_MsgReq no buffers for fragmentation" );
+                AVRC_TRACE_ERROR ("AVRC_MsgReq no buffers for fragmentation" );
                 GKI_freebuf(p_pkt);
     return AVRC_NO_RESOURCES;
 }

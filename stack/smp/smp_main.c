@@ -395,14 +395,14 @@ void smp_set_state(tSMP_STATE state)
 {
     if (state < SMP_ST_MAX)
     {
-        SMP_TRACE_DEBUG4( "State change: %s(%d) ==> %s(%d)",
+        SMP_TRACE_DEBUG( "State change: %s(%d) ==> %s(%d)",
                           smp_get_state_name(smp_cb.state), smp_cb.state,
                           smp_get_state_name(state), state );
         smp_cb.state = state;
     }
     else
     {
-        SMP_TRACE_DEBUG1("smp_set_state invalid state =%d", state );
+        SMP_TRACE_DEBUG("smp_set_state invalid state =%d", state );
     }
 }
 
@@ -438,14 +438,14 @@ void smp_sm_event(tSMP_CB *p_cb, tSMP_EVENT event, void *p_data)
     UINT8           action, entry, i;
     tSMP_ENTRY_TBL  entry_table =  smp_entry_table[p_cb->role];
 
-    SMP_TRACE_EVENT0("main smp_sm_event");
+    SMP_TRACE_EVENT("main smp_sm_event");
     if (curr_state >= SMP_ST_MAX)
     {
-        SMP_TRACE_DEBUG1( "Invalid state: %d", curr_state) ;
+        SMP_TRACE_DEBUG( "Invalid state: %d", curr_state) ;
         return;
     }
 
-    SMP_TRACE_DEBUG5( "SMP Role: %s State: [%s (%d)], Event: [%s (%d)]",\
+    SMP_TRACE_DEBUG( "SMP Role: %s State: [%s (%d)], Event: [%s (%d)]",\
                       (p_cb->role == 0x01) ?"Slave" : "Master", smp_get_state_name( p_cb->state),
                       p_cb->state, smp_get_event_name(event), event) ;
 
@@ -465,7 +465,7 @@ void smp_sm_event(tSMP_CB *p_cb, tSMP_EVENT event, void *p_data)
     }
     else
     {
-        SMP_TRACE_DEBUG4( "Ignore event [%s (%d)] in state [%s (%d)]",
+        SMP_TRACE_DEBUG( "Ignore event [%s (%d)] in state [%s (%d)]",
                           smp_get_event_name(event), event, smp_get_state_name(curr_state), curr_state);
         return;
     }
@@ -490,7 +490,7 @@ void smp_sm_event(tSMP_CB *p_cb, tSMP_EVENT event, void *p_data)
             break;
         }
     }
-    SMP_TRACE_DEBUG1( "result state = %s", smp_get_state_name( p_cb->state ) ) ;
+    SMP_TRACE_DEBUG( "result state = %s", smp_get_state_name( p_cb->state ) ) ;
 }
 
 

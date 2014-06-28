@@ -265,7 +265,7 @@ static void srvc_eng_s_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_RE
     UINT8       act = SRVC_ACT_IGNORE;
     UINT8   clcb_idx = srvc_eng_find_clcb_idx_by_conn_id(conn_id);
 
-    GATT_TRACE_EVENT1("srvc_eng_s_request_cback : recv type (0x%02x)", type);
+    GATT_TRACE_EVENT("srvc_eng_s_request_cback : recv type (0x%02x)", type);
 
     memset(&rsp_msg, 0, sizeof(tGATTS_RSP));
 
@@ -284,15 +284,15 @@ static void srvc_eng_s_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_RE
             break;
 
         case GATTS_REQ_TYPE_WRITE_EXEC:
-            GATT_TRACE_EVENT0("Ignore GATT_REQ_EXEC_WRITE/WRITE_CMD" );
+            GATT_TRACE_EVENT("Ignore GATT_REQ_EXEC_WRITE/WRITE_CMD" );
             break;
 
         case GATTS_REQ_TYPE_MTU:
-            GATT_TRACE_EVENT1("Get MTU exchange new mtu size: %d", p_data->mtu);
+            GATT_TRACE_EVENT("Get MTU exchange new mtu size: %d", p_data->mtu);
             break;
 
         default:
-            GATT_TRACE_EVENT1("Unknown/unexpected LE GAP ATT request: 0x%02x", type);
+            GATT_TRACE_EVENT("Unknown/unexpected LE GAP ATT request: 0x%02x", type);
             break;
     }
 
@@ -319,11 +319,11 @@ static void srvc_eng_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATU
 {
     tSRVC_CLCB   *p_clcb = srvc_eng_find_clcb_by_conn_id(conn_id);
 
-    GATT_TRACE_EVENT2 ("srvc_eng_c_cmpl_cback() - op_code: 0x%02x  status: 0x%02x ", op, status);
+    GATT_TRACE_EVENT ("srvc_eng_c_cmpl_cback() - op_code: 0x%02x  status: 0x%02x ", op, status);
 
     if (p_clcb == NULL)
     {
-        GATT_TRACE_ERROR0("srvc_eng_c_cmpl_cback received for unknown connection");
+        GATT_TRACE_ERROR("srvc_eng_c_cmpl_cback received for unknown connection");
         return;
     }
 
@@ -348,7 +348,7 @@ static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_i
     UNUSED(gatt_if);
     UNUSED (transport);
 
-    GATT_TRACE_EVENT5 ("srvc_eng_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",
+    GATT_TRACE_EVENT ("srvc_eng_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",
                        (bda[0]<<24)+(bda[1]<<16)+(bda[2]<<8)+bda[3],
                        (bda[4]<<8)+bda[5], connected, conn_id, reason);
 
@@ -356,7 +356,7 @@ static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_i
     {
         if (srvc_eng_clcb_alloc(conn_id, bda) == NULL)
         {
-            GATT_TRACE_ERROR0 ("srvc_eng_connect_cback: no_resource");
+            GATT_TRACE_ERROR ("srvc_eng_connect_cback: no_resource");
             return;
         }
     }
@@ -422,7 +422,7 @@ tGATT_STATUS srvc_eng_init (void)
 
     if (srvc_eng_cb.enabled)
     {
-        GATT_TRACE_ERROR0("DIS already initalized");
+        GATT_TRACE_ERROR("DIS already initalized");
     }
     else
     {
@@ -432,7 +432,7 @@ tGATT_STATUS srvc_eng_init (void)
         srvc_eng_cb.gatt_if = GATT_Register(&app_uuid, &srvc_gatt_cback);
         GATT_StartIf(srvc_eng_cb.gatt_if);
 
-        GATT_TRACE_DEBUG1 ("Srvc_Init:  gatt_if=%d  ", srvc_eng_cb.gatt_if);
+        GATT_TRACE_DEBUG ("Srvc_Init:  gatt_if=%d  ", srvc_eng_cb.gatt_if);
 
         srvc_eng_cb.enabled = TRUE;
 //#if DIS_INCLUDED == TRUE

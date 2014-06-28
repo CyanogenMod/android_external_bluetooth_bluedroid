@@ -211,7 +211,7 @@ UINT16 gap_get_conn_id_if_connected (BD_ADDR bd_addr)
     }
 
     /* If here, failed to allocate a client control block */
-    GATT_TRACE_DEBUG0 ("gap_get_conn_id_if_connected: not connected");
+    GATT_TRACE_DEBUG ("gap_get_conn_id_if_connected: not connected");
     return(GATT_INVALID_CONN_ID);
 }
 

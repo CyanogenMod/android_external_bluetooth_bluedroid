@@ -335,7 +335,7 @@ BT_HDR *attp_build_value_cmd (UINT16 payload_size, UINT8 op_code, UINT16 handle,
                 if (op_code == GATT_RSP_READ_BY_TYPE)
                     *p_pair_len = (len + 2);
 
-                GATT_TRACE_WARNING1("attribute value too long, to be truncated to %d", len);
+                GATT_TRACE_WARNING("attribute value too long, to be truncated to %d", len);
             }
 
             ARRAY_TO_STREAM (p, p_data, len);
@@ -364,13 +364,13 @@ tGATT_STATUS attp_send_msg_to_l2cap(tGATT_TCB *p_tcb, BT_HDR *p_toL2CAP)
 
     if (l2cap_ret == L2CAP_DW_FAILED)
     {
-        GATT_TRACE_ERROR1("ATT   failed to pass msg:0x%0x to L2CAP",
+        GATT_TRACE_ERROR("ATT   failed to pass msg:0x%0x to L2CAP",
             *((UINT8 *)(p_toL2CAP + 1) + p_toL2CAP->offset));
         return GATT_INTERNAL_ERROR;
     }
     else if (l2cap_ret == L2CAP_DW_CONGESTED)
     {
-        GATT_TRACE_DEBUG0("ATT congested, message accepted");
+        GATT_TRACE_DEBUG("ATT congested, message accepted");
         return GATT_CONGESTED;
     }
     return GATT_SUCCESS;
@@ -392,7 +392,7 @@ BT_HDR *attp_build_sr_msg(tGATT_TCB *p_tcb, UINT8 op_code, tGATT_SR_MSG *p_msg)
     {
     case GATT_RSP_READ_BLOB:
     case GATT_RSP_PREPARE_WRITE:
-        GATT_TRACE_EVENT2 ("ATT_RSP_READ_BLOB/GATT_RSP_PREPARE_WRITE: len = %d offset = %d",
+        GATT_TRACE_EVENT ("ATT_RSP_READ_BLOB/GATT_RSP_PREPARE_WRITE: len = %d offset = %d",
                     p_msg->attr_value.len, p_msg->attr_value.offset);
         offset = p_msg->attr_value.offset;
 /* Coverity: [FALSE-POSITIVE error] intended fall through */
@@ -427,12 +427,12 @@ BT_HDR *attp_build_sr_msg(tGATT_TCB *p_tcb, UINT8 op_code, tGATT_SR_MSG *p_msg)
         break;
 
     default:
-        GATT_TRACE_DEBUG1("attp_build_sr_msg: unknown op code = %d", op_code);
+        GATT_TRACE_DEBUG("attp_build_sr_msg: unknown op code = %d", op_code);
         break;
     }
 
     if (!p_cmd)
-        GATT_TRACE_ERROR0("No resources");
+        GATT_TRACE_ERROR("No resources");
 
     return p_cmd;
 }
@@ -626,7 +626,7 @@ tGATT_STATUS attp_send_cl_msg (tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 op_code,
     }
     else
     {
-        GATT_TRACE_ERROR0("Peer device not connected");
+        GATT_TRACE_ERROR("Peer device not connected");
     }
 
     return status;

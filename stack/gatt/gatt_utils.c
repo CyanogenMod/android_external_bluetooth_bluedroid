@@ -91,7 +91,7 @@ static const UINT8  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0
 *******************************************************************************/
 void gatt_free_pending_ind(tGATT_TCB *p_tcb)
 {
-    GATT_TRACE_DEBUG0("gatt_free_pending_ind");
+    GATT_TRACE_DEBUG("gatt_free_pending_ind");
     /* release all queued indications */
     while (p_tcb->pending_ind_q.p_first)
         GKI_freebuf (GKI_dequeue (&p_tcb->pending_ind_q));
@@ -108,7 +108,7 @@ void gatt_free_pending_ind(tGATT_TCB *p_tcb)
 *******************************************************************************/
 void gatt_free_pending_enc_queue(tGATT_TCB *p_tcb)
 {
-    GATT_TRACE_DEBUG0("gatt_free_pending_enc_queue");
+    GATT_TRACE_DEBUG("gatt_free_pending_enc_queue");
     /* release all queued indications */
     while (p_tcb->pending_enc_clcb.p_first)
         GKI_freebuf (GKI_dequeue (&p_tcb->pending_enc_clcb));
@@ -128,7 +128,7 @@ void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr)
     tGATTS_SRV_CHG     *p_buf;
     tGATTS_SRV_CHG_REQ  req;
 
-    GATT_TRACE_DEBUG0 ("gatt_delete_dev_from_srv_chg_clt_list");
+    GATT_TRACE_DEBUG ("gatt_delete_dev_from_srv_chg_clt_list");
     if ((p_buf = gatt_is_bda_in_the_srv_chg_clt_list(bd_addr)) != NULL)
     {
         if (gatt_cb.cb_info.p_srv_chg_callback)
@@ -156,13 +156,13 @@ void gatt_set_srv_chg(void)
     tGATTS_SRV_CHG *p_buf = (tGATTS_SRV_CHG *)GKI_getfirst(&gatt_cb.srv_chg_clt_q);
     tGATTS_SRV_CHG_REQ req;
 
-    GATT_TRACE_DEBUG0 ("gatt_set_srv_chg");
+    GATT_TRACE_DEBUG ("gatt_set_srv_chg");
     while (p_buf)
     {
-        GATT_TRACE_DEBUG0 ("found a srv_chg clt");
+        GATT_TRACE_DEBUG ("found a srv_chg clt");
         if (!p_buf->srv_changed)
         {
-            GATT_TRACE_DEBUG0 ("set srv_changed to TRUE");
+            GATT_TRACE_DEBUG ("set srv_changed to TRUE");
             p_buf->srv_changed= TRUE;
             memcpy(&req.srv_chg, p_buf, sizeof(tGATTS_SRV_CHG));
             if (gatt_cb.cb_info.p_srv_chg_callback)
@@ -193,7 +193,7 @@ tGATTS_PENDING_NEW_SRV_START *gatt_sr_is_new_srv_chg(tBT_UUID *p_app_uuid128, tB
               &&  gatt_uuid_compare (*p_svc_uuid, p->svc_uuid)
               &&  (svc_inst == p->svc_inst) )
         {
-            GATT_TRACE_DEBUG0 ("gatt_sr_is_new_srv_chg: Yes");
+            GATT_TRACE_DEBUG ("gatt_sr_is_new_srv_chg: Yes");
             break;
         }
         p_buf = (tGATTS_PENDING_NEW_SRV_START *)GKI_getnext(p_buf);
@@ -215,10 +215,10 @@ tGATTS_PENDING_NEW_SRV_START *gatt_sr_is_new_srv_chg(tBT_UUID *p_app_uuid128, tB
 tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind)
 {
     tGATT_VALUE   *p_buf;
-    GATT_TRACE_DEBUG0 ("gatt_add_pending_ind");
+    GATT_TRACE_DEBUG ("gatt_add_pending_ind");
     if ((p_buf = (tGATT_VALUE *)GKI_getbuf((UINT16)sizeof(tGATT_VALUE))) != NULL)
     {
-        GATT_TRACE_DEBUG0 ("enqueue a pending indication");
+        GATT_TRACE_DEBUG ("enqueue a pending indication");
         memcpy(p_buf, p_ind, sizeof(tGATT_VALUE));
         GKI_enqueue (&p_tcb->pending_ind_q, p_buf);
     }
@@ -239,10 +239,10 @@ tGATTS_PENDING_NEW_SRV_START *gatt_add_pending_new_srv_start(tGATTS_HNDL_RANGE *
 {
     tGATTS_PENDING_NEW_SRV_START   *p_buf;
 
-    GATT_TRACE_DEBUG0 ("gatt_add_pending_new_srv_start");
+    GATT_TRACE_DEBUG ("gatt_add_pending_new_srv_start");
     if ((p_buf = (tGATTS_PENDING_NEW_SRV_START *)GKI_getbuf((UINT16)sizeof(tGATTS_PENDING_NEW_SRV_START))) != NULL)
     {
-        GATT_TRACE_DEBUG0 ("enqueue a new pending new srv start");
+        GATT_TRACE_DEBUG ("enqueue a new pending new srv start");
         p_buf->p_new_srv_start = p_new_srv_start;
         GKI_enqueue (&gatt_cb.pending_new_srv_start_q, p_buf);
     }
@@ -262,10 +262,10 @@ tGATTS_PENDING_NEW_SRV_START *gatt_add_pending_new_srv_start(tGATTS_HNDL_RANGE *
 tGATTS_SRV_CHG *gatt_add_srv_chg_clt(tGATTS_SRV_CHG *p_srv_chg)
 {
     tGATTS_SRV_CHG *p_buf;
-    GATT_TRACE_DEBUG0 ("gatt_add_srv_chg_clt");
+    GATT_TRACE_DEBUG ("gatt_add_srv_chg_clt");
     if ((p_buf = (tGATTS_SRV_CHG *)GKI_getbuf((UINT16)sizeof(tGATTS_SRV_CHG))) != NULL)
     {
-        GATT_TRACE_DEBUG0 ("enqueue a srv chg client");
+        GATT_TRACE_DEBUG ("enqueue a srv chg client");
         memcpy(p_buf, p_srv_chg, sizeof(tGATTS_SRV_CHG));
         GKI_enqueue (&gatt_cb.srv_chg_clt_q, p_buf);
     }
@@ -352,7 +352,7 @@ tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_app_id (tBT_UUID *p_app_uuid128,
              &&  gatt_uuid_compare (*p_svc_uuid,    p_list->asgn_range.svc_uuid)
              &&  (svc_inst == p_list->asgn_range.svc_inst) )
         {
-            GATT_TRACE_DEBUG0 ("Already allocated handles for this service before!!");
+            GATT_TRACE_DEBUG ("Already allocated handles for this service before!!");
             return(p_list);
         }
         p_list = p_list->p_next;
@@ -503,7 +503,7 @@ BOOLEAN gatt_add_a_srv_to_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM 
 
     if (!p_new)
     {
-        GATT_TRACE_DEBUG0("p_new==NULL");
+        GATT_TRACE_DEBUG("p_new==NULL");
         return FALSE;
     }
 
@@ -567,7 +567,7 @@ BOOLEAN gatt_remove_a_srv_from_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_
 {
     if (!p_remove || !p_list->p_first)
     {
-        GATT_TRACE_DEBUG0("p_remove==NULL || p_list->p_first==NULL");
+        GATT_TRACE_DEBUG("p_remove==NULL || p_list->p_first==NULL");
         return FALSE;
     }
 
@@ -608,7 +608,7 @@ BOOLEAN gatt_add_an_item_to_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELE
     tGATT_HDL_LIST_ELEM *p_old;
     if (!p_new)
     {
-        GATT_TRACE_DEBUG0("p_new==NULL");
+        GATT_TRACE_DEBUG("p_new==NULL");
         return FALSE;
     }
 
@@ -671,7 +671,7 @@ BOOLEAN gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIS
 {
     if (!p_remove || !p_list->p_first)
     {
-        GATT_TRACE_DEBUG0("p_remove==NULL || p_list->p_first==NULL");
+        GATT_TRACE_DEBUG("p_remove==NULL || p_list->p_first==NULL");
         return FALSE;
     }
 
@@ -710,7 +710,7 @@ BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *p_found
 {
     UINT8 i;
     BOOLEAN found = FALSE;
-    GATT_TRACE_DEBUG1("gatt_find_the_connected_bda start_idx=%d",start_idx);
+    GATT_TRACE_DEBUG("gatt_find_the_connected_bda start_idx=%d",start_idx);
 
     for (i = start_idx ; i < GATT_MAX_PHY_CHANNEL; i ++)
     {
@@ -720,12 +720,12 @@ BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *p_found
             *p_found_idx = i;
             *p_transport = gatt_cb.tcb[i].transport;
             found = TRUE;
-            GATT_TRACE_DEBUG6("gatt_find_the_connected_bda bda :%02x-%02x-%02x-%02x-%02x-%02x",
+            GATT_TRACE_DEBUG("gatt_find_the_connected_bda bda :%02x-%02x-%02x-%02x-%02x-%02x",
                               bda[0],  bda[1], bda[2],  bda[3], bda[4],  bda[5]);
             break;
         }
     }
-    GATT_TRACE_DEBUG2("gatt_find_the_connected_bda found=%d found_idx=%d", found, i);
+    GATT_TRACE_DEBUG("gatt_find_the_connected_bda found=%d found_idx=%d", found, i);
     return found;
 }
 
@@ -746,7 +746,7 @@ BOOLEAN gatt_is_srv_chg_ind_pending (tGATT_TCB *p_tcb)
     tGATT_VALUE *p_buf = (tGATT_VALUE *)GKI_getfirst(&p_tcb->pending_ind_q);
     BOOLEAN srv_chg_ind_pending = FALSE;
 
-    GATT_TRACE_DEBUG1("gatt_is_srv_chg_ind_pending is_queue_empty=%d", GKI_queue_is_empty(&p_tcb->pending_ind_q) );
+    GATT_TRACE_DEBUG("gatt_is_srv_chg_ind_pending is_queue_empty=%d", GKI_queue_is_empty(&p_tcb->pending_ind_q) );
 
     if (p_tcb->indicate_handle == gatt_cb.handle_of_h_r)
     {
@@ -765,7 +765,7 @@ BOOLEAN gatt_is_srv_chg_ind_pending (tGATT_TCB *p_tcb)
         }
     }
 
-    GATT_TRACE_DEBUG1("srv_chg_ind_pending = %d", srv_chg_ind_pending);
+    GATT_TRACE_DEBUG("srv_chg_ind_pending = %d", srv_chg_ind_pending);
     return srv_chg_ind_pending;
 }
 
@@ -783,14 +783,14 @@ tGATTS_SRV_CHG *gatt_is_bda_in_the_srv_chg_clt_list (BD_ADDR bda)
 {
     tGATTS_SRV_CHG *p_buf = (tGATTS_SRV_CHG *)GKI_getfirst(&gatt_cb.srv_chg_clt_q);
 
-    GATT_TRACE_DEBUG6("gatt_is_bda_in_the_srv_chg_clt_list :%02x-%02x-%02x-%02x-%02x-%02x",
+    GATT_TRACE_DEBUG("gatt_is_bda_in_the_srv_chg_clt_list :%02x-%02x-%02x-%02x-%02x-%02x",
                       bda[0],  bda[1], bda[2],  bda[3], bda[4],  bda[5]);
 
     while (p_buf != NULL)
     {
         if (!memcmp( bda, p_buf->bda, BD_ADDR_LEN))
         {
-            GATT_TRACE_DEBUG0("bda is in the srv chg clt list");
+            GATT_TRACE_DEBUG("bda is in the srv chg clt list");
             break;
         }
         p_buf = (tGATTS_SRV_CHG *)GKI_getnext(p_buf);
@@ -1149,11 +1149,11 @@ BOOLEAN gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, UINT16 uuid_size, UINT8 *
 
         /* do not allow 32 bits UUID in ATT PDU now */
         case LEN_UUID_32:
-            GATT_TRACE_ERROR0("DO NOT ALLOW 32 BITS UUID IN ATT PDU");
+            GATT_TRACE_ERROR("DO NOT ALLOW 32 BITS UUID IN ATT PDU");
         case 0:
         default:
             if (uuid_size != 0) ret = FALSE;
-            GATT_TRACE_WARNING0("gatt_parse_uuid_from_cmd invalid uuid size");
+            GATT_TRACE_WARNING("gatt_parse_uuid_from_cmd invalid uuid size");
             break;
     }
 
@@ -1228,7 +1228,7 @@ void gatt_rsp_timeout(TIMER_LIST_ENT *p_tle)
     tGATT_CLCB *p_clcb = (tGATT_CLCB *)p_tle->param;
     if (p_clcb == NULL || p_clcb->p_tcb == NULL)
     {
-        GATT_TRACE_WARNING0("gatt_rsp_timeout clcb is already deleted");
+        GATT_TRACE_WARNING("gatt_rsp_timeout clcb is already deleted");
         return;
     }
     if (p_clcb->operation == GATTC_OPTYPE_DISCOVERY &&
@@ -1236,10 +1236,10 @@ void gatt_rsp_timeout(TIMER_LIST_ENT *p_tle)
         p_clcb->retry_count < GATT_REQ_RETRY_LIMIT)
     {
         UINT8 rsp_code;
-        GATT_TRACE_WARNING0("gatt_rsp_timeout retry discovery primary service");
+        GATT_TRACE_WARNING("gatt_rsp_timeout retry discovery primary service");
         if (p_clcb != gatt_cmd_dequeue(p_clcb->p_tcb, &rsp_code))
         {
-            GATT_TRACE_ERROR0("gatt_rsp_timeout command queue out of sync, disconnect");
+            GATT_TRACE_ERROR("gatt_rsp_timeout command queue out of sync, disconnect");
         }
         else
         {
@@ -1249,7 +1249,7 @@ void gatt_rsp_timeout(TIMER_LIST_ENT *p_tle)
         }
     }
 
-    GATT_TRACE_WARNING0("gatt_rsp_timeout disconnecting...");
+    GATT_TRACE_WARNING("gatt_rsp_timeout disconnecting...");
     gatt_disconnect (p_clcb->p_tcb);
 }
 
@@ -1266,7 +1266,7 @@ void gatt_ind_ack_timeout(TIMER_LIST_ENT *p_tle)
 {
     tGATT_TCB * p_tcb = (tGATT_TCB *)p_tle->param;
 
-    GATT_TRACE_WARNING0("gatt_ind_ack_timeout send ack now");
+    GATT_TRACE_WARNING("gatt_ind_ack_timeout send ack now");
 
     if (p_tcb != NULL)
         p_tcb->ind_count = 0;
@@ -1324,7 +1324,7 @@ UINT8 gatt_sr_find_i_rcb_by_app_id(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid
                 gatt_uuid_compare (*p_svc_uuid, *p_this_uuid) &&
                 (svc_inst == p_sreg->service_instance))
             {
-                GATT_TRACE_ERROR0 ("Active Service Found ");
+                GATT_TRACE_ERROR ("Active Service Found ");
                 gatt_dbg_display_uuid(*p_svc_uuid);
 
                 break;
@@ -1363,7 +1363,7 @@ UINT8 gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
             p_sreg->e_hdl               = p_list->asgn_range.e_handle;
             p_sreg->p_db                = &p_list->svc_db;
 
-            GATT_TRACE_DEBUG1 ("total GKI buffer in db [%d]",p_sreg->p_db->svc_buffer.count);
+            GATT_TRACE_DEBUG ("total GKI buffer in db [%d]",p_sreg->p_db->svc_buffer.count);
             break;
         }
     }
@@ -1410,7 +1410,7 @@ void gatt_sr_send_req_callback(UINT16 conn_id,
 
     if (!p_reg )
     {
-        GATT_TRACE_ERROR0 ("p_reg not found discard request");
+        GATT_TRACE_ERROR ("p_reg not found discard request");
         return;
     }
 
@@ -1421,7 +1421,7 @@ void gatt_sr_send_req_callback(UINT16 conn_id,
     }
     else
     {
-        GATT_TRACE_WARNING1("Call back not found for application conn_id=%d", conn_id);
+        GATT_TRACE_WARNING("Call back not found for application conn_id=%d", conn_id);
     }
 
 }
@@ -1477,7 +1477,7 @@ UINT32 gatt_add_sdp_record (tBT_UUID *p_uuid, UINT16 start_hdl, UINT16 end_hdl)
     UINT8               buff[60];
     UINT8               *p = buff;
 
-    GATT_TRACE_DEBUG2("gatt_add_sdp_record s_hdl=0x%x  s_hdl=0x%x",start_hdl, end_hdl);
+    GATT_TRACE_DEBUG("gatt_add_sdp_record s_hdl=0x%x  s_hdl=0x%x",start_hdl, end_hdl);
 
     if ((sdp_handle = SDP_CreateRecord()) == 0)
         return 0;
@@ -1503,7 +1503,7 @@ UINT32 gatt_add_sdp_record (tBT_UUID *p_uuid, UINT16 start_hdl, UINT16 end_hdl)
             break;
 
         default:
-            GATT_TRACE_ERROR1("inavlid UUID len=%d", p_uuid->len);
+            GATT_TRACE_ERROR("inavlid UUID len=%d", p_uuid->len);
             SDP_DeleteRecord(sdp_handle);
             return 0;
             break;
@@ -1539,7 +1539,7 @@ UINT32 gatt_add_sdp_record (tBT_UUID *p_uuid, UINT16 start_hdl, UINT16 end_hdl)
 *******************************************************************************/
 void gatt_set_err_rsp(BOOLEAN enable, UINT8 req_op_code, UINT8 err_status)
 {
-    GATT_TRACE_DEBUG3("gatt_set_err_rsp enable=%d op_code=%d, err_status=%d", enable, req_op_code, err_status);
+    GATT_TRACE_DEBUG("gatt_set_err_rsp enable=%d op_code=%d, err_status=%d", enable, req_op_code, err_status);
     gatt_cb.enable_err_rsp  = enable;
     gatt_cb.req_op_code     = req_op_code;
     gatt_cb.err_status      = err_status;
@@ -1701,7 +1701,7 @@ UINT8 gatt_num_apps_hold_link(tGATT_TCB *p_tcb)
             num ++;
     }
 
-    GATT_TRACE_DEBUG1("gatt_num_apps_hold_link   num=%d",  num);
+    GATT_TRACE_DEBUG("gatt_num_apps_hold_link   num=%d",  num);
     return num;
 }
 
@@ -1910,7 +1910,7 @@ void gatt_sr_update_prep_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, BOOLEAN is_inc,
 {
     UINT8 idx = ((UINT8) gatt_if) - 1 ;
 
-    GATT_TRACE_DEBUG4("gatt_sr_update_prep_cnt tcb idx=%d gatt_if=%d is_inc=%d is_reset_first=%d",
+    GATT_TRACE_DEBUG("gatt_sr_update_prep_cnt tcb idx=%d gatt_if=%d is_inc=%d is_reset_first=%d",
                       p_tcb->tcb_idx, gatt_if, is_inc, is_reset_first);
 
     if (p_tcb)
@@ -1952,7 +1952,7 @@ BOOLEAN gatt_cancel_open(tGATT_IF gatt_if, BD_ADDR bda)
     {
         if (gatt_get_ch_state(p_tcb) == GATT_CH_OPEN)
         {
-            GATT_TRACE_ERROR0("GATT_CancelConnect - link connected Too late to cancel");
+            GATT_TRACE_ERROR("GATT_CancelConnect - link connected Too late to cancel");
             status = FALSE;
         }
         else
@@ -2118,7 +2118,7 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
     UINT16              conn_id;
     UINT8               operation;
 
-    GATT_TRACE_DEBUG3 ("gatt_end_operation status=%d op=%d subtype=%d",
+    GATT_TRACE_DEBUG ("gatt_end_operation status=%d op=%d subtype=%d",
                        status, p_clcb->operation, p_clcb->op_subtype);
 
     if (p_cmpl_cb != NULL && p_clcb->operation != 0)
@@ -2145,7 +2145,7 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
                 }
                 else
                 {
-                    GATT_TRACE_DEBUG0("Rcv Prepare write rsp but no data");
+                    GATT_TRACE_DEBUG("Rcv Prepare write rsp but no data");
                 }
             }
         }
@@ -2175,7 +2175,7 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
     else if (p_cmpl_cb && op)
         (*p_cmpl_cb)(conn_id, op, status, &cb_data);
     else
-        GATT_TRACE_WARNING3 ("gatt_end_operation not sent out op=%d p_disc_cmpl_cb:%p p_cmpl_cb:%p",
+        GATT_TRACE_WARNING ("gatt_end_operation not sent out op=%d p_disc_cmpl_cb:%p p_cmpl_cb:%p",
                              operation, p_disc_cmpl_cb, p_cmpl_cb);
 }
 
@@ -2198,11 +2198,11 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason, tBT_TRANSPORT transport)
     tGATT_REG        *p_reg=NULL;
 
 
-    GATT_TRACE_DEBUG0 ("gatt_cleanup_upon_disc ");
+    GATT_TRACE_DEBUG ("gatt_cleanup_upon_disc ");
 
     if ((p_tcb = gatt_find_tcb_by_addr(bda, transport)) != NULL)
     {
-        GATT_TRACE_DEBUG0 ("found p_tcb ");
+        GATT_TRACE_DEBUG ("found p_tcb ");
         gatt_set_ch_state(p_tcb, GATT_CH_CLOSE);
         for (i = 0; i < GATT_CL_MAX_LCB; i ++)
         {
@@ -2210,7 +2210,7 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason, tBT_TRANSPORT transport)
             if (p_clcb->in_use && p_clcb->p_tcb == p_tcb)
             {
                 btu_stop_timer(&p_clcb->rsp_timer_ent);
-                GATT_TRACE_DEBUG2 ("found p_clcb conn_id=%d clcb_idx=%d", p_clcb->conn_id, p_clcb->clcb_idx);
+                GATT_TRACE_DEBUG ("found p_clcb conn_id=%d clcb_idx=%d", p_clcb->conn_id, p_clcb->clcb_idx);
                 if (p_clcb->operation != GATTC_OPTYPE_NONE)
                     gatt_end_operation(p_clcb, GATT_ERROR, NULL);
 
@@ -2230,14 +2230,14 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason, tBT_TRANSPORT transport)
             if (p_reg->in_use && p_reg->app_cb.p_conn_cb)
             {
                 conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_reg->gatt_if);
-                GATT_TRACE_DEBUG3 ("found p_reg tcb_idx=%d gatt_if=%d  conn_id=0x%x", p_tcb->tcb_idx, p_reg->gatt_if, conn_id);
+                GATT_TRACE_DEBUG ("found p_reg tcb_idx=%d gatt_if=%d  conn_id=0x%x", p_tcb->tcb_idx, p_reg->gatt_if, conn_id);
                 (*p_reg->app_cb.p_conn_cb)(p_reg->gatt_if,  bda, conn_id, FALSE, reason, transport);
             }
         }
         memset(p_tcb, 0, sizeof(tGATT_TCB));
 
     }
-    GATT_TRACE_DEBUG0 ("exit gatt_cleanup_upon_disc ");
+    GATT_TRACE_DEBUG ("exit gatt_cleanup_upon_disc ");
 }
 /*******************************************************************************
 **
@@ -2307,7 +2307,7 @@ void gatt_dbg_display_uuid(tBT_UUID bt_uuid)
     else
         BCM_STRNCPY_S(str_buf, sizeof(str_buf), "Unknown UUID 0", 15);
 
-    GATT_TRACE_DEBUG1 ("UUID=[%s]", str_buf);
+    GATT_TRACE_DEBUG ("UUID=[%s]", str_buf);
 
 }
 
@@ -2413,7 +2413,7 @@ BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_init
             {
                 if (p_dev->gatt_if[i] == gatt_if)
                 {
-                    GATT_TRACE_ERROR0("device already in iniator white list");
+                    GATT_TRACE_ERROR("device already in iniator white list");
                     return TRUE;
                 }
                 else if (p_dev->gatt_if[i] == 0)
@@ -2430,7 +2430,7 @@ BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_init
             {
                 if (p_dev->listen_gif[i] == gatt_if)
                 {
-                    GATT_TRACE_ERROR0("device already in adv white list");
+                    GATT_TRACE_ERROR("device already in adv white list");
                     return TRUE;
                 }
                 else if (p_dev->listen_gif[i] == 0)
@@ -2452,7 +2452,7 @@ BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_init
     }
     else
     {
-        GATT_TRACE_ERROR0("no device record available");
+        GATT_TRACE_ERROR("no device record available");
     }
 
     return ret;
@@ -2693,11 +2693,11 @@ BOOLEAN gatt_update_auto_connect_dev (tGATT_IF gatt_if, BOOLEAN add, BD_ADDR bd_
     tGATT_REG        *p_reg;
     tGATT_TCB       *p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
 
-    GATT_TRACE_API0 ("gatt_update_auto_connect_dev ");
+    GATT_TRACE_API ("gatt_update_auto_connect_dev ");
     /* Make sure app is registered */
     if ((p_reg = gatt_get_regcb(gatt_if)) == NULL)
     {
-        GATT_TRACE_ERROR1("gatt_update_auto_connect_dev - gatt_if is not registered", gatt_if);
+        GATT_TRACE_ERROR("gatt_update_auto_connect_dev - gatt_if is not registered", gatt_if);
         return(FALSE);
     }
 
@@ -2733,10 +2733,10 @@ tGATT_PENDING_ENC_CLCB* gatt_add_pending_enc_channel_clcb(tGATT_TCB *p_tcb, tGAT
 {
     tGATT_PENDING_ENC_CLCB   *p_buf;
 
-    GATT_TRACE_DEBUG0 ("gatt_add_pending_new_srv_start");
+    GATT_TRACE_DEBUG ("gatt_add_pending_new_srv_start");
     if ((p_buf = (tGATT_PENDING_ENC_CLCB *)GKI_getbuf((UINT16)sizeof(tGATT_PENDING_ENC_CLCB))) != NULL)
     {
-        GATT_TRACE_DEBUG0 ("enqueue a new pending encryption channel clcb");
+        GATT_TRACE_DEBUG ("enqueue a new pending encryption channel clcb");
         p_buf->p_clcb = p_clcb;
         GKI_enqueue (&p_tcb->pending_enc_clcb, p_buf);
     }

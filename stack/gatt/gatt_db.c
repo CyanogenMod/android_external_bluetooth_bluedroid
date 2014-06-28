@@ -64,12 +64,12 @@ BOOLEAN gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID *p_service,  BOOLEAN
 {
     if (!allocate_svc_db_buf(p_db))
     {
-        GATT_TRACE_ERROR0("gatts_init_service_db failed, no resources");
+        GATT_TRACE_ERROR("gatts_init_service_db failed, no resources");
         return FALSE;
     }
 
-    GATT_TRACE_DEBUG0("gatts_init_service_db");
-    GATT_TRACE_DEBUG2("s_hdl = %d num_handle = %d", s_hdl, num_handle );
+    GATT_TRACE_DEBUG("gatts_init_service_db");
+    GATT_TRACE_DEBUG("s_hdl = %d num_handle = %d", s_hdl, num_handle );
 
     /* update service database information */
     p_db->next_handle   = s_hdl;
@@ -94,7 +94,7 @@ tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db)
 {
     if (!p_db || !p_db->p_attr_list)
     {
-        GATT_TRACE_ERROR0("service DB empty");
+        GATT_TRACE_ERROR("service DB empty");
 
         return NULL;
     }
@@ -131,32 +131,32 @@ static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR16 *p_attr,
 
     if (!(perm & GATT_READ_ALLOWED))
     {
-        GATT_TRACE_ERROR0( "GATT_READ_NOT_PERMIT");
+        GATT_TRACE_ERROR( "GATT_READ_NOT_PERMIT");
         return GATT_READ_NOT_PERMIT;
     }
 
     if ((perm & GATT_READ_AUTH_REQUIRED ) && !(sec_flag & GATT_SEC_FLAG_LKEY_UNAUTHED) &&
         !(sec_flag & BTM_SEC_FLAG_ENCRYPTED))
     {
-        GATT_TRACE_ERROR0( "GATT_INSUF_AUTHENTICATION");
+        GATT_TRACE_ERROR( "GATT_INSUF_AUTHENTICATION");
         return GATT_INSUF_AUTHENTICATION;
     }
 
     if ((perm & GATT_READ_MITM_REQUIRED ) && !(sec_flag & GATT_SEC_FLAG_LKEY_AUTHED))
     {
-        GATT_TRACE_ERROR0( "GATT_INSUF_AUTHENTICATION: MITM Required");
+        GATT_TRACE_ERROR( "GATT_INSUF_AUTHENTICATION: MITM Required");
         return GATT_INSUF_AUTHENTICATION;
     }
 
     if ((perm & GATT_READ_ENCRYPTED_REQUIRED ) && !(sec_flag & GATT_SEC_FLAG_ENCRYPTED))
     {
-        GATT_TRACE_ERROR0( "GATT_INSUF_ENCRYPTION");
+        GATT_TRACE_ERROR( "GATT_INSUF_ENCRYPTION");
         return GATT_INSUF_ENCRYPTION;
     }
 
     if ( (perm & GATT_READ_ENCRYPTED_REQUIRED) && (sec_flag & GATT_SEC_FLAG_ENCRYPTED) && (key_size < min_key_size))
     {
-        GATT_TRACE_ERROR0( "GATT_INSUF_KEY_SIZE");
+        GATT_TRACE_ERROR( "GATT_INSUF_KEY_SIZE");
         return GATT_INSUF_KEY_SIZE;
     }
 
@@ -173,7 +173,7 @@ static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR16 *p_attr,
             case GATT_UUID_CHAR_CLIENT_CONFIG:
             case GATT_UUID_CHAR_SRVR_CONFIG:
             case GATT_UUID_CHAR_PRESENT_FORMAT:
-                GATT_TRACE_ERROR0("GATT_NOT_LONG");
+                GATT_TRACE_ERROR("GATT_NOT_LONG");
                 return GATT_NOT_LONG;
 
             default:
@@ -217,7 +217,7 @@ static tGATT_STATUS read_attr_value (void *p_attr,
     UINT16          read_long_uuid=0;
     tGATT_ATTR16    *p_attr16  = (tGATT_ATTR16  *)p_attr;
 
-    GATT_TRACE_DEBUG5("read_attr_value uuid=0x%04x perm=0x%0x sec_flag=0x%x offset=%d read_long=%d",
+    GATT_TRACE_DEBUG("read_attr_value uuid=0x%04x perm=0x%0x sec_flag=0x%x offset=%d read_long=%d",
                       p_attr16->uuid,
                       p_attr16->permission,
                       sec_flag,
@@ -398,7 +398,7 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
                     }
                     else
                     {
-                        GATT_TRACE_ERROR0("format mismatch");
+                        GATT_TRACE_ERROR("format mismatch");
                         status = GATT_NO_RESOURCES;
                         break;
                     }
@@ -454,12 +454,12 @@ UINT16 gatts_add_included_service (tGATT_SVC_DB *p_db, UINT16 s_handle, UINT16 e
     tGATT_ATTR16      *p_attr;
     tBT_UUID         uuid = {LEN_UUID_16, {GATT_UUID_INCLUDE_SERVICE}};
 
-    GATT_TRACE_DEBUG3("gatts_add_included_service: s_hdl = 0x%04x e_hdl = 0x%04x uuid = 0x%04x",
+    GATT_TRACE_DEBUG("gatts_add_included_service: s_hdl = 0x%04x e_hdl = 0x%04x uuid = 0x%04x",
                       s_handle, e_handle, service.uu.uuid16);
 
     if (service.len == 0 || s_handle == 0 || e_handle == 0)
     {
-        GATT_TRACE_ERROR0("gatts_add_included_service Illegal Params.");
+        GATT_TRACE_ERROR("gatts_add_included_service Illegal Params.");
         return 0;
     }
 
@@ -504,7 +504,7 @@ UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
     tGATT_ATTR16     *p_char_decl, *p_char_val;
     tBT_UUID        uuid = {LEN_UUID_16, {GATT_UUID_CHAR_DECLARE}};
 
-    GATT_TRACE_DEBUG2("gatts_add_characteristic perm=0x%0x property=0x%0x", perm, property);
+    GATT_TRACE_DEBUG("gatts_add_characteristic perm=0x%0x property=0x%0x", perm, property);
 
     if ((p_char_decl = (tGATT_ATTR16 *)allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ)) != NULL)
     {
@@ -596,7 +596,7 @@ UINT16 gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
 {
     tGATT_ATTR16    *p_char_dscptr;
 
-    GATT_TRACE_DEBUG1("gatts_add_char_descr uuid=0x%04x", p_descr_uuid->uu.uuid16);
+    GATT_TRACE_DEBUG("gatts_add_char_descr uuid=0x%04x", p_descr_uuid->uu.uuid16);
 
     /* Add characteristic descriptors */
     if ((p_char_dscptr = (tGATT_ATTR16 *)allocate_attr_in_db(p_db,
@@ -604,7 +604,7 @@ UINT16 gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
                                                              perm))
         == NULL)
     {
-        GATT_TRACE_DEBUG0("gatts_add_char_descr Fail for adding char descriptors.");
+        GATT_TRACE_DEBUG("gatts_add_char_descr Fail for adding char descriptors.");
         return 0;
     }
     else
@@ -749,7 +749,7 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
     tGATT_PERM      perm;
     UINT16          min_key_size;
 
-    GATT_TRACE_DEBUG6( "gatts_write_attr_perm_check op_code=0x%0x handle=0x%04x offset=%d len=%d sec_flag=0x%0x key_size=%d",
+    GATT_TRACE_DEBUG( "gatts_write_attr_perm_check op_code=0x%0x handle=0x%04x offset=%d len=%d sec_flag=0x%0x key_size=%d",
                        op_code, handle, offset, len, sec_flag, key_size);
 
     if (p_db != NULL)
@@ -766,7 +766,7 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                 {
                     min_key_size +=6;
                 }
-                GATT_TRACE_DEBUG2( "gatts_write_attr_perm_check p_attr->permission =0x%04x min_key_size==0x%04x",
+                GATT_TRACE_DEBUG( "gatts_write_attr_perm_check p_attr->permission =0x%04x min_key_size==0x%04x",
                                    p_attr->permission,
                                    min_key_size);
 
@@ -793,45 +793,45 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                 if ((op_code == GATT_SIGN_CMD_WRITE) && !(perm & GATT_WRITE_SIGNED_PERM))
                 {
                     status = GATT_WRITE_NOT_PERMIT;
-                    GATT_TRACE_DEBUG0( "gatts_write_attr_perm_check - sign cmd write not allowed");
+                    GATT_TRACE_DEBUG( "gatts_write_attr_perm_check - sign cmd write not allowed");
                 }
                  if ((op_code == GATT_SIGN_CMD_WRITE) && (sec_flag & GATT_SEC_FLAG_ENCRYPTED))
                 {
                     status = GATT_INVALID_PDU;
-                    GATT_TRACE_ERROR0( "gatts_write_attr_perm_check - Error!! sign cmd write sent on a encypted link");
+                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - Error!! sign cmd write sent on a encypted link");
                 }
                 else if (!(perm & GATT_WRITE_ALLOWED))
                 {
                     status = GATT_WRITE_NOT_PERMIT;
-                    GATT_TRACE_ERROR0( "gatts_write_attr_perm_check - GATT_WRITE_NOT_PERMIT");
+                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_WRITE_NOT_PERMIT");
                 }
                 /* require authentication, but not been authenticated */
                 else if ((perm & GATT_WRITE_AUTH_REQUIRED ) && !(sec_flag & GATT_SEC_FLAG_LKEY_UNAUTHED))
                 {
                     status = GATT_INSUF_AUTHENTICATION;
-                    GATT_TRACE_ERROR0( "gatts_write_attr_perm_check - GATT_INSUF_AUTHENTICATION");
+                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_INSUF_AUTHENTICATION");
                 }
                 else if ((perm & GATT_WRITE_MITM_REQUIRED ) && !(sec_flag & GATT_SEC_FLAG_LKEY_AUTHED))
                 {
                     status = GATT_INSUF_AUTHENTICATION;
-                    GATT_TRACE_ERROR0( "gatts_write_attr_perm_check - GATT_INSUF_AUTHENTICATION: MITM required");
+                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_INSUF_AUTHENTICATION: MITM required");
                 }
                 else if ((perm & GATT_WRITE_ENCRYPTED_PERM ) && !(sec_flag & GATT_SEC_FLAG_ENCRYPTED))
                 {
                     status = GATT_INSUF_ENCRYPTION;
-                    GATT_TRACE_ERROR0( "gatts_write_attr_perm_check - GATT_INSUF_ENCRYPTION");
+                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_INSUF_ENCRYPTION");
                 }
                 else if ((perm & GATT_WRITE_ENCRYPTED_PERM ) && (sec_flag & GATT_SEC_FLAG_ENCRYPTED) && (key_size < min_key_size))
                 {
                     status = GATT_INSUF_KEY_SIZE;
-                    GATT_TRACE_ERROR0( "gatts_write_attr_perm_check - GATT_INSUF_KEY_SIZE");
+                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_INSUF_KEY_SIZE");
                 }
                 /* LE security mode 2 attribute  */
                 else if (perm & GATT_WRITE_SIGNED_PERM && op_code != GATT_SIGN_CMD_WRITE && !(sec_flag & GATT_SEC_FLAG_ENCRYPTED)
                     &&  (perm & GATT_WRITE_ALLOWED) == 0)
                 {
                     status = GATT_INSUF_AUTHENTICATION;
-                    GATT_TRACE_ERROR0( "gatts_write_attr_perm_check - GATT_INSUF_AUTHENTICATION: LE security mode 2 required");
+                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_INSUF_AUTHENTICATION: LE security mode 2 required");
                 }
                 else /* writable: must be char value declaration or char descritpors */
                 {
@@ -882,12 +882,12 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                         if (op_code == GATT_REQ_PREPARE_WRITE && offset != 0) /* does not allow write blob */
                         {
                             status = GATT_NOT_LONG;
-                            GATT_TRACE_ERROR0( "gatts_write_attr_perm_check - GATT_NOT_LONG");
+                            GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_NOT_LONG");
                         }
                         else if (len != max_size)    /* data does not match the required format */
                         {
                             status = GATT_INVALID_ATTR_LEN;
-                            GATT_TRACE_ERROR0( "gatts_write_attr_perm_check - GATT_INVALID_PDU");
+                            GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_INVALID_PDU");
                         }
                         else
                         {
@@ -929,7 +929,7 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PER
 
     if (p_uuid == NULL)
     {
-        GATT_TRACE_ERROR0("illegal UUID");
+        GATT_TRACE_ERROR("illegal UUID");
         return NULL;
     }
 
@@ -938,11 +938,11 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PER
     else if (p_uuid->len == LEN_UUID_32)
         len = sizeof(tGATT_ATTR32);
 
-    GATT_TRACE_DEBUG1("allocate attr %d bytes ",len);
+    GATT_TRACE_DEBUG("allocate attr %d bytes ",len);
 
     if (p_db->end_handle <= p_db->next_handle)
     {
-        GATT_TRACE_DEBUG2("handle space full. handle_max = %d next_handle = %d",
+        GATT_TRACE_DEBUG("handle space full. handle_max = %d next_handle = %d",
                           p_db->end_handle, p_db->next_handle);
         return NULL;
     }
@@ -951,7 +951,7 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PER
     {
         if (!allocate_svc_db_buf(p_db))
         {
-            GATT_TRACE_ERROR0("allocate_attr_in_db failed, no resources");
+            GATT_TRACE_ERROR("allocate_attr_in_db failed, no resources");
             return NULL;
         }
     }
@@ -998,17 +998,17 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PER
 
     if (p_attr16->uuid_type == GATT_ATTR_UUID_TYPE_16)
     {
-        GATT_TRACE_DEBUG3("=====> handle = [0x%04x] uuid16 = [0x%04x] perm=0x%02x ",
+        GATT_TRACE_DEBUG("=====> handle = [0x%04x] uuid16 = [0x%04x] perm=0x%02x ",
                           p_attr16->handle, p_attr16->uuid, p_attr16->permission);
     }
     else if (p_attr16->uuid_type == GATT_ATTR_UUID_TYPE_32)
     {
-        GATT_TRACE_DEBUG3("=====> handle = [0x%04x] uuid32 = [0x%08x] perm=0x%02x ",
+        GATT_TRACE_DEBUG("=====> handle = [0x%04x] uuid32 = [0x%08x] perm=0x%02x ",
                           p_attr32->handle, p_attr32->uuid, p_attr32->permission);
     }
     else
     {
-        GATT_TRACE_DEBUG4("=====> handle = [0x%04x] uuid128 = [0x%02x:0x%02x] perm=0x%02x ",
+        GATT_TRACE_DEBUG("=====> handle = [0x%04x] uuid128 = [0x%02x:0x%02x] perm=0x%02x ",
                           p_attr128->handle, p_attr128->uuid[0],p_attr128->uuid[1],
                           p_attr128->permission);
     }
@@ -1083,7 +1083,7 @@ static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 le
     {
         if (!allocate_svc_db_buf(p_db))
         {
-            GATT_TRACE_ERROR0("copy_extra_byte_in_db failed, no resources");
+            GATT_TRACE_ERROR("copy_extra_byte_in_db failed, no resources");
             return FALSE;
         }
     }
@@ -1110,11 +1110,11 @@ static BOOLEAN allocate_svc_db_buf(tGATT_SVC_DB *p_db)
 {
     BT_HDR  *p_buf;
 
-    GATT_TRACE_DEBUG0("allocate_svc_db_buf allocating extra buffer");
+    GATT_TRACE_DEBUG("allocate_svc_db_buf allocating extra buffer");
 
     if ((p_buf = (BT_HDR *)GKI_getpoolbuf(GATT_DB_POOL_ID)) == NULL)
     {
-        GATT_TRACE_ERROR0("allocate_svc_db_buf failed, no resources");
+        GATT_TRACE_ERROR("allocate_svc_db_buf failed, no resources");
         return FALSE;
     }
 
@@ -1190,7 +1190,7 @@ static BOOLEAN gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID *p_
     tBT_UUID    uuid = {LEN_UUID_16, {0}};
     BOOLEAN     rt = FALSE;
 
-    GATT_TRACE_DEBUG0( "add_service_declaration");
+    GATT_TRACE_DEBUG( "add_service_declaration");
 
     if (is_pri)
         uuid.uu.uuid16 = GATT_UUID_PRI_SERVICE;

@@ -136,7 +136,7 @@ UINT8 dis_read_attr_value (UINT8 clcb_idx, UINT16 handle, tGATT_VALUE *p_value,
                         p_value->len -= offset;
                         pp += offset;
                         ARRAY_TO_STREAM(p, pp, p_value->len);
-                        GATT_TRACE_EVENT1("GATT_UUID_MANU_NAME len=0x%04x", p_value->len);
+                        GATT_TRACE_EVENT("GATT_UUID_MANU_NAME len=0x%04x", p_value->len);
                     }
                     break;
 
@@ -181,8 +181,8 @@ void dis_gatt_c_read_dis_value_cmpl(UINT16 conn_id)
 
     if (dis_cb.p_read_dis_cback && p_clcb)
     {
-        GATT_TRACE_ERROR1("dis_gatt_c_read_dis_value_cmpl: attr_mask = 0x%04x", p_clcb->dis_value.attr_mask);
-        GATT_TRACE_EVENT0("calling p_read_dis_cbackd");
+        GATT_TRACE_ERROR("dis_gatt_c_read_dis_value_cmpl: attr_mask = 0x%04x", p_clcb->dis_value.attr_mask);
+        GATT_TRACE_EVENT("calling p_read_dis_cbackd");
 
         (*dis_cb.p_read_dis_cback)(p_clcb->bda, &p_clcb->dis_value);
         dis_cb.p_read_dis_cback=NULL;
@@ -220,7 +220,7 @@ BOOLEAN dis_gatt_c_read_dis_req(UINT16 conn_id)
         }
         else
         {
-            GATT_TRACE_ERROR1 ("Read DISInfo: 0x%04x GATT_Read Failed", param.service.uuid.uu.uuid16);
+            GATT_TRACE_ERROR ("Read DISInfo: 0x%04x GATT_Read Failed", param.service.uuid.uu.uuid16);
             dis_cb.dis_read_uuid_idx ++;
         }
     }
@@ -246,7 +246,7 @@ void dis_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
     UINT8       *pp = NULL, *p_str;
     UINT16      conn_id = p_clcb->conn_id;
 
-    GATT_TRACE_EVENT3 ("dis_c_cmpl_cback() - op_code: 0x%02x  status: 0x%02x  \
+    GATT_TRACE_EVENT ("dis_c_cmpl_cback() - op_code: 0x%02x  status: 0x%02x  \
                         read_type: 0x%04x", op, status, read_type);
 
     if (op != GATTC_OPTYPE_READ)
@@ -259,7 +259,7 @@ void dis_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
         switch (read_type)
         {
             case GATT_UUID_SYSTEM_ID:
-                GATT_TRACE_EVENT0 ("DIS_ATTR_SYS_ID_BIT");
+                GATT_TRACE_EVENT ("DIS_ATTR_SYS_ID_BIT");
                 if (p_data->att_value.len == DIS_SYSTEM_ID_SIZE)
                 {
                     p_clcb->dis_value.attr_mask |= DIS_ATTR_SYS_ID_BIT;
@@ -326,7 +326,7 @@ tDIS_STATUS DIS_SrInit (tDIS_ATTR_MASK dis_attr_mask)
 
     if (dis_cb.enabled)
     {
-        GATT_TRACE_ERROR0("DIS already initalized");
+        GATT_TRACE_ERROR("DIS already initalized");
         return DIS_SUCCESS;
     }
 
@@ -336,7 +336,7 @@ tDIS_STATUS DIS_SrInit (tDIS_ATTR_MASK dis_attr_mask)
 
     if (dis_cb.service_handle == 0)
     {
-        GATT_TRACE_ERROR0("Can not create service, DIS_Init failed!");
+        GATT_TRACE_ERROR("Can not create service, DIS_Init failed!");
         return GATT_ERROR;
     }
     dis_cb.max_handle = dis_cb.service_handle + DIS_MAX_ATTR_NUM;
@@ -347,7 +347,7 @@ tDIS_STATUS DIS_SrInit (tDIS_ATTR_MASK dis_attr_mask)
         */
         uuid.uu.uuid16 = p_db_attr->uuid = dis_attr_uuid[i];
         p_db_attr->handle  = GATTS_AddCharacteristic(dis_cb.service_handle, &uuid, GATT_PERM_READ, GATT_CHAR_PROP_BIT_READ);
-        GATT_TRACE_DEBUG2 ("DIS_SrInit:  handle of new attribute 0x%04 = x%d", uuid.uu.uuid16, p_db_attr->handle  );
+        GATT_TRACE_DEBUG ("DIS_SrInit:  handle of new attribute 0x%04 = x%d", uuid.uu.uuid16, p_db_attr->handle  );
         p_db_attr ++;
         i ++;
         dis_attr_mask >>= 1;
@@ -441,7 +441,7 @@ BOOLEAN DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback)
     /* Mark currently active operation */
     dis_cb.dis_read_uuid_idx = 0;
 
-    GATT_TRACE_EVENT3 ("DIS_ReadDISInfo() - BDA: %08x%04x  cl_read_uuid: 0x%04x",
+    GATT_TRACE_EVENT ("DIS_ReadDISInfo() - BDA: %08x%04x  cl_read_uuid: 0x%04x",
                       (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],
                       (peer_bda[4]<<8)+peer_bda[5], dis_attr_uuid[dis_cb.dis_read_uuid_idx]);
 

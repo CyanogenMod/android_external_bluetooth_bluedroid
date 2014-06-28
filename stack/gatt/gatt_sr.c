@@ -98,10 +98,10 @@ BOOLEAN gatt_sr_cmd_empty (tGATT_TCB *p_tcb)
 void gatt_dequeue_sr_cmd (tGATT_TCB *p_tcb)
 {
     /* Double check in case any buffers are queued */
-    GATT_TRACE_DEBUG0("gatt_dequeue_sr_cmd" );
+    GATT_TRACE_DEBUG("gatt_dequeue_sr_cmd" );
     if (p_tcb->sr_cmd.p_rsp_msg)
     {
-        GATT_TRACE_ERROR1("free p_tcb->sr_cmd.p_rsp_msg = %d", p_tcb->sr_cmd.p_rsp_msg);
+        GATT_TRACE_ERROR("free p_tcb->sr_cmd.p_rsp_msg = %d", p_tcb->sr_cmd.p_rsp_msg);
 
         GKI_freebuf (p_tcb->sr_cmd.p_rsp_msg);
     }
@@ -129,7 +129,7 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
     UINT8           *p;
     BOOLEAN         is_overflow = FALSE;
 
-    GATT_TRACE_DEBUG2 ("process_read_multi_rsp status=%d mtu=%d", status, mtu);
+    GATT_TRACE_DEBUG ("process_read_multi_rsp status=%d mtu=%d", status, mtu);
 
     if (p_buf == NULL)
     {
@@ -144,7 +144,7 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
     p_cmd->status = status;
     if (status == GATT_SUCCESS)
     {
-        GATT_TRACE_DEBUG2 ("Multi read count=%d num_hdls=%d",
+        GATT_TRACE_DEBUG ("Multi read count=%d num_hdls=%d",
                            p_cmd->multi_rsp_q.count, p_cmd->multi_req.num_handles);
         /* Wait till we get all the responses */
         if (p_cmd->multi_rsp_q.count == p_cmd->multi_req.num_handles)
@@ -186,7 +186,7 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
                         /* just send the partial response for the overflow case */
                         len = p_rsp->attr_value.len - (total_len - mtu);
                         is_overflow = TRUE;
-                        GATT_TRACE_DEBUG2 ("multi read overflow available len=%d val_len=%d", len, p_rsp->attr_value.len );
+                        GATT_TRACE_DEBUG ("multi read overflow available len=%d val_len=%d", len, p_rsp->attr_value.len );
                     }
                     else
                     {
@@ -222,10 +222,10 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
             /* Sanity check on the buffer length */
             if (p_buf->len == 0)
             {
-                GATT_TRACE_ERROR0("process_read_multi_rsp - nothing found!!");
+                GATT_TRACE_ERROR("process_read_multi_rsp - nothing found!!");
                 p_cmd->status = GATT_NOT_FOUND;
                 GKI_freebuf (p_buf);
-                GATT_TRACE_DEBUG0(" GKI_freebuf (p_buf)");
+                GATT_TRACE_DEBUG(" GKI_freebuf (p_buf)");
             }
             else if (p_cmd->p_rsp_msg != NULL)
             {
@@ -265,7 +265,7 @@ tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
     tGATT_STATUS    ret_code = GATT_SUCCESS;
     UNUSED(trans_id);
 
-    GATT_TRACE_DEBUG1("gatt_sr_process_app_rsp gatt_if=%d", gatt_if);
+    GATT_TRACE_DEBUG("gatt_sr_process_app_rsp gatt_if=%d", gatt_if);
 
     gatt_sr_update_cback_cnt(p_tcb, gatt_if, FALSE, FALSE);
 
@@ -294,7 +294,7 @@ tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
             }
             else
             {
-                GATT_TRACE_ERROR0("Exception!!! already has respond message");
+                GATT_TRACE_ERROR("Exception!!! already has respond message");
             }
         }
     }
@@ -313,7 +313,7 @@ tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
         gatt_dequeue_sr_cmd(p_tcb);
     }
 
-    GATT_TRACE_DEBUG1("gatt_sr_process_app_rsp ret_code=%d", ret_code);
+    GATT_TRACE_DEBUG("gatt_sr_process_app_rsp ret_code=%d", ret_code);
 
     return ret_code;
 }
@@ -341,7 +341,7 @@ void gatt_process_exec_write_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
 #if GATT_CONFORMANCE_TESTING == TRUE
     if (gatt_cb.enable_err_rsp && gatt_cb.req_op_code == op_code)
     {
-        GATT_TRACE_DEBUG1("Conformance tst: forced err rspv for Execute Write: error status=%d",
+        GATT_TRACE_DEBUG("Conformance tst: forced err rspv for Execute Write: error status=%d",
         gatt_cb.err_status);
 
         gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, gatt_cb.handle, FALSE);
@@ -378,7 +378,7 @@ void gatt_process_exec_write_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
     }
     else /* nothing needs to be executed , send response now */
     {
-        GATT_TRACE_ERROR0("gatt_process_exec_write_req: no prepare write pending");
+        GATT_TRACE_ERROR("gatt_process_exec_write_req: no prepare write pending");
 
         if ((p_buf = attp_build_sr_msg(p_tcb, GATT_RSP_EXEC_WRITE, NULL)) != NULL)
         {
@@ -407,7 +407,7 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
     UINT8           sec_flag, key_size;
     tGATTS_RSP       *p_msg;
 
-    GATT_TRACE_DEBUG0("gatt_process_read_multi_req" );
+    GATT_TRACE_DEBUG("gatt_process_read_multi_req" );
     p_tcb->sr_cmd.multi_req.num_handles = 0;
 
     gatt_sr_get_sec_info(p_tcb->peer_bda,
@@ -418,7 +418,7 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
 #if GATT_CONFORMANCE_TESTING == TRUE
     if (gatt_cb.enable_err_rsp && gatt_cb.req_op_code == op_code)
     {
-        GATT_TRACE_DEBUG1("Conformance tst: forced err rspvofr ReadMultiple: error status=%d", gatt_cb.err_status);
+        GATT_TRACE_DEBUG("Conformance tst: forced err rspvofr ReadMultiple: error status=%d", gatt_cb.err_status);
 
         STREAM_TO_UINT16(handle, p);
 
@@ -444,7 +444,7 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
                                                      key_size))
                 != GATT_SUCCESS)
             {
-                GATT_TRACE_DEBUG1("read permission denied : 0x%02x", err);
+                GATT_TRACE_DEBUG("read permission denied : 0x%02x", err);
                 break;
             }
         }
@@ -459,7 +459,7 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
 
     if (ll != 0)
     {
-        GATT_TRACE_ERROR0("max attribute handle reached in ReadMultiple Request.");
+        GATT_TRACE_ERROR("max attribute handle reached in ReadMultiple Request.");
     }
 
     if (p_tcb->sr_cmd.multi_req.num_handles == 0)
@@ -583,7 +583,7 @@ static tGATT_STATUS gatt_build_primary_service_rsp (BT_HDR *p_msg, tGATT_TCB *p_
                         if (p_list->p_last_primary == p_srv &&
                             p_list->p_last_primary == p_list->p_last)
                         {
-                            GATT_TRACE_DEBUG0("Use 0xFFFF for the last primary attribute");
+                            GATT_TRACE_DEBUG("Use 0xFFFF for the last primary attribute");
                             UINT16_TO_STREAM(p, 0xFFFF); /* see GATT ERRATA 4065, 4063, ATT ERRATA 4062 */
                         }
                         else
@@ -669,7 +669,7 @@ static tGATT_STATUS gatt_build_find_info_rsp(tGATT_SR_REG *p_rcb, BT_HDR *p_msg,
                 }
                 else
                 {
-                    GATT_TRACE_ERROR0("format mismatch");
+                    GATT_TRACE_ERROR("format mismatch");
                     status = GATT_NO_RESOURCES;
                     break;
                     /* format mismatch */
@@ -734,7 +734,7 @@ static tGATT_STATUS gatts_validate_packet_format(UINT8 op_code, UINT16 *p_len,
                 if (gatt_parse_uuid_from_cmd (p_uuid_filter, uuid_len, &p) == FALSE ||
                     p_uuid_filter->len == 0)
                 {
-                    GATT_TRACE_DEBUG0("UUID filter does not exsit");
+                    GATT_TRACE_DEBUG("UUID filter does not exsit");
                     reason = GATT_INVALID_PDU;
                 }
                 else
@@ -790,7 +790,7 @@ void gatts_process_primary_service_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 l
             {
                 if ((p_msg =  (BT_HDR *)GKI_getbuf(msg_len)) == NULL)
                 {
-                    GATT_TRACE_ERROR0("gatts_process_primary_service_req failed. no resources.");
+                    GATT_TRACE_ERROR("gatts_process_primary_service_req failed. no resources.");
                     reason = GATT_NO_RESOURCES;
                 }
                 else
@@ -805,13 +805,13 @@ void gatts_process_primary_service_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 l
             if (op_code == GATT_REQ_READ_BY_GRP_TYPE)
             {
                 reason = GATT_UNSUPPORT_GRP_TYPE;
-                GATT_TRACE_DEBUG1("unexpected ReadByGrpType Group: 0x%04x", uuid.uu.uuid16);
+                GATT_TRACE_DEBUG("unexpected ReadByGrpType Group: 0x%04x", uuid.uu.uuid16);
             }
             else
             {
                 /* we do not support ReadByTypeValue with any non-primamry_service type */
                 reason = GATT_NOT_FOUND;
-                GATT_TRACE_DEBUG1("unexpected ReadByTypeValue type: 0x%04x", uuid.uu.uuid16);
+                GATT_TRACE_DEBUG("unexpected ReadByTypeValue type: 0x%04x", uuid.uu.uuid16);
             }
         }
     }
@@ -925,7 +925,7 @@ static void gatts_process_mtu_req (tGATT_TCB *p_tcb, UINT16 len, UINT8 *p_data)
     }
     else if (len < GATT_MTU_REQ_MIN_LEN)
     {
-        GATT_TRACE_ERROR0("invalid MTU request PDU received.");
+        GATT_TRACE_ERROR("invalid MTU request PDU received.");
         gatt_send_error_rsp (p_tcb, GATT_INVALID_PDU, GATT_REQ_MTU, 0, FALSE);
     }
     else
@@ -939,7 +939,7 @@ static void gatts_process_mtu_req (tGATT_TCB *p_tcb, UINT16 len, UINT8 *p_data)
         else
             p_tcb->payload_size = mtu;
 
-        GATT_TRACE_ERROR1("MTU request PDU with MTU size %d", p_tcb->payload_size);
+        GATT_TRACE_ERROR("MTU request PDU with MTU size %d", p_tcb->payload_size);
 
         if ((p_buf = attp_build_sr_msg(p_tcb, GATT_RSP_MTU, (tGATT_SR_MSG *) &p_tcb->payload_size)) != NULL)
         {
@@ -996,7 +996,7 @@ void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
 #if GATT_CONFORMANCE_TESTING == TRUE
     if (gatt_cb.enable_err_rsp && gatt_cb.req_op_code == op_code)
     {
-        GATT_TRACE_DEBUG1("Conformance tst: forced err rsp for ReadByType: error status=%d", gatt_cb.err_status);
+        GATT_TRACE_DEBUG("Conformance tst: forced err rsp for ReadByType: error status=%d", gatt_cb.err_status);
 
         gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, s_hdl, FALSE);
 
@@ -1008,7 +1008,7 @@ void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
     {
         if ((p_msg =  (BT_HDR *)GKI_getbuf(msg_len)) == NULL)
         {
-            GATT_TRACE_ERROR0("gatts_process_find_info failed. no resources.");
+            GATT_TRACE_ERROR("gatts_process_find_info failed. no resources.");
 
             reason = GATT_NO_RESOURCES;
         }
@@ -1115,7 +1115,7 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
         case GATT_SIGN_CMD_WRITE:
             if (op_code == GATT_SIGN_CMD_WRITE)
             {
-                GATT_TRACE_DEBUG0("Write CMD with data sigining" );
+                GATT_TRACE_DEBUG("Write CMD with data sigining" );
                 len -= GATT_AUTH_SIGN_LEN;
             }
             /* fall through */
@@ -1158,7 +1158,7 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
         }
         else
         {
-            GATT_TRACE_ERROR0("max pending command, send error");
+            GATT_TRACE_ERROR("max pending command, send error");
             status = GATT_BUSY; /* max pending command, application error */
         }
     }
@@ -1194,7 +1194,7 @@ static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, UINT8 
     UNUSED (len);
     if ((p_msg =  (BT_HDR *)GKI_getbuf(buf_len)) == NULL)
     {
-        GATT_TRACE_ERROR0("gatts_process_find_info failed. no resources.");
+        GATT_TRACE_ERROR("gatts_process_find_info failed. no resources.");
 
         reason = GATT_NO_RESOURCES;
     }
@@ -1263,7 +1263,7 @@ void gatts_process_attribute_req (tGATT_TCB *p_tcb, UINT8 op_code,
 
     if (len < 2)
     {
-        GATT_TRACE_ERROR0("Illegal PDU length, discard request");
+        GATT_TRACE_ERROR("Illegal PDU length, discard request");
         status = GATT_INVALID_PDU;
     }
     else
@@ -1276,7 +1276,7 @@ void gatts_process_attribute_req (tGATT_TCB *p_tcb, UINT8 op_code,
     gatt_cb.handle = handle;
     if (gatt_cb.enable_err_rsp && gatt_cb.req_op_code == op_code)
     {
-        GATT_TRACE_DEBUG1("Conformance tst: forced err rsp: error status=%d", gatt_cb.err_status);
+        GATT_TRACE_DEBUG("Conformance tst: forced err rsp: error status=%d", gatt_cb.err_status);
 
         gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, handle, FALSE);
 
@@ -1340,11 +1340,11 @@ static void gatts_proc_srv_chg_ind_ack(tGATT_TCB *p_tcb )
     tGATTS_SRV_CHG_REQ  req;
     tGATTS_SRV_CHG      *p_buf = NULL;
 
-    GATT_TRACE_DEBUG0("gatts_proc_srv_chg_ind_ack");
+    GATT_TRACE_DEBUG("gatts_proc_srv_chg_ind_ack");
 
     if ((p_buf = gatt_is_bda_in_the_srv_chg_clt_list(p_tcb->peer_bda)) != NULL)
     {
-        GATT_TRACE_DEBUG0("NV update set srv chg = FALSE");
+        GATT_TRACE_DEBUG("NV update set srv chg = FALSE");
         p_buf->srv_changed = FALSE;
         memcpy(&req.srv_chg, p_buf, sizeof(tGATTS_SRV_CHG));
         if (gatt_cb.cb_info.p_srv_chg_callback)
@@ -1365,7 +1365,7 @@ static void gatts_proc_srv_chg_ind_ack(tGATT_TCB *p_tcb )
 static void gatts_chk_pending_ind(tGATT_TCB *p_tcb )
 {
     tGATT_VALUE *p_buf = (tGATT_VALUE *)GKI_getfirst(&p_tcb->pending_ind_q);
-    GATT_TRACE_DEBUG0("gatts_chk_pending_ind");
+    GATT_TRACE_DEBUG("gatts_chk_pending_ind");
 
     if (p_buf )
     {
@@ -1391,7 +1391,7 @@ static BOOLEAN gatts_proc_ind_ack(tGATT_TCB *p_tcb, UINT16 ack_handle)
 {
     BOOLEAN continue_processing = TRUE;
 
-    GATT_TRACE_DEBUG1 ("gatts_proc_ind_ack ack handle=%d", ack_handle);
+    GATT_TRACE_DEBUG ("gatts_proc_ind_ack ack handle=%d", ack_handle);
 
     if (ack_handle == gatt_cb.handle_of_h_r)
     {
@@ -1444,7 +1444,7 @@ void gatts_process_value_conf(tGATT_TCB *p_tcb, UINT8 op_code)
     }
     else
     {
-        GATT_TRACE_ERROR0("unexpected handle value confirmation");
+        GATT_TRACE_ERROR("unexpected handle value confirmation");
     }
 }
 
@@ -1470,7 +1470,7 @@ void gatt_server_handle_client_req (tGATT_TCB *p_tcb, UINT8 op_code,
     /* The message has to be smaller than the agreed MTU, len does not include op code */
     if (len >= p_tcb->payload_size)
     {
-        GATT_TRACE_ERROR2("server receive invalid PDU size:%d pdu size:%d", len + 1, p_tcb->payload_size );
+        GATT_TRACE_ERROR("server receive invalid PDU size:%d pdu size:%d", len + 1, p_tcb->payload_size );
         /* for invalid request expecting response, send it now */
         if (op_code != GATT_CMD_WRITE &&
             op_code != GATT_SIGN_CMD_WRITE &&

@@ -151,11 +151,11 @@ UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
     tBT_UUID     *p_app_uuid128;
 
 
-    GATT_TRACE_API0 ("GATTS_CreateService" );
+    GATT_TRACE_API ("GATTS_CreateService" );
 
     if (p_reg == NULL)
     {
-        GATT_TRACE_ERROR1 ("Inavlid gatt_if=%d", gatt_if);
+        GATT_TRACE_ERROR ("Inavlid gatt_if=%d", gatt_if);
         return(0);
     }
 
@@ -164,7 +164,7 @@ UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
     if ((p_list = gatt_find_hdl_buffer_by_app_id(p_app_uuid128, p_svc_uuid, svc_inst)) != NULL)
     {
         s_hdl = p_list->asgn_range.s_handle;
-        GATT_TRACE_DEBUG0 ("Service already been created!!");
+        GATT_TRACE_DEBUG ("Service already been created!!");
     }
     else
     {
@@ -196,14 +196,14 @@ UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
         /* check for space */
         if (num_handles > (0xFFFF - s_hdl + 1))
         {
-            GATT_TRACE_ERROR2 ("GATTS_ReserveHandles: no handles, s_hdl: %u  needed: %u", s_hdl, num_handles);
+            GATT_TRACE_ERROR ("GATTS_ReserveHandles: no handles, s_hdl: %u  needed: %u", s_hdl, num_handles);
             return(0);
         }
 
         if ( (p_list = gatt_alloc_hdl_buffer()) == NULL)
         {
             /* No free entry */
-            GATT_TRACE_ERROR0 ("GATTS_ReserveHandles: no free handle blocks");
+            GATT_TRACE_ERROR ("GATTS_ReserveHandles: no free handle blocks");
             return(0);
         }
 
@@ -224,7 +224,7 @@ UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
             if ( (p_buf = gatt_add_pending_new_srv_start(&p_list->asgn_range)) == NULL)
             {
                 /* No free entry */
-                GATT_TRACE_ERROR0 ("gatt_add_pending_new_srv_start: no free blocks");
+                GATT_TRACE_ERROR ("gatt_add_pending_new_srv_start: no free blocks");
 
                 if (p_list)
                 {
@@ -234,13 +234,13 @@ UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
                 return(0);
             }
 
-            GATT_TRACE_DEBUG0 ("Add a new srv chg item");
+            GATT_TRACE_DEBUG ("Add a new srv chg item");
         }
     }
 
     if (!gatts_init_service_db(&p_list->svc_db, p_svc_uuid, is_pri, s_hdl , num_handles))
     {
-        GATT_TRACE_ERROR0 ("GATTS_ReserveHandles: service DB initialization failed");
+        GATT_TRACE_ERROR ("GATTS_ReserveHandles: service DB initialization failed");
         if (p_list)
         {
             gatt_remove_an_item_from_list(p_list_info, p_list);
@@ -252,7 +252,7 @@ UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
         return(0);
     }
 
-    GATT_TRACE_DEBUG6 ("GATTS_CreateService(success): handles needed:%u s_hdl=%u e_hdl=%u %s[%x] is_primary=%d",
+    GATT_TRACE_DEBUG ("GATTS_CreateService(success): handles needed:%u s_hdl=%u e_hdl=%u %s[%x] is_primary=%d",
                        num_handles, p_list->asgn_range.s_handle , p_list->asgn_range.e_handle,
                        ((p_list->asgn_range.svc_uuid.len == 2) ? "uuid16": "uuid128" ),
                        p_list->asgn_range.svc_uuid.uu.uuid16,
@@ -281,12 +281,12 @@ UINT16 GATTS_AddIncludeService (UINT16 service_handle, UINT16 include_svc_handle
 
     if ((p_decl = gatt_find_hdl_buffer_by_handle(service_handle)) == NULL)
     {
-        GATT_TRACE_DEBUG0("Service not created");
+        GATT_TRACE_DEBUG("Service not created");
         return 0;
     }
     if ((p_incl_decl = gatt_find_hdl_buffer_by_handle(include_svc_handle)) == NULL)
     {
-        GATT_TRACE_DEBUG0("Included Service not created");
+        GATT_TRACE_DEBUG("Included Service not created");
         return 0;
     }
 
@@ -319,14 +319,14 @@ UINT16 GATTS_AddCharacteristic (UINT16 service_handle, tBT_UUID *p_char_uuid,
 
     if ((p_decl = gatt_find_hdl_buffer_by_handle(service_handle)) == NULL)
     {
-        GATT_TRACE_DEBUG0("Service not created");
+        GATT_TRACE_DEBUG("Service not created");
         return 0;
     }
     /* data validity checking */
     if (  ((property & GATT_CHAR_PROP_BIT_AUTH) && !(perm & GATT_WRITE_SIGNED_PERM)) ||
           ((perm & GATT_WRITE_SIGNED_PERM) && !(property & GATT_CHAR_PROP_BIT_AUTH)) )
     {
-        GATT_TRACE_DEBUG2("Invalid configuration property=0x%x perm=0x%x ", property, perm);
+        GATT_TRACE_DEBUG("Invalid configuration property=0x%x perm=0x%x ", property, perm);
         return 0;
     }
 
@@ -362,14 +362,14 @@ UINT16 GATTS_AddCharDescriptor (UINT16 service_handle,
 
     if ((p_decl = gatt_find_hdl_buffer_by_handle(service_handle)) == NULL)
     {
-        GATT_TRACE_DEBUG0("Service not created");
+        GATT_TRACE_DEBUG("Service not created");
         return 0;
     }
     if (p_descr_uuid == NULL ||
         (p_descr_uuid->len != LEN_UUID_128 && p_descr_uuid->len !=  LEN_UUID_16
          && p_descr_uuid->len !=  LEN_UUID_32))
     {
-        GATT_TRACE_DEBUG0("Illegal parameter");
+        GATT_TRACE_DEBUG("Illegal parameter");
         return 0;
     }
 
@@ -401,18 +401,18 @@ BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
     tBT_UUID *p_app_uuid128;
 
-    GATT_TRACE_DEBUG0 ("GATTS_DeleteService");
+    GATT_TRACE_DEBUG ("GATTS_DeleteService");
 
     if (p_reg == NULL)
     {
-        GATT_TRACE_ERROR0 ("Applicaiton not foud");
+        GATT_TRACE_ERROR ("Applicaiton not foud");
         return(FALSE);
     }
     p_app_uuid128 = &p_reg->app_uuid128;
 
     if ((p_list = gatt_find_hdl_buffer_by_app_id(p_app_uuid128, p_svc_uuid, svc_inst)) == NULL)
     {
-        GATT_TRACE_ERROR0 ("No Service found");
+        GATT_TRACE_ERROR ("No Service found");
         return(FALSE);
     }
 
@@ -420,7 +420,7 @@ BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_
                                          &p_list->asgn_range.svc_uuid,
                                          p_list->asgn_range.svc_inst)) != NULL)
     {
-        GATT_TRACE_DEBUG0 ("Delete a new service changed item - the service has not yet started");
+        GATT_TRACE_DEBUG ("Delete a new service changed item - the service has not yet started");
         GKI_freebuf (GKI_remove_from_queue (&gatt_cb.pending_new_srv_start_q, p_buf));
     }
     else
@@ -435,7 +435,7 @@ BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_
         GATTS_StopService(gatt_cb.sr_reg[i_sreg].s_hdl);
     }
 
-    GATT_TRACE_DEBUG2 ("released handles s_hdl=%u e_hdl=%u",
+    GATT_TRACE_DEBUG ("released handles s_hdl=%u e_hdl=%u",
                        p_list->asgn_range.s_handle , p_list->asgn_range.e_handle  );
 
     if ( (p_list->asgn_range.s_handle >= gatt_cb.hdl_cfg.app_start_hdl)
@@ -472,19 +472,19 @@ tGATT_STATUS GATTS_StartService (tGATT_IF gatt_if, UINT16 service_handle,
 
     tGATTS_PENDING_NEW_SRV_START *p_buf;
 
-    GATT_TRACE_API0 ("GATTS_StartService");
+    GATT_TRACE_API ("GATTS_StartService");
 
     if (p_reg == NULL)
     {
         /* Not found  */
-        GATT_TRACE_ERROR0 ("Applicaiton not found ");
+        GATT_TRACE_ERROR ("Applicaiton not found ");
         return GATT_NOT_FOUND;
     }
 
     if ((p_list = gatt_find_hdl_buffer_by_handle(service_handle)) == NULL)
     {
         /* Not found  */
-        GATT_TRACE_ERROR0 ("no service found");
+        GATT_TRACE_ERROR ("no service found");
         return GATT_NOT_FOUND;
     }
 
@@ -492,14 +492,14 @@ tGATT_STATUS GATTS_StartService (tGATT_IF gatt_if, UINT16 service_handle,
                                       &p_list->asgn_range.svc_uuid,
                                       p_list->asgn_range.svc_inst) != GATT_MAX_SR_PROFILES)
     {
-        GATT_TRACE_ERROR0 ("Duplicate Service start - Service already started");
+        GATT_TRACE_ERROR ("Duplicate Service start - Service already started");
         return GATT_SERVICE_STARTED;
     }
 
     /*this is a new application servoce start */
     if ((i_sreg = gatt_sr_alloc_rcb(p_list)) ==  GATT_MAX_SR_PROFILES)
     {
-        GATT_TRACE_ERROR0 ("GATTS_StartService: no free server registration block");
+        GATT_TRACE_ERROR ("GATTS_StartService: no free server registration block");
         return GATT_NO_RESOURCES;
     }
 
@@ -526,9 +526,9 @@ tGATT_STATUS GATTS_StartService (tGATT_IF gatt_if, UINT16 service_handle,
 
     gatt_add_a_srv_to_list(&gatt_cb.srv_list_info, &gatt_cb.srv_list[i_sreg]);
 
-    GATT_TRACE_DEBUG1 ("allocated i_sreg=%d ",i_sreg);
+    GATT_TRACE_DEBUG ("allocated i_sreg=%d ",i_sreg);
 
-    GATT_TRACE_DEBUG5 ("s_hdl=%d e_hdl=%d type=0x%x svc_inst=%d sdp_hdl=0x%x",
+    GATT_TRACE_DEBUG ("s_hdl=%d e_hdl=%d type=0x%x svc_inst=%d sdp_hdl=0x%x",
                        p_sreg->s_hdl,p_sreg->e_hdl,
                        p_sreg->type,  p_sreg->service_instance,
                        p_sreg->sdp_handle);
@@ -561,7 +561,7 @@ void GATTS_StopService (UINT16 service_handle)
 {
     UINT8           ii = gatt_sr_find_i_rcb_by_handle(service_handle);
 
-    GATT_TRACE_API1("GATTS_StopService %u", service_handle);
+    GATT_TRACE_API("GATTS_StopService %u", service_handle);
 
     /* Index 0 is reserved for GATT, and is never stopped */
     if ( (ii > 0) && (ii < GATT_MAX_SR_PROFILES) && (gatt_cb.sr_reg[ii].in_use) )
@@ -576,7 +576,7 @@ void GATTS_StopService (UINT16 service_handle)
     }
     else
     {
-        GATT_TRACE_ERROR1("GATTS_StopService service_handle: %u is not in use", service_handle);
+        GATT_TRACE_ERROR("GATTS_StopService service_handle: %u is not in use", service_handle);
     }
 }
 /*******************************************************************************
@@ -606,10 +606,10 @@ tGATT_STATUS GATTS_HandleValueIndication (UINT16 conn_id,  UINT16 attr_handle, U
     tGATT_TCB       *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
 
 
-    GATT_TRACE_API0 ("GATTS_HandleValueIndication");
+    GATT_TRACE_API ("GATTS_HandleValueIndication");
     if ( (p_reg == NULL) || (p_tcb == NULL))
     {
-        GATT_TRACE_ERROR1 ("GATTS_HandleValueIndication Unknown  conn_id: %u ", conn_id);
+        GATT_TRACE_ERROR ("GATTS_HandleValueIndication Unknown  conn_id: %u ", conn_id);
         return(tGATT_STATUS) GATT_INVALID_CONN_ID;
     }
 
@@ -624,7 +624,7 @@ tGATT_STATUS GATTS_HandleValueIndication (UINT16 conn_id,  UINT16 attr_handle, U
 
     if (GATT_HANDLE_IS_VALID(p_tcb->indicate_handle))
     {
-        GATT_TRACE_DEBUG0 ("Add a pending indication");
+        GATT_TRACE_DEBUG ("Add a pending indication");
         if ((p_buf = gatt_add_pending_ind(p_tcb, &indication)) !=NULL)
         {
             cmd_status = GATT_SUCCESS;
@@ -676,11 +676,11 @@ tGATT_STATUS GATTS_HandleValueNotification (UINT16 conn_id, UINT16 attr_handle,
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
     tGATT_TCB       *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
 
-    GATT_TRACE_API0 ("GATTS_HandleValueNotification");
+    GATT_TRACE_API ("GATTS_HandleValueNotification");
 
     if ( (p_reg == NULL) || (p_tcb == NULL))
     {
-        GATT_TRACE_ERROR1 ("GATTS_HandleValueNotification Unknown  conn_id: %u ", conn_id);
+        GATT_TRACE_ERROR ("GATTS_HandleValueNotification Unknown  conn_id: %u ", conn_id);
         return(tGATT_STATUS) GATT_INVALID_CONN_ID;
     }
 
@@ -725,18 +725,18 @@ tGATT_STATUS GATTS_SendRsp (UINT16 conn_id,  UINT32 trans_id,
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
     tGATT_TCB       *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
 
-    GATT_TRACE_API3 ("GATTS_SendRsp: conn_id: %u  trans_id: %u  Status: 0x%04x",
+    GATT_TRACE_API ("GATTS_SendRsp: conn_id: %u  trans_id: %u  Status: 0x%04x",
                      conn_id, trans_id, status);
 
     if ( (p_reg == NULL) || (p_tcb == NULL))
     {
-        GATT_TRACE_ERROR1 ("GATTS_SendRsp Unknown  conn_id: %u ", conn_id);
+        GATT_TRACE_ERROR ("GATTS_SendRsp Unknown  conn_id: %u ", conn_id);
         return(tGATT_STATUS) GATT_INVALID_CONN_ID;
     }
 
     if (p_tcb->sr_cmd.trans_id != trans_id)
     {
-        GATT_TRACE_ERROR2 ("GATTS_SendRsp conn_id: %u  waiting for op_code = %02x",
+        GATT_TRACE_ERROR ("GATTS_SendRsp conn_id: %u  waiting for op_code = %02x",
                            conn_id, p_tcb->sr_cmd.op_code);
 
         return(GATT_WRONG_STATE);
@@ -780,7 +780,7 @@ tGATT_STATUS GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu)
 
     tGATT_CLCB    *p_clcb;
 
-    GATT_TRACE_API2 ("GATTC_ConfigureMTU conn_id=%d mtu=%d", conn_id, mtu );
+    GATT_TRACE_API ("GATTC_ConfigureMTU conn_id=%d mtu=%d", conn_id, mtu );
 
     // Validate that the link is BLE, not BR/EDR
     // ????
@@ -792,7 +792,7 @@ tGATT_STATUS GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu)
 
     if (gatt_is_clcb_allocated(conn_id))
     {
-        GATT_TRACE_ERROR1("GATTC_ConfigureMTU GATT_BUSY conn_id = %d", conn_id);
+        GATT_TRACE_ERROR("GATTC_ConfigureMTU GATT_BUSY conn_id = %d", conn_id);
         return GATT_BUSY;
     }
 
@@ -831,19 +831,19 @@ tGATT_STATUS GATTC_Discover (UINT16 conn_id, tGATT_DISC_TYPE disc_type,
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
 
 
-    GATT_TRACE_API2 ("GATTC_Discover conn_id=%d disc_type=%d",conn_id, disc_type);
+    GATT_TRACE_API ("GATTC_Discover conn_id=%d disc_type=%d",conn_id, disc_type);
 
     if ( (p_tcb == NULL) || (p_reg==NULL) ||(p_param == NULL) ||
          (disc_type >= GATT_DISC_MAX))
     {
-        GATT_TRACE_ERROR2("GATTC_Discover Illegal param: disc_type %d conn_id = %d", disc_type, conn_id);
+        GATT_TRACE_ERROR("GATTC_Discover Illegal param: disc_type %d conn_id = %d", disc_type, conn_id);
         return GATT_ILLEGAL_PARAMETER;
     }
 
 
     if (gatt_is_clcb_allocated(conn_id))
     {
-        GATT_TRACE_ERROR1("GATTC_Discover GATT_BUSY conn_id = %d", conn_id);
+        GATT_TRACE_ERROR("GATTC_Discover GATT_BUSY conn_id = %d", conn_id);
         return GATT_BUSY;
     }
 
@@ -900,17 +900,17 @@ tGATT_STATUS GATTC_Read (UINT16 conn_id, tGATT_READ_TYPE type, tGATT_READ_PARAM 
     tGATT_REG           *p_reg = gatt_get_regcb(gatt_if);
 
 
-    GATT_TRACE_API2 ("GATTC_Read conn_id=%d type=%d", conn_id, type);
+    GATT_TRACE_API ("GATTC_Read conn_id=%d type=%d", conn_id, type);
 
     if ( (p_tcb == NULL) || (p_reg==NULL) || (p_read == NULL) || ((type >= GATT_READ_MAX) || (type == 0)))
     {
-        GATT_TRACE_ERROR2("GATT_Read Illegal param: conn_id %d, type 0%d,", conn_id, type);
+        GATT_TRACE_ERROR("GATT_Read Illegal param: conn_id %d, type 0%d,", conn_id, type);
         return GATT_ILLEGAL_PARAMETER;
     }
 
     if (gatt_is_clcb_allocated(conn_id))
     {
-        GATT_TRACE_ERROR1("GATTC_Read GATT_BUSY conn_id = %d", conn_id);
+        GATT_TRACE_ERROR("GATTC_Read GATT_BUSY conn_id = %d", conn_id);
         return GATT_BUSY;
     }
 
@@ -990,13 +990,13 @@ tGATT_STATUS GATTC_Write (UINT16 conn_id, tGATT_WRITE_TYPE type, tGATT_VALUE *p_
     if ( (p_tcb == NULL) || (p_reg==NULL) || (p_write == NULL) ||
          ((type != GATT_WRITE) && (type != GATT_WRITE_PREPARE) && (type != GATT_WRITE_NO_RSP)) )
     {
-        GATT_TRACE_ERROR2("GATT_Write Illegal param: conn_id %d, type 0%d,", conn_id, type);
+        GATT_TRACE_ERROR("GATT_Write Illegal param: conn_id %d, type 0%d,", conn_id, type);
         return GATT_ILLEGAL_PARAMETER;
     }
 
     if (gatt_is_clcb_allocated(conn_id))
     {
-        GATT_TRACE_ERROR1("GATTC_Write GATT_BUSY conn_id = %d", conn_id);
+        GATT_TRACE_ERROR("GATTC_Write GATT_BUSY conn_id = %d", conn_id);
         return GATT_BUSY;
     }
 
@@ -1061,17 +1061,17 @@ tGATT_STATUS GATTC_ExecuteWrite (UINT16 conn_id, BOOLEAN is_execute)
     tGATT_TCB       *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
 
-    GATT_TRACE_API2 ("GATTC_ExecuteWrite conn_id=%d is_execute=%d", conn_id, is_execute);
+    GATT_TRACE_API ("GATTC_ExecuteWrite conn_id=%d is_execute=%d", conn_id, is_execute);
 
     if ( (p_tcb == NULL) || (p_reg==NULL) )
     {
-        GATT_TRACE_ERROR1("GATTC_ExecuteWrite Illegal param: conn_id %d", conn_id);
+        GATT_TRACE_ERROR("GATTC_ExecuteWrite Illegal param: conn_id %d", conn_id);
         return GATT_ILLEGAL_PARAMETER;
     }
 
     if (gatt_is_clcb_allocated(conn_id))
     {
-        GATT_TRACE_ERROR1("GATTC_Write GATT_BUSY conn_id = %d", conn_id);
+        GATT_TRACE_ERROR("GATTC_Write GATT_BUSY conn_id = %d", conn_id);
         return GATT_BUSY;
     }
 
@@ -1083,7 +1083,7 @@ tGATT_STATUS GATTC_ExecuteWrite (UINT16 conn_id, BOOLEAN is_execute)
     }
     else
     {
-        GATT_TRACE_ERROR1("Unable to allocate client CB for conn_id %d ", conn_id);
+        GATT_TRACE_ERROR("Unable to allocate client CB for conn_id %d ", conn_id);
         status = GATT_NO_RESOURCES;
     }
     return status;
@@ -1107,7 +1107,7 @@ tGATT_STATUS GATTC_SendHandleValueConfirm (UINT16 conn_id, UINT16 handle)
     tGATT_STATUS    ret = GATT_ILLEGAL_PARAMETER;
     tGATT_TCB     *p_tcb=gatt_get_tcb_by_idx(GATT_GET_TCB_IDX(conn_id));
 
-    GATT_TRACE_API2 ("GATTC_SendHandleValueConfirm conn_id=%d handle=0x%x", conn_id, handle);
+    GATT_TRACE_API ("GATTC_SendHandleValueConfirm conn_id=%d handle=0x%x", conn_id, handle);
 
     if (p_tcb)
     {
@@ -1115,7 +1115,7 @@ tGATT_STATUS GATTC_SendHandleValueConfirm (UINT16 conn_id, UINT16 handle)
         {
             btu_stop_timer (&p_tcb->ind_ack_timer_ent);
 
-            GATT_TRACE_DEBUG1 ("notif_count=%d ", p_tcb->ind_count);
+            GATT_TRACE_DEBUG ("notif_count=%d ", p_tcb->ind_count);
             /* send confirmation now */
             ret = attp_send_cl_msg(p_tcb, 0, GATT_HANDLE_VALUE_CONF, (tGATT_CL_MSG *)&handle);
 
@@ -1124,13 +1124,13 @@ tGATT_STATUS GATTC_SendHandleValueConfirm (UINT16 conn_id, UINT16 handle)
         }
         else
         {
-            GATT_TRACE_DEBUG1 ("GATTC_SendHandleValueConfirm - conn_id: %u - ignored not waiting for indicaiton ack", conn_id);
+            GATT_TRACE_DEBUG ("GATTC_SendHandleValueConfirm - conn_id: %u - ignored not waiting for indicaiton ack", conn_id);
             ret = GATT_SUCCESS;
         }
     }
     else
     {
-        GATT_TRACE_ERROR1 ("GATTC_SendHandleValueConfirm - Unknown conn_id: %u", conn_id);
+        GATT_TRACE_ERROR ("GATTC_SendHandleValueConfirm - Unknown conn_id: %u", conn_id);
     }
     return ret;
 }
@@ -1171,7 +1171,7 @@ void GATT_SetIdleTimeout (BD_ADDR bd_addr, UINT16 idle_tout, tBT_TRANSPORT trans
         }
     }
 
-    GATT_TRACE_API2 ("GATT_SetIdleTimeout idle_tout=%d status=%d(1-OK 0-not performed)",
+    GATT_TRACE_API ("GATT_SetIdleTimeout idle_tout=%d status=%d(1-OK 0-not performed)",
                     idle_tout, status);
 }
 
@@ -1195,14 +1195,14 @@ tGATT_IF GATT_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info)
     UINT8        i_gatt_if=0;
     tGATT_IF     gatt_if=0;
 
-    GATT_TRACE_API0 ("GATT_Register");
+    GATT_TRACE_API ("GATT_Register");
     gatt_dbg_display_uuid(*p_app_uuid128);
 
     for (i_gatt_if = 0, p_reg = gatt_cb.cl_rcb; i_gatt_if < GATT_MAX_APPS; i_gatt_if++, p_reg++)
     {
         if (p_reg->in_use  && !memcmp(p_app_uuid128->uu.uuid128, p_reg->app_uuid128.uu.uuid128, LEN_UUID_128))
         {
-            GATT_TRACE_ERROR0("application already registered.");
+            GATT_TRACE_ERROR("application already registered.");
             return 0;
         }
     }
@@ -1222,7 +1222,7 @@ tGATT_IF GATT_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info)
             break;
         }
     }
-    GATT_TRACE_API1 ("allocated gatt_if=%d", gatt_if);
+    GATT_TRACE_API ("allocated gatt_if=%d", gatt_if);
     return gatt_if;
 }
 
@@ -1246,11 +1246,11 @@ void GATT_Deregister (tGATT_IF gatt_if)
     UINT8           i, ii, j;
     tGATT_SR_REG    *p_sreg;
 
-    GATT_TRACE_API1 ("GATT_Deregister gatt_if=%d", gatt_if);
+    GATT_TRACE_API ("GATT_Deregister gatt_if=%d", gatt_if);
     /* Index 0 is GAP and is never deregistered */
     if ( (gatt_if == 0) || (p_reg == NULL) )
     {
-        GATT_TRACE_ERROR1 ("GATT_Deregister with invalid gatt_if: %u", gatt_if);
+        GATT_TRACE_ERROR ("GATT_Deregister with invalid gatt_if: %u", gatt_if);
         return;
     }
 
@@ -1332,7 +1332,7 @@ void GATT_StartIf (tGATT_IF gatt_if)
     UINT16      conn_id;
     tGATT_TRANSPORT transport ;
 
-    GATT_TRACE_API1 ("GATT_StartIf gatt_if=%d", gatt_if);
+    GATT_TRACE_API ("GATT_StartIf gatt_if=%d", gatt_if);
     if ((p_reg = gatt_get_regcb(gatt_if)) != NULL)
     {
         p_reg = &gatt_cb.cl_rcb[gatt_if - 1];
@@ -1370,12 +1370,12 @@ BOOLEAN GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct, tBT_
     tGATT_REG    *p_reg;
     BOOLEAN status = FALSE;
 
-    GATT_TRACE_API1 ("GATT_Connect gatt_if=%d", gatt_if);
+    GATT_TRACE_API ("GATT_Connect gatt_if=%d", gatt_if);
 
     /* Make sure app is registered */
     if ((p_reg = gatt_get_regcb(gatt_if)) == NULL)
     {
-        GATT_TRACE_ERROR1("GATT_Connect - gatt_if =%d is not registered", gatt_if);
+        GATT_TRACE_ERROR("GATT_Connect - gatt_if =%d is not registered", gatt_if);
         return(FALSE);
     }
 
@@ -1387,7 +1387,7 @@ BOOLEAN GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct, tBT_
         status = gatt_update_auto_connect_dev(gatt_if,TRUE, bd_addr, TRUE);
         else
         {
-            GATT_TRACE_ERROR0("Unsupported transport for background connection");
+            GATT_TRACE_ERROR("Unsupported transport for background connection");
         }
     }
 
@@ -1416,11 +1416,11 @@ BOOLEAN GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct
     tGATT_IF      temp_gatt_if;
     UINT8         start_idx, found_idx;
 
-    GATT_TRACE_API1 ("GATT_CancelConnect gatt_if=%d", gatt_if);
+    GATT_TRACE_API ("GATT_CancelConnect gatt_if=%d", gatt_if);
 
     if ((gatt_if != 0) && ((p_reg = gatt_get_regcb(gatt_if)) == NULL))
     {
-        GATT_TRACE_ERROR1("GATT_CancelConnect - gatt_if =%d is not registered", gatt_if);
+        GATT_TRACE_ERROR("GATT_CancelConnect - gatt_if =%d is not registered", gatt_if);
         return(FALSE);
     }
 
@@ -1428,7 +1428,7 @@ BOOLEAN GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct
     {
         if (!gatt_if)
         {
-            GATT_TRACE_DEBUG0("GATT_CancelConnect - unconditional");
+            GATT_TRACE_DEBUG("GATT_CancelConnect - unconditional");
             start_idx = 0;
             /* only LE connection can be cancelled */
             p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
@@ -1442,7 +1442,7 @@ BOOLEAN GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct
             }
             else
             {
-                GATT_TRACE_ERROR0("GATT_CancelConnect - no app found");
+                GATT_TRACE_ERROR("GATT_CancelConnect - no app found");
                 status = FALSE;
             }
         }
@@ -1462,7 +1462,7 @@ BOOLEAN GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct
             }
             else
             {
-                GATT_TRACE_ERROR0("GATT_CancelConnect -no app associated with the bg device for unconditional removal");
+                GATT_TRACE_ERROR("GATT_CancelConnect -no app associated with the bg device for unconditional removal");
                 status = FALSE;
             }
         }
@@ -1494,7 +1494,7 @@ tGATT_STATUS GATT_Disconnect (UINT16 conn_id)
     tGATT_IF        gatt_if=GATT_GET_GATT_IF(conn_id);
     UINT8          tcb_idx = GATT_GET_TCB_IDX(conn_id);
 
-    GATT_TRACE_API1 ("GATT_Disconnect conn_id=%d ", conn_id);
+    GATT_TRACE_API ("GATT_Disconnect conn_id=%d ", conn_id);
 
     p_tcb = gatt_get_tcb_by_idx(tcb_idx);
 
@@ -1535,7 +1535,7 @@ BOOLEAN GATT_GetConnectionInfor(UINT16 conn_id, tGATT_IF *p_gatt_if, BD_ADDR bd_
     tGATT_TCB       *p_tcb= gatt_get_tcb_by_idx(tcb_idx);
     BOOLEAN         status=FALSE;
 
-    GATT_TRACE_API1 ("GATT_GetConnectionInfor conn_id=%d", conn_id);
+    GATT_TRACE_API ("GATT_GetConnectionInfor conn_id=%d", conn_id);
 
     if (p_tcb && p_reg )
     {
@@ -1576,7 +1576,7 @@ BOOLEAN GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, UINT16 *p_c
         status = TRUE;
     }
 
-    GATT_TRACE_API1 ("GATT_GetConnIdIfConnected status=%d", status);
+    GATT_TRACE_API ("GATT_GetConnIdIfConnected status=%d", status);
     return status;
 }
 
@@ -1601,12 +1601,12 @@ BOOLEAN GATT_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr)
     tGATT_REG    *p_reg;
     BOOLEAN status = TRUE;
 
-    GATT_TRACE_API1 ("GATT_Listen gatt_if=%d", gatt_if);
+    GATT_TRACE_API ("GATT_Listen gatt_if=%d", gatt_if);
 
     /* Make sure app is registered */
     if ((p_reg = gatt_get_regcb(gatt_if)) == NULL)
     {
-        GATT_TRACE_ERROR1("GATT_Listen - gatt_if =%d is not registered", gatt_if);
+        GATT_TRACE_ERROR("GATT_Listen - gatt_if =%d is not registered", gatt_if);
         return(FALSE);
     }
 
