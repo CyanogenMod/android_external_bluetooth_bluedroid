@@ -65,7 +65,7 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
     if (p_buf->len < avct_lcb_pkt_type_len[pkt_type])
     {
         GKI_freebuf(p_buf);
-        AVCT_TRACE_WARNING0("Bad length during reassembly");
+        AVCT_TRACE_WARNING("Bad length during reassembly");
         p_ret = NULL;
     }
     /* single packet */
@@ -76,7 +76,7 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
         {
             GKI_freebuf(p_lcb->p_rx_msg);
             p_lcb->p_rx_msg = NULL;
-            AVCT_TRACE_WARNING0("Got single during reassembly");
+            AVCT_TRACE_WARNING("Got single during reassembly");
         }
         p_ret = p_buf;
     }
@@ -87,7 +87,7 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
         if (p_lcb->p_rx_msg != NULL)
         {
             GKI_freebuf(p_lcb->p_rx_msg);
-            AVCT_TRACE_WARNING0("Got start during reassembly");
+            AVCT_TRACE_WARNING("Got start during reassembly");
         }
         p_lcb->p_rx_msg = p_buf;
 
@@ -109,7 +109,7 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
         if (p_lcb->p_rx_msg == NULL)
         {
             GKI_freebuf(p_buf);
-            AVCT_TRACE_WARNING1("Pkt type=%d out of order", pkt_type);
+            AVCT_TRACE_WARNING("Pkt type=%d out of order", pkt_type);
             p_ret = NULL;
         }
         else
@@ -129,7 +129,7 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
                 p_lcb->p_rx_msg = NULL;
                 GKI_freebuf(p_buf);
                 p_ret = NULL;
-                AVCT_TRACE_WARNING0("Fragmented message to big!");
+                AVCT_TRACE_WARNING("Fragmented message to big!");
             }
             else
             {
@@ -392,19 +392,19 @@ void avct_lcb_bind_conn(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 *******************************************************************************/
 void avct_lcb_chk_disc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 {
-    AVCT_TRACE_WARNING0("avct_lcb_chk_disc");
+    AVCT_TRACE_WARNING("avct_lcb_chk_disc");
 #if (AVCT_BROWSE_INCLUDED == TRUE)
     avct_close_bcb(p_lcb, p_data);
 #endif
     if (avct_lcb_last_ccb(p_lcb, p_data->p_ccb))
     {
-        AVCT_TRACE_WARNING0("closing");
+        AVCT_TRACE_WARNING("closing");
         p_data->p_ccb->ch_close = TRUE;
         avct_lcb_event(p_lcb, AVCT_LCB_INT_CLOSE_EVT, p_data);
     }
     else
     {
-        AVCT_TRACE_WARNING0("dealloc ccb");
+        AVCT_TRACE_WARNING("dealloc ccb");
         avct_lcb_unbind_disc(p_lcb, p_data);
     }
 }
@@ -499,7 +499,7 @@ void avct_lcb_discard_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 {
     UNUSED(p_lcb);
 
-    AVCT_TRACE_WARNING0("Dropping msg");
+    AVCT_TRACE_WARNING("Dropping msg");
 
     GKI_freebuf(p_data->ul_msg.p_buf);
 }
@@ -556,7 +556,7 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
             if ((p_buf = (BT_HDR *) GKI_getbuf(buf_size)) == NULL)
             {
                 /* whoops; free original msg buf and bail */
-                AVCT_TRACE_ERROR0 ("avct_lcb_send_msg cannot alloc buffer!!");
+                AVCT_TRACE_ERROR ("avct_lcb_send_msg cannot alloc buffer!!");
                 GKI_freebuf(p_data->ul_msg.p_buf);
                 break;
             }
@@ -618,7 +618,7 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
             pkt_type = AVCT_PKT_TYPE_END;
         }
     }
-    AVCT_TRACE_DEBUG1 ("avct_lcb_send_msg tx_q_count:%d", p_lcb->tx_q.count);
+    AVCT_TRACE_DEBUG ("avct_lcb_send_msg tx_q_count:%d", p_lcb->tx_q.count);
     return;
 }
 
@@ -678,7 +678,7 @@ void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     /* check for invalid cr_ipid */
     if (cr_ipid == AVCT_CR_IPID_INVALID)
     {
-        AVCT_TRACE_WARNING1("Invalid cr_ipid", cr_ipid);
+        AVCT_TRACE_WARNING("Invalid cr_ipid", cr_ipid);
         GKI_freebuf(p_data->p_buf);
         return;
     }
@@ -695,7 +695,7 @@ void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     else
     {
         /* PID not found; drop message */
-        AVCT_TRACE_WARNING1("No ccb for PID=%x", pid);
+        AVCT_TRACE_WARNING("No ccb for PID=%x", pid);
         GKI_freebuf(p_data->p_buf);
 
         /* if command send reject */

@@ -198,9 +198,9 @@ void avct_lcb_event(tAVCT_LCB *p_lcb, UINT8 event, tAVCT_LCB_EVT *p_data)
     int                 i;
 
 #if BT_TRACE_VERBOSE == TRUE
-    AVCT_TRACE_EVENT3("LCB lcb=%d event=%s state=%s", p_lcb->allocated, avct_lcb_evt_str[event], avct_lcb_st_str[p_lcb->state]);
+    AVCT_TRACE_EVENT("LCB lcb=%d event=%s state=%s", p_lcb->allocated, avct_lcb_evt_str[event], avct_lcb_st_str[p_lcb->state]);
 #else
-    AVCT_TRACE_EVENT3("LCB lcb=%d event=%d state=%d", p_lcb->allocated, event, p_lcb->state);
+    AVCT_TRACE_EVENT("LCB lcb=%d event=%d state=%d", p_lcb->allocated, event, p_lcb->state);
 #endif
 
     /* look up the state table for the current state */
@@ -241,9 +241,9 @@ void avct_bcb_event(tAVCT_BCB *p_bcb, UINT8 event, tAVCT_LCB_EVT *p_data)
     int                 i;
 
 #if BT_TRACE_VERBOSE == TRUE
-    AVCT_TRACE_EVENT3("BCB lcb=%d event=%s state=%s", p_bcb->allocated, avct_lcb_evt_str[event], avct_lcb_st_str[p_bcb->state]);
+    AVCT_TRACE_EVENT("BCB lcb=%d event=%s state=%s", p_bcb->allocated, avct_lcb_evt_str[event], avct_lcb_st_str[p_bcb->state]);
 #else
-    AVCT_TRACE_EVENT3("BCB lcb=%d event=%d state=%d", p_bcb->allocated, event, p_bcb->state);
+    AVCT_TRACE_EVENT("BCB lcb=%d event=%d state=%d", p_bcb->allocated, event, p_bcb->state);
 #endif
 
     /* look up the state table for the current state */
@@ -296,7 +296,7 @@ tAVCT_LCB *avct_lcb_by_bd(BD_ADDR bd_addr)
         /* if no lcb found */
         p_lcb = NULL;
 
-        AVCT_TRACE_DEBUG6("No lcb for addr %02x-%02x-%02x-%02x-%02x-%02x",
+        AVCT_TRACE_DEBUG("No lcb for addr %02x-%02x-%02x-%02x-%02x-%02x",
                           bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4], bd_addr[5]);
     }
     return p_lcb;
@@ -323,7 +323,7 @@ tAVCT_LCB *avct_lcb_alloc(BD_ADDR bd_addr)
         {
             p_lcb->allocated = (UINT8)(i + 1);
             memcpy(p_lcb->peer_addr, bd_addr, BD_ADDR_LEN);
-            AVCT_TRACE_DEBUG1("avct_lcb_alloc %d", p_lcb->allocated);
+            AVCT_TRACE_DEBUG("avct_lcb_alloc %d", p_lcb->allocated);
             break;
         }
     }
@@ -332,7 +332,7 @@ tAVCT_LCB *avct_lcb_alloc(BD_ADDR bd_addr)
     {
         /* out of lcbs */
         p_lcb = NULL;
-        AVCT_TRACE_WARNING0("Out of lcbs");
+        AVCT_TRACE_WARNING("Out of lcbs");
     }
     return p_lcb;
 }
@@ -354,7 +354,7 @@ void avct_lcb_dealloc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     int         i;
     UNUSED(p_data);
 
-    AVCT_TRACE_DEBUG1("avct_lcb_dealloc %d", p_lcb->allocated);
+    AVCT_TRACE_DEBUG("avct_lcb_dealloc %d", p_lcb->allocated);
 
     for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++)
     {
@@ -363,7 +363,7 @@ void avct_lcb_dealloc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
         {
             if (p_ccb->p_lcb == p_lcb)
             {
-                AVCT_TRACE_DEBUG1("avct_lcb_dealloc used by ccb: %d", i);
+                AVCT_TRACE_DEBUG("avct_lcb_dealloc used by ccb: %d", i);
                 found = TRUE;
                 break;
             }
@@ -372,7 +372,7 @@ void avct_lcb_dealloc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 
     if (!found)
     {
-        AVCT_TRACE_DEBUG0("avct_lcb_dealloc now");
+        AVCT_TRACE_DEBUG("avct_lcb_dealloc now");
 
         /* clear reassembled msg buffer if in use */
         if (p_lcb->p_rx_msg != NULL)
@@ -410,7 +410,7 @@ tAVCT_LCB *avct_lcb_by_lcid(UINT16 lcid)
     {
         /* out of lcbs */
         p_lcb = NULL;
-        AVCT_TRACE_WARNING1("No lcb for lcid %x", lcid);
+        AVCT_TRACE_WARNING("No lcb for lcid %x", lcid);
     }
 
     return p_lcb;
@@ -456,10 +456,10 @@ BOOLEAN avct_lcb_last_ccb(tAVCT_LCB *p_lcb, tAVCT_CCB *p_ccb_last)
     tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
     int         i;
 
-    AVCT_TRACE_WARNING0("avct_lcb_last_ccb");
+    AVCT_TRACE_WARNING("avct_lcb_last_ccb");
     for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++)
     {
-        AVCT_TRACE_WARNING6("%x: aloc:%d, lcb:0x%x/0x%x, ccb:0x%x/0x%x",
+        AVCT_TRACE_WARNING("%x: aloc:%d, lcb:0x%x/0x%x, ccb:0x%x/0x%x",
             i, p_ccb->allocated, p_ccb->p_lcb, p_lcb, p_ccb, p_ccb_last);
         if (p_ccb->allocated && (p_ccb->p_lcb == p_lcb) && (p_ccb != p_ccb_last))
         {
