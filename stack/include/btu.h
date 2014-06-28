@@ -271,13 +271,8 @@ BTU_API extern const BD_ADDR        BT_BD_ANY;
 */
 BTU_API extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
 BTU_API extern void btu_stop_timer (TIMER_LIST_ENT *p_tle);
-BTU_API extern void btu_register_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout, tBTU_TIMER_CALLBACK timer_cb);
-BTU_API extern void btu_deregister_timer(TIMER_LIST_ENT *p_tle);
 BTU_API extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
 
-
-BTU_API extern void btu_register_event_range (UINT16 range, tBTU_EVENT_CALLBACK event_cb);
-BTU_API extern void btu_deregister_event_range (UINT16 range);
 BTU_API extern void btu_uipc_rx_cback(BT_HDR *p_msg);
 
 BTU_API extern void btu_hcif_flush_cmd_queue(void);
