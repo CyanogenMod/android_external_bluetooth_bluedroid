@@ -324,8 +324,6 @@ typedef struct
 
     BOOLEAN     timer_nesting;                      /* flag to prevent timer interrupt nesting */
 
-    /* Time queue arrays */
-    TIMER_LIST_Q *timer_queues[GKI_MAX_TIMER_QUEUES];
     /* System tick callback */
     SYSTEM_TICK_CBACK *p_tick_cb;
     BOOLEAN     system_tick_running;                /* TRUE if system tick is running. Valid only if p_tick_cb is not NULL */
