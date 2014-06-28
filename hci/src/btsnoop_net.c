@@ -16,7 +16,10 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "btsnoop_net"
+
 #include <assert.h>
+#include <cutils/log.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <pthread.h>
@@ -26,8 +29,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#define LOG_TAG "btsnoop_net"
-#include <cutils/log.h>
+#include "osi.h"
 
 static void safe_close_(int *fd);
 static void *listen_fn_(void *context);
@@ -42,7 +44,7 @@ static pthread_mutex_t client_socket_lock_ = PTHREAD_MUTEX_INITIALIZER;
 static int listen_socket_ = -1;
 static int client_socket_ = -1;
 
-void btsnoop_net_init() {
+void btsnoop_net_open() {
   listen_thread_valid_ = (pthread_create(&listen_thread_, NULL, listen_fn_, NULL) == 0);
   if (!listen_thread_valid_) {
     ALOGE("%s pthread_create failed: %s", __func__, strerror(errno));
@@ -51,7 +53,7 @@ void btsnoop_net_init() {
   }
 }
 
-void btsnoop_net_cleanup() {
+void btsnoop_net_close() {
   if (listen_thread_valid_) {
     shutdown(listen_socket_, SHUT_RDWR);
     pthread_join(listen_thread_, NULL);
@@ -70,7 +72,8 @@ void btsnoop_net_write(const void *data, size_t length) {
   pthread_mutex_unlock(&client_socket_lock_);
 }
 
-static void *listen_fn_(void *context) {
+static void *listen_fn_(UNUSED_ATTR void *context) {
+
   prctl(PR_SET_NAME, (unsigned long)LISTEN_THREAD_NAME_, 0, 0, 0);
 
   listen_socket_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);

@@ -36,6 +36,7 @@
 #include "hci.h"
 #include "userial.h"
 #include "bt_utils.h"
+#include "btsnoop.h"
 #include <sys/prctl.h>
 
 #ifndef BTHC_DBG
@@ -66,8 +67,6 @@ void lpm_wake_deassert(void);
 void lpm_allow_bt_device_sleep(void);
 void lpm_wake_assert(void);
 void init_vnd_if(unsigned char *local_bdaddr);
-void btsnoop_open(char *p_path);
-void btsnoop_close(void);
 
 /******************************************************************************
 **  Variables

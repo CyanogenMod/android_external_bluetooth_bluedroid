@@ -30,7 +30,9 @@
 #include <utils/Log.h>
 #include <stdlib.h>
 #include <fcntl.h>
+
 #include "bt_hci_bdroid.h"
+#include "btsnoop.h"
 #include "hci.h"
 #include "userial.h"
 #include "utils.h"
@@ -135,10 +137,6 @@ typedef struct
 
 extern BUFFER_Q tx_q;
 
-void btsnoop_init(void);
-void btsnoop_close(void);
-void btsnoop_cleanup (void);
-void btsnoop_capture(HC_BT_HDR *p_buf, uint8_t is_rcvd);
 uint8_t hci_mct_send_int_cmd(uint16_t opcode, HC_BT_HDR *p_buf, \
                                   tINT_CMD_CBACK p_cback);
 void lpm_wake_assert(void);
@@ -504,7 +502,7 @@ static uint8_t acl_rx_frame_end_chk (void)
         p_buf->offset = p_buf->offset - HCI_ACL_PREAMBLE_SIZE;
         p_buf->len = p_buf->len - p_buf->offset;
 
-        btsnoop_capture(p_buf, TRUE);
+        btsnoop_capture(p_buf, true);
 
         /* restore contents */
         memcpy(p, p_cb->rcv_acl.preload_buffer, HCI_ACL_PREAMBLE_SIZE);
@@ -515,7 +513,7 @@ static uint8_t acl_rx_frame_end_chk (void)
     else
     {
         /* START PACKET */
-        btsnoop_capture(p_buf, TRUE);
+        btsnoop_capture(p_buf, true);
     }
 
     if (frame_end == TRUE)
@@ -570,9 +568,6 @@ void hci_mct_init(void)
 void hci_mct_cleanup(void)
 {
     HCIDBG("hci_mct_cleanup");
-
-    btsnoop_close();
-    btsnoop_cleanup();
 }
 
 /*******************************************************************************
@@ -625,7 +620,7 @@ void hci_mct_send_msg(HC_BT_HDR *p_msg)
             userial_write(event, (uint8_t *) p, acl_pkt_size);
 
             /* generate snoop trace message */
-            btsnoop_capture(p_msg, FALSE);
+            btsnoop_capture(p_msg, false);
 
             /* Adjust offset and length for what we just sent */
             p_msg->offset += acl_data_size;
@@ -687,7 +682,7 @@ void hci_mct_send_msg(HC_BT_HDR *p_msg)
 
 
     /* generate snoop trace message */
-    btsnoop_capture(p_msg, FALSE);
+    btsnoop_capture(p_msg, false);
 
     if (bt_hc_cbacks)
     {
@@ -873,7 +868,7 @@ uint16_t hci_mct_receive_evt_msg(void)
             uint8_t intercepted = FALSE;
 
             /* generate snoop trace message */
-            btsnoop_capture(p_cb->p_rcv_msg, TRUE);
+            btsnoop_capture(p_cb->p_rcv_msg, true);
 
             intercepted = internal_event_intercept();
 
