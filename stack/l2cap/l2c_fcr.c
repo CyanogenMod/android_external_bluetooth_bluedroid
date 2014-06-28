@@ -186,7 +186,7 @@ void l2c_fcr_start_timer (tL2C_CCB *p_ccb)
         tout = (UINT32)p_ccb->our_cfg.fcr.rtrans_tout;
     }
 /*
-    L2CAP_TRACE_DEBUG4 ("l2c_fcr_start_timer Tout: %u  Already Running: %u  wait_ack: %u  ack_q_count: %u",
+    L2CAP_TRACE_DEBUG ("l2c_fcr_start_timer Tout: %u  Already Running: %u  wait_ack: %u  ack_q_count: %u",
                         tout, p_ccb->timer_entry.in_use, p_ccb->fcrb.wait_ack, p_ccb->fcrb.waiting_for_ack_q.count);
 */
     /* Only start a timer that was not started */
@@ -208,7 +208,7 @@ void l2c_fcr_stop_timer (tL2C_CCB *p_ccb)
     if (p_ccb->fcrb.mon_retrans_timer.in_use)
     {
 /*
-        L2CAP_TRACE_DEBUG2 ("l2c_fcr_stop_timer wait_ack: %u  ack_q_count: %u",
+        L2CAP_TRACE_DEBUG ("l2c_fcr_stop_timer wait_ack: %u  ack_q_count: %u",
                             p_ccb->fcrb.wait_ack, p_ccb->fcrb.waiting_for_ack_q.count);
 */
         btu_stop_quick_timer (&p_ccb->fcrb.mon_retrans_timer);
@@ -340,7 +340,7 @@ BT_HDR *l2c_fcr_clone_buf (BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes,
     /* If using the common pool, should be at least 10% free. */
     if ( (pool == HCI_ACL_POOL_ID) && (GKI_poolutilization (pool) > 90) )
     {
-        L2CAP_TRACE_ERROR1 ("L2CAP - failed to clone buffer on HCI_ACL_POOL_ID Utilization: %u", GKI_poolutilization(pool));
+        L2CAP_TRACE_ERROR ("L2CAP - failed to clone buffer on HCI_ACL_POOL_ID Utilization: %u", GKI_poolutilization(pool));
         return (NULL);
     }
 
@@ -351,7 +351,7 @@ BT_HDR *l2c_fcr_clone_buf (BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes,
         /* Make sure buffer fits into buffer pool */
         if ((no_of_bytes + sizeof(BT_HDR) + new_offset) > pool_buf_size)
         {
-            L2CAP_TRACE_ERROR5("##### l2c_fcr_clone_buf (NumBytes %d) -> Exceeds poolsize %d [bytes %d + BT_HDR %d + offset %d]",
+            L2CAP_TRACE_ERROR("##### l2c_fcr_clone_buf (NumBytes %d) -> Exceeds poolsize %d [bytes %d + BT_HDR %d + offset %d]",
                                (no_of_bytes + sizeof(BT_HDR) + new_offset),
                                pool_buf_size, no_of_bytes, sizeof(BT_HDR),
                                new_offset);
@@ -369,7 +369,7 @@ BT_HDR *l2c_fcr_clone_buf (BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes,
     }
     else
     {
-        L2CAP_TRACE_ERROR2 ("L2CAP - failed to clone buffer, Pool: %u  Count: %u", pool,  GKI_poolfreecount(pool));
+        L2CAP_TRACE_ERROR ("L2CAP - failed to clone buffer, Pool: %u  Count: %u", pool,  GKI_poolfreecount(pool));
     }
 
     return (p_buf2);
@@ -485,7 +485,7 @@ static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, BOOLEAN is_retransm
 #if BT_TRACE_VERBOSE == TRUE
     if (is_retransmission)
     {
-        L2CAP_TRACE_EVENT6 ("L2CAP eRTM ReTx I-frame  CID: 0x%04x  Len: %u  SAR: %s  TxSeq: %u  ReqSeq: %u  F: %u",
+        L2CAP_TRACE_EVENT ("L2CAP eRTM ReTx I-frame  CID: 0x%04x  Len: %u  SAR: %s  TxSeq: %u  ReqSeq: %u  F: %u",
                             p_ccb->local_cid, p_buf->len,
                             SAR_types[(ctrl_word & L2CAP_FCR_SAR_BITS) >> L2CAP_FCR_SAR_BITS_SHIFT],
                             (ctrl_word & L2CAP_FCR_TX_SEQ_BITS) >> L2CAP_FCR_TX_SEQ_BITS_SHIFT,
@@ -494,7 +494,7 @@ static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, BOOLEAN is_retransm
     }
     else
     {
-        L2CAP_TRACE_EVENT6 ("L2CAP eRTM Tx I-frame CID: 0x%04x  Len: %u  SAR: %-12s  TxSeq: %u  ReqSeq: %u  F: %u",
+        L2CAP_TRACE_EVENT ("L2CAP eRTM Tx I-frame CID: 0x%04x  Len: %u  SAR: %-12s  TxSeq: %u  ReqSeq: %u  F: %u",
                             p_ccb->local_cid, p_buf->len,
                             SAR_types[(ctrl_word & L2CAP_FCR_SAR_BITS) >> L2CAP_FCR_SAR_BITS_SHIFT],
                             (ctrl_word & L2CAP_FCR_TX_SEQ_BITS) >> L2CAP_FCR_TX_SEQ_BITS_SHIFT,
@@ -590,23 +590,23 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit)
         if ((((ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT) == 1)
          || (((ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT) == 3))
         {
-            L2CAP_TRACE_WARNING6 ("L2CAP eRTM Tx S-frame  CID: 0x%04x  ctrlword: 0x%04x  Type: %s  ReqSeq: %u  P: %u  F: %u",
+            L2CAP_TRACE_WARNING ("L2CAP eRTM Tx S-frame  CID: 0x%04x  ctrlword: 0x%04x  Type: %s  ReqSeq: %u  P: %u  F: %u",
                             p_ccb->local_cid, ctrl_word,
                             SUP_types[(ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT],
                             (ctrl_word & L2CAP_FCR_REQ_SEQ_BITS) >> L2CAP_FCR_REQ_SEQ_BITS_SHIFT,
                             (ctrl_word & L2CAP_FCR_P_BIT) >> L2CAP_FCR_P_BIT_SHIFT,
                             (ctrl_word & L2CAP_FCR_F_BIT) >> L2CAP_FCR_F_BIT_SHIFT);
-            L2CAP_TRACE_WARNING1 ("                  Buf Len: %u", p_buf->len);
+            L2CAP_TRACE_WARNING ("                  Buf Len: %u", p_buf->len);
         }
         else
         {
-            L2CAP_TRACE_EVENT6 ("L2CAP eRTM Tx S-frame  CID: 0x%04x  ctrlword: 0x%04x  Type: %s  ReqSeq: %u  P: %u  F: %u",
+            L2CAP_TRACE_EVENT ("L2CAP eRTM Tx S-frame  CID: 0x%04x  ctrlword: 0x%04x  Type: %s  ReqSeq: %u  P: %u  F: %u",
                             p_ccb->local_cid, ctrl_word,
                             SUP_types[(ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT],
                             (ctrl_word & L2CAP_FCR_REQ_SEQ_BITS) >> L2CAP_FCR_REQ_SEQ_BITS_SHIFT,
                             (ctrl_word & L2CAP_FCR_P_BIT) >> L2CAP_FCR_P_BIT_SHIFT,
                             (ctrl_word & L2CAP_FCR_F_BIT) >> L2CAP_FCR_F_BIT_SHIFT);
-            L2CAP_TRACE_EVENT1 ("                  Buf Len: %u", p_buf->len);
+            L2CAP_TRACE_EVENT ("                  Buf Len: %u", p_buf->len);
         }
 #endif  /* BT_TRACE_VERBOSE */
 
@@ -619,7 +619,7 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit)
     }
     else
     {
-        L2CAP_TRACE_ERROR2 ("l2c_fcr_send_S_frame(No Resources) cid 0x%04x, Type: 0x%4x",
+        L2CAP_TRACE_ERROR ("l2c_fcr_send_S_frame(No Resources) cid 0x%04x, Type: 0x%4x",
                              p_ccb->local_cid, function_code);
     }
 }
@@ -648,7 +648,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 
     if (p_buf->len < min_pdu_len)
     {
-        L2CAP_TRACE_WARNING2 ("Rx L2CAP PDU: CID: 0x%04x  Len too short: %u", p_ccb->local_cid, p_buf->len);
+        L2CAP_TRACE_WARNING ("Rx L2CAP PDU: CID: 0x%04x  Len too short: %u", p_ccb->local_cid, p_buf->len);
         GKI_freebuf (p_buf);
         return;
     }
@@ -670,7 +670,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
          || (((ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT) == 3))
         {
             /* REJ or SREJ */
-            L2CAP_TRACE_WARNING6 ("L2CAP eRTM Rx S-frame: cid: 0x%04x  Len: %u  Type: %s  ReqSeq: %u  P: %u  F: %u",
+            L2CAP_TRACE_WARNING ("L2CAP eRTM Rx S-frame: cid: 0x%04x  Len: %u  Type: %s  ReqSeq: %u  P: %u  F: %u",
                             p_ccb->local_cid, p_buf->len,
                             SUP_types[(ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT],
                             (ctrl_word & L2CAP_FCR_REQ_SEQ_BITS) >> L2CAP_FCR_REQ_SEQ_BITS_SHIFT,
@@ -679,7 +679,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
         }
         else
         {
-            L2CAP_TRACE_EVENT6 ("L2CAP eRTM Rx S-frame: cid: 0x%04x  Len: %u  Type: %s  ReqSeq: %u  P: %u  F: %u",
+            L2CAP_TRACE_EVENT ("L2CAP eRTM Rx S-frame: cid: 0x%04x  Len: %u  Type: %s  ReqSeq: %u  P: %u  F: %u",
                             p_ccb->local_cid, p_buf->len,
                             SUP_types[(ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT],
                             (ctrl_word & L2CAP_FCR_REQ_SEQ_BITS) >> L2CAP_FCR_REQ_SEQ_BITS_SHIFT,
@@ -689,7 +689,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     }
     else
     {
-        L2CAP_TRACE_EVENT6 ("L2CAP eRTM Rx I-frame: cid: 0x%04x  Len: %u  SAR: %-12s  TxSeq: %u  ReqSeq: %u  F: %u",
+        L2CAP_TRACE_EVENT ("L2CAP eRTM Rx I-frame: cid: 0x%04x  Len: %u  SAR: %-12s  TxSeq: %u  ReqSeq: %u  F: %u",
                             p_ccb->local_cid, p_buf->len,
                             SAR_types[(ctrl_word & L2CAP_FCR_SAR_BITS) >> L2CAP_FCR_SAR_BITS_SHIFT],
                             (ctrl_word & L2CAP_FCR_TX_SEQ_BITS) >> L2CAP_FCR_TX_SEQ_BITS_SHIFT,
@@ -697,7 +697,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
                             (ctrl_word & L2CAP_FCR_F_BIT) >> L2CAP_FCR_F_BIT_SHIFT);
     }
 
-    L2CAP_TRACE_EVENT6 ("      eRTM Rx Nxt_tx_seq %u, Lst_rx_ack %u, Nxt_seq_exp %u, Lst_ack_snt %u, wt_q.cnt %u, tries %u",
+    L2CAP_TRACE_EVENT ("      eRTM Rx Nxt_tx_seq %u, Lst_rx_ack %u, Nxt_seq_exp %u, Lst_ack_snt %u, wt_q.cnt %u, tries %u",
                         p_ccb->fcrb.next_tx_seq, p_ccb->fcrb.last_rx_ack, p_ccb->fcrb.next_seq_expected,
                         p_ccb->fcrb.last_ack_sent, p_ccb->fcrb.waiting_for_ack_q.count, p_ccb->fcrb.num_tries);
 
@@ -723,7 +723,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 
         if (l2c_fcr_rx_get_fcs(p_buf) != fcs)
         {
-            L2CAP_TRACE_WARNING1 ("Rx L2CAP PDU: CID: 0x%04x  BAD FCS", p_ccb->local_cid);
+            L2CAP_TRACE_WARNING ("Rx L2CAP PDU: CID: 0x%04x  BAD FCS", p_ccb->local_cid);
             GKI_freebuf(p_buf);
             return;
         }
@@ -812,7 +812,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 
                 STREAM_TO_UINT16 (ctrl_word, p);
 
-                L2CAP_TRACE_DEBUG3 ("l2c_fcr_proc_pdu() CID: 0x%04x  Process Buffer from SREJ_Hold_Q   TxSeq: %u  Expected_Seq: %u",
+                L2CAP_TRACE_DEBUG ("l2c_fcr_proc_pdu() CID: 0x%04x  Process Buffer from SREJ_Hold_Q   TxSeq: %u  Expected_Seq: %u",
                                     p_ccb->local_cid, (ctrl_word & L2CAP_FCR_TX_SEQ_BITS) >> L2CAP_FCR_TX_SEQ_BITS_SHIFT,
                                     p_ccb->fcrb.next_seq_expected);
 
@@ -838,7 +838,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
             l2c_fcr_send_S_frame (p_ccb, L2CAP_FCR_SUP_RR, 0);
         else
         {
-            L2CAP_TRACE_DEBUG6 ("l2c_fcr_proc_pdu() not sending RR CID: 0x%04x  local_busy:%d rej_sent:%d srej_sent:%d Expected_Seq:%u Last_Ack:%u",
+            L2CAP_TRACE_DEBUG ("l2c_fcr_proc_pdu() not sending RR CID: 0x%04x  local_busy:%d rej_sent:%d srej_sent:%d Expected_Seq:%u Last_Ack:%u",
                                 p_ccb->local_cid, p_ccb->fcrb.local_busy, p_ccb->fcrb.rej_sent, p_ccb->fcrb.srej_sent, p_ccb->fcrb.next_seq_expected,
                                 p_ccb->fcrb.last_ack_sent);
         }
@@ -864,7 +864,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 *******************************************************************************/
 void l2c_fcr_proc_tout (tL2C_CCB *p_ccb)
 {
-    L2CAP_TRACE_DEBUG5 ("l2c_fcr_proc_tout:  CID: 0x%04x  num_tries: %u (max: %u)  wait_ack: %u  ack_q_count: %u",
+    L2CAP_TRACE_DEBUG ("l2c_fcr_proc_tout:  CID: 0x%04x  num_tries: %u (max: %u)  wait_ack: %u  ack_q_count: %u",
                         p_ccb->local_cid, p_ccb->fcrb.num_tries, p_ccb->peer_cfg.fcr.max_transmit,
                         p_ccb->fcrb.wait_ack, p_ccb->fcrb.waiting_for_ack_q.count);
 
@@ -900,7 +900,7 @@ void l2c_fcr_proc_tout (tL2C_CCB *p_ccb)
 *******************************************************************************/
 void l2c_fcr_proc_ack_tout (tL2C_CCB *p_ccb)
 {
-    L2CAP_TRACE_DEBUG5 ("l2c_fcr_proc_ack_tout:  CID: 0x%04x State: %u  Wack:%u  Rq:%d  Acked:%d", p_ccb->local_cid,
+    L2CAP_TRACE_DEBUG ("l2c_fcr_proc_ack_tout:  CID: 0x%04x State: %u  Wack:%u  Rq:%d  Acked:%d", p_ccb->local_cid,
                         p_ccb->chnl_state, p_ccb->fcrb.wait_ack, p_ccb->fcrb.next_seq_expected, p_ccb->fcrb.last_ack_sent);
 
     if ( (p_ccb->chnl_state == CST_OPEN) && (!p_ccb->fcrb.wait_ack)
@@ -954,7 +954,7 @@ static BOOLEAN process_reqseq (tL2C_CCB *p_ccb, UINT16 ctrl_word)
     if (num_bufs_acked > p_fcrb->waiting_for_ack_q.count)
     {
         /* The channel is closed if ReqSeq is not in range */
-        L2CAP_TRACE_WARNING4 ("L2CAP eRTM Frame BAD Req_Seq - ctrl_word: 0x%04x  req_seq 0x%02x  last_rx_ack: 0x%02x  QCount: %u",
+        L2CAP_TRACE_WARNING ("L2CAP eRTM Frame BAD Req_Seq - ctrl_word: 0x%04x  req_seq 0x%02x  last_rx_ack: 0x%02x  QCount: %u",
                                ctrl_word, req_seq, p_fcrb->last_rx_ack, p_fcrb->waiting_for_ack_q.count);
 
         l2cu_disconnect_chnl (p_ccb);
@@ -962,7 +962,7 @@ static BOOLEAN process_reqseq (tL2C_CCB *p_ccb, UINT16 ctrl_word)
     }
 
 /*
-    L2CAP_TRACE_DEBUG3 ("L2CAP process_reqseq 0x%02x  last_rx_ack: 0x%02x  QCount: %u",
+    L2CAP_TRACE_DEBUG ("L2CAP process_reqseq 0x%02x  last_rx_ack: 0x%02x  QCount: %u",
                            req_seq, p_fcrb->last_rx_ack, p_fcrb->waiting_for_ack_q.count);
 */
     p_fcrb->last_rx_ack = req_seq;
@@ -1028,10 +1028,10 @@ static void process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word)
 
     if (p_buf->len != 0)
     {
-        L2CAP_TRACE_WARNING1 ("Incorrect S-frame Length (%d)", p_buf->len);
+        L2CAP_TRACE_WARNING ("Incorrect S-frame Length (%d)", p_buf->len);
     }
 
-    L2CAP_TRACE_DEBUG2 ("process_s_frame ctrl_word 0x%04x fcrb_remote_busy:%d", ctrl_word, p_fcrb->remote_busy);
+    L2CAP_TRACE_DEBUG ("process_s_frame ctrl_word 0x%04x fcrb_remote_busy:%d", ctrl_word, p_fcrb->remote_busy);
 
 #if (L2CAP_ERTM_STATS == TRUE)
     p_ccb->fcrb.s_frames_rcvd[s_frame_type]++;
@@ -1086,7 +1086,7 @@ static void process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word)
     }
     else
     {
-        L2CAP_TRACE_DEBUG0 ("process_s_frame hit_max_retries");
+        L2CAP_TRACE_DEBUG ("process_s_frame hit_max_retries");
     }
 
     GKI_freebuf (p_buf);
@@ -1128,7 +1128,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
     /* If we have flow controlled the peer, ignore any bad I-frames from him */
     if ( (tx_seq != p_fcrb->next_seq_expected) && (p_fcrb->local_busy) )
     {
-        L2CAP_TRACE_WARNING1 ("Dropping bad I-Frame since we flowed off, tx_seq:%u", tx_seq);
+        L2CAP_TRACE_WARNING ("Dropping bad I-Frame since we flowed off, tx_seq:%u", tx_seq);
         l2c_fcr_send_S_frame (p_ccb, L2CAP_FCR_SUP_RNR, 0);
         GKI_freebuf(p_buf);
         return;
@@ -1138,7 +1138,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
     /* received buffer now before we update any sequence numbers    */
     if (GKI_poolfreecount (p_ccb->ertm_info.user_rx_pool_id) == 0)
     {
-        L2CAP_TRACE_WARNING4 ("L2CAP CID: 0x%04x  Dropping I-Frame seq: %u  User RX Pool: %u  (Size: %u)  has no free buffers!!",
+        L2CAP_TRACE_WARNING ("L2CAP CID: 0x%04x  Dropping I-Frame seq: %u  User RX Pool: %u  (Size: %u)  has no free buffers!!",
                               p_ccb->local_cid, tx_seq, p_ccb->ertm_info.user_rx_pool_id,
                               GKI_poolcount (p_ccb->ertm_info.user_rx_pool_id));
         GKI_freebuf(p_buf);
@@ -1154,12 +1154,12 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
         if (num_lost >= p_ccb->our_cfg.fcr.tx_win_sz)
         {
             /* Duplicate - simply drop it */
-            L2CAP_TRACE_WARNING2 ("process_i_frame() Dropping Duplicate Frame tx_seq:%u  ExpectedTxSeq %u", tx_seq, p_fcrb->next_seq_expected);
+            L2CAP_TRACE_WARNING ("process_i_frame() Dropping Duplicate Frame tx_seq:%u  ExpectedTxSeq %u", tx_seq, p_fcrb->next_seq_expected);
             GKI_freebuf(p_buf);
         }
         else
         {
-            L2CAP_TRACE_WARNING6 ("process_i_frame() CID: 0x%04x  Lost: %u  tx_seq:%u  ExpTxSeq %u  Rej: %u  SRej: %u",
+            L2CAP_TRACE_WARNING ("process_i_frame() CID: 0x%04x  Lost: %u  tx_seq:%u  ExpTxSeq %u  Rej: %u  SRej: %u",
                                  p_ccb->local_cid, num_lost, tx_seq, p_fcrb->next_seq_expected, p_fcrb->rej_sent, p_fcrb->srej_sent);
 
             if (p_fcrb->srej_sent)
@@ -1188,7 +1188,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                         p_buf->offset += L2CAP_FCR_OVERHEAD;
                         p_buf->len -= L2CAP_FCR_OVERHEAD;
                     }
-                    L2CAP_TRACE_DEBUG4 ("process_i_frame() Lost: %u  tx_seq:%u  ExpTxSeq %u  Rej: %u  SRej1",
+                    L2CAP_TRACE_DEBUG ("process_i_frame() Lost: %u  tx_seq:%u  ExpTxSeq %u  Rej: %u  SRej1",
                                          num_lost, tx_seq, p_fcrb->next_seq_expected, p_fcrb->rej_sent);
 
                     p_buf->layer_specific = tx_seq;
@@ -1196,7 +1196,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                 }
                 else
                 {
-                    L2CAP_TRACE_WARNING4 ("process_i_frame() CID: 0x%04x  frame dropped in Srej Sent next_srej:%u  hold_q.count:%u  win_sz:%u",
+                    L2CAP_TRACE_WARNING ("process_i_frame() CID: 0x%04x  frame dropped in Srej Sent next_srej:%u  hold_q.count:%u  win_sz:%u",
                                          p_ccb->local_cid, next_srej, p_fcrb->srej_rcv_hold_q.count, p_ccb->our_cfg.fcr.tx_win_sz);
 
                     p_fcrb->rej_after_srej = TRUE;
@@ -1205,7 +1205,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
             }
             else if (p_fcrb->rej_sent)
             {
-                L2CAP_TRACE_WARNING5 ("process_i_frame() CID: 0x%04x  Lost: %u  tx_seq:%u  ExpTxSeq %u  Rej: 1  SRej: %u",
+                L2CAP_TRACE_WARNING ("process_i_frame() CID: 0x%04x  Lost: %u  tx_seq:%u  ExpTxSeq %u  Rej: 1  SRej: %u",
                                      p_ccb->local_cid, num_lost, tx_seq, p_fcrb->next_seq_expected, p_fcrb->srej_sent);
 
                 /* If REJ sent, just drop the frame */
@@ -1213,7 +1213,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
             }
             else
             {
-                L2CAP_TRACE_DEBUG4 ("process_i_frame() CID: 0x%04x  tx_seq:%u  ExpTxSeq %u  Rej: %u",
+                L2CAP_TRACE_DEBUG ("process_i_frame() CID: 0x%04x  tx_seq:%u  ExpTxSeq %u  Rej: %u",
                                      p_ccb->local_cid, tx_seq, p_fcrb->next_seq_expected, p_fcrb->rej_sent);
 
                 /* If only one lost, we will send SREJ, otherwise we will send REJ */
@@ -1227,7 +1227,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                 {
                     if (p_fcrb->srej_rcv_hold_q.count != 0)
                     {
-                        L2CAP_TRACE_ERROR3 ("process_i_frame() CID: 0x%04x  sending SREJ tx_seq:%d hold_q.count:%u",
+                        L2CAP_TRACE_ERROR ("process_i_frame() CID: 0x%04x  sending SREJ tx_seq:%d hold_q.count:%u",
                                              p_ccb->local_cid, tx_seq, p_fcrb->srej_rcv_hold_q.count);
                     }
                     p_buf->layer_specific = tx_seq;
@@ -1251,7 +1251,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
     /* If any SAR problem in eRTM mode, spec says disconnect. */
     if (!do_sar_reassembly (p_ccb, p_buf, ctrl_word))
     {
-        L2CAP_TRACE_WARNING1 ("process_i_frame() CID: 0x%04x  reassembly failed", p_ccb->local_cid);
+        L2CAP_TRACE_WARNING ("process_i_frame() CID: 0x%04x  reassembly failed", p_ccb->local_cid);
         l2cu_disconnect_chnl (p_ccb);
         return;
     }
@@ -1314,7 +1314,7 @@ static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 
         if (l2c_fcr_rx_get_fcs(p_buf) != fcs)
         {
-            L2CAP_TRACE_WARNING1 ("Rx L2CAP PDU: CID: 0x%04x  BAD FCS", p_ccb->local_cid);
+            L2CAP_TRACE_WARNING ("Rx L2CAP PDU: CID: 0x%04x  BAD FCS", p_ccb->local_cid);
             GKI_freebuf(p_buf);
             return;
         }
@@ -1331,13 +1331,13 @@ static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     /* Make sure it is an I-frame */
     if (ctrl_word & L2CAP_FCR_S_FRAME_BIT)
     {
-        L2CAP_TRACE_WARNING2 ("Rx L2CAP PDU: CID: 0x%04x  BAD S-frame in streaming mode  ctrl_word: 0x%04x", p_ccb->local_cid, ctrl_word);
+        L2CAP_TRACE_WARNING ("Rx L2CAP PDU: CID: 0x%04x  BAD S-frame in streaming mode  ctrl_word: 0x%04x", p_ccb->local_cid, ctrl_word);
         GKI_freebuf (p_buf);
         return;
     }
 
 #if BT_TRACE_VERBOSE == TRUE
-    L2CAP_TRACE_EVENT6 ("L2CAP eRTM Rx I-frame: cid: 0x%04x  Len: %u  SAR: %-12s  TxSeq: %u  ReqSeq: %u  F: %u",
+    L2CAP_TRACE_EVENT ("L2CAP eRTM Rx I-frame: cid: 0x%04x  Len: %u  SAR: %-12s  TxSeq: %u  ReqSeq: %u  F: %u",
                         p_ccb->local_cid, p_buf->len,
                         SAR_types[(ctrl_word & L2CAP_FCR_SAR_BITS) >> L2CAP_FCR_SAR_BITS_SHIFT],
                         (ctrl_word & L2CAP_FCR_TX_SEQ_BITS) >> L2CAP_FCR_TX_SEQ_BITS_SHIFT,
@@ -1351,7 +1351,7 @@ static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     /* Check if tx-sequence is the expected one */
     if (tx_seq != p_ccb->fcrb.next_seq_expected)
     {
-        L2CAP_TRACE_WARNING4 ("Rx L2CAP PDU: CID: 0x%04x  Lost frames Exp: %u  Got: %u  p_rx_sdu: 0x%08x",
+        L2CAP_TRACE_WARNING ("Rx L2CAP PDU: CID: 0x%04x  Lost frames Exp: %u  Got: %u  p_rx_sdu: 0x%08x",
                                 p_ccb->local_cid, p_ccb->fcrb.next_seq_expected, tx_seq, p_ccb->fcrb.p_rx_sdu);
 
         /* Lost one or more packets, so flush the SAR queue */
@@ -1397,7 +1397,7 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
     {
         if (p_fcrb->p_rx_sdu != NULL)
         {
-            L2CAP_TRACE_WARNING2 ("SAR - got unexpected unsegmented or start SDU  Expected len: %u  Got so far: %u",
+            L2CAP_TRACE_WARNING ("SAR - got unexpected unsegmented or start SDU  Expected len: %u  Got so far: %u",
                                   p_fcrb->rx_sdu_len, p_fcrb->p_rx_sdu->len);
 
             packet_ok = FALSE;
@@ -1405,7 +1405,7 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
         /* Check the length of the packet */
         if ( (sar_type == L2CAP_FCR_START_SDU) && (p_buf->len < L2CAP_SDU_LEN_OVERHEAD) )
         {
-            L2CAP_TRACE_WARNING1 ("SAR start packet too short: %u", p_buf->len);
+            L2CAP_TRACE_WARNING ("SAR start packet too short: %u", p_buf->len);
             packet_ok = FALSE;
         }
     }
@@ -1413,7 +1413,7 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
     {
         if (p_fcrb->p_rx_sdu == NULL)
         {
-            L2CAP_TRACE_WARNING0 ("SAR - got unexpected cont or end SDU");
+            L2CAP_TRACE_WARNING ("SAR - got unexpected cont or end SDU");
             packet_ok = FALSE;
         }
     }
@@ -1432,12 +1432,12 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
 
             if (p_fcrb->rx_sdu_len > p_ccb->max_rx_mtu)
             {
-                L2CAP_TRACE_WARNING2 ("SAR - SDU len: %u  larger than MTU: %u", p_fcrb->rx_sdu_len, p_fcrb->rx_sdu_len);
+                L2CAP_TRACE_WARNING ("SAR - SDU len: %u  larger than MTU: %u", p_fcrb->rx_sdu_len, p_fcrb->rx_sdu_len);
                 packet_ok = FALSE;
             }
             else if ((p_fcrb->p_rx_sdu = (BT_HDR *)GKI_getpoolbuf (p_ccb->ertm_info.user_rx_pool_id)) == NULL)
             {
-                L2CAP_TRACE_ERROR1 ("SAR - no buffer for SDU start user_rx_pool_id:%d", p_ccb->ertm_info.user_rx_pool_id);
+                L2CAP_TRACE_ERROR ("SAR - no buffer for SDU start user_rx_pool_id:%d", p_ccb->ertm_info.user_rx_pool_id);
                 packet_ok = FALSE;
             }
             else
@@ -1451,13 +1451,13 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
         {
             if ((p_fcrb->p_rx_sdu->len + p_buf->len) > p_fcrb->rx_sdu_len)
             {
-                L2CAP_TRACE_ERROR4 ("SAR - SDU len exceeded  Type: %u   Lengths: %u %u %u",
+                L2CAP_TRACE_ERROR ("SAR - SDU len exceeded  Type: %u   Lengths: %u %u %u",
                                     sar_type, p_fcrb->p_rx_sdu->len, p_buf->len, p_fcrb->rx_sdu_len);
                 packet_ok = FALSE;
             }
             else if ( (sar_type == L2CAP_FCR_END_SDU) && ((p_fcrb->p_rx_sdu->len + p_buf->len) != p_fcrb->rx_sdu_len) )
             {
-                L2CAP_TRACE_WARNING3 ("SAR - SDU end rcvd but SDU incomplete: %u %u %u",
+                L2CAP_TRACE_WARNING ("SAR - SDU end rcvd but SDU incomplete: %u %u %u",
                                       p_fcrb->p_rx_sdu->len, p_buf->len, p_fcrb->rx_sdu_len);
                 packet_ok = FALSE;
             }
@@ -1521,7 +1521,7 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
      &&  (p_ccb->peer_cfg.fcr.max_transmit != 0)
      &&  (p_ccb->fcrb.num_tries >= p_ccb->peer_cfg.fcr.max_transmit) )
     {
-        L2CAP_TRACE_EVENT5 ("Max Tries Exceeded:  (last_acq: %d  CID: 0x%04x  num_tries: %u (max: %u) ack_q_count: %u",
+        L2CAP_TRACE_EVENT ("Max Tries Exceeded:  (last_acq: %d  CID: 0x%04x  num_tries: %u (max: %u) ack_q_count: %u",
                 p_ccb->fcrb.last_rx_ack, p_ccb->local_cid, p_ccb->fcrb.num_tries, p_ccb->peer_cfg.fcr.max_transmit,
                 p_ccb->fcrb.waiting_for_ack_q.count);
 
@@ -1543,7 +1543,7 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
 
             buf_seq = (ctrl_word & L2CAP_FCR_TX_SEQ_BITS) >> L2CAP_FCR_TX_SEQ_BITS_SHIFT;
 
-            L2CAP_TRACE_DEBUG2 ("retransmit_i_frames()   cur seq: %u  looking for: %u", buf_seq, tx_seq);
+            L2CAP_TRACE_DEBUG ("retransmit_i_frames()   cur seq: %u  looking for: %u", buf_seq, tx_seq);
 
             if (tx_seq == buf_seq)
                 break;
@@ -1551,7 +1551,7 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
 
         if (!p_buf)
         {
-            L2CAP_TRACE_ERROR2 ("retransmit_i_frames() UNKNOWN seq: %u  q_count: %u", tx_seq, p_ccb->fcrb.waiting_for_ack_q.count);
+            L2CAP_TRACE_ERROR ("retransmit_i_frames() UNKNOWN seq: %u  q_count: %u", tx_seq, p_ccb->fcrb.waiting_for_ack_q.count);
             return (TRUE);
         }
     }
@@ -1699,7 +1699,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
         }
         else /* Should never happen if the application has configured buffers correctly */
         {
-            L2CAP_TRACE_ERROR1 ("L2CAP - cannot get buffer, for segmentation, pool: %u", p_ccb->ertm_info.fcr_tx_pool_id);
+            L2CAP_TRACE_ERROR ("L2CAP - cannot get buffer, for segmentation, pool: %u", p_ccb->ertm_info.fcr_tx_pool_id);
             return (NULL);
         }
     }
@@ -1760,7 +1760,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
 
         if (!p_wack)
         {
-            L2CAP_TRACE_ERROR3 ("L2CAP - no buffer for xmit cloning, CID: 0x%04x  Pool: %u  Count: %u",
+            L2CAP_TRACE_ERROR ("L2CAP - no buffer for xmit cloning, CID: 0x%04x  Pool: %u  Count: %u",
                                 p_ccb->local_cid, p_ccb->ertm_info.fcr_tx_pool_id,  GKI_poolfreecount(p_ccb->ertm_info.fcr_tx_pool_id));
 
             /* We will not save the FCS in case we reconfigure and change options */
@@ -1840,7 +1840,7 @@ UINT8 l2c_fcr_chk_chan_modes (tL2C_CCB *p_ccb)
     /* At least one type needs to be set (Basic, ERTM, STM) to continue */
     if (!p_ccb->ertm_info.allowed_modes)
     {
-        L2CAP_TRACE_WARNING0 ("L2CAP - Peer does not support our desired channel types");
+        L2CAP_TRACE_WARNING ("L2CAP - Peer does not support our desired channel types");
     }
 
     return (p_ccb->ertm_info.allowed_modes);
@@ -1862,7 +1862,7 @@ BOOLEAN l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 
     if (p_fcr->mode != p_ccb->ertm_info.preferred_mode)
     {
-        L2CAP_TRACE_WARNING2 ("l2c_fcr_adj_our_req_options - preferred_mode (%d), does not match mode (%d)",
+        L2CAP_TRACE_WARNING ("l2c_fcr_adj_our_req_options - preferred_mode (%d), does not match mode (%d)",
                             p_ccb->ertm_info.preferred_mode, p_fcr->mode);
 
         /* The preferred mode is passed in through tL2CAP_ERTM_INFO, so override this one */
@@ -1874,7 +1874,7 @@ BOOLEAN l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
     {
         if (p_cfg->fcr_present && p_fcr->mode != L2CAP_FCR_BASIC_MODE)
         {
-            L2CAP_TRACE_WARNING1 ("l2c_fcr_adj_our_req_options (mode %d): ERROR: No FCR options set using BASIC mode", p_fcr->mode);
+            L2CAP_TRACE_WARNING ("l2c_fcr_adj_our_req_options (mode %d): ERROR: No FCR options set using BASIC mode", p_fcr->mode);
         }
         p_fcr->mode = L2CAP_FCR_BASIC_MODE;
     }
@@ -1909,14 +1909,14 @@ BOOLEAN l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
             /* If peer does not support STREAMING, try ERTM */
             if (p_fcr->mode == L2CAP_FCR_STREAM_MODE && !(p_ccb->ertm_info.allowed_modes & L2CAP_FCR_CHAN_OPT_STREAM))
             {
-                L2CAP_TRACE_DEBUG0 ("L2C CFG: mode is STREAM, but peer does not support; Try ERTM");
+                L2CAP_TRACE_DEBUG ("L2C CFG: mode is STREAM, but peer does not support; Try ERTM");
                 p_fcr->mode = L2CAP_FCR_ERTM_MODE;
             }
 
             /* If peer does not support ERTM, try BASIC (will support this if made it here in the code) */
             if (p_fcr->mode == L2CAP_FCR_ERTM_MODE && !(p_ccb->ertm_info.allowed_modes & L2CAP_FCR_CHAN_OPT_ERTM))
             {
-                L2CAP_TRACE_DEBUG0 ("L2C CFG: mode is ERTM, but peer does not support; Try BASIC");
+                L2CAP_TRACE_DEBUG ("L2C CFG: mode is ERTM, but peer does not support; Try BASIC");
                 p_fcr->mode = L2CAP_FCR_BASIC_MODE;
             }
         }
@@ -1926,7 +1926,7 @@ BOOLEAN l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
             /* MTU must be smaller than buffer size */
             if ( (p_cfg->mtu_present) && (p_cfg->mtu > p_ccb->max_rx_mtu) )
             {
-                L2CAP_TRACE_WARNING2 ("L2CAP - MTU: %u  larger than buf size: %u", p_cfg->mtu, p_ccb->max_rx_mtu);
+                L2CAP_TRACE_WARNING ("L2CAP - MTU: %u  larger than buf size: %u", p_cfg->mtu, p_ccb->max_rx_mtu);
                 return (FALSE);
             }
 
@@ -1938,7 +1938,7 @@ BOOLEAN l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
             /* MPS must be less than MTU */
             else if (p_fcr->mps > p_ccb->max_rx_mtu)
             {
-                L2CAP_TRACE_WARNING2 ("L2CAP - MPS  %u  invalid  MTU: %u", p_fcr->mps, p_ccb->max_rx_mtu);
+                L2CAP_TRACE_WARNING ("L2CAP - MPS  %u  invalid  MTU: %u", p_fcr->mps, p_ccb->max_rx_mtu);
                 return (FALSE);
             }
 
@@ -1994,7 +1994,7 @@ void l2c_fcr_adj_monitor_retran_timeout (tL2C_CCB *p_ccb)
             p_ccb->our_cfg.fcr.rtrans_tout = 0;
         }
 
-        L2CAP_TRACE_DEBUG2 ("l2c_fcr_adj_monitor_retran_timeout: mon_tout:%d, rtrans_tout:%d",
+        L2CAP_TRACE_DEBUG ("l2c_fcr_adj_monitor_retran_timeout: mon_tout:%d, rtrans_tout:%d",
                              p_ccb->our_cfg.fcr.mon_tout, p_ccb->our_cfg.fcr.rtrans_tout);
     }
 }
@@ -2024,7 +2024,7 @@ void l2c_fcr_adj_our_rsp_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
         /* Note: peer is not guaranteed to obey our adjustment */
         if (p_ccb->peer_cfg.fcr.tx_win_sz > p_ccb->our_cfg.fcr.tx_win_sz)
         {
-            L2CAP_TRACE_DEBUG3 ("%s: adjusting requested tx_win_sz from %i to %i", __FUNCTION__, p_ccb->peer_cfg.fcr.tx_win_sz, p_ccb->our_cfg.fcr.tx_win_sz);
+            L2CAP_TRACE_DEBUG ("%s: adjusting requested tx_win_sz from %i to %i", __FUNCTION__, p_ccb->peer_cfg.fcr.tx_win_sz, p_ccb->our_cfg.fcr.tx_win_sz);
             p_ccb->peer_cfg.fcr.tx_win_sz = p_ccb->our_cfg.fcr.tx_win_sz;
         }
 // btla-specific --
@@ -2070,7 +2070,7 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
             if ((--p_ccb->fcr_cfg_tries) == 0)
             {
                 p_cfg->result = L2CAP_CFG_FAILED_NO_REASON;
-                L2CAP_TRACE_WARNING0 ("l2c_fcr_renegotiate_chan (Max retries exceeded)");
+                L2CAP_TRACE_WARNING ("l2c_fcr_renegotiate_chan (Max retries exceeded)");
             }
 
             can_renegotiate = FALSE;
@@ -2083,7 +2083,7 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
                 /* Peer wants ERTM and we support it */
                 if ( (peer_mode == L2CAP_FCR_ERTM_MODE) && (p_ccb->ertm_info.allowed_modes & L2CAP_FCR_CHAN_OPT_ERTM) )
                 {
-                    L2CAP_TRACE_DEBUG0 ("l2c_fcr_renegotiate_chan(Trying ERTM)");
+                    L2CAP_TRACE_DEBUG ("l2c_fcr_renegotiate_chan(Trying ERTM)");
                     p_ccb->our_cfg.fcr.mode = L2CAP_FCR_ERTM_MODE;
                     can_renegotiate = TRUE;
                 }
@@ -2094,7 +2094,7 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
                     /* We can try basic for any other peer mode if we support it */
                     if (p_ccb->ertm_info.allowed_modes & L2CAP_FCR_CHAN_OPT_BASIC)
                     {
-                        L2CAP_TRACE_DEBUG0 ("l2c_fcr_renegotiate_chan(Trying Basic)");
+                        L2CAP_TRACE_DEBUG ("l2c_fcr_renegotiate_chan(Trying Basic)");
                         can_renegotiate = TRUE;
                         p_ccb->our_cfg.fcr.mode = L2CAP_FCR_BASIC_MODE;
                     }
@@ -2118,7 +2118,7 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
                     /* Basic Mode uses ACL Data Pool, make sure the MTU fits */
                     if ( (p_cfg->mtu_present) && (p_cfg->mtu > L2CAP_MTU_SIZE) )
                     {
-                        L2CAP_TRACE_WARNING1 ("L2CAP - adjust MTU: %u too large", p_cfg->mtu);
+                        L2CAP_TRACE_WARNING ("L2CAP - adjust MTU: %u too large", p_cfg->mtu);
                         p_cfg->mtu = L2CAP_MTU_SIZE;
                     }
                 }
@@ -2134,7 +2134,7 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
     /* Disconnect if the channels do not match */
     if (p_ccb->our_cfg.fcr.mode != peer_mode)
     {
-        L2CAP_TRACE_WARNING2 ("L2C CFG:  Channels incompatible (local %d, peer %d)",
+        L2CAP_TRACE_WARNING ("L2C CFG:  Channels incompatible (local %d, peer %d)",
                               p_ccb->our_cfg.fcr.mode, peer_mode);
         l2cu_disconnect_chnl (p_ccb);
     }
@@ -2161,7 +2161,7 @@ UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 
     p_ccb->p_lcb->w4_info_rsp = FALSE;      /* Handles T61x SonyEricsson Bug in Info Request */
 
-    L2CAP_TRACE_EVENT5 ("l2c_fcr_process_peer_cfg_req() CFG fcr_present:%d fcr.mode:%d CCB FCR mode:%d preferred: %u allowed:%u",
+    L2CAP_TRACE_EVENT ("l2c_fcr_process_peer_cfg_req() CFG fcr_present:%d fcr.mode:%d CCB FCR mode:%d preferred: %u allowed:%u",
                         p_cfg->fcr_present, p_cfg->fcr.mode, p_ccb->our_cfg.fcr.mode, p_ccb->ertm_info.preferred_mode,
                         p_ccb->ertm_info.allowed_modes);
 
@@ -2240,7 +2240,7 @@ UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
             /* Ensure the MPS is not bigger than our retransmission buffer */
             if (p_cfg->fcr.mps > max_retrans_size)
             {
-                L2CAP_TRACE_DEBUG2("CFG: Overriding MPS to %d (orig %d)", max_retrans_size, p_cfg->fcr.mps);
+                L2CAP_TRACE_DEBUG("CFG: Overriding MPS to %d (orig %d)", max_retrans_size, p_cfg->fcr.mps);
 
                 p_cfg->fcr.mps = max_retrans_size;
                 p_ccb->out_cfg_fcr_present = TRUE;
@@ -2314,7 +2314,7 @@ static BOOLEAN l2c_corrupt_the_fcr_packet (tL2C_CCB *p_ccb, BT_HDR *p_buf,
 
     p_cfg = &p_ccb->fcrb.test_cb.cfg;
 #if 0
-    L2CAP_TRACE_DEBUG4 ("testcfg: type: %d, freq: %d (NRM-0, RDM-1), is_rx: %d, count: %d",
+    L2CAP_TRACE_DEBUG ("testcfg: type: %d, freq: %d (NRM-0, RDM-1), is_rx: %d, count: %d",
         p_cfg->type, p_cfg->freq, p_cfg->is_rx, p_cfg->count);
 #endif
     /* If not time to corrupt get out */
@@ -2382,14 +2382,14 @@ static BOOLEAN l2c_corrupt_the_fcr_packet (tL2C_CCB *p_ccb, BT_HDR *p_buf,
     /* Lastly, just drop packet if FCS is not being used or if Tx */
     if (!is_rx || p_ccb->bypass_fcs == L2CAP_BYPASS_FCS)
     {
-        L2CAP_TRACE_ERROR6 ("-=-=-=-=-=-=-=-   Dropping %s packet (0x%04x) tc: %u  Buf Len: %u  xx: %u  count: %d",
+        L2CAP_TRACE_ERROR ("-=-=-=-=-=-=-=-   Dropping %s packet (0x%04x) tc: %u  Buf Len: %u  xx: %u  count: %d",
                         buf, (UINT32)p_buf, tc, p_buf->len, xx, p_cfg->count);
         GKI_freebuf(p_buf);
         return TRUE;
     }
     else
     {
-        L2CAP_TRACE_ERROR6 ("-=-=-=-=-=-=-=-   Corrupting %s packet (0x%04x) tc: %u  Buf Len: %u  xx: %u  count: %d",
+        L2CAP_TRACE_ERROR ("-=-=-=-=-=-=-=-   Corrupting %s packet (0x%04x) tc: %u  Buf Len: %u  xx: %u  count: %d",
                         buf, (UINT32)p_buf, tc, p_buf->len, xx, p_cfg->count);
     }
 
@@ -2451,7 +2451,7 @@ UINT16 L2CA_SetupErtmTest (UINT16 cid, UINT8 type, BOOLEAN is_rx, UINT8 freq, UI
     {
         if (type == L2CAP_FCR_TTYPE_GET_CID)
         {
-            L2CAP_TRACE_API1 ("L2CA_SetupErtmTest (GET_CID): cid = 0x%04x", cid);
+            L2CAP_TRACE_API ("L2CA_SetupErtmTest (GET_CID): cid = 0x%04x", cid);
         }
         return (cid);
     }
@@ -2463,7 +2463,7 @@ UINT16 L2CA_SetupErtmTest (UINT16 cid, UINT8 type, BOOLEAN is_rx, UINT8 freq, UI
     {
         if (p_test_cb->cfg.in_use)
         {
-            L2CAP_TRACE_ERROR1 ("L2CA_SetupErtmTest (OFF): cid 0x%04x", cid);
+            L2CAP_TRACE_ERROR ("L2CA_SetupErtmTest (OFF): cid 0x%04x", cid);
         }
         p_test_cb->cfg.in_use = FALSE;
         p_test_cb->cfg.count = 0;
@@ -2475,11 +2475,11 @@ UINT16 L2CA_SetupErtmTest (UINT16 cid, UINT8 type, BOOLEAN is_rx, UINT8 freq, UI
         /* count must be positive unless random is used */
         if (!count && freq != L2CAP_FCR_FREQ_RANDOM)
         {
-            L2CAP_TRACE_ERROR1 ("L2CA_SetupErtmTest (FAIL): Count = 0, freq = %d", freq);
+            L2CAP_TRACE_ERROR ("L2CA_SetupErtmTest (FAIL): Count = 0, freq = %d", freq);
             return (cid);
         }
 
-        L2CAP_TRACE_ERROR5 ("L2CA_SetupErtmTest (START): cid 0x%04x, type %d, is_rx %d, freq %d, count %d",
+        L2CAP_TRACE_ERROR ("L2CA_SetupErtmTest (START): cid 0x%04x, type %d, is_rx %d, freq %d, count %d",
                             cid, type, is_rx, freq, count);
 
         p_test_cb->cfg.in_use = TRUE;
@@ -2490,7 +2490,7 @@ UINT16 L2CA_SetupErtmTest (UINT16 cid, UINT8 type, BOOLEAN is_rx, UINT8 freq, UI
     }
     else /* Test already in progress so ignore */
     {
-        L2CAP_TRACE_ERROR5 ("L2CA_SetupErtmTest (ignoring): cid 0x%04x, type %d, is_rx %d, freq %d, count %d",
+        L2CAP_TRACE_ERROR ("L2CA_SetupErtmTest (ignoring): cid 0x%04x, type %d, is_rx %d, freq %d, count %d",
                             cid, type, is_rx, freq, count);
     }
 
@@ -2527,7 +2527,7 @@ void L2CA_SendPolledSFrame (UINT16 cid, UINT16 sup_type)
     }
     else
     {
-        L2CAP_TRACE_ERROR2 ("L2CA_SendPolledSFrame(ERROR): sup_type %u, p_ccb 0x%07x",
+        L2CAP_TRACE_ERROR ("L2CA_SendPolledSFrame(ERROR): sup_type %u, p_ccb 0x%07x",
                             sup_type, (UINT32)p_ccb);
     }
 }
@@ -2548,7 +2548,7 @@ static BOOLEAN l2c_bypass_sframe_packet (tL2C_CCB *p_ccb)
     {
         if (p_ccb->fcrb.test_cb.cfm.skip_sframe_count > 0)
         {
-            L2CAP_TRACE_ERROR1 ("l2c_bypass_sframe_packet (count %d)",
+            L2CAP_TRACE_ERROR ("l2c_bypass_sframe_packet (count %d)",
                                 p_ccb->fcrb.test_cb.cfm.skip_sframe_count);
 
             if (--p_ccb->fcrb.test_cb.cfm.skip_sframe_count == 0)
@@ -2586,7 +2586,7 @@ void L2CA_BypassSFrame (UINT16 cid, UINT8 count)
 
     if (!p_ccb)
     {
-        L2CAP_TRACE_WARNING1 ("L2CA_BypassSFrame(ERROR): no p_ccb (0x%07x)", (UINT32)p_ccb);
+        L2CAP_TRACE_WARNING ("L2CA_BypassSFrame(ERROR): no p_ccb (0x%07x)", (UINT32)p_ccb);
         return;
     }
 
@@ -2600,7 +2600,7 @@ void L2CA_BypassSFrame (UINT16 cid, UINT8 count)
     }
     else
     {
-        L2CAP_TRACE_WARNING0 ("L2CA_BypassSFrame(ERROR): already in use (ignoring...)");
+        L2CAP_TRACE_WARNING ("L2CA_BypassSFrame(ERROR): already in use (ignoring...)");
     }
 }
 

@@ -300,7 +300,7 @@ UINT32 SDP_CreateRecord (void)
         p_db->record[p_db->num_records].record_handle = handle;
 
         p_db->num_records++;
-        SDP_TRACE_DEBUG1("SDP_CreateRecord ok, num_records:%d", p_db->num_records);
+        SDP_TRACE_DEBUG("SDP_CreateRecord ok, num_records:%d", p_db->num_records);
         /* Add the first attribute (the handle) automatically */
         UINT32_TO_BE_FIELD (buf, handle);
         SDP_AddAttribute (handle, ATTR_ID_SERVICE_RECORD_HDL, UINT_DESC_TYPE,
@@ -308,7 +308,7 @@ UINT32 SDP_CreateRecord (void)
 
         return (p_db->record[p_db->num_records - 1].record_handle);
     }
-    else SDP_TRACE_ERROR1("SDP_CreateRecord fail, exceed maximum records:%d", SDP_MAX_RECORDS);
+    else SDP_TRACE_ERROR("SDP_CreateRecord fail, exceed maximum records:%d", SDP_MAX_RECORDS);
 #endif
         return (0);
 }
@@ -363,7 +363,7 @@ BOOLEAN SDP_DeleteRecord (UINT32 handle)
 
                 sdp_cb.server_db.num_records--;
 
-                SDP_TRACE_DEBUG1("SDP_DeleteRecord ok, num_records:%d", sdp_cb.server_db.num_records);
+                SDP_TRACE_DEBUG("SDP_DeleteRecord ok, num_records:%d", sdp_cb.server_db.num_records);
                 /* if we're deleting the primary DI record, clear the */
                 /* value in the control block */
                 if( sdp_cb.server_db.di_primary_handle == handle )
@@ -420,17 +420,17 @@ BOOLEAN SDP_AddAttribute (UINT32 handle, UINT16 attr_id, UINT8 attr_type,
             {
                 sprintf((char *)&num_array[i*2],"%02X",(UINT8)(p_val[i]));
             }
-            SDP_TRACE_DEBUG6("SDP_AddAttribute: handle:%X, id:%04X, type:%d, len:%d, p_val:%p, *p_val:%s",
+            SDP_TRACE_DEBUG("SDP_AddAttribute: handle:%X, id:%04X, type:%d, len:%d, p_val:%p, *p_val:%s",
                             handle,attr_id,attr_type,attr_len,p_val,num_array);
         }
         else if (attr_type == BOOLEAN_DESC_TYPE)
         {
-            SDP_TRACE_DEBUG6("SDP_AddAttribute: handle:%X, id:%04X, type:%d, len:%d, p_val:%p, *p_val:%d",
+            SDP_TRACE_DEBUG("SDP_AddAttribute: handle:%X, id:%04X, type:%d, len:%d, p_val:%p, *p_val:%d",
                              handle,attr_id,attr_type,attr_len,p_val,*p_val);
         }
         else
         {
-            SDP_TRACE_DEBUG6("SDP_AddAttribute: handle:%X, id:%04X, type:%d, len:%d, p_val:%p, *p_val:%s",
+            SDP_TRACE_DEBUG("SDP_AddAttribute: handle:%X, id:%04X, type:%d, len:%d, p_val:%p, *p_val:%s",
                 handle,attr_id,attr_type,attr_len,p_val,p_val);
         }
     }
@@ -478,7 +478,7 @@ BOOLEAN SDP_AddAttribute (UINT32 handle, UINT16 attr_id, UINT8 attr_type,
                 /* do truncate only for text string type descriptor */
                 if (attr_type == TEXT_STR_DESC_TYPE)
                 {
-                    SDP_TRACE_WARNING2("SDP_AddAttribute: attr_len:%d too long. truncate to (%d)",
+                    SDP_TRACE_WARNING("SDP_AddAttribute: attr_len:%d too long. truncate to (%d)",
                         attr_len, SDP_MAX_PAD_LEN - p_rec->free_pad_ptr );
 
                     attr_len = SDP_MAX_PAD_LEN - p_rec->free_pad_ptr;
@@ -499,7 +499,7 @@ BOOLEAN SDP_AddAttribute (UINT32 handle, UINT16 attr_id, UINT8 attr_type,
             else if ((attr_len == 0 && p_attr->len != 0) || /* if truncate to 0 length, simply don't add */
                       p_val == 0)
             {
-                SDP_TRACE_ERROR2("SDP_AddAttribute fail, length exceed maximum: ID %d: attr_len:%d ",
+                SDP_TRACE_ERROR("SDP_AddAttribute fail, length exceed maximum: ID %d: attr_len:%d ",
                     attr_id, attr_len );
                 p_attr->id   = p_attr->type = p_attr->len  = 0;
                 return (FALSE);
@@ -545,7 +545,7 @@ BOOLEAN SDP_AddSequence (UINT32 handle,  UINT16 attr_id, UINT16 num_elem,
 
     if ((p_buff = (UINT8 *) GKI_getbuf(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2)) == NULL)
     {
-        SDP_TRACE_ERROR0("SDP_AddSequence cannot get a buffer!");
+        SDP_TRACE_ERROR("SDP_AddSequence cannot get a buffer!");
         return (FALSE);
     }
     p = p_buff;
@@ -586,12 +586,12 @@ BOOLEAN SDP_AddSequence (UINT32 handle,  UINT16 attr_id, UINT16 num_elem,
             if(p_head == p_buff)
             {
                 /* the first element exceed the max length */
-                SDP_TRACE_ERROR0 ("SDP_AddSequence - too long(attribute is not added)!!");
+                SDP_TRACE_ERROR ("SDP_AddSequence - too long(attribute is not added)!!");
                 GKI_freebuf(p_buff);
                 return FALSE;
             }
             else
-                SDP_TRACE_ERROR2 ("SDP_AddSequence - too long, add %d elements of %d", xx, num_elem);
+                SDP_TRACE_ERROR ("SDP_AddSequence - too long, add %d elements of %d", xx, num_elem);
             break;
         }
     }
@@ -628,7 +628,7 @@ BOOLEAN SDP_AddUuidSequence (UINT32 handle,  UINT16 attr_id, UINT16 num_uuids,
 
     if ((p_buff = (UINT8 *) GKI_getbuf(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2)) == NULL)
     {
-        SDP_TRACE_ERROR0("SDP_AddUuidSequence cannot get a buffer!");
+        SDP_TRACE_ERROR("SDP_AddUuidSequence cannot get a buffer!");
         return (FALSE);
     }
     p = p_buff;
@@ -641,7 +641,7 @@ BOOLEAN SDP_AddUuidSequence (UINT32 handle,  UINT16 attr_id, UINT16 num_uuids,
 
         if((p - p_buff) > max_len)
         {
-            SDP_TRACE_WARNING2 ("SDP_AddUuidSequence - too long, add %d uuids of %d", xx, num_uuids);
+            SDP_TRACE_WARNING ("SDP_AddUuidSequence - too long, add %d uuids of %d", xx, num_uuids);
             break;
         }
     }
@@ -676,7 +676,7 @@ BOOLEAN SDP_AddProtocolList (UINT32 handle, UINT16 num_elem,
 
     if ((p_buff = (UINT8 *) GKI_getbuf(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2)) == NULL)
     {
-        SDP_TRACE_ERROR0("SDP_AddProtocolList cannot get a buffer!");
+        SDP_TRACE_ERROR("SDP_AddProtocolList cannot get a buffer!");
         return (FALSE);
     }
 
@@ -715,7 +715,7 @@ BOOLEAN SDP_AddAdditionProtoLists (UINT32 handle, UINT16 num_elem,
 
     if ((p_buff = (UINT8 *) GKI_getbuf(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2)) == NULL)
     {
-        SDP_TRACE_ERROR0("SDP_AddAdditionProtoLists cannot get a buffer!");
+        SDP_TRACE_ERROR("SDP_AddAdditionProtoLists cannot get a buffer!");
         return (FALSE);
     }
     p = p_buff;
@@ -764,7 +764,7 @@ BOOLEAN SDP_AddProfileDescriptorList (UINT32 handle, UINT16 profile_uuid,
 
     if ((p_buff = (UINT8 *) GKI_getbuf(sizeof(UINT8) * SDP_MAX_ATTR_LEN)) == NULL)
     {
-        SDP_TRACE_ERROR0("SDP_AddProfileDescriptorList cannot get a buffer!");
+        SDP_TRACE_ERROR("SDP_AddProfileDescriptorList cannot get a buffer!");
         return (FALSE);
     }
     p = p_buff+2;
@@ -813,7 +813,7 @@ BOOLEAN SDP_AddLanguageBaseAttrIDList (UINT32 handle, UINT16 lang,
 
     if ((p_buff = (UINT8 *) GKI_getbuf(sizeof(UINT8) * SDP_MAX_ATTR_LEN)) == NULL)
     {
-        SDP_TRACE_ERROR0("SDP_AddLanguageBaseAttrIDList cannot get a buffer!");
+        SDP_TRACE_ERROR("SDP_AddLanguageBaseAttrIDList cannot get a buffer!");
         return (FALSE);
     }
     p = p_buff;
@@ -862,7 +862,7 @@ BOOLEAN SDP_AddServiceClassIdList (UINT32 handle, UINT16 num_services,
 
     if ((p_buff = (UINT8 *) GKI_getbuf(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2)) == NULL)
     {
-        SDP_TRACE_ERROR0("SDP_AddServiceClassIdList cannot get a buffer!");
+        SDP_TRACE_ERROR("SDP_AddServiceClassIdList cannot get a buffer!");
         return (FALSE);
     }
     p = p_buff;
@@ -908,7 +908,7 @@ BOOLEAN SDP_DeleteAttribute (UINT32 handle, UINT16 attr_id)
         {
             tSDP_ATTRIBUTE  *p_attr = &p_rec->attribute[0];
 
-            SDP_TRACE_API2("Deleting attr_id 0x%04x for handle 0x%x", attr_id, handle);
+            SDP_TRACE_API("Deleting attr_id 0x%04x for handle 0x%x", attr_id, handle);
             /* Found it. Now, find the attribute */
             for (xx = 0; xx < p_rec->num_attributes; xx++, p_attr++)
             {

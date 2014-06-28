@@ -156,7 +156,7 @@ void sdpu_release_ccb (tCONN_CB *p_ccb)
     /* Free the response buffer */
     if (p_ccb->rsp_list)
     {
-       SDP_TRACE_DEBUG0("releasing SDP rsp_list");
+       SDP_TRACE_DEBUG("releasing SDP rsp_list");
 
         GKI_freebuf(p_ccb->rsp_list);
         p_ccb->rsp_list = NULL;
@@ -317,13 +317,13 @@ void sdpu_build_n_send_error (tCONN_CB *p_ccb, UINT16 trans_num, UINT16 error_co
     BT_HDR          *p_buf;
 
 
-    SDP_TRACE_WARNING2 ("SDP - sdpu_build_n_send_error  code: 0x%x  CID: 0x%x",
+    SDP_TRACE_WARNING ("SDP - sdpu_build_n_send_error  code: 0x%x  CID: 0x%x",
                         error_code, p_ccb->connection_id);
 
     /* Get a buffer to use to build and send the packet to L2CAP */
     if ((p_buf = (BT_HDR *)GKI_getpoolbuf (SDP_POOL_ID)) == NULL)
     {
-        SDP_TRACE_ERROR0 ("SDP - no buf for err msg");
+        SDP_TRACE_ERROR ("SDP - no buf for err msg");
         return;
     }
     p_buf->offset = L2CAP_MIN_OFFSET;
@@ -1006,7 +1006,7 @@ UINT8 *sdpu_build_partial_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr, UI
 
     if ((p_attr_buff = (UINT8 *) GKI_getbuf(sizeof(UINT8) * SDP_MAX_ATTR_LEN )) == NULL)
     {
-        SDP_TRACE_ERROR0("sdpu_build_partial_attrib_entry cannot get a buffer!");
+        SDP_TRACE_ERROR("sdpu_build_partial_attrib_entry cannot get a buffer!");
         return NULL;
     }
     p_tmp_attr = p_attr_buff;

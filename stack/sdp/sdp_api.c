@@ -79,7 +79,7 @@ BOOLEAN SDP_InitDiscoveryDb (tSDP_DISCOVERY_DB *p_db, UINT32 len, UINT16 num_uui
     if (p_db == NULL || (sizeof (tSDP_DISCOVERY_DB) > len) ||
         num_attr > SDP_MAX_ATTR_FILTERS || num_uuid > SDP_MAX_UUID_FILTERS)
     {
-        SDP_TRACE_ERROR4("SDP_InitDiscoveryDb Illegal param: p_db 0x%x, len %d, num_uuid %d, num_attr %d",
+        SDP_TRACE_ERROR("SDP_InitDiscoveryDb Illegal param: p_db 0x%x, len %d, num_uuid %d, num_attr %d",
                          (UINT32)p_db, len, num_uuid, num_attr);
 
         return(FALSE);
@@ -513,12 +513,13 @@ tSDP_DISC_REC *SDP_FindServiceInDb (tSDP_DISCOVERY_DB *p_db, UINT16 service_uuid
 
                     if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE)
                      && (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == 2) ) {
-                        SDP_TRACE_DEBUG2("SDP_FindServiceInDb - p_sattr value = 0x%x serviceuuid = 0x%x\r\n", p_sattr->attr_value.v.u16, service_uuid);
+                        SDP_TRACE_DEBUG("SDP_FindServiceInDb - p_sattr value = 0x%x serviceuuid = 0x%x\r\n",
+                                        p_sattr->attr_value.v.u16, service_uuid);
                         if(service_uuid == UUID_SERVCLASS_HDP_PROFILE)
                         {
                             if( (p_sattr->attr_value.v.u16==UUID_SERVCLASS_HDP_SOURCE) || ( p_sattr->attr_value.v.u16==UUID_SERVCLASS_HDP_SINK))
                             {
-                                SDP_TRACE_DEBUG0("SDP_FindServiceInDb found HDP source or sink\n" );
+                                SDP_TRACE_DEBUG("SDP_FindServiceInDb found HDP source or sink\n" );
                                 return (p_rec);
                             }
                         }
@@ -686,14 +687,14 @@ tSDP_DISC_REC *SDP_FindServiceUUIDInDb (tSDP_DISCOVERY_DB *p_db, tBT_UUID *p_uui
                     if (SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE)
                     {
 
-                        SDP_TRACE_DEBUG1("uuid len=%d ", p_uuid->len);
+                        SDP_TRACE_DEBUG("uuid len=%d ", p_uuid->len);
                         if (p_uuid->len == 2)
                         {
-                            SDP_TRACE_DEBUG1("uuid=0x%x \n", p_uuid->uu.uuid16);
+                            SDP_TRACE_DEBUG("uuid=0x%x \n", p_uuid->uu.uuid16);
                         }
                         else
                         {
-                            SDP_TRACE_DEBUG0("\n");
+                            SDP_TRACE_DEBUG("\n");
                         }
 
                         if (sdpu_compare_uuid_with_attr (p_uuid, p_sattr))
@@ -747,7 +748,7 @@ static BOOLEAN sdp_fill_proto_elem( tSDP_DISC_ATTR  *p_attr, UINT16 layer_uuid,
         /* Now, see if the entry contains the layer we are interested in */
         for (p_sattr = p_attr->attr_value.v.p_sub_attr; p_sattr; p_sattr = p_sattr->p_next_attr)
         {
-            /* SDP_TRACE_DEBUG3 ("SDP - p_sattr 0x%x, layer_uuid:0x%x, u16:0x%x####",
+            /* SDP_TRACE_DEBUG ("SDP - p_sattr 0x%x, layer_uuid:0x%x, u16:0x%x####",
                 p_sattr, layer_uuid, p_sattr->attr_value.v.u16); */
 
             if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE)
