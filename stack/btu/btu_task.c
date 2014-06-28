@@ -597,9 +597,11 @@ BTU_API UINT32 btu_task (UINT32 param)
                 GKI_remove_from_timer_list(&btu_cb.timer_queue_oneshot, p_tle);
 
                 switch (p_tle->event) {
+#if (defined(BLE_INCLUDED) && BLE_INCLUDED == TRUE)
                     case BTU_TTYPE_BLE_RANDOM_ADDR:
                         btm_ble_timeout(p_tle);
                         break;
+#endif
 
                     default:
                         // FAIL
