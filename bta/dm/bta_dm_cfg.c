@@ -111,14 +111,16 @@ tBTA_DM_CFG *p_bta_dm_cfg = (tBTA_DM_CFG *)&bta_dm_cfg;
 tBTA_DM_RM *p_bta_dm_rm_cfg = (tBTA_DM_RM *)&bta_dm_rm_cfg;
 
 #if BLE_INCLUDED == TRUE
-#define BTA_DM_NUM_PM_ENTRY         (19+BTA_DM_NUM_JV_ID)  /* number of entries in bta_dm_pm_cfg except the first */
+#  define BTA_DM_NUM_PM_ENTRY         22  /* number of entries in bta_dm_pm_cfg except the first */
+#  define BTA_DM_NUM_PM_SPEC          14  /* number of entries in bta_dm_pm_spec */
 #else
-#define BTA_DM_NUM_PM_ENTRY         (17+BTA_DM_NUM_JV_ID)  /* number of entries in bta_dm_pm_cfg except the first */
+#  define BTA_DM_NUM_PM_ENTRY         20  /* number of entries in bta_dm_pm_cfg except the first */
+#  define BTA_DM_NUM_PM_SPEC          12  /* number of entries in bta_dm_pm_spec */
 #endif
 
-tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_CFG bta_dm_pm_cfg[] =
+tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_CFG bta_dm_pm_cfg[BTA_DM_NUM_PM_ENTRY + 1] =
 {
-  {BTA_ID_SYS, BTA_DM_NUM_PM_ENTRY, 0},
+  {BTA_ID_SYS, BTA_DM_NUM_PM_ENTRY, 0},  /* reserved: specifies length of this table. */
   {BTA_ID_AG,  BTA_ALL_APP_ID,      0},  /* ag uses first spec table for app id 0 */
   {BTA_ID_CT,  1,                   1},  /* ct (BTA_ID_CT,APP ID=1) spec table */
   {BTA_ID_CG,  BTA_ALL_APP_ID,      1},  /* cg resue ct spec table */
@@ -144,21 +146,6 @@ tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_CFG bta_dm_pm_cfg[] =
   ,{BTA_ID_GATTS,  BTA_ALL_APP_ID,  13}  /* gatts spec table */
 #endif
 };
-
-#if BLE_INCLUDED == TRUE /* add GATT PM entry for GATT over BR/EDR  */
-#ifdef BTE_SIM_APP      /* For Insight builds only, see the detail below */
-#define BTA_DM_NUM_PM_SPEC      (14 + 2)  /* additional two */
-#else
-#define BTA_DM_NUM_PM_SPEC      14 /* additional JV*/
-#endif
-#else
-#ifdef BTE_SIM_APP      /* For Insight builds only, see the detail below */
-#define BTA_DM_NUM_PM_SPEC      (12 + 2)  /* additional two */
-#else
-#define BTA_DM_NUM_PM_SPEC      12  /* additional JV*/
-#endif
-#endif
-
 
 tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_SPEC bta_dm_pm_spec[BTA_DM_NUM_PM_SPEC] =
 {
