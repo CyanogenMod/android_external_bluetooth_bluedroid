@@ -1,3 +1,21 @@
+/******************************************************************************
+ *
+ *  Copyright (C) 2014 Google, Inc.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
 #include <assert.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -79,12 +97,41 @@ void fixed_queue_enqueue(fixed_queue_t *queue, void *data) {
 void *fixed_queue_dequeue(fixed_queue_t *queue) {
   assert(queue != NULL);
 
-  void *ret;
-
   semaphore_wait(queue->dequeue_sem);
 
   pthread_mutex_lock(&queue->lock);
-  ret = list_front(queue->list);
+  void *ret = list_front(queue->list);
+  list_remove(queue->list, ret);
+  pthread_mutex_unlock(&queue->lock);
+
+  semaphore_post(queue->enqueue_sem);
+
+  return ret;
+}
+
+bool fixed_queue_try_enqueue(fixed_queue_t *queue, void *data) {
+  assert(queue != NULL);
+  assert(data != NULL);
+
+  if (!semaphore_try_wait(queue->enqueue_sem))
+    return false;
+
+  pthread_mutex_lock(&queue->lock);
+  list_append(queue->list, data);
+  pthread_mutex_unlock(&queue->lock);
+
+  semaphore_post(queue->dequeue_sem);
+  return true;
+}
+
+void *fixed_queue_try_dequeue(fixed_queue_t *queue) {
+  assert(queue != NULL);
+
+  if (!semaphore_try_wait(queue->dequeue_sem))
+    return NULL;
+
+  pthread_mutex_lock(&queue->lock);
+  void *ret = list_front(queue->list);
   list_remove(queue->list, ret);
   pthread_mutex_unlock(&queue->lock);
 
