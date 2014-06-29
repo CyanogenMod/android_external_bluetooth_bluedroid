@@ -15,8 +15,7 @@ LOCAL_SRC_FILES += \
 	bte_conf.c \
 	bte_init.c \
 	bte_logmsg.c \
-	bte_main.c \
-	bte_version.c
+	bte_main.c
 
 # BTIF
 LOCAL_SRC_FILES += \
