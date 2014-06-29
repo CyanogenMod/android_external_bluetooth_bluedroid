@@ -256,7 +256,7 @@ static void *userial_read_thread(void *arg)
             ALOGW("select_read return size <=0:%d, exiting userial_read_thread",\
                  rx_length);
             /* if we get here, we should have a buffer */
-            bt_hc_cbacks->dealloc((TRANSAC) p_buf, (char *) (p_buf + 1));
+            bt_hc_cbacks->dealloc(p_buf);
             /* negative value means exit thread */
             break;
         }
@@ -352,8 +352,7 @@ uint16_t userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
             if(userial_cb.p_rx_hdr->len == 0)
             {
                 if (bt_hc_cbacks)
-                    bt_hc_cbacks->dealloc((TRANSAC) userial_cb.p_rx_hdr, \
-                                              (char *) (userial_cb.p_rx_hdr+1));
+                    bt_hc_cbacks->dealloc(userial_cb.p_rx_hdr);
 
                 userial_cb.p_rx_hdr = NULL;
             }
@@ -408,7 +407,7 @@ void userial_close(void) {
     // TODO: use list data structure and clean this up.
     void *buf;
     while ((buf = utils_dequeue(&userial_cb.rx_q)) != NULL)
-        bt_hc_cbacks->dealloc(buf, (char *) ((HC_BT_HDR *)buf + 1));
+        bt_hc_cbacks->dealloc(buf);
 
     userial_cb.fd = -1;
 }

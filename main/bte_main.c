@@ -668,18 +668,12 @@ static char *alloc(int size)
 **
 **                  Bluedroid libbt-hci library uses 'transac' parameter to
 **                  pass data-path buffer/packet across bt_hci_lib interface
-**                  boundary. The 'p_buf' is not intended to be used here
-**                  but might point to data portion of data-path buffer.
-**
-** Returns          bt_hc_status_t
+**                  boundary.
 **
 ******************************************************************************/
-static int dealloc(TRANSAC transac, char *p_buf)
+static void dealloc(TRANSAC transac)
 {
-    UNUSED(p_buf);
-
     GKI_freebuf(transac);
-    return BT_HC_STATUS_SUCCESS;
 }
 
 /******************************************************************************
