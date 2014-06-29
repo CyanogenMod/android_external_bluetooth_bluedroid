@@ -68,11 +68,3 @@ uint16_t userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len);
 // This function returns the number of bytes actually written, which may be
 // less than |len|. This function may block.
 uint16_t userial_write(uint16_t msg_id, const uint8_t *p_data, uint16_t len);
-
-// Pauses reading data from the serial port. No new buffers will be produced
-// until |userial_resume_reading| is called. This function is idempotent.
-void userial_pause_reading(void);
-
-// Resumes reading data from the serial port if reads were previously paused.
-// This function is idempotent.
-void userial_resume_reading(void);

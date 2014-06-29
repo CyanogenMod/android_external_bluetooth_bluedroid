@@ -328,29 +328,6 @@ static int transmit_buf(TRANSAC transac, char * p_buf, int len)
 }
 
 
-/** Controls receive flow */
-static int set_rxflow(bt_rx_flow_state_t state) {
-    BTHCDBG("set_rxflow %d", state);
-
-    switch (state) {
-        case BT_RXFLOW_ON:
-            userial_resume_reading();
-            break;
-
-        case BT_RXFLOW_OFF:
-            userial_pause_reading();
-            break;
-
-        default:
-            assert(false);
-            ALOGE("%s unexpected flow state: %d", __func__, state);
-            return BT_HC_STATUS_FAIL;
-    }
-
-    return BT_HC_STATUS_SUCCESS;
-}
-
-
 /** Controls HCI logging on/off */
 static int logging(bt_hc_logging_state_t state, char *p_path)
 {
@@ -419,7 +396,6 @@ static const bt_hc_interface_t bluetoothHCLibInterface = {
     preload,
     postload,
     transmit_buf,
-    set_rxflow,
     logging,
     cleanup
 };

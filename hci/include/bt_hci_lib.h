@@ -181,9 +181,6 @@ typedef struct {
     /** Transmit buffer */
     int (*transmit_buf)(TRANSAC transac, char *p_buf, int len);
 
-    /** Controls receive flow */
-    int (*set_rxflow)(bt_rx_flow_state_t state);
-
     /** Controls HCI logging on/off */
     int (*logging)(bt_hc_logging_state_t state, char *p_path);
 
