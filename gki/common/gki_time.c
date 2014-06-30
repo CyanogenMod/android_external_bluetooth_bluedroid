@@ -48,9 +48,6 @@ void gki_timers_init(void)
 
     gki_cb.com.OSTicksTilExp = 0;       /* Remaining time (of OSTimeCurTimeout) before next timer expires */
     gki_cb.com.OSNumOrigTicks = 0;
-#if (defined(GKI_DELAY_STOP_SYS_TICK) && (GKI_DELAY_STOP_SYS_TICK > 0))
-    gki_cb.com.OSTicksTilStop = 0;      /* clear inactivity delay timer */
-#endif
 
     for (tt = 0; tt < GKI_MAX_TASKS; tt++)
     {
@@ -76,9 +73,6 @@ void gki_timers_init(void)
         gki_cb.com.OSTaskTmr3R [tt] = 0;
 #endif
     }
-
-    gki_cb.com.p_tick_cb = NULL;
-    gki_cb.com.system_tick_running = FALSE;
 
     return;
 }
@@ -210,28 +204,6 @@ void GKI_start_timer (UINT8 tnum, INT32 ticks, BOOLEAN is_continuous)
 
     GKI_disable();
 
-    if(gki_timers_is_timer_running() == FALSE)
-    {
-#if (defined(GKI_DELAY_STOP_SYS_TICK) && (GKI_DELAY_STOP_SYS_TICK > 0))
-        /* if inactivity delay timer is not running, start system tick */
-        if(gki_cb.com.OSTicksTilStop == 0)
-        {
-#endif
-            if(gki_cb.com.p_tick_cb)
-            {
-                /* start system tick */
-                gki_cb.com.system_tick_running = TRUE;
-                (gki_cb.com.p_tick_cb) (TRUE);
-            }
-#if (defined(GKI_DELAY_STOP_SYS_TICK) && (GKI_DELAY_STOP_SYS_TICK > 0))
-        }
-        else
-        {
-            /* clear inactivity delay timer */
-            gki_cb.com.OSTicksTilStop = 0;
-        }
-#endif
-    }
     /* Add the time since the last task timer update.
     ** Note that this works when no timers are active since
     ** both OSNumOrigTicks and OSTicksTilExp are 0.
@@ -334,31 +306,6 @@ void GKI_stop_timer (UINT8 tnum)
             break;
 #endif
     }
-
-    GKI_disable();
-
-    if (gki_timers_is_timer_running() == FALSE)
-    {
-        if (gki_cb.com.p_tick_cb)
-        {
-#if (defined(GKI_DELAY_STOP_SYS_TICK) && (GKI_DELAY_STOP_SYS_TICK > 0))
-            /* if inactivity delay timer is not running */
-            if ((gki_cb.com.system_tick_running)&&(gki_cb.com.OSTicksTilStop == 0))
-            {
-                /* set inactivity delay timer */
-                /* when timer expires, system tick will be stopped */
-                gki_cb.com.OSTicksTilStop = GKI_DELAY_STOP_SYS_TICK;
-            }
-#else
-            gki_cb.com.system_tick_running = FALSE;
-            gki_cb.com.p_tick_cb(FALSE); /* stop system tick */
-#endif
-        }
-    }
-
-    GKI_enable();
-
-
 }
 
 
@@ -399,26 +346,6 @@ void GKI_timer_update (INT32 ticks_since_last_update)
 
     gki_cb.com.timer_nesting = 1;
 
-#if (defined(GKI_DELAY_STOP_SYS_TICK) && (GKI_DELAY_STOP_SYS_TICK > 0))
-    /* if inactivity delay timer is set and expired */
-    if (gki_cb.com.OSTicksTilStop)
-    {
-        if( gki_cb.com.OSTicksTilStop <= (UINT32)ticks_since_last_update )
-        {
-            if(gki_cb.com.p_tick_cb)
-            {
-                gki_cb.com.system_tick_running = FALSE;
-                (gki_cb.com.p_tick_cb) (FALSE); /* stop system tick */
-            }
-            gki_cb.com.OSTicksTilStop = 0;      /* clear inactivity delay timer */
-            gki_cb.com.timer_nesting = 0;
-            return;
-        }
-        else
-            gki_cb.com.OSTicksTilStop -= ticks_since_last_update;
-    }
-#endif
-
     /* No need to update the ticks if no timeout has occurred */
     if (gki_cb.com.OSTicksTilExp > 0)
     {
@@ -438,15 +365,12 @@ void GKI_timer_update (INT32 ticks_since_last_update)
      */
     gki_cb.com.OSNumOrigTicks -= gki_cb.com.OSTicksTilExp;
 
-#if GKI_TIMER_LIST_NOPREEMPT == TRUE
     /* Protect this section because if a GKI_timer_stop happens between:
      *   - gki_cb.com.OSTaskTmr0[task_id] -= gki_cb.com.OSNumOrigTicks;
      *   - gki_cb.com.OSTaskTmr0[task_id] = gki_cb.com.OSTaskTmr0R[task_id];
      * then the timer may appear stopped while it is about to be reloaded.
-     * Note: Not needed if this function cannot be preempted (typical).
      */
     GKI_disable();
-#endif
 
     /* Check for OS Task Timers */
     for (task_id = 0; task_id < GKI_MAX_TASKS; task_id++)
@@ -551,32 +475,9 @@ void GKI_timer_update (INT32 ticks_since_last_update)
     // Set alarm service for next alarm.
     alarm_service_reschedule();
 
-#if GKI_TIMER_LIST_NOPREEMPT == TRUE
-    /* End the critical section */
     GKI_enable();
-#endif
 
     gki_cb.com.timer_nesting = 0;
-
-    return;
-}
-
-/*******************************************************************************
-**
-** Function         GKI_timer_queue_register_callback
-**
-** Description      This function is called by applications to register system tick
-**                  start/stop callback for time queues
-**
-**
-** Parameters       p_callback - (input) pointer to the system tick callback
-**
-** Returns          BOOLEAN
-**
-*******************************************************************************/
-void GKI_timer_queue_register_callback (SYSTEM_TICK_CBACK *p_callback)
-{
-    gki_cb.com.p_tick_cb = p_callback;
 
     return;
 }
@@ -609,59 +510,10 @@ TIMER_LIST_ENT *GKI_timer_getfirst(const TIMER_LIST_Q *timer_q) {
     return timer_q->p_first;
 }
 
-TIMER_LIST_ENT *GKI_timer_getlast(const TIMER_LIST_Q *timer_q) {
-    assert(timer_q != NULL);
-    return timer_q->p_last;
-}
-
-/* Returns the number of ticks of the last entry in the queue. */
-INT32 GKI_timer_ticks_getlast(const TIMER_LIST_Q *timer_q) {
-    assert(timer_q != NULL);
-    return timer_q->last_ticks;
-}
-
-/*******************************************************************************
-**
-** Function         GKI_init_timer_list_entry
-**
-** Description      This function is called by the applications when they
-**                  want to initialize a timer list entry. This must be
-**                  done prior to first use of the entry.
-**
-** Parameters       p_tle           - (input) pointer to a timer list queue entry
-**
-** Returns          void
-**
-*******************************************************************************/
-void GKI_init_timer_list_entry(TIMER_LIST_ENT *tle) {
-    tle->p_next  = NULL;
-    tle->p_prev  = NULL;
-    tle->ticks   = GKI_UNUSED_LIST_ENTRY;
-    tle->ticks_initial = 0;
-    tle->in_use  = FALSE;
-}
-
-/* Returns the next linked entry from this tle or NULL. */
-TIMER_LIST_ENT *GKI_timer_entry_next(const TIMER_LIST_ENT *tle) {
-    assert(tle != NULL);
-    return tle->p_next;
-}
-
-/* Returns the current number of ticks for this timer entry. */
-INT32 GKI_timer_ticks_getcurrent(const TIMER_LIST_ENT *tle) {
-    assert(tle != NULL);
-    return tle->ticks;
-}
-
 /* Returns the initial number of ticks for this timer entry. */
 INT32 GKI_timer_ticks_getinitial(const TIMER_LIST_ENT *tle) {
     assert(tle != NULL);
     return tle->ticks_initial;
-}
-
-BOOLEAN GKI_timer_in_use(const TIMER_LIST_ENT *tle) {
-    assert(tle != NULL);
-    return tle->in_use;
 }
 
 /*******************************************************************************

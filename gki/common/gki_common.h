@@ -267,9 +267,6 @@ typedef struct
     /* Timer related variables
     */
     INT32   OSTicksTilExp;      /* Number of ticks till next timer expires */
-#if (defined(GKI_DELAY_STOP_SYS_TICK) && (GKI_DELAY_STOP_SYS_TICK > 0))
-    UINT32  OSTicksTilStop;     /* inactivity delay timer; OS Ticks till stopping system tick */
-#endif
     INT32   OSNumOrigTicks;     /* Number of ticks between last timer expiration to the next one */
 
     INT32   OSWaitTmr   [GKI_MAX_TASKS];  /* ticks the task has to wait, for specific events */
@@ -323,10 +320,6 @@ typedef struct
     UINT8       curr_total_no_of_pools;             /* number of fixed buf pools + current number of dynamic pools */
 
     BOOLEAN     timer_nesting;                      /* flag to prevent timer interrupt nesting */
-
-    /* System tick callback */
-    SYSTEM_TICK_CBACK *p_tick_cb;
-    BOOLEAN     system_tick_running;                /* TRUE if system tick is running. Valid only if p_tick_cb is not NULL */
 
 #if (GKI_DEBUG == TRUE)
     UINT16      ExceptionCnt;                       /* number of GKI exceptions that have happened */

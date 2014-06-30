@@ -129,17 +129,6 @@
 #define GKI_OS_TICKS_TO_SECS(x)   ((x) / OS_TICKS_PER_SEC))
 #endif
 
-
-/* delay in ticks before stopping system tick. */
-#ifndef GKI_DELAY_STOP_SYS_TICK
-#define GKI_DELAY_STOP_SYS_TICK     0
-#endif
-
-/* Option to guarantee no preemption during timer expiration (most system don't need this) */
-#ifndef GKI_TIMER_LIST_NOPREEMPT
-#define GKI_TIMER_LIST_NOPREEMPT    TRUE
-#endif
-
 /******************************************************************************
 **
 ** Buffer configuration

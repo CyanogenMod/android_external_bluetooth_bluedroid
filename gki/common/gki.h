@@ -146,7 +146,7 @@ GKI_API extern UINT8   GKI_get_taskid(void);
 GKI_API extern void    GKI_init(void);
 GKI_API extern void    GKI_shutdown(void);
 GKI_API extern INT8   *GKI_map_taskname(UINT8);
-GKI_API extern void    GKI_run(void *);
+GKI_API extern void    GKI_run(void);
 GKI_API extern void    GKI_stop(void);
 
 /* To send buffers and events between tasks
@@ -185,9 +185,7 @@ GKI_API extern UINT16  GKI_get_pool_bufsize (UINT8);
 GKI_API extern void    GKI_add_to_timer_list (TIMER_LIST_Q *, TIMER_LIST_ENT  *);
 GKI_API extern void    GKI_delay(UINT32);
 GKI_API extern UINT32  GKI_get_tick_count(void);
-GKI_API extern INT8   *GKI_get_time_stamp(INT8 *);
 GKI_API extern void    GKI_init_timer_list (TIMER_LIST_Q *);
-GKI_API extern void    GKI_init_timer_list_entry (TIMER_LIST_ENT  *);
 GKI_API extern INT32   GKI_ready_to_sleep (void);
 GKI_API extern void    GKI_remove_from_timer_list (TIMER_LIST_Q *, TIMER_LIST_ENT  *);
 GKI_API extern void    GKI_start_timer(UINT8, INT32, BOOLEAN);
@@ -198,22 +196,7 @@ GKI_API extern UINT32  GKI_get_remaining_ticks (TIMER_LIST_Q *, TIMER_LIST_ENT  
 GKI_API extern UINT16  GKI_wait(UINT16, UINT32);
 GKI_API extern BOOLEAN GKI_timer_queue_is_empty(const TIMER_LIST_Q *timer_q);
 GKI_API extern TIMER_LIST_ENT *GKI_timer_getfirst(const TIMER_LIST_Q *timer_q);
-GKI_API extern TIMER_LIST_ENT *GKI_timer_getlast(const TIMER_LIST_Q *timer_q);
-GKI_API extern INT32 GKI_timer_ticks_getlast(const TIMER_LIST_Q *timer_q);
-GKI_API extern TIMER_LIST_ENT *GKI_timer_entry_next(const TIMER_LIST_ENT *tle);
-GKI_API extern INT32 GKI_timer_ticks_getcurrent(const TIMER_LIST_ENT *tle);
 GKI_API extern INT32 GKI_timer_ticks_getinitial(const TIMER_LIST_ENT *tle);
-GKI_API extern BOOLEAN GKI_timer_in_use(const TIMER_LIST_ENT *tle);
-
-/* Start and Stop system time tick callback
- * true for start system tick if time queue is not empty
- * false to stop system tick if time queue is empty
-*/
-typedef void (SYSTEM_TICK_CBACK)(BOOLEAN);
-
-/* Time queue management for system ticks
-*/
-GKI_API extern void    GKI_timer_queue_register_callback(SYSTEM_TICK_CBACK *);
 
 /* Disable Interrupts, Enable Interrupts
 */

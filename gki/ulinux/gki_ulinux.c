@@ -566,27 +566,6 @@ void GKI_shutdown(void)
 
 }
 
-/*******************************************************************************
- **
- ** Function        gki_system_tick_start_stop_cback
- **
- ** Description     This function runs a task
- **
- ** Parameters:     start: TRUE start system tick (again), FALSE stop
- **
- ** Returns         void
- **
- *********************************************************************************/
-
-void gki_system_tick_start_stop_cback(BOOLEAN start)
-{
-    if (start) {
-        ALOGV("Starting system ticks\n");
-    } else {
-        ALOGV("Stopping system ticks\n");
-    }
-}
-
 /*****************************************************************************
 **
 ** Function        gki_set_timer_scheduling
@@ -634,20 +613,11 @@ static void gki_set_timer_scheduling( void )
 **
 *******************************************************************************/
 
-void GKI_run (void * p_task_id)
+void GKI_run(void)
 {
-    UNUSED(p_task_id);
-
-#ifndef GKI_NO_TICK_STOP
     /* adjust btld scheduling scheme now */
     gki_set_timer_scheduling();
-
-    /* register start stop function which disable timer loop in GKI_run() when no timers are
-     * in any GKI/BTA/BTU this should save power when BTLD is idle! */
-    GKI_timer_queue_register_callback( gki_system_tick_start_stop_cback );
     GKI_TRACE( "GKI_run(): Start/Stop GKI_timer_update_registered!" );
-#endif
-    return;
 }
 
 
