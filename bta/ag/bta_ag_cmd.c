@@ -1203,7 +1203,10 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                     p_scb->sco_codec = UUID_CODEC_CVSD;
                     APPL_TRACE_DEBUG("Received AT+BAC, updating sco codec to CVSD");
                 }
-
+                /* The above logic sets the stack preferred codec based on local and peer codec
+                capabilities. This can be overridden by the application depending on its preference
+                using the bta_ag_setcodec API. We send the peer_codecs to the application. */
+                val.num = p_scb->peer_codecs;
                 /* Received BAC while in codec negotiation. */
                 if ((bta_ag_cb.sco.state == BTA_AG_SCO_CODEC_ST) && (bta_ag_cb.sco.p_curr_scb == p_scb))
                 {
@@ -1218,6 +1221,8 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
             break;
 
         case BTA_AG_HF_CMD_BCS:
+            bta_ag_send_ok(p_scb);
+
             /* stop cn timer */
             bta_sys_stop_timer(&p_scb->cn_timer);
 
@@ -1241,7 +1246,8 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
             else
                 bta_ag_sco_codec_nego(p_scb, FALSE);
 
-            bta_ag_send_ok(p_scb);
+            /* send final codec info to callback */
+            val.num = codec_sent;
             break;
 
         case BTA_AG_HF_CMD_BCC:
@@ -1718,47 +1724,6 @@ void bta_ag_result(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     }
 }
 
-/*******************************************************************************
-**
-** Function         bta_ag_setcodec
-**
-** Description      Handle API SetCodec
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_ag_setcodec(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
-{
-#if (BTM_WBS_INCLUDED == TRUE )
-    tBTA_AG_PEER_CODEC codec_type = p_data->api_setcodec.codec;
-
-    /* Check if the requested codec type is valid */
-    if((codec_type != BTA_AG_CODEC_NONE) &&
-       (codec_type != BTA_AG_CODEC_CVSD) &&
-       (codec_type != BTA_AG_CODEC_MSBC))
-    {
-        APPL_TRACE_ERROR("bta_ag_setcodec error: unsupported codec type %d", codec_type);
-        return;
-    }
-
-    if((p_scb->peer_codecs & codec_type) || (codec_type == BTA_AG_CODEC_NONE) || (codec_type == BTA_AG_CODEC_CVSD))
-    {
-        p_scb->sco_codec = codec_type;
-        p_scb->codec_updated = TRUE;
-        APPL_TRACE_DEBUG("bta_ag_setcodec: Updated codec type %d", codec_type);
-    }
-    else
-    {
-        APPL_TRACE_ERROR("bta_ag_setcodec error: unsupported codec type %d", codec_type);
-    }
-#else
-    UNUSED(p_scb);
-    UNUSED(p_data);
-#endif
-}
-
-
 #if (BTM_WBS_INCLUDED == TRUE )
 /*******************************************************************************
 **
@@ -1792,6 +1757,7 @@ void bta_ag_send_bcs(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     }
 
     /* send +BCS */
+    APPL_TRACE_DEBUG("send +BCS codec is %d", codec_uuid);
     bta_ag_send_result(p_scb, BTA_AG_RES_BCS, NULL, codec_uuid);
 
 }

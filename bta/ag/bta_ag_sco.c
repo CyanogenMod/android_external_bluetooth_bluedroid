@@ -69,7 +69,11 @@ enum
 };
 
 #if (BTM_WBS_INCLUDED == TRUE )
-#define BTA_AG_NUM_CODECS   2
+#define BTA_AG_NUM_CODECS   3
+#define BTA_AG_ESCO_SETTING_IDX_CVSD    0   /* eSCO setting for CVSD */
+#define BTA_AG_ESCO_SETTING_IDX_T1      1   /* eSCO setting for mSBC T1 */
+#define BTA_AG_ESCO_SETTING_IDX_T2      2   /* eSCO setting for mSBC T2 */
+
 static const tBTM_ESCO_PARAMS bta_ag_esco_params[BTA_AG_NUM_CODECS] =
 {
     /* CVSD */
@@ -88,7 +92,20 @@ static const tBTM_ESCO_PARAMS bta_ag_esco_params[BTA_AG_NUM_CODECS] =
         BTM_SCO_PKT_TYPES_MASK_NO_3_EV5),
         BTM_ESCO_RETRANS_POWER       /* Retransmission effort                      */
     },
-    /* mSBC */
+    /* mSBC  T1 */
+    {
+        BTM_64KBITS_RATE,                   /* TX Bandwidth (64 kbits/sec), 8000        */
+        BTM_64KBITS_RATE,                   /* RX Bandwidth (64 kbits/sec), 8000        */
+        8,                                  /* 8 ms                                     */
+        BTM_VOICE_SETTING_TRANS,            /* Inp Linear, Transparent, 2s Comp, 16bit  */
+       (BTM_SCO_PKT_TYPES_MASK_EV3      |   /* Packet Types : EV3 + NO_2_EV3            */
+        BTM_SCO_PKT_TYPES_MASK_NO_3_EV3 |
+        BTM_SCO_PKT_TYPES_MASK_NO_2_EV5 |
+        BTM_SCO_PKT_TYPES_MASK_NO_3_EV5 |
+        BTM_SCO_PKT_TYPES_MASK_NO_2_EV3 ),
+        BTM_ESCO_RETRANS_QUALITY       /* Retransmission effort                      */
+    },
+    /* mSBC T2*/
     {
         BTM_64KBITS_RATE,                   /* TX Bandwidth (64 kbits/sec), 8000        */
         BTM_64KBITS_RATE,                   /* RX Bandwidth (64 kbits/sec), 8000        */
@@ -102,6 +119,7 @@ static const tBTM_ESCO_PARAMS bta_ag_esco_params[BTA_AG_NUM_CODECS] =
     }
 };
 #else
+/* WBS not included, CVSD by default */
 static const tBTM_ESCO_PARAMS bta_ag_esco_params =
 {
     BTM_64KBITS_RATE,                   /* TX Bandwidth (64 kbits/sec)              */
@@ -208,7 +226,7 @@ static void bta_ag_sco_disc_cback(UINT16 sco_idx)
 #if (BTM_SCO_HCI_INCLUDED == TRUE )
         tBTM_STATUS status = BTM_ConfigScoPath(BTM_SCO_ROUTE_PCM, NULL, NULL, TRUE);
         APPL_TRACE_DEBUG("bta_ag_sco_disc_cback sco close config status = %d", status);
-	    /* SCO clean up here */
+        /* SCO clean up here */
         bta_dm_sco_co_close();
 #endif
 
@@ -216,14 +234,23 @@ static void bta_ag_sco_disc_cback(UINT16 sco_idx)
         /* Restore settings */
         if(bta_ag_cb.sco.p_curr_scb->inuse_codec == BTA_AG_CODEC_MSBC)
         {
-            BTM_SetWBSCodec (BTM_SCO_CODEC_NONE);
+            /* set_sco_codec(BTM_SCO_CODEC_NONE); we should get a close */
             BTM_WriteVoiceSettings (BTM_VOICE_SETTING_CVSD);
 
-            /* If SCO open was initiated by AG and failed for mSBC, try CVSD again. */
+            /* If SCO open was initiated by AG and failed for mSBC, then attempt
+            mSBC with T1 settings i.e. 'Safe Settings'. If this fails, then switch to CVSD */
             if (bta_ag_sco_is_opening (bta_ag_cb.sco.p_curr_scb))
             {
-                bta_ag_cb.sco.p_curr_scb->codec_fallback = TRUE;
-                APPL_TRACE_DEBUG("Fallback to CVSD");
+                if (bta_ag_cb.sco.p_curr_scb->codec_msbc_settings == BTA_AG_SCO_MSBC_SETTINGS_T2)
+                {
+                     APPL_TRACE_DEBUG("Fallback to mSBC T1 settings");
+                     bta_ag_cb.sco.p_curr_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T1;
+                }
+                else
+                {
+                    APPL_TRACE_DEBUG("Fallback to CVSD settings");
+                    bta_ag_cb.sco.p_curr_scb->codec_fallback = TRUE;
+                }
             }
         }
 
@@ -450,11 +477,23 @@ static void bta_ag_create_sco(tBTA_AG_SCB *p_scb, BOOLEAN is_orig)
         p_scb->codec_updated = TRUE;
     }
 
+    /* If WBS included, use CVSD by default, index is 0 for CVSD by initialization */
+    /* If eSCO codec is mSBC, index is T2 or T1 */
     if (esco_codec == BTM_SCO_CODEC_MSBC)
-        codec_index = esco_codec - 1;
+    {
+        if (p_scb->codec_msbc_settings == BTA_AG_SCO_MSBC_SETTINGS_T2)
+        {
+            codec_index = BTA_AG_ESCO_SETTING_IDX_T2;
+        }
+        else
+        {
+            codec_index = BTA_AG_ESCO_SETTING_IDX_T1;
+        }
+    }
 
     params = bta_ag_esco_params[codec_index];
 #else
+    /* When WBS is not included, use CVSD by default */
     params = bta_ag_esco_params;
 #endif
 
@@ -464,7 +503,7 @@ static void bta_ag_create_sco(tBTA_AG_SCB *p_scb, BOOLEAN is_orig)
     if(!bta_ag_cb.sco.param_updated)
     {
 #if (BTM_WBS_INCLUDED == TRUE)
-        if (!codec_index)   /* For non-WBS */
+        if (esco_codec == BTM_SCO_CODEC_CVSD)   /* For CVSD */
 #endif
         {
             /* Use the application packet types (5 slot EV packets not allowed) */
@@ -518,8 +557,23 @@ static void bta_ag_create_sco(tBTA_AG_SCB *p_scb, BOOLEAN is_orig)
         /* tell sys to stop av if any */
         bta_sys_sco_use(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
 
+#if (BTM_WBS_INCLUDED == TRUE )
+        /* Allow any platform specific pre-SCO set up to take place */
+        bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_SETUP,\
+        esco_codec);
+
+        /* This setting may not be necessary */
+        /* To be verified with stable 2049 boards */
+        if (esco_codec == BTA_AG_CODEC_MSBC)
+            BTM_WriteVoiceSettings (BTM_VOICE_SETTING_TRANS);
+        else
+            BTM_WriteVoiceSettings (BTM_VOICE_SETTING_CVSD);
+        /* save the current codec because sco_codec can be updated while SCO is open. */
+        p_scb->inuse_codec = esco_codec;
+#else
         /* Allow any platform specific pre-SCO set up to take place */
         bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_SETUP);
+#endif
 
 #if (BTM_SCO_HCI_INCLUDED == TRUE )
 #if (BTM_WBS_INCLUDED == TRUE)
@@ -532,26 +586,6 @@ static void bta_ag_create_sco(tBTA_AG_SCB *p_scb, BOOLEAN is_orig)
         sco_route = bta_dm_sco_co_init(pcm_sample_rate, pcm_sample_rate, &codec_info, p_scb->app_id);
 #endif
 
-#if (BTM_WBS_INCLUDED == TRUE )
-        if (esco_codec == BTA_AG_CODEC_MSBC)
-        {
-            /* Enable mSBC codec in fw */
-            BTM_SetWBSCodec (esco_codec);
-        }
-
-        /* Specify PCM input for SBC codec in fw */
-        BTM_ConfigI2SPCM (esco_codec, (UINT8)HCI_BRCM_I2SPCM_IS_DEFAULT_ROLE, (UINT8)HCI_BRCM_I2SPCM_SAMPLE_DEFAULT, (UINT8)HCI_BRCM_I2SPCM_CLOCK_DEFAULT);
-
-        /* This setting may not be necessary */
-        /* To be verified with stable 2049 boards */
-        if (esco_codec == BTA_AG_CODEC_MSBC)
-            BTM_WriteVoiceSettings (BTM_VOICE_SETTING_TRANS);
-        else
-            BTM_WriteVoiceSettings (BTM_VOICE_SETTING_CVSD);
-
-        /* save the current codec because sco_codec can be updated while SCO is open. */
-        p_scb->inuse_codec = esco_codec;
-#endif
 
 #if (BTM_SCO_HCI_INCLUDED == TRUE )
         /* initialize SCO setup, no voice setting for AG, data rate <==> sample rate */
@@ -584,6 +618,25 @@ static void bta_ag_create_sco(tBTA_AG_SCB *p_scb, BOOLEAN is_orig)
 }
 
 #if (BTM_WBS_INCLUDED == TRUE )
+/*******************************************************************************
+**
+** Function         bta_ag_attempt_msbc_safe_settings
+**
+** Description    Checks if ESCO connection needs to be attempted using mSBC T1(safe) settings
+**
+**
+** Returns          TRUE if T1 settings has to be used, FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN bta_ag_attempt_msbc_safe_settings(tBTA_AG_SCB *p_scb)
+{
+    if (p_scb->svc_conn && p_scb->sco_codec == BTM_SCO_CODEC_MSBC &&
+        p_scb->codec_msbc_settings == BTA_AG_SCO_MSBC_SETTINGS_T1)
+        return TRUE;
+    else
+        return FALSE;
+}
+
 /*******************************************************************************
 **
 ** Function         bta_ag_cn_timer_cback
@@ -627,7 +680,9 @@ void bta_ag_codec_negotiate(tBTA_AG_SCB *p_scb)
 {
     bta_ag_cb.sco.p_curr_scb = p_scb;
 
-    if (p_scb->codec_updated || p_scb->codec_fallback)
+    if ((p_scb->codec_updated || p_scb->codec_fallback ||
+        bta_ag_attempt_msbc_safe_settings(p_scb)) &&
+       (p_scb->peer_features & BTA_AG_PEER_FEAT_CODEC))
     {
         /* Change the power mode to Active until sco open is completed. */
         bta_sys_busy(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
@@ -643,10 +698,11 @@ void bta_ag_codec_negotiate(tBTA_AG_SCB *p_scb)
     else
     {
         /* use same codec type as previous SCO connection, skip codec negotiation */
+        APPL_TRACE_DEBUG("use same codec type as previous SCO connection,skip codec negotiation");
         bta_ag_sco_codec_nego(p_scb, TRUE);
     }
 }
-#endif
+#endif /* (BTM_WBS_INCLUDED == TRUE ) */
 
 /*******************************************************************************
 **
@@ -1399,7 +1455,12 @@ void bta_ag_sco_conn_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 
     bta_sys_sco_open(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
 
+#if (BTM_WBS_INCLUDED == TRUE)
+    bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_ON,
+                          p_scb->inuse_codec);
+#else
     bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_ON);
+#endif
 
 #if (BTM_SCO_HCI_INCLUDED == TRUE )
     /* open SCO codec if SCO is routed through transport */
@@ -1410,6 +1471,10 @@ void bta_ag_sco_conn_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     bta_ag_cback_sco(p_scb, BTA_AG_AUDIO_OPEN_EVT);
 
     p_scb->retry_with_sco_only = FALSE;
+#if (BTM_WBS_INCLUDED == TRUE)
+    /* reset to mSBC T2 settings as the preferred */
+    p_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T2;
+#endif
 }
 
 /*******************************************************************************
@@ -1433,7 +1498,9 @@ void bta_ag_sco_conn_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 
 #if (BTM_WBS_INCLUDED == TRUE)
     /* codec_fallback is set when AG is initiator and connection failed for mSBC. */
-    if (p_scb->codec_fallback && p_scb->svc_conn)
+    /* OR if codec is msbc and T2 settings failed, then retry Safe T1 settings */
+    if ((p_scb->codec_fallback && p_scb->svc_conn) ||
+         bta_ag_attempt_msbc_safe_settings(p_scb))
     {
         bta_ag_sco_event(p_scb, BTA_AG_SCO_REOPEN_E);
     }
@@ -1452,12 +1519,15 @@ void bta_ag_sco_conn_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 #endif
     else
     {
+#if (BTM_WBS_INCLUDED == TRUE)
         /* Indicate if the closing of audio is because of transfer */
-        if (bta_ag_cb.sco.p_xfer_scb)
-            bta_ag_co_audio_state(handle, p_scb->app_id, BTA_AG_CO_AUD_STATE_OFF_XFER);
-        else
-            bta_ag_co_audio_state(handle, p_scb->app_id, BTA_AG_CO_AUD_STATE_OFF);
-
+        bta_ag_co_audio_state(handle, p_scb->app_id,(bta_ag_cb.sco.p_xfer_scb)?\
+        BTA_AG_CO_AUD_STATE_OFF_XFER:BTA_AG_CO_AUD_STATE_OFF,p_scb->inuse_codec);
+#else
+        /* Indicate if the closing of audio is because of transfer */
+        bta_ag_co_audio_state(handle, p_scb->app_id,(bta_ag_cb.sco.p_xfer_scb)?\
+        BTA_AG_CO_AUD_STATE_OFF_XFER:BTA_AG_CO_AUD_STATE_OFF);
+#endif
         bta_ag_sco_event(p_scb, BTA_AG_SCO_CONN_CLOSE_E);
 
         bta_sys_sco_close(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
@@ -1472,6 +1542,9 @@ void bta_ag_sco_conn_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 
         /* call app callback */
         bta_ag_cback_sco(p_scb, BTA_AG_AUDIO_CLOSE_EVT);
+#if (BTM_WBS_INCLUDED == TRUE)
+        p_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T2;
+#endif
     }
     p_scb->retry_with_sco_only = FALSE;
 }
@@ -1531,12 +1604,14 @@ void bta_ag_sco_conn_rsp(tBTA_AG_SCB *p_scb, tBTM_ESCO_CONN_REQ_EVT_DATA *p_data
         /* tell sys to stop av if any */
         bta_sys_sco_use(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
 
+#if (BTM_WBS_INCLUDED == FALSE )
         /* Allow any platform specific pre-SCO set up to take place */
         bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_SETUP);
-
-#if (BTM_WBS_INCLUDED == TRUE )
+#else
         /* When HS initiated SCO, it cannot be WBS. */
-        BTM_ConfigI2SPCM (BTM_SCO_CODEC_CVSD, (UINT8)HCI_BRCM_I2SPCM_IS_DEFAULT_ROLE, (UINT8)HCI_BRCM_I2SPCM_SAMPLE_DEFAULT, (UINT8)HCI_BRCM_I2SPCM_CLOCK_DEFAULT);
+        /* Allow any platform specific pre-SCO set up to take place */
+        bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_SETUP,
+                              BTA_AG_CODEC_CVSD);
 #endif
 
 #if (BTM_SCO_HCI_INCLUDED == TRUE )

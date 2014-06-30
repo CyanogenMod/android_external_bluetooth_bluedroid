@@ -81,6 +81,9 @@
 #define HC_EVENT_LPM_IDLE_TIMEOUT      0x0100
 #define HC_EVENT_EXIT                  0x0200
 #define HC_EVENT_EPILOG                0x0400
+#define HC_EVENT_TX_CMD                0x0800
+
+#define MSG_CTRL_TO_HC_CMD             0x0100 /* evt mask used by HC_EVENT_TX_CMD */
 
 /* Message event mask across Host/Controller lib and stack */
 #define MSG_EVT_MASK                    0xFF00 /* eq. BT_EVT_MASK */
@@ -100,6 +103,13 @@
 
 /* Local Bluetooth Controller ID for BR/EDR */
 #define LOCAL_BR_EDR_CONTROLLER_ID      0
+
+/* Definitions of audio codec type
+ *      inherited from AG callout function "codec" parameter
+ */
+#define SCO_CODEC_NONE      0x0000 /* BTA_AG_CODEC_NONE/BTM_SCO_CODEC_NONE */
+#define SCO_CODEC_CVSD      0x0001 /* BTA_AG_CODEC_CVSD/BTM_SCO_CODEC_CVSD */
+#define SCO_CODEC_MSBC      0x0002 /* BTA_AG_CODEC_MSBC/BTM_SCO_CODEC_MSBC */
 
 /******************************************************************************
 **  Type definitions and return values

@@ -237,6 +237,14 @@ typedef struct
     UINT8           scn;
 } tBTA_AG_PROFILE;
 
+#if (BTM_WBS_INCLUDED == TRUE)
+typedef enum
+{
+    BTA_AG_SCO_MSBC_SETTINGS_T2 = 0, /* preferred/default when codec is mSBC */
+    BTA_AG_SCO_MSBC_SETTINGS_T1,
+} tBTA_AG_SCO_MSBC_SETTINGS;
+#endif
+
 /* type for each service control block */
 typedef struct
 {
@@ -261,6 +269,7 @@ typedef struct
     tBTA_AG_PEER_CODEC  inuse_codec;    /* codec being used for the current SCO connection */
     BOOLEAN             codec_updated;  /* set to TRUE whenever the app updates codec type */
     BOOLEAN             codec_fallback; /* If sco nego fails for mSBC, fallback to CVSD */
+    tBTA_AG_SCO_MSBC_SETTINGS codec_msbc_settings; /* settings to be used for the impending eSCO */
     TIMER_LIST_ENT      cn_timer;       /* codec negotiation timer */
 #endif
     UINT16              sco_idx;        /* SCO handle */

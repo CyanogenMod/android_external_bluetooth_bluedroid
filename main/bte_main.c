@@ -35,8 +35,8 @@
 #include "btu.h"
 #include "bte.h"
 #include "bta_api.h"
-#include "bt_hci_lib.h"
 #include "bt_utils.h"
+#include "bt_hci_bdroid.h"
 
 /*******************************************************************************
 **  Constants & Macros
@@ -491,6 +491,66 @@ void bte_main_lpm_wake_bt_device()
     APPL_TRACE_DEBUG("HC lib lpm assertion return %d", result);
 }
 #endif  // HCILP_INCLUDED
+
+
+/* NOTICE:
+ *  Definitions for audio state structure, this type needs to match to
+ *  the bt_vendor_op_audio_state_t type defined in bt_vendor_lib.h
+ */
+typedef struct {
+    UINT16  handle;
+    UINT16  peer_codec;
+    UINT16  state;
+} bt_hc_audio_state_t;
+
+struct bt_audio_state_tag {
+    BT_HDR hdr;
+    bt_hc_audio_state_t audio;
+};
+
+/******************************************************************************
+**
+** Function         set_audio_state
+**
+** Description      Sets audio state on controller state for SCO (PCM, WBS, FM)
+**
+** Parameters       handle: codec related handle for SCO: sco cb idx, unused for
+**                  codec: BTA_AG_CODEC_MSBC, BTA_AG_CODEC_CSVD or FM codec
+**                  state: codec state, eg. BTA_AG_CO_AUD_STATE_SETUP
+**                  param: future extensions, e.g. call-in structure/event.
+**
+** Returns          None
+**
+******************************************************************************/
+int set_audio_state(UINT16 handle, UINT16 codec, UINT8 state, void *param)
+{
+    struct bt_audio_state_tag *p_msg;
+    int result = -1;
+
+    APPL_TRACE_API("set_audio_state(handle: %d, codec: 0x%x, state: %d)", handle,
+                    codec, state);
+    if (NULL != param)
+        APPL_TRACE_WARNING("set_audio_state() non-null param not supported");
+    p_msg = (struct bt_audio_state_tag *)GKI_getbuf(sizeof(*p_msg));
+    if (!p_msg)
+        return result;
+    p_msg->audio.handle = handle;
+    p_msg->audio.peer_codec = codec;
+    p_msg->audio.state = state;
+
+    p_msg->hdr.event = MSG_CTRL_TO_HC_CMD | (MSG_SUB_EVT_MASK & BT_HC_AUDIO_STATE);
+    p_msg->hdr.len = sizeof(p_msg->audio);
+    p_msg->hdr.offset = 0;
+    /* layer_specific shall contain return path event! for BTA events!
+     * 0 means no return message is expected. */
+    p_msg->hdr.layer_specific = 0;
+       if (bt_hc_if)
+       {
+        bt_hc_if->tx_cmd((TRANSAC)p_msg, (char *)(&p_msg->audio), sizeof(*p_msg));
+        }
+    return result;
+}
+
 
 /******************************************************************************
 **
