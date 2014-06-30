@@ -436,6 +436,9 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
     bta_dm_disable_search_and_disc();
     bta_dm_cb.disabling = TRUE;
 
+#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
+    BTM_BleClearBgConnDev();
+#endif
 
     if(BTM_GetNumAclLinks()==0)
     {

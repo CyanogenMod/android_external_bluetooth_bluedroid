@@ -39,6 +39,7 @@
 #include "vendor_ble.h"
 #endif
 #include "gattdefs.h"
+#include "gatt_int.h"
 
 #include "btm_ble_int.h"
 
@@ -700,6 +701,26 @@ BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   bg_conn_type,
             btm_cb.ble_ctr_cb.bg_conn_type = bg_conn_type;
     }
     return started;
+}
+
+/*******************************************************************************
+**
+** Function         BTM_BleClearBgConnDev
+**
+** Description      This function is called to clear the whitelist,
+**                  end any pending whitelist connections,
+*                   and reset the local bg device list.
+**
+** Parameters       void
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTM_BleClearBgConnDev(void)
+{
+    btm_ble_start_auto_conn(FALSE);
+    btm_ble_clear_white_list();
+    gatt_reset_bgdev_list();
 }
 
 /*******************************************************************************
