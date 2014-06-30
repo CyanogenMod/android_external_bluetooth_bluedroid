@@ -61,17 +61,10 @@ typedef struct
     pthread_cond_t      thread_evt_cond[GKI_MAX_TASKS];
     pthread_mutex_t     thread_timeout_mutex[GKI_MAX_TASKS];
     pthread_cond_t      thread_timeout_cond[GKI_MAX_TASKS];
-    int                 no_timer_suspend;   /* 1: no suspend, 0 stop calling GKI_timer_update() */
-    pthread_mutex_t     gki_timer_mutex;
-    pthread_cond_t      gki_timer_cond;
 #if (GKI_DEBUG == TRUE)
     pthread_mutex_t     GKI_trace_mutex;
 #endif
 } tGKI_OS;
-
-/* condition to exit or continue GKI_run() timer loop */
-#define GKI_TIMER_TICK_RUN_COND 1
-#define GKI_TIMER_TICK_STOP_COND 0
 
 extern void gki_system_tick_start_stop_cback(BOOLEAN start);
 

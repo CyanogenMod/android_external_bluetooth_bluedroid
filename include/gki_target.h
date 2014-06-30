@@ -316,11 +316,6 @@ of order */
 #define GKI_MAX_EXCEPTION_MSGLEN    64
 #endif
 
-#ifndef GKI_SEND_MSG_FROM_ISR
-#define GKI_SEND_MSG_FROM_ISR    FALSE
-#endif
-
-
 /* The following is intended to be a reserved pool for SCO
 over HCI data and intentionally kept out of order */
 

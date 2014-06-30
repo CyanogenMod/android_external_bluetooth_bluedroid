@@ -40,23 +40,6 @@
 **  Constants & Macros
 ******************************************************************************/
 
-#ifndef GKI_TICK_TIMER_DEBUG
-#define GKI_TICK_TIMER_DEBUG FALSE
-#endif
-
-#define GKI_VERBOSE(fmt, ...) ALOGV ("%s: " fmt, __FUNCTION__, ## __VA_ARGS__)
-#define GKI_INFO(fmt, ...) ALOGI ("%s: " fmt, __FUNCTION__, ## __VA_ARGS__)
-#define GKI_ERROR(fmt, ...) ALOGE ("%s: " fmt, __FUNCTION__, ## __VA_ARGS__)
-
-/* always log errors */
-#define GKI_ERROR_LOG(fmt, ...)  ALOGE ("##### ERROR : %s: " fmt "#####", __FUNCTION__, ## __VA_ARGS__)
-
-#if defined (GKI_TICK_TIMER_DEBUG) && (GKI_TICK_TIMER_DEBUG == TRUE)
-#define GKI_TIMER_TRACE(fmt, ...) ALOGI ("%s: " fmt, __FUNCTION__, ## __VA_ARGS__)
-#else
-#define GKI_TIMER_TRACE(fmt, ...)
-#endif
-
 #define SCHED_NORMAL 0
 #define SCHED_FIFO 1
 #define SCHED_RR 2
@@ -154,14 +137,14 @@ void alarm_service_reschedule() {
     // No more timers remaining. Release wakelock if we're holding one.
     if (ticks_till_next_exp == 0) {
         if (alarm_service.wakelock) {
-            GKI_VERBOSE("%s releasing wake lock.", __func__);
+            ALOGV("%s releasing wake lock.", __func__);
             alarm_service.wakelock = false;
             int rc = bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
             if (rc != BT_STATUS_SUCCESS) {
-                GKI_ERROR("%s unable to release wake lock with no timers: %d", __func__, rc);
+                ALOGE("%s unable to release wake lock with no timers: %d", __func__, rc);
             }
         }
-        GKI_VERBOSE("%s no more alarms.", __func__);
+        ALOGV("%s no more alarms.", __func__);
         return;
     }
 
@@ -173,20 +156,20 @@ void alarm_service_reschedule() {
         // The next deadline is close, just take a wakelock and set a regular (non-wake) timer.
         int rc = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
         if (rc != BT_STATUS_SUCCESS) {
-            GKI_ERROR("%s unable to acquire wake lock: %d", __func__, rc);
+            ALOGE("%s unable to acquire wake lock: %d", __func__, rc);
             return;
         }
         alarm_service.wakelock = true;
-        GKI_VERBOSE("%s acquired wake lock, setting short alarm (%lldms).", __func__, ticks_in_millis);
+        ALOGV("%s acquired wake lock, setting short alarm (%lldms).", __func__, ticks_in_millis);
         if (!bt_os_callouts->set_wake_alarm(ticks_in_millis, false, bt_alarm_cb, &alarm_service)) {
-            GKI_ERROR("%s unable to set short alarm.", __func__);
+            ALOGE("%s unable to set short alarm.", __func__);
         }
     } else {
         // The deadline is far away, set a wake alarm and release wakelock if we're holding it.
         if (!bt_os_callouts->set_wake_alarm(ticks_in_millis, true, bt_alarm_cb, &alarm_service)) {
-            GKI_ERROR("%s unable to set long alarm, releasing wake lock anyway.", __func__);
+            ALOGE("%s unable to set long alarm, releasing wake lock anyway.", __func__);
         } else {
-            GKI_VERBOSE("%s set long alarm (%lldms), releasing wake lock.", __func__, ticks_in_millis);
+            ALOGV("%s set long alarm (%lldms), releasing wake lock.", __func__, ticks_in_millis);
         }
         alarm_service.wakelock = false;
         bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
@@ -210,13 +193,13 @@ static void gki_task_entry(UINT32 params)
 
     prctl(PR_SET_NAME, (unsigned long)gki_cb.com.OSTName[p_pthread_info->task_id], 0, 0, 0);
 
-    GKI_INFO("gki_task_entry task_id=%i [%s] starting\n", p_pthread_info->task_id,
+    ALOGI("gki_task_entry task_id=%i [%s] starting\n", p_pthread_info->task_id,
                 gki_cb.com.OSTName[p_pthread_info->task_id]);
 
     /* Call the actual thread entry point */
     (p_pthread_info->task_entry)(p_pthread_info->params);
 
-    GKI_INFO("gki_task task_id=%i [%s] terminating\n", p_pthread_info->task_id,
+    ALOGI("gki_task task_id=%i [%s] terminating\n", p_pthread_info->task_id,
                 gki_cb.com.OSTName[p_pthread_info->task_id]);
 
     pthread_exit(0);    /* GKI tasks have no return value */
@@ -260,13 +243,6 @@ void GKI_init(void)
     /* pthread_mutex_init(&thread_delay_mutex, NULL); */  /* used in GKI_delay */
     /* pthread_cond_init (&thread_delay_cond, NULL); */
 
-    /* Initialiase GKI_timer_update suspend variables & mutexes to be in running state.
-     * this works too even if GKI_NO_TICK_STOP is defined in btld.txt */
-    p_os->no_timer_suspend = GKI_TIMER_TICK_RUN_COND;
-    pthread_mutex_init(&p_os->gki_timer_mutex, NULL);
-#ifndef NO_GKI_RUN_RETURN
-    pthread_cond_init(&p_os->gki_timer_cond, NULL);
-#endif
 }
 
 
@@ -318,7 +294,7 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
 
     if (task_id >= GKI_MAX_TASKS)
     {
-        GKI_ERROR_LOG("Error! task ID > max task allowed");
+        ALOGE("Error! task ID > max task allowed");
         return (GKI_FAILURE);
     }
 
@@ -361,7 +337,7 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
 
     if (ret != 0)
     {
-         GKI_ERROR_LOG("pthread_create failed(%d), %s!\n\r", ret, taskname);
+         ALOGE("pthread_create failed(%d), %s!", ret, taskname);
          return GKI_FAILURE;
     }
 
@@ -446,11 +422,11 @@ void GKI_destroy_task(UINT8 task_id)
         result = pthread_join( gki_cb.os.thread_id[task_id], NULL );
         if ( result < 0 )
         {
-            GKI_ERROR_LOG( "pthread_join() FAILED: result: %d", result );
+            ALOGE( "pthread_join() FAILED: result: %d", result );
         }
 #endif
         GKI_exit_task(task_id);
-        GKI_INFO( "GKI_shutdown(): task [%s] terminated\n", gki_cb.com.OSTName[task_id]);
+        ALOGI( "GKI_shutdown(): task [%s] terminated\n", gki_cb.com.OSTName[task_id]);
     }
 }
 
@@ -478,7 +454,7 @@ void GKI_task_self_cleanup(UINT8 task_id)
 
     if (task_id != my_task_id)
     {
-        GKI_ERROR_LOG("%s: Wrong context - current task %d is not the given task id %d",\
+        ALOGE("%s: Wrong context - current task %d is not the given task id %d",\
                       __FUNCTION__, my_task_id, task_id);
         return;
     }
@@ -571,7 +547,6 @@ void GKI_shutdown(void)
                 ALOGE( "pthread_join() FAILED: result: %d", result );
             }
 #endif
-            // GKI_ERROR_LOG( "GKI_shutdown(): task %s dead\n", gki_cb.com.OSTName[task_id]);
             GKI_exit_task(task_id - 1);
         }
     }
@@ -606,9 +581,9 @@ void GKI_shutdown(void)
 void gki_system_tick_start_stop_cback(BOOLEAN start)
 {
     if (start) {
-        GKI_VERBOSE("Starting system ticks\n");
+        ALOGV("Starting system ticks\n");
     } else {
-        GKI_VERBOSE("Stopping system ticks\n");
+        ALOGV("Stopping system ticks\n");
     }
 }
 
@@ -648,23 +623,6 @@ static void gki_set_timer_scheduling( void )
     }
 }
 
-
-/*****************************************************************************
-**
-** Function        GKI_freeze
-**
-** Description     Freeze GKI. Relevant only when NO_GKI_RUN_RETURN is defined
-**
-** Returns
-**
-*******************************************************************************/
-
-void GKI_freeze()
-{
-#ifdef NO_GKI_RUN_RETURN
-    pthread_mutex_unlock( &gki_cb.os.gki_timer_mutex );
-#endif
-}
 
 /*****************************************************************************
 **
@@ -913,33 +871,6 @@ UINT8 GKI_send_event (UINT8 task_id, UINT16 event)
 
 /*******************************************************************************
 **
-** Function         GKI_isend_event
-**
-** Description      This function is called from ISRs to send events to other
-**                  tasks. The only difference between this function and GKI_send_event
-**                  is that this function assumes interrupts are already disabled.
-**
-** Parameters:      task_id -  (input) The destination task Id for the event.
-**                  event   -  (input) The event flag
-**
-** Returns          GKI_SUCCESS if all OK, else GKI_FAILURE
-**
-** NOTE             This function is NOT called by the Broadcom stack and
-**                  profiles. If you want to use it in your own implementation,
-**                  put your code here, otherwise you can delete the entire
-**                  body of the function.
-**
-*******************************************************************************/
-UINT8 GKI_isend_event (UINT8 task_id, UINT16 event)
-{
-    GKI_TRACE("GKI_isend_event %d %x", task_id, event);
-    GKI_TRACE("GKI_isend_event %d %x done", task_id, event);
-    return    GKI_send_event(task_id, event);
-}
-
-
-/*******************************************************************************
-**
 ** Function         GKI_get_taskid
 **
 ** Description      This function gets the currently running task ID.
@@ -1061,20 +992,20 @@ void GKI_exception (UINT16 code, char *msg)
     UINT8 task_id;
     int i = 0;
 
-    GKI_ERROR_LOG( "GKI_exception(): Task State Table\n");
+    ALOGE( "GKI_exception(): Task State Table");
 
     for(task_id = 0; task_id < GKI_MAX_TASKS; task_id++)
     {
-        GKI_ERROR_LOG( "TASK ID [%d] task name [%s] state [%d]\n",
+        ALOGE( "TASK ID [%d] task name [%s] state [%d]",
                          task_id,
                          gki_cb.com.OSTName[task_id],
                          gki_cb.com.OSRdyTbl[task_id]);
     }
 
-    GKI_ERROR_LOG("GKI_exception %d %s", code, msg);
-    GKI_ERROR_LOG( "\n********************************************************************\n");
-    GKI_ERROR_LOG( "* GKI_exception(): %d %s\n", code, msg);
-    GKI_ERROR_LOG( "********************************************************************\n");
+    ALOGE("GKI_exception %d %s", code, msg);
+    ALOGE( "********************************************************************");
+    ALOGE( "* GKI_exception(): %d %s", code, msg);
+    ALOGE( "********************************************************************");
 
 #if 0//(GKI_DEBUG == TRUE)
     GKI_disable();
@@ -1095,58 +1026,6 @@ void GKI_exception (UINT16 code, char *msg)
     GKI_TRACE("GKI_exception %d %s done", code, msg);
     return;
 }
-
-
-/*******************************************************************************
-**
-** Function         GKI_get_time_stamp
-**
-** Description      This function formats the time into a user area
-**
-** Parameters:      tbuf -  (output) the address to the memory containing the
-**                  formatted time
-**
-** Returns          the address of the user area containing the formatted time
-**                  The format of the time is ????
-**
-** NOTE             This function is only called by OBEX.
-**
-*******************************************************************************/
-INT8 *GKI_get_time_stamp (INT8 *tbuf)
-{
-    UINT32 ms_time;
-    UINT32 s_time;
-    UINT32 m_time;
-    UINT32 h_time;
-    INT8   *p_out = tbuf;
-
-    gki_cb.com.OSTicks = times(0);
-    ms_time = GKI_TICKS_TO_MS(gki_cb.com.OSTicks);
-    s_time  = ms_time/100;   /* 100 Ticks per second */
-    m_time  = s_time/60;
-    h_time  = m_time/60;
-
-    ms_time -= s_time*100;
-    s_time  -= m_time*60;
-    m_time  -= h_time*60;
-
-    *p_out++ = (INT8)((h_time / 10) + '0');
-    *p_out++ = (INT8)((h_time % 10) + '0');
-    *p_out++ = ':';
-    *p_out++ = (INT8)((m_time / 10) + '0');
-    *p_out++ = (INT8)((m_time % 10) + '0');
-    *p_out++ = ':';
-    *p_out++ = (INT8)((s_time / 10) + '0');
-    *p_out++ = (INT8)((s_time % 10) + '0');
-    *p_out++ = ':';
-    *p_out++ = (INT8)((ms_time / 10) + '0');
-    *p_out++ = (INT8)((ms_time % 10) + '0');
-    *p_out++ = ':';
-    *p_out   = 0;
-
-    return (tbuf);
-}
-
 
 /*******************************************************************************
 **
@@ -1217,6 +1096,6 @@ void GKI_exit_task (UINT8 task_id)
 
     GKI_enable();
 
-    GKI_INFO("GKI_exit_task %d done", task_id);
+    ALOGI("GKI_exit_task %d done", task_id);
     return;
 }

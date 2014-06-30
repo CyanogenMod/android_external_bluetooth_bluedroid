@@ -20,10 +20,6 @@
 #include <utils/Log.h>
 #include "gki_int.h"
 
-#ifndef BT_ERROR_TRACE_0
-#define BT_ERROR_TRACE_0(l,m)
-#endif
-
 /* Make sure that this has been defined in target.h */
 #ifndef GKI_NUM_TIMERS
 #error  NO TIMERS: Must define at least 1 timer in the system!
@@ -32,8 +28,6 @@
 
 #define GKI_NO_NEW_TMRS_STARTED (0x7fffffffL)   /* Largest signed positive timer count */
 #define GKI_UNUSED_LIST_ENTRY   (0x80000000L)   /* Marks an unused timer list entry (initial value) */
-
-#define GKI_ERROR(fmt, ...)  ALOGE ("ERROR : %s: " fmt, __FUNCTION__, ## __VA_ARGS__)
 
 // Used for controlling alarms from AlarmService.
 extern void alarm_service_reschedule(void);
@@ -430,7 +424,7 @@ void GKI_timer_update (INT32 ticks_since_last_update)
     {
         // When using alarms from AlarmService we should
         // always have work to be done here.
-        GKI_ERROR("No work to be done when expected work\n");
+        ALOGE("%s no work to be done when expected work", __func__);
         gki_cb.com.timer_nesting = 0;
         return;
     }
@@ -477,12 +471,7 @@ void GKI_timer_update (INT32 ticks_since_last_update)
             {
                 /* Reload timer and set Timer 0 Expired event mask */
                 gki_cb.com.OSTaskTmr0[task_id] = gki_cb.com.OSTaskTmr0R[task_id];
-
-#if (defined(GKI_TIMER_UPDATES_FROM_ISR) &&  GKI_TIMER_UPDATES_FROM_ISR == TRUE)
-                GKI_isend_event (task_id, TIMER_0_EVT_MASK);
-#else
                 GKI_send_event (task_id, TIMER_0_EVT_MASK);
-#endif
             }
         }
 
@@ -501,12 +490,7 @@ void GKI_timer_update (INT32 ticks_since_last_update)
             {
                 /* Reload timer and set Timer 1 Expired event mask */
                 gki_cb.com.OSTaskTmr1[task_id] = gki_cb.com.OSTaskTmr1R[task_id];
-
-#if (defined(GKI_TIMER_UPDATES_FROM_ISR) &&  GKI_TIMER_UPDATES_FROM_ISR == TRUE)
-                GKI_isend_event (task_id, TIMER_1_EVT_MASK);
-#else
                 GKI_send_event (task_id, TIMER_1_EVT_MASK);
-#endif
             }
         }
 
@@ -525,12 +509,7 @@ void GKI_timer_update (INT32 ticks_since_last_update)
             {
                 /* Reload timer and set Timer 2 Expired event mask */
                 gki_cb.com.OSTaskTmr2[task_id] = gki_cb.com.OSTaskTmr2R[task_id];
-
-#if (defined(GKI_TIMER_UPDATES_FROM_ISR) &&  GKI_TIMER_UPDATES_FROM_ISR == TRUE)
-                GKI_isend_event (task_id, TIMER_2_EVT_MASK);
-#else
                 GKI_send_event (task_id, TIMER_2_EVT_MASK);
-#endif
             }
         }
 
@@ -549,12 +528,7 @@ void GKI_timer_update (INT32 ticks_since_last_update)
             {
                 /* Reload timer and set Timer 3 Expired event mask */
                 gki_cb.com.OSTaskTmr3[task_id] = gki_cb.com.OSTaskTmr3R[task_id];
-
-#if (defined(GKI_TIMER_UPDATES_FROM_ISR) &&  GKI_TIMER_UPDATES_FROM_ISR == TRUE)
-                GKI_isend_event (task_id, TIMER_3_EVT_MASK);
-#else
                 GKI_send_event (task_id, TIMER_3_EVT_MASK);
-#endif
             }
         }
 
@@ -581,8 +555,6 @@ void GKI_timer_update (INT32 ticks_since_last_update)
     /* End the critical section */
     GKI_enable();
 #endif
-
-//    GKI_ERROR("Timer expired - next expiration ticks:%ld\n", next_expiration);
 
     gki_cb.com.timer_nesting = 0;
 
@@ -801,13 +773,8 @@ UINT32 GKI_get_remaining_ticks (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_
         }
         else
         {
-            BT_ERROR_TRACE_0(TRACE_LAYER_GKI, "GKI_get_remaining_ticks: No timer entry in the list");
             return(0);
         }
-    }
-    else
-    {
-        BT_ERROR_TRACE_0(TRACE_LAYER_GKI, "GKI_get_remaining_ticks: timer entry is not active");
     }
 
     return (rem_ticks);
@@ -867,7 +834,7 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
             if (p_temp == NULL)
             {
                 /* list is corrupted, exit to avoid crash */
-                GKI_ERROR("GKI_add_to_timer_list : Timerlist Q is empty");
+                ALOGE("%s: Timerlist Q is empty", __func__);
                 GKI_exception(GKI_ERROR_TIMER_LIST_CORRUPTED, "*** "
                         "GKI_add_to_timer_list(): timer list corrupted! ***");
                 return;

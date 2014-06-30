@@ -307,10 +307,6 @@
 #define HL_INCLUDED  TRUE
 #endif
 
-#ifndef NO_GKI_RUN_RETURN
-#define NO_GKI_RUN_RETURN  TRUE
-#endif
-
 #ifndef AG_VOICE_SETTINGS
 #define AG_VOICE_SETTINGS  HCI_DEFAULT_VOICE_SETTINGS
 #endif

@@ -224,7 +224,6 @@ void bte_main_disable(void)
     preload_stop_wait_timer();
     bte_hci_disable();
     GKI_destroy_task(BTU_TASK);
-    GKI_freeze();
 }
 
 /******************************************************************************
