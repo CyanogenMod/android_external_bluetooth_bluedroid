@@ -1403,6 +1403,9 @@ enum
     BTM_SP_KEY_REQ_EVT,     /* received USER_PASSKEY_REQUEST event */
     BTM_SP_KEYPRESS_EVT,    /* received KEYPRESS_NOTIFY event */
     BTM_SP_LOC_OOB_EVT,     /* received result for READ_LOCAL_OOB_DATA command */
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+    BTM_SP_LOC_OOB_EXTENDED_EVT, /* received result for READ_LOCAL_OOB_EXTENDED_DATA command */
+#endif
     BTM_SP_RMT_OOB_EVT,     /* received REMOTE_OOB_DATA_REQUEST event */
     BTM_SP_COMPLT_EVT,      /* received SIMPLE_PAIRING_COMPLETE event */
     BTM_SP_UPGRADE_EVT      /* check if the application wants to upgrade the link key */
@@ -1529,6 +1532,20 @@ typedef struct
     BT_OCTET16      r;              /* Simple Pairing Randomnizer R */
 } tBTM_SP_LOC_OOB;
 
+
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+/* data type for BTM_SP_LOC_OOB_EXTENDED_EVT */
+typedef struct
+{
+    tBTM_STATUS     status;         /* */
+    BT_OCTET16      c;              /* Simple Pairing Hash C */
+    BT_OCTET16      r;              /* Simple Pairing Randomnizer R */
+    BT_OCTET16      c_256;          /* Simple Pairing Hash C with P256*/
+    BT_OCTET16      r_256;          /* Simple Pairing Randomnizer R with P256*/
+} tBTM_SP_LOC_OOB_EXTENDED;
+#endif
+
+
 /* data type for BTM_SP_RMT_OOB_EVT */
 typedef struct
 {
@@ -1563,6 +1580,9 @@ typedef union
     tBTM_SP_KEY_REQ     key_req;    /* BTM_SP_KEY_REQ_EVT     */
     tBTM_SP_KEYPRESS    key_press;  /* BTM_SP_KEYPRESS_EVT    */
     tBTM_SP_LOC_OOB     loc_oob;    /* BTM_SP_LOC_OOB_EVT     */
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+    tBTM_SP_LOC_OOB_EXTENDED loc_oob_ext;    /* BTM_SP_LOC_OOB_EXTENDED_EVT     */
+#endif
     tBTM_SP_RMT_OOB     rmt_oob;    /* BTM_SP_RMT_OOB_EVT     */
     tBTM_SP_COMPLT      complt;     /* BTM_SP_COMPLT_EVT      */
     tBTM_SP_UPGRADE     upgrade;    /* BTM_SP_UPGRADE_EVT      */

@@ -162,6 +162,10 @@ void btm_dev_init (void)
                                          BTM_SCO_PKT_TYPES_MASK_EV4 +
                                          BTM_SCO_PKT_TYPES_MASK_EV5;
 
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+    btm_cb.btm_sec_conn_supported = FALSE;
+#endif
+
     btm_cb.first_disabled_channel = 0xff; /* To allow disabling 0th channel alone */
     btm_cb.last_disabled_channel = 0xff; /* To allow disabling 0th channel alone */
 
@@ -1146,12 +1150,21 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
 
     /* Extended Page 1 */
     case HCI_EXT_FEATURES_PAGE_1:
-        /* Nothing to do for page 1 */
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+        if (HCI_SECURE_CONN_HOST_SUPPORTED(p_features))
+        {
+            BTM_TRACE_WARNING("btm_decode_ext_features_page Secure conn Host support Enabled");
+        }
+#endif
         break;
-
     /* Extended Page 2 */
     case HCI_EXT_FEATURES_PAGE_2:
-        /* Nothing to do for page 2 */
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+        if (HCI_SECURE_CONN_CTRL_SUPPORTED(p_features))
+        {
+            BTM_TRACE_WARNING("btm_decode_ext_features_page Secure conn Controller support Enabled");
+        }
+#endif
         break;
 
     default:
@@ -1215,6 +1228,15 @@ void btm_reset_ctrlr_complete ()
         btm_decode_ext_features_page(i, p_devcb->local_lmp_features[i]);
     }
 
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+    if( (max_page_number == HCI_EXT_FEATURES_PAGE_2) &&
+        (HCI_SECURE_CONN_CTRL_SUPPORTED(p_devcb->local_lmp_features[HCI_EXT_FEATURES_PAGE_2])) &&
+        (HCI_SECURE_CONN_HOST_SUPPORTED(p_devcb->local_lmp_features[HCI_EXT_FEATURES_PAGE_1])))
+    {
+        btm_cb.btm_sec_conn_supported = TRUE;
+    }
+#endif
+
     /* If there was a callback address for reset complete, reset it */
     p_devcb->p_reset_cmpl_cb = NULL;
 
@@ -1263,6 +1285,14 @@ static void btm_issue_host_support_for_lmp_features (void)
         {
             btsnd_hcic_ble_write_host_supported(BTM_BLE_HOST_SUPPORT, 0);
         }
+        return;
+    }
+#endif
+
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+    if (btm_cb.devcb.lmp_features_host_may_support & BTM_HOST_MAY_SUPP_SECURE_CONN)
+    {
+        btsnd_hcic_write_sec_conn_host_support(HCI_SECURE_CONN_HOST_ENABLED);
         return;
     }
 #endif
@@ -1342,10 +1372,20 @@ static void btm_set_lmp_features_host_may_support (UINT8 max_page_number)
         /* nothing yet for HCI_EXT_FEATURES_PAGE_1 */
     }
 
-    if (max_page_number >= HCI_EXT_FEATURES_PAGE_1)
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+    if (max_page_number == HCI_EXT_FEATURES_PAGE_2)
     {
-        /* nothing yet for HCI_EXT_FEATURES_PAGE_2 */
+        if (HCI_SECURE_CONN_CTRL_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_2]))
+        {
+            /* host may support secure connection if the Secure simple pairing(Host support)
+               bit is set */
+            if(btm_cb.devcb.lmp_features_host_may_support & BTM_HOST_MAY_SUPP_SSP)
+            {
+                btm_cb.devcb.lmp_features_host_may_support |= BTM_HOST_MAY_SUPP_SECURE_CONN;
+            }
+        }
     }
+#endif
 
     if (btm_cb.devcb.lmp_features_host_may_support)
         btm_cb.devcb.lmp_features_host_may_support |= BTM_RE_READ_1ST_PAGE;
@@ -1534,6 +1574,13 @@ void btm_write_simple_paring_mode_complete (UINT8 *p)
     if (status != HCI_SUCCESS)
     {
         BTM_TRACE_WARNING("btm_write_simple_paring_mode_complete status: 0x%02x", status);
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+        /* reset the Secure connection Host bit as it's dependent on SSP support */
+        if (btm_cb.devcb.lmp_features_host_may_support & BTM_HOST_MAY_SUPP_SECURE_CONN)
+        {
+            btm_cb.devcb.lmp_features_host_may_support &= ~BTM_HOST_MAY_SUPP_SECURE_CONN;
+        }
+#endif
     }
 
     if (btm_cb.devcb.lmp_features_host_may_support & BTM_HOST_MAY_SUPP_SSP)
@@ -1542,6 +1589,37 @@ void btm_write_simple_paring_mode_complete (UINT8 *p)
         btm_issue_host_support_for_lmp_features();
     }
 }
+
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+/*******************************************************************************
+**
+** Function         btm_write_secure_conn_host_support_complete
+**
+** Description      This function is called when the command complete message
+**                  is received from the HCI for the write simple pairing mode
+**                  command.
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_write_secure_conn_host_support_complete (UINT8 *p)
+{
+    UINT8   status;
+
+    STREAM_TO_UINT8 (status, p);
+
+    if (status != HCI_SUCCESS)
+    {
+        BTM_TRACE_WARNING("btm_write_secure_conn_host_support_complete status: 0x%02x", status);
+    }
+
+    if (btm_cb.devcb.lmp_features_host_may_support & BTM_HOST_MAY_SUPP_SECURE_CONN)
+    {
+        btm_cb.devcb.lmp_features_host_may_support &= ~BTM_HOST_MAY_SUPP_SECURE_CONN;
+        btm_issue_host_support_for_lmp_features();
+    }
+}
+#endif
 
 /*******************************************************************************
 **

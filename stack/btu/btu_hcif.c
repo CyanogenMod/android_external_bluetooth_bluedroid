@@ -1105,6 +1105,32 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             btm_write_le_host_supported_complete (p);
             break;
 
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+        case HCI_WRITE_SECURE_CONN_HOST_SUPPORT:
+            btm_write_secure_conn_host_support_complete (p);
+            break;
+
+        case HCI_READ_SECURE_CONN_HOST_SUPPORT:
+            break;
+
+        case HCI_WRITE_SEC_CONN_TEST_MODE:
+            break;
+
+        case HCI_WRITE_AUTH_PAYLOAD_TOUT:
+            break;
+
+        case HCI_READ_AUTH_PAYLOAD_TOUT:
+            break;
+
+        case HCI_READ_LOCAL_OOB_EXTENDED_DATA:
+#if BTM_OOB_INCLUDED == TRUE
+            btm_read_local_oob_extended_complete(p);
+            break;
+#endif
+        case HCI_REM_OOB_EXTENDED_DATA_REQ_REPLY:
+            break;
+#endif
+
 #if (BLE_INCLUDED == TRUE)
 /* BLE Commands sComplete*/
         case HCI_BLE_READ_WHITE_LIST_SIZE :

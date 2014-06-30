@@ -1087,6 +1087,11 @@ and USER_HW_DISABLE_API macros */
 #define BTM_SSR_INCLUDED                TRUE
 #endif
 
+/* TRUE to include Secure connection Host Part */
+#ifndef BTM_SECURE_CONN_HOST_INCLUDED
+#define BTM_SECURE_CONN_HOST_INCLUDED    TRUE
+#endif
+
 /*************************
 ** End of Lisbon Features
 **************************/

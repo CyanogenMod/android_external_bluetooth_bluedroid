@@ -226,6 +226,9 @@ UINT8                   le_supported_states[BTM_LE_SUPPORT_STATE_SIZE];
 #define BTM_HOST_MAY_SUPP_SSP           0x02
 #define BTM_HOST_MAY_SUPP_LE            0x04
 #define BTM_HOST_MAY_SUPP_SIMULT_BR_LE  0x08
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+#define BTM_HOST_MAY_SUPP_SECURE_CONN   0x10
+#endif
     UINT8               lmp_features_host_may_support;  /* The flags of LMP features host may support via BR/EDR ctrlr + BTM_RE_READ_1ST_PAGE */
     UINT8               supported_cmds[HCI_NUM_SUPP_COMMANDS_BYTES]; /* Supported Commands bit field */
 
@@ -851,6 +854,9 @@ typedef struct
     UINT16      btm_acl_pkt_types_supported;
     UINT16      btm_sco_pkt_types_supported;
 
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+    BOOLEAN     btm_sec_conn_supported;  /* secure connection support from Host and Controller */
+#endif
 
     /*****************************************************
     **      Inquiry
@@ -1085,6 +1091,10 @@ extern void btm_read_local_name_complete (UINT8 *p, UINT16 evt_len);
 extern void btm_read_local_addr_complete (UINT8 *p, UINT16 evt_len);
 extern  void btm_reset_ctrlr_complete (void);
 extern void btm_write_simple_paring_mode_complete (UINT8 *p);
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+extern void btm_write_secure_conn_host_support_complete (UINT8 *p);
+extern void btm_read_local_oob_extended_complete (UINT8 *p);
+#endif
 extern void btm_write_le_host_supported_complete (UINT8 *p);
 
 #if (BLE_INCLUDED == TRUE)

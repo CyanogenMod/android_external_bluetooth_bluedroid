@@ -1034,10 +1034,14 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
     if ( (p_auth_cmpl->success == TRUE) && (p_auth_cmpl->key_present) )
     {
         if ((p_auth_cmpl->key_type < HCI_LKEY_TYPE_DEBUG_COMB)  || (p_auth_cmpl->key_type == HCI_LKEY_TYPE_AUTH_COMB) ||
-            (p_auth_cmpl->key_type == HCI_LKEY_TYPE_CHANGED_COMB) || (!pairing_cb.is_temp))
+            (p_auth_cmpl->key_type == HCI_LKEY_TYPE_CHANGED_COMB) ||
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+            (p_auth_cmpl->key_type == HCI_LKEY_TYPE_AUTH_COMB_P256) ||
+#endif
+             (!pairing_cb.is_temp))
         {
             bt_status_t ret;
-            BTIF_TRACE_DEBUG("%s: Storing link key. key_type=0x%x, is_temp=%d",
+            BTIF_TRACE_WARNING("%s: Storing link key. key_type=0x%x, is_temp=%d",
                 __FUNCTION__, p_auth_cmpl->key_type, pairing_cb.is_temp);
             ret = btif_storage_add_bonded_device(&bd_addr,
                                 p_auth_cmpl->key, p_auth_cmpl->key_type,

@@ -3882,6 +3882,41 @@ void btm_read_local_oob_complete (UINT8 *p)
     if (btm_cb.api.p_sp_callback)
         (*btm_cb.api.p_sp_callback) (BTM_SP_LOC_OOB_EVT, (tBTM_SP_EVT_DATA *)&evt_data);
 }
+
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+
+/*******************************************************************************
+**
+** Function         btm_read_local_oob_complete
+**
+** Description      This function is called when read local oob data is
+**                  completed by the LM
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_read_local_oob_extended_complete (UINT8 *p)
+{
+    tBTM_SP_LOC_OOB_EXTENDED evt_data;
+    UINT8           status = *p++;
+
+    BTM_TRACE_EVENT ("btm_read_local_oob_extended_complete:%d", status);
+    if (status == HCI_SUCCESS)
+    {
+        evt_data.status = BTM_SUCCESS;
+        STREAM_TO_ARRAY16(evt_data.c, p);
+        STREAM_TO_ARRAY16(evt_data.r, p);
+        STREAM_TO_ARRAY16(evt_data.c_256, p);
+        STREAM_TO_ARRAY16(evt_data.r_256, p);
+    }
+    else
+        evt_data.status = BTM_ERR_PROCESSING;
+
+    if (btm_cb.api.p_sp_callback)
+        (*btm_cb.api.p_sp_callback) (BTM_SP_LOC_OOB_EXTENDED_EVT, (tBTM_SP_EVT_DATA *)&evt_data);
+}
+
+#endif
 #endif /* BTM_OOB_INCLUDED */
 
 /*******************************************************************************
@@ -4166,7 +4201,7 @@ void btm_sec_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
     tACL_CONN       *p_acl = NULL;
     UINT8           acl_idx = btm_handle_to_acl_index(handle);
 #endif
-    BTM_TRACE_EVENT ("Security Manager: encrypt_change status:%d State:%d, encr_enable = %d",
+    BTM_TRACE_WARNING ("Security Manager: encrypt_change status:%d State:%d, encr_enable = %d",
                       status, (p_dev_rec) ? p_dev_rec->sec_state : 0, encr_enable);
     BTM_TRACE_DEBUG ("before update p_dev_rec->sec_flags=0x%x", (p_dev_rec) ? p_dev_rec->sec_flags : 0 );
 
