@@ -372,7 +372,6 @@ typedef struct
     tBTA_GATTC_RCB      *p_rcb;         /* pointer to the registration CB */
     tBTA_GATTC_SERV     *p_srcb;    /* server cache CB */
     tBTA_GATTC_DATA     *p_q_cmd;   /* command in queue waiting for execution */
-    BOOLEAN             buf_held;
 
 #define BTA_GATTC_NO_SCHEDULE       0
 #define BTA_GATTC_DISC_WAITING      0x01

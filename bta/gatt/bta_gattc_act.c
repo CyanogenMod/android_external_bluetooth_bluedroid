@@ -1045,9 +1045,13 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         p_clcb->p_q_cmd = NULL;
 
         bta_gattc_sm_execute(p_clcb, p_q_cmd->hdr.event, p_q_cmd);
-
-        utl_freebuf((void **)&p_q_cmd);
-
+        /* if the command executed requeued the cmd, we don't
+         * want to free the underlying buffer that's being
+         * referenced by p_clcb->p_q_cmd
+         */
+        if (p_q_cmd != p_clcb->p_q_cmd) {
+            utl_freebuf((void **)&p_q_cmd);
+        }
     }
 }
 /*******************************************************************************

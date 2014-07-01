@@ -436,16 +436,16 @@ BOOLEAN bta_gattc_enqueue(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
  if (p_clcb->p_q_cmd == NULL)
  {
      p_clcb->p_q_cmd = p_data;
-     p_clcb->buf_held = TRUE;
  }
  else
  {
      APPL_TRACE_ERROR("already has a pending command!!");
      /* skip the callback now. ----- need to send callback ? */
  }
- return p_clcb->buf_held;
+ return (p_clcb->p_q_cmd != NULL) ? TRUE : FALSE;
 
 }
+
 /*******************************************************************************
 **
 ** Function         bta_gattc_pack_attr_uuid

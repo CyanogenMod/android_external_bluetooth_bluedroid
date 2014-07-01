@@ -322,10 +322,10 @@ BOOLEAN bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_D
         if ((action = state_table[event][i]) != BTA_GATTC_IGNORE)
         {
             (*bta_gattc_action[action])(p_clcb, p_data);
-
-            if (p_clcb->buf_held)
-            {
-                p_clcb->buf_held = FALSE;
+            if (p_clcb->p_q_cmd == p_data) {
+                /* buffer is queued, don't free in the bta dispatcher.
+                 * we free it ourselves when a completion event is received.
+                 */
                 rt = FALSE;
             }
         }
@@ -344,7 +344,7 @@ BOOLEAN bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_D
                           gattc_evt_code(in_event));
     }
 #endif
-return rt;
+    return rt;
 }
 
 /*******************************************************************************
