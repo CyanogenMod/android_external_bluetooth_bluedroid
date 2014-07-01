@@ -40,7 +40,6 @@
 #define LOG_TAG "BTIF_STORAGE"
 
 #include "btif_api.h"
-
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "bd.h"

@@ -106,6 +106,8 @@ enum
     BTA_DM_API_BLE_ADVDATA_MASK_EVT,
     BTA_DM_API_BLE_ADVDATA_EVT,
     BTA_DM_API_BLE_SET_ADV_CONFIG_EVT,
+    BTA_DM_API_BLE_SET_SCAN_RSP_EVT,
+    BTA_DM_API_BLE_BROADCAST_EVT,
     BTA_DM_API_BLE_SERVICEDATA_EVT,
 #endif
 
@@ -1079,6 +1081,8 @@ extern void bta_dm_ble_set_adv_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_set_advData_Mask(tBTA_DM_MSG *p_data);
 extern void bta_dm_set_adv_data(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data);
+extern void bta_dm_ble_set_scan_rsp (tBTA_DM_MSG *p_data);
+extern void bta_dm_ble_broadcast (tBTA_DM_MSG *p_data);
 extern void bta_dm_set_service_data(tBTA_DM_MSG *p_data);
 
 #endif

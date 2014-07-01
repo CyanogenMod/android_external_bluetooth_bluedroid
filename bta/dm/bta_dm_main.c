@@ -103,6 +103,8 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_set_advData_Mask,         /*BTA_DM_API_BLE_ADVDATA_MASK_EVT*/
     bta_dm_set_adv_data,             /*BTA_DM_API_BLE_ADVDATA_EVT*/
     bta_dm_ble_set_adv_config,     /* BTA_DM_API_BLE_SET_ADV_CONFIG_EVT */
+    bta_dm_ble_set_scan_rsp,       /* BTA_DM_API_BLE_SET_SCAN_RSP_EVT */
+    bta_dm_ble_broadcast,          /* BTA_DM_API_BLE_BROADCAST_EVT */
     bta_dm_set_service_data,         /*BTA_DM_API_BLE_SERVICEDATA_EVT*/
 #endif
 

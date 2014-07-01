@@ -867,19 +867,19 @@ tBTM_STATUS BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms, tBTM_INQ_RESULTS_CB *p
        Also do not allow an inquiry if the inquiry filter is being updated */
     if (p_inq->inq_active || p_inq->inqfilt_active)
     {
+#if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
         /*check if LE observe is already running*/
         if(p_inq->scan_type==INQ_LE_OBSERVE && p_inq->p_inq_ble_results_cb!=NULL)
         {
             BTM_TRACE_API0("BTM_StartInquiry: LE observe in progress");
             p_inq->scan_type = INQ_GENERAL;
             p_inq->inq_active = BTM_INQUIRY_INACTIVE;
-#if BLE_INCLUDED == TRUE
             btm_cb.ble_ctr_cb.inq_var.scan_type = BTM_BLE_SCAN_MODE_NONE;
             btm_cb.ble_ctr_cb.inq_var.proc_mode = BTM_BLE_INQUIRY_NONE;
             btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_DISABLE, BTM_BLE_DUPLICATE_ENABLE);
-#endif
         }
         else
+#endif
         {
             return (BTM_BUSY);
             BTM_TRACE_API0("BTM_StartInquiry: return BUSY");
@@ -2512,7 +2512,7 @@ void btm_process_inq_complete (UINT8 status, UINT8 mode)
     if(p_inq->inqparms.mode == 0 && p_inq->scan_type == INQ_GENERAL)//this inquiry is complete
     {
         p_inq->scan_type = INQ_NONE;
-#if BLE_INCLUDED == TRUE
+#if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
         /* check if the LE observe is pending */
         if(p_inq->p_inq_ble_results_cb != NULL)
         {

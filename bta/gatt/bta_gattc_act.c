@@ -52,13 +52,16 @@ static void  bta_gattc_cmpl_cback(UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
 
 static void bta_gattc_deregister_cmpl(tBTA_GATTC_RCB *p_clreg);
 
+static void bta_gattc_enc_cmpl_cback(tGATT_IF gattc_if, BD_ADDR bda);
+
 static tGATT_CBACK bta_gattc_cl_cback =
 {
     bta_gattc_conn_cback,
     bta_gattc_cmpl_cback,
     bta_gattc_disc_res_cback,
     bta_gattc_disc_cmpl_cback,
-    NULL
+    NULL,
+    bta_gattc_enc_cmpl_cback
 };
 
 /* opcode(tGATTC_OPTYPE) order has to be comply with internal event order */
@@ -399,6 +402,34 @@ void bta_gattc_process_api_open_cancel (tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p
 
     }
 }
+
+/*******************************************************************************
+**
+** Function         bta_gattc_process_enc_cmpl
+**
+** Description      process encryption complete message.
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_gattc_process_enc_cmpl(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_msg)
+{
+    tBTA_GATTC_RCB *p_clreg;
+    tBTA_GATTC cb_data;
+
+    p_clreg = bta_gattc_cl_get_regcb(p_msg->enc_cmpl.client_if);
+
+    if (p_clreg && p_clreg->p_cback)
+    {
+        memset(&cb_data, 0, sizeof(tBTA_GATTC));
+
+        cb_data.enc_cmpl.client_if = p_msg->enc_cmpl.client_if;
+        bdcpy(cb_data.enc_cmpl.remote_bda, p_msg->enc_cmpl.remote_bda);
+
+        (*p_clreg->p_cback)(BTA_GATTC_ENC_CMPL_CB_EVT, &cb_data);
+    }
+}
+
 /*******************************************************************************
 **
 ** Function         bta_gattc_cancel_open_error
@@ -1635,6 +1666,50 @@ static void bta_gattc_conn_cback(tGATT_IF gattc_if, BD_ADDR bda, UINT16 conn_id,
 
 /*******************************************************************************
 **
+** Function         bta_gattc_enc_cmpl_cback
+**
+** Description      encryption complete callback function to GATT client stack.
+**
+** Returns          void
+**
+*******************************************************************************/
+static void bta_gattc_enc_cmpl_cback(tGATT_IF gattc_if, BD_ADDR bda)
+{
+    tBTA_GATTC_DATA *p_buf;
+    tBTA_GATTC_CLCB *p_clcb = NULL;
+
+    if ((p_clcb = bta_gattc_find_clcb_by_cif(gattc_if, bda)) == NULL)
+    {
+        return;
+    }
+
+#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+    /* filter this event just for BTA HH LE GATT client,
+       In the future, if we want to enable encryption complete event
+       for all GATT clients, we can remove this code */
+    if (!bta_hh_le_is_hh_gatt_if(gattc_if))
+    {
+        return;
+    }
+#endif
+
+    APPL_TRACE_DEBUG1("bta_gattc_enc_cmpl_cback: cif = %d", gattc_if);
+
+    if ((p_buf = (tBTA_GATTC_DATA *) GKI_getbuf(sizeof(tBTA_GATTC_DATA))) != NULL)
+    {
+        memset(p_buf, 0, sizeof(tBTA_GATTC_DATA));
+
+        p_buf->enc_cmpl.hdr.event            = BTA_GATTC_ENC_CMPL_EVT;
+        p_buf->enc_cmpl.hdr.layer_specific   = p_clcb->bta_conn_id;
+        p_buf->enc_cmpl.client_if            = gattc_if;
+        bdcpy(p_buf->enc_cmpl.remote_bda, bda);
+
+        bta_sys_sendmsg(p_buf);
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         bta_gattc_process_api_refresh
 **
 ** Description      process refresh API to delete cache and start a new discovery
@@ -2052,6 +2127,28 @@ void bta_gattc_listen(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
             }
         }
     }
+}
+
+/*******************************************************************************
+**
+** Function         bta_gattc_broadcast
+**
+** Description      Start or stop broadcasting
+**
+** Returns          void
+**
+********************************************************************************/
+void bta_gattc_broadcast(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
+{
+    tBTA_GATTC_RCB      *p_clreg = bta_gattc_cl_get_regcb(p_msg->api_listen.client_if);
+    tBTA_GATTC          cb_data;
+    (void)(p_cb);
+
+    cb_data.reg_oper.client_if = p_msg->api_listen.client_if;
+    cb_data.reg_oper.status = BTM_BleBroadcast(p_msg->api_listen.start);
+
+    if (p_clreg && p_clreg->p_cback)
+        (*p_clreg->p_cback)(BTA_GATTC_LISTEN_EVT, &cb_data);
 }
 #endif
 #endif

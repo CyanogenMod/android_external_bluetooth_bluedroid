@@ -115,6 +115,7 @@ typedef UINT8 tBTA_GATT_STATUS;
 #define BTA_GATTC_CANCEL_OPEN_EVT   14  /* cancel open event */
 #define BTA_GATTC_SRVC_CHG_EVT      15  /* service change event */
 #define BTA_GATTC_LISTEN_EVT        16  /* listen event */
+#define BTA_GATTC_ENC_CMPL_CB_EVT   17  /* encryption complete callback event */
 
 typedef UINT8 tBTA_GATTC_EVT;
 
@@ -349,6 +350,12 @@ typedef struct
 }tBTA_GATTC_OPEN_CLOSE;
 // btla-specific --
 
+typedef struct
+{
+    tBTA_GATTC_IF       client_if;
+    BD_ADDR             remote_bda;
+}tBTA_GATTC_ENC_CMPL_CB;
+
 typedef union
 {
     tBTA_GATT_STATUS        status;
@@ -362,6 +369,7 @@ typedef union
     tBTA_GATTC_WRITE        write;            /* write complete data */
     tBTA_GATTC_EXEC_CMPL    exec_cmpl;       /*  execute complete */
     tBTA_GATTC_NOTIFY       notify;           /* notification/indication event data */
+    tBTA_GATTC_ENC_CMPL_CB  enc_cmpl;
     BD_ADDR                 remote_bda;     /* service change event */
 } tBTA_GATTC;
 
@@ -1021,6 +1029,21 @@ BTA_API extern void BTA_GATTC_Refresh(BD_ADDR remote_bda);
 **
 *******************************************************************************/
 BTA_API extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR target_bda);
+
+/*******************************************************************************
+**
+** Function         BTA_GATTC_Broadcast
+**
+** Description      Start broadcasting (non-connectable advertisements)
+**
+** Parameters       client_if: client interface.
+**                  start: to start or stop listening for connection
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, BOOLEAN start);
+
 
 /*******************************************************************************
 **  BTA GATT Server API
