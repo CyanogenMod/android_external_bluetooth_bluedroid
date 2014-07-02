@@ -89,7 +89,7 @@ const int btif_hl_signal_select_close_connected = 3;
 static int listen_s = -1;
 static int connected_s = -1;
 static int select_thread_id = -1;
-static int signal_fds[2];
+static int signal_fds[2] = { -1, -1 };
 static BUFFER_Q soc_queue;
 static int reg_counter;
 
@@ -4891,8 +4891,8 @@ void btif_hl_select_monitor_callback( fd_set *p_cur_set , fd_set *p_org_set){
 **
 *******************************************************************************/
 static inline int btif_hl_select_wakeup_init(fd_set* set){
-    BTIF_TRACE_DEBUG("btif_hl_select_wakeup_init");
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, signal_fds) < 0)
+    BTIF_TRACE_DEBUG0("btif_hl_select_wakeup_init");
+    if (signal_fds[0] == -1 && socketpair(AF_UNIX, SOCK_STREAM, 0, signal_fds) < 0)
     {
         BTIF_TRACE_ERROR("socketpair failed: %s", strerror(errno));
         return -1;
@@ -4957,17 +4957,6 @@ static inline int btif_hl_close_select_thread(void)
             pthread_join(select_thread_id, NULL);
             select_thread_id = -1;
         }
-    }
-   /* Cleanup signal sockets */
-    if(signal_fds[0] != -1)
-    {
-        close(signal_fds[0]);
-        signal_fds[0] = -1;
-    }
-    if(signal_fds[1] != -1)
-    {
-        close(signal_fds[1]);
-        signal_fds[1] = -1;
     }
     return result;
 }
