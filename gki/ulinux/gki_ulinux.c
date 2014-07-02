@@ -87,6 +87,9 @@ gki_pthread_info_t gki_pthread_info[GKI_MAX_TASKS];
 // NOTE: Must be manipulated with the GKI_disable() lock held.
 static alarm_service_t alarm_service;
 
+static timer_t posix_timer;
+static bool timer_created;
+
 // If the next wakeup time is less than this threshold, we should acquire
 // a wakelock instead of setting a wake alarm so we're not bouncing in
 // and out of suspend frequently.
@@ -106,10 +109,32 @@ extern bt_os_callouts_t *bt_os_callouts;
 **  Functions
 ******************************************************************************/
 
+static bool set_nonwake_alarm(uint64_t delay_millis) {
+  if (!timer_created) {
+    ALOGE("%s timer is not available, not setting timer for %llums", __func__, delay_millis);
+    return false;
+  }
+
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+
+  uint64_t millis = (tv.tv_sec * 1000LL) + (tv.tv_usec / 1000LL) + delay_millis;
+
+  struct itimerspec new_value;
+  memset(&new_value, 0, sizeof(new_value));
+  new_value.it_value.tv_sec = (millis / 1000);
+  new_value.it_value.tv_nsec = (millis % 1000) * 1000000LL;
+  if (timer_settime(posix_timer, TIMER_ABSTIME, &new_value, NULL) == -1) {
+    ALOGE("%s unable to set timer: %s", __func__, strerror(errno));
+    return false;
+  }
+
+  return true;
+}
+
 /** Callback from Java thread after alarm from AlarmService fires. */
 static void bt_alarm_cb(void *data) {
-    alarm_service_t *alarm_service = (alarm_service_t *)data;
-    GKI_timer_update(alarm_service->num_ticks);
+    GKI_timer_update(alarm_service.num_ticks);
 }
 
 /** NOTE: This is only called on init and may be called without the GKI_disable()
@@ -161,7 +186,7 @@ void alarm_service_reschedule() {
         }
         alarm_service.wakelock = true;
         ALOGV("%s acquired wake lock, setting short alarm (%lldms).", __func__, ticks_in_millis);
-        if (!bt_os_callouts->set_wake_alarm(ticks_in_millis, false, bt_alarm_cb, &alarm_service)) {
+        if (!set_nonwake_alarm(ticks_in_millis)) {
             ALOGE("%s unable to set short alarm.", __func__);
         }
     } else {
@@ -243,6 +268,17 @@ void GKI_init(void)
     /* pthread_mutex_init(&thread_delay_mutex, NULL); */  /* used in GKI_delay */
     /* pthread_cond_init (&thread_delay_cond, NULL); */
 
+    struct sigevent sigevent;
+    memset(&sigevent, 0, sizeof(sigevent));
+    sigevent.sigev_notify = SIGEV_THREAD;
+    sigevent.sigev_notify_function = (void (*)(union sigval))bt_alarm_cb;
+    sigevent.sigev_value.sival_ptr = NULL;
+    if (timer_create(CLOCK_REALTIME, &sigevent, &posix_timer) == -1) {
+        ALOGE("%s unable to create POSIX timer: %s", __func__, strerror(errno));
+        timer_created = false;
+    } else {
+        timer_created = true;
+    }
 }
 
 
@@ -564,6 +600,10 @@ void GKI_shutdown(void)
     i = 0;
 #endif
 
+    if (timer_created) {
+        timer_delete(posix_timer);
+        timer_created = false;
+    }
 }
 
 /*****************************************************************************
