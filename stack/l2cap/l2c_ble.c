@@ -630,7 +630,6 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
     if (p_dev_rec->ble.active_addr_type == BTM_BLE_ADDR_RRA)
     {
         init_addr_type = BLE_ADDR_RANDOM;
-        //memcpy(init_addr, p_dev_rec->ble.cur_rand_addr, BD_ADDR_LEN);
     }
     /* if privacy is on and current do not consider using reconnection address */
     if (btm_cb.ble_ctr_cb.privacy ) /* && p_dev_rec->ble.use_reconn_addr */

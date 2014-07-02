@@ -275,11 +275,6 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
 
     evt_len--;
 
-    /*if (evt_len < 2 )
-    {
-        BTM_TRACE_ERROR("can not interpret IRK  VSC cmpl callback");
-        return;
-    }*/
     op_subcode   = *p ++;
     BTM_TRACE_DEBUG("btm_ble_vendor_irk_vsc_op_cmpl op_subcode = %d", op_subcode);
     if (evt_len < 2 )
