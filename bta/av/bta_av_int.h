@@ -96,7 +96,7 @@ enum
     BTA_AV_AVRC_CLOSE_EVT,
     BTA_AV_CONN_CHG_EVT,
     BTA_AV_DEREG_COMP_EVT,
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
     BTA_AV_API_SINK_ENABLE_EVT,
 #endif
 #if (AVDT_REPORTING == TRUE)
@@ -563,7 +563,7 @@ typedef struct
     TIMER_LIST_ENT      sig_tmr;        /* link timer */
     TIMER_LIST_ENT      acp_sig_tmr;    /* timer to monitor signalling when accepting */
     UINT32              sdp_a2d_handle; /* SDP record handle for audio src */
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
     UINT32              sdp_a2d_snk_handle; /* SDP record handle for audio snk */
 #endif
     UINT32              sdp_vdp_handle; /* SDP record handle for video src */

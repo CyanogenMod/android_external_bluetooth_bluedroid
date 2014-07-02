@@ -311,7 +311,7 @@ BOOLEAN bta_av_co_audio_init(UINT8 *p_codec_type, UINT8 *p_codec_info, UINT8 *p_
 
         /* Codec is valid */
         return TRUE;
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
     case BTIF_SV_AV_AA_SBC_SINK_INDEX:
         *p_codec_type = BTA_AV_CODEC_SBC;
 

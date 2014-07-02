@@ -1997,7 +1997,7 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
                 bta_av_del_sdp_rec(&p_cb->sdp_a2d_handle);
                 bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
 
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
                 bta_av_del_sdp_rec(&p_cb->sdp_a2d_snk_handle);
                 bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SINK);
 #endif

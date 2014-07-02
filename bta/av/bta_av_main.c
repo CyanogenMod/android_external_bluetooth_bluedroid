@@ -152,7 +152,7 @@ static const tBTA_AV_ST_TBL bta_av_st_tbl[] =
 typedef void (*tBTA_AV_NSM_ACT)(tBTA_AV_DATA *p_data);
 static void bta_av_api_enable(tBTA_AV_DATA *p_data);
 static void bta_av_api_register(tBTA_AV_DATA *p_data);
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
 static void bta_av_api_sink_enable(tBTA_AV_DATA *p_data);
 #endif
 static void bta_av_ci_data(tBTA_AV_DATA *p_data);
@@ -180,7 +180,7 @@ const tBTA_AV_NSM_ACT bta_av_nsm_act[] =
     bta_av_rc_closed,       /* BTA_AV_AVRC_CLOSE_EVT */
     bta_av_conn_chg,        /* BTA_AV_CONN_CHG_EVT */
     bta_av_dereg_comp,      /* BTA_AV_DEREG_COMP_EVT */
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
     bta_av_api_sink_enable, /* BTA_AV_API_SINK_ENABLE_EVT */
 #endif
 #if (AVDT_REPORTING == TRUE)
@@ -467,7 +467,7 @@ static void bta_av_a2dp_report_cback(UINT8 handle, AVDT_REPORT_TYPE type,
 }
 #endif
 
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         bta_av_api_sink_enable
@@ -587,7 +587,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             }
 
             /* Set the Capturing service class bit */
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
             cod.service = BTM_COD_SERVICE_CAPTURING | BTM_COD_SERVICE_RENDERING;
 #else
             cod.service = BTM_COD_SERVICE_CAPTURING;
@@ -652,7 +652,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                 &cs.cfg.num_protect, cs.cfg.protect_info, index) == TRUE)
             {
 
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
             if(index == 1)
             {
                 cs.tsep = AVDT_TSEP_SNK;
@@ -664,7 +664,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                 {
                     p_scb->seps[index].codec_type = codec_type;
 
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
                     p_scb->seps[index].tsep = cs.tsep;
                     if(cs.tsep == AVDT_TSEP_SNK)
                         p_scb->seps[index].p_app_data_cback = p_data->api_reg.p_app_data_cback;
@@ -688,7 +688,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                                   A2D_SUPF_PLAYER, bta_av_cb.sdp_a2d_handle);
                 bta_sys_add_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
 
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
                 bta_av_cb.sdp_a2d_snk_handle = SDP_CreateRecord();
                 A2D_AddRecord(UUID_SERVCLASS_AUDIO_SINK, p_avk_service_name, NULL,
                                   A2D_SUPF_PLAYER, bta_av_cb.sdp_a2d_snk_handle);
@@ -1399,7 +1399,7 @@ char *bta_av_evt_code(UINT16 evt_code)
     case BTA_AV_AVRC_CLOSE_EVT: return "AVRC_CLOSE";
     case BTA_AV_CONN_CHG_EVT: return "CONN_CHG";
     case BTA_AV_DEREG_COMP_EVT: return "DEREG_COMP";
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
     case BTA_AV_API_SINK_ENABLE_EVT: return "SINK_ENABLE";
 #endif
 #if (AVDT_REPORTING == TRUE)

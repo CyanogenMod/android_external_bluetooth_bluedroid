@@ -66,7 +66,7 @@
 #include "btif_av.h"
 #include "btif_sm.h"
 #include "btif_util.h"
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
 #include "oi_codec_sbc.h"
 #include "oi_status.h"
 #endif
@@ -75,7 +75,7 @@
 
 //#define DEBUG_MEDIA_AV_FLOW TRUE
 
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
 OI_CODEC_SBC_DECODER_CONTEXT context;
 OI_UINT32 contextData[CODEC_DATA_WORDS(2, SBC_CODEC_FAST_FILTER_BUFFERS)];
 OI_INT16 pcmData[15*SBC_MAX_SAMPLES_PER_FRAME*SBC_MAX_CHANNELS];
@@ -312,7 +312,7 @@ static void btif_a2dp_data_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event);
 static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event);
 static void btif_a2dp_encoder_update(void);
 const char* dump_media_event(UINT16 event);
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
 extern OI_STATUS OI_CODEC_SBC_DecodeFrame(OI_CODEC_SBC_DECODER_CONTEXT *context,
                                           const OI_BYTE **frameData,
                                           unsigned long *frameBytes,
@@ -337,7 +337,7 @@ static BOOLEAN btif_media_task_stop_decoding_req(void);
 static void btif_media_task_handle_cmd(BT_HDR *p_msg);
 static void btif_media_task_handle_media(BT_HDR*p_msg);
 /* Handle incoming media packets A2DP SINK streaming*/
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
 static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg);
 #endif
 
@@ -351,7 +351,7 @@ static void btif_media_task_enc_update(BT_HDR *p_msg);
 static void btif_media_task_audio_feeding_init(BT_HDR *p_msg);
 static void btif_media_task_aa_tx_flush(BT_HDR *p_msg);
 static void btif_media_aa_prep_2_send(UINT8 nb_frame);
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
 static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg);
 static void btif_media_task_aa_handle_clear_track(void);
 #endif
@@ -886,7 +886,7 @@ void btif_a2dp_on_idle(void)
     }
 
     bta_av_co_init();
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
     if (btif_media_cb.peer_sep == AVDT_TSEP_SRC)
     {
         btif_media_cb.rx_flush = TRUE;
@@ -1192,7 +1192,7 @@ void btif_a2dp_set_tx_flush(BOOLEAN enable)
     btif_media_cb.tx_flush = enable;
 }
 
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
 /*******************************************************************************
  **
  ** Function         btif_media_task_avk_handle_timer
@@ -1400,7 +1400,7 @@ int btif_media_task(void *p)
 
         if (event & BTIF_MEDIA_AVK_TASK_TIMER)
         {
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
             /* advance audio timer expiration for a2dp sink */
             btif_media_task_avk_handle_timer();
 #endif
@@ -1511,7 +1511,7 @@ static void btif_media_task_handle_cmd(BT_HDR *p_msg)
         btif_media_task_aa_handle_uipc_rx_rdy();
         break;
     case BTIF_MEDIA_AUDIO_SINK_CFG_UPDATE:
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
         btif_media_task_aa_handle_decoder_reset(p_msg);
 #endif
         break;
@@ -1519,7 +1519,7 @@ static void btif_media_task_handle_cmd(BT_HDR *p_msg)
         btif_media_task_aa_handle_start_decoding();
         break;
     case BTIF_MEDIA_AUDIO_SINK_CLEAR_TRACK:
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
         btif_media_task_aa_handle_clear_track();
 #endif
         break;
@@ -1537,7 +1537,7 @@ static void btif_media_task_handle_cmd(BT_HDR *p_msg)
     VERBOSE("btif_media_task_handle_cmd : %s DONE", dump_media_event(p_msg->event));
 }
 
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
 /*******************************************************************************
  **
  ** Function         btif_media_task_handle_inc_media
@@ -2179,7 +2179,7 @@ static void btif_media_task_aa_handle_start_decoding(void )
     GKI_start_timer(BTIF_MEDIA_AVK_TASK_TIMER_ID, GKI_MS_TO_TICKS(BTIF_SINK_MEDIA_TIME_TICK), TRUE);
 }
 
-#ifdef BTA_AVK_INCLUDED
+#if (BTA_AV_SINK_INCLUDED == TRUE)
 
 static void btif_media_task_aa_handle_clear_track (void)
 {
