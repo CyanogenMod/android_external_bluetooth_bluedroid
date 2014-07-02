@@ -23,6 +23,7 @@ void *list_front(const list_t *list);
 void *list_back(const list_t *list);
 
 // Mutators.
+bool list_insert_after(list_t *list, list_node_t *prev_node, void *data);
 bool list_prepend(list_t *list, void *data);
 bool list_append(list_t *list, void *data);
 bool list_remove(list_t *list, void *data);
@@ -31,7 +32,7 @@ void list_clear(list_t *list);
 // Iteration.
 void list_foreach(const list_t *list, list_iter_cb callback);
 
-const list_node_t *list_begin(const list_t *list);
-const list_node_t *list_end(const list_t *list);
-const list_node_t *list_next(const list_node_t *node);
+list_node_t *list_begin(const list_t *list);
+list_node_t *list_end(const list_t *list);
+list_node_t *list_next(const list_node_t *node);
 void *list_node(const list_node_t *node);

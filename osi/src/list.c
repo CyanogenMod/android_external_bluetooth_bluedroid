@@ -71,6 +71,24 @@ void *list_back(const list_t *list) {
   return list->tail->data;
 }
 
+bool list_insert_after(list_t *list, list_node_t *prev_node, void *data) {
+  assert(list != NULL);
+  assert(node != NULL);
+  assert(data != NULL);
+
+  list_node_t *node = (list_node_t *)malloc(sizeof(list_node_t));
+  if (!node)
+    return false;
+
+  node->next = prev_node->next;
+  node->data = data;
+  prev_node->next = node;
+  if (list->tail == prev_node)
+    list->tail = node;
+  ++list->length;
+  return true;
+}
+
 // Inserts |data| at the beginning of |list|. Neither |data| nor |list| may be NULL.
 // This function does not make a copy of |data| so the pointer must remain valid
 // at least until the element is removed from the list or the list is freed.
@@ -176,7 +194,7 @@ void list_foreach(const list_t *list, list_iter_cb callback) {
 // Returns an iterator to the first element in |list|. |list| may not be NULL.
 // The returned iterator is valid as long as it does not equal the value returned
 // by |list_end|.
-const list_node_t *list_begin(const list_t *list) {
+list_node_t *list_begin(const list_t *list) {
   assert(list != NULL);
   return list->head;
 }
@@ -185,7 +203,7 @@ const list_node_t *list_begin(const list_t *list) {
 // this function returns the value of an invalid iterator for the given list.
 // When an iterator has the same value as what's returned by this function, you
 // may no longer call |list_next| with the iterator. |list| may not be NULL.
-const list_node_t *list_end(UNUSED_ATTR const list_t *list) {
+list_node_t *list_end(UNUSED_ATTR const list_t *list) {
   assert(list != NULL);
   return NULL;
 }
@@ -194,7 +212,7 @@ const list_node_t *list_end(UNUSED_ATTR const list_t *list) {
 // iterator. If the returned value equals the value returned by |list_end|, the
 // iterator has reached the end of the list and may no longer be used for any
 // purpose.
-const list_node_t *list_next(const list_node_t *node) {
+list_node_t *list_next(const list_node_t *node) {
   assert(node != NULL);
   return node->next;
 }

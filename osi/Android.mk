@@ -6,6 +6,7 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include
 
 LOCAL_SRC_FILES := \
+    ./src/alarm.c \
     ./src/config.c \
     ./src/fixed_queue.c \
     ./src/list.c \
@@ -29,6 +30,7 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include
 
 LOCAL_SRC_FILES := \
+    ./test/alarm_test.cpp \
     ./test/config_test.cpp \
     ./test/list_test.cpp \
     ./test/reactor_test.cpp \
