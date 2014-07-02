@@ -4902,7 +4902,7 @@ void btif_hl_select_monitor_callback( fd_set *p_cur_set , fd_set *p_org_set){
 **
 *******************************************************************************/
 static inline int btif_hl_select_wakeup_init(fd_set* set){
-    BTIF_TRACE_DEBUG0("btif_hl_select_wakeup_init");
+    BTIF_TRACE_DEBUG("%s", __func__);
     if (signal_fds[0] == -1 && socketpair(AF_UNIX, SOCK_STREAM, 0, signal_fds) < 0)
     {
         BTIF_TRACE_ERROR("socketpair failed: %s", strerror(errno));
