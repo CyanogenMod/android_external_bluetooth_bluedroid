@@ -892,8 +892,6 @@ static void bte_av_media_callback(tBTA_AV_EVT event, tBTA_AV_MEDIA *p_data)
 
 bt_status_t btif_av_init()
 {
-    btif_av_cb.sm_handle = NULL;
-
     if (btif_av_cb.sm_handle == NULL)
     {
         if (btif_a2dp_start_media_task() != GKI_SUCCESS)
