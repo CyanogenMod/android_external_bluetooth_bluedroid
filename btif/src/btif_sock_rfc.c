@@ -897,7 +897,14 @@ void btsock_rfc_signaled(int fd, int flags, uint32_t user_id)
                     //make sure there's data pending in case the peer closed the socket
                     if(!(flags & SOCK_THREAD_FD_EXCEPTION) ||
                                 (ioctl(rs->fd, FIONREAD, &size) == 0 && size))
-                        BTA_JvRfcommWrite(rs->rfc_handle, (UINT32)rs->id);
+                    {
+                        int rfc_handle = rs->rfc_handle;
+                        UINT32 rs_id = rs->id;
+                        //unlock before BTA_JvRfcommWrite to avoid deadlock on concurrnet multi rfcomm connectoins
+                        unlock_slot(&slot_lock);
+                        BTA_JvRfcommWrite(rfc_handle, rs_id);
+                        return;
+                    }
                 }
                 else
                 {
