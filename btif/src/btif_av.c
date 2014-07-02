@@ -894,8 +894,6 @@ static void bte_av_media_callback(tBTA_AV_EVT event, tBTA_AV_MEDIA *p_data)
 
 bt_status_t btif_av_init()
 {
-    btif_av_cb.sm_handle = NULL;
-
     if (btif_av_cb.sm_handle == NULL)
     {
         if (btif_a2dp_start_media_task() != GKI_SUCCESS)
@@ -1002,7 +1000,7 @@ static bt_status_t connect_src(bt_bdaddr_t *bd_addr)
     BTIF_TRACE_EVENT("%s", __FUNCTION__);
     CHECK_BTAV_INIT();
 
-    return btif_queue_connect(UUID_SERVCLASS_AUDIO_SINK, bd_addr, connect_int);
+    return btif_queue_connect(UUID_SERVCLASS_AUDIO_SOURCE, bd_addr, connect_int);
 }
 
 static bt_status_t connect_sink(bt_bdaddr_t *bd_addr)
@@ -1010,7 +1008,7 @@ static bt_status_t connect_sink(bt_bdaddr_t *bd_addr)
     BTIF_TRACE_EVENT("%s", __FUNCTION__);
     CHECK_BTAV_INIT();
 
-    return btif_queue_connect(UUID_SERVCLASS_AUDIO_SOURCE, bd_addr, connect_int);
+    return btif_queue_connect(UUID_SERVCLASS_AUDIO_SINK, bd_addr, connect_int);
 }
 
 /*******************************************************************************
