@@ -94,7 +94,7 @@ TEST(ReactorTest, reactor_run_once_timeout) {
 
   uint64_t start = get_timestamp();
   reactor_status_t status = reactor_run_once_timeout(reactor, 50);
-  EXPECT_GE(get_timestamp() - start, 50);
+  EXPECT_GE(get_timestamp() - start, static_cast<uint64_t>(50));
   EXPECT_EQ(status, REACTOR_STATUS_TIMEOUT);
 
   reactor_free(reactor);
