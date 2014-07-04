@@ -295,7 +295,7 @@ static BOOLEAN btm_ble_match_random_bda(UINT16 rec_index)
 
         BTM_TRACE_DEBUG("sec_flags = %02x device_type = %d", p_dev_rec->sec_flags, p_dev_rec->device_type);
 
-        if ((p_dev_rec->device_type == BT_DEVICE_TYPE_BLE) &&
+        if ((p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) &&
             (p_dev_rec->ble.key_type & BTM_LE_KEY_PID))
         {
             /* generate X = E irk(R0, R1, R2) and R is random address 3 LSO */
