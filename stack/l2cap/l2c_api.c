@@ -1396,7 +1396,13 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
         return (FALSE);
     }
 
-    return (l2cu_create_conn(p_lcb, transport));
+    if (!l2cu_create_conn(p_lcb, transport))
+    {
+        L2CAP_TRACE_WARNING ("L2CA_ConnectFixedChnl create_conn failed");
+        l2cu_release_lcb (p_lcb);
+        return (FALSE);
+    }
+    return (TRUE);
 }
 
 /*******************************************************************************
