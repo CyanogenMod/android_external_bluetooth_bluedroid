@@ -970,3 +970,24 @@ static void bta_dm_pm_set_sniff_policy(tBTA_DM_PEER_DEVICE *p_dev, BOOLEAN bDisa
     BTM_SetLinkPolicy(p_dev->peer_bdaddr, &policy_setting);
 
 }
+
+/*******************************************************************************
+**
+** Function         bta_dm_pm_obtain_controller_state
+**
+** Description      This function obtains the consolidated controller power state
+**
+** Parameters:
+**
+*******************************************************************************/
+tBTA_DM_CONTRL_STATE bta_dm_pm_obtain_controller_state(void)
+{
+    /*   Did not use counts as it is not sure, how accurate the count values are in
+     **  bta_dm_cb.device_list.count > 0 || bta_dm_cb.device_list.le_count > 0 */
+
+    tBTA_DM_CONTRL_STATE cur_state = BTA_DM_CONTRL_UNKNOWN;
+    cur_state = BTM_PM_ReadControllerState();
+
+    APPL_TRACE_DEBUG("bta_dm_pm_obtain_controller_state: %d", cur_state);
+    return cur_state;
+}

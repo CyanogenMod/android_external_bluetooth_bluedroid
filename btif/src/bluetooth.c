@@ -321,6 +321,14 @@ static int ssp_reply(const bt_bdaddr_t *bd_addr, bt_ssp_variant_t variant,
     return btif_dm_ssp_reply(bd_addr, variant, accept, passkey);
 }
 
+static int read_energy_info()
+{
+    if (interface_ready() == FALSE)
+        return BT_STATUS_NOT_READY;
+    btif_dm_read_energy_info();
+    return BT_STATUS_SUCCESS;
+}
+
 static const void* get_profile_interface (const char *profile_id)
 {
     ALOGI("get_profile_interface %s", profile_id);
@@ -454,6 +462,7 @@ static const bt_interface_t bluetoothInterface = {
 #endif
     config_hci_snoop_log,
     set_os_callouts,
+    read_energy_info,
 };
 
 const bt_interface_t* bluetooth__get_bluetooth_interface ()

@@ -349,6 +349,9 @@
 /* Tracking OCF */
 #define HCI_BLE_TRACK_ADV_OCF     (0x0158 | HCI_GRP_VENDOR_SPECIFIC)
 
+/* Energy info OCF */
+#define HCI_BLE_ENERGY_INFO_OCF   (0x0159 | HCI_GRP_VENDOR_SPECIFIC)
+
 /* subcode for multi adv feature */
 #define BTM_BLE_MULTI_ADV_SET_PARAM                     0x01
 #define BTM_BLE_MULTI_ADV_WRITE_ADV_DATA                0x02

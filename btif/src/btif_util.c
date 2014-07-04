@@ -282,6 +282,7 @@ const char* dump_dm_event(UINT16 event)
         CASE_RETURN_STR(BTA_DM_BLE_AUTH_CMPL_EVT)
         CASE_RETURN_STR(BTA_DM_DEV_UNPAIRED_EVT)
         CASE_RETURN_STR(BTA_DM_HW_ERROR_EVT)
+        CASE_RETURN_STR(BTA_DM_ENER_INFO_READ)
 
         default:
             return "UNKNOWN DM EVENT";

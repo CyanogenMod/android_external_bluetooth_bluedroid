@@ -349,6 +349,17 @@ bt_status_t btif_le_test_mode(uint16_t opcode, uint8_t *buf, uint8_t len);
 
 /*******************************************************************************
 **
+** Function         btif_dm_read_energy_info
+**
+** Description     Reads the energy info from controller
+**
+** Returns          void
+**
+*******************************************************************************/
+void btif_dm_read_energy_info();
+
+/*******************************************************************************
+**
 ** Function         btif_config_hci_snoop_log
 **
 ** Description     enable or disable HCI snoop log

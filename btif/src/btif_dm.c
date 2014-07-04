@@ -124,6 +124,17 @@ typedef struct
     BT_OCTET16 sp_r;
     BD_ADDR  oob_bdaddr;  /* peer bdaddr*/
 } btif_dm_oob_cb_t;
+
+typedef struct
+{
+    uint8_t  status;
+    uint8_t  ctrl_state;
+    uint64_t tx_time;
+    uint64_t rx_time;
+    uint64_t idle_time;
+    uint64_t energy_used;
+} btif_activity_energy_info_cb_t;
+
 #define BTA_SERVICE_ID_TO_SERVICE_MASK(id)       (1 << (id))
 
 /* This flag will be true if HCI_Inquiry is in progress */
@@ -1671,6 +1682,20 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             HAL_CBACK(bt_hal_cbacks, adapter_properties_cb, BT_STATUS_SUCCESS, 1, &prop);
             break;
          }
+
+        case BTA_DM_ENER_INFO_READ:
+        {
+            btif_activity_energy_info_cb_t *p_ener_data = (btif_activity_energy_info_cb_t*) p_param;
+            bt_activity_energy_info energy_info;
+            energy_info.status = p_ener_data->status;
+            energy_info.ctrl_state = p_ener_data->ctrl_state;
+            energy_info.rx_time = p_ener_data->rx_time;
+            energy_info.tx_time = p_ener_data->tx_time;
+            energy_info.idle_time = p_ener_data->idle_time;
+            energy_info.energy_used = p_ener_data->energy_used;
+            HAL_CBACK(bt_hal_cbacks, energy_info_cb, &energy_info);
+            break;
+        }
 #endif
 
         case BTA_DM_AUTHORIZE_EVT:
@@ -1864,6 +1889,34 @@ static void bte_dm_remote_service_record_evt(tBTA_DM_SEARCH_EVT event, tBTA_DM_S
 {
    /* TODO: The only member that needs a deep copy is the p_raw_data. But not sure yet if this is needed. */
    btif_transfer_context(btif_dm_remote_service_record_evt, event, (char*)p_data, sizeof(tBTA_DM_SEARCH), NULL);
+}
+
+/*******************************************************************************
+**
+** Function         bta_energy_info_cb
+**
+** Description      Switches context from BTE to BTIF for DM energy info event
+**
+** Returns          void
+**
+*******************************************************************************/
+static void bta_energy_info_cb(tBTA_DM_BLE_TX_TIME_MS tx_time, tBTA_DM_BLE_RX_TIME_MS rx_time,
+                                    tBTA_DM_BLE_IDLE_TIME_MS idle_time,
+                                    tBTA_DM_BLE_ENERGY_USED energy_used,
+                                    tBTA_DM_CONTRL_STATE ctrl_state, tBTA_STATUS status)
+{
+    BTIF_TRACE_DEBUG("energy_info_cb-Status:%d,state=%d,tx_t=%ld, rx_t=%ld, idle_time=%ld,used=%ld",
+        status, ctrl_state, tx_time, rx_time, idle_time, energy_used);
+
+    btif_activity_energy_info_cb_t btif_cb;
+    btif_cb.status = status;
+    btif_cb.ctrl_state = ctrl_state;
+    btif_cb.tx_time = (uint64_t) tx_time;
+    btif_cb.rx_time = (uint64_t) rx_time;
+    btif_cb.idle_time =(uint64_t) idle_time;
+    btif_cb.energy_used =(uint64_t) energy_used;
+    btif_transfer_context(btif_dm_upstreams_evt, BTA_DM_ENER_INFO_READ,
+                          (char*) &btif_cb, sizeof(btif_activity_energy_info_cb_t), NULL);
 }
 
 /*****************************************************************************
@@ -2788,6 +2841,20 @@ void btif_dm_on_disable()
         bdcpy(bd_addr.address, pairing_cb.bd_addr);
         btif_dm_cancel_bond(&bd_addr);
     }
+}
+
+/*******************************************************************************
+**
+** Function         btif_dm_read_energy_info
+**
+** Description     Reads the energy info from controller
+**
+** Returns         void
+**
+*******************************************************************************/
+void btif_dm_read_energy_info()
+{
+    BTA_DmBleGetEnergyInfo(bta_energy_info_cb);
 }
 
 static char* btif_get_default_local_name() {

@@ -1008,4 +1008,85 @@ BOOLEAN BTM_IsPowerManagerOn (void)
     return BTM_PWR_MGR_INCLUDED;
 }
 
+/*******************************************************************************
+**
+** Function         btm_pm_device_in_active_or_sniff_mode
+**
+** Description      This function is called to check if in active or sniff mode
+**
+** Returns          TRUE, if in active or sniff mode
+**
+*******************************************************************************/
+BOOLEAN btm_pm_device_in_active_or_sniff_mode(void)
+{
+    /* The active state is the highest state-includes connected device and sniff mode*/
+
+    /* Covers active and sniff modes */
+    if (btm_cb.num_acl > 0)
+    {
+        BTM_TRACE_DEBUG("btm_pm_device_in_active_or_sniff_mode-acl:%d", btm_cb.num_acl);
+        return TRUE;
+    }
+
+    /* Check BLE states */
+    if (btm_ble_get_conn_st() != BLE_CONN_IDLE)
+    {
+        BTM_TRACE_DEBUG("btm_pm_device_in_active_or_sniff_mode- BLE state: %x",
+                        btm_ble_get_conn_st());
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*******************************************************************************
+**
+** Function         btm_pm_device_in_scan_state
+**
+** Description      This function is called to check if in paging, inquiry or connecting mode
+**
+** Returns          TRUE, if in paging, inquiry or connecting mode
+**
+*******************************************************************************/
+BOOLEAN btm_pm_device_in_scan_state(void)
+{
+    /* Scan state-paging, inquiry, and trying to connect */
+
+    /* Check for paging */
+    if (btm_cb.is_paging || btm_cb.page_queue.count > 0 ||
+       BTM_BL_PAGING_STARTED == btm_cb.busy_level)
+    {
+       BTM_TRACE_DEBUG("btm_pm_device_in_scan_state- paging");
+       return TRUE;
+    }
+
+    /* Check for inquiry */
+    if ((btm_cb.btm_inq_vars.inq_active & (BTM_BR_INQ_ACTIVE_MASK | BTM_BLE_INQ_ACTIVE_MASK)) != 0)
+    {
+        BTM_TRACE_DEBUG("btm_pm_device_in_scan_state- Inq active");
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*******************************************************************************
+**
+** Function         BTM_PM_ReadControllerState
+**
+** Description      This function is called to obtain the controller state
+**
+** Returns          Controller State-BTM_CONTRL_ACTIVE, BTM_CONTRL_SCAN, and BTM_CONTRL_IDLE
+**
+*******************************************************************************/
+tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void)
+{
+    if (TRUE == btm_pm_device_in_active_or_sniff_mode())
+       return BTM_CONTRL_ACTIVE;
+    else
+    if (TRUE == btm_pm_device_in_scan_state())
+       return BTM_CONTRL_SCAN;
+    else
+       return BTM_CONTRL_IDLE;
+}
 

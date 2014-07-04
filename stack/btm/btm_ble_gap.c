@@ -458,6 +458,7 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.max_irk_list_sz, p);
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.filter_support, p);
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.max_filter, p);
+        STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.energy_support, p);
     }
 
     p_vcb->irk_avail_size = max_irk_list_sz;

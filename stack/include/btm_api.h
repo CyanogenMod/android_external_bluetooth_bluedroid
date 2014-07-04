@@ -1976,6 +1976,12 @@ typedef void (tBTM_MIP_EVENTS_CB) (tBTM_MIP_EVT event, tBTM_MIP_EVENT_DATA data)
 /* MIP Device query callback function  */
 typedef BOOLEAN (tBTM_MIP_QUERY_CB) (BD_ADDR dev_addr, UINT8 *p_mode, LINK_KEY link_key);
 
+#define BTM_CONTRL_ACTIVE  1       /* ACL link on, SCO link ongoing, sniff mode */
+#define BTM_CONTRL_SCAN    2       /* Scan state - paging/inquiry/trying to connect*/
+#define BTM_CONTRL_IDLE    3       /* Idle state - page scan, LE advt, inquiry scan */
+
+typedef UINT8 tBTM_CONTRL_STATE;
+
 /*****************************************************************************
 **  EXTERNAL FUNCTION DECLARATIONS
 *****************************************************************************/
@@ -4495,6 +4501,18 @@ BTM_API extern void BTM_SetARCMode (UINT8 iface, UINT8 arc_mode, tBTM_VSC_CMPL_C
 **
 *******************************************************************************/
 BTM_API extern void BTM_PCM2Setup_Write (BOOLEAN clk_master, tBTM_VSC_CMPL_CB *p_arc_cb);
+
+
+/*******************************************************************************
+**
+** Function         BTM_PM_ReadControllerState
+**
+** Description      This function is called to obtain the controller state
+**
+** Returns          Controller state (BTM_CONTRL_ACTIVE, BTM_CONTRL_SCAN, and BTM_CONTRL_IDLE)
+**
+*******************************************************************************/
+BTM_API extern tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void);
 
 #ifdef __cplusplus
 }

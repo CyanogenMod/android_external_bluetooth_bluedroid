@@ -118,6 +118,7 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_ble_disable_batch_scan, /* BTA_DM_API_BLE_DISABLE_BATCH_SCAN_EVT */
     bta_dm_ble_read_scan_reports,  /* BTA_DM_API_BLE_READ_SCAN_REPORTS_EVT */
     bta_dm_ble_track_advertiser,   /* BTA_DM_API_BLE_TRACK_ADVERTISER_EVT */
+    bta_dm_ble_get_energy_info,    /* BTA_DM_API_BLE_ENERGY_INFO_EVT */
 #endif
 
 #if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)

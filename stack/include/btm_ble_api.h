@@ -46,7 +46,7 @@ typedef UINT8 tBTM_BLE_CHNL_MAP[CHNL_MAP_LEN];
 
 #define BTM_BLE_UNKNOWN_EVT     0xff
 
-typedef UINT8 tBTM_BLE_REF_VALUE;
+typedef UINT32 tBTM_BLE_REF_VALUE;
 
 #define BTM_BLE_SCAN_MODE_PASS      0
 #define BTM_BLE_SCAN_MODE_ACTI      1
@@ -334,6 +334,7 @@ typedef struct
     UINT8 max_irk_list_sz;
     UINT8 filter_support;
     UINT8 max_filter;
+    UINT8 energy_support;
 }tBTM_BLE_VSC_CB;
 
 /* slave preferred connection interval range */
@@ -757,6 +758,21 @@ typedef UINT8 tBTM_BLE_TRACK_ADV_ACTION;
 #define BTM_BLE_BATCH_SCAN_DISABLE_EVT    6
 
 typedef UINT8 tBTM_BLE_BATCH_SCAN_EVT;
+
+typedef UINT32 tBTM_BLE_TX_TIME_MS;
+typedef UINT32 tBTM_BLE_RX_TIME_MS;
+typedef UINT32 tBTM_BLE_IDLE_TIME_MS;
+typedef UINT32 tBTM_BLE_ENERGY_USED;
+
+typedef void (tBTM_BLE_ENERGY_INFO_CBACK)(tBTM_BLE_TX_TIME_MS tx_time, tBTM_BLE_RX_TIME_MS rx_time,
+                                          tBTM_BLE_IDLE_TIME_MS idle_time,
+                                          tBTM_BLE_ENERGY_USED  energy_used,
+                                          tBTM_STATUS status);
+
+typedef struct
+{
+    tBTM_BLE_ENERGY_INFO_CBACK *p_ener_cback;
+}tBTM_BLE_ENERGY_INFO_CB;
 
 typedef BOOLEAN (tBTM_BLE_SEL_CBACK)(BD_ADDR random_bda,     UINT8 *p_remote_name);
 typedef void (tBTM_BLE_CTRL_FEATURES_CBACK)(tBTM_STATUS status);
@@ -1610,6 +1626,18 @@ BTM_API extern tBTM_STATUS BTM_BleEnableDisableFilterFeature(UINT8 enable,
                                                tBTM_BLE_PF_STATUS_CBACK *p_stat_cback,
                                                tBTM_BLE_REF_VALUE ref_value);
 
+/*******************************************************************************
+**
+** Function         BTM_BleGetEnergyInfo
+**
+** Description      This function obtains the energy info
+**
+** Parameters       p_ener_cback - Callback pointer
+**
+** Returns          status
+**
+*******************************************************************************/
+BTM_API extern tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK *p_ener_cback);
 
 #ifdef __cplusplus
 }

@@ -2331,6 +2331,33 @@ void BTA_DmBleScanFilterSetup(UINT8 action, tBTA_DM_BLE_PF_FILT_INDEX filt_index
 
 /*******************************************************************************
 **
+** Function         BTA_DmBleGetEnergyInfo
+**
+** Description      This function is called to obtain the energy info
+**
+** Parameters       p_cmpl_cback - Command complete callback
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK *p_cmpl_cback)
+{
+    tBTA_DM_API_ENERGY_INFO *p_msg;
+    APPL_TRACE_API ("BTA_DmBleGetEnergyInfo");
+
+    UINT16  len = sizeof(tBTA_DM_API_ENERGY_INFO) + sizeof(tBLE_BD_ADDR);
+
+    if ((p_msg = (tBTA_DM_API_ENERGY_INFO *) GKI_getbuf(len)) != NULL)
+    {
+        memset (p_msg, 0, len);
+        p_msg->hdr.event        = BTA_DM_API_BLE_ENERGY_INFO_EVT;
+        p_msg->p_energy_info_cback = p_cmpl_cback;
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         BTA_DmEnableScanFilter
 **
 ** Description      This function is called to enable the adv data payload filter

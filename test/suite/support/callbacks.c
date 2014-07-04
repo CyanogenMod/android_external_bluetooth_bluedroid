@@ -76,6 +76,7 @@ static bt_callbacks_t bt_callbacks = {
   thread_evt,                // callback_thread_event
   NULL,                      // dut_mode_recv_callback
   NULL,                      // le_test_mode_callback
+  NULL,
 };
 
 static btpan_callbacks_t pan_callbacks = {
