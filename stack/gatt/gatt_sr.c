@@ -379,12 +379,7 @@ void gatt_process_exec_write_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
     else /* nothing needs to be executed , send response now */
     {
         GATT_TRACE_ERROR("gatt_process_exec_write_req: no prepare write pending");
-
-        if ((p_buf = attp_build_sr_msg(p_tcb, GATT_RSP_EXEC_WRITE, NULL)) != NULL)
-        {
-            attp_send_sr_msg (p_tcb, p_buf);
-        }
-
+        gatt_send_error_rsp(p_tcb, GATT_ERROR, GATT_REQ_EXEC_WRITE, 0, FALSE);
     }
 }
 
