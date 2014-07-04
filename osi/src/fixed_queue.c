@@ -139,3 +139,13 @@ void *fixed_queue_try_dequeue(fixed_queue_t *queue) {
 
   return ret;
 }
+
+int fixed_queue_get_dequeue_fd(const fixed_queue_t *queue) {
+  assert(queue != NULL);
+  return semaphore_get_fd(queue->dequeue_sem);
+}
+
+int fixed_queue_get_enqueue_fd(const fixed_queue_t *queue) {
+  assert(queue != NULL);
+  return semaphore_get_fd(queue->enqueue_sem);
+}

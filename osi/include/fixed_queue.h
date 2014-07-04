@@ -56,3 +56,17 @@ bool fixed_queue_try_enqueue(fixed_queue_t *queue, void *data);
 // Otherwise, the next element in the queue is returned. |queue| may not be
 // NULL.
 void *fixed_queue_try_dequeue(fixed_queue_t *queue);
+
+// This function returns a valid file descriptor. Callers may perform one
+// operation on the fd: select(2). If |select| indicates that the file
+// descriptor is readable, the caller may call |fixed_queue_enqueue| without
+// blocking. The caller must not close the returned file descriptor. |queue|
+// may not be NULL.
+int fixed_queue_get_enqueue_fd(const fixed_queue_t *queue);
+
+// This function returns a valid file descriptor. Callers may perform one
+// operation on the fd: select(2). If |select| indicates that the file
+// descriptor is readable, the caller may call |fixed_queue_dequeue| without
+// blocking. The caller must not close the returned file descriptor. |queue|
+// may not be NULL.
+int fixed_queue_get_dequeue_fd(const fixed_queue_t *queue);
