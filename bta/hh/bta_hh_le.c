@@ -291,22 +291,6 @@ BOOLEAN bta_hh_is_le_device(tBTA_HH_DEV_CB *p_cb, BD_ADDR remote_bda)
 }
 /*******************************************************************************
 **
-** Function         bta_hh_le_hid_srvc_cached
-**
-** Description      Check to see if LE HID service has been discovered and cached
-**
-** Parameters:      TRUE : has cache; FALSE: none.
-**
-*******************************************************************************/
-BOOLEAN bta_hh_le_hid_srvc_cached(tBTA_HH_DEV_CB *p_dev_cb)
-{
-    if (p_dev_cb->hid_srvc[BTA_HH_LE_SRVC_DEF].in_use)
-        return TRUE;
-    else
-        return FALSE;
-}
-/*******************************************************************************
-**
 ** Function         bta_hh_le_add_hid_srvc_entry
 **
 ** Description      Add a HID service entry in the HID device control block
@@ -1217,8 +1201,6 @@ void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, tBTA_GATT_TRANSPORT transport,
     UNUSED(p_ref_data);
     UNUSED (transport);
 
-    APPL_TRACE_ERROR("bta_hh_le_encrypt_cback");
-
     if (idx != BTA_HH_IDX_INVALID)
         p_dev_cb = &bta_hh_cb.kdev[idx];
     else
@@ -1247,7 +1229,7 @@ void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
     if (p_cb->status == BTA_HH_OK)
     {
         /*  discovery has been done for HID service */
-        if (p_cb->app_id != 0 && bta_hh_le_hid_srvc_cached(p_cb))
+        if (p_cb->app_id != 0 && p_cb->hid_srvc[BTA_HH_LE_SRVC_DEF].in_use)
         {
             /* configure protocol mode */
             if (bta_hh_le_set_protocol_mode(p_cb, p_cb->mode) == FALSE)
@@ -2310,6 +2292,18 @@ void bta_hh_le_open_fail(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     tBTA_HH_LE_HID_SRVC     *p_hid_srvc = &p_cb->hid_srvc[0];
     UINT8   i;
 
+    /* open failure in the middle of service discovery, clear all services */
+    if (p_cb->disc_active & BTA_HH_LE_DISC_HIDS)
+    {
+        p_cb->total_srvc = 0;
+        p_cb->dscp_info.descriptor.dsc_list = NULL;
+        for (i = 0; i < BTA_HH_LE_HID_SRVC_MAX; i ++, p_hid_srvc ++)
+        {
+            utl_freebuf((void **)&p_hid_srvc->rpt_map);
+            memset(p_hid_srvc, 0, sizeof(tBTA_HH_LE_HID_SRVC));
+        }
+    }
+
     p_cb->disc_active = BTA_HH_LE_DISC_NONE;
     /* Failure in opening connection or GATT discovery failure */
     conn_dat.handle = p_cb->hid_handle;
@@ -2321,12 +2315,6 @@ void bta_hh_le_open_fail(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         conn_dat.status = (p_data->le_close.reason == BTA_GATT_CONN_UNKNOWN) ? p_cb->status : BTA_HH_ERR;
     else
         conn_dat.status = p_cb->status;
-
-    for (i = 0; i < BTA_HH_LE_HID_SRVC_MAX; i ++, p_hid_srvc ++)
-    {
-        utl_freebuf((void **)&p_hid_srvc->rpt_map);
-        memset(p_hid_srvc, 0, sizeof(tBTA_HH_LE_HID_SRVC));
-    }
 
     /* Report OPEN fail event */
     (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn_dat);
