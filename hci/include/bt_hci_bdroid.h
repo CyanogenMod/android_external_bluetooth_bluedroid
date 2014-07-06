@@ -27,8 +27,7 @@
  *
  ******************************************************************************/
 
-#ifndef BT_HCI_BDROID_H
-#define BT_HCI_BDROID_H
+#pragma once
 
 #include "bt_hci_lib.h"
 
@@ -41,47 +40,20 @@
 ******************************************************************************/
 
 #ifndef FALSE
-#define FALSE  0
+#define FALSE  false
 #endif
 
 #ifndef TRUE
-#define TRUE   (!FALSE)
+#define TRUE   true
 #endif
-
-#ifndef BTHC_LINUX_BASE_POLICY
-#define BTHC_LINUX_BASE_POLICY SCHED_NORMAL
-#endif
-
-#if (BTHC_LINUX_BASE_POLICY != SCHED_NORMAL)
-#ifndef BTHC_LINUX_BASE_PRIORITY
-#define BTHC_LINUX_BASE_PRIORITY 30
-#endif
-
-#ifndef BTHC_USERIAL_READ_THREAD_PRIORITY
-#define BTHC_USERIAL_READ_THREAD_PRIORITY (BTHC_LINUX_BASE_PRIORITY)
-#endif
-
-#ifndef BTHC_MAIN_THREAD_PRIORITY
-#define BTHC_MAIN_THREAD_PRIORITY (BTHC_LINUX_BASE_PRIORITY-1)
-#endif
-#endif  // (BTHC_LINUX_BASE_POLICY != SCHED_NORMAL)
 
 #define HCI_ACL_MAX_SIZE 1024
 #define HCI_MAX_FRAME_SIZE (HCI_ACL_MAX_SIZE + 4)
 
 /* Host/Controller lib internal event ID */
-#define HC_EVENT_PRELOAD               0x0001
-#define HC_EVENT_POSTLOAD              0x0002
-#define HC_EVENT_RX                    0x0004
-#define HC_EVENT_TX                    0x0008
-#define HC_EVENT_LPM_ENABLE            0x0010
-#define HC_EVENT_LPM_DISABLE           0x0020
-#define HC_EVENT_LPM_WAKE_DEVICE       0x0040
-#define HC_EVENT_LPM_ALLOW_SLEEP       0x0080
-#define HC_EVENT_LPM_IDLE_TIMEOUT      0x0100
-#define HC_EVENT_EXIT                  0x0200
-#define HC_EVENT_EPILOG                0x0400
-#define HC_EVENT_TX_CMD                0x0800
+typedef enum {
+  HC_EVENT_LPM_IDLE_TIMEOUT,
+} bthc_event_t;
 
 #define MSG_CTRL_TO_HC_CMD             0x0100 /* evt mask used by HC_EVENT_TX_CMD */
 
@@ -126,7 +98,6 @@ typedef struct
 
 #define BT_HC_HDR_SIZE (sizeof(HC_BT_HDR))
 
-
 typedef struct _hc_buffer_hdr
 {
     struct _hc_buffer_hdr *p_next;   /* next buffer in the queue */
@@ -148,15 +119,8 @@ extern bt_hc_callbacks_t *bt_hc_cbacks;
 **  Functions
 ******************************************************************************/
 
-/*******************************************************************************
-**
-** Function        bthc_signal_event
-**
-** Description     Perform context switch to bt_hc main thread
-**
-** Returns         None
-**
-*******************************************************************************/
-extern void bthc_signal_event(uint16_t event);
-
-#endif /* BT_HCI_BDROID_H */
+// Called when a buffer has been produced by the serial layer and should be
+// processed by the HCI layer.
+void bthc_rx_ready(void);
+void bthc_tx(HC_BT_HDR *buf);
+void bthc_idle_timeout(void);
