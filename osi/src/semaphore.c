@@ -93,3 +93,9 @@ void semaphore_post(semaphore_t *semaphore) {
   if (eventfd_write(semaphore->fd, 1ULL) == -1)
     ALOGE("%s unable to post to semaphore: %s", __func__, strerror(errno));
 }
+
+int semaphore_get_fd(const semaphore_t *semaphore) {
+  assert(semaphore != NULL);
+  assert(semaphore->fd != -1);
+  return semaphore->fd;
+}
