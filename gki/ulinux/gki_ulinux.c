@@ -45,8 +45,10 @@
 #define SCHED_RR 2
 #define SCHED_BATCH 3
 
-#define NANOSEC_PER_MILLISEC (1000000)
-#define NSEC_PER_SEC (1000*NANOSEC_PER_MILLISEC)
+#define NANOSEC_PER_MILLISEC    1000000
+#define NSEC_PER_SEC            (1000 * NANOSEC_PER_MILLISEC)
+#define USEC_PER_SEC            1000000
+#define NSEC_PER_USEC           1000
 
 #define WAKE_LOCK_ID "bluedroid_timer"
 
@@ -71,9 +73,11 @@ typedef struct
 
 // Alarm service structure used to pass up via JNI to the bluetooth
 // app in order to create a wakeable Alarm.
-typedef struct {
-    int32_t num_ticks;
-    uint32_t alarm_cnt;
+typedef struct
+{
+    UINT32 ticks_scheduled;
+    UINT64 timer_started_us;
+    UINT64 timer_last_expired_us;
     bool wakelock;
 } alarm_service_t;
 
@@ -90,14 +94,11 @@ static alarm_service_t alarm_service;
 static timer_t posix_timer;
 static bool timer_created;
 
+
 // If the next wakeup time is less than this threshold, we should acquire
 // a wakelock instead of setting a wake alarm so we're not bouncing in
 // and out of suspend frequently.
 static const uint32_t TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 3000;
-
-/*****************************************************************************
-**  Static functions
-******************************************************************************/
 
 /*****************************************************************************
 **  Externs
@@ -109,41 +110,66 @@ extern bt_os_callouts_t *bt_os_callouts;
 **  Functions
 ******************************************************************************/
 
-static bool set_nonwake_alarm(uint64_t delay_millis) {
-  if (!timer_created) {
-    ALOGE("%s timer is not available, not setting timer for %llums", __func__, delay_millis);
-    return false;
-  }
+static UINT64 now_us()
+{
+    struct timespec ts_now;
+    clock_gettime(CLOCK_BOOTTIME, &ts_now);
+    return (ts_now.tv_sec * USEC_PER_SEC) + (ts_now.tv_nsec / NSEC_PER_USEC);
+}
 
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
+static bool set_nonwake_alarm(UINT64 delay_millis)
+{
+    if (!timer_created)
+    {
+        ALOGE("%s timer is not available, not setting timer for %llums", __func__, delay_millis);
+        return false;
+    }
 
-  uint64_t millis = (tv.tv_sec * 1000LL) + (tv.tv_usec / 1000LL) + delay_millis;
+    const UINT64 now = now_us();
+    alarm_service.timer_started_us = now;
 
-  struct itimerspec new_value;
-  memset(&new_value, 0, sizeof(new_value));
-  new_value.it_value.tv_sec = (millis / 1000);
-  new_value.it_value.tv_nsec = (millis % 1000) * 1000000LL;
-  if (timer_settime(posix_timer, TIMER_ABSTIME, &new_value, NULL) == -1) {
-    ALOGE("%s unable to set timer: %s", __func__, strerror(errno));
-    return false;
-  }
+    UINT64 prev_timer_delay = 0;
+    if (alarm_service.timer_last_expired_us)
+        prev_timer_delay = now - alarm_service.timer_last_expired_us;
 
-  return true;
+    UINT64 delay_micros = delay_millis * 1000;
+    if (delay_micros > prev_timer_delay)
+        delay_micros -= prev_timer_delay;
+    else
+        delay_micros = 1;
+
+    struct itimerspec new_value;
+    memset(&new_value, 0, sizeof(new_value));
+    new_value.it_value.tv_sec = (delay_micros / USEC_PER_SEC);
+    new_value.it_value.tv_nsec = (delay_micros % USEC_PER_SEC) * NSEC_PER_USEC;
+    if (timer_settime(posix_timer, 0, &new_value, NULL) == -1)
+    {
+        ALOGE("%s unable to set timer: %s", __func__, strerror(errno));
+        return false;
+    }
+    return true;
 }
 
 /** Callback from Java thread after alarm from AlarmService fires. */
-static void bt_alarm_cb(void *data) {
-    GKI_timer_update(alarm_service.num_ticks);
+static void bt_alarm_cb(void *data)
+{
+    alarm_service.timer_last_expired_us = now_us();
+    UINT32 ticks_taken = GKI_MS_TO_TICKS((alarm_service.timer_last_expired_us
+                                        - alarm_service.timer_started_us) / 1000);
+
+    GKI_timer_update(ticks_taken > alarm_service.ticks_scheduled
+                   ? ticks_taken : alarm_service.ticks_scheduled);
 }
 
 /** NOTE: This is only called on init and may be called without the GKI_disable()
   * lock held.
   */
-static void alarm_service_init() {
-    alarm_service.num_ticks = 0;
-    alarm_service.alarm_cnt = 0;
-    alarm_service.wakelock = false;
+static void alarm_service_init()
+{
+    alarm_service.ticks_scheduled = 0;
+    alarm_service.timer_started_us = 0;
+    alarm_service.timer_last_expired_us = 0;
+    alarm_service.wakelock = FALSE;
 }
 
 /** Requests an alarm from AlarmService to fire when the next
@@ -154,18 +180,25 @@ static void alarm_service_init() {
   *
   * NOTE: Must be called with GKI_disable() lock held.
   */
-void alarm_service_reschedule() {
+void alarm_service_reschedule()
+{
     int32_t ticks_till_next_exp = GKI_ready_to_sleep();
 
     assert(ticks_till_next_exp >= 0);
+    alarm_service.ticks_scheduled = ticks_till_next_exp;
 
     // No more timers remaining. Release wakelock if we're holding one.
-    if (ticks_till_next_exp == 0) {
-        if (alarm_service.wakelock) {
+    if (ticks_till_next_exp == 0)
+    {
+        alarm_service.timer_last_expired_us = 0;
+        alarm_service.timer_started_us = 0;
+        if (alarm_service.wakelock)
+        {
             ALOGV("%s releasing wake lock.", __func__);
             alarm_service.wakelock = false;
             int rc = bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
-            if (rc != BT_STATUS_SUCCESS) {
+            if (rc != BT_STATUS_SUCCESS)
+            {
                 ALOGE("%s unable to release wake lock with no timers: %d", __func__, rc);
             }
         }
@@ -173,25 +206,29 @@ void alarm_service_reschedule() {
         return;
     }
 
-    alarm_service.num_ticks = ticks_till_next_exp;
-    alarm_service.alarm_cnt++;
-
-    uint64_t ticks_in_millis = GKI_TICKS_TO_MS(ticks_till_next_exp);
-    if (ticks_in_millis <= TIMER_INTERVAL_FOR_WAKELOCK_IN_MS) {
+    UINT64 ticks_in_millis = GKI_TICKS_TO_MS(ticks_till_next_exp);
+    if (ticks_in_millis <= TIMER_INTERVAL_FOR_WAKELOCK_IN_MS)
+    {
         // The next deadline is close, just take a wakelock and set a regular (non-wake) timer.
         int rc = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
-        if (rc != BT_STATUS_SUCCESS) {
+        if (rc != BT_STATUS_SUCCESS)
+        {
             ALOGE("%s unable to acquire wake lock: %d", __func__, rc);
             return;
         }
         alarm_service.wakelock = true;
         ALOGV("%s acquired wake lock, setting short alarm (%lldms).", __func__, ticks_in_millis);
-        if (!set_nonwake_alarm(ticks_in_millis)) {
+
+        if (!set_nonwake_alarm(ticks_in_millis))
+        {
             ALOGE("%s unable to set short alarm.", __func__);
         }
     } else {
         // The deadline is far away, set a wake alarm and release wakelock if we're holding it.
-        if (!bt_os_callouts->set_wake_alarm(ticks_in_millis, true, bt_alarm_cb, &alarm_service)) {
+        alarm_service.timer_started_us = now_us();
+        alarm_service.timer_last_expired_us = 0;
+        if (!bt_os_callouts->set_wake_alarm(ticks_in_millis, true, bt_alarm_cb, &alarm_service))
+        {
             ALOGE("%s unable to set long alarm, releasing wake lock anyway.", __func__);
         } else {
             ALOGV("%s set long alarm (%lldms), releasing wake lock.", __func__, ticks_in_millis);
