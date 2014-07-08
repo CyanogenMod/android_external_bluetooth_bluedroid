@@ -1968,10 +1968,15 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
             else if (s16BitPool < pUpdateAudio->MinBitPool)
             {
                 APPL_TRACE_WARNING("btif_media_task_enc_update computed bitpool too small (%d)", s16BitPool);
+
                 /* Increase bitrate */
+                UINT16 previous_u16BitRate = btif_media_cb.encoder.u16BitRate;
                 btif_media_cb.encoder.u16BitRate += BTIF_MEDIA_BITRATE_STEP;
                 /* Record that we have increased the bitrate */
                 protect |= 2;
+                /* Check over-flow */
+                if (btif_media_cb.encoder.u16BitRate < previous_u16BitRate)
+                    protect |= 3;
             }
             else
             {
