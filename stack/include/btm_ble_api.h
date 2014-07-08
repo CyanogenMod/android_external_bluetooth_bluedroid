@@ -587,10 +587,12 @@ typedef UINT8 tBTM_BLE_SCAN_COND_OP;
 
 enum
 {
-    BTM_BLE_FILT_DISABLE = 0,
-    BTM_BLE_FILT_ENABLE = 1
+    BTM_BLE_FILT_ENABLE_DISABLE = 1,
+    BTM_BLE_FILT_CFG            = 2,
+    BTM_BLE_FILT_ADV_PARAM      = 3
 };
-typedef UINT8 tBTM_BLE_FILT_OP;
+
+typedef UINT8 tBTM_BLE_FILT_CB_EVT;
 
 /* BLE adv payload filtering config complete callback */
 typedef void (tBTM_BLE_PF_CFG_CBACK)(tBTM_BLE_PF_ACTION action, tBTM_BLE_SCAN_COND_OP cfg_op,
@@ -661,8 +663,11 @@ typedef union
 
 typedef struct
 {
-    UINT8   action_condtype[BTM_BLE_PF_TYPE_MAX];
+    UINT8   action_ocf[BTM_BLE_PF_TYPE_MAX];
     tBTM_BLE_REF_VALUE  ref_value[BTM_BLE_PF_TYPE_MAX];
+    tBTM_BLE_PF_PARAM_CBACK  *p_filt_param_cback[BTM_BLE_PF_TYPE_MAX];
+    tBTM_BLE_PF_CFG_CBACK *p_scan_cfg_cback[BTM_BLE_PF_TYPE_MAX];
+    UINT8   cb_evt[BTM_BLE_PF_TYPE_MAX];
     UINT8   pending_idx;
     UINT8   next_idx;
 }tBTM_BLE_ADV_FILTER_ADV_OPQ;
@@ -683,8 +688,6 @@ typedef struct
     UINT8               op_type;
     tBTM_BLE_PF_COUNT   addr_filter_count[BTM_BLE_MAX_FILTER_COUNTER]; /* per BDA filter indexed by tBTM_BLE_PF_COND_TYPE */
     tBLE_BD_ADDR        cur_filter_target;
-    tBTM_BLE_PF_CFG_CBACK    *p_scan_cfg_cback;
-    tBTM_BLE_PF_PARAM_CBACK  *p_filt_param_cback;
     tBTM_BLE_PF_STATUS_CBACK *p_filt_stat_cback;
     tBTM_BLE_ADV_FILTER_ADV_OPQ  op_q;
 }tBTM_BLE_ADV_FILTER_CB;

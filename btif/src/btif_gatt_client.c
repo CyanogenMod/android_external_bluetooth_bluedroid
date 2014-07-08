@@ -1447,7 +1447,8 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
         {
             btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
             BTA_DmBleCfgFilterCondition(BTA_DM_BLE_SCAN_COND_CLEAR, BTA_DM_BLE_PF_TYPE_ALL,
-                                        0, NULL, bta_scan_filt_cfg_cb, p_adv_filt_cb->client_if);
+                                        p_adv_filt_cb->filt_index, NULL, bta_scan_filt_cfg_cb,
+                                        p_adv_filt_cb->client_if);
             break;
         }
 

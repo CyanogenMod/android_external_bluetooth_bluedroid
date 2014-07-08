@@ -1351,6 +1351,12 @@ typedef tSDP_DISCOVERY_DB       tBTA_DISCOVERY_DB;
 #define BTA_DM_LINK_TYPE_ALL       0xFF
 typedef UINT8 tBTA_DM_LINK_TYPE;
 
+#define IMMEDIATE_DELY_MODE  0x00
+#define ONFOUND_DELY_MODE    0x01
+#define BATCH_DELY_MODE      0x02
+#define ALLOW_ALL_FILTER     0x00
+#define LOWEST_RSSI_VALUE     129
+
 /*****************************************************************************
 **  External Function Declarations
 *****************************************************************************/

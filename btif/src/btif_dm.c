@@ -161,6 +161,11 @@ static void btif_dm_ble_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif);
 static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl);
 static void btif_dm_ble_passkey_req_evt(tBTA_DM_PIN_REQ *p_pin_req);
 #endif
+
+static void bte_scan_filt_param_cfg_evt(UINT8 action_type,
+                                           tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
+                                           tBTA_DM_BLE_REF_VALUE ref_value, tBTA_STATUS status);
+
 static char* btif_get_default_local_name();
 /******************************************************************************
 **  Externs
@@ -1121,6 +1126,12 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
 
         case BTA_DM_INQ_CMPL_EVT:
         {
+#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
+            tBTA_DM_BLE_PF_FILT_PARAMS adv_filt_param;
+            memset(&adv_filt_param, 0, sizeof(tBTA_DM_BLE_PF_FILT_PARAMS));
+            BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_DELETE, 0, &adv_filt_param, NULL,
+                                     bte_scan_filt_param_cfg_evt, 0);
+#endif
         }
         break;
         case BTA_DM_DISC_CMPL_EVT:
@@ -1921,6 +1932,32 @@ static void bta_energy_info_cb(tBTA_DM_BLE_TX_TIME_MS tx_time, tBTA_DM_BLE_RX_TI
 }
 #endif
 
+/*******************************************************************************
+**
+** Function         bte_scan_filt_param_cfg_evt
+**
+** Description      Scan filter param config event
+**
+** Returns          void
+**
+*******************************************************************************/
+static void bte_scan_filt_param_cfg_evt(UINT8 action_type,
+                                        tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
+                                        tBTA_DM_BLE_REF_VALUE ref_value, tBTA_STATUS status)
+{
+    /* This event occurs on calling BTA_DmBleCfgFilterCondition internally,
+    ** and that is why there is no HAL callback
+    */
+    if(BTA_SUCCESS != status)
+    {
+        BTIF_TRACE_ERROR("%s, %d", __FUNCTION__, status);
+    }
+    else
+    {
+        BTIF_TRACE_DEBUG("%s", __FUNCTION__);
+    }
+}
+
 /*****************************************************************************
 **
 **   btif api functions (no context switch)
@@ -1940,12 +1977,29 @@ bt_status_t btif_dm_start_discovery(void)
 {
     tBTA_DM_INQ inq_params;
     tBTA_SERVICE_MASK services = 0;
+    tBTA_DM_BLE_PF_FILT_PARAMS adv_filt_param;
 
     BTIF_TRACE_EVENT("%s", __FUNCTION__);
+
+#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
+    memset(&adv_filt_param, 0, sizeof(tBTA_DM_BLE_PF_FILT_PARAMS));
+    /* Cleanup anything remaining on index 0 */
+    BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_DELETE, 0, &adv_filt_param, NULL,
+                             bte_scan_filt_param_cfg_evt, 0);
+
+    /* Add an allow-all filter on index 0*/
+    adv_filt_param.dely_mode = IMMEDIATE_DELY_MODE;
+    adv_filt_param.feat_seln = ALLOW_ALL_FILTER;
+    adv_filt_param.filt_logic_type = BTA_DM_BLE_PF_FILT_LOGIC_OR;
+    adv_filt_param.list_logic_type = BTA_DM_BLE_PF_LIST_LOGIC_OR;
+    adv_filt_param.rssi_low_thres = LOWEST_RSSI_VALUE;
+    adv_filt_param.rssi_high_thres = LOWEST_RSSI_VALUE;
+    BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_ADD, 0, &adv_filt_param, NULL,
+                             bte_scan_filt_param_cfg_evt, 0);
+
     /* TODO: Do we need to handle multiple inquiries at the same time? */
 
     /* Set inquiry params and call API */
-#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     inq_params.mode = BTA_DM_GENERAL_INQUIRY|BTA_BLE_GENERAL_INQUIRY;
 #if (defined(BTA_HOST_INTERLEAVE_SEARCH) && BTA_HOST_INTERLEAVE_SEARCH == TRUE)
     inq_params.intl_duration[0]= BTIF_DM_INTERLEAVE_DURATION_BR_ONE;
