@@ -222,31 +222,24 @@ static int skt_connect(char *path, size_t buffer_sz)
     if (ret < 0)
         ERROR("setsockopt failed (%s)", strerror(errno));
 
+    ret = setsockopt(skt_fd, SOL_SOCKET, SO_RCVBUF, (char*)&len, (int)sizeof(len));
+
+    /* only issue warning if failed */
+    if (ret < 0)
+        ERROR("setsockopt failed (%s)", strerror(errno));
+
     INFO("connected to stack fd = %d", skt_fd);
 
     return skt_fd;
 }
 
-static int skt_read(int fd, void *p, size_t len, int us_timeout)
+static int skt_read(int fd, void *p, size_t len)
 {
     int read;
     struct pollfd pfd;
     struct timespec ts;
 
     FNLOG();
-
-    pfd.fd = fd;
-    pfd.events = POLLIN;
-
-    ts.tv_sec = us_timeout / 1000000;
-    ts.tv_nsec = (us_timeout % 1000000) * 1000;
-
-    ts_log("skt_read ppoll", len, NULL);
-
-    /* read time out */
-    if (ppoll(&pfd, 1, &ts, NULL) == 0) {
-        return 0;
-    }
 
     ts_log("skt_read recv", len, NULL);
 
@@ -933,8 +926,6 @@ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
         return -1;
     }
 
-    int us_delay = calc_audiotime(in->common.cfg, bytes);
-
     /* only allow autostarting if we are in stopped or standby */
     if ((in->common.state == AUDIO_A2DP_STATE_STOPPED) ||
         (in->common.state == AUDIO_A2DP_STATE_STANDBY))
@@ -945,6 +936,8 @@ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
         {
             /* emulate time this write represents to avoid very fast write
                failures during transition periods or remote suspend */
+
+            int us_delay = calc_audiotime(in->common.cfg, bytes);
 
             DEBUG("emulate a2dp read delay (%d us)", us_delay);
 
@@ -961,7 +954,7 @@ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
         return -1;
     }
 
-    read = skt_read(in->common.audio_fd, buffer, bytes, us_delay);
+    read = skt_read(in->common.audio_fd, buffer, bytes);
 
     if (read == -1)
     {
