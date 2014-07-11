@@ -4815,6 +4815,12 @@ void bta_dm_encrypt_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_
         case BTM_BUSY:
             bta_status = BTA_BUSY;
             break;
+        case BTM_FAILED_ESTABLISH:
+            bta_status = BTA_FAILED_ESTABLISH;
+            break;
+        case BTM_DEVICE_TIMEOUT:
+            bta_status = BTA_TIMEOUT;
+            break;
         default:
             bta_status = BTA_FAILURE;
             break;

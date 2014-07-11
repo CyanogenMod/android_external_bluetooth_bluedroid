@@ -4256,7 +4256,7 @@ void btm_sec_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
         if (status == HCI_ERR_KEY_MISSING || status == HCI_ERR_AUTH_FAILURE
             ||status == HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE)
             p_dev_rec->sec_flags &= ~ (BTM_SEC_LE_LINK_KEY_KNOWN);
-        btm_ble_link_encrypted(p_dev_rec->bd_addr, encr_enable);
+        btm_ble_link_encrypted(p_dev_rec->bd_addr, encr_enable, status);
         return;
     }
     else
@@ -4830,7 +4830,12 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
     {
         p_dev_rec->p_callback = NULL; /* when the peer device time out the authentication before
                                          we do, this call back must be reset here */
-        (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_ERR_PROCESSING);
+        if(reason == HCI_ERR_CONN_FAILED_ESTABLISHMENT)
+            (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_FAILED_ESTABLISH);
+        else if(reason == BTM_DEVICE_TIMEOUT)
+            (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_DEVICE_TIMEOUT);
+        else
+            (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_ERR_PROCESSING);
     }
 
     BTM_TRACE_EVENT("after Update sec_flags=0x%x", p_dev_rec->sec_flags);

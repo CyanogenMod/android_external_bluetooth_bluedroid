@@ -1291,7 +1291,7 @@ tBTM_STATUS btm_ble_start_encrypt(BD_ADDR bda, BOOLEAN use_stk, BT_OCTET16 stk)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_link_encrypted(BD_ADDR bd_addr, UINT8 encr_enable)
+void btm_ble_link_encrypted(BD_ADDR bd_addr, UINT8 encr_enable, UINT8 status)
 {
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev (bd_addr);
     BOOLEAN             enc_cback;
@@ -1302,7 +1302,7 @@ void btm_ble_link_encrypted(BD_ADDR bd_addr, UINT8 encr_enable)
         return;
     }
 
-    BTM_TRACE_DEBUG ("btm_ble_link_encrypted encr_enable=%d", encr_enable);
+    BTM_TRACE_DEBUG ("btm_ble_link_encrypted encr_enable=%d, status=%d", encr_enable, status);
 
     enc_cback = (p_dev_rec->sec_state == BTM_SEC_STATE_ENCRYPTING);
 
@@ -1319,8 +1319,14 @@ void btm_ble_link_encrypted(BD_ADDR bd_addr, UINT8 encr_enable)
         if (encr_enable)
             btm_sec_dev_rec_cback_event(p_dev_rec, BTM_SUCCESS, TRUE);
         else if (p_dev_rec->role_master)
-            btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING, TRUE);
-
+        {
+            if (status == HCI_ERR_CONN_FAILED_ESTABLISHMENT)
+                btm_sec_dev_rec_cback_event(p_dev_rec, BTM_FAILED_ESTABLISH, TRUE);
+            else if (status == BTM_DEVICE_TIMEOUT)
+                btm_sec_dev_rec_cback_event(p_dev_rec, BTM_DEVICE_TIMEOUT, TRUE);
+            else
+                btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING, TRUE);
+        }
     }
     /* to notify GATT to send data if any request is pending */
     gatt_notify_enc_cmpl(p_dev_rec->bd_addr);
@@ -1375,7 +1381,7 @@ static void btm_enc_proc_slave_y(tSMP_ENC *p)
             BTM_TRACE_DEBUG ("LTK request failed - send negative reply");
             btsnd_hcic_ble_ltk_req_neg_reply(p_cb->enc_handle);
             if (p_dev_rec)
-                btm_ble_link_encrypted(p_dev_rec->bd_addr, 0);
+                btm_ble_link_encrypted(p_dev_rec->bd_addr, 0, BTM_ERR_PROCESSING);
 
         }
     }
