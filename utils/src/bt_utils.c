@@ -127,7 +127,7 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
     pthread_once(&g_DoSchedulingGroupOnce[g_TaskIdx], check_do_scheduling_group);
     if (g_DoSchedulingGroup[g_TaskIdx]) {
         // set_sched_policy does not support tid == 0
-        rc = set_sched_policy(tid, SP_FOREGROUND);
+        rc = set_sched_policy(tid, SP_AUDIO_SYS);
     }
     g_TaskIDs[high_task] = tid;
     pthread_mutex_unlock(&gIdxLock);
