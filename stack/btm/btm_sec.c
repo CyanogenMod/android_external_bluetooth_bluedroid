@@ -3190,8 +3190,7 @@ void btm_sec_rmt_name_request_complete (UINT8 *p_bd_addr, UINT8 *p_bd_name, UINT
                 return;
             }
 
-            /* Ignore the Page timeout error for RNR */
-            if ((status != HCI_SUCCESS) && (status != HCI_ERR_PAGE_TIMEOUT))
+            if (status != HCI_SUCCESS)
             {
                 btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
 
