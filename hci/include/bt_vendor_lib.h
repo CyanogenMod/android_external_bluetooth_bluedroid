@@ -172,6 +172,16 @@ typedef enum {
 
     BT_VND_OP_ANT_USERIAL_CLOSE,
 
+/*  [operation]
+ *      Get UART speed.
+ *  [input param]
+ *      None.
+ *  [return]
+ *      -1: Fail or Uart line speed like ..., 115200, ..., 3000000, .....
+ *  [callback]
+ *      None.
+ */
+    BT_VND_OP_GET_LINESPEED,
 } bt_vendor_opcode_t;
 
 /** Power on/off control states */
