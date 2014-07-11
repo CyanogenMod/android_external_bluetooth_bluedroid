@@ -2518,6 +2518,14 @@ static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         /*Map the HCI fail reason  to  bt status  */
         switch (p_auth_cmpl->fail_reason)
         {
+            case BTA_DM_AUTH_SMP_PAIR_AUTH_FAIL:
+            case BTA_DM_AUTH_SMP_CONFIRM_VALUE_FAIL:
+                btif_dm_remove_ble_bonding_keys();
+                status = BT_STATUS_AUTH_FAILURE;
+                break;
+            case BTA_DM_AUTH_SMP_PAIR_NOT_SUPPORT:
+                status = BT_STATUS_AUTH_REJECTED;
+                break;
             default:
                 btif_dm_remove_ble_bonding_keys();
                 status =  BT_STATUS_FAIL;
