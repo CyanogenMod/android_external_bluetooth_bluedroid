@@ -1127,7 +1127,14 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
         GKI_enqueue (&p_lcb->link_xmit_data_q, p_buf);
 
         if (p_lcb->link_xmit_quota == 0)
-            l2cb.check_round_robin = TRUE;
+        {
+#if BLE_INCLUDED == TRUE
+            if (p_lcb->transport == BT_TRANSPORT_LE)
+                l2cb.ble_check_round_robin = TRUE;
+            else
+#endif
+                l2cb.check_round_robin = TRUE;
+        }
     }
 
     /* If this is called from uncongested callback context break recursive calling.
@@ -1190,16 +1197,20 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
         }
 
         /* If we finished without using up our quota, no need for a safety check */
-#if (BLE_INCLUDED == TRUE)
-        if ( ((l2cb.controller_xmit_window > 0 && (p_lcb->transport == BT_TRANSPORT_BR_EDR)) ||
-             (l2cb.controller_le_xmit_window > 0 && (p_lcb->transport == BT_TRANSPORT_LE)))
-          && (l2cb.round_robin_unacked < l2cb.round_robin_quota) )
-#else
         if ( (l2cb.controller_xmit_window > 0)
-          && (l2cb.round_robin_unacked < l2cb.round_robin_quota) )
-
+          && (l2cb.round_robin_unacked < l2cb.round_robin_quota)
+#if (BLE_INCLUDED == TRUE)
+          && (p_lcb->transport == BT_TRANSPORT_BR_EDR)
 #endif
+          )
             l2cb.check_round_robin = FALSE;
+
+#if (BLE_INCLUDED == TRUE)
+        if ( (l2cb.controller_le_xmit_window > 0)
+          && (l2cb.ble_round_robin_unacked < l2cb.ble_round_robin_quota)
+          && (p_lcb->transport == BT_TRANSPORT_LE))
+            l2cb.ble_check_round_robin = FALSE;
+#endif
     }
     else /* if this is not round-robin service */
     {
@@ -1278,8 +1289,14 @@ static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
         )
     {
         if (p_lcb->link_xmit_quota == 0)
-            l2cb.round_robin_unacked++;
-
+        {
+#if (BLE_INCLUDED == TRUE)
+            if (p_lcb->transport == BT_TRANSPORT_LE)
+                l2cb.ble_round_robin_unacked++;
+            else
+#endif
+                l2cb.round_robin_unacked++;
+        }
         p_lcb->sent_not_acked++;
         p_buf->layer_specific = 0;
 
@@ -1341,14 +1358,17 @@ static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
         if (p_lcb->transport == BT_TRANSPORT_LE)
         {
             l2cb.controller_le_xmit_window -= num_segs;
-
+            if (p_lcb->link_xmit_quota == 0)
+                l2cb.ble_round_robin_unacked += num_segs;
         }
         else
 #endif
-        l2cb.controller_xmit_window -= num_segs;
+        {
+            l2cb.controller_xmit_window -= num_segs;
 
-        if (p_lcb->link_xmit_quota == 0)
-            l2cb.round_robin_unacked += num_segs;
+            if (p_lcb->link_xmit_quota == 0)
+                l2cb.round_robin_unacked += num_segs;
+        }
 
         p_lcb->sent_not_acked += num_segs;
 #if BLE_INCLUDED == TRUE
@@ -1371,7 +1391,7 @@ static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
                 l2cb.controller_le_xmit_window,
                 p_lcb->handle,
                 p_lcb->link_xmit_quota, p_lcb->sent_not_acked,
-                l2cb.round_robin_quota, l2cb.round_robin_unacked);
+                l2cb.ble_round_robin_quota, l2cb.ble_round_robin_unacked);
     }
     else
 #endif
@@ -1436,11 +1456,24 @@ void l2c_link_process_num_completed_pkts (UINT8 *p)
             /* If doing round-robin, adjust communal counts */
             if (p_lcb->link_xmit_quota == 0)
             {
-                /* Don't go negative */
-                if (l2cb.round_robin_unacked > num_sent)
-                    l2cb.round_robin_unacked -= num_sent;
+#if BLE_INCLUDED == TRUE
+                if (p_lcb->transport == BT_TRANSPORT_LE)
+                {
+                   /* Don't go negative */
+                    if (l2cb.ble_round_robin_unacked > num_sent)
+                        l2cb.ble_round_robin_unacked -= num_sent;
+                    else
+                        l2cb.ble_round_robin_unacked = 0;
+                }
                 else
-                    l2cb.round_robin_unacked = 0;
+#endif
+                {
+                    /* Don't go negative */
+                    if (l2cb.round_robin_unacked > num_sent)
+                        l2cb.round_robin_unacked -= num_sent;
+                    else
+                        l2cb.round_robin_unacked = 0;
+                }
             }
 
             /* Don't go negative */
@@ -1458,6 +1491,15 @@ void l2c_link_process_num_completed_pkts (UINT8 *p)
             {
               l2c_link_check_send_pkts (NULL, NULL, NULL);
             }
+#if BLE_INCLUDED == TRUE
+            if ((p_lcb->transport == BT_TRANSPORT_LE)
+                && (p_lcb->acl_priority == L2CAP_PRIORITY_HIGH)
+                && ((l2cb.ble_check_round_robin)
+                && (l2cb.ble_round_robin_unacked < l2cb.ble_round_robin_quota)))
+            {
+              l2c_link_check_send_pkts (NULL, NULL, NULL);
+            }
+#endif
         }
 
 #if (L2CAP_HCI_FLOW_CONTROL_DEBUG == TRUE)
@@ -1469,7 +1511,7 @@ void l2c_link_process_num_completed_pkts (UINT8 *p)
                 L2CAP_TRACE_DEBUG ("TotalWin=%d,LinkUnack(0x%x)=%d,RRCheck=%d,RRUnack=%d",
                     l2cb.controller_le_xmit_window,
                     p_lcb->handle, p_lcb->sent_not_acked,
-                    l2cb.check_round_robin, l2cb.round_robin_unacked);
+                    l2cb.ble_check_round_robin, l2cb.ble_round_robin_unacked);
             }
             else
 #endif
@@ -1488,7 +1530,7 @@ void l2c_link_process_num_completed_pkts (UINT8 *p)
                 l2cb.controller_xmit_window,
                 l2cb.controller_le_xmit_window,
                 handle,
-                l2cb.check_round_robin, l2cb.round_robin_unacked);
+                l2cb.ble_check_round_robin, l2cb.ble_round_robin_unacked);
 #else
             L2CAP_TRACE_DEBUG ("TotalWin=%d  Handle=0x%x  RRCheck=%d  RRUnack=%d",
                 l2cb.controller_xmit_window,

@@ -507,10 +507,14 @@ typedef struct
 #endif
 
 #if (BLE_INCLUDED == TRUE)
+    UINT16                   num_ble_links_active;               /* Number of LE links active           */
     BOOLEAN                  is_ble_connecting;
     BD_ADDR                  ble_connecting_bda;
     UINT16                   controller_le_xmit_window;         /* Total ACL window for all links   */
     UINT16                   num_lm_ble_bufs;                   /* # of ACL buffers on controller   */
+    UINT16                   ble_round_robin_quota;              /* Round-robin link quota           */
+    UINT16                   ble_round_robin_unacked;            /* Round-robin unacked              */
+    BOOLEAN                  ble_check_round_robin;              /* Do a round robin check           */
 #endif
 
     tL2CA_ECHO_DATA_CB      *p_echo_data_cb;                /* Echo data callback */
@@ -769,6 +773,8 @@ extern void l2cble_conn_comp (UINT16 handle, UINT8 role, BD_ADDR bda, tBLE_ADDR_
 extern BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb);
 extern void l2c_enable_conn_param_timeout(tL2C_LCB * p_lcb);
 extern void l2cble_notify_le_connection (BD_ADDR bda);
+extern void l2c_ble_link_adjust_allocation (void);
+
 #if (defined BLE_LLT_INCLUDED) && (BLE_LLT_INCLUDED == TRUE)
 extern void l2cble_process_rc_param_request_evt(UINT16 handle, UINT16 int_min, UINT16 int_max,
                                                         UINT16 latency, UINT16 timeout);

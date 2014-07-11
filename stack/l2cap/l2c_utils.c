@@ -70,12 +70,20 @@ tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, BOOLEAN is_bonding, tBT_TRANSPOR
             p_lcb->idle_timeout    = l2cb.idle_timeout;
             p_lcb->id              = 1;                     /* spec does not allow '0' */
             p_lcb->is_bonding      = is_bonding;
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
             p_lcb->transport       = transport;
-#endif
-            l2cb.num_links_active++;
 
-            l2c_link_adjust_allocation();
+            if (transport == BT_TRANSPORT_LE)
+            {
+                l2cb.num_ble_links_active++;
+                l2c_ble_link_adjust_allocation();
+            }
+            else
+#endif
+            {
+                l2cb.num_links_active++;
+                l2c_link_adjust_allocation();
+            }
             return (p_lcb);
         }
     }
@@ -210,11 +218,23 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     l2c_ucd_delete_sec_pending_q(p_lcb);
 #endif
 
+#if BLE_INCLUDED == TRUE
     /* Re-adjust flow control windows make sure it does not go negative */
-    if (l2cb.num_links_active >= 1)
-        l2cb.num_links_active--;
+    if (p_lcb->transport == BT_TRANSPORT_LE)
+    {
+        if (l2cb.num_ble_links_active >= 1)
+            l2cb.num_ble_links_active--;
 
-    l2c_link_adjust_allocation();
+        l2c_ble_link_adjust_allocation();
+    }
+    else
+#endif
+    {
+        if (l2cb.num_links_active >= 1)
+            l2cb.num_links_active--;
+
+        l2c_link_adjust_allocation();
+    }
 
     /* Check for ping outstanding */
     if (p_lcb->p_echo_rsp_cb)

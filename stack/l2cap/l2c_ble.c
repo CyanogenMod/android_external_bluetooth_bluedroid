@@ -765,6 +765,130 @@ void l2c_link_processs_ble_num_bufs (UINT16 num_lm_ble_bufs)
     l2cb.num_lm_ble_bufs = l2cb.controller_le_xmit_window = num_lm_ble_bufs;
 }
 
+/*******************************************************************************
+**
+** Function         l2c_ble_link_adjust_allocation
+**
+** Description      This function is called when a link is created or removed
+**                  to calculate the amount of packets each link may send to
+**                  the HCI without an ack coming back.
+**
+**                  Currently, this is a simple allocation, dividing the
+**                  number of Controller Packets by the number of links. In
+**                  the future, QOS configuration should be examined.
+**
+** Returns          void
+**
+*******************************************************************************/
+void l2c_ble_link_adjust_allocation (void)
+{
+    UINT16      qq, yy, qq_remainder;
+    tL2C_LCB    *p_lcb;
+    UINT16      hi_quota, low_quota;
+    UINT16      num_lowpri_links = 0;
+    UINT16      num_hipri_links  = 0;
+    UINT16      controller_xmit_quota = l2cb.num_lm_ble_bufs;
+    UINT16      high_pri_link_quota = L2CAP_HIGH_PRI_MIN_XMIT_QUOTA_A;
+
+    /* If no links active, reset buffer quotas and controller buffers */
+    if (l2cb.num_ble_links_active == 0)
+    {
+        l2cb.controller_le_xmit_window = l2cb.num_lm_ble_bufs;
+        l2cb.ble_round_robin_quota = l2cb.ble_round_robin_unacked = 0;
+        return;
+    }
+
+    /* First, count the links */
+    for (yy = 0, p_lcb = &l2cb.lcb_pool[0]; yy < MAX_L2CAP_LINKS; yy++, p_lcb++)
+    {
+        if (p_lcb->in_use && p_lcb->transport == BT_TRANSPORT_LE)
+        {
+            if (p_lcb->acl_priority == L2CAP_PRIORITY_HIGH)
+                num_hipri_links++;
+            else
+                num_lowpri_links++;
+        }
+    }
+
+    /* now adjust high priority link quota */
+    low_quota = num_lowpri_links ? 1 : 0;
+    while ( (num_hipri_links * high_pri_link_quota + low_quota) > controller_xmit_quota )
+        high_pri_link_quota--;
+
+
+    /* Work out the xmit quota and buffer quota high and low priorities */
+    hi_quota  = num_hipri_links * high_pri_link_quota;
+    low_quota = (hi_quota < controller_xmit_quota) ? controller_xmit_quota - hi_quota : 1;
+
+    /* Work out and save the HCI xmit quota for each low priority link */
+
+    /* If each low priority link cannot have at least one buffer */
+    if (num_lowpri_links > low_quota)
+    {
+        l2cb.ble_round_robin_quota = low_quota;
+        qq = qq_remainder = 0;
+    }
+    /* If each low priority link can have at least one buffer */
+    else if (num_lowpri_links > 0)
+    {
+        l2cb.ble_round_robin_quota = 0;
+        l2cb.ble_round_robin_unacked = 0;
+        qq = low_quota / num_lowpri_links;
+        qq_remainder = low_quota % num_lowpri_links;
+    }
+    /* If no low priority link */
+    else
+    {
+        l2cb.ble_round_robin_quota = 0;
+        l2cb.ble_round_robin_unacked = 0;
+        qq = qq_remainder = 0;
+    }
+    L2CAP_TRACE_EVENT ("l2c_ble_link_adjust_allocation  num_hipri: %u  num_lowpri: %u  low_quota: %u  round_robin_quota: %u  qq: %u",
+                        num_hipri_links, num_lowpri_links, low_quota,
+                        l2cb.ble_round_robin_quota, qq);
+
+    /* Now, assign the quotas to each link */
+    for (yy = 0, p_lcb = &l2cb.lcb_pool[0]; yy < MAX_L2CAP_LINKS; yy++, p_lcb++)
+    {
+        if (p_lcb->in_use && p_lcb->transport == BT_TRANSPORT_LE)
+        {
+            if (p_lcb->acl_priority == L2CAP_PRIORITY_HIGH)
+            {
+                p_lcb->link_xmit_quota   = high_pri_link_quota;
+            }
+            else
+            {
+                /* Safety check in case we switched to round-robin with something outstanding */
+                /* if sent_not_acked is added into round_robin_unacked then don't add it again */
+                /* l2cap keeps updating sent_not_acked for exiting from round robin */
+                if (( p_lcb->link_xmit_quota > 0 )&&( qq == 0 ))
+                    l2cb.ble_round_robin_unacked += p_lcb->sent_not_acked;
+
+                p_lcb->link_xmit_quota   = qq;
+                if (qq_remainder > 0)
+                {
+                    p_lcb->link_xmit_quota++;
+                    qq_remainder--;
+                }
+            }
+
+            L2CAP_TRACE_EVENT("l2c_ble_link_adjust_allocation LCB %d   Priority: %d  XmitQuota: %d",
+                                yy, p_lcb->acl_priority, p_lcb->link_xmit_quota);
+
+            L2CAP_TRACE_EVENT("        SentNotAcked: %d  RRUnacked: %d",
+                                p_lcb->sent_not_acked, l2cb.round_robin_unacked);
+
+            /* There is a special case where we have readjusted the link quotas and  */
+            /* this link may have sent anything but some other link sent packets so  */
+            /* so we may need a timer to kick off this link's transmissions.         */
+            if ( (p_lcb->link_state == LST_CONNECTED)
+              && (p_lcb->link_xmit_data_q.count)
+              && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) )
+                btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_FLOW_CONTROL_TOUT);
+        }
+    }
+}
+
 #if (defined BLE_LLT_INCLUDED) && (BLE_LLT_INCLUDED == TRUE)
 /*******************************************************************************
 **
