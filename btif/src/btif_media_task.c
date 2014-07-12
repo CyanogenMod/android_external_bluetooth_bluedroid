@@ -302,6 +302,7 @@ typedef struct {
 
 static tBTIF_MEDIA_CB btif_media_cb;
 static int media_task_running = MEDIA_TASK_STATE_OFF;
+static UINT64 last_frame_us = 0;
 
 
 /*****************************************************************************
@@ -363,22 +364,20 @@ BOOLEAN btif_media_task_clear_track(void);
  **  Misc helper functions
  *****************************************************************************/
 
+static UINT64 time_now_us()
+{
+    struct timespec ts_now;
+    clock_gettime(CLOCK_BOOTTIME, &ts_now);
+    return (ts_now.tv_sec * USEC_PER_SEC) + (ts_now.tv_nsec / 1000);
+}
+
 static void log_tstamps_us(char *comment)
 {
-    #define USEC_PER_SEC 1000000L
-    static struct timespec prev = {0, 0};
-    struct timespec now, diff;
-    unsigned int diff_us = 0;
-    unsigned int now_us = 0;
-
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    now_us = now.tv_sec*USEC_PER_SEC + now.tv_nsec/1000;
-    diff_us = (now.tv_sec - prev.tv_sec) * USEC_PER_SEC + (now.tv_nsec - prev.tv_nsec)/1000;
-
-    APPL_TRACE_DEBUG("[%s] ts %08d, diff : %08d, queue sz %d", comment, now_us, diff_us,
+    static UINT64 prev_us = 0;
+    const UINT64 now_us = time_now_us();
+    APPL_TRACE_DEBUG("[%s] ts %08llu, diff : %08llu, queue sz %d", comment, now_us, now_us - prev_us,
                 btif_media_cb.TxAaQ.count);
-
-    prev = now;
+    prev_us = now_us;
 }
 
 const char* dump_media_event(UINT16 event)
@@ -2382,6 +2381,7 @@ static void btif_media_task_aa_start_tx(void)
     // UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_REG_CBACK, NULL);
 
     btif_media_cb.is_tx_timer = TRUE;
+    last_frame_us = 0;
 
     /* Reset the media feeding state */
     btif_media_task_feeding_state_reset();
@@ -2413,6 +2413,7 @@ static void btif_media_task_aa_stop_tx(void)
 
     /* audio engine stopped, reset tx suspended flag */
     btif_media_cb.tx_flush = 0;
+    last_frame_us = 0;
 
     /* Reset the media feeding state */
     btif_media_task_feeding_state_reset();
@@ -2440,8 +2441,15 @@ static UINT8 btif_get_num_aa_frame(void)
                              btif_media_cb.media_feeding.cfg.pcm.num_channel *
                              btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
 
+            UINT32 us_this_tick = BTIF_MEDIA_TIME_TICK * 1000;
+            UINT64 now_us = time_now_us();
+            if (last_frame_us != 0)
+                us_this_tick = (now_us - last_frame_us);
+            last_frame_us = now_us;
+
             btif_media_cb.media_feeding_state.pcm.counter +=
-                                btif_media_cb.media_feeding_state.pcm.bytes_per_tick;
+                                btif_media_cb.media_feeding_state.pcm.bytes_per_tick *
+                                us_this_tick / (BTIF_MEDIA_TIME_TICK * 1000);
             if ((!btif_media_cb.media_feeding_state.pcm.overflow) ||
                 (btif_media_cb.TxAaQ.count < A2DP_PACKET_COUNT_LOW_WATERMARK)) {
                 if (btif_media_cb.media_feeding_state.pcm.overflow) {
