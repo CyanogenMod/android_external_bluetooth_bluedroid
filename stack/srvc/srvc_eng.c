@@ -29,6 +29,8 @@
 //#endif
 #include "srvc_battery_int.h"
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
 static void srvc_eng_s_request_cback (UINT16 conn_id, UINT32 trans_id, UINT8 op_code, tGATTS_DATA *p_data);
 static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected,
                                           tGATT_DISCONN_REASON reason, tBT_TRANSPORT transport);
@@ -185,7 +187,7 @@ tSRVC_CLCB *srvc_eng_clcb_alloc (UINT16 conn_id, BD_ADDR bda)
 **
 ** Description      The function deallocates a GATT profile  connection link control block
 **
-** Returns           NTrue the deallocation is successful
+** Returns           True the deallocation is successful
 **
 *******************************************************************************/
 BOOLEAN srvc_eng_clcb_dealloc (UINT16 conn_id)
@@ -197,6 +199,12 @@ BOOLEAN srvc_eng_clcb_dealloc (UINT16 conn_id)
     {
         if (p_clcb->in_use && p_clcb->connected && (p_clcb->conn_id == conn_id))
         {
+            unsigned j;
+            for (j = 0; j < ARRAY_SIZE(p_clcb->dis_value.data_string); j++) {
+                if (p_clcb->dis_value.data_string[j]) {
+                    GKI_freebuf(p_clcb->dis_value.data_string[j]);
+                }
+            }
             memset(p_clcb, 0, sizeof(tSRVC_CLCB));
             return TRUE;
         }
