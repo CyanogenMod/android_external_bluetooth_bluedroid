@@ -102,7 +102,6 @@ typedef struct
 {
     TIMER_LIST_ENT   *p_first;
     TIMER_LIST_ENT   *p_last;
-    INT32             last_ticks;
 } TIMER_LIST_Q;
 
 

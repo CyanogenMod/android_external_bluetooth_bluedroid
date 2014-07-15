@@ -497,7 +497,6 @@ void GKI_timer_update (INT32 ticks_since_last_update)
 void GKI_init_timer_list(TIMER_LIST_Q *timer_q) {
     timer_q->p_first    = NULL;
     timer_q->p_last     = NULL;
-    timer_q->last_ticks = 0;
 }
 
 bool GKI_timer_queue_is_empty(const TIMER_LIST_Q *timer_q) {
@@ -574,17 +573,6 @@ UINT16 GKI_update_timer_list (TIMER_LIST_Q *p_timer_listq, INT32 num_units_since
         p_tle = p_tle->p_next;
     }
 
-    if (p_timer_listq->last_ticks > 0)
-    {
-        p_timer_listq->last_ticks -= num_units_since_last_update;
-
-        /* If the last timer has expired set last_ticks to 0 so that other list update
-        * functions will calculate correctly
-        */
-        if (p_timer_listq->last_ticks < 0)
-            p_timer_listq->last_ticks = 0;
-    }
-
     return (num_time_out);
 }
 
@@ -650,78 +638,47 @@ UINT32 GKI_get_remaining_ticks (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_
 *******************************************************************************/
 void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
 {
-    UINT32           nr_ticks_total;
-    UINT8 tt;
-    TIMER_LIST_ENT  *p_temp;
+    /* Only process valid tick values. */
+    if (p_tle->ticks < 0)
+        return;
 
-    /* Only process valid tick values */
-    if (p_tle->ticks >= 0)
+    p_tle->p_prev = NULL;
+    p_tle->p_next = NULL;
+    p_tle->in_use = true;
+
+    /* Insert at head. */
+    if (p_timer_listq->p_first == NULL)
     {
-        /* If this entry is the last in the list */
-        if (p_tle->ticks >= p_timer_listq->last_ticks)
-        {
-            /* If this entry is the only entry in the list */
-            if (p_timer_listq->p_first == NULL)
-                p_timer_listq->p_first = p_tle;
-            else
-            {
-                /* Insert the entry onto the end of the list */
-                if (p_timer_listq->p_last != NULL)
-                    p_timer_listq->p_last->p_next = p_tle;
-
-                p_tle->p_prev = p_timer_listq->p_last;
-            }
-
-            p_tle->p_next = NULL;
-            p_timer_listq->p_last = p_tle;
-            nr_ticks_total = p_tle->ticks;
-            p_tle->ticks -= p_timer_listq->last_ticks;
-
-            p_timer_listq->last_ticks = nr_ticks_total;
-        }
-        else    /* This entry needs to be inserted before the last entry */
-        {
-            p_temp = p_timer_listq->p_first;
-
-            if (p_temp == NULL)
-            {
-                /* list is corrupted, exit to avoid crash */
-                ALOGE("%s: Timerlist Q is empty", __func__);
-                GKI_exception(GKI_ERROR_TIMER_LIST_CORRUPTED, "*** "
-                        "GKI_add_to_timer_list(): timer list corrupted! ***");
-                return;
-            }
-            /* Find the entry that the new one needs to be inserted in front of
-             * as last_ticks is the expiry value of p_last, it should be inserted
-             * BEFORE p_last. otherwise list is probably corrupted! */
-            while (p_tle->ticks > p_temp->ticks)
-            {
-                /* Update the tick value if looking at an unexpired entry */
-                if (p_temp->ticks > 0)
-                    p_tle->ticks -= p_temp->ticks;
-
-                p_temp = p_temp->p_next;
-            }
-
-            /* The new entry is the first in the list */
-            if (p_temp == p_timer_listq->p_first)
-            {
-                p_tle->p_next = p_timer_listq->p_first;
-                p_timer_listq->p_first->p_prev = p_tle;
-                p_timer_listq->p_first = p_tle;
-            }
-            else
-            {
-                p_temp->p_prev->p_next = p_tle;
-                p_tle->p_prev = p_temp->p_prev;
-                p_temp->p_prev = p_tle;
-                p_tle->p_next = p_temp;
-            }
-            p_temp->ticks -= p_tle->ticks;
-        }
-
-        p_tle->in_use = TRUE;
+        p_timer_listq->p_first = p_tle;
+        p_timer_listq->p_last = p_tle;
+        return;
     }
+
+    /* Find the node before which we need to insert p_tle. */
+    TIMER_LIST_ENT *i = p_timer_listq->p_first;
+    while (i && p_tle->ticks > i->ticks)
+    {
+        if (i->ticks > 0)
+            p_tle->ticks -= i->ticks;
+        i = i->p_next;
+    }
+
+    /* Insert at tail. */
+    if (!i)
+    {
+        p_timer_listq->p_last->p_next = p_tle;
+        p_tle->p_prev = p_timer_listq->p_last;
+        p_timer_listq->p_last = p_tle;
+        return;
+    }
+
+    p_tle->p_prev = i->p_prev;
+    p_tle->p_next = i;
+    i->p_prev = p_tle;
+    i->ticks -= p_tle->ticks;
+
+    if (p_timer_listq->p_first == i)
+        p_timer_listq->p_first = p_tle;
 }
 
 
@@ -754,10 +711,6 @@ void GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p
     if (p_tle->p_next != NULL)
     {
         p_tle->p_next->ticks += p_tle->ticks;
-    }
-    else
-    {
-        p_timer_listq->last_ticks -= p_tle->ticks;
     }
 
     /* Unlink timer from the list.
