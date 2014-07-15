@@ -111,6 +111,7 @@
 #define STORAGE_HID_CTRY_CODE_SIZE           (2)
 #define STORAGE_HID_DESC_LEN_SIZE            (4)
 #define STORAGE_HID_DESC_MAX_SIZE            (2*512)
+#define STORAGE_HID_PAIRED_DEV_PRIORITY      (100)
 
 /* <18 char bd addr> <space> LIST< <36 char uuid> <;> > <keytype (dec)> <pinlen> */
 #define BTIF_REMOTE_SERVICES_ENTRY_SIZE_MAX (STORAGE_BDADDR_STRING_SZ + 1 +\
@@ -1384,8 +1385,9 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
                                                     UINT16 attr_mask, UINT8 sub_class,
                                                     UINT8 app_id, UINT16 vendor_id,
                                                     UINT16 product_id, UINT16 version,
-                                                    UINT8 ctry_code, UINT16 ssr_max_latency,
-                                                    UINT16 ssr_min_tout, UINT16 dl_len, UINT8 *dsc_list)
+                                                    UINT8 ctry_code, UINT16 ssr_max_lat,
+                                                    UINT16 ssr_min_tout, UINT16 dl_len,
+                                                    UINT8 *dsc_list, INT16 priority)
 {
     bdstr_t bdstr;
     BTIF_TRACE_DEBUG("btif_storage_add_hid_device_info:");
@@ -1397,11 +1399,34 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
     btif_config_set_int("Remote", bdstr, "HidProductId", product_id);
     btif_config_set_int("Remote", bdstr, "HidVersion", version);
     btif_config_set_int("Remote", bdstr, "HidCountryCode", ctry_code);
-    btif_config_set_int("Remote", bdstr, "HidSSRMaxLatency", ssr_max_latency);
+    btif_config_set_int("Remote", bdstr, "HidSSRMaxLatency", ssr_max_lat);
     btif_config_set_int("Remote", bdstr, "HidSSRMinTimeout", ssr_min_tout);
+    btif_config_set_int("Remote", bdstr, "priority", priority);
     if(dl_len > 0)
         btif_config_set("Remote", bdstr, "HidDescriptor", (const char*)dsc_list, dl_len,
                         BTIF_CFG_TYPE_BIN);
+    btif_config_save();
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_add_device_priority
+**
+** Description      BTIF storage API - Adds the priority of remote devices-to NVRAM
+**
+** Returns          BT_STATUS_SUCCESS if the store was successful,
+**                  BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+
+bt_status_t btif_storage_add_device_priority(bt_bdaddr_t *remote_bd_addr,
+                                                    INT16 priority)
+
+{
+    bdstr_t bdstr;
+    bd2str(remote_bd_addr, &bdstr);
+    btif_config_set_int("Remote", bdstr, "priority", priority);
     btif_config_save();
     return BT_STATUS_SUCCESS;
 }
@@ -1424,6 +1449,7 @@ bt_status_t btif_storage_load_bonded_hid_info(void)
     uint16_t attr_mask;
     uint8_t  sub_class;
     uint8_t  app_id;
+    int priority;
 
     char kname[128], vname[128];
     short kpos;
@@ -1469,6 +1495,18 @@ bt_status_t btif_storage_load_bonded_hid_info(void)
                 btif_config_get_int("Remote", kname, "HidSSRMinTimeout", &value);
                 dscp_info.ssr_min_tout = (uint16_t) value;
 
+                value = 0;
+                if (btif_config_get_int("Remote", kname, "priority", &value))
+                {
+                    priority = value;
+                }
+                else
+                {
+                    /* Priority field was not defined earlier for paired device, set it now */
+                    BTIF_TRACE_DEBUG("Remote device:%s, priority field missing...", kname);
+                    priority = STORAGE_HID_PAIRED_DEV_PRIORITY;
+                }
+
                 int len = 0;
                 int type;
                 btif_config_get("Remote", kname, "HidDescriptor", NULL, &len, &type);
@@ -1483,7 +1521,7 @@ bt_status_t btif_storage_load_bonded_hid_info(void)
                 if (btif_hh_add_added_dev(bd_addr,attr_mask))
                 {
                     BTA_HhAddDev(bd_addr.address, attr_mask, sub_class,
-                            app_id, dscp_info);
+                            app_id, dscp_info, priority);
                 }
             }
         }
@@ -1527,6 +1565,7 @@ bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr)
     btif_config_remove("Remote", bdstr, "HidSSRMaxLatency");
     btif_config_remove("Remote", bdstr, "HidSSRMinTimeout");
     btif_config_remove("Remote", bdstr, "HidDescriptor");
+    btif_config_remove("Remote", bdstr, "priority");
     btif_config_save();
     return BT_STATUS_SUCCESS;
 }

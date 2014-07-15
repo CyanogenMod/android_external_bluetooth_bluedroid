@@ -76,6 +76,7 @@ typedef struct
     UINT8             dev_handle;
     bt_bdaddr_t       bd_addr;
     tBTA_HH_ATTR_MASK attr_mask;
+    int priority;
 } btif_hh_added_device_t;
 
 /**
