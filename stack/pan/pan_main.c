@@ -610,10 +610,13 @@ void pan_data_buf_ind_cb (UINT16 handle,
         dst_pcb = pan_get_pcb_by_addr (dst);
         if (dst_pcb)
         {
-            PAN_TRACE_EVENT ("pan_data_buf_ind_cb - destination PANU found and sending the data");
-            result = BNEP_WriteBuf (dst_pcb->handle, dst, p_buf, protocol, src, ext);
+            PAN_TRACE_WARNING ("%s - destination PANU found on handle %d and sending data, len: %d",
+                __FUNCTION__, dst_pcb->handle, len);
+
+            result = BNEP_Write (dst_pcb->handle, dst, p_data, len, protocol, src, ext);
             if (result != BNEP_SUCCESS && result != BNEP_IGNORE_CMD)
                 PAN_TRACE_ERROR ("Failed to write data for PAN connection handle %d", dst_pcb->handle);
+            GKI_freebuf (p_buf);
             return;
         }
     }
