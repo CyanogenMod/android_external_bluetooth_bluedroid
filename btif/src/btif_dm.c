@@ -112,8 +112,6 @@ BOOLEAN blacklistPairingRetries(BD_ADDR bd_addr)
 #define BTIF_DM_INTERLEAVE_DURATION_LE_TWO    4
 #endif
 
-#define MAX_SDP_BL_ENTRIES 3
-
 typedef struct
 {
     bt_bond_state_t state;
@@ -190,6 +188,12 @@ typedef struct
 #define UUID_HUMAN_INTERFACE_DEVICE "00001124-0000-1000-8000-00805f9b34fb"
 
 static skip_sdp_entry_t sdp_blacklist[] = {{76}}; //Apple Mouse and Keyboard
+
+/* hid_auth_blacklist to FIX IOP issues with hid devices
+ * that dont want to have authentication during hid connection */
+static const UINT8 hid_auth_blacklist[][3] = {
+    {0x00, 0x12, 0xa1} // Targus
+};
 
 
 /* This flag will be true if HCI_Inquiry is in progress */
@@ -457,11 +461,44 @@ BOOLEAN check_hid_le(const bt_bdaddr_t *remote_bdaddr)
 
 /*****************************************************************************
 **
+** Function        check_if_auth_bl
+**
+** Description     Checks if a given device is blacklisted to skip authentication
+**
+** Parameters     remote_bdaddr
+**
+** Returns         TRUE if the device is present in blacklist, else FALSE
+**
+*******************************************************************************/
+static bool check_if_auth_bl(BD_ADDR peer_dev)
+{
+    int i;
+    int blacklist_size =
+            sizeof(hid_auth_blacklist)/sizeof(hid_auth_blacklist[0]);
+    for (i = 0; i < blacklist_size; i++) {
+        if (hid_auth_blacklist[i][0] == peer_dev[0] &&
+            hid_auth_blacklist[i][1] == peer_dev[1] &&
+            hid_auth_blacklist[i][2] == peer_dev[2]) {
+            APPL_TRACE_WARNING("%02x:%02x:%02x:%02x:%02x:%02x is in blacklist for "
+                "skipping authentication", peer_dev[0], peer_dev[1], peer_dev[2],
+                peer_dev[3], peer_dev[4], peer_dev[5]);
+
+            return TRUE;
+        }
+    }
+    APPL_TRACE_DEBUG("%02x:%02x:%02x:%02x:%02x:%02x is not in blacklist for "
+        "skipping authentication", peer_dev[0], peer_dev[1], peer_dev[2],
+        peer_dev[3], peer_dev[4], peer_dev[5]);
+    return FALSE;
+}
+
+/*****************************************************************************
+**
 ** Function        check_sdp_bl
 **
 ** Description     Checks if a given device is blacklisted to skip sdp
 **
-** Parameters     skip_sdp_entry
+** Parameters     remote_bdaddr
 **
 ** Returns         TRUE if the device is present in blacklist, else FALSE
 **
@@ -481,13 +518,13 @@ BOOLEAN check_sdp_bl(const bt_bdaddr_t *remote_bdaddr)
     if (remote_bdaddr == NULL)
         return FALSE;
 
-/* fetch additional info about remote device used in iop query */
+    /* fetch additional info about remote device used in iop query */
     btm_status = BTM_ReadRemoteVersion(*(BD_ADDR*)remote_bdaddr, &lmp_ver,
                     &manufacturer, &lmp_subver);
 
 
 
- /* if not available yet, try fetching from config database */
+    /* if not available yet, try fetching from config database */
     BTIF_STORAGE_FILL_PROPERTY(&prop_name, BT_PROPERTY_REMOTE_VERSION_INFO,
                             sizeof(bt_remote_version_t), &info);
 
@@ -502,11 +539,13 @@ BOOLEAN check_sdp_bl(const bt_bdaddr_t *remote_bdaddr)
     for (int i = 0; i < MAX_SDP_BL_ENTRIES; i++)
     {
         if (manufacturer == sdp_blacklist[i].manufact_id)
+        {
+            APPL_TRACE_WARNING("device is in blacklist for skipping sdp");
             return TRUE;
+        }
     }
     return FALSE;
 }
-
 
 static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond_state_t state)
 {
@@ -910,6 +949,8 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
         cod = COD_UNCLASSIFIED;
     }
 
+    BTIF_TRACE_DEBUG("%s()pairing_cb.is_local_initiated = %d", __FUNCTION__,
+        pairing_cb.is_local_initiated);
     /* check for auto pair possiblity only if bond was initiated by local device */
     if (pairing_cb.is_local_initiated)
     {
@@ -1115,23 +1156,14 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
     if (p_auth_cmpl->success)
     {
         pairing_cb.timeout_retries = 0;
-        status = BT_STATUS_SUCCESS;
-        state = BT_BOND_STATE_BONDED;
-        bdcpy(bd_addr.address, p_auth_cmpl->bd_addr);
 
         if (check_sdp_bl(&bd_addr) && check_cod_hid(&bd_addr, COD_HID_MAJOR))
         {
-            ALOGW("%s:skip SDP",
-                              __FUNCTION__);
-            skip_sdp = TRUE;
-        }
-        if(!pairing_cb.is_local_initiated && skip_sdp)
-        {
-            bond_state_changed(status, &bd_addr, state);
+            bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDED);
 
-            ALOGW("%s: Incoming HID Connection",__FUNCTION__);
+            BTIF_TRACE_DEBUG("%s: HID Connection from "
+                "blacklisted device, skipping sdp",__FUNCTION__);
             bt_property_t prop;
-            bt_bdaddr_t bd_addr;
             bt_uuid_t  uuid;
             char uuid_str[128] = UUID_HUMAN_INTERFACE_DEVICE;
 
@@ -1141,12 +1173,18 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             prop.val = uuid.uu;
             prop.len = MAX_UUID_SIZE;
 
+            /* Also write this to the NVRAM */
+            status = btif_storage_set_remote_device_property(&bd_addr, &prop);
+            ASSERTC(status == BT_STATUS_SUCCESS, "storing remote services failed", status);
             /* Send the event to the BTIF */
             HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
                              BT_STATUS_SUCCESS, &bd_addr, 1, &prop);
         }
         else
         {
+            status = BT_STATUS_SUCCESS;
+            state = BT_BOND_STATE_BONDED;
+
             /* Trigger SDP on the device */
             pairing_cb.sdp_attempts = 1;;
 
@@ -1154,8 +1192,8 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
                 btif_dm_cancel_discovery();
 
             btif_dm_get_remote_services(&bd_addr);
-            }
             /* Do not call bond_state_changed_cb yet. Wait till fetch remote service is complete */
+        }
     }
     else
     {
@@ -2576,6 +2614,46 @@ bt_status_t btif_dm_cancel_bond(const bt_bdaddr_t *bd_addr)
     }
 
     return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_dm_hh_open_success
+**
+** Description      Checks if device is blacklisted, if yes takes appropriate action
+**
+** Returns          none
+**
+*******************************************************************************/
+
+void btif_dm_hh_open_success(bt_bdaddr_t *bdaddr)
+{
+    if (pairing_cb.state == BT_BOND_STATE_BONDING &&
+            bdcmp(bdaddr->address, pairing_cb.bd_addr) == 0)
+    {
+        if (check_if_auth_bl(bdaddr->address)
+            && check_cod_hid(bdaddr, COD_HID_MAJOR))
+        {
+            bt_status_t status;
+            bond_state_changed(BT_STATUS_SUCCESS, bdaddr, BT_BOND_STATE_BONDED);
+             BTIF_TRACE_DEBUG("%s: Device is blacklisted for authentication",__FUNCTION__);
+            bt_property_t prop;
+            bt_uuid_t  uuid;
+            char uuid_str[128] = UUID_HUMAN_INTERFACE_DEVICE;
+            string_to_uuid(uuid_str, &uuid);
+            prop.type = BT_PROPERTY_UUIDS;
+            prop.val = uuid.uu;
+            prop.len = MAX_UUID_SIZE;
+            /* Also write this to the NVRAM */
+            status = btif_storage_set_remote_device_property(bdaddr, &prop);
+            ASSERTC(status == BT_STATUS_SUCCESS, "storing remote services failed", status);
+            /* Store Device as bonded in nvram */
+            btif_storage_add_bonded_device(bdaddr, NULL, 0, 0);
+             /* Send the event to the BTIF */
+            HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+                             BT_STATUS_SUCCESS, bdaddr, 1, &prop);
+        }
+    }
 }
 
 /*******************************************************************************

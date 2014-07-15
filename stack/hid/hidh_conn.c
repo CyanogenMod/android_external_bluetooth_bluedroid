@@ -74,6 +74,43 @@ static const tL2CAP_APPL_INFO hst_reg_info =
     NULL                        /* tL2CA_TX_COMPLETE_CB */
 };
 
+/* hid_auth_blacklist to FIX IOP issues with hid devices
+ * that dont want to have authentication during hid connection */
+static const UINT8 hid_auth_blacklist[][3] = {
+    {0x00, 0x12, 0xa1} // Targus
+};
+
+/*****************************************************************************
+**
+** Function        check_if_auth_bl
+**
+** Description     Checks if a given device is blacklisted to skip authentication
+**
+** Parameters     remote_bdaddr
+**
+** Returns         TRUE if the device is present in blacklist, else FALSE
+**
+*******************************************************************************/
+static bool check_if_auth_bl (BD_ADDR peer_dev)
+{
+    int i;
+    int blacklist_size =
+            sizeof(hid_auth_blacklist)/sizeof(hid_auth_blacklist[0]);
+    for (i = 0; i < blacklist_size; i++) {
+        if (hid_auth_blacklist[i][0] == peer_dev[0] &&
+            hid_auth_blacklist[i][1] == peer_dev[1] &&
+            hid_auth_blacklist[i][2] == peer_dev[2]) {
+            APPL_TRACE_WARNING("%02x:%02x:%02x:%02x:%02x:%02x is in blacklist for auth",
+                    peer_dev[0], peer_dev[1], peer_dev[2], peer_dev[3], peer_dev[4], peer_dev[5]);
+
+            return true;
+        }
+    }
+    APPL_TRACE_DEBUG("%02x:%02x:%02x:%02x:%02x:%02x is not in blacklist for auth",
+            peer_dev[0], peer_dev[1], peer_dev[2], peer_dev[3], peer_dev[4], peer_dev[5]);
+    return false;
+}
+
 /*******************************************************************************
 **
 ** Function         hidh_l2cif_reg
@@ -265,12 +302,22 @@ static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 p
         p_hcon->disc_reason = HID_L2CAP_CONN_FAIL;  /* In case disconnection occurs before security is completed, then set CLOSE_EVT reason code to 'connection failure' */
 
         p_hcon->conn_state = HID_CONN_STATE_SECURITY;
-        if(btm_sec_mx_access_request (p_dev->addr, HID_PSM_CONTROL,
-            FALSE, BTM_SEC_PROTO_HID,
-            (p_dev->attr_mask & HID_SEC_REQUIRED) ? HID_SEC_CHN : HID_NOSEC_CHN,
-            &hidh_sec_check_complete_term, p_dev) == BTM_CMD_STARTED)
+        if (!check_if_auth_bl(p_dev->addr))
         {
+            if(btm_sec_mx_access_request (p_dev->addr, HID_PSM_CONTROL,
+                FALSE, BTM_SEC_PROTO_HID,
+                (p_dev->attr_mask & HID_SEC_REQUIRED) ? HID_SEC_CHN : HID_NOSEC_CHN,
+                &hidh_sec_check_complete_term, p_dev) == BTM_CMD_STARTED)
+            {
+                L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_PENDING, L2CAP_CONN_OK);
+            }
+        }
+        else
+        {
+            /* device is blacklisted, don't perform authentication */
             L2CA_ConnectRsp (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_PENDING, L2CAP_CONN_OK);
+            hidh_sec_check_complete_term(p_dev->addr, BT_TRANSPORT_BR_EDR,
+                p_dev, BTM_SUCCESS);
         }
 
         return;
@@ -427,10 +474,19 @@ static void hidh_l2cif_connect_cfm (UINT16 l2cap_cid, UINT16 result)
         p_hcon->conn_state = HID_CONN_STATE_SECURITY;
         p_hcon->disc_reason = HID_L2CAP_CONN_FAIL;  /* In case disconnection occurs before security is completed, then set CLOSE_EVT reason code to "connection failure" */
 
-        btm_sec_mx_access_request (p_dev->addr, HID_PSM_CONTROL,
-            TRUE, BTM_SEC_PROTO_HID,
-            (p_dev->attr_mask & HID_SEC_REQUIRED) ? HID_SEC_CHN : HID_NOSEC_CHN,
-            &hidh_sec_check_complete_orig, p_dev);
+        if (!check_if_auth_bl(p_dev->addr))
+        {
+            btm_sec_mx_access_request (p_dev->addr, HID_PSM_CONTROL,
+                TRUE, BTM_SEC_PROTO_HID,
+                (p_dev->attr_mask & HID_SEC_REQUIRED) ? HID_SEC_CHN : HID_NOSEC_CHN,
+                &hidh_sec_check_complete_orig, p_dev);
+        }
+        else
+        {
+            /* device is blacklisted, don't perform authentication */
+             hidh_sec_check_complete_orig(p_dev->addr, BT_TRANSPORT_BR_EDR,
+                p_dev, BTM_SUCCESS);
+        }
     }
     else
     {
