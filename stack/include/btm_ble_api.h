@@ -474,6 +474,10 @@ typedef void (tBTM_BLE_SCAN_SETUP_CBACK)(UINT8 evt, tBTM_BLE_REF_VALUE ref_value
 #define BTM_BLE_BATCH_SCAN_MAX   5
 #endif
 
+#ifndef BTM_BLE_BATCH_REP_MAIN_Q_SIZE
+#define BTM_BLE_BATCH_REP_MAIN_Q_SIZE  2
+#endif
+
 typedef enum
 {
     BTM_BLE_SCAN_INVALID_STATE=0,
@@ -494,9 +498,21 @@ typedef struct
 
 typedef struct
 {
+    UINT8   rep_mode[BTM_BLE_BATCH_REP_MAIN_Q_SIZE];
+    tBTM_BLE_REF_VALUE  ref_value[BTM_BLE_BATCH_REP_MAIN_Q_SIZE];
+    UINT8   num_records[BTM_BLE_BATCH_REP_MAIN_Q_SIZE];
+    UINT16  data_len[BTM_BLE_BATCH_REP_MAIN_Q_SIZE];
+    UINT8   *p_data[BTM_BLE_BATCH_REP_MAIN_Q_SIZE];
+    UINT8   pending_idx;
+    UINT8   next_idx;
+}tBTM_BLE_BATCH_SCAN_REP_Q;
+
+typedef struct
+{
     tBTM_BLE_BATCH_SCAN_STATE      cur_state;
     tBTM_BLE_BATCH_SCAN_MODE scan_mode;
     tBTM_BLE_BATCH_SCAN_OPQ  op_q;
+    tBTM_BLE_BATCH_SCAN_REP_Q main_rep_q;
     tBTM_BLE_SCAN_SETUP_CBACK     *p_setup_cback;
     tBTM_BLE_SCAN_THRESHOLD_CBACK *p_thres_cback;
     tBTM_BLE_SCAN_REP_CBACK       *p_scan_rep_cback;

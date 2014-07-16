@@ -930,6 +930,7 @@ static void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value, UINT8 rep
     {
         btif_scan_track_cb.read_reports.p_rep_data = GKI_getbuf(data_len);
         memcpy(btif_scan_track_cb.read_reports.p_rep_data, p_rep_data, data_len);
+        GKI_freebuf(p_rep_data);
     }
 
     btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_BTH_SCAN_RD_EVT,
