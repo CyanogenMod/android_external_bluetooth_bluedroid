@@ -53,6 +53,28 @@ void bte_load_conf(const char *path) {
   config_free(config);
 }
 
+extern int btm_ble_tx_power[BTM_BLE_ADV_TX_POWER_MAX + 1];
+void bte_load_ble_conf(const char* path)
+{
+  assert(path != NULL);
+
+  ALOGI("%s attempt to load ble stack conf from %s", __func__, path);
+
+  config_t *config = config_new(path);
+  if (!config) {
+    ALOGI("%s file >%s< not found", __func__, path);
+    return;
+  }
+
+  const char* ble_adv_tx_power = config_get_string(config, CONFIG_DEFAULT_SECTION, "BLE_ADV_TX_POWER", "");
+  if(*ble_adv_tx_power) {
+    sscanf(ble_adv_tx_power, "%d,%d,%d,%d,%d", btm_ble_tx_power, btm_ble_tx_power + 1, btm_ble_tx_power + 2,
+                                               btm_ble_tx_power + 3, btm_ble_tx_power + 4);
+    ALOGI("loaded btm_ble_tx_power: %d, %d, %d, %d, %d", (char)btm_ble_tx_power[0], (char)btm_ble_tx_power[1],
+                                        btm_ble_tx_power[2], btm_ble_tx_power[3], btm_ble_tx_power[4]);
+  }
+  config_free(config);
+}
 // Parses the specified Device ID configuration file and registers the
 // Device ID records with SDP.
 void bte_load_did_conf(const char *p_path) {
@@ -107,3 +129,4 @@ void bte_load_did_conf(const char *p_path) {
 
     config_free(config);
 }
+
