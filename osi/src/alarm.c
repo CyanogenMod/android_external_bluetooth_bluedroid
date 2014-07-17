@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <hardware/bluetooth.h>
+#include <inttypes.h>
 #include <time.h>
 #include <utils/Log.h>
 
@@ -275,7 +276,7 @@ static void reschedule(void) {
     timer_set = true;
   } else {
     if (!bt_os_callouts->set_wake_alarm(next_exp, true, timer_callback, next))
-      ALOGE("%s unable to set wake alarm for %lldms.", __func__, next_exp);
+      ALOGE("%s unable to set wake alarm for %" PRId64 "ms.", __func__, next_exp);
 
     bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
   }
