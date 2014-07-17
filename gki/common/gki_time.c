@@ -673,6 +673,8 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
     }
 
     p_tle->p_prev = i->p_prev;
+    if (p_tle->p_prev)
+        p_tle->p_prev->p_next = p_tle;
     p_tle->p_next = i;
     i->p_prev = p_tle;
     i->ticks -= p_tle->ticks;
