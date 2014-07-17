@@ -49,7 +49,8 @@ LOCAL_SRC_FILES += \
 	../btif/src/btif_util.c \
         ../btif/src/btif_sock_l2cap.c\
         ../btif/src/btif_l2cap.c \
-        ../btif/src/btif_sdp.c
+        ../btif/src/btif_sdp.c \
+        ../wipowerif/src/wipower.c \
 
 # callouts
 LOCAL_SRC_FILES += \
@@ -103,6 +104,7 @@ LOCAL_C_INCLUDES += . \
 	$(LOCAL_PATH)/../embdrv/sbc/decoder/include \
 	$(LOCAL_PATH)/../audio_a2dp_hw \
 	$(LOCAL_PATH)/../utils/include \
+	$(LOCAL_PATH)/../wipowerif/include \
 	$(bdroid_C_INCLUDES) \
 	external/tinyxml2
 
