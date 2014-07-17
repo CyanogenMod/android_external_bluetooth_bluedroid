@@ -92,6 +92,7 @@ typedef enum {
     BTIF_GATTC_LISTEN,
     BTIF_GATTC_SET_ADV_DATA,
     BTIF_GATTC_CONFIGURE_MTU,
+    BTIF_GATTC_CONN_PARAM_UPDT,
     BTIF_GATTC_SCAN_FILTER_PARAM_SETUP,
     BTIF_GATTC_SCAN_FILTER_CONFIG,
     BTIF_GATTC_SCAN_FILTER_CLEAR,
@@ -208,6 +209,15 @@ typedef struct
 typedef struct
 {
     bt_bdaddr_t bd_addr;
+    uint16_t    min_interval;
+    uint16_t    max_interval;
+    uint16_t    timeout;
+    uint16_t    latency;
+} btif_conn_param_cb_t;
+
+typedef struct
+{
+    bt_bdaddr_t bd_addr;
     BOOLEAN     in_use;
 }__attribute__((packed)) btif_gattc_dev_t;
 
@@ -233,8 +243,8 @@ static uint8_t rssi_request_client_if;
 
 static void btapp_gattc_req_data(UINT16 event, char *p_dest, char *p_src)
 {
-    tBTA_GATTC *p_dest_data = (tBTA_GATTC*)p_dest;
-    tBTA_GATTC *p_src_data = (tBTA_GATTC*)p_src;
+    tBTA_GATTC *p_dest_data = (tBTA_GATTC*) p_dest;
+    tBTA_GATTC *p_src_data = (tBTA_GATTC*) p_src;
 
     if (!p_src_data || !p_dest_data)
        return;
@@ -391,7 +401,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 {
     BTIF_TRACE_EVENT("%s: Event %d", __FUNCTION__, event);
 
-    tBTA_GATTC *p_data = (tBTA_GATTC*)p_param;
+    tBTA_GATTC *p_data = (tBTA_GATTC*) p_param;
     switch (event)
     {
         case BTA_GATTC_REG_EVT:
@@ -540,7 +550,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTIF_GATT_OBSERVE_EVT:
         {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
+            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
             uint8_t remote_name_len;
             uint8_t *p_eir_remote_name=NULL;
             bt_device_type_t dev_type;
@@ -589,7 +599,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTIF_GATTC_RSSI_EVT:
         {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
+            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
             HAL_CBACK(bt_gatt_callbacks, client->read_remote_rssi_cb, p_btif_cb->client_if,
                       &p_btif_cb->bd_addr, p_btif_cb->rssi, p_btif_cb->status);
             break;
@@ -613,7 +623,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_MULT_ADV_ENB_EVT:
         {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
+            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
             btif_multi_adv_add_instid_map(p_btif_cb->client_if,
                 p_btif_cb->inst_id,false);
             HAL_CBACK(bt_gatt_callbacks, client->multi_adv_enable_cb
@@ -625,7 +635,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_MULT_ADV_UPD_EVT:
         {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
+            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
             HAL_CBACK(bt_gatt_callbacks, client->multi_adv_update_cb
                 , p_btif_cb->client_if
                 , p_btif_cb->status
@@ -635,7 +645,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_MULT_ADV_DATA_EVT:
          {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
+            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
             btif_gattc_cleanup_inst_cb(p_btif_cb->inst_id);
             HAL_CBACK(bt_gatt_callbacks, client->multi_adv_data_cb
                 , p_btif_cb->client_if
@@ -646,7 +656,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_MULT_ADV_DIS_EVT:
         {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*)p_param;
+            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
             btif_gattc_clear_clientif(p_btif_cb->client_if);
             HAL_CBACK(bt_gatt_callbacks, client->multi_adv_disable_cb
                 , p_btif_cb->client_if
@@ -671,7 +681,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_BTH_SCAN_CFG_EVT:
         {
-            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*)p_param;
+            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
             HAL_CBACK(bt_gatt_callbacks, client->batchscan_cfg_storage_cb
                 , p_data->client_if
                 , p_data->status
@@ -681,7 +691,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_BTH_SCAN_ENB_EVT:
         {
-            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*)p_param;
+            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
             HAL_CBACK(bt_gatt_callbacks, client->batchscan_enb_disable_cb
                     , ENABLE_BATCH_SCAN
                     , p_data->client_if
@@ -691,7 +701,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_BTH_SCAN_DIS_EVT:
         {
-            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*)p_param;
+            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
             HAL_CBACK(bt_gatt_callbacks, client->batchscan_enb_disable_cb
                     , DISABLE_BATCH_SCAN
                     , p_data->client_if
@@ -701,7 +711,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_BTH_SCAN_THR_EVT:
         {
-            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*)p_param;
+            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
             HAL_CBACK(bt_gatt_callbacks, client->batchscan_threshold_cb
                     , p_data->client_if);
             break;
@@ -709,7 +719,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_BTH_SCAN_RD_EVT:
         {
-            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*)p_param;
+            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
             uint8_t *p_rep_data = NULL;
 
             if(p_data->read_reports.data_len > 0)
@@ -726,7 +736,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_SCAN_FLT_CFG_EVT:
         {
-            btgatt_adv_filter_cb_t *p_btif_cb = (btgatt_adv_filter_cb_t*)p_param;
+            btgatt_adv_filter_cb_t *p_btif_cb = (btgatt_adv_filter_cb_t*) p_param;
             HAL_CBACK(bt_gatt_callbacks, client->scan_filter_cfg_cb, p_btif_cb->action,
                       p_btif_cb->client_if, p_btif_cb->status, p_btif_cb->cond_op,
                       p_btif_cb->avbl_space);
@@ -756,7 +766,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_ADV_VSC_EVT:
         {
-            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*)p_param;
+            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
             HAL_CBACK(bt_gatt_callbacks, client->track_adv_event_cb
                     ,p_data->client_if, p_data->filt_index, p_data->addr_type, &p_data->bd_addr
                     ,p_data->adv_state);
@@ -774,7 +784,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 static void bta_gattc_cback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 {
     bt_status_t status = btif_transfer_context(btif_gattc_upstreams_evt,
-                    (uint16_t) event, (void*)p_data, sizeof(tBTA_GATTC), btapp_gattc_req_data);
+                    (uint16_t) event, (void*) p_data, sizeof(tBTA_GATTC), btapp_gattc_req_data);
     ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
 }
 
@@ -791,7 +801,7 @@ static void bta_gattc_multi_adv_cback(tBTA_BLE_MULTI_ADV_EVT event, UINT8 inst_i
         return;
     }
 
-    client_if = *(UINT8 *)p_ref;
+    client_if = *(UINT8 *) p_ref;
     BTIF_TRACE_DEBUG("%s -Inst ID %d, Status:%x, client_if:%d",__FUNCTION__,inst_id, call_status,
                        client_if);
 
@@ -1051,34 +1061,8 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
     tBTA_GATTC_INCL_SVC_ID     out_incl_svc_id;
     tBTA_GATT_UNFMT            descr_val;
 
-    btif_gattc_cb_t* p_cb = NULL;
-    btif_adv_data_t *p_adv_data = NULL;
-    btgatt_multi_adv_inst_cb *p_inst_cb = NULL;
-    btgatt_batch_track_cb_t *p_scan_track_cb = NULL;
-    btgatt_adv_filter_cb_t *p_adv_filt_cb = NULL;
-
-    if(BTIF_GATTC_ADV_INSTANCE_ENABLE == event || BTIF_GATTC_ADV_INSTANCE_DISABLE == event ||
-        BTIF_GATTC_ADV_INSTANCE_UPDATE == event)
-    {
-        p_inst_cb = (btgatt_multi_adv_inst_cb*)p_param;
-    }
-    else
-    {
-        if(BTIF_GATTC_ADV_INSTANCE_SET_DATA == event || BTIF_GATTC_SET_ADV_DATA == event)
-            p_adv_data = (btif_adv_data_t*)p_param;
-        else
-        if(BTIF_GATTC_CONFIG_STORAGE_PARAMS == event || BTIF_GATTC_ENABLE_BATCH_SCAN == event
-           || BTIF_GATTC_READ_BATCH_SCAN_REPORTS == event || BTIF_GATTC_DISABLE_BATCH_SCAN == event)
-            p_scan_track_cb = (btgatt_batch_track_cb_t *) p_param;
-        else
-        if(BTIF_GATTC_SCAN_FILTER_PARAM_SETUP == event || BTIF_GATTC_SCAN_FILTER_CONFIG == event
-            || BTIF_GATTC_SCAN_FILTER_CLEAR == event || BTIF_GATTC_SCAN_FILTER_ENABLE == event)
-            p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
-        else
-            p_cb = (btif_gattc_cb_t*)p_param;
-    }
-
-    if (!p_cb && !p_adv_data && !p_inst_cb && !p_scan_track_cb && !p_adv_filt_cb) return;
+    btif_gattc_cb_t* p_cb = (btif_gattc_cb_t*) p_param;
+    if (!p_cb) return;
 
     BTIF_TRACE_EVENT("%s: Event %d", __FUNCTION__, event);
 
@@ -1350,8 +1334,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_SCAN_FILTER_PARAM_SETUP:
         {
-            if(NULL == p_adv_filt_cb)
-               return;
+            btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
             if(1 == p_adv_filt_cb->adv_filt_param.dely_mode)
                BTA_DmBleTrackAdvertiser(p_adv_filt_cb->client_if, bta_track_adv_event_cb);
             BTA_DmBleScanFilterSetup(p_adv_filt_cb->action, p_adv_filt_cb->filt_index,
@@ -1362,8 +1345,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_SCAN_FILTER_CONFIG:
         {
-            if(NULL == p_adv_filt_cb)
-               return;
+            btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
             tBTA_DM_BLE_PF_COND_PARAM cond;
             memset(&cond, 0, sizeof(cond));
 
@@ -1463,8 +1445,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_SCAN_FILTER_CLEAR:
         {
-            if(NULL == p_adv_filt_cb)
-                return;
+            btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
             BTA_DmBleCfgFilterCondition(BTA_DM_BLE_SCAN_COND_CLEAR, BTA_DM_BLE_PF_TYPE_ALL,
                                         0, NULL, bta_scan_filt_cfg_cb, p_adv_filt_cb->client_if);
             break;
@@ -1472,8 +1453,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_SCAN_FILTER_ENABLE:
         {
-            if(NULL == p_adv_filt_cb)
-               return;
+            btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
             BTA_DmEnableScanFilter(p_adv_filt_cb->action, bta_scan_filt_status_cb,
                                    p_adv_filt_cb->client_if);
             break;
@@ -1489,6 +1469,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_SET_ADV_DATA:
         {
+            btif_adv_data_t *p_adv_data = (btif_adv_data_t*) p_param;
             int cbindex = CLNT_IF_IDX;
             if(cbindex >= 0 && NULL != p_adv_data)
             {
@@ -1512,9 +1493,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_ADV_INSTANCE_ENABLE:
         {
-            if(NULL == p_inst_cb)
-               return;
-
+            btgatt_multi_adv_inst_cb *p_inst_cb = (btgatt_multi_adv_inst_cb*) p_param;
             int arrindex = btif_multi_adv_add_instid_map(p_inst_cb->client_if,INVALID_ADV_INST,
                                                         true);
             int cbindex = btif_gattc_obtain_idx_for_datacb(p_inst_cb->client_if, CLNT_IF_IDX);
@@ -1535,9 +1514,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_ADV_INSTANCE_UPDATE:
         {
-            if(NULL == p_inst_cb)
-               return;
-
+            btgatt_multi_adv_inst_cb *p_inst_cb = (btgatt_multi_adv_inst_cb*) p_param;
             int inst_id = btif_multi_adv_instid_for_clientif(p_inst_cb->client_if);
             int cbindex = btif_gattc_obtain_idx_for_datacb(p_inst_cb->client_if, CLNT_IF_IDX);
             if(inst_id >= 0 && cbindex >= 0 && NULL != p_inst_cb)
@@ -1555,9 +1532,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_ADV_INSTANCE_SET_DATA:
         {
-            if(NULL == p_adv_data)
-               return;
-
+            btif_adv_data_t *p_adv_data = (btif_adv_data_t*) p_param;
             int cbindex = btif_gattc_obtain_idx_for_datacb(p_adv_data->client_if, CLNT_IF_IDX);
             int inst_id = btif_multi_adv_instid_for_clientif(p_adv_data->client_if);
             if(inst_id < 0 || cbindex < 0)
@@ -1578,9 +1553,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_ADV_INSTANCE_DISABLE:
         {
-            if(NULL == p_inst_cb)
-               return;
-
+            btgatt_multi_adv_inst_cb *p_inst_cb = (btgatt_multi_adv_inst_cb*) p_param;
             int inst_id = btif_multi_adv_instid_for_clientif(p_inst_cb->client_if);
             if(inst_id >=0)
                 BTA_BleDisableAdvInstance((UINT8)inst_id);
@@ -1593,21 +1566,39 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             BTA_GATTC_ConfigureMTU(p_cb->conn_id, p_cb->len);
             break;
 
+        case BTIF_GATTC_CONN_PARAM_UPDT:
+        {
+            btif_conn_param_cb_t *p_conn_param_cb = (btif_conn_param_cb_t*) p_param;
+            if (BTA_DmGetConnectionState(p_conn_param_cb->bd_addr.address))
+            {
+                BTA_DmBleUpdateConnectionParams(p_conn_param_cb->bd_addr.address,
+                               p_conn_param_cb->min_interval, p_conn_param_cb->max_interval,
+                               p_conn_param_cb->latency, p_conn_param_cb->timeout);
+            } else {
+                BTA_DmSetBlePrefConnParams(p_conn_param_cb->bd_addr.address,
+                               p_conn_param_cb->min_interval, p_conn_param_cb->max_interval,
+                               p_conn_param_cb->latency, p_conn_param_cb->timeout);
+            }
+            break;
+        }
+
         case BTIF_GATTC_SET_SCAN_PARAMS:
             BTM_BleSetScanParams(p_cb->scan_interval, p_cb->scan_window, BTM_BLE_SCAN_MODE_ACTI);
             break;
 
         case BTIF_GATTC_CONFIG_STORAGE_PARAMS:
         {
+            btgatt_batch_track_cb_t *p_scan_track_cb = (btgatt_batch_track_cb_t *) p_param;
             BTA_DmBleSetStorageParams(p_scan_track_cb->batch_scan_full_max,
                p_scan_track_cb->batch_scan_trunc_max, p_scan_track_cb->batch_scan_notify_threshold,
                bta_batch_scan_setup_cb, bta_batch_scan_threshold_cb, bta_batch_scan_reports_cb,
-               (tBTA_DM_BLE_REF_VALUE)p_scan_track_cb->client_if);
+               (tBTA_DM_BLE_REF_VALUE) p_scan_track_cb->client_if);
             break;
         }
 
         case BTIF_GATTC_ENABLE_BATCH_SCAN:
         {
+            btgatt_batch_track_cb_t *p_scan_track_cb = (btgatt_batch_track_cb_t *) p_param;
             BTA_DmBleEnableBatchScan(p_scan_track_cb->scan_mode, p_scan_track_cb->scan_interval,
                p_scan_track_cb->scan_window, p_scan_track_cb->discard_rule,
                p_scan_track_cb->addr_type, p_scan_track_cb->client_if);
@@ -1616,12 +1607,14 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_DISABLE_BATCH_SCAN:
         {
+            btgatt_batch_track_cb_t *p_scan_track_cb = (btgatt_batch_track_cb_t *) p_param;
             BTA_DmBleDisableBatchScan(p_scan_track_cb->client_if);
             break;
         }
 
         case BTIF_GATTC_READ_BATCH_SCAN_REPORTS:
         {
+            btgatt_batch_track_cb_t *p_scan_track_cb = (btgatt_batch_track_cb_t *) p_param;
             BTA_DmBleReadScanReports(p_scan_track_cb->scan_mode, p_scan_track_cb->client_if);
             break;
         }
@@ -1927,6 +1920,20 @@ static bt_status_t btif_gattc_configure_mtu(int conn_id, int mtu)
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
+static bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t *bd_addr, int min_interval,
+                    int max_interval, int latency, int timeout)
+{
+    CHECK_BTGATT_INIT();
+    btif_conn_param_cb_t btif_cb;
+    btif_cb.min_interval = min_interval;
+    btif_cb.max_interval = max_interval;
+    btif_cb.latency = latency;
+    btif_cb.timeout = timeout;
+    bdcpy(btif_cb.bd_addr.address, bd_addr->address);
+    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_CONN_PARAM_UPDT,
+                                 (char*) &btif_cb, sizeof(btif_conn_param_cb_t), NULL);
+}
+
 static bt_status_t btif_gattc_scan_filter_param_setup(int client_if, int action,
     int filt_index, int feat_seln, int list_logic_type, int filt_logic_type, int rssi_high_thres,
     int rssi_low_thres, int dely_mode, int found_timeout, int lost_timeout, int found_timeout_cnt)
@@ -2201,6 +2208,7 @@ const btgatt_client_interface_t btgattClientInterface = {
     btif_gattc_get_device_type,
     btif_gattc_set_adv_data,
     btif_gattc_configure_mtu,
+    btif_gattc_conn_parameter_update,
     btif_gattc_set_scan_parameters,
     btif_gattc_multi_adv_enable,
     btif_gattc_multi_adv_update,
