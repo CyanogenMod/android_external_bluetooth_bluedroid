@@ -152,6 +152,8 @@ typedef struct
 **  Externs
 ******************************************************************************/
 
+extern BUFFER_Q tx_q;
+
 uint8_t hci_h4_send_int_cmd(uint16_t opcode, HC_BT_HDR *p_buf, \
                                   tINT_CMD_CBACK p_cback);
 void lpm_wake_assert(void);
@@ -992,7 +994,9 @@ uint8_t hci_h4_send_int_cmd(uint16_t opcode, HC_BT_HDR *p_buf, \
     /* stamp signature to indicate an internal command */
     p_buf->layer_specific = opcode;
 
-    bthc_tx(p_buf);
+    utils_enqueue(&tx_q, (void *) p_buf);
+    bthc_signal_event(HC_EVENT_TX);
+
     return TRUE;
 }
 

@@ -29,17 +29,16 @@
 
 #include <assert.h>
 #include <utils/Log.h>
-
-#include "btsnoop.h"
+#include <pthread.h>
 #include "bt_hci_bdroid.h"
-#include "bt_utils.h"
 #include "bt_vendor_lib.h"
-#include "hci.h"
-#include "osi.h"
-#include "thread.h"
-#include "userial.h"
 #include "utils.h"
+#include "hci.h"
+#include "userial.h"
 #include "vendor.h"
+#include "bt_utils.h"
+#include "btsnoop.h"
+#include <sys/prctl.h>
 
 #ifndef BTHC_DBG
 #define BTHC_DBG FALSE
@@ -52,7 +51,9 @@
 #endif
 
 /* Vendor epilog process timeout period  */
-static const uint32_t EPILOG_TIMEOUT_MS = 3000;
+#ifndef EPILOG_TIMEOUT_MS
+#define EPILOG_TIMEOUT_MS 3000  // 3 seconds
+#endif
 
 /******************************************************************************
 **  Externs
@@ -72,8 +73,9 @@ void init_vnd_if(unsigned char *local_bdaddr);
 ******************************************************************************/
 
 bt_hc_callbacks_t *bt_hc_cbacks = NULL;
+BUFFER_Q tx_q;
 tHCI_IF *p_hci_if;
-volatile bool fwcfg_acked;
+volatile uint8_t fwcfg_acked;
 
 /******************************************************************************
 **  Local type definitions
@@ -82,8 +84,11 @@ volatile bool fwcfg_acked;
 /* Host/Controller lib thread control block */
 typedef struct
 {
-    thread_t        *worker_thread;
-    bool            epilog_timer_created;
+    pthread_t       worker_thread;
+    pthread_mutex_t mutex;
+    pthread_cond_t  cond;
+    BUFFER_Q        cmd_q;
+    uint8_t         epilog_timer_created;
     timer_t         epilog_timer_id;
 } bt_hc_cb_t;
 
@@ -92,138 +97,22 @@ typedef struct
 ******************************************************************************/
 
 static bt_hc_cb_t hc_cb;
-static bool tx_cmd_pkts_pending = false;
-static BUFFER_Q tx_q;
+static volatile uint8_t lib_running = 0;
+static volatile uint16_t ready_events = 0;
+static volatile uint8_t tx_cmd_pkts_pending = FALSE;
 
 /******************************************************************************
 **  Functions
 ******************************************************************************/
 
-static void event_preload(UNUSED_ATTR void *context) {
-  userial_open(USERIAL_PORT_1);
-  vendor_send_command(BT_VND_OP_FW_CFG, NULL);
-}
+static void *bt_hc_worker_thread(void *arg);
 
-static void event_postload(UNUSED_ATTR void *context) {
-  /* Start from SCO related H/W configuration, if SCO configuration
-   * is required. Then, follow with reading requests of getting
-   * ACL data length for both BR/EDR and LE.
-   */
-  int result = vendor_send_command(BT_VND_OP_SCO_CFG, NULL);
-  if (result == -1)
-    p_hci_if->get_acl_max_len();
-}
-
-static void event_tx(UNUSED_ATTR void *context) {
-  /*
-   *  We will go through every packets in the tx queue.
-   *  Fine to clear tx_cmd_pkts_pending.
-   */
-  tx_cmd_pkts_pending = false;
-  HC_BT_HDR *sending_msg_que[64];
-  size_t sending_msg_count = 0;
-  int sending_hci_cmd_pkts_count = 0;
-  utils_lock();
-  HC_BT_HDR *p_next_msg = tx_q.p_first;
-  while (p_next_msg && sending_msg_count < ARRAY_SIZE(sending_msg_que))
-  {
-    if ((p_next_msg->event & MSG_EVT_MASK)==MSG_STACK_TO_HC_HCI_CMD)
-    {
-      /*
-       *  if we have used up controller's outstanding HCI command
-       *  credits (normally is 1), skip all HCI command packets in
-       *  the queue.
-       *  The pending command packets will be sent once controller
-       *  gives back us credits through CommandCompleteEvent or
-       *  CommandStatusEvent.
-       */
-      if (tx_cmd_pkts_pending ||
-          (sending_hci_cmd_pkts_count >= num_hci_cmd_pkts))
-      {
-        tx_cmd_pkts_pending = true;
-        p_next_msg = utils_getnext(p_next_msg);
-        continue;
-      }
-      sending_hci_cmd_pkts_count++;
-    }
-
-    HC_BT_HDR *p_msg = p_next_msg;
-    p_next_msg = utils_getnext(p_msg);
-    utils_remove_from_queue_unlocked(&tx_q, p_msg);
-    sending_msg_que[sending_msg_count++] = p_msg;
-  }
-  utils_unlock();
-  for(size_t i = 0; i < sending_msg_count; i++)
-    p_hci_if->send(sending_msg_que[i]);
-  if (tx_cmd_pkts_pending)
-    BTHCDBG("Used up Tx Cmd credits");
-}
-
-static void event_rx(UNUSED_ATTR void *context) {
-#ifndef HCI_USE_MCT
-  p_hci_if->rcv();
-
-  if (tx_cmd_pkts_pending && num_hci_cmd_pkts > 0) {
-    // Got HCI Cmd credits from controller. Send whatever data
-    // we have in our tx queue. We can call |event_tx| directly
-    // here since we're already on the worker thread.
-    event_tx(NULL);
-  }
-#endif
-}
-
-static void event_lpm_enable(UNUSED_ATTR void *context) {
-  lpm_enable(true);
-}
-
-static void event_lpm_disable(UNUSED_ATTR void *context) {
-  lpm_enable(false);
-}
-
-static void event_lpm_wake_device(UNUSED_ATTR void *context) {
-  lpm_wake_assert();
-}
-
-static void event_lpm_allow_sleep(UNUSED_ATTR void *context) {
-  lpm_allow_bt_device_sleep();
-}
-
-static void event_lpm_idle_timeout(UNUSED_ATTR void *context) {
-  lpm_wake_deassert();
-}
-
-static void event_epilog(UNUSED_ATTR void *context) {
-  vendor_send_command(BT_VND_OP_EPILOG, NULL);
-}
-
-static void event_tx_cmd(void *msg) {
-  HC_BT_HDR *p_msg = (HC_BT_HDR *)msg;
-
-  BTHCDBG("%s: p_msg: %p, event: 0x%x", __func__, p_msg, p_msg->event);
-
-  int event = p_msg->event & MSG_EVT_MASK;
-  int sub_event = p_msg->event & MSG_SUB_EVT_MASK;
-  if (event == MSG_CTRL_TO_HC_CMD && sub_event == BT_HC_AUDIO_STATE) {
-    vendor_send_command(BT_VND_OP_SET_AUDIO_STATE, p_msg->data);
-  } else {
-    ALOGW("%s (event: 0x%x, sub_event: 0x%x) not supported", __func__, event, sub_event);
-  }
-
-  bt_hc_cbacks->dealloc(msg);
-}
-
-void bthc_rx_ready(void) {
-  thread_post(hc_cb.worker_thread, event_rx, NULL);
-}
-
-void bthc_tx(HC_BT_HDR *buf) {
-  if (buf)
-    utils_enqueue(&tx_q, buf);
-  thread_post(hc_cb.worker_thread, event_tx, NULL);
-}
-
-void bthc_idle_timeout(void) {
-  thread_post(hc_cb.worker_thread, event_lpm_idle_timeout, NULL);
+void bthc_signal_event(uint16_t event)
+{
+    pthread_mutex_lock(&hc_cb.mutex);
+    ready_events |= event;
+    pthread_cond_signal(&hc_cb.cond);
+    pthread_mutex_unlock(&hc_cb.mutex);
 }
 
 /*******************************************************************************
@@ -235,11 +124,11 @@ void bthc_idle_timeout(void) {
 ** Returns         None
 **
 *******************************************************************************/
-static void epilog_wait_timeout(UNUSED_ATTR union sigval arg)
+static void epilog_wait_timeout(union sigval arg)
 {
+    UNUSED(arg);
     ALOGI("...epilog_wait_timeout...");
-    thread_free(hc_cb.worker_thread);
-    hc_cb.worker_thread = NULL;
+    bthc_signal_event(HC_EVENT_EXIT);
 }
 
 /*******************************************************************************
@@ -267,7 +156,7 @@ static void epilog_wait_timer(void)
 
     if (status == 0)
     {
-        hc_cb.epilog_timer_created = true;
+        hc_cb.epilog_timer_created = 1;
         ts.it_value.tv_sec = timeout_ms/1000;
         ts.it_value.tv_nsec = 1000000*(timeout_ms%1000);
         ts.it_interval.tv_sec = 0;
@@ -280,7 +169,7 @@ static void epilog_wait_timer(void)
     else
     {
         ALOGE("Failed to create epilog watchdog timer");
-        hc_cb.epilog_timer_created = false;
+        hc_cb.epilog_timer_created = 0;
     }
 }
 
@@ -292,7 +181,9 @@ static void epilog_wait_timer(void)
 
 static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
 {
-    int result;
+    pthread_attr_t thread_attr;
+    struct sched_param param;
+    int policy, result;
 
     ALOGI("init");
 
@@ -302,8 +193,8 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
         return BT_HC_STATUS_FAIL;
     }
 
-    hc_cb.epilog_timer_created = false;
-    fwcfg_acked = false;
+    hc_cb.epilog_timer_created = 0;
+    fwcfg_acked = FALSE;
 
     /* store reference to user callbacks */
     bt_hc_cbacks = (bt_hc_callbacks_t *) p_cb;
@@ -326,18 +217,41 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
 
     utils_queue_init(&tx_q);
 
-    if (hc_cb.worker_thread)
+    if (lib_running)
     {
         ALOGW("init has been called repeatedly without calling cleanup ?");
     }
 
-    hc_cb.worker_thread = thread_new("bt_hc_worker");
-    if (!hc_cb.worker_thread) {
-        ALOGE("%s unable to create worker thread.", __func__);
+    lib_running = 1;
+    ready_events = 0;
+    utils_queue_init(&hc_cb.cmd_q);
+    pthread_mutex_init(&hc_cb.mutex, NULL);
+    pthread_cond_init(&hc_cb.cond, NULL);
+    pthread_attr_init(&thread_attr);
+
+    if (pthread_create(&hc_cb.worker_thread, &thread_attr, \
+                       bt_hc_worker_thread, NULL) != 0)
+    {
+        ALOGE("pthread_create failed!");
+        lib_running = 0;
         return BT_HC_STATUS_FAIL;
     }
 
-    // TODO(sharvil): increase thread priority (raise_priority_a2dp)
+    if(pthread_getschedparam(hc_cb.worker_thread, &policy, &param)==0)
+    {
+        policy = BTHC_LINUX_BASE_POLICY;
+#if (BTHC_LINUX_BASE_POLICY != SCHED_NORMAL)
+        param.sched_priority = BTHC_MAIN_THREAD_PRIORITY;
+#else
+        param.sched_priority = 0;
+#endif
+        result = pthread_setschedparam(hc_cb.worker_thread, policy, &param);
+        if (result != 0)
+        {
+            ALOGW("libbt-hci init: pthread_setschedparam failed (%s)", \
+                  strerror(result));
+        }
+    }
 
     return BT_HC_STATUS_SUCCESS;
 }
@@ -360,67 +274,122 @@ static void set_power(bt_hc_chip_power_state_t state)
 /** Configure low power mode wake state */
 static int lpm(bt_hc_low_power_event_t event)
 {
+    uint8_t status = TRUE;
+
     switch (event)
     {
         case BT_HC_LPM_DISABLE:
-            thread_post(hc_cb.worker_thread, event_lpm_disable, NULL);
+            bthc_signal_event(HC_EVENT_LPM_DISABLE);
             break;
 
         case BT_HC_LPM_ENABLE:
-            thread_post(hc_cb.worker_thread, event_lpm_enable, NULL);
+            bthc_signal_event(HC_EVENT_LPM_ENABLE);
             break;
 
         case BT_HC_LPM_WAKE_ASSERT:
-            thread_post(hc_cb.worker_thread, event_lpm_wake_device, NULL);
+            bthc_signal_event(HC_EVENT_LPM_WAKE_DEVICE);
             break;
 
         case BT_HC_LPM_WAKE_DEASSERT:
-            thread_post(hc_cb.worker_thread, event_lpm_allow_sleep, NULL);
+            bthc_signal_event(HC_EVENT_LPM_ALLOW_SLEEP);
             break;
     }
-    return BT_HC_STATUS_SUCCESS;
+
+    return(status == TRUE) ? BT_HC_STATUS_SUCCESS : BT_HC_STATUS_FAIL;
 }
 
 
 /** Called prior to stack initialization */
-static void preload(UNUSED_ATTR TRANSAC transac) {
-  BTHCDBG("preload");
-  thread_post(hc_cb.worker_thread, event_preload, NULL);
+static void preload(TRANSAC transac)
+{
+    UNUSED(transac);
+    BTHCDBG("preload");
+    bthc_signal_event(HC_EVENT_PRELOAD);
 }
+
 
 /** Called post stack initialization */
-static void postload(UNUSED_ATTR TRANSAC transac) {
-  BTHCDBG("postload");
-  thread_post(hc_cb.worker_thread, event_postload, NULL);
+static void postload(TRANSAC transac)
+{
+    UNUSED(transac);
+    BTHCDBG("postload");
+    bthc_signal_event(HC_EVENT_POSTLOAD);
 }
+
 
 /** Transmit frame */
-static int transmit_buf(TRANSAC transac, UNUSED_ATTR char *p_buf, UNUSED_ATTR int len) {
-  bthc_tx((HC_BT_HDR *)transac);
-  return BT_HC_STATUS_SUCCESS;
+static int transmit_buf(TRANSAC transac, char * p_buf, int len)
+{
+    UNUSED(p_buf);
+    UNUSED(len);
+    utils_enqueue(&tx_q, (void *) transac);
+
+    bthc_signal_event(HC_EVENT_TX);
+
+    return BT_HC_STATUS_SUCCESS;
 }
 
+
 /** Controls HCI logging on/off */
-static int logging(bt_hc_logging_state_t state, char *p_path) {
-  BTHCDBG("logging %d", state);
+static int logging(bt_hc_logging_state_t state, char *p_path)
+{
+    BTHCDBG("logging %d", state);
 
-  if (state != BT_HC_LOGGING_ON)
-    btsnoop_close();
-  else if (p_path != NULL)
-    btsnoop_open(p_path);
+    if (state == BT_HC_LOGGING_ON)
+    {
+        if (p_path != NULL)
+            btsnoop_open(p_path);
+    }
+    else
+    {
+        btsnoop_close();
+    }
 
-  return BT_HC_STATUS_SUCCESS;
+    return BT_HC_STATUS_SUCCESS;
 }
 
 /** sends command HC controller to configure platform specific behaviour */
-static int tx_hc_cmd(TRANSAC transac, char *p_buf, int len) {
-  BTHCDBG("tx_hc_cmd: transac %p", transac);
-
-  if (!transac)
+static int tx_hc_cmd(TRANSAC transac, char *p_buf, int len)
+{
+    BTHCDBG("tx_hc_cmd: transac %p", transac);
+    if ((TRANSAC)0 != transac)
+   {
+        utils_enqueue(&hc_cb.cmd_q, (void *)transac);
+        bthc_signal_event(HC_EVENT_TX_CMD);
+        return BT_HC_STATUS_SUCCESS;
+    }
     return BT_HC_STATUS_FAIL;
+}
 
-  thread_post(hc_cb.worker_thread, event_tx_cmd, transac);
-  return BT_HC_STATUS_SUCCESS;
+/** handle HC controller command to configure platform specific behaviour */
+static int tx_hc_msg(HC_BT_HDR *p_msg)
+{
+    int ret_val = 0;
+    int event, sub_event;
+    BTHCDBG("tx_hc_msg: p_msg %p, event: 0x%x", (void *)p_msg, p_msg->event);
+
+    event = p_msg->event & MSG_EVT_MASK;
+    sub_event = p_msg->event & MSG_SUB_EVT_MASK;
+    switch (event)
+    {
+    case MSG_CTRL_TO_HC_CMD:
+        {
+            switch (sub_event)
+            {
+            case BT_HC_AUDIO_STATE:
+                vendor_send_command(BT_VND_OP_SET_AUDIO_STATE, (p_msg+1));
+                break;
+            default:
+                ALOGW("tx_hc_msg(sub_event: 0x%x) not supported", sub_event);
+                break;
+            }
+        }
+         break;
+      default:
+        ALOGW("tx_hc_msg(event: 0x%x) not supported", event);
+        break;
+   }
+    return ret_val;
 }
 
 /** Closes the interface */
@@ -428,23 +397,28 @@ static void cleanup( void )
 {
     BTHCDBG("cleanup");
 
-    if (hc_cb.worker_thread)
+    if (lib_running)
     {
-        if (fwcfg_acked)
+        if (fwcfg_acked == TRUE)
         {
             epilog_wait_timer();
-            thread_post(hc_cb.worker_thread, event_epilog, NULL);
+            bthc_signal_event(HC_EVENT_EPILOG);
+        }
+        else
+        {
+            bthc_signal_event(HC_EVENT_EXIT);
         }
 
-        thread_free(hc_cb.worker_thread);
-        hc_cb.worker_thread = NULL;
+        pthread_join(hc_cb.worker_thread, NULL);
 
-        if (hc_cb.epilog_timer_created)
+        if (hc_cb.epilog_timer_created == 1)
         {
             timer_delete(hc_cb.epilog_timer_id);
-            hc_cb.epilog_timer_created = false;
+            hc_cb.epilog_timer_created = 0;
         }
     }
+
+    lib_running = 0;
 
     lpm_cleanup();
     userial_close();
@@ -454,9 +428,10 @@ static void cleanup( void )
     set_power(BT_VND_PWR_OFF);
     vendor_close();
 
-    fwcfg_acked = false;
+    fwcfg_acked = FALSE;
     bt_hc_cbacks = NULL;
 }
+
 
 static const bt_hc_interface_t bluetoothHCLibInterface = {
     sizeof(bt_hc_interface_t),
@@ -471,6 +446,174 @@ static const bt_hc_interface_t bluetoothHCLibInterface = {
     tx_hc_cmd,
 };
 
+
+/*******************************************************************************
+**
+** Function        bt_hc_worker_thread
+**
+** Description     Mian worker thread
+**
+** Returns         void *
+**
+*******************************************************************************/
+static void *bt_hc_worker_thread(void *arg)
+{
+    uint16_t events;
+    HC_BT_HDR *p_msg, *p_next_msg;
+    UNUSED(arg);
+
+    ALOGI("bt_hc_worker_thread started");
+    prctl(PR_SET_NAME, (unsigned long)"bt_hc_worker", 0, 0, 0);
+    tx_cmd_pkts_pending = FALSE;
+
+    raise_priority_a2dp(TASK_HIGH_HCI_WORKER);
+
+    while (lib_running)
+    {
+        pthread_mutex_lock(&hc_cb.mutex);
+        while (ready_events == 0)
+        {
+            pthread_cond_wait(&hc_cb.cond, &hc_cb.mutex);
+        }
+        events = ready_events;
+        ready_events = 0;
+        pthread_mutex_unlock(&hc_cb.mutex);
+
+#ifndef HCI_USE_MCT
+        if (events & HC_EVENT_RX)
+        {
+            p_hci_if->rcv();
+
+            if ((tx_cmd_pkts_pending == TRUE) && (num_hci_cmd_pkts > 0))
+            {
+                /* Got HCI Cmd Credits from Controller.
+                 * Prepare to send prior pending Cmd packets in the
+                 * following HC_EVENT_TX session.
+                 */
+                events |= HC_EVENT_TX;
+            }
+        }
+#endif
+
+        if (events & HC_EVENT_PRELOAD)
+        {
+            userial_open(USERIAL_PORT_1);
+            vendor_send_command(BT_VND_OP_FW_CFG, NULL);
+        }
+
+        if (events & HC_EVENT_POSTLOAD)
+        {
+            /* Start from SCO related H/W configuration, if SCO configuration
+             * is required. Then, follow with reading requests of getting
+             * ACL data length for both BR/EDR and LE.
+             */
+            int result = vendor_send_command(BT_VND_OP_SCO_CFG, NULL);
+            if (result == -1)
+                p_hci_if->get_acl_max_len();
+        }
+
+        if (events & HC_EVENT_TX)
+        {
+            /*
+             *  We will go through every packets in the tx queue.
+             *  Fine to clear tx_cmd_pkts_pending.
+             */
+            tx_cmd_pkts_pending = FALSE;
+            HC_BT_HDR * sending_msg_que[64];
+            int sending_msg_count = 0;
+            int sending_hci_cmd_pkts_count = 0;
+            utils_lock();
+            p_next_msg = tx_q.p_first;
+            while (p_next_msg && sending_msg_count <
+		   (int)(sizeof(sending_msg_que)/sizeof(sending_msg_que[0])))
+            {
+                if ((p_next_msg->event & MSG_EVT_MASK)==MSG_STACK_TO_HC_HCI_CMD)
+                {
+                    /*
+                     *  if we have used up controller's outstanding HCI command
+                     *  credits (normally is 1), skip all HCI command packets in
+                     *  the queue.
+                     *  The pending command packets will be sent once controller
+                     *  gives back us credits through CommandCompleteEvent or
+                     *  CommandStatusEvent.
+                     */
+                    if ((tx_cmd_pkts_pending == TRUE) ||
+                        (sending_hci_cmd_pkts_count >= num_hci_cmd_pkts))
+                    {
+                        tx_cmd_pkts_pending = TRUE;
+                        p_next_msg = utils_getnext(p_next_msg);
+                        continue;
+                    }
+                    sending_hci_cmd_pkts_count++;
+                }
+
+                p_msg = p_next_msg;
+                p_next_msg = utils_getnext(p_msg);
+                utils_remove_from_queue_unlocked(&tx_q, p_msg);
+                sending_msg_que[sending_msg_count++] = p_msg;
+            }
+            utils_unlock();
+            int i;
+            for(i = 0; i < sending_msg_count; i++)
+                p_hci_if->send(sending_msg_que[i]);
+            if (tx_cmd_pkts_pending == TRUE)
+                BTHCDBG("Used up Tx Cmd credits");
+
+        }
+
+        if (events & HC_EVENT_LPM_ENABLE)
+        {
+            lpm_enable(TRUE);
+        }
+
+        if (events & HC_EVENT_LPM_DISABLE)
+        {
+            lpm_enable(FALSE);
+        }
+
+        if (events & HC_EVENT_LPM_IDLE_TIMEOUT)
+        {
+            lpm_wake_deassert();
+        }
+
+        if (events & HC_EVENT_LPM_ALLOW_SLEEP)
+        {
+            lpm_allow_bt_device_sleep();
+        }
+
+        if (events & HC_EVENT_LPM_WAKE_DEVICE)
+        {
+            lpm_wake_assert();
+        }
+
+        if (events & HC_EVENT_TX_CMD)
+        {
+            HC_BT_HDR *p_cmd_msg;
+            while ((p_cmd_msg = utils_dequeue(&hc_cb.cmd_q)) != NULL)
+            {
+                if ((0 >= tx_hc_msg(p_cmd_msg)) && bt_hc_cbacks)
+                    bt_hc_cbacks->dealloc(p_cmd_msg);
+            }
+        }
+
+        if (events & HC_EVENT_EPILOG)
+        {
+            vendor_send_command(BT_VND_OP_EPILOG, NULL);
+        }
+
+        if (events & HC_EVENT_EXIT)
+            break;
+    }
+
+    ALOGI("bt_hc_worker_thread exiting");
+    lib_running = 0;
+
+    pthread_exit(NULL);
+
+    return NULL;    // compiler friendly
+}
+
+
 /*******************************************************************************
 **
 ** Function        bt_hc_get_interface
@@ -484,3 +627,4 @@ const bt_hc_interface_t *bt_hc_get_interface(void)
 {
     return &bluetoothHCLibInterface;
 }
+

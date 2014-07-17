@@ -29,7 +29,7 @@
 
 // TODO: eliminate these three.
 extern tHCI_IF *p_hci_if;
-extern bool fwcfg_acked;
+extern uint8_t fwcfg_acked;
 void lpm_vnd_cback(uint8_t vnd_result);
 
 static const char *VENDOR_LIBRARY_NAME = "libbt-vendor.so";
@@ -177,4 +177,5 @@ static uint8_t transmit_cb(uint16_t opcode, void *buffer, tINT_CMD_CBACK callbac
 // completed. It is safe to call vendor_interface->cleanup() after
 // this callback has been received.
 static void epilog_cb(UNUSED_ATTR bt_vendor_op_result_t result) {
+  bthc_signal_event(HC_EVENT_EXIT);
 }

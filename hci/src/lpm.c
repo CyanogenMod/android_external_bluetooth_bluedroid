@@ -115,7 +115,7 @@ static void lpm_idle_timeout(union sigval arg)
     if ((bt_lpm_cb.state == LPM_ENABLED) && \
         (bt_lpm_cb.wake_state == LPM_WAKE_W4_TIMEOUT))
     {
-        bthc_idle_timeout();
+        bthc_signal_event(HC_EVENT_LPM_IDLE_TIMEOUT);
     }
 }
 
