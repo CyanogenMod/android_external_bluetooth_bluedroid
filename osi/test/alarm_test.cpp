@@ -4,6 +4,7 @@
 
 extern "C" {
 #include "alarm.h"
+#include "osi.h"
 #include "semaphore.h"
 }
 
@@ -48,7 +49,7 @@ class AlarmTest : public ::testing::Test {
     }
 };
 
-static void cb(void *data) {
+static void cb(UNUSED_ATTR void *data) {
   ++cb_counter;
   semaphore_post(semaphore);
 }
