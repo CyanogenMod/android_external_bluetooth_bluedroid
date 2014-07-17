@@ -233,9 +233,7 @@ bool userial_init(void)
 *******************************************************************************/
 bool userial_open(userial_port_t port)
 {
-    struct sched_param param;
-    int policy, result;
-    pthread_attr_t thread_attr;
+    int result;
 
     USERIALDBG("userial_open(port:%d)", port);
 
@@ -277,30 +275,11 @@ bool userial_open(userial_port_t port)
     userial_cb.port = port;
 
     /* Start listening thread */
-    pthread_attr_init(&thread_attr);
-
-    if (pthread_create(&(userial_cb.read_thread), &thread_attr, \
-                       userial_read_thread, NULL) != 0 )
+    if (pthread_create(&userial_cb.read_thread, NULL, userial_read_thread, NULL) != 0)
     {
         ALOGE("pthread_create failed!");
         vendor_send_command(BT_VND_OP_USERIAL_CLOSE, NULL);
         return false;
-    }
-
-    if(pthread_getschedparam(userial_cb.read_thread, &policy, &param)==0)
-    {
-        policy = BTHC_LINUX_BASE_POLICY;
-#if (BTHC_LINUX_BASE_POLICY != SCHED_NORMAL)
-        param.sched_priority = BTHC_USERIAL_READ_THREAD_PRIORITY;
-#else
-        param.sched_priority = 0;
-#endif
-        result = pthread_setschedparam(userial_cb.read_thread, policy, &param);
-        if (result != 0)
-        {
-            ALOGW("userial_open: pthread_setschedparam failed (%s)", \
-                  strerror(result));
-        }
     }
 
     return true;

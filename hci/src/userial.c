@@ -234,7 +234,7 @@ static void *userial_read_thread(void *arg)
         {
             p_buf->len = (uint16_t)rx_length;
             utils_enqueue(&(userial_cb.rx_q), p_buf);
-            bthc_signal_event(HC_EVENT_RX);
+            bthc_rx_ready();
         }
         else /* either 0 or < 0 */
         {

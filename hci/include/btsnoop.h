@@ -2,6 +2,8 @@
 
 #include <stdbool.h>
 
+#include "bt_hci_bdroid.h"
+
 void btsnoop_open(const char *p_path);
 void btsnoop_close(void);
 
