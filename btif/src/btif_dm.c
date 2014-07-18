@@ -501,31 +501,34 @@ static void btif_dm_cb_hid_remote_name(tBTM_REMOTE_DEV_NAME *p_remote_name)
 static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr)
 {
     BOOLEAN is_hid = check_cod(bd_addr, COD_HID_POINTING);
-
-
     bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDING);
 
-    if (is_hid){
+#if BLE_INCLUDED == TRUE
+    int device_type;
+    int addr_type;
+    bdstr_t bdstr;
+    bd2str(bd_addr, &bdstr);
+    if(btif_config_get_int("Remote", (char const *)&bdstr,"DevType", &device_type) &&
+       (btif_storage_get_remote_addr_type(bd_addr, &addr_type) == BT_STATUS_SUCCESS) &&
+       (device_type == BT_DEVICE_TYPE_BLE))
+    {
+        BTA_DmAddBleDevice(bd_addr->address, addr_type, BT_DEVICE_TYPE_BLE);
+    }
+#endif
 
-            int status;
-            status = btif_hh_connect(bd_addr);
-            if(status != BT_STATUS_SUCCESS)
-                bond_state_changed(status, bd_addr, BT_BOND_STATE_NONE);
+#if BLE_INCLUDED == TRUE
+    if(is_hid && device_type != BT_DEVICE_TYPE_BLE)
+#else
+    if(is_hid)
+#endif
+    {
+        int status;
+        status = btif_hh_connect(bd_addr);
+        if(status != BT_STATUS_SUCCESS)
+            bond_state_changed(status, bd_addr, BT_BOND_STATE_NONE);
     }
     else
     {
-#if BLE_INCLUDED == TRUE
-        int device_type;
-        int addr_type;
-        bdstr_t bdstr;
-        bd2str(bd_addr, &bdstr);
-        if(btif_config_get_int("Remote", (char const *)&bdstr,"DevType", &device_type) &&
-           (btif_storage_get_remote_addr_type(bd_addr, &addr_type) == BT_STATUS_SUCCESS) &&
-           (device_type == BT_DEVICE_TYPE_BLE))
-        {
-            BTA_DmAddBleDevice(bd_addr->address, addr_type, BT_DEVICE_TYPE_BLE);
-        }
-#endif
         BTA_DmBond ((UINT8 *)bd_addr->address);
     }
     /*  Track  originator of bond creation  */

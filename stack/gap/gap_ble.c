@@ -513,7 +513,6 @@ void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, BOOLEAN status, UINT16 len, UINT8 *p_
             (* p_dev_name_cback)(status, p_clcb->bda, len, (char *)p_name);
     }
 
-        GATT_Disconnect(p_clcb->conn_id);
 
 }
 
