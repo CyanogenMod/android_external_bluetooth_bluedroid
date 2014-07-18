@@ -88,7 +88,9 @@ void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state, tBTA_AG_PEE
 void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state)
 #endif
 {
+#if (BLUETOOTH_QTI_SW == TRUE)
     BTIF_TRACE_DEBUG("bta_ag_co_audio_state: handle %d, state %d", handle, state);
+#else
     switch (state)
     {
     case BTA_AG_CO_AUD_STATE_OFF:
@@ -120,6 +122,7 @@ void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state)
 #else
     APPL_TRACE_DEBUG("bta_ag_co_audio_state(handle %d, app_id: %d, state %d)", \
     handle, app_id, state);
+#endif
 #endif
 }
 

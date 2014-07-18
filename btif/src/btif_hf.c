@@ -119,6 +119,7 @@ UINT16 bthf_hf_id[BTIF_HF_NUM_CB] = {BTIF_HF_ID_1, BTIF_HF_ID_2,
 ************************************************************************************/
 static bthf_callbacks_t *bt_hf_callbacks = NULL;
 static int hf_idx = BTIF_HF_INVALID_IDX;
+static UINT32 btif_features = 0;
 
 #define CHECK_BTHF_INIT() if (bt_hf_callbacks == NULL)\
     {\
@@ -174,7 +175,7 @@ static btif_hf_cb_t btif_hf_cb[BTIF_HF_NUM_CB];
 * codec unless this variable is set to TRUE.
 */
 #ifndef BTIF_HF_WBS_PREFERRED
-#define BTIF_HF_WBS_PREFERRED   FALSE
+#define BTIF_HF_WBS_PREFERRED  TRUE
 #endif
 
 BOOLEAN btif_conf_hf_force_wbs = BTIF_HF_WBS_PREFERRED;
@@ -720,6 +721,24 @@ static bt_status_t init( bthf_callbacks_t* callbacks, int max_hf_clients)
         clear_phone_state_multihf(i);
     }
 
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         init_features
+**
+** Description     Initiazes the BRSF feature bitmask.
+**
+** Returns         bt_status_t
+**
+*******************************************************************************/
+static bt_status_t init_features(int features)
+{
+    BTIF_TRACE_EVENT("%s", __FUNCTION__);
+    /* Safe Typecasting of input param features to UINT32 as bits
+    8 to 31 are zero for the HFP BRSF feature bitmask given from the app*/
+    btif_features = (UINT32)features;
     return BT_STATUS_SUCCESS;
 }
 
@@ -1510,6 +1529,7 @@ static bt_status_t  configure_wbs( bt_bdaddr_t *bd_addr , bthf_wbs_config_t conf
 static const bthf_interface_t bthfInterface = {
     sizeof(bthfInterface),
     init,
+    init_features,
     connect,
     disconnect,
     connect_audio,
@@ -1540,28 +1560,38 @@ static const bthf_interface_t bthfInterface = {
 *******************************************************************************/
 bt_status_t btif_hf_execute_service(BOOLEAN b_enable)
 {
-     char * p_service_names[] = BTIF_HF_SERVICE_NAMES;
-     int i;
-     if (b_enable)
-     {
-          /* Enable and register with BTA-AG */
-          BTA_AgEnable (BTA_AG_PARSE, bte_hf_evt);
-              for (i = 0; i < btif_max_hf_clients; i++)
-              {
-                  BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY,
-                      BTIF_HF_FEATURES, p_service_names, bthf_hf_id[i]);
-              }
-     }
-     else {
-         /* De-register AG */
-         for (i = 0; i < btif_max_hf_clients; i++)
-         {
-             BTA_AgDeregister(btif_hf_cb[i].handle);
-         }
-         /* Disable AG */
-         BTA_AgDisable();
-     }
-     return BT_STATUS_SUCCESS;
+    char * p_service_names[] = BTIF_HF_SERVICE_NAMES;
+    int i;
+    if (b_enable)
+    {
+        /* Enable and register with BTA-AG */
+        BTA_AgEnable (BTA_AG_PARSE, bte_hf_evt);
+        for (i = 0; i < btif_max_hf_clients; i++)
+        {
+            if (btif_features)
+            {
+                /* used for phone book at commands, e.g. CPBR*/
+                btif_features |= BTA_AG_FEAT_UNAT;
+                BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY,
+                    btif_features, p_service_names, bthf_hf_id[i]);
+            }
+            else
+            {
+                BTA_AgRegister(BTIF_HF_SERVICES, BTIF_HF_SECURITY,
+                    BTIF_HF_FEATURES, p_service_names, bthf_hf_id[i]);
+            }
+        }
+    }
+    else {
+        /* De-register AG */
+        for (i = 0; i < btif_max_hf_clients; i++)
+        {
+            BTA_AgDeregister(btif_hf_cb[i].handle);
+        }
+        /* Disable AG */
+        BTA_AgDisable();
+    }
+    return BT_STATUS_SUCCESS;
 }
 
 /*******************************************************************************

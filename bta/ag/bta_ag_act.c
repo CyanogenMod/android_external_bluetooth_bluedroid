@@ -916,6 +916,9 @@ void bta_ag_setcodec(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 #if (BTM_WBS_INCLUDED == TRUE )
     tBTA_AG_PEER_CODEC codec_type = p_data->api_setcodec.codec;
     tBTA_AG_VAL        val;
+    val.hdr.handle = bta_ag_scb_to_idx(p_scb);
+    val.hdr.app_id = p_scb->app_id;
+    bdcpy(val.bd_addr, p_scb->peer_addr);
 
     /* Check if the requested codec type is valid */
     if((codec_type != BTA_AG_CODEC_NONE) &&
