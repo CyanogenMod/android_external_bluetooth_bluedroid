@@ -2612,7 +2612,7 @@ static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB *p_cb, BOOLEAN check_bond)
     {
         /* start reconnection if remote is a bonded device */
         /* verify bond */
-        BTM_GetSecurityFlags(p_cb->addr, &sec_flag);
+        BTM_GetSecurityFlagsByTransport(p_cb->addr, &sec_flag, BT_TRANSPORT_LE);
 
         if ((sec_flag & BTM_SEC_FLAG_LKEY_KNOWN) == 0)
             to_add = FALSE;

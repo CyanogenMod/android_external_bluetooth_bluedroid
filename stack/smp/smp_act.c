@@ -908,7 +908,6 @@ void smp_pairing_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
     SMP_TRACE_DEBUG ("smp_pairing_cmpl ");
 
-    (void)L2CA_EnableUpdateBleConnParams(p_cb->pairing_bda, TRUE);
     if ((p_cb->status == SMP_SUCCESS) ||
         (p_cb->status <= SMP_REPEATED_ATTEMPTS && p_cb->status != SMP_SUCCESS))
     {
