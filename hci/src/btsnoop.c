@@ -72,7 +72,7 @@ static void btsnoop_write(const void *data, size_t length) {
 }
 
 static void btsnoop_write_packet(packet_type_t type, const uint8_t *packet, bool is_received) {
-  int length_he;
+  int length_he = 0;
   int length;
   int flags;
   int drops = 0;
