@@ -590,7 +590,6 @@ void bta_pan_conn_close(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 
     data.handle = p_data->hdr.layer_specific;
 
-
     bta_sys_conn_close( BTA_ID_PAN ,p_scb->app_id, p_scb->bd_addr);
 
     /* free all queued up data buffers */
@@ -598,8 +597,6 @@ void bta_pan_conn_close(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
         GKI_freebuf(p_buf);
 
     GKI_init_q(&p_scb->data_queue);
-
-    bta_pan_co_close(p_scb->handle, p_scb->app_id);
 
     bta_pan_scb_dealloc(p_scb);
 
