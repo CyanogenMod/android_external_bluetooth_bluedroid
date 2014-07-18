@@ -222,24 +222,7 @@ tBTM_STATUS btm_ble_enable_multi_adv (BOOLEAN enable, UINT8 inst_id, UINT8 cb_ev
     }
     return rt;
 }
-/*******************************************************************************
-**
-** Function         btm_ble_map_adv_tx_power
-**
-** Description      return the actual power in dBm based on the mapping in config file
-**
-** Parameters       advertise parameters used for this instance.
-**
-** Returns          tx power in dBm
-**
-*******************************************************************************/
-int btm_ble_tx_power[BTM_BLE_ADV_TX_POWER_MAX + 1] = BTM_BLE_ADV_TX_POWER;
-static char btm_ble_map_adv_tx_power(int tx_power_index)
-{
-    if(0 <= tx_power_index && tx_power_index < BTM_BLE_ADV_TX_POWER_MAX)
-        return (char)btm_ble_tx_power[tx_power_index];
-    return 0;
-}
+
 /*******************************************************************************
 **
 ** Function         btm_ble_multi_adv_set_params
@@ -299,7 +282,7 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
 
     if (p_params->tx_power > BTM_BLE_ADV_TX_POWER_MAX)
         p_params->tx_power = BTM_BLE_ADV_TX_POWER_MAX;
-    UINT8_TO_STREAM (pp, btm_ble_map_adv_tx_power(p_params->tx_power));
+    UINT8_TO_STREAM (pp, p_params->tx_power);
 
     BTM_TRACE_EVENT("set_params:Chnl Map %d,adv_fltr policy %d,ID:%d, TX Power%d",
         p_params->channel_map,p_params->adv_filter_policy,p_inst->inst_id,p_params->tx_power);

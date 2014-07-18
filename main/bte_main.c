@@ -46,10 +46,6 @@
 #ifndef BTE_STACK_CONF_FILE
 #define BTE_STACK_CONF_FILE "/etc/bluetooth/bt_stack.conf"
 #endif
-/* Run-time configuration file for BLE*/
-#ifndef BTE_BLE_STACK_CONF_FILE
-#define BTE_BLE_STACK_CONF_FILE "/etc/bluetooth/ble_stack.conf"
-#endif
 
 /* if not specified in .txt file then use this as default  */
 #ifndef HCI_LOGGING_FILENAME
@@ -111,7 +107,6 @@ BT_API extern void BTE_LoadStack(void);
 BT_API void BTE_UnloadStack(void);
 extern void scru_flip_bda (BD_ADDR dst, const BD_ADDR src);
 extern void bte_load_conf(const char *p_path);
-extern void bte_load_ble_conf(const char *p_path);
 extern bt_bdaddr_t btif_local_bd_addr;
 
 
@@ -163,7 +158,6 @@ void bte_main_boot_entry(void)
     bte_main_in_hw_init();
 
     bte_load_conf(BTE_STACK_CONF_FILE);
-    bte_load_ble_conf(BTE_BLE_STACK_CONF_FILE);
 
 #if (BTTRC_INCLUDED == TRUE)
     /* Initialize trace feature */
