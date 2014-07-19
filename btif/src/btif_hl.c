@@ -41,6 +41,7 @@
 #include <ctype.h>
 #include <sys/select.h>
 #include <sys/poll.h>
+#include <sys/prctl.h>
 #include <cutils/sockets.h>
 #include <cutils/log.h>
 
