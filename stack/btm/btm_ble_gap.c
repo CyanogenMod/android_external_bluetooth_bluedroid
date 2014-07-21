@@ -2576,10 +2576,13 @@ tBTM_STATUS btm_ble_start_scan (UINT8 filter_enable)
     tBTM_STATUS status = BTM_CMD_STARTED;
 
     /* start scan, disable duplicate filtering */
-    if (!btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_ENABLE, filter_enable))
+    if (!btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_ENABLE, filter_enable)) {
         status = BTM_NO_RESOURCES;
+        btm_cb.ble_ctr_cb.wl_state &= ~BTM_BLE_WL_SCAN;
+    }
     else
     {
+        btm_cb.ble_ctr_cb.wl_state |= BTM_BLE_WL_SCAN;
         if (p_inq->scan_type == BTM_BLE_SCAN_MODE_ACTI)
             btm_ble_set_topology_mask(BTM_BLE_STATE_ACTIVE_SCAN_BIT);
         else
@@ -2608,6 +2611,8 @@ void btm_ble_stop_scan(void)
     btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_DISABLE, BTM_BLE_DUPLICATE_ENABLE);
 
     btm_update_scanner_filter_policy(SP_ADV_ALL);
+
+    btm_cb.ble_ctr_cb.wl_state &= ~BTM_BLE_WL_SCAN;
 }
 /*******************************************************************************
 **
