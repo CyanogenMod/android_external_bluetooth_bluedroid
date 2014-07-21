@@ -368,7 +368,7 @@ static UINT64 time_now_us()
 {
     struct timespec ts_now;
     clock_gettime(CLOCK_BOOTTIME, &ts_now);
-    return (ts_now.tv_sec * USEC_PER_SEC) + (ts_now.tv_nsec / 1000);
+    return ((UINT64)ts_now.tv_sec * USEC_PER_SEC) + ((UINT64)ts_now.tv_nsec / 1000);
 }
 
 static void log_tstamps_us(char *comment)

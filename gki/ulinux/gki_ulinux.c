@@ -114,7 +114,7 @@ static UINT64 now_us()
 {
     struct timespec ts_now;
     clock_gettime(CLOCK_BOOTTIME, &ts_now);
-    return (ts_now.tv_sec * USEC_PER_SEC) + (ts_now.tv_nsec / NSEC_PER_USEC);
+    return ((UINT64)ts_now.tv_sec * USEC_PER_SEC) + ((UINT64)ts_now.tv_nsec / NSEC_PER_USEC);
 }
 
 static bool set_nonwake_alarm(UINT64 delay_millis)
