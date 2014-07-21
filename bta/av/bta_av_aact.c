@@ -1282,6 +1282,7 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     local_sep = bta_av_get_scb_sep_type(p_scb,avdt_handle);
     bta_av_adjust_seps_idx(p_scb, avdt_handle);
     APPL_TRACE_DEBUG("bta_av_setconfig_rsp: sep_idx: %d cur_psc_mask:0x%x", p_scb->sep_idx, p_scb->cur_psc_mask);
+
     if ((AVDT_TSEP_SNK == local_sep) && (p_data->ci_setconfig.err_code == AVDT_SUCCESS) &&
                                      (p_scb->seps[p_scb->sep_idx].p_app_data_cback != NULL))
         p_scb->seps[p_scb->sep_idx].p_app_data_cback(BTA_AV_MEDIA_SINK_CFG_EVT,
@@ -1298,7 +1299,7 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         p_scb->wait = BTA_AV_WAIT_ACP_CAPS_ON;
         if(p_data->ci_setconfig.recfg_needed)
             p_scb->role |= BTA_AV_ROLE_SUSPEND_OPT;
-        APPL_TRACE_ERROR("bta_av_setconfig_rsp recfg_needed:%d role:x%x num:%d",
+        APPL_TRACE_DEBUG("bta_av_setconfig_rsp recfg_needed:%d role:x%x num:%d",
             p_data->ci_setconfig.recfg_needed, p_scb->role, num);
         /* callout module tells BTA the number of "good" SEPs and their SEIDs.
          * getcap on these SEID */
@@ -1334,9 +1335,15 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             p_scb->sep_info[i].media_type = p_scb->media_type;
             p_scb->sep_info[i].seid = p_seid[i-1];
         }
+
         /* only in case of local sep as SRC we need to look for other SEPs, In case of SINK we don't */
         if (local_sep == AVDT_TSEP_SRC)
+        {
+            /* Make sure UUID has been initialized... */
+            if (p_scb->uuid_int == 0)
+                p_scb->uuid_int = p_scb->open_api.uuid;
             bta_av_next_getcap(p_scb, p_data);
+        }
     }
 }
 
