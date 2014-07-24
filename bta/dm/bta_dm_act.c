@@ -109,6 +109,7 @@ static void bta_dm_gattc_register(void);
 static void btm_dm_start_gatt_discovery ( BD_ADDR bd_addr);
 static void bta_dm_cancel_gatt_discovery(BD_ADDR bd_addr);
 static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data);
+extern tBTA_DM_CONTRL_STATE bta_dm_pm_obtain_controller_state(void);
     #endif
 static void bta_dm_observe_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_observe_cmpl_cb (void * p_result);
@@ -121,7 +122,6 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result);
 static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr);
 
 extern void sdpu_uuid16_to_uuid128(UINT16 uuid16, UINT8* p_uuid128);
-extern tBTA_DM_CONTRL_STATE bta_dm_pm_obtain_controller_state(void);
 
 const UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID] =
 {

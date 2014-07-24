@@ -1028,6 +1028,7 @@ BOOLEAN btm_pm_device_in_active_or_sniff_mode(void)
         return TRUE;
     }
 
+#if ((defined BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     /* Check BLE states */
     if (btm_ble_get_conn_st() != BLE_CONN_IDLE)
     {
@@ -1035,6 +1036,7 @@ BOOLEAN btm_pm_device_in_active_or_sniff_mode(void)
                         btm_ble_get_conn_st());
         return TRUE;
     }
+#endif
 
     return FALSE;
 }

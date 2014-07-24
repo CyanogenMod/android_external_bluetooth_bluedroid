@@ -926,7 +926,9 @@ typedef struct
     tBTA_DM_BLE_PF_CFG_CBACK     *p_scan_filt_cfg_cback;
     tBTA_DM_BLE_PF_STATUS_CBACK  *p_scan_filt_status_cback;
     tBTA_DM_BLE_PF_PARAM_CBACK   *p_scan_filt_param_cback;
+#if ((defined BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     tBTA_BLE_ENERGY_INFO_CBACK   *p_energy_info_cback;
+#endif
     TIMER_LIST_ENT              signal_strength_timer;
     tBTA_SIG_STRENGTH_MASK      signal_strength_mask;
     UINT16                      state;

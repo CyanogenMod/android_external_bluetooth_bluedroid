@@ -1891,6 +1891,7 @@ static void bte_dm_remote_service_record_evt(tBTA_DM_SEARCH_EVT event, tBTA_DM_S
    btif_transfer_context(btif_dm_remote_service_record_evt, event, (char*)p_data, sizeof(tBTA_DM_SEARCH), NULL);
 }
 
+#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 /*******************************************************************************
 **
 ** Function         bta_energy_info_cb
@@ -1918,6 +1919,7 @@ static void bta_energy_info_cb(tBTA_DM_BLE_TX_TIME_MS tx_time, tBTA_DM_BLE_RX_TI
     btif_transfer_context(btif_dm_upstreams_evt, BTA_DM_ENER_INFO_READ,
                           (char*) &btif_cb, sizeof(btif_activity_energy_info_cb_t), NULL);
 }
+#endif
 
 /*****************************************************************************
 **
@@ -2854,7 +2856,9 @@ void btif_dm_on_disable()
 *******************************************************************************/
 void btif_dm_read_energy_info()
 {
+#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     BTA_DmBleGetEnergyInfo(bta_energy_info_cb);
+#endif
 }
 
 static char* btif_get_default_local_name() {
