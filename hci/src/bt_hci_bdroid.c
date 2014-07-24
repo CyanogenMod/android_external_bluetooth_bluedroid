@@ -83,6 +83,7 @@ volatile bool fwcfg_acked;
 typedef struct
 {
     thread_t        *worker_thread;
+    pthread_mutex_t worker_thread_lock;
     bool            epilog_timer_created;
     timer_t         epilog_timer_id;
 } bt_hc_cb_t;
@@ -213,17 +214,33 @@ static void event_tx_cmd(void *msg) {
 }
 
 void bthc_rx_ready(void) {
-  thread_post(hc_cb.worker_thread, event_rx, NULL);
+  pthread_mutex_lock(&hc_cb.worker_thread_lock);
+
+  if (hc_cb.worker_thread)
+    thread_post(hc_cb.worker_thread, event_rx, NULL);
+
+  pthread_mutex_unlock(&hc_cb.worker_thread_lock);
 }
 
 void bthc_tx(HC_BT_HDR *buf) {
-  if (buf)
-    utils_enqueue(&tx_q, buf);
-  thread_post(hc_cb.worker_thread, event_tx, NULL);
+  pthread_mutex_lock(&hc_cb.worker_thread_lock);
+
+  if (hc_cb.worker_thread) {
+    if (buf)
+      utils_enqueue(&tx_q, buf);
+    thread_post(hc_cb.worker_thread, event_tx, NULL);
+  }
+
+  pthread_mutex_unlock(&hc_cb.worker_thread_lock);
 }
 
 void bthc_idle_timeout(void) {
-  thread_post(hc_cb.worker_thread, event_lpm_idle_timeout, NULL);
+  pthread_mutex_lock(&hc_cb.worker_thread_lock);
+
+  if (hc_cb.worker_thread)
+    thread_post(hc_cb.worker_thread, event_lpm_idle_timeout, NULL);
+
+  pthread_mutex_unlock(&hc_cb.worker_thread_lock);
 }
 
 /*******************************************************************************
@@ -238,8 +255,12 @@ void bthc_idle_timeout(void) {
 static void epilog_wait_timeout(UNUSED_ATTR union sigval arg)
 {
     ALOGI("...epilog_wait_timeout...");
+
     thread_free(hc_cb.worker_thread);
+
+    pthread_mutex_lock(&hc_cb.worker_thread_lock);
     hc_cb.worker_thread = NULL;
+    pthread_mutex_unlock(&hc_cb.worker_thread_lock);
 }
 
 /*******************************************************************************
@@ -304,6 +325,8 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
 
     hc_cb.epilog_timer_created = false;
     fwcfg_acked = false;
+
+    pthread_mutex_init(&hc_cb.worker_thread_lock, NULL);
 
     /* store reference to user callbacks */
     bt_hc_cbacks = (bt_hc_callbacks_t *) p_cb;
@@ -437,7 +460,10 @@ static void cleanup( void )
         }
 
         thread_free(hc_cb.worker_thread);
+
+        pthread_mutex_lock(&hc_cb.worker_thread_lock);
         hc_cb.worker_thread = NULL;
+        pthread_mutex_unlock(&hc_cb.worker_thread_lock);
 
         if (hc_cb.epilog_timer_created)
         {
@@ -453,6 +479,8 @@ static void cleanup( void )
 
     set_power(BT_VND_PWR_OFF);
     vendor_close();
+
+    pthread_mutex_destroy(&hc_cb.worker_thread_lock);
 
     fwcfg_acked = false;
     bt_hc_cbacks = NULL;
