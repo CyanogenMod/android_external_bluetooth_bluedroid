@@ -135,7 +135,7 @@ typedef UINT8   tBTM_BLE_SFP;
 #define BTM_BLE_SCAN_SLOW_INT_1    2048    /* 1.28 s   = 2048 *0.625 */
 #endif
 #ifndef BTM_BLE_SCAN_SLOW_WIN_1
-#define BTM_BLE_SCAN_SLOW_WIN_1   18      /* 11.25 ms = 18 *0.625 */
+#define BTM_BLE_SCAN_SLOW_WIN_1   48      /* 30 ms = 48 *0.625 */
 #endif
 
 /* default scan paramter used in reduced power cycle (background scanning) */
