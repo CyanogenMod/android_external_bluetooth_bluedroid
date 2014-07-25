@@ -413,6 +413,15 @@ typedef struct
     tAVRC_MSG       *p_msg;
 } tBTA_AV_META_MSG;
 
+/*data associated with BTA_AV_BROWSE_MSG_EVT */
+typedef struct
+{
+    UINT8           rc_handle;
+    UINT16          len;
+    UINT8           label;
+    tAVRC_MSG       *p_msg;
+}tBTA_AV_BROWSE_MSG;
+
 /* data associated with BTA_AV_PENDING_EVT */
 typedef struct
 {
@@ -448,6 +457,7 @@ typedef union
     tBTA_AV_SUSPEND     suspend;
     tBTA_AV_PEND        pend;
     tBTA_AV_META_MSG    meta_msg;
+    tBTA_AV_BROWSE_MSG  browse_msg;
     tBTA_AV_REJECT      reject;
     tBTA_AV_RC_FEAT     rc_feat;
 } tBTA_AV;

@@ -763,6 +763,20 @@ SDP_API BOOLEAN SDP_ConnClose (UINT32 handle);
 *******************************************************************************/
 SDP_API BOOLEAN SDP_FindServiceUUIDInRec(tSDP_DISC_REC *p_rec, tBT_UUID *p_uuid);
 
+/*********************************************************************************
+**
+** Function         SDP_Dev_Blacklisted_For_Avrcp15
+**
+** Description      This function is called to know is local Avrcp Version
+**                  1.3 as local Avrcp version is send as 1.3 for black listed
+**                  devices
+**
+** Returns          TRUE if AVRCP local Avrcp Version 1.3 else FALSE
+**
+********************************************************************************/
+SDP_API BOOLEAN SDP_Dev_Blacklisted_For_Avrcp15 (BD_ADDR addr);
+
+
 #ifdef __cplusplus
 }
 #endif

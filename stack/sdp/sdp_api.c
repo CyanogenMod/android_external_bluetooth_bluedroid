@@ -1468,6 +1468,22 @@ UINT8 SDP_SetTraceLevel (UINT8 new_level)
     return(sdp_cb.trace_level);
 }
 
+/****************************************************************************
+**
+** Function         SDP_Dev_Blacklisted_For_Avrcp15
+**
+** Description      This function is called to check if Remote device
+**                  is blacklisted for Avrcp version.
+**
+** Returns          BOOLEAN
+**
+*******************************************************************************/
+BOOLEAN SDP_Dev_Blacklisted_For_Avrcp15 (BD_ADDR addr)
+{
+    return sdp_dev_blacklisted_for_avrcp15 (addr);
+}
+
+
 #if SDP_FOR_JV_INCLUDED == TRUE
 /*******************************************************************************
 **

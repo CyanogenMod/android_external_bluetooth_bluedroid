@@ -605,6 +605,21 @@ AVRC_API extern tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt
 *******************************************************************************/
 AVRC_API extern tAVRC_STS AVRC_BldResponse( UINT8 handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_pkt);
 
+/*******************************************************************************
+**
+** Function         AVRC_BldBrowseResponse
+**
+** Description      This function builds the given AVRCP response to the given
+**                  GKI buffer
+**
+** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+**                  Otherwise, the error code.
+**
+*******************************************************************************/
+tAVRC_STS AVRC_BldBrowseResponse( UINT8 handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_pkt);
+
+
+
 /**************************************************************************
 **
 ** Function         AVRC_IsValidAvcType

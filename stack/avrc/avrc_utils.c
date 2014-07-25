@@ -59,6 +59,8 @@ BOOLEAN AVRC_IsValidAvcType(UINT8 pdu_id, UINT8 avc_type)
         case AVRC_PDU_INFORM_BATTERY_STAT_OF_CT:   /* 0x18 */
         case AVRC_PDU_REQUEST_CONTINUATION_RSP:    /* 0x40 */
         case AVRC_PDU_ABORT_CONTINUATION_RSP:      /* 0x41 */
+        case AVRC_PDU_SET_ADDRESSED_PLAYER:
+        case AVRC_PDU_PLAY_ITEM:
              if (avc_type == AVRC_CMD_CTRL)
                 result=TRUE;
              break;

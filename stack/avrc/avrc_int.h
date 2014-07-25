@@ -42,6 +42,7 @@
 
 /* Number of protocol elements in protocol element list. */
 #define AVRC_NUM_PROTO_ELEMS     2
+#define AVRC_NUM_ADDL_PROTO_ELEMS     1
 
 #ifndef AVRC_MIN_CMD_LEN
 #define AVRC_MIN_CMD_LEN    20

@@ -269,7 +269,13 @@ static void bta_av_rc_msg_cback(UINT8 handle, UINT8 label, UINT8 opcode, tAVRC_M
         p_p_data = &p_msg->pass.p_pass_data;
         data_len = (UINT16) p_msg->pass.pass_len;
     }
-
+    else if (opcode == AVRC_OP_BROWSE && p_msg->browse.p_browse_data != NULL)
+    {
+        APPL_TRACE_EVENT("bta_av_rc_msg_cback Browse Data");
+        p_data  = p_msg->browse.p_browse_data;
+        p_p_data = &p_msg->browse.p_browse_data;
+        data_len = (UINT16) p_msg->browse.browse_len;
+    }
     if ((p_buf = (tBTA_AV_RC_MSG *) GKI_getbuf((UINT16) (sizeof(tBTA_AV_RC_MSG) + data_len))) != NULL)
     {
         p_buf->hdr.event = BTA_AV_AVRC_MSG_EVT;
@@ -765,9 +771,11 @@ static tAVRC_STS bta_av_chk_notif_evt_id(tAVRC_MSG_VENDOR *p_vendor)
 tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_msg, UINT8 *p_ctype)
 {
     tBTA_AV_EVT evt = BTA_AV_META_MSG_EVT;
-    UINT8       u8, pdu, *p;
+    UINT8       u8, pdu, *p, i;
     UINT16      u16;
     tAVRC_MSG_VENDOR    *p_vendor = &p_msg->msg.vendor;
+    BD_ADDR     addr;
+    BOOLEAN is_dev_avrcpv_blacklisted = FALSE;
 
 #if (AVRC_METADATA_INCLUDED == TRUE)
 
@@ -829,8 +837,9 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
                 {
                     *p_ctype = AVRC_RSP_IMPL_STBL;
                     p_rc_rsp->get_caps.count = p_bta_av_cfg->num_evt_ids;
+
                     memcpy(p_rc_rsp->get_caps.param.event_id, p_bta_av_cfg->p_meta_evt_ids,
-                           p_bta_av_cfg->num_evt_ids);
+                               p_bta_av_cfg->num_evt_ids);
                 }
                 else
                 {
@@ -861,6 +870,39 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
     return evt;
 }
 
+/*****************************************************************************
+**
+** Function        bta_av_proc_browse_cmd
+**
+** Description     Process and AVRCP browse command from the peer
+**
+** Returns         status
+**
+****************************************************************************/
+tBTA_AV_EVT bta_av_proc_browse_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_msg)
+{
+    tBTA_AV_EVT evt = BTA_AV_BROWSE_MSG_EVT;
+    UINT8       u8, pdu, *p;
+    UINT16      u16;
+    tAVRC_MSG_BROWSE *p_browse = &p_msg->msg.browse;
+
+    pdu = p_browse->p_browse_data[0];
+    APPL_TRACE_DEBUG("bta_av_proc_browse_cmd browse cmd: %x", pdu);
+    switch (pdu)
+    {
+        case AVRC_PDU_GET_FOLDER_ITEMS:
+        case AVRC_PDU_SET_BROWSED_PLAYER:
+        case AVRC_PDU_CHANGE_PATH:
+        case AVRC_PDU_GET_ITEM_ATTRIBUTES:
+            break;
+        default:
+            evt = 0;
+            p_rc_rsp->rsp.status = AVRC_STS_BAD_CMD;
+            APPL_TRACE_ERROR("### Not supported cmd: %x", pdu);
+            break;
+    }
+    return evt;
+}
 
 /*******************************************************************************
 **
@@ -885,6 +927,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 
     rc_rsp.rsp.status = BTA_AV_STS_NO_RSP;
 #endif
+    APPL_TRACE_DEBUG("bta_av_rc_msg opcode: %x",p_data->rc_msg.opcode);
 
     if (p_data->rc_msg.opcode == AVRC_OP_PASS_THRU)
     {
@@ -929,7 +972,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             }
         }
         /* else if this is a pass thru response */
-        else if (p_data->rc_msg.msg.hdr.ctype >= AVRC_RSP_ACCEPT)
+        else if (p_data->rc_msg.msg.hdr.ctype >= AVRC_RSP_NOT_IMPL)
         {
             /* set up for callback */
             evt = BTA_AV_REMOTE_RSP_EVT;
@@ -1001,6 +1044,25 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
            AVRC_VendorRsp(p_data->rc_msg.handle, p_data->rc_msg.label, &p_data->rc_msg.msg.vendor);
         }
     }
+#if (AVCT_BROWSE_INCLUDED == TRUE)
+    else if (p_data->rc_msg.opcode == AVRC_OP_BROWSE )
+    {
+        APPL_TRACE_DEBUG("browse len PDU :%x",p_data->rc_msg.msg.browse.browse_len);
+        APPL_TRACE_DEBUG("browse  data:%x",p_data->rc_msg.msg.browse.p_browse_data[0]);
+        av.browse_msg.label = p_data->rc_msg.label;
+        av.browse_msg.p_msg = &p_data->rc_msg.msg;
+
+        evt = bta_av_proc_browse_cmd(&rc_rsp, &p_data->rc_msg);
+        if (evt == 0)
+        {
+            APPL_TRACE_ERROR("Browse PDU not supported");
+            rc_rsp.rsp.pdu    = AVRC_PDU_GENERAL_REJECT;
+            rc_rsp.rsp.status = AVRC_STS_BAD_CMD;
+            ctype = 0;
+            AVRC_BldBrowseResponse(0, &rc_rsp, &p_pkt);
+        }
+    }
+#endif
 #if (AVRC_METADATA_INCLUDED == TRUE)
     if (evt == 0 && rc_rsp.rsp.status != BTA_AV_STS_NO_RSP)
     {
