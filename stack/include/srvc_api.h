@@ -176,7 +176,8 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback);
+    GATT_API extern BOOLEAN DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback,
+            tDIS_ATTR_MASK mask);
 
 /*******************************************************************************
 **      BATTERY SERVICE API

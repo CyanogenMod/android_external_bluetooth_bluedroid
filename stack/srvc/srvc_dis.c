@@ -25,8 +25,6 @@
 
 #if BLE_INCLUDED == TRUE
 
-#define DIS_UUID_TO_ATTR_MASK(x)   (UINT16)(1 << ((x) - GATT_UUID_SYSTEM_ID))
-
 #define DIS_MAX_NUM_INC_SVR       0
 #define DIS_MAX_CHAR_NUM          9
 #define DIS_MAX_ATTR_NUM          (DIS_MAX_CHAR_NUM * 2 + DIS_MAX_NUM_INC_SVR + 1)
@@ -57,6 +55,34 @@ static const UINT16  dis_attr_uuid[DIS_MAX_CHAR_NUM] =
 };
 
 tDIS_CB dis_cb;
+
+static tDIS_ATTR_MASK dis_uuid_to_attr(UINT16 uuid)
+{
+    switch (uuid)
+    {
+        case GATT_UUID_SYSTEM_ID:
+            return DIS_ATTR_SYS_ID_BIT;
+        case GATT_UUID_MODEL_NUMBER_STR:
+            return DIS_ATTR_MODEL_NUM_BIT;
+        case GATT_UUID_SERIAL_NUMBER_STR:
+            return DIS_ATTR_SERIAL_NUM_BIT;
+        case GATT_UUID_FW_VERSION_STR:
+            return DIS_ATTR_FW_NUM_BIT;
+        case GATT_UUID_HW_VERSION_STR:
+            return DIS_ATTR_HW_NUM_BIT;
+        case GATT_UUID_SW_VERSION_STR:
+            return DIS_ATTR_SW_NUM_BIT;
+        case GATT_UUID_MANU_NAME:
+            return DIS_ATTR_MANU_NAME_BIT;
+        case GATT_UUID_IEEE_DATA:
+            return DIS_ATTR_IEEE_DATA_BIT;
+        case GATT_UUID_PNP_ID:
+            return DIS_ATTR_PNP_ID_BIT;
+        default:
+            return 0;
+    };
+}
+
 /*******************************************************************************
 **   dis_valid_handle_range
 **
@@ -212,17 +238,18 @@ BOOLEAN dis_gatt_c_read_dis_req(UINT16 conn_id)
 
     while (dis_cb.dis_read_uuid_idx < DIS_MAX_CHAR_NUM)
     {
-        param.service.uuid.uu.uuid16 = dis_attr_uuid[dis_cb.dis_read_uuid_idx];
+        if (dis_uuid_to_attr(dis_attr_uuid[dis_cb.dis_read_uuid_idx]) &
+                dis_cb.request_mask)
+        {
+             param.service.uuid.uu.uuid16 = dis_attr_uuid[dis_cb.dis_read_uuid_idx];
 
-        if (GATTC_Read(conn_id, GATT_READ_BY_TYPE, &param) == GATT_SUCCESS)
-        {
-            return(TRUE);
-        }
-        else
-        {
+             if (GATTC_Read(conn_id, GATT_READ_BY_TYPE, &param) == GATT_SUCCESS)
+                 return TRUE;
+
             GATT_TRACE_ERROR ("Read DISInfo: 0x%04x GATT_Read Failed", param.service.uuid.uu.uuid16);
-            dis_cb.dis_read_uuid_idx ++;
         }
+
+        dis_cb.dis_read_uuid_idx++;
     }
 
     dis_gatt_c_read_dis_value_cmpl(conn_id);
@@ -291,7 +318,7 @@ void dis_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
                     GKI_freebuf(p_str);
                 if ((p_str = (UINT8 *)GKI_getbuf((UINT16)(p_data->att_value.len + 1))) != NULL)
                 {
-                    p_clcb->dis_value.attr_mask |= DIS_UUID_TO_ATTR_MASK (read_type);
+                    p_clcb->dis_value.attr_mask |= dis_uuid_to_attr(read_type);
                     memcpy(p_str, p_data->att_value.value, p_data->att_value.len);
                     p_str[p_data->att_value.len] = 0;
                     p_clcb->dis_value.data_string[read_type - GATT_UUID_MODEL_NUMBER_STR] = p_str;
@@ -425,7 +452,7 @@ Overrunning static array "dis_cb.dis_value.data_string", with 7 elements, at pos
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback)
+BOOLEAN DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback, tDIS_ATTR_MASK mask)
 {
     UINT16             conn_id;
 
@@ -442,6 +469,8 @@ BOOLEAN DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback)
     dis_cb.p_read_dis_cback = p_cback;
     /* Mark currently active operation */
     dis_cb.dis_read_uuid_idx = 0;
+
+    dis_cb.request_mask = mask;
 
     GATT_TRACE_EVENT ("DIS_ReadDISInfo() - BDA: %08x%04x  cl_read_uuid: 0x%04x",
                       (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],

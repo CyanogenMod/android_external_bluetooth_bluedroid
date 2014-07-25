@@ -1187,7 +1187,7 @@ void bta_hh_le_pri_service_discovery(tBTA_HH_DEV_CB *p_cb)
     p_cb->disc_active |= (BTA_HH_LE_DISC_HIDS|BTA_HH_LE_DISC_DIS);
 
     /* read DIS info */
-    if (!DIS_ReadDISInfo(p_cb->addr, bta_hh_le_dis_cback))
+    if (!DIS_ReadDISInfo(p_cb->addr, bta_hh_le_dis_cback, DIS_ATTR_PNP_ID_BIT))
     {
         APPL_TRACE_ERROR("read DIS failed");
         p_cb->disc_active &= ~BTA_HH_LE_DISC_DIS;

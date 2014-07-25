@@ -50,6 +50,8 @@ typedef struct
     BOOLEAN                 enabled;
 
     UINT8                   dis_read_uuid_idx;
+
+    tDIS_ATTR_MASK          request_mask;
 }tDIS_CB;
 
 
