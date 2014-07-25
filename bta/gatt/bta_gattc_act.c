@@ -1497,13 +1497,15 @@ void  bta_gattc_op_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
             return;
         }
 
-        /* service handle change void the response, discard it */
-        if (p_clcb->auto_update == BTA_GATTC_DISC_WAITING)
+        /* discard responses if service change indication is received before operation completed */
+        if (p_clcb->auto_update == BTA_GATTC_DISC_WAITING && p_clcb->p_srcb->srvc_hdl_chg)
         {
-            p_clcb->auto_update = BTA_GATTC_REQ_WAITING;
-            bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_DISCOVER_EVT, NULL);
+            APPL_TRACE_DEBUG("Discard all responses when service change indication is received.");
+            p_data->op_cmpl.status = GATT_ERROR;
         }
-        else if (op == GATTC_OPTYPE_READ)
+
+        /* service handle change void the response, discard it */
+        if (op == GATTC_OPTYPE_READ)
             bta_gattc_read_cmpl(p_clcb, &p_data->op_cmpl);
 
         else if (op == GATTC_OPTYPE_WRITE)
@@ -1514,6 +1516,12 @@ void  bta_gattc_op_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 
         else if (op == GATTC_OPTYPE_CONFIG)
             bta_gattc_cfg_mtu_cmpl(p_clcb, &p_data->op_cmpl);
+
+        if (p_clcb->auto_update == BTA_GATTC_DISC_WAITING)
+        {
+            p_clcb->auto_update = BTA_GATTC_REQ_WAITING;
+            bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_DISCOVER_EVT, NULL);
+        }
     }
 }
 /*******************************************************************************
