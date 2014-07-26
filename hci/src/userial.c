@@ -245,7 +245,9 @@ static void *userial_read_thread(void *arg)
             ALOGW("select_read return size <=0:%d, exiting userial_read_thread",\
                  rx_length);
             /* if we get here, we should have a buffer */
-            bt_hc_cbacks->dealloc(p_buf);
+            if (bt_hc_cbacks)
+                bt_hc_cbacks->dealloc(p_buf);
+
             /* negative value means exit thread */
             break;
         }
