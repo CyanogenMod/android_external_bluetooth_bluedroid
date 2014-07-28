@@ -1090,6 +1090,8 @@ and USER_HW_DISABLE_API macros */
 /* TRUE to include Secure connection Host Part */
 #ifndef BTM_SECURE_CONN_HOST_INCLUDED
 #define BTM_SECURE_CONN_HOST_INCLUDED    TRUE
+/* TRUE to read the controller capability */
+#define BTM_READ_CTLR_CAP_INCLUDED       TRUE
 #endif
 
 /*************************

@@ -1238,7 +1238,15 @@ static void btu_hcif_command_complete_evt (UINT8 controller_id, UINT8 *p, UINT16
             p_dequeued = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
             STREAM_TO_UINT16 (opcode_dequeued, p_dequeued);
 
-            if (opcode_dequeued != cc_opcode)
+            /* extract the callback for vendor specific commands for which
+               controller has responded with 0xffff*/
+            if ( (opcode_dequeued != cc_opcode)
+#if (defined(BTM_READ_CTLR_CAP_INCLUDED) && BTM_READ_CTLR_CAP_INCLUDED == TRUE)
+                && !((opcode_dequeued == HCI_BLE_VENDOR_CAP_OCF) &&
+                   ((opcode_dequeued & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC) &&
+                   ((cc_opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC))
+#endif
+            )
             {
                 /* opcode does not match, check next command in the queue */
                 p_cmd = (BT_HDR *) GKI_getnext(p_cmd);

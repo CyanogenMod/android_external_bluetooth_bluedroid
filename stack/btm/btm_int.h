@@ -228,6 +228,9 @@ UINT8                   le_supported_states[BTM_LE_SUPPORT_STATE_SIZE];
 #define BTM_HOST_MAY_SUPP_SIMULT_BR_LE  0x08
 #if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
 #define BTM_HOST_MAY_SUPP_SECURE_CONN   0x10
+#if (defined(BTM_READ_CTLR_CAP_INCLUDED) && BTM_READ_CTLR_CAP_INCLUDED == TRUE)
+#define BTM_READ_CTLR_CAPABILITY        0x20
+#endif
 #endif
     UINT8               lmp_features_host_may_support;  /* The flags of LMP features host may support via BR/EDR ctrlr + BTM_RE_READ_1ST_PAGE */
     UINT8               supported_cmds[HCI_NUM_SUPP_COMMANDS_BYTES]; /* Supported Commands bit field */
