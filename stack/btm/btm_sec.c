@@ -5878,9 +5878,10 @@ static char *btm_pair_state_descr (tBTM_PAIRING_STATE state)
 ** Parameters:      void
 **
 *******************************************************************************/
-void btm_sec_dev_rec_cback_event (tBTM_SEC_DEV_REC *p_dev_rec, UINT8 res, BOOLEAN transport)
+void btm_sec_dev_rec_cback_event (tBTM_SEC_DEV_REC *p_dev_rec, UINT8 res, BOOLEAN is_le_transport)
 {
     tBTM_SEC_CALLBACK   *p_callback = p_dev_rec->p_callback;
+    tBT_TRANSPORT transport = is_le_transport ? BT_TRANSPORT_LE : BT_TRANSPORT_BR_EDR;
 
     if (p_dev_rec->p_callback)
     {

@@ -131,7 +131,7 @@ void gatt_verify_signature(tGATT_TCB *p_tcb, BT_HDR *p_buf)
 *******************************************************************************/
 void gatt_sec_check_complete(BOOLEAN sec_check_ok, tGATT_CLCB   *p_clcb, UINT8 sec_act)
 {
-    if (GKI_queue_is_empty(&p_clcb->p_tcb->pending_enc_clcb))
+    if (p_clcb && p_clcb->p_tcb && GKI_queue_is_empty(&p_clcb->p_tcb->pending_enc_clcb))
         gatt_set_sec_act(p_clcb->p_tcb, GATT_SEC_NONE);
 
     if (!sec_check_ok)
