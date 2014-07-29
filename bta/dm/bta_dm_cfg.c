@@ -307,7 +307,7 @@ tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_SPEC bta_dm_pm_spec[BTA_DM_NUM_PM_SPEC] =
       {{BTA_DM_PM_NO_ACTION, 0},   {BTA_DM_PM_NO_ACTION, 0}},    /* app close */
       {{BTA_DM_PM_NO_ACTION, 0},   {BTA_DM_PM_NO_ACTION, 0}},    /* sco open  */
       {{BTA_DM_PM_NO_ACTION, 0},   {BTA_DM_PM_NO_ACTION, 0}},    /* sco close   */
-      {{BTA_DM_PM_SNIFF,  7000},   {BTA_DM_PM_NO_ACTION, 0}},    /* idle */
+      {{BTA_DM_PM_SNIFF,  1000},   {BTA_DM_PM_NO_ACTION, 0}},    /* idle */
       {{BTA_DM_PM_ACTIVE,    0},   {BTA_DM_PM_NO_ACTION, 0}},    /* busy */
       {{BTA_DM_PM_NO_ACTION, 0},   {BTA_DM_PM_NO_ACTION, 0}}     /* mode change retry */
   }
@@ -436,7 +436,7 @@ The SNIFF table entries must be in the order from highest latency (biggest inter
 If there's a conflict among the connected services, the setting with lowest latency wins.
 */
 /* sniff modes: max interval, min interval, attempt, timeout */
-  {800, 400, 4, 1, BTM_PM_MD_SNIFF}, /*for BTA_DM_PM_SNIFF - A2DP */
+  {2048, 1024, 4, 1, BTM_PM_MD_SNIFF}, /*for BTA_DM_PM_SNIFF - A2DP */
   {400, 200, 4, 1, BTM_PM_MD_SNIFF}, /*for BTA_DM_PM_SNIFF1 */
   {180, 150, 4, 1, BTM_PM_MD_SNIFF}, /*for BTA_DM_PM_SNIFF2- HD idle */
   {150,  50, 4, 1, BTM_PM_MD_SNIFF}, /*for BTA_DM_PM_SNIFF3- SCO open */
