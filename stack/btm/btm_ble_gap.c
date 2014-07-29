@@ -1192,9 +1192,10 @@ UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst,
         {
             *p++ = MIN_ADV_LENGTH;
             *p++ = BTM_BLE_AD_TYPE_TX_PWR;
-            *p++ = p_data->tx_power;
+            if (p_data->tx_power > BTM_BLE_ADV_TX_POWER_MAX)
+                p_data->tx_power = BTM_BLE_ADV_TX_POWER_MAX;
+            *p++ = btm_ble_map_adv_tx_power(p_data->tx_power);
             len -= 3;
-
             data_mask &= ~BTM_BLE_AD_BIT_TX_PWR;
         }
         /* 16 bits services */

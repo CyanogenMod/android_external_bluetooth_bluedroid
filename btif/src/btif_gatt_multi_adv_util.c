@@ -240,7 +240,6 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
        return false;
 
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
-    memset(&p_multi_adv_data_cb->inst_cb[cbindex],0, sizeof(btgatt_multi_adv_inst_cb));
     memset(&p_multi_adv_data_cb->inst_cb[cbindex].data, 0, sizeof(tBTA_BLE_ADV_DATA));
 
     if (!p_adv_data->set_scan_rsp)

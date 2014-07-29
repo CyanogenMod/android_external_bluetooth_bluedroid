@@ -398,6 +398,7 @@ extern void btm_ble_multi_adv_init(void);
 extern void btm_ble_batchscan_init(void);
 extern void btm_ble_multi_adv_reenable(UINT8 inst_id);
 extern void btm_ble_multi_adv_enb_privacy(BOOLEAN enable);
+extern char btm_ble_map_adv_tx_power(int tx_power_index);
 extern void btm_ble_adv_filter_init(void);
 extern BOOLEAN btm_ble_topology_check(tBTM_BLE_STATE_MASK request);
 extern BOOLEAN btm_ble_clear_topology_mask(tBTM_BLE_STATE_MASK request_state);
