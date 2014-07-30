@@ -410,8 +410,6 @@ static void gatt_le_connect_cback (BD_ADDR bd_addr, BOOLEAN connected,
         /* do we have a channel initiating a connection? */
         if (p_tcb)
         {
-            if (check_srv_chg)
-                gatt_chk_srv_chg (p_srv_chg_clt);
             /* we are initiating connection */
             if ( gatt_get_ch_state(p_tcb) == GATT_CH_CONN)
             {
@@ -421,6 +419,8 @@ static void gatt_le_connect_cback (BD_ADDR bd_addr, BOOLEAN connected,
 
                 gatt_send_conn_cback(p_tcb);
             }
+            if (check_srv_chg)
+                gatt_chk_srv_chg (p_srv_chg_clt);
         }
         /* this is incoming connection or background connection callback */
 
