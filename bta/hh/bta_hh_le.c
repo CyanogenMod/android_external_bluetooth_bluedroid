@@ -415,6 +415,14 @@ tBTA_HH_DEV_CB * bta_hh_le_find_dev_cb_by_bda(BD_ADDR bda)
     }
     return NULL;
 }
+
+/*******************************************************************************
+**
+** Function         bta_hh_le_find_service_inst_by_battery_inst_id
+**
+** Description      find HID service instance ID by battery service instance ID
+**
+*******************************************************************************/
 UINT8 bta_hh_le_find_service_inst_by_battery_inst_id(tBTA_HH_DEV_CB *p_cb, UINT8 ba_inst_id)
 {
     UINT8   i;
@@ -1991,6 +1999,15 @@ void bta_hh_le_read_descr_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
     }
 }
 
+/*******************************************************************************
+**
+** Function         bta_hh_le_read_battery_level_descr_cmpl
+**
+** Description      Process report reference descriptor for battery level is completed
+**
+** Parameters:
+**
+*******************************************************************************/
 void bta_hh_le_read_battery_level_descr_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ * p_data)
 {
     tBTA_HH_LE_RPT  *p_rpt;
