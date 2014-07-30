@@ -1042,7 +1042,10 @@ static void execute_storage_request(UINT16 event, char *p_param)
                 local_le_features.max_adv_instance = cmn_vsc_cb.adv_inst_max;
                 local_le_features.max_irk_list_size = cmn_vsc_cb.max_irk_list_sz;
                 local_le_features.rpa_offload_supported = cmn_vsc_cb.rpa_offloading;
-                local_le_features.scan_result_storage_size = cmn_vsc_cb.tot_scan_results_strg;
+                local_le_features.scan_result_storage_size_hibyte =
+                    (cmn_vsc_cb.tot_scan_results_strg >> 8) & (0xFF);
+                local_le_features.scan_result_storage_size_lobyte =
+                    (cmn_vsc_cb.tot_scan_results_strg) & (0xFF);
                 local_le_features.activity_energy_info_supported = cmn_vsc_cb.energy_support;
                 memcpy(prop.val, &local_le_features, prop.len);
                 #endif
