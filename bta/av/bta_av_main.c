@@ -587,11 +587,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             }
 
             /* Set the Capturing service class bit */
-#if (BTA_AV_SINK_INCLUDED == TRUE)
-            cod.service = BTM_COD_SERVICE_CAPTURING | BTM_COD_SERVICE_RENDERING;
-#else
             cod.service = BTM_COD_SERVICE_CAPTURING;
-#endif
             utl_set_device_class(&cod, BTA_UTL_SET_COD_SERVICE_CLASS);
         } /* if 1st channel */
 
@@ -688,12 +684,6 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                                   A2D_SUPF_PLAYER, bta_av_cb.sdp_a2d_handle);
                 bta_sys_add_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
 
-#if (BTA_AV_SINK_INCLUDED == TRUE)
-                bta_av_cb.sdp_a2d_snk_handle = SDP_CreateRecord();
-                A2D_AddRecord(UUID_SERVCLASS_AUDIO_SINK, p_avk_service_name, NULL,
-                                  A2D_SUPF_PLAYER, bta_av_cb.sdp_a2d_snk_handle);
-                bta_sys_add_uuid(UUID_SERVCLASS_AUDIO_SINK);
-#endif
                 /* start listening when A2DP is registered */
                 if (bta_av_cb.features & BTA_AV_FEAT_RCTG)
                     bta_av_rc_create(&bta_av_cb, AVCT_ACP, 0, BTA_AV_NUM_LINKS + 1);
