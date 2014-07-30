@@ -1260,8 +1260,7 @@ static void btm_issue_host_support_for_lmp_features (void)
     {
         if (btm_cb.devcb.lmp_features_host_may_support & BTM_HOST_MAY_SUPP_SIMULT_BR_LE)
         {
-            /* At the moment the host can't work simultaneously with BR/EDR and LE */
-            btsnd_hcic_ble_write_host_supported(BTM_BLE_HOST_SUPPORT, 0);
+            btsnd_hcic_ble_write_host_supported(BTM_BLE_HOST_SUPPORT, BTM_BLE_SIMULTANEOUS_HOST);
         }
         else
         {
