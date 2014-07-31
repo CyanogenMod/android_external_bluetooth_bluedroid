@@ -242,9 +242,9 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
     memset(&p_multi_adv_data_cb->inst_cb[cbindex].data, 0, sizeof(tBTA_BLE_ADV_DATA));
 
+    p_multi_adv_data_cb->inst_cb[cbindex].is_scan_rsp = p_adv_data->set_scan_rsp ? 1 : 0;
     if (!p_adv_data->set_scan_rsp)
     {
-         p_multi_adv_data_cb->inst_cb[cbindex].is_scan_rsp = p_adv_data->set_scan_rsp ? 1 : 0;
          p_multi_adv_data_cb->inst_cb[cbindex].mask = BTM_BLE_AD_BIT_FLAGS;
          p_multi_adv_data_cb->inst_cb[cbindex].data.flag = ADV_FLAGS;
     }
