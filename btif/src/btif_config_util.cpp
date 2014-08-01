@@ -243,7 +243,11 @@ static int parse_sections(const char* section_name, const XMLElement* section)
                     const char* value_type = value->Attribute(BLUEDROID_VALUE_TYPE);
                     //debug("value ele name:%s, section name:%s, key name:%s, value name:%s, value type:%s",
                     //        value->Name(), section_name, key_name, value_name, value_type);
-                    int type = type_str2int((const char*)value_type);
+                    int type = BTIF_CFG_TYPE_INVALID;
+                    if(value_type)
+                    {
+                        type = type_str2int((const char*)value_type);
+                    }
                     if(value_name && *value_name && type != BTIF_CFG_TYPE_INVALID)
                     {
                         const char* value_str = value->GetText() ? value->GetText() : "";
@@ -297,16 +301,16 @@ static void enum_config(void* user_data, const char* section_name, const char* k
                         const char*  value, int bytes, int type)
 {
     enum_user_data& d = *(enum_user_data*)user_data;
+    XMLElement * root_elem = d.xml->RootElement();
     //debug("in, key:%s, value:%s", key_name, value_name);
     //debug("section name:%s, key name:%s, value name:%s, value type:%s",
     //                      section_name, key_name, value_name, type_int2str(type));
     if(type & BTIF_CFG_TYPE_VOLATILE)
         return; //skip any volatile value
-    if(d.sn != section_name)
+    if( (d.sn != section_name) && (root_elem != NULL) )
     {
         d.sn = section_name;
-        if(d.xml->RootElement())
-            d.se = add_ele(d.xml, d.xml->RootElement(), ++d.si, section_name);
+        d.se = add_ele(d.xml, root_elem, ++d.si, section_name);
         d.ki = 0;
     }
     if(d.kn != key_name)
@@ -346,7 +350,7 @@ static void enum_config(void* user_data, const char* section_name, const char* k
 
 static int type_str2int(const char* type)
 {
-    if(type == 0 || *type == 0 || strcmp(type, "string") == 0)
+    if(type == NULL || *type == 0 || strcmp(type, "string") == 0)
         return  BTIF_CFG_TYPE_STR;
     if(strcmp(type, "int") == 0)
         return BTIF_CFG_TYPE_INT;

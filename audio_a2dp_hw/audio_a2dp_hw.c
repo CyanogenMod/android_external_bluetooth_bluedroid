@@ -822,6 +822,12 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
 
     parms = str_parms_create_str(kvpairs);
 
+    if(!parms)
+    {
+        ERROR("parms is NULL");
+        return retval;
+    }
+
     /* dump params */
     str_parms_dump(parms);
 
@@ -1281,6 +1287,12 @@ static char * adev_get_parameters(const struct audio_hw_device *dev,
     FNLOG();
 
     parms = str_parms_create_str(keys);
+
+    if(!parms)
+    {
+        ERROR("parms is NULL");
+        return strdup("");
+    }
 
     str_parms_dump(parms);
 
