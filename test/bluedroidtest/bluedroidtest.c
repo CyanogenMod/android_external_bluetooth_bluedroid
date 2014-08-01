@@ -484,28 +484,72 @@ static void le_test_mode(bt_status_t status, uint16_t packet_count)
 static bt_callbacks_t bt_callbacks = {
     sizeof(bt_callbacks_t),
     adapter_state_changed,
-    NULL, /*adapter_properties_cb */
+    NULL, /* adapter_properties_cb */
     NULL, /* remote_device_properties_cb */
     NULL, /* device_found_cb */
     NULL, /* discovery_state_changed_cb */
     NULL, /* pin_request_cb  */
     NULL, /* ssp_request_cb  */
-    NULL, /*bond_state_changed_cb */
+    NULL, /* bond_state_changed_cb */
     NULL, /* acl_state_changed_cb */
     NULL, /* thread_evt_cb */
-    dut_mode_recv, /*dut_mode_recv_cb */
-//    NULL, /*authorize_request_cb */
+    dut_mode_recv, /* dut_mode_recv_cb */
 #if BLE_INCLUDED == TRUE
-    le_test_mode /* le_test_mode_cb */
+    le_test_mode, /* le_test_mode_cb */
 #else
-    NULL
+    NULL, /* le_test_mode_cb */
 #endif
+    NULL /* energy_info_cb */
+};
+
+static bool set_wake_alarm(uint64_t delay_millis, bool should_wake, alarm_cb cb, void *data) {
+  static timer_t timer;
+  static bool timer_created;
+
+  if (!timer_created) {
+    struct sigevent sigevent;
+    memset(&sigevent, 0, sizeof(sigevent));
+    sigevent.sigev_notify = SIGEV_THREAD;
+    sigevent.sigev_notify_function = (void (*)(union sigval))cb;
+    sigevent.sigev_value.sival_ptr = data;
+    timer_create(CLOCK_MONOTONIC, &sigevent, &timer);
+    timer_created = true;
+  }
+
+  struct itimerspec new_value;
+  new_value.it_value.tv_sec = delay_millis / 1000;
+  new_value.it_value.tv_nsec = (delay_millis % 1000) * 1000 * 1000;
+  new_value.it_interval.tv_sec = 0;
+  new_value.it_interval.tv_nsec = 0;
+  timer_settime(timer, 0, &new_value, NULL);
+
+  return true;
+}
+
+static int acquire_wake_lock(const char *lock_name) {
+  return BT_STATUS_SUCCESS;
+}
+
+static int release_wake_lock(const char *lock_name) {
+  return BT_STATUS_SUCCESS;
+}
+
+static bt_os_callouts_t callouts = {
+    sizeof(bt_os_callouts_t),
+    set_wake_alarm,
+    acquire_wake_lock,
+    release_wake_lock,
 };
 
 void bdt_init(void)
 {
     bdt_log("INIT BT ");
     status = sBtInterface->init(&bt_callbacks);
+
+    if (status == BT_STATUS_SUCCESS) {
+        status = sBtInterface->set_os_callouts(&callouts);
+    }
+
     check_return_status(status);
 }
 
