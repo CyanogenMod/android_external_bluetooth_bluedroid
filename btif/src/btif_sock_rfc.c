@@ -864,6 +864,8 @@ static BOOLEAN flush_incoming_que_on_wr_signal(rfc_slot_t* rs)
                 btsock_thread_add_fd(pth, rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_WR, rs->id);
                 return TRUE;
             case SENT_ALL:
+                list_remove(rs->incoming_queue, p_buf);
+                break;
             case SENT_FAILED:
                 list_remove(rs->incoming_queue, p_buf);
                 return FALSE;
