@@ -5371,7 +5371,8 @@ void bta_dm_ble_enable_batch_scan (tBTA_DM_MSG *p_data)
 
     btm_status = BTM_BleEnableBatchScan(p_data->ble_enable_scan.scan_mode,
                            p_data->ble_enable_scan.scan_int,p_data->ble_enable_scan.scan_window,
-                           p_data->ble_enable_scan.discard_rule, p_data->ble_enable_scan.addr_type,
+                           p_data->ble_enable_scan.addr_type,
+                           p_data->ble_enable_scan.discard_rule,
                            p_data->ble_enable_scan.ref_value);
 
     if(BTM_CMD_STARTED != btm_status)
@@ -5455,6 +5456,9 @@ void bta_ble_scan_setup_cb(tBTM_BLE_BATCH_SCAN_EVT evt, tBTM_BLE_REF_VALUE ref_v
                                   tBTM_STATUS status)
 {
     tBTA_BLE_BATCH_SCAN_EVT bta_evt = 0;
+
+    APPL_TRACE_DEBUG("bta_ble_scan_setup_cb : evt: %d, ref_value: %d, status:%d", evt,
+                      ref_value, status);
 
     switch(evt)
     {
