@@ -35,10 +35,15 @@
 #define L2CA_GET_UPD_ST(x)          ((x) & UPD_ST_MASK)
 #define L2CA_SET_UPD_ST(x, y)      x = (((x) & ~UPD_ST_MASK) | (y))
 
-
 #if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
 #include "vendor_ble.h"
+#else
+#if BLE_PRIVACY_SPT == TRUE
+extern BOOLEAN btm_ble_get_acl_remote_addr(tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR conn_addr,
+                                    tBLE_ADDR_TYPE *p_addr_type);
 #endif
+#endif
+
 /*******************************************************************************
 **
 **  Function        L2CA_CancelBleConnectReq
@@ -649,6 +654,8 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
         BTM_BleEnableIRKFeature(TRUE);
 
     btm_random_pseudo_to_public(init_addr, &init_addr_type);
+#else
+    btm_ble_get_acl_remote_addr(p_dev_rec, init_addr, &init_addr_type);
 #endif
 #endif
     if (!btsnd_hcic_ble_create_ll_conn (scan_int,/* UINT16 scan_int      */

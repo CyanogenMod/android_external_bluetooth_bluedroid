@@ -1661,9 +1661,9 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
 #if (BLE_VND_INCLUDED == TRUE)
         match = btm_public_addr_to_random_pseudo (bda, &bda_type);
 #endif
-        /* possiblly receive connection complete with resolvable random on
-           slave role while the device has been paired */
-        if (!match && role == HCI_ROLE_SLAVE && BTM_BLE_IS_RESOLVE_BDA(bda))
+        /* Possibly receiving connection complete with a resolvable random address
+           for a device that has been paired */
+        if (!match && BTM_BLE_IS_RESOLVE_BDA(bda))
         {
             btm_ble_resolve_random_addr(bda, btm_ble_resolve_random_addr_on_conn_cmpl, p_data);
         }
