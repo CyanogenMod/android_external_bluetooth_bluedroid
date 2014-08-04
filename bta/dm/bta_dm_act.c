@@ -4346,6 +4346,7 @@ static void bta_dm_set_eir (char *local_name)
     UINT8    num_uuid;
     UINT8    data_type;
     UINT8    local_name_len;
+    UINT8    ch;
 
     /* wait until complete to disable */
     if (bta_dm_cb.disable_timer.in_use)
@@ -4402,7 +4403,23 @@ static void bta_dm_set_eir (char *local_name)
         if ( local_name_len > (free_eir_length - 4 - num_uuid*LEN_UUID_16))
         {
             APPL_TRACE_WARNING("BTA EIR: local name is shortened");
-            local_name_len = p_bta_dm_eir_cfg->bta_dm_eir_min_name_len;
+            /* Shortened name according to UTF encoding rule, */
+            /* find the border and decrease the length. */
+            for( local_name_len = p_bta_dm_eir_cfg->bta_dm_eir_min_name_len;
+                 local_name_len > 0;
+                 local_name_len-- )
+            {
+                ch = (UINT8)local_name[local_name_len - 1];
+                if( (ch & 0x80) == 0x00 )
+                {
+                    break;
+                }
+                else if( (ch & 0xc0) != 0x80 )
+                {
+                    local_name_len--;
+                    break;
+                }
+            }
             data_type = BTM_EIR_SHORTENED_LOCAL_NAME_TYPE;
         }
         else
