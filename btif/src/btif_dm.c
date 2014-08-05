@@ -129,6 +129,12 @@ typedef struct
 
 typedef struct
 {
+    bt_bdaddr_t  bdaddr;
+    UINT8        transport; /* 0=Unknown, 1=BR/EDR, 2=LE */
+} btif_dm_create_bond_cb_t;
+
+typedef struct
+{
     uint8_t  status;
     uint8_t  ctrl_state;
     uint64_t tx_time;
@@ -166,7 +172,7 @@ static char btif_default_local_name[DEFAULT_LOCAL_NAME_MAX+1] = {'\0'};
 static btif_dm_pairing_cb_t pairing_cb;
 static btif_dm_oob_cb_t     oob_cb;
 static void btif_dm_generic_evt(UINT16 event, char* p_param);
-static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr);
+static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr, tBTA_TRANSPORT transport);
 static void btif_dm_cb_hid_remote_name(tBTM_REMOTE_DEV_NAME *p_remote_name);
 static void btif_update_remote_properties(BD_ADDR bd_addr, BD_NAME bd_name,
                                           DEV_CLASS dev_class, tBT_DEVICE_TYPE dev_type);
@@ -582,7 +588,7 @@ static void btif_dm_cb_hid_remote_name(tBTM_REMOTE_DEV_NAME *p_remote_name)
 ** Returns          void
 **
 *******************************************************************************/
-static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr)
+static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr, tBTA_TRANSPORT transport)
 {
     BOOLEAN is_hid = check_cod(bd_addr, COD_HID_POINTING);
     bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDING);
@@ -613,7 +619,7 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr)
     }
     else
     {
-        BTA_DmBond ((UINT8 *)bd_addr->address);
+        BTA_DmBondByTransport((UINT8 *)bd_addr->address, transport);
     }
     /*  Track  originator of bond creation  */
     pairing_cb.is_local_initiated = TRUE;
@@ -1058,7 +1064,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
 
                     /* Create the Bond once again */
                     BTIF_TRACE_DEBUG("%s() auto pair failed. Reinitiate Bond", __FUNCTION__);
-                    btif_dm_cb_create_bond (&bd_addr);
+                    btif_dm_cb_create_bond (&bd_addr, BTA_TRANSPORT_UNKNOWN);
                     return;
                 }
                 else
@@ -1849,7 +1855,8 @@ static void btif_dm_generic_evt(UINT16 event, char* p_param)
 
         case BTIF_DM_CB_CREATE_BOND:
         {
-            btif_dm_cb_create_bond((bt_bdaddr_t *)p_param);
+            btif_dm_create_bond_cb_t *create_bond_cb = (btif_dm_create_bond_cb_t*)p_param;
+            btif_dm_cb_create_bond(&create_bond_cb->bdaddr, create_bond_cb->transport);
         }
         break;
 
@@ -2156,16 +2163,20 @@ bt_status_t btif_dm_cancel_discovery(void)
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr)
+bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr, int transport)
 {
-    bdstr_t bdstr;
+    btif_dm_create_bond_cb_t create_bond_cb;
+    create_bond_cb.transport = transport;
+    bdcpy(create_bond_cb.bdaddr.address, bd_addr->address);
 
-    BTIF_TRACE_EVENT("%s: bd_addr=%s", __FUNCTION__, bd2str((bt_bdaddr_t *) bd_addr, &bdstr));
+    bdstr_t bdstr;
+    BTIF_TRACE_EVENT("%s: bd_addr=%s, transport=%d", __FUNCTION__,
+            bd2str((bt_bdaddr_t *) bd_addr, &bdstr), transport);
     if (pairing_cb.state != BT_BOND_STATE_NONE)
         return BT_STATUS_BUSY;
 
     btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_CREATE_BOND,
-                          (char *)bd_addr, sizeof(bt_bdaddr_t), NULL);
+                          (char *)&create_bond_cb, sizeof(btif_dm_create_bond_cb_t), NULL);
 
     return BT_STATUS_SUCCESS;
 }
@@ -2537,7 +2548,7 @@ void btif_dm_proc_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
 {
     UNUSED (bd_addr);
     UNUSED (oob_data);
-    
+
     if(auth_req & BTA_AUTH_BONDS)
     {
         BTIF_TRACE_DEBUG("%s auth_req:%d", __FUNCTION__, auth_req);

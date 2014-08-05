@@ -206,7 +206,7 @@ bt_status_t btif_dm_cancel_discovery(void);
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr);
+bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr, int transport);
 
 /*******************************************************************************
 **

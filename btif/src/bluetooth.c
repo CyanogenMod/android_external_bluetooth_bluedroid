@@ -265,13 +265,13 @@ static int cancel_discovery(void)
     return btif_dm_cancel_discovery();
 }
 
-static int create_bond(const bt_bdaddr_t *bd_addr)
+static int create_bond(const bt_bdaddr_t *bd_addr, int transport)
 {
     /* sanity check */
     if (interface_ready() == FALSE)
         return BT_STATUS_NOT_READY;
 
-    return btif_dm_create_bond(bd_addr);
+    return btif_dm_create_bond(bd_addr, transport);
 }
 
 static int cancel_bond(const bt_bdaddr_t *bd_addr)
