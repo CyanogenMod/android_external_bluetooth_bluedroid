@@ -1067,6 +1067,7 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     p_scb->cur_psc_mask = 0;
     p_scb->wait = 0;
     p_scb->num_disc_snks = 0;
+    p_scb->coll_mask = 0;
     bta_sys_stop_timer(&p_scb->timer);
     if (p_scb->deregistring)
     {
