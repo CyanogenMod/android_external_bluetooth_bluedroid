@@ -333,6 +333,14 @@ static int add_maps_sdp(const char* p_service_name, int scn)
     // TODO: To add support for EMAIL set below depending on the scn to either SMS or Email
     const tBTA_MAPS_CFG *p_bta_maps_cfg = &bta_maps_cfg_sms_mms;
 
+    if (!strncmp(p_service_name, "SMS/MMS Message Access", strlen("SMS/MMS Message Access"))) {
+        p_bta_maps_cfg = &bta_maps_cfg_sms_mms;
+        //APPL_TRACE_DEBUG1("add_maps_sdp for: %s", p_service_name);
+    } else if (!strncmp(p_service_name, "Email Message Access", strlen("Email Message Access"))) {
+        p_bta_maps_cfg = &bta_maps_cfg_email;
+        //APPL_TRACE_DEBUG1("add_maps_sdp for: %s", p_service_name);
+    }
+
     APPL_TRACE_DEBUG("add_maps_sdd:scn %d, service name %s", scn, p_service_name);
 
     if ((sdp_handle = SDP_CreateRecord()) == 0)
