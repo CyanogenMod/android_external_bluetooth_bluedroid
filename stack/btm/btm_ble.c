@@ -1731,7 +1731,8 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev (bd_addr);
     UINT8 res = 0;
 
-    BTM_TRACE_DEBUG ("btm_proc_smp_cback event = %d", event);
+    BTM_TRACE_DEBUG ("btm_proc_smp_cback event = %d, state=%d btm_cb.pairing_bda[5]=0x%0x",
+                      event, btm_cb.pairing_state, btm_cb.pairing_bda[5]);
 
     if (p_dev_rec != NULL)
     {
@@ -1747,6 +1748,14 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
                 p_dev_rec->sec_flags |= BTM_SEC_LE_AUTHENTICATED;
 
             case SMP_SEC_REQUEST_EVT:
+                if(event == SMP_SEC_REQUEST_EVT)
+                {
+                    if(btm_cb.pairing_state != BTM_PAIR_STATE_IDLE && memcmp(bd_addr, btm_cb.pairing_bda, BD_ADDR_LEN) != 0)
+                    {
+                        BTM_TRACE_DEBUG ("%s: btm_cb busy with another pairing", __FUNCTION__);
+                        return 0;
+                    }
+                }
                 memcpy (btm_cb.pairing_bda, bd_addr, BD_ADDR_LEN);
                 p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
                 btm_cb.pairing_flags |= BTM_PAIR_FLAGS_LE_ACTIVE;
@@ -1801,10 +1810,13 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
                     BTM_TRACE_DEBUG ("btm_cb.pairing_bda %02x:%02x:%02x:%02x:%02x:%02x",
                                       btm_cb.pairing_bda[0], btm_cb.pairing_bda[1], btm_cb.pairing_bda[2],
                                       btm_cb.pairing_bda[3], btm_cb.pairing_bda[4], btm_cb.pairing_bda[5]);
-
-                    memset (btm_cb.pairing_bda, 0xff, BD_ADDR_LEN);
-                    btm_cb.pairing_state = BTM_PAIR_STATE_IDLE;
-                    btm_cb.pairing_flags = 0;
+                    /* Reset btm state only if the callback address matches pairing address*/
+                    if(memcmp(bd_addr, btm_cb.pairing_bda, BD_ADDR_LEN) == 0)
+                    {
+                        memset (btm_cb.pairing_bda, 0xff, BD_ADDR_LEN);
+                        btm_cb.pairing_state = BTM_PAIR_STATE_IDLE;
+                        btm_cb.pairing_flags = 0;
+                    }
                 }
                 break;
 

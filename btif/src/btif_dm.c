@@ -233,8 +233,7 @@ extern bt_status_t btif_mce_execute_service(BOOLEAN b_enable);
 extern int btif_hh_connect(bt_bdaddr_t *bd_addr);
 extern void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16);
 extern void btif_av_move_idle(bt_bdaddr_t bd_addr);
-
-
+extern BOOLEAN btif_hh_find_added_dev_by_bda(bt_bdaddr_t *bd_addr);
 
 /******************************************************************************
 **  Functions
@@ -2973,9 +2972,16 @@ static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         status = BT_STATUS_SUCCESS;
         state = BT_BOND_STATE_BONDED;
 
-        btif_dm_save_ble_bonding_keys();
-        BTA_GATTC_Refresh(bd_addr.address);
-        btif_dm_get_remote_services(&bd_addr);
+        if(btif_hh_find_added_dev_by_bda(&bd_addr))
+        {
+            BTIF_TRACE_DEBUG("%s, device already paired, skipping discovery",__FUNCTION__ );
+        }
+        else
+        {
+            btif_dm_save_ble_bonding_keys();
+            BTA_GATTC_Refresh(bd_addr.address);
+            btif_dm_get_remote_services(&bd_addr);
+        }
     }
     else
     {
@@ -2997,6 +3003,11 @@ static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         }
     }
     bond_state_changed(status, &bd_addr, state);
+    if(state==BT_BOND_STATE_BONDED)
+    {
+        BTIF_TRACE_DEBUG("%s, save keys immidiately",__FUNCTION__ );
+        btif_config_flush();
+    }
 }
 
 

@@ -2532,15 +2532,24 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
 
     bdcpy(bta_dm_search_cb.peer_bdaddr, remote_bd_addr);
 
-    APPL_TRACE_DEBUG("bta_dm_discover_device name_discover_done = %d p_btm_inq_info 0x%x ",
+    APPL_TRACE_DEBUG("bta_dm_discover_device name_discover_done = %d p_btm_inq_info 0x%x state = %d",
                         bta_dm_search_cb.name_discover_done,
-                        bta_dm_search_cb.p_btm_inq_info
+                        bta_dm_search_cb.p_btm_inq_info,
+                        bta_dm_search_cb.state
                         );
     if ( bta_dm_search_cb.p_btm_inq_info ) {
 
         APPL_TRACE_DEBUG("bta_dm_discover_device appl_knows_rem_name %d",
                             bta_dm_search_cb.p_btm_inq_info->appl_knows_rem_name
                             );
+    }
+
+    if((bta_dm_search_cb.p_btm_inq_info)
+       && (bta_dm_search_cb.p_btm_inq_info->results.device_type == BT_DEVICE_TYPE_BLE)
+       && (bta_dm_search_cb.state == BTA_DM_SEARCH_ACTIVE))
+    {
+        /* Do not perform RNR for LE devices at inquiry complete*/
+        bta_dm_search_cb.name_discover_done = TRUE;
     }
 
     /* if name discovery is not done and application needs remote name */
@@ -6052,7 +6061,8 @@ static void bta_dm_gatt_disc_complete(UINT16 conn_id, tBTA_GATT_STATUS status)
 {
     tBTA_DM_MSG *p_msg;
 
-    APPL_TRACE_DEBUG("bta_dm_gatt_disc_complete conn_id = %d",conn_id);
+    APPL_TRACE_DEBUG("bta_dm_gatt_disc_complete conn_id = %d, status=%d, uuid_to_search=%d",
+                       conn_id, status, bta_dm_search_cb.uuid_to_search);
 
     if (bta_dm_search_cb.uuid_to_search > 0) bta_dm_search_cb.uuid_to_search --;
 
@@ -6062,6 +6072,9 @@ static void bta_dm_gatt_disc_complete(UINT16 conn_id, tBTA_GATT_STATUS status)
     }
     else
     {
+#if BLE_INCLUDED == TRUE
+        L2CA_EnableUpdateBleConnParams(bta_dm_search_cb.peer_bdaddr, TRUE);
+#endif
         bta_dm_search_cb.uuid_to_search = 0;
 
         /* no more services to be discovered */
@@ -6258,9 +6271,9 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
             break;
 
         case BTA_GATTC_CLOSE_EVT:
-            APPL_TRACE_DEBUG("BTA_GATTC_CLOSE_EVT reason = %d", p_data->close.reason);
+            APPL_TRACE_DEBUG("BTA_GATTC_CLOSE_EVT reason = %d, search.state = %d", p_data->close.reason, bta_dm_search_cb.state);
             /* in case of disconnect before search is completed */
-            if ( (bta_dm_search_cb.state != BTA_DM_SEARCH_IDLE) &&
+            if ( (bta_dm_search_cb.state != BTA_DM_SEARCH_IDLE) && (bta_dm_search_cb.state != BTA_DM_SEARCH_ACTIVE) &&
                  !memcmp(p_data->close.remote_bda, bta_dm_search_cb.peer_bdaddr, BD_ADDR_LEN))
             {
                 bta_dm_gatt_disc_complete((UINT16)BTA_GATT_INVALID_CONN_ID,  (tBTA_GATT_STATUS) BTA_GATT_ERROR);

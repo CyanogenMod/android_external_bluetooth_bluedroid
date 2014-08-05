@@ -413,6 +413,25 @@ static btif_hh_device_t *btif_hh_find_dev_by_bda(bt_bdaddr_t *bd_addr)
 
 /*******************************************************************************
 **
+** Function         btif_hh_find_added_dev_by_bda
+**
+** Description      Return the device pointer of the specified bt_bdaddr_t.
+**
+** Returns          Device entry pointer in the device table
+*******************************************************************************/
+BOOLEAN btif_hh_find_added_dev_by_bda(bt_bdaddr_t *bd_addr)
+{
+    UINT32 i;
+    for (i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
+        if (memcmp(&btif_hh_cb.added_devices[i].bd_addr, bd_addr, BD_ADDR_LEN) == 0)
+        {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+/*******************************************************************************
+**
 ** Function         btif_hh_find_connected_dev_by_bda
 **
 ** Description      Return the connected device pointer of the specified bt_bdaddr_t.

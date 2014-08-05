@@ -666,9 +666,15 @@ void smp_proc_release_delay_tout(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     UNUSED(p_data);
 
-    SMP_TRACE_DEBUG ("smp_proc_release_delay_tout ");
+    SMP_TRACE_DEBUG ("smp_proc_release_delay_tout , evt:%d", p_cb->cb_evt);
     btu_stop_timer (&p_cb->rsp_timer_ent);
-    smp_proc_pairing_cmpl(p_cb);
+    if(p_cb->cb_evt == SMP_DELAY_EVT) /*release delay state due to encryption change*/
+    {
+        p_cb->state = SMP_ST_IDLE;
+        memset(&p_cb->pairing_bda[0], 0xff, BD_ADDR_LEN);
+    }
+    else
+        smp_proc_pairing_cmpl(p_cb);
 }
 
 
@@ -937,9 +943,16 @@ void smp_pair_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_delay_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
-    SMP_TRACE_DEBUG ("smp_delay_terminate ");
+    SMP_TRACE_DEBUG ("smp_delay_terminate reason=%d, status=%d, evt=%d",p_data->reason, p_cb->status, p_cb->cb_evt);
 
     btu_stop_timer (&p_cb->rsp_timer_ent);
+
+    if(p_cb->cb_evt == SMP_DELAY_EVT) /*release delay state due to encryption change*/
+    {
+        p_cb->state = SMP_ST_IDLE;
+        memset(&p_cb->pairing_bda[0], 0xff, BD_ADDR_LEN);
+        return;
+    }
 
     /* if remote user terminate connection, keep the previous status */
     /* this is to avoid reporting reverse status to uplayer */
@@ -991,7 +1004,7 @@ void smp_link_encrypted(BD_ADDR bda, UINT8 encr_enable)
 {
     tSMP_CB *p_cb = &smp_cb;
 
-    SMP_TRACE_DEBUG ("smp_link_encrypted encr_enable=%d",encr_enable);
+    SMP_TRACE_DEBUG ("smp_link_encrypted encr_enable=%d, p_cb-state=%d",encr_enable, p_cb->state);
 
     if (memcmp(&smp_cb.pairing_bda[0], bda, BD_ADDR_LEN) == 0)
     {
@@ -1004,6 +1017,13 @@ void smp_link_encrypted(BD_ADDR bda, UINT8 encr_enable)
         }
 
         smp_sm_event(&smp_cb, SMP_ENCRYPTED_EVT, &encr_enable);
+    }
+    else if(encr_enable && p_cb->state == SMP_ST_IDLE)/*encryption without pairing case*/
+    {
+        memcpy(&p_cb->pairing_bda[0], bda, BD_ADDR_LEN);
+        p_cb->state = SMP_ST_RELEASE_DELAY;
+        p_cb->cb_evt = SMP_DELAY_EVT;
+        smp_sm_event(&smp_cb, SMP_RELEASE_DELAY_EVT, &encr_enable);
     }
 }
 /*******************************************************************************

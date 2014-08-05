@@ -36,6 +36,7 @@
 #define SMP_PASSKEY_REQ_EVT     4       /* passkey request event */
 #define SMP_OOB_REQ_EVT         5       /* OOB request event */
 #define SMP_COMPLT_EVT          6       /* SMP complete event */
+#define SMP_DELAY_EVT           7       /* Release delay to prevent another encryption*/
 typedef UINT8   tSMP_EVT;
 
 

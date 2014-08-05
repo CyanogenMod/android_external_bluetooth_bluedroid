@@ -41,7 +41,7 @@ typedef UINT8   tSMP_ASSO_MODEL;
 #endif
 
 #define SMP_WAIT_FOR_RSP_TOUT			30
-#define SMP_WAIT_FOR_REL_DELAY_TOUT     5
+#define SMP_WAIT_FOR_REL_DELAY_TOUT     2
 /* SMP L2CAP command code */
 #define SMP_OPCODE_PAIRING_REQ            0x01
 #define SMP_OPCODE_PAIRING_RSP            0x02
