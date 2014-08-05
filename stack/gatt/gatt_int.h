@@ -632,6 +632,7 @@ extern void gatt_sr_send_req_callback(UINT16 conn_id,  UINT32 trans_id,
                                       UINT8 op_code, tGATTS_DATA *p_req_data);
 extern UINT32 gatt_sr_enqueue_cmd (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 handle);
 extern BOOLEAN gatt_cancel_open(tGATT_IF gatt_if, BD_ADDR bda);
+extern void gatts_process_value_conf(tGATT_TCB *p_tcb, UINT8 op_code);
 
 /*   */
 

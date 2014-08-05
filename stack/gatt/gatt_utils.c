@@ -1231,6 +1231,13 @@ void gatt_rsp_timeout(TIMER_LIST_ENT *p_tle)
         GATT_TRACE_WARNING("gatt_rsp_timeout clcb is already deleted");
         return;
     }
+
+    if(gatt_cb.handle_of_h_r && ((tGATT_TCB *)p_tle->param)->indicate_handle == gatt_cb.handle_of_h_r)
+    {
+        GATT_TRACE_WARNING("gatt_rsp_timeout: due to srvc change. Ignore!");
+        gatts_process_value_conf(((tGATT_TCB *)p_tle->param), GATT_HANDLE_VALUE_CONF);
+        return;
+    }
     if (p_clcb->operation == GATTC_OPTYPE_DISCOVERY &&
         p_clcb->op_subtype == GATT_DISC_SRVC_ALL &&
         p_clcb->retry_count < GATT_REQ_RETRY_LIMIT)
