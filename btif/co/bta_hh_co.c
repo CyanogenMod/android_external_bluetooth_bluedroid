@@ -210,7 +210,7 @@ void bta_hh_co_destroy(int fd)
 
 int bta_hh_co_write(int fd, UINT8* rpt, UINT16 len)
 {
-    APPL_TRACE_DEBUG("bta_hh_co_data: UHID write");
+    APPL_TRACE_VERBOSE("bta_hh_co_data: UHID write");
     struct uhid_event ev;
     memset(&ev, 0, sizeof(ev));
     ev.type = UHID_INPUT;
@@ -371,7 +371,7 @@ void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len, tBTA_HH_PROTO_MO
     btif_hh_device_t *p_dev;
     UNUSED(peer_addr);
 
-    APPL_TRACE_DEBUG("%s: dev_handle = %d, subclass = 0x%02X, mode = %d, "
+    APPL_TRACE_VERBOSE("%s: dev_handle = %d, subclass = 0x%02X, mode = %d, "
          "ctry_code = %d, app_id = %d",
          __FUNCTION__, dev_handle, sub_class, mode, ctry_code, app_id);
 

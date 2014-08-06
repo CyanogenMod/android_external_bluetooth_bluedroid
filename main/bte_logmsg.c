@@ -89,6 +89,9 @@
 #if (PAN_INCLUDED==TRUE)
 #include "pan_api.h"
 #endif
+#if (HID_HOST_INCLUDED==TRUE)
+#include "hidh_api.h"
+#endif
 #include "sdp_api.h"
 
 #if (BLE_INCLUDED==TRUE)
@@ -460,6 +463,9 @@ tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
     {BTTRC_ID_STK_BTM_ACL, BTTRC_ID_STK_BTM_SEC, BTM_SetTraceLevel, "TRC_BTM", DEFAULT_CONF_TRACE_LEVEL},
 #if (DUN_INCLUDED==TRUE)
     {BTTRC_ID_STK_DUN, BTTRC_ID_STK_DUN, DUN_SetTraceLevel, "TRC_DUN", DEFAULT_CONF_TRACE_LEVEL},
+#endif
+#if (HID_HOST_INCLUDED==TRUE)
+    {BTTRC_ID_STK_HID, BTTRC_ID_STK_HID, HID_HostSetTraceLevel, "TRC_HID_HOST", DEFAULT_CONF_TRACE_LEVEL},
 #endif
 #if (GAP_INCLUDED==TRUE)
     {BTTRC_ID_STK_GAP, BTTRC_ID_STK_GAP, GAP_SetTraceLevel, "TRC_GAP", DEFAULT_CONF_TRACE_LEVEL},

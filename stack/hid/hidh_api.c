@@ -239,13 +239,10 @@ static void hidh_search_callback (UINT16 sdp_result)
 *******************************************************************************/
 void HID_HostInit (void)
 {
+    UINT8 log_level = hh_cb.trace_level;
     memset(&hh_cb, 0, sizeof(tHID_HOST_CTB));
 
-#if defined(HID_INITIAL_TRACE_LEVEL)
-    hh_cb.trace_level = HID_INITIAL_TRACE_LEVEL;
-#else
-    hh_cb.trace_level = BT_TRACE_LEVEL_NONE;
-#endif
+    hh_cb.trace_level = log_level;
 }
 
 /*******************************************************************************

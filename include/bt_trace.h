@@ -554,6 +554,7 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 #define L2CAP_TRACE_API(...)                     {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_API, ##__VA_ARGS__);}
 #define L2CAP_TRACE_EVENT(...)                   {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_EVENT, ##__VA_ARGS__);}
 #define L2CAP_TRACE_DEBUG(...)                   {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
+#define L2CAP_TRACE_VERBOSE(...)                 {if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_VERBOSE) BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 
 /* Define tracing for the SDP unit
 */
@@ -592,6 +593,7 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 #define HIDH_TRACE_API(...)                       {if (hh_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_API, ##__VA_ARGS__);}
 #define HIDH_TRACE_EVENT(...)                     {if (hh_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_EVENT, ##__VA_ARGS__);}
 #define HIDH_TRACE_DEBUG(...)                     {if (hh_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
+#define HIDH_TRACE_VERBOSE(...)                   {if (hh_cb.trace_level >= BT_TRACE_LEVEL_VERBOSE) BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 
 /* define traces for BNEP */
 
@@ -695,6 +697,7 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 #define L2CAP_TRACE_API(...)
 #define L2CAP_TRACE_EVENT(...)
 #define L2CAP_TRACE_DEBUG(...)
+#define L2CAP_TRACE_VERBOSE(...)
 
 /* Define tracing for the SDP unit
 */
@@ -724,6 +727,7 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 #define HIDH_TRACE_API(...)
 #define HIDH_TRACE_EVENT(...)
 #define HIDH_TRACE_DEBUG(...)
+#define HIDH_TRACE_VERBOSE(...)
 
 /* define traces for BNEP */
 
