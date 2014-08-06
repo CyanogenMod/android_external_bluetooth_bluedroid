@@ -1264,6 +1264,13 @@ void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, tBTA_GATT_TRANSPORT transport,
     UNUSED(p_ref_data);
     UNUSED (transport);
 
+    APPL_TRACE_ERROR("bta_hh_le_encrypt_cback");
+    if(result == BTM_ERR_KEY_MISSING) {
+        APPL_TRACE_ERROR("BTM_ERR_KEY_MISSING");
+        BTA_DmRemoveDevice(bd_addr);
+        return;
+    }
+
     if (idx != BTA_HH_IDX_INVALID)
         p_dev_cb = &bta_hh_cb.kdev[idx];
     else

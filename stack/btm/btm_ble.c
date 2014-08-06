@@ -1324,6 +1324,8 @@ void btm_ble_link_encrypted(BD_ADDR bd_addr, UINT8 encr_enable, UINT8 status)
                 btm_sec_dev_rec_cback_event(p_dev_rec, BTM_FAILED_ESTABLISH, TRUE);
             else if (status == BTM_DEVICE_TIMEOUT)
                 btm_sec_dev_rec_cback_event(p_dev_rec, BTM_DEVICE_TIMEOUT, TRUE);
+            else if (status == HCI_ERR_KEY_MISSING)
+                btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_KEY_MISSING, TRUE);
             else
                 btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING, TRUE);
         }
