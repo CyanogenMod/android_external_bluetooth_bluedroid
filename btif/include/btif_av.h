@@ -45,6 +45,7 @@ typedef enum {
     BTIF_AV_STOP_STREAM_REQ_EVT,
     BTIF_AV_SUSPEND_STREAM_REQ_EVT,
     BTIF_AV_SINK_CONFIG_REQ_EVT,
+    BTIF_AV_UPDATE_ENCODER_REQ_EVT,
 } btif_av_sm_event_t;
 
 

@@ -202,6 +202,7 @@ const char *dump_av_sm_event_name(btif_av_sm_event_t event)
         CASE_RETURN_STR(BTIF_AV_STOP_STREAM_REQ_EVT)
         CASE_RETURN_STR(BTIF_AV_SUSPEND_STREAM_REQ_EVT)
         CASE_RETURN_STR(BTIF_AV_SINK_CONFIG_REQ_EVT)
+        CASE_RETURN_STR(BTIF_AV_UPDATE_ENCODER_REQ_EVT)
 
         default: return "UNKNOWN_EVENT";
    }
@@ -631,6 +632,10 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
             break;
 
+        case BTIF_AV_UPDATE_ENCODER_REQ_EVT:
+            btif_a2dp_update_codec();
+            break;
+
         case BTA_AV_START_EVT:
         {
             BTIF_TRACE_EVENT("BTA_AV_START_EVT status %d, suspending %d, init %d",
@@ -794,6 +799,10 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
             /* we were remotely started, just ack back the local request */
             if (btif_av_cb.peer_sep == AVDT_TSEP_SNK)
                 btif_a2dp_on_started(NULL, TRUE);
+            break;
+
+        case BTIF_AV_UPDATE_ENCODER_REQ_EVT:
+            btif_a2dp_update_codec();
             break;
 
         /* fixme -- use suspend = true always to work around issue with BTA AV */
