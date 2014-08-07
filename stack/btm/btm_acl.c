@@ -294,7 +294,6 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
             p->transport = transport;
             if (transport == BT_TRANSPORT_LE)
             {
-#if ( BLE_PRIVACY_SPT == TRUE )
                 /*allow central device to use random address for now by skipping the role check */
                 if (btm_cb.ble_ctr_cb.privacy /* && p->link_role == HCI_ROLE_SLAVE */)
                 {
@@ -302,7 +301,6 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                     memcpy(p->conn_addr, btm_cb.ble_ctr_cb.addr_mgnt_cb.private_addr, BD_ADDR_LEN);
                 }
                 else
-#endif
                 {
                     p->conn_addr_type = BLE_ADDR_PUBLIC;
                     BTM_GetLocalDeviceAddr(p->conn_addr);

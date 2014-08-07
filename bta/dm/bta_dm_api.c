@@ -32,6 +32,7 @@
 #include "btm_int.h"
 #include <string.h>
 #include "utl.h"
+#include "vendor_ble.h"
 
 /*****************************************************************************
 **  Constants
@@ -1260,8 +1261,6 @@ void bta_dmexecutecallback (tBTA_DM_EXEC_CBACK* p_callback, void * p_param)
     }
 }
 
-#if BLE_INCLUDED == TRUE
-
 /*******************************************************************************
 **
 ** Function         BTA_DmAddBleKey
@@ -1807,7 +1806,7 @@ static void bta_dm_discover_send_msg(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_s
                     tBTA_TRANSPORT transport)
 {
     tBTA_DM_API_DISCOVER    *p_msg;
-    UINT16  len = p_services ? (sizeof(tBTA_DM_API_DISCOVER) + 
+    UINT16  len = p_services ? (sizeof(tBTA_DM_API_DISCOVER) +
                                 sizeof(tBT_UUID) * p_services->num_uuid) :
                                 sizeof(tBTA_DM_API_DISCOVER);
 
@@ -1984,7 +1983,6 @@ void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, BOOLEAN privacy_enable)
 void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable)
 {
 #if BLE_INCLUDED == TRUE
-#if BLE_VND_INCLUDED == TRUE && BLE_PRIVACY_SPT == TRUE
     tBTA_DM_API_LOCAL_PRIVACY *p_msg;
 
     if ((p_msg = (tBTA_DM_API_LOCAL_PRIVACY *) GKI_getbuf(sizeof(tBTA_DM_API_ENABLE_PRIVACY))) != NULL)
@@ -1996,12 +1994,10 @@ void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable)
 
         bta_sys_sendmsg(p_msg);
     }
-#endif
 #else
-    UNUSED(privacy_enable);
+    UNUSED (privacy_enable);
 #endif
 }
-#endif
 
 #if BLE_INCLUDED == TRUE
 /*******************************************************************************
@@ -2018,7 +2014,7 @@ void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable)
 ** Returns          BTA_SUCCESS if command started sucessfully; otherwise failure.
 **
 *******************************************************************************/
-tBTA_STATUS BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
+void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
                                 tBTA_BLE_MULTI_ADV_CBACK *p_cback,
                                 void *p_ref)
 {
@@ -2041,10 +2037,7 @@ tBTA_STATUS BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
         p_msg->p_ref        = p_ref;
 
         bta_sys_sendmsg(p_msg);
-
-        return BTA_SUCCESS;
     }
-    return BTA_FAILURE;
 }
 
 /*******************************************************************************
@@ -2060,29 +2053,22 @@ tBTA_STATUS BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
 ** Returns          BTA_SUCCESS if command started sucessfully; otherwise failure.
 **
 *******************************************************************************/
-tBTA_STATUS BTA_BleUpdateAdvInstParam (UINT8 inst_id, tBTA_BLE_ADV_PARAMS *p_params)
+void BTA_BleUpdateAdvInstParam (UINT8 inst_id, tBTA_BLE_ADV_PARAMS *p_params)
 {
     tBTA_DM_API_BLE_MULTI_ADV_PARAM    *p_msg;
     UINT16      len = sizeof(tBTA_BLE_ADV_PARAMS) + sizeof(tBTA_DM_API_BLE_MULTI_ADV_PARAM);
 
     APPL_TRACE_API ("BTA_BleUpdateAdvInstParam");
-    if (inst_id <= BTM_BLE_MULTI_ADV_MAX && inst_id != BTA_BLE_MULTI_ADV_ILLEGAL)
-    {
-        if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_PARAM *) GKI_getbuf(len)) != NULL)
-        {
-             memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_MULTI_ADV_PARAM));
+     if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_PARAM *) GKI_getbuf(len)) != NULL)
+     {
+          memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_MULTI_ADV_PARAM));
+          p_msg->hdr.event     = BTA_DM_API_BLE_MULTI_ADV_PARAM_UPD_EVT;
+          p_msg->inst_id        = inst_id;
+          p_msg->p_params =  (void *)(p_msg + 1);
+          memcpy(p_msg->p_params, p_params, sizeof(tBTA_BLE_ADV_PARAMS));
 
-             p_msg->hdr.event     = BTA_DM_API_BLE_MULTI_ADV_PARAM_UPD_EVT;
-             p_msg->inst_id        = inst_id;
-             p_msg->p_params =  (void *)(p_msg + 1);
-             memcpy(p_msg->p_params, p_params, sizeof(tBTA_BLE_ADV_PARAMS));
-
-             bta_sys_sendmsg(p_msg);
-
-             return BTA_SUCCESS;
-        }
+          bta_sys_sendmsg(p_msg);
     }
-    return BTA_FAILURE;
 }
 
 /*******************************************************************************
@@ -2102,7 +2088,7 @@ tBTA_STATUS BTA_BleUpdateAdvInstParam (UINT8 inst_id, tBTA_BLE_ADV_PARAMS *p_par
 ** Returns          BTA_SUCCESS if command started sucessfully; otherwise failure.
 **
 *******************************************************************************/
-tBTA_STATUS BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
+void BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
                             tBTA_BLE_AD_MASK data_mask,
                             tBTA_BLE_ADV_DATA *p_data)
 {
@@ -2111,24 +2097,17 @@ tBTA_STATUS BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
 
     APPL_TRACE_API ("BTA_BleCfgAdvInstData");
 
-    if (inst_id <= BTM_BLE_MULTI_ADV_MAX && inst_id != BTA_BLE_MULTI_ADV_ILLEGAL)
-    {
     if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_DATA *) GKI_getbuf(len)) != NULL)
     {
-            memset(p_msg, 0, len);
+          memset(p_msg, 0, len);
+          p_msg->hdr.event     = BTA_DM_API_BLE_MULTI_ADV_DATA_EVT;
+          p_msg->inst_id      = inst_id;
+          p_msg->is_scan_rsp  = is_scan_rsp;
+          p_msg->data_mask     = data_mask;
+          p_msg->p_data        = p_data;
 
-            p_msg->hdr.event     = BTA_DM_API_BLE_MULTI_ADV_DATA_EVT;
-            p_msg->inst_id      = inst_id;
-            p_msg->is_scan_rsp  = is_scan_rsp;
-            p_msg->data_mask     = data_mask;
-            p_msg->p_data        = p_data;
-
-            bta_sys_sendmsg(p_msg);
-
-            return BTA_SUCCESS;
-        }
+          bta_sys_sendmsg(p_msg);
     }
-    return BTA_FAILURE;
 }
 
 /*******************************************************************************
@@ -2142,25 +2121,19 @@ tBTA_STATUS BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
 ** Returns          BTA_SUCCESS if command started sucessfully; otherwise failure.
 **
 *******************************************************************************/
-tBTA_STATUS BTA_BleDisableAdvInstance (UINT8  inst_id)
+void BTA_BleDisableAdvInstance (UINT8  inst_id)
 {
     tBTA_DM_API_BLE_MULTI_ADV_DISABLE    *p_msg;
 
     APPL_TRACE_API ("BTA_BleDisableAdvInstance: %d", inst_id);
-
-    if (inst_id <= BTM_BLE_MULTI_ADV_MAX && inst_id != BTA_BLE_MULTI_ADV_ILLEGAL)
+    if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_DISABLE *)
+          GKI_getbuf(sizeof(tBTA_DM_API_BLE_MULTI_ADV_DISABLE))) != NULL)
     {
-        if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_DISABLE *)
-            GKI_getbuf(sizeof(tBTA_DM_API_BLE_MULTI_ADV_DISABLE))) != NULL)
-        {
-            memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_MULTI_ADV_DISABLE));
-            p_msg->hdr.event    = BTA_DM_API_BLE_MULTI_ADV_DISABLE_EVT;
-            p_msg->inst_id      = inst_id;
-            bta_sys_sendmsg(p_msg);
-            return BTA_SUCCESS;
-        }
+         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_MULTI_ADV_DISABLE));
+         p_msg->hdr.event    = BTA_DM_API_BLE_MULTI_ADV_DISABLE_EVT;
+         p_msg->inst_id      = inst_id;
+         bta_sys_sendmsg(p_msg);
     }
-    return BTA_FAILURE;
 }
 
 /*******************************************************************************
@@ -2543,4 +2516,43 @@ BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
         bta_sys_sendmsg(p_msg);
     }
 }
+
+/*******************************************************************************
+**
+** Function         BTA_VendorInit
+**
+** Description      This function initializes vendor specific
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_VendorInit (void)
+{
+    APPL_TRACE_API("BTA_VendorInit");
+}
+
+/*******************************************************************************
+**
+** Function         BTA_VendorCleanup
+**
+** Description      This function frees up Broadcom specific VS specific dynamic memory
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_VendorCleanup (void)
+{
+    tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
+
+#if (BLE_INCLUDED == TRUE && BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
+    btm_ble_adv_filter_cleanup();
+    btm_ble_vendor_cleanup();
+#endif
+
+   BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
+
+   if(cmn_ble_vsc_cb.adv_inst_max > 0)
+      btm_ble_multi_adv_cleanup();
+}
+
 #endif

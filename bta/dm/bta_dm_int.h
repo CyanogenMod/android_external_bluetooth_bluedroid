@@ -100,11 +100,9 @@ enum
     BTA_DM_API_BLE_SCAN_PARAM_EVT,
     BTA_DM_API_BLE_OBSERVE_EVT,
     BTA_DM_API_UPDATE_CONN_PARAM_EVT,
-
 #if BLE_PRIVACY_SPT == TRUE
     BTA_DM_API_LOCAL_PRIVACY_EVT,
 #endif
-
     BTA_DM_API_BLE_ADV_PARAM_EVT,
     BTA_DM_API_BLE_SET_ADV_CONFIG_EVT,
     BTA_DM_API_BLE_SET_SCAN_RSP_EVT,
@@ -564,7 +562,7 @@ typedef struct
 typedef struct
 {
     BT_HDR                      hdr;
-    void                        *p_cback;
+    tBTA_BLE_MULTI_ADV_CBACK    *p_cback;
     void                        *p_ref;
     tBTA_BLE_ADV_PARAMS         *p_params;
 }tBTA_DM_API_BLE_MULTI_ADV_ENB;
@@ -922,13 +920,12 @@ typedef struct
     tBTA_DM_SEC_CBACK           *p_sec_cback;
 #if ((defined BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     tBTA_BLE_SCAN_SETUP_CBACK   *p_setup_cback;
-#endif
     tBTA_DM_BLE_PF_CFG_CBACK     *p_scan_filt_cfg_cback;
     tBTA_DM_BLE_PF_STATUS_CBACK  *p_scan_filt_status_cback;
     tBTA_DM_BLE_PF_PARAM_CBACK   *p_scan_filt_param_cback;
-#if ((defined BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
-    tBTA_BLE_ENERGY_INFO_CBACK   *p_energy_info_cback;
+    tBTA_BLE_MULTI_ADV_CBACK     *p_multi_adv_cback;
 #endif
+    tBTA_BLE_ENERGY_INFO_CBACK   *p_energy_info_cback;
     TIMER_LIST_ENT              signal_strength_timer;
     tBTA_SIG_STRENGTH_MASK      signal_strength_mask;
     UINT16                      state;
@@ -1186,9 +1183,7 @@ extern void bta_dm_ble_set_scan_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_close_gatt_conn(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_observe (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_update_conn_params (tBTA_DM_MSG *p_data);
-#if BLE_PRIVACY_SPT == TRUE
 extern void bta_dm_ble_config_local_privacy (tBTA_DM_MSG *p_data);
-#endif
 extern void bta_dm_ble_set_adv_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_scan_rsp (tBTA_DM_MSG *p_data);
@@ -1245,9 +1240,7 @@ extern void bta_dm_search_cancel_transac_cmpl(tBTA_DM_MSG *p_data);
 extern void bta_dm_disc_rmt_name (tBTA_DM_MSG *p_data);
 extern tBTA_DM_PEER_DEVICE * bta_dm_find_peer_device(BD_ADDR peer_addr);
 
-#if BLE_PRIVACY_SPT == TRUE
 extern void bta_dm_ble_config_local_privacy (tBTA_DM_MSG *p_data);
-#endif
 
 extern void bta_dm_pm_active(BD_ADDR peer_addr);
 

@@ -26,7 +26,7 @@
 #include <string.h>
 #include "bt_target.h"
 
-#if (BLE_INCLUDED == TRUE && BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
+#if (BLE_INCLUDED == TRUE)
 #include "bt_types.h"
 #include "hcimsgs.h"
 #include "btu.h"
@@ -41,14 +41,10 @@ tBTM_BLE_VENDOR_CB  btm_ble_vendor_cb;
 
 static const BD_ADDR     na_bda= {0};
 
-
 /*******************************************************************************
 **         Resolve Address Using IRK List functions
 *******************************************************************************/
 
-#if BLE_PRIVACY_SPT == TRUE
-/* Forward declaration */
-tBTM_STATUS BTM_BleEnableIRKFeature(BOOLEAN enable);
 
 /*******************************************************************************
 **
@@ -64,6 +60,7 @@ tBTM_STATUS BTM_BleEnableIRKFeature(BOOLEAN enable);
 *******************************************************************************/
 void btm_ble_vendor_enq_irk_pending(BD_ADDR target_bda, BD_ADDR psuedo_bda, UINT8 to_add)
 {
+#if BLE_PRIVACY_SPT == TRUE
     tBTM_BLE_IRK_Q          *p_q = &btm_ble_vendor_cb.irk_pend_q;
 
     memcpy(p_q->irk_q[p_q->q_next], target_bda, BD_ADDR_LEN);
@@ -71,8 +68,8 @@ void btm_ble_vendor_enq_irk_pending(BD_ADDR target_bda, BD_ADDR psuedo_bda, UINT
     p_q->irk_q_action[p_q->q_next] = to_add;
 
     p_q->q_next ++;
-    p_q->q_next %= BTM_CS_IRK_LIST_MAX;
-
+    p_q->q_next %= btm_cb.cmn_ble_vsc_cb.max_irk_list_sz;;
+#endif
     return ;
 }
 /*******************************************************************************
@@ -89,6 +86,7 @@ void btm_ble_vendor_enq_irk_pending(BD_ADDR target_bda, BD_ADDR psuedo_bda, UINT
 *******************************************************************************/
 BOOLEAN btm_ble_vendor_find_irk_pending_entry(BD_ADDR psuedo_addr, UINT8 action)
 {
+#if BLE_PRIVACY_SPT == TRUE
     tBTM_BLE_IRK_Q          *p_q = &btm_ble_vendor_cb.irk_pend_q;
     UINT8   i;
 
@@ -99,8 +97,9 @@ BOOLEAN btm_ble_vendor_find_irk_pending_entry(BD_ADDR psuedo_addr, UINT8 action)
             return TRUE;
 
         i ++;
-        i %= BTM_CS_IRK_LIST_MAX;
+        i %= btm_cb.cmn_ble_vsc_cb.max_irk_list_sz;
     }
+#endif
     return FALSE;
 }
 /*******************************************************************************
@@ -117,6 +116,7 @@ BOOLEAN btm_ble_vendor_find_irk_pending_entry(BD_ADDR psuedo_addr, UINT8 action)
 *******************************************************************************/
 BOOLEAN btm_ble_vendor_deq_irk_pending(BD_ADDR target_bda, BD_ADDR psuedo_addr)
 {
+#if BLE_PRIVACY_SPT == TRUE
     tBTM_BLE_IRK_Q          *p_q = &btm_ble_vendor_cb.irk_pend_q;
 
     if (p_q->q_next != p_q->q_pending)
@@ -125,11 +125,11 @@ BOOLEAN btm_ble_vendor_deq_irk_pending(BD_ADDR target_bda, BD_ADDR psuedo_addr)
         memcpy(psuedo_addr, p_q->irk_q_random_pseudo[p_q->q_pending], BD_ADDR_LEN);
 
         p_q->q_pending ++;
-        p_q->q_pending %= BTM_CS_IRK_LIST_MAX;
+        p_q->q_pending %= btm_cb.cmn_ble_vsc_cb.max_irk_list_sz;
 
         return TRUE;
     }
-
+#endif
     return FALSE;
 
 }
@@ -144,16 +144,18 @@ BOOLEAN btm_ble_vendor_deq_irk_pending(BD_ADDR target_bda, BD_ADDR psuedo_addr)
 *******************************************************************************/
 tBTM_BLE_IRK_ENTRY * btm_ble_vendor_find_irk_entry(BD_ADDR target_bda)
 {
+#if BLE_PRIVACY_SPT == TRUE
     tBTM_BLE_IRK_ENTRY  *p_irk_entry = &btm_ble_vendor_cb.irk_list[0];
     UINT8   i;
 
-    for (i = 0; i < BTM_CS_IRK_LIST_MAX; i ++, p_irk_entry++)
+    for (i = 0; i < btm_cb.cmn_ble_vsc_cb.max_irk_list_sz; i ++, p_irk_entry++)
     {
         if (p_irk_entry->in_use && memcmp(p_irk_entry->bd_addr, target_bda, BD_ADDR_LEN) == 0)
         {
             return p_irk_entry ;
         }
     }
+#endif
     return NULL;
 }
 /*******************************************************************************
@@ -167,16 +169,18 @@ tBTM_BLE_IRK_ENTRY * btm_ble_vendor_find_irk_entry(BD_ADDR target_bda)
 *******************************************************************************/
 tBTM_BLE_IRK_ENTRY * btm_ble_vendor_find_irk_entry_by_psuedo_addr (BD_ADDR psuedo_bda)
 {
+#if BLE_PRIVACY_SPT == TRUE
     tBTM_BLE_IRK_ENTRY  *p_irk_entry = &btm_ble_vendor_cb.irk_list[0];
     UINT8   i;
 
-    for (i = 0; i < BTM_CS_IRK_LIST_MAX; i ++, p_irk_entry++)
+    for (i = 0; i < btm_cb.cmn_ble_vsc_cb.max_irk_list_sz; i ++, p_irk_entry++)
     {
         if (p_irk_entry->in_use && memcmp(p_irk_entry->psuedo_bda, psuedo_bda, BD_ADDR_LEN) == 0)
         {
             return p_irk_entry ;
         }
     }
+#endif
     return NULL;
 }
 /*******************************************************************************
@@ -190,10 +194,11 @@ tBTM_BLE_IRK_ENTRY * btm_ble_vendor_find_irk_entry_by_psuedo_addr (BD_ADDR psued
 *******************************************************************************/
 UINT8 btm_ble_vendor_alloc_irk_entry(BD_ADDR target_bda, BD_ADDR pseudo_bda)
 {
+#if BLE_PRIVACY_SPT == TRUE
     tBTM_BLE_IRK_ENTRY  *p_irk_entry = &btm_ble_vendor_cb.irk_list[0];
     UINT8   i;
 
-    for (i = 0; i < BTM_CS_IRK_LIST_MAX; i ++, p_irk_entry++)
+    for (i = 0; i < btm_cb.cmn_ble_vsc_cb.max_irk_list_sz; i ++, p_irk_entry++)
     {
         if (!p_irk_entry->in_use)
         {
@@ -206,6 +211,7 @@ UINT8 btm_ble_vendor_alloc_irk_entry(BD_ADDR target_bda, BD_ADDR pseudo_bda)
             return i;
         }
     }
+#endif
     return BTM_CS_IRK_LIST_INVALID;
 }
 
@@ -220,6 +226,7 @@ UINT8 btm_ble_vendor_alloc_irk_entry(BD_ADDR target_bda, BD_ADDR pseudo_bda)
 *******************************************************************************/
 void btm_ble_vendor_update_irk_list(BD_ADDR target_bda, BD_ADDR pseudo_bda, BOOLEAN add)
 {
+#if BLE_PRIVACY_SPT == TRUE
     tBTM_BLE_IRK_ENTRY   *p_irk_entry = btm_ble_vendor_find_irk_entry(target_bda);
     UINT8       i;
 
@@ -248,6 +255,7 @@ void btm_ble_vendor_update_irk_list(BD_ADDR target_bda, BD_ADDR pseudo_bda, BOOL
             BTM_TRACE_ERROR("No IRK exist in list, can not remove");
         }
     }
+#endif
     return ;
 }
 /*******************************************************************************
@@ -277,13 +285,18 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
 
     op_subcode   = *p ++;
     BTM_TRACE_DEBUG("btm_ble_vendor_irk_vsc_op_cmpl op_subcode = %d", op_subcode);
-    if (evt_len < 2 )
+    if (evt_len < 1)
     {
-        BTM_TRACE_ERROR("can not interpret IRK  VSC cmpl callback");
+        BTM_TRACE_ERROR("cannot interpret IRK VSC cmpl callback");
         return;
     }
 
-
+    if (BTM_BLE_META_IRK_ENABLE == op_subcode)
+    {
+        BTM_TRACE_DEBUG("IRK enable: %d, %d", status, op_subcode);
+        return;
+    }
+    else
     if (op_subcode == BTM_BLE_META_CLEAR_IRK_LIST)
     {
         if (status == HCI_SUCCESS)
@@ -293,7 +306,7 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
 
             BTM_TRACE_DEBUG("p_cb->irk_list_size = %d", p_cb->irk_avail_size);
 
-            for (i = 0; i < BTM_CS_IRK_LIST_MAX; i ++)
+            for (i = 0; i < btm_cb.cmn_ble_vsc_cb.max_irk_list_sz; i ++)
                 memset(&p_cb->irk_list[i], 0, sizeof(tBTM_BLE_IRK_ENTRY));
         }
     }
@@ -349,10 +362,7 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
             p += (1 + 16 + 1); /* skip index, IRK value, address type */
             STREAM_TO_BDADDR(target_bda, p);
             STREAM_TO_BDADDR(rra, p);
-
-#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
             btm_ble_refresh_rra(target_bda, rra);
-#endif
         }
     }
 
@@ -371,6 +381,7 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
 *******************************************************************************/
 tBTM_STATUS btm_ble_remove_irk_entry(tBTM_SEC_DEV_REC *p_dev_rec)
 {
+#if BLE_PRIVACY_SPT == TRUE
     UINT8           param[20], *p;
     tBTM_STATUS     st;
     tBTM_BLE_VENDOR_CB  *p_cb = &btm_ble_vendor_cb;
@@ -393,7 +404,8 @@ tBTM_STATUS btm_ble_remove_irk_entry(tBTM_SEC_DEV_REC *p_dev_rec)
     }
 
     return st;
-
+#endif
+    return BTM_MODE_UNSUPPORTED;
 }
 /*******************************************************************************
 **
@@ -408,6 +420,7 @@ tBTM_STATUS btm_ble_remove_irk_entry(tBTM_SEC_DEV_REC *p_dev_rec)
 *******************************************************************************/
 tBTM_STATUS btm_ble_vendor_clear_irk_list(void)
 {
+#if BLE_PRIVACY_SPT == TRUE
     UINT8           param[20], *p;
     tBTM_STATUS     st;
 
@@ -422,7 +435,8 @@ tBTM_STATUS btm_ble_vendor_clear_irk_list(void)
                                     btm_ble_vendor_irk_vsc_op_cmpl);
 
     return st;
-
+#endif
+    return BTM_MODE_UNSUPPORTED;
 }
 /*******************************************************************************
 **
@@ -437,6 +451,7 @@ tBTM_STATUS btm_ble_vendor_clear_irk_list(void)
 *******************************************************************************/
 tBTM_STATUS btm_ble_read_irk_entry(BD_ADDR target_bda)
 {
+#if BLE_PRIVACY_SPT == TRUE
     UINT8           param[20], *p;
     tBTM_STATUS     st = BTM_UNKNOWN_ADDR;
     tBTM_BLE_IRK_ENTRY *p_entry = btm_ble_vendor_find_irk_entry(target_bda);
@@ -456,7 +471,8 @@ tBTM_STATUS btm_ble_read_irk_entry(BD_ADDR target_bda)
                                     btm_ble_vendor_irk_vsc_op_cmpl);
 
     return st;
-
+#endif
+    return BTM_MODE_UNSUPPORTED;
 }
 
 
@@ -474,6 +490,7 @@ tBTM_STATUS btm_ble_read_irk_entry(BD_ADDR target_bda)
 *******************************************************************************/
 void btm_ble_vendor_irk_list_known_dev(BOOLEAN enable)
 {
+#if BLE_PRIVACY_SPT == TRUE
     UINT8               i;
     UINT8               count = 0;
     tBTM_SEC_DEV_REC    *p_dev_rec = &btm_cb.sec_dev_rec[0];
@@ -489,8 +506,8 @@ void btm_ble_vendor_irk_list_known_dev(BOOLEAN enable)
     }
 
     if ((count > 0 && enable) || !enable)
-        BTM_BleEnableIRKFeature(enable);
-
+        btm_ble_vendor_enable_irk_feature(enable);
+#endif
     return ;
 }
 /*******************************************************************************
@@ -506,6 +523,7 @@ void btm_ble_vendor_irk_list_known_dev(BOOLEAN enable)
 *******************************************************************************/
 BOOLEAN btm_ble_vendor_irk_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 {
+#if BLE_PRIVACY_SPT == TRUE
     UINT8           param[40], *p;
     tBTM_BLE_VENDOR_CB  *p_cb = &btm_ble_vendor_cb;
     BOOLEAN         rt = FALSE;
@@ -553,6 +571,8 @@ BOOLEAN btm_ble_vendor_irk_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
         BTM_TRACE_DEBUG("Device not a RPA enabled device");
     }
     return rt;
+#endif
+    return FALSE;
 }
 /*******************************************************************************
 **
@@ -567,6 +587,7 @@ BOOLEAN btm_ble_vendor_irk_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 *******************************************************************************/
 void btm_ble_vendor_irk_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 {
+#if BLE_PRIVACY_SPT == TRUE
     tBTM_BLE_VENDOR_CB  *p_cs_cb = &btm_ble_vendor_cb;
     tBTM_BLE_IRK_ENTRY *p_irk_entry;
 
@@ -581,7 +602,8 @@ void btm_ble_vendor_irk_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec)
     }
 
     if (p_cs_cb->irk_list_size == 0)
-        BTM_BleEnableIRKFeature(FALSE);
+        btm_ble_vendor_enable_irk_feature(FALSE);
+#endif
 }
 /*******************************************************************************
 **
@@ -596,13 +618,14 @@ void btm_ble_vendor_irk_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 *******************************************************************************/
 void btm_ble_vendor_disable_irk_list(void)
 {
-    BTM_BleEnableIRKFeature(FALSE);
-
+#if BLE_PRIVACY_SPT == TRUE
+    btm_ble_vendor_enable_irk_feature(FALSE);
+#endif
 }
 
 /*******************************************************************************
 **
-** Function         BTM_BleEnableIRKFeature
+** Function         btm_ble_vendor_enable_irk_feature
 **
 ** Description      This function is called to enable or disable the RRA
 **                  offloading feature.
@@ -612,8 +635,9 @@ void btm_ble_vendor_disable_irk_list(void)
 ** Returns          BTM_SUCCESS if successful
 **
 *******************************************************************************/
-tBTM_STATUS BTM_BleEnableIRKFeature(BOOLEAN enable)
+tBTM_STATUS btm_ble_vendor_enable_irk_feature(BOOLEAN enable)
 {
+#if BLE_PRIVACY_SPT == TRUE
     UINT8           param[20], *p;
     tBTM_STATUS     st = BTM_WRONG_MODE;
     tBTM_BLE_PF_COUNT *p_bda_filter;
@@ -629,9 +653,75 @@ tBTM_STATUS BTM_BleEnableIRKFeature(BOOLEAN enable)
                                param, btm_ble_vendor_irk_vsc_op_cmpl);
 
     return st;
+#endif
+    return BTM_MODE_UNSUPPORTED;
 }
 
 #endif
+
+/*******************************************************************************
+**
+** Function         btm_ble_vendor_init
+**
+** Description      Initialize customer specific feature information in host stack
+**
+** Parameters  Max IRK list size
+**                   Max filter supported
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_ble_vendor_init(UINT8 max_irk_list_sz)
+{
+    memset(&btm_ble_vendor_cb, 0, sizeof(tBTM_BLE_VENDOR_CB));
+
+#if BLE_PRIVACY_SPT == TRUE
+    if (max_irk_list_sz > 0)
+    {
+        btm_ble_vendor_cb.irk_list =  (tBTM_BLE_IRK_ENTRY*)GKI_getbuf (sizeof (tBTM_BLE_IRK_ENTRY)
+                                                                        * max_irk_list_sz);
+        btm_ble_vendor_cb.irk_pend_q.irk_q =  (BD_ADDR*) GKI_getbuf (sizeof (BD_ADDR) *
+                                                                     max_irk_list_sz);
+        btm_ble_vendor_cb.irk_pend_q.irk_q_random_pseudo = (BD_ADDR*)GKI_getbuf (sizeof (BD_ADDR) *
+                                                                                 max_irk_list_sz);
+        btm_ble_vendor_cb.irk_pend_q.irk_q_action = (UINT8*) GKI_getbuf (max_irk_list_sz);
+    }
+
+    btm_ble_vendor_cb.irk_avail_size = max_irk_list_sz;
+
+    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        return;
 #endif
+}
+
+/*******************************************************************************
+**
+** Function         btm_ble_vendor_cleanup
+**
+** Description      Cleanup VSC specific dynamic memory
+**
+** Parameters
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_ble_vendor_cleanup(void)
+{
+#if BLE_PRIVACY_SPT == TRUE
+    if (btm_ble_vendor_cb.irk_list)
+        GKI_freebuf(btm_ble_vendor_cb.irk_list);
+
+    if (btm_ble_vendor_cb.irk_pend_q.irk_q)
+       GKI_freebuf(btm_ble_vendor_cb.irk_pend_q.irk_q);
+
+    if (btm_ble_vendor_cb.irk_pend_q.irk_q_random_pseudo)
+        GKI_freebuf(btm_ble_vendor_cb.irk_pend_q.irk_q_random_pseudo);
+
+    if (btm_ble_vendor_cb.irk_pend_q.irk_q_action)
+        GKI_freebuf(btm_ble_vendor_cb.irk_pend_q.irk_q_action);
+#endif
+    memset(&btm_ble_vendor_cb, 0, sizeof(tBTM_BLE_VENDOR_CB));
+}
+
 
 

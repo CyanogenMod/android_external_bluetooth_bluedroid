@@ -225,9 +225,6 @@ typedef union
 typedef void (tGAP_BLE_DEV_NAME_CBACK)(BOOLEAN status, BD_ADDR addr, UINT16 length, char *p_name);
 
 typedef void (tGAP_BLE_RECONN_ADDR_CBACK)(BOOLEAN status, BD_ADDR addr, BD_ADDR reconn_bda);
-#if BLE_PRIVACY_SPT == TRUE
-typedef void (tGAP_BLE_PRIVACY_CBACK)(BOOLEAN status, BD_ADDR addr, BOOLEAN privacy_enabled);
-#endif
 
 /*****************************************************************************
 **  External Function Declarations

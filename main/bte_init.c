@@ -18,7 +18,7 @@
 
 /******************************************************************************
  *
- *  This module contains the routines that initialize the stack components. 
+ *  This module contains the routines that initialize the stack components.
  *  It must be called before the BTU task is started.
  *
  ******************************************************************************/

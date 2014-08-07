@@ -25,6 +25,7 @@
 
 #define CLNT_IF_IDX 0
 #define INST_ID_IDX 1
+#define INST_ID_IDX_MAX INST_ID_IDX + 1
 #define INVALID_ADV_INST -1
 #define STD_ADV_INSTID 0
 #define ADV_FLAGS 0x02
@@ -59,9 +60,10 @@ typedef struct
 
 typedef struct
 {
-    INT8 clntif_map[BTM_BLE_MULTI_ADV_MAX][INST_ID_IDX+1];
+     INT8 *clntif_map;
     // Includes the stored data for standard LE instance
-    btgatt_multi_adv_inst_cb inst_cb[BTM_BLE_MULTI_ADV_MAX+1];
+    btgatt_multi_adv_inst_cb *inst_cb;
+
 } btgatt_multi_adv_common_data;
 
 extern btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb();
@@ -70,7 +72,7 @@ extern void btif_gattc_destroy_multi_adv_cb();
 extern int btif_multi_adv_add_instid_map(int client_if, int inst_id,
         BOOLEAN gen_temp_instid);
 extern int btif_multi_adv_instid_for_clientif(int client_if);
-extern int btif_gattc_obtain_idx_for_datacb(int value, int arrindex);
+extern int btif_gattc_obtain_idx_for_datacb(int value, int clnt_inst_index);
 extern void btif_gattc_clear_clientif(int client_if);
 extern void btif_gattc_cleanup_inst_cb(int inst_id);
 extern void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_inst_cb);

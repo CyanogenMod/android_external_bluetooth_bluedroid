@@ -944,7 +944,6 @@ typedef union
 /* Security callback */
 typedef void (tBTA_DM_SEC_CBACK)(tBTA_DM_SEC_EVT event, tBTA_DM_SEC *p_data);
 
-#define BTA_BLE_MULTI_ADV_MAX BTM_BLE_MULTI_ADV_MAX
 #define BTA_BLE_MULTI_ADV_ILLEGAL 0
 
 /* multi adv callback event */
@@ -2373,7 +2372,7 @@ BTA_API extern void BTA_DmBleBroadcast (BOOLEAN start);
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern tBTA_STATUS BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
+BTA_API extern void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
                                 tBTA_BLE_MULTI_ADV_CBACK *p_cback,void *p_ref);
 
 /*******************************************************************************
@@ -2388,7 +2387,7 @@ BTA_API extern tBTA_STATUS BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_para
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern tBTA_STATUS BTA_BleUpdateAdvInstParam (UINT8 inst_id,
+BTA_API extern void BTA_BleUpdateAdvInstParam (UINT8 inst_id,
                                 tBTA_BLE_ADV_PARAMS *p_params);
 
 /*******************************************************************************
@@ -2403,7 +2402,7 @@ BTA_API extern tBTA_STATUS BTA_BleUpdateAdvInstParam (UINT8 inst_id,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern tBTA_STATUS BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
+BTA_API extern void BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
                                 tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_data);
 
 /*******************************************************************************
@@ -2417,7 +2416,7 @@ BTA_API extern tBTA_STATUS BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern tBTA_STATUS BTA_BleDisableAdvInstance(UINT8 inst_id);
+BTA_API extern void BTA_BleDisableAdvInstance(UINT8 inst_id);
 
 /*******************************************************************************
 **
@@ -2605,6 +2604,28 @@ BTA_API extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
 **
 *******************************************************************************/
 BTA_API extern void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK *p_cmpl_cback);
+
+/*******************************************************************************
+**
+** Function         BTA_BrcmInit
+**
+** Description      This function initializes Broadcom specific VS handler in BTA
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_VendorInit  (void);
+
+/*******************************************************************************
+**
+** Function         BTA_BrcmCleanup
+**
+** Description      This function frees up Broadcom specific VS specific dynamic memory
+**
+** Returns          void
+**
+*******************************************************************************/
+BTA_API extern void BTA_VendorCleanup (void);
 
 #endif
 

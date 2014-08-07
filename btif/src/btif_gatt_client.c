@@ -349,7 +349,7 @@ static void btif_gattc_add_remote_bdaddr (BD_ADDR p_bda, uint8_t addr_type)
         p_dev_cb->remote_dev[i].in_use = TRUE;
         BTIF_TRACE_DEBUG("%s device overwrite idx=%d", __FUNCTION__, i  );
         p_dev_cb->next_storage_idx++;
-        if(p_dev_cb->next_storage_idx >= BTIF_GATT_MAX_OBSERVED_DEV)
+        if (p_dev_cb->next_storage_idx >= BTIF_GATT_MAX_OBSERVED_DEV)
                p_dev_cb->next_storage_idx = 0;
     }
 }
@@ -377,13 +377,13 @@ static void btif_gattc_update_properties ( btif_gattc_cb_t *p_btif_cb )
     p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
                                          BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
 
-    if(p_eir_remote_name == NULL)
+    if (p_eir_remote_name == NULL)
     {
         p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
                                 BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
     }
 
-    if(p_eir_remote_name)
+    if (p_eir_remote_name)
     {
         memcpy(bdname.name, p_eir_remote_name, remote_name_len);
         bdname.name[remote_name_len]='\0';
@@ -559,7 +559,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
                                          BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
 
-            if(p_eir_remote_name == NULL)
+            if (p_eir_remote_name == NULL)
             {
                 p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
                                 BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
@@ -624,8 +624,8 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         case BTA_GATTC_MULT_ADV_ENB_EVT:
         {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
-            btif_multi_adv_add_instid_map(p_btif_cb->client_if,
-                p_btif_cb->inst_id,false);
+            if (0xFF != p_btif_cb->inst_id)
+                btif_multi_adv_add_instid_map(p_btif_cb->client_if, p_btif_cb->inst_id, false);
             HAL_CBACK(bt_gatt_callbacks, client->multi_adv_enable_cb
                     , p_btif_cb->client_if
                     , p_btif_cb->status
@@ -722,7 +722,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
             uint8_t *p_rep_data = NULL;
 
-            if(p_data->read_reports.data_len > 0)
+            if (p_data->read_reports.data_len > 0)
             {
                 p_rep_data = GKI_getbuf(p_data->read_reports.data_len);
                 memcpy(p_rep_data, p_data->read_reports.p_rep_data, p_data->read_reports.data_len);
@@ -795,19 +795,19 @@ static void bta_gattc_multi_adv_cback(tBTA_BLE_MULTI_ADV_EVT event, UINT8 inst_i
     tBTA_GATTC_EVT upevt;
     uint8_t client_if = 0;
 
-    if(NULL == p_ref)
+    if (NULL == p_ref)
     {
-        BTIF_TRACE_ERROR("%s Invalid p_ref received",__FUNCTION__);
-        return;
+        BTIF_TRACE_WARNING("%s Invalid p_ref received",__FUNCTION__);
+    }
+    else
+    {
+        client_if = *(UINT8 *) p_ref;
     }
 
-    client_if = *(UINT8 *) p_ref;
     BTIF_TRACE_DEBUG("%s -Inst ID %d, Status:%x, client_if:%d",__FUNCTION__,inst_id, call_status,
                        client_if);
-
     btif_cb.status = call_status;
     btif_cb.client_if = client_if;
-    // Store the inst_id obtained from stack layer now
     btif_cb.inst_id = inst_id;
 
     switch(event)
@@ -926,7 +926,7 @@ static void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value, UINT8 rep
     btif_scan_track_cb.read_reports.data_len = data_len;
     btif_scan_track_cb.read_reports.num_records = num_records;
 
-    if(data_len > 0)
+    if (data_len > 0)
     {
         btif_scan_track_cb.read_reports.p_rep_data = GKI_getbuf(data_len);
         memcpy(btif_scan_track_cb.read_reports.p_rep_data, p_rep_data, data_len);
@@ -936,7 +936,7 @@ static void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value, UINT8 rep
     btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_BTH_SCAN_RD_EVT,
         (char*) &btif_scan_track_cb, sizeof(btgatt_batch_track_cb_t), NULL);
 
-    if(data_len > 0)
+    if (data_len > 0)
         GKI_freebuf(btif_scan_track_cb.read_reports.p_rep_data);
 }
 
@@ -1336,7 +1336,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
         case BTIF_GATTC_SCAN_FILTER_PARAM_SETUP:
         {
             btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
-            if(1 == p_adv_filt_cb->adv_filt_param.dely_mode)
+            if (1 == p_adv_filt_cb->adv_filt_param.dely_mode)
                BTA_DmBleTrackAdvertiser(p_adv_filt_cb->client_if, bta_track_adv_event_cb);
             BTA_DmBleScanFilterSetup(p_adv_filt_cb->action, p_adv_filt_cb->filt_index,
                 &p_adv_filt_cb->adv_filt_param, NULL, bta_scan_filt_param_setup_cb,
@@ -1473,10 +1473,10 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
         {
             btif_adv_data_t *p_adv_data = (btif_adv_data_t*) p_param;
             int cbindex = CLNT_IF_IDX;
-            if(cbindex >= 0 && NULL != p_adv_data)
+            if (cbindex >= 0 && NULL != p_adv_data)
             {
                 btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-                if(!btif_gattc_copy_datacb(cbindex, p_adv_data, false))
+                if (!btif_gattc_copy_datacb(cbindex, p_adv_data, false))
                     return;
 
                 if (!p_adv_data->set_scan_rsp)
@@ -1496,21 +1496,30 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
         case BTIF_GATTC_ADV_INSTANCE_ENABLE:
         {
             btgatt_multi_adv_inst_cb *p_inst_cb = (btgatt_multi_adv_inst_cb*) p_param;
-            int arrindex = btif_multi_adv_add_instid_map(p_inst_cb->client_if,INVALID_ADV_INST,
-                                                        true);
-            int cbindex = btif_gattc_obtain_idx_for_datacb(p_inst_cb->client_if, CLNT_IF_IDX);
-            if(cbindex >= 0 && arrindex >= 0)
+
+            int cbindex = -1, arrindex = -1;
+
+            arrindex = btif_multi_adv_add_instid_map(p_inst_cb->client_if,INVALID_ADV_INST, true);
+            if (arrindex >= 0)
+                cbindex = btif_gattc_obtain_idx_for_datacb(p_inst_cb->client_if, CLNT_IF_IDX);
+
+            if (cbindex >= 0 && arrindex >= 0)
             {
                 btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
                 memcpy(&p_multi_adv_data_cb->inst_cb[cbindex].param,
                        &p_inst_cb->param, sizeof(tBTA_BLE_ADV_PARAMS));
-
+                BTIF_TRACE_DEBUG("%s, client_if value: %d", __FUNCTION__,
+                            p_multi_adv_data_cb->clntif_map[arrindex + arrindex]);
                 BTA_BleEnableAdvInstance(&(p_multi_adv_data_cb->inst_cb[cbindex].param),
                     bta_gattc_multi_adv_cback,
-                    &(p_multi_adv_data_cb->clntif_map[arrindex][CLNT_IF_IDX]));
+                    &(p_multi_adv_data_cb->clntif_map[arrindex + arrindex]));
             }
             else
+            {
+                /* let the error propagate up from BTA layer */
                 BTIF_TRACE_ERROR("%s invalid index in BTIF_GATTC_ENABLE_ADV",__FUNCTION__);
+                BTA_BleEnableAdvInstance(&p_inst_cb->param, bta_gattc_multi_adv_cback, NULL);
+            }
             break;
         }
 
@@ -1519,7 +1528,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             btgatt_multi_adv_inst_cb *p_inst_cb = (btgatt_multi_adv_inst_cb*) p_param;
             int inst_id = btif_multi_adv_instid_for_clientif(p_inst_cb->client_if);
             int cbindex = btif_gattc_obtain_idx_for_datacb(p_inst_cb->client_if, CLNT_IF_IDX);
-            if(inst_id >= 0 && cbindex >= 0 && NULL != p_inst_cb)
+            if (inst_id >= 0 && cbindex >= 0 && NULL != p_inst_cb)
             {
                 btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
                 memcpy(&p_multi_adv_data_cb->inst_cb[cbindex].param, &p_inst_cb->param,
@@ -1537,13 +1546,13 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             btif_adv_data_t *p_adv_data = (btif_adv_data_t*) p_param;
             int cbindex = btif_gattc_obtain_idx_for_datacb(p_adv_data->client_if, CLNT_IF_IDX);
             int inst_id = btif_multi_adv_instid_for_clientif(p_adv_data->client_if);
-            if(inst_id < 0 || cbindex < 0)
+            if (inst_id < 0 || cbindex < 0)
             {
                BTIF_TRACE_ERROR("%s invalid index in BTIF_GATTC_SETADV_INST_DATA", __FUNCTION__);
                return;
             }
 
-            if(!btif_gattc_copy_datacb(cbindex, p_adv_data, true))
+            if (!btif_gattc_copy_datacb(cbindex, p_adv_data, true))
                 return;
 
             btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
@@ -1557,7 +1566,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
         {
             btgatt_multi_adv_inst_cb *p_inst_cb = (btgatt_multi_adv_inst_cb*) p_param;
             int inst_id = btif_multi_adv_instid_for_clientif(p_inst_cb->client_if);
-            if(inst_id >=0)
+            if (inst_id >=0)
                 BTA_BleDisableAdvInstance((UINT8)inst_id);
             else
                 BTIF_TRACE_ERROR("%s invalid instance ID in BTIF_GATTC_DISABLE_ADV",__FUNCTION__);
@@ -1971,7 +1980,7 @@ static bt_status_t btif_gattc_scan_filter_add_remove(int client_if, int action,
     BTIF_TRACE_DEBUG("%s, %d, %d", __FUNCTION__, action, filt_type);
 
     /* If data is passed, both mask and data have to be the same length */
-    if(data_len != mask_len && NULL != p_data && NULL != p_mask)
+    if (data_len != mask_len && NULL != p_data && NULL != p_mask)
         return BT_STATUS_PARM_INVALID;
 
     btif_filt_cb.client_if = client_if;
@@ -1980,8 +1989,8 @@ static bt_status_t btif_gattc_scan_filter_add_remove(int client_if, int action,
     btif_filt_cb.filt_type = filt_type;
     btif_filt_cb.conn_id = company_id;
     btif_filt_cb.company_id_mask = company_id_mask ? company_id_mask : 0xFFFF;
-    if(bd_addr)
-      bdcpy(btif_filt_cb.bd_addr.address, bd_addr->address);
+    if (bd_addr)
+        bdcpy(btif_filt_cb.bd_addr.address, bd_addr->address);
 
     btif_filt_cb.addr_type = addr_type;
     btif_filt_cb.has_mask = (p_uuid_mask != NULL);
@@ -2022,7 +2031,7 @@ static bt_status_t btif_gattc_scan_filter_enable(int client_if, bool enable)
 
     btgatt_adv_filter_cb_t btif_filt_cb;
     btif_filt_cb.client_if = client_if;
-    if(true == enable)
+    if (true == enable)
         action = 1;
     btif_filt_cb.action = action;
     return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SCAN_FILTER_ENABLE,

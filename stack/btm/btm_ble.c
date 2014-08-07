@@ -38,9 +38,7 @@
 #include "gap_api.h"
 #include "bt_utils.h"
 
-#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
 #include "vendor_ble.h"
-#endif
 
 #if SMP_INCLUDED == TRUE
 extern BOOLEAN AES_CMAC ( BT_OCTET16 key, UINT8 *input, UINT16 length, UINT16 tlen, UINT8 *p_signature);
@@ -48,7 +46,6 @@ extern void smp_link_encrypted(BD_ADDR bda, UINT8 encr_enable);
 extern BOOLEAN smp_proc_ltk_request(BD_ADDR bda);
 #endif
 extern void gatt_notify_enc_cmpl(BD_ADDR bd_addr);
-
 /*******************************************************************************/
 /* External Function to be called by other modules                             */
 /*******************************************************************************/
@@ -1619,9 +1616,8 @@ void btm_ble_connected (UINT8 *bda, UINT16 handle, UINT8 enc_mode, UINT8 role,
     if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_RANDOM && !addr_matched)
         memcpy(p_dev_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
 
-#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
-    btm_ble_vendor_disable_irk_list();
-#endif
+    if (btm_cb.cmn_ble_vsc_cb.rpa_offloading == TRUE)
+        btm_ble_vendor_disable_irk_list();
 #endif
 
     if (role == HCI_ROLE_SLAVE)
@@ -1658,12 +1654,13 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
     if (status == 0)
     {
 #if (BLE_PRIVACY_SPT == TRUE )
-#if (BLE_VND_INCLUDED == TRUE)
-        match = btm_public_addr_to_random_pseudo (bda, &bda_type);
-#endif
-        /* Possibly receiving connection complete with a resolvable random address
-           for a device that has been paired */
-        if (!match && BTM_BLE_IS_RESOLVE_BDA(bda))
+
+        if (btm_cb.cmn_ble_vsc_cb.rpa_offloading == TRUE)
+            match = btm_public_addr_to_random_pseudo (bda, &bda_type);
+
+        /* possiblly receive connection complete with resolvable random on
+           slave role while the device has been paired */
+        if (!match && role == HCI_ROLE_SLAVE && BTM_BLE_IS_RESOLVE_BDA(bda))
         {
             btm_ble_resolve_random_addr(bda, btm_ble_resolve_random_addr_on_conn_cmpl, p_data);
         }

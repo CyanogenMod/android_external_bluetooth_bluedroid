@@ -678,6 +678,10 @@ bt_status_t btif_disable_bluetooth(void)
 
     btif_config_flush();
 
+#if (BLE_INCLUDED == TRUE)
+     BTA_VendorCleanup();
+#endif
+
     if (status != BTA_SUCCESS)
     {
         BTIF_TRACE_ERROR("disable bt failed (%d)", status);

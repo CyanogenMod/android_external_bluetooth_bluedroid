@@ -61,10 +61,7 @@
 #define BTM_BLE_PF_SRVC_DATA_PATTERN_BIT    BTM_BLE_PF_BIT_TO_MASK(BTM_BLE_PF_SRVC_DATA_PATTERN)
 typedef UINT8 tBTM_BLE_PF_SEL_MASK;
 
-
-#ifndef BTM_CS_IRK_LIST_MAX
-#define BTM_CS_IRK_LIST_MAX     0x20
-#endif
+#define BTM_BLE_MAX_FILTER_COUNTER  (BTM_BLE_MAX_ADDR_FILTER + 1) /* per device filter + one generic filter indexed by 0 */
 
 #define BTM_CS_IRK_LIST_INVALID     0xff
 
@@ -79,9 +76,9 @@ typedef struct
 
 typedef struct
 {
-    BD_ADDR         irk_q[BTM_CS_IRK_LIST_MAX];
-    BD_ADDR         irk_q_random_pseudo[BTM_CS_IRK_LIST_MAX];
-    UINT8           irk_q_action[BTM_CS_IRK_LIST_MAX];
+    BD_ADDR         *irk_q;
+    BD_ADDR         *irk_q_random_pseudo;
+    UINT8           *irk_q_action;
     UINT8           q_next;
     UINT8           q_pending;
 } tBTM_BLE_IRK_Q;
@@ -92,14 +89,13 @@ typedef struct
     BOOLEAN             enable;
 
     UINT8               op_type;
-    tBTM_BLE_PF_COUNT   addr_filter_count[BTM_BLE_MAX_FILTER_COUNTER]; /* per BDA filter indexed by tBTM_BLE_PF_COND_TYPE */
     tBLE_BD_ADDR        cur_filter_target;
 
     UINT8               irk_list_size;
     UINT8               irk_avail_size;
-    tBTM_BLE_IRK_ENTRY  irk_list[BTM_CS_IRK_LIST_MAX];
+    tBTM_BLE_IRK_ENTRY  *irk_list;
     tBTM_BLE_IRK_Q      irk_pend_q;
-
+    UINT8                max_filter_supported;
     tBTM_BLE_PF_CMPL_CBACK *p_scan_pf_cback;
 }tBTM_BLE_VENDOR_CB;
 
@@ -122,8 +118,11 @@ extern BOOLEAN btm_ble_vendor_irk_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec);
 extern void btm_ble_vendor_irk_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec);
 extern tBTM_STATUS btm_ble_enable_vendor_feature (BOOLEAN enable, UINT32 feature_bit);
 
-extern void btm_ble_vendor_init(void);
+extern void btm_ble_vendor_init(UINT8 max_irk_list_sz);
+extern void btm_ble_vendor_cleanup(void);
 extern BOOLEAN btm_ble_vendor_write_device_wl_attribute (tBLE_ADDR_TYPE addr_type, BD_ADDR bd_addr, UINT8 attribute);
+extern tBTM_STATUS btm_ble_vendor_enable_irk_feature(BOOLEAN enable);
+
 #ifdef __cplusplus
 }
 #endif

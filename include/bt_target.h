@@ -1308,18 +1308,9 @@ and USER_HW_DISABLE_API macros */
 #define BLE_PRIVACY_SPT         TRUE
 #endif
 
-#ifndef BLE_MULTI_ADV_INCLUDED
-#define BLE_MULTI_ADV_INCLUDED  TRUE
-#endif
-
 #ifndef BLE_VND_INCLUDED
-#define BLE_VND_INCLUDED        TRUE
+#define BLE_VND_INCLUDED        FALSE
 #endif
-
-#ifndef BLE_BATCH_SCAN_INCLUDED
-#define BLE_BATCH_SCAN_INCLUDED  TRUE
-#endif
-
 /******************************************************************************
 **
 ** ATT/GATT Protocol/Profile Settings

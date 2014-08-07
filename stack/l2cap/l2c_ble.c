@@ -35,15 +35,7 @@
 #define L2CA_GET_UPD_ST(x)          ((x) & UPD_ST_MASK)
 #define L2CA_SET_UPD_ST(x, y)      x = (((x) & ~UPD_ST_MASK) | (y))
 
-#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
 #include "vendor_ble.h"
-#else
-#if BLE_PRIVACY_SPT == TRUE
-extern BOOLEAN btm_ble_get_acl_remote_addr(tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR conn_addr,
-                                    tBLE_ADDR_TYPE *p_addr_type);
-#endif
-#endif
-
 /*******************************************************************************
 **
 **  Function        L2CA_CancelBleConnectReq
@@ -647,17 +639,13 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
         L2CAP_TRACE_ERROR("initate direct connection fail, topology limitation");
         return FALSE;
     }
-#if BLE_PRIVACY_SPT == TRUE
-#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
-    extern tBTM_STATUS BTM_BleEnableIRKFeature(BOOLEAN enable);
-    if (btm_ble_vendor_irk_list_load_dev(p_dev_rec))
-        BTM_BleEnableIRKFeature(TRUE);
+    if (btm_ble_vendor_irk_list_load_dev(p_dev_rec) &&
+        (btm_cb.cmn_ble_vsc_cb.rpa_offloading == TRUE ))
+    {
+        btm_ble_vendor_enable_irk_feature(TRUE);
+        btm_random_pseudo_to_public(init_addr, &init_addr_type);
+    }
 
-    btm_random_pseudo_to_public(init_addr, &init_addr_type);
-#else
-    btm_ble_get_acl_remote_addr(p_dev_rec, init_addr, &init_addr_type);
-#endif
-#endif
     if (!btsnd_hcic_ble_create_ll_conn (scan_int,/* UINT16 scan_int      */
                                         scan_win, /* UINT16 scan_win      */
                                         FALSE,                   /* UINT8 white_list     */

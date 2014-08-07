@@ -46,8 +46,34 @@ static btgatt_multi_adv_common_data *p_multi_adv_com_data_cb = NULL;
 
 btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
 {
-    if(p_multi_adv_com_data_cb == NULL)
-       p_multi_adv_com_data_cb = GKI_getbuf(sizeof(btgatt_multi_adv_common_data));
+    if(0 == BTM_BleMaxMultiAdvInstanceCount())
+    {
+        BTIF_TRACE_WARNING("%s - No instances found", __FUNCTION__);
+        return NULL;
+    }
+
+    BTIF_TRACE_DEBUG("%s, Count:%d", __FUNCTION__, BTM_BleMaxMultiAdvInstanceCount());
+    if (NULL == p_multi_adv_com_data_cb)
+    {
+        BTIF_TRACE_DEBUG("Initializing in %s", __FUNCTION__);
+        p_multi_adv_com_data_cb = GKI_getbuf(sizeof(btgatt_multi_adv_common_data));
+        if (NULL != p_multi_adv_com_data_cb)
+        {
+           memset(p_multi_adv_com_data_cb, 0, sizeof(btgatt_multi_adv_common_data));
+
+           /* Storing both client_if and inst_id details */
+           p_multi_adv_com_data_cb->clntif_map =
+                  GKI_getbuf(( BTM_BleMaxMultiAdvInstanceCount() * INST_ID_IDX_MAX)* sizeof(INT8));
+           memset(p_multi_adv_com_data_cb->clntif_map, 0 ,
+                  ( BTM_BleMaxMultiAdvInstanceCount() * INST_ID_IDX_MAX)* sizeof(INT8));
+
+           p_multi_adv_com_data_cb->inst_cb = GKI_getbuf(( BTM_BleMaxMultiAdvInstanceCount() + 1 )
+                                              * sizeof(btgatt_multi_adv_inst_cb));
+           memset(p_multi_adv_com_data_cb->inst_cb, 0 ,
+                 ( BTM_BleMaxMultiAdvInstanceCount() + 1) * sizeof(btgatt_multi_adv_inst_cb));
+        }
+    }
+
     return p_multi_adv_com_data_cb;
 }
 
@@ -56,17 +82,15 @@ void btif_gattc_init_multi_adv_cb(void)
     int i;
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
 
-    if(NULL == p_multi_adv_data_cb)
+    if (NULL == p_multi_adv_data_cb)
         return;
 
-    if(multi_adv_enable_count == 0)
+    if (0 == multi_adv_enable_count)
     {
-        memset(p_multi_adv_data_cb,0,sizeof(btgatt_multi_adv_common_data));
-
-        for (i=0; i < BTM_BLE_MULTI_ADV_MAX; i++)
+        for (i=0; i <  BTM_BleMaxMultiAdvInstanceCount(); i++)
         {
-           p_multi_adv_data_cb->clntif_map[i][CLNT_IF_IDX] = INVALID_ADV_INST;
-           p_multi_adv_data_cb->clntif_map[i][INST_ID_IDX] = INVALID_ADV_INST;
+           p_multi_adv_data_cb->clntif_map[i + i] = INVALID_ADV_INST;
+           p_multi_adv_data_cb->clntif_map[i + (i + 1)] = INVALID_ADV_INST;
         }
     }
     multi_adv_enable_count++;
@@ -74,119 +98,125 @@ void btif_gattc_init_multi_adv_cb(void)
 
 void btif_gattc_destroy_multi_adv_cb()
 {
-    if(multi_adv_enable_count > 0)
+    if (multi_adv_enable_count > 0)
         multi_adv_enable_count --;
-    if(multi_adv_enable_count == 0)
+
+    if (0 == multi_adv_enable_count)
     {
-        GKI_freebuf(p_multi_adv_com_data_cb);
-        p_multi_adv_com_data_cb = NULL;
+        if (NULL != p_multi_adv_com_data_cb)
+        {
+            GKI_freebuf (p_multi_adv_com_data_cb->clntif_map);
+            GKI_freebuf (p_multi_adv_com_data_cb->inst_cb);
+            GKI_freebuf(p_multi_adv_com_data_cb);
+            p_multi_adv_com_data_cb = NULL;
+        }
     }
 }
 
 int btif_multi_adv_add_instid_map(int client_if, int inst_id, BOOLEAN gen_temp_instid)
 {
-    int i=0;
+    int i=1;
 
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
 
-    if(NULL == p_multi_adv_data_cb)
+    if (NULL == p_multi_adv_data_cb)
         return INVALID_ADV_INST;
 
-    for(i=0; i < BTM_BLE_MULTI_ADV_MAX; i++)
+    for (i=1; i <  BTM_BleMaxMultiAdvInstanceCount(); i++)
     {
-       if(client_if == p_multi_adv_data_cb->clntif_map[i][CLNT_IF_IDX])
+       if (client_if == p_multi_adv_data_cb->clntif_map[i + i])
        {
-          if(!gen_temp_instid)
+          if (!gen_temp_instid)
           {
              // Write the final inst_id value obtained from stack layer
-             p_multi_adv_data_cb->clntif_map[i][INST_ID_IDX] = inst_id;
+             p_multi_adv_data_cb->clntif_map[i + (i + 1)] = inst_id;
              BTIF_TRACE_DEBUG("%s -Index: %d, Found client_if: %d", __FUNCTION__,
-                i, p_multi_adv_data_cb->clntif_map[i][CLNT_IF_IDX]);
+                i, p_multi_adv_data_cb->clntif_map[i + i]);
              break;
           }
           else
           {
               //Store the passed in inst_id value
-             if(inst_id != INVALID_ADV_INST)
-                 p_multi_adv_data_cb->clntif_map[i][INST_ID_IDX] = inst_id;
+             if (inst_id != INVALID_ADV_INST)
+                 p_multi_adv_data_cb->clntif_map[i + (i + 1)] = inst_id;
              else
-                 p_multi_adv_data_cb->clntif_map[i][INST_ID_IDX] = (i + 1);
+                 p_multi_adv_data_cb->clntif_map[i + (i + 1)] = (i + 1);
+
              BTIF_TRACE_DEBUG("%s - Index:%d,Found client_if: %d", __FUNCTION__,
-                i, p_multi_adv_data_cb->clntif_map[i][CLNT_IF_IDX]);
+                i, p_multi_adv_data_cb->clntif_map[i + i]);
              break;
           }
        }
     }
 
-    if(i < BTM_BLE_MULTI_ADV_MAX)
+    if (i <  BTM_BleMaxMultiAdvInstanceCount())
         return i;
 
     // If client ID if is not found, then write both values
-    for(i=0; i < BTM_BLE_MULTI_ADV_MAX; i++)
+    for (i=1; i <  BTM_BleMaxMultiAdvInstanceCount(); i++)
     {
-        if(INVALID_ADV_INST == p_multi_adv_data_cb->clntif_map[i][CLNT_IF_IDX])
+        if (INVALID_ADV_INST == p_multi_adv_data_cb->clntif_map[i + i])
         {
-             p_multi_adv_data_cb->clntif_map[i][CLNT_IF_IDX] = client_if;
-             if(inst_id != INVALID_ADV_INST)
-                p_multi_adv_data_cb->clntif_map[i][INST_ID_IDX] = inst_id;
-             else
-                p_multi_adv_data_cb->clntif_map[i][INST_ID_IDX] = (i + 1);
-             BTIF_TRACE_DEBUG("%s -Not found - Index:%d, client_if: %d, Inst ID: %d",
+            p_multi_adv_data_cb->clntif_map[i + i] = client_if;
+            if (inst_id != INVALID_ADV_INST)
+               p_multi_adv_data_cb->clntif_map[i + (i + 1)] = inst_id;
+            else
+                p_multi_adv_data_cb->clntif_map[i + (i + 1)] = (i + 1);
+            BTIF_TRACE_DEBUG("%s -Not found - Index:%d, client_if: %d, Inst ID: %d",
                             __FUNCTION__,i,
-                            p_multi_adv_data_cb->clntif_map[i][CLNT_IF_IDX],
-                            p_multi_adv_data_cb->clntif_map[i][INST_ID_IDX]);
-             break;
+                            p_multi_adv_data_cb->clntif_map[i + i],
+                            p_multi_adv_data_cb->clntif_map[i + (i + 1)]);
+            break;
         }
     }
 
-    if(i < BTM_BLE_MULTI_ADV_MAX)
+    if (i <  BTM_BleMaxMultiAdvInstanceCount())
         return i;
     return INVALID_ADV_INST;
 }
 
 int btif_multi_adv_instid_for_clientif(int client_if)
 {
-    int i=0, ret = INVALID_ADV_INST;
+    int i=1, ret = INVALID_ADV_INST;
 
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
 
-    if(NULL == p_multi_adv_data_cb)
+    if (NULL == p_multi_adv_data_cb)
         return INVALID_ADV_INST;
 
     // Retrieve the existing inst_id for the client_if value
-    for(i=0; i < BTM_BLE_MULTI_ADV_MAX; i++)
+    for (i=1; i <  BTM_BleMaxMultiAdvInstanceCount(); i++)
     {
-       if(client_if == p_multi_adv_data_cb->clntif_map[i][CLNT_IF_IDX])
-          ret = p_multi_adv_data_cb->clntif_map[i][INST_ID_IDX];
+       if (client_if == p_multi_adv_data_cb->clntif_map[i + i])
+       {
+           BTIF_TRACE_DEBUG("%s - Client if found", __FUNCTION__, client_if);
+           ret = p_multi_adv_data_cb->clntif_map[i + (i + 1)];
+       }
     }
 
-    if(ret != INVALID_ADV_INST)
-        return ret;
-
-    return INVALID_ADV_INST;
+    return ret;
 }
 
-
-int btif_gattc_obtain_idx_for_datacb(int value, int arrindex)
+int btif_gattc_obtain_idx_for_datacb(int value, int clnt_inst_index)
 {
-    int i=0;
+    int i=1;
 
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
 
-    if(NULL == p_multi_adv_data_cb)
+    if (NULL == p_multi_adv_data_cb)
         return INVALID_ADV_INST;
 
     // Retrieve the array index for the inst_id value
-    for(i=0; i < BTM_BLE_MULTI_ADV_MAX; i++)
+    for (i=1; i <  BTM_BleMaxMultiAdvInstanceCount(); i++)
     {
-       if(value == p_multi_adv_data_cb->clntif_map[i][arrindex])
+       if (value == p_multi_adv_data_cb->clntif_map[i + (i + clnt_inst_index)])
            break;
     }
 
-    if(i < BTM_BLE_MULTI_ADV_MAX)
+    if (i <  BTM_BleMaxMultiAdvInstanceCount())
     {
-        BTIF_TRACE_DEBUG("%s, %d",__FUNCTION__,i+1);
-        return (i + 1);
+        BTIF_TRACE_DEBUG("%s, %d",__FUNCTION__,i);
+        return i;
     }
 
     BTIF_TRACE_DEBUG("%s Invalid instance",__FUNCTION__);
@@ -211,21 +241,21 @@ void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
     p_multi_adv_inst->appearance = appearance;
     p_multi_adv_inst->manufacturer_len = manufacturer_len;
 
-    if(manufacturer_len > 0)
+    if (manufacturer_len > 0)
     {
         p_multi_adv_inst->p_manufacturer_data = GKI_getbuf(manufacturer_len);
         memcpy(p_multi_adv_inst->p_manufacturer_data, manufacturer_data, manufacturer_len);
     }
 
     p_multi_adv_inst->service_data_len = service_data_len;
-    if(service_data_len > 0)
+    if (service_data_len > 0)
     {
         p_multi_adv_inst->p_service_data = GKI_getbuf(service_data_len);
         memcpy(p_multi_adv_inst->p_service_data, service_data, service_data_len);
     }
 
     p_multi_adv_inst->service_uuid_len = service_uuid_len;
-    if(service_uuid_len > 0)
+    if (service_uuid_len > 0)
     {
         p_multi_adv_inst->p_service_uuid = GKI_getbuf(service_uuid_len);
         memcpy(p_multi_adv_inst->p_service_uuid, service_uuid, service_uuid_len);
@@ -236,7 +266,7 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
 {
     int i=0;
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-    if(NULL == p_multi_adv_data_cb || cbindex < 0)
+    if (NULL == p_multi_adv_data_cb || cbindex < 0)
        return false;
 
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
@@ -265,7 +295,7 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
                                         p_adv_data->max_interval;
     }
     else
-    if(true == bInstData)
+    if (true == bInstData)
     {
         if (p_multi_adv_data_cb->inst_cb[cbindex].param.adv_int_min > 0 &&
             p_multi_adv_data_cb->inst_cb[cbindex].param.adv_int_max > 0 &&
@@ -295,7 +325,7 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
     {
          p_multi_adv_data_cb->inst_cb[cbindex].data.p_manu =
                             GKI_getbuf(sizeof(tBTA_BLE_MANU));
-         if(p_multi_adv_data_cb->inst_cb[cbindex].data.p_manu != NULL)
+         if (p_multi_adv_data_cb->inst_cb[cbindex].data.p_manu != NULL)
          {
             p_multi_adv_data_cb->inst_cb[cbindex].data.p_manu->p_val =
                             GKI_getbuf(p_adv_data->manufacturer_len);
@@ -423,16 +453,16 @@ void btif_gattc_clear_clientif(int client_if)
 
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
 
-    if(NULL == p_multi_adv_data_cb)
+    if (NULL == p_multi_adv_data_cb)
         return;
 
     // Clear both the inst_id and client_if values
-    for(i=0; i < BTM_BLE_MULTI_ADV_MAX; i++)
+    for (i=0; i <  BTM_BleMaxMultiAdvInstanceCount(); i++)
     {
-       if(client_if == p_multi_adv_data_cb->clntif_map[i][CLNT_IF_IDX])
+       if (client_if == p_multi_adv_data_cb->clntif_map[i + i])
        {
-          p_multi_adv_data_cb->clntif_map[i][INST_ID_IDX] = INVALID_ADV_INST;
-          p_multi_adv_data_cb->clntif_map[i][CLNT_IF_IDX] = INVALID_ADV_INST;
+          p_multi_adv_data_cb->clntif_map[i + (i + 1)] = INVALID_ADV_INST;
+          p_multi_adv_data_cb->clntif_map[i + i] = INVALID_ADV_INST;
           BTIF_TRACE_DEBUG("Cleaning up index %d for clnt_if :%d,", i, client_if);
           break;
        }
@@ -443,23 +473,23 @@ void btif_gattc_cleanup_inst_cb(int inst_id)
 {
     int cbindex = 0;
     // Check for invalid instance id
-    if (inst_id < 0 || inst_id > BTM_BLE_MULTI_ADV_MAX)
+    if (inst_id < 0 || inst_id >= BTM_BleMaxMultiAdvInstanceCount())
         return;
 
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
 
-    if(NULL == p_multi_adv_data_cb)
+    if (NULL == p_multi_adv_data_cb)
         return;
 
-    if(inst_id > 0)
+    if (inst_id > 0)
     {
         cbindex = btif_gattc_obtain_idx_for_datacb(inst_id, INST_ID_IDX);
         if (cbindex < 0)
             return;
     }
     else
-    if(STD_ADV_INSTID == inst_id)
-      cbindex = STD_ADV_INSTID;
+    if (STD_ADV_INSTID == inst_id)
+       cbindex = STD_ADV_INSTID;
 
     BTIF_TRACE_DEBUG("Cleaning up multi_inst_cb for inst_id %d, cbindex %d", inst_id, cbindex);
     btif_gattc_cleanup_multi_inst_cb(&p_multi_adv_data_cb->inst_cb[cbindex]);
@@ -533,7 +563,7 @@ void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb)
         GKI_freebuf(p_multi_inst_cb->data.p_sol_service_32b);
     }
 
-    if(p_multi_inst_cb->data.p_sol_service_128b != NULL)
+    if (p_multi_inst_cb->data.p_sol_service_128b != NULL)
         GKI_freebuf(p_multi_inst_cb->data.p_sol_service_128b);
 }
 

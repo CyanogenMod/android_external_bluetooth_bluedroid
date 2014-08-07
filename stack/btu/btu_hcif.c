@@ -1125,9 +1125,9 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
 
         case HCI_BLE_RAND:
         case HCI_BLE_ENCRYPT:
-
             btm_ble_rand_enc_complete (p, opcode, (tBTM_RAND_ENC_CB *)p_cplt_cback);
             break;
+
         case HCI_BLE_READ_BUFFER_SIZE:
             btm_read_ble_buf_size_complete(p, evt_len);
             break;

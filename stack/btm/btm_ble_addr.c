@@ -34,9 +34,7 @@
 #include "btm_ble_int.h"
 #include "smp_api.h"
 
-#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
 #include "vendor_ble.h"
-#endif
 
 /*******************************************************************************
 **
@@ -348,7 +346,7 @@ void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_
                 /* atch found or went through the list */
                 break;
             }
-	        p_mgnt_cb->index ++;
+            p_mgnt_cb->index ++;
         }
     }
     else
@@ -382,8 +380,6 @@ tBLE_ADDR_TYPE btm_ble_map_bda_to_conn_bda(BD_ADDR bd_addr)
         return BLE_ADDR_PUBLIC;
 }
 
-#if BLE_PRIVACY_SPT == TRUE
-#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         btm_find_dev_by_public_static_addr
@@ -395,7 +391,7 @@ tBTM_SEC_DEV_REC* btm_find_dev_by_public_static_addr(BD_ADDR bd_addr)
 {
     UINT8               i;
     tBTM_SEC_DEV_REC    *p_dev_rec = &btm_cb.sec_dev_rec[0];
-
+#if BLE_PRIVACY_SPT == TRUE
     for (i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i ++, p_dev_rec ++)
     {
         if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_RANDOM &&
@@ -409,6 +405,7 @@ tBTM_SEC_DEV_REC* btm_find_dev_by_public_static_addr(BD_ADDR bd_addr)
             }
         }
     }
+#endif
     return NULL;
 }
 
@@ -422,6 +419,7 @@ tBTM_SEC_DEV_REC* btm_find_dev_by_public_static_addr(BD_ADDR bd_addr)
 *******************************************************************************/
 BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type)
 {
+#if BLE_PRIVACY_SPT == TRUE
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev_by_public_static_addr(bd_addr);
 
     BTM_TRACE_EVENT ("btm_public_addr_to_random_pseudo");
@@ -443,7 +441,7 @@ BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type)
 
         return TRUE;
     }
-
+#endif
     return FALSE;
 }
 
@@ -457,6 +455,7 @@ BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type)
 *******************************************************************************/
 BOOLEAN btm_random_pseudo_to_public(BD_ADDR random_pseudo, UINT8 *p_static_addr_type)
 {
+#if BLE_PRIVACY_SPT == TRUE
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev (random_pseudo);
 
     if (p_dev_rec != NULL)
@@ -471,7 +470,7 @@ BOOLEAN btm_random_pseudo_to_public(BD_ADDR random_pseudo, UINT8 *p_static_addr_
             return TRUE;
         }
     }
-
+#endif
     return FALSE;
 }
 
@@ -485,6 +484,7 @@ BOOLEAN btm_random_pseudo_to_public(BD_ADDR random_pseudo, UINT8 *p_static_addr_
 *******************************************************************************/
 void btm_ble_refresh_rra(BD_ADDR static_bda, BD_ADDR rra)
 {
+#if BLE_PRIVACY_SPT == TRUE
     tBTM_SEC_DEV_REC    *p_sec_rec = btm_find_dev_by_public_static_addr(static_bda);
     tACL_CONN           *p_acl = btm_bda_to_acl (p_sec_rec->bd_addr, BT_TRANSPORT_LE);
     UINT8               rra_dummy = FALSE;
@@ -520,10 +520,8 @@ void btm_ble_refresh_rra(BD_ADDR static_bda, BD_ADDR rra)
     {
         BTM_TRACE_ERROR("No matching known device in record");
     }
-
+#endif
 }
-#endif /* CS support */
-#endif  /* privacy support */
 #endif
 
 

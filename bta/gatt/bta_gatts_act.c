@@ -230,7 +230,7 @@ void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
             p_cb->rcb[first_unuse].p_cback = p_msg->api_reg.p_cback;
             memcpy(&p_cb->rcb[first_unuse].app_uuid, &p_msg->api_reg.app_uuid, sizeof(tBT_UUID));
             cb_data.reg_oper.server_if      =
-            p_cb->rcb[first_unuse].gatt_if  = 
+            p_cb->rcb[first_unuse].gatt_if  =
             GATT_Register(&p_msg->api_reg.app_uuid, &bta_gatts_cback);
             if ( !p_cb->rcb[first_unuse].gatt_if)
             {

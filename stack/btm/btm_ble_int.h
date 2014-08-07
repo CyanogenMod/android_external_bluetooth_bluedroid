@@ -292,9 +292,7 @@ typedef struct
     tBTM_LE_RANDOM_CB   addr_mgnt_cb;
 
     BOOLEAN          enabled;
-#if BLE_PRIVACY_SPT == TRUE
-        BOOLEAN          privacy;               /* privacy enabled or disabled */
-#endif
+    BOOLEAN          privacy;               /* local privacy enabled or disabled */
     tBTM_BLE_WL_OP  wl_op_q[BTM_BLE_MAX_BG_CONN_DEV_NUM];
 
 #ifdef BTM_BLE_PC_ADV_TEST_MODE
@@ -359,6 +357,7 @@ extern BOOLEAN btm_ble_get_enc_key_type(BD_ADDR bd_addr, UINT8 *p_key_types);
 
 extern void btm_ble_test_command_complete(UINT8 *p);
 extern void btm_ble_rand_enc_complete (UINT8 *p, UINT16 op_code, tBTM_RAND_ENC_CB *p_enc_cplt_cback);
+
 extern void btm_sec_save_le_key(BD_ADDR bd_addr, tBTM_LE_KEY_TYPE key_type, tBTM_LE_KEY_VALUE *p_keys, BOOLEAN pass_to_application);
 extern void btm_ble_update_sec_key_size(BD_ADDR bd_addr, UINT8 enc_key_size);
 extern UINT8 btm_ble_read_sec_key_size(BD_ADDR bd_addr);
@@ -395,21 +394,22 @@ extern void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p);
 
 extern void btm_ble_multi_adv_configure_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst);
 extern void btm_ble_multi_adv_init(void);
-extern void btm_ble_batchscan_init(void);
+extern void* btm_ble_multi_adv_get_ref(UINT8 inst_id);
+extern void btm_ble_multi_adv_cleanup(void);
 extern void btm_ble_multi_adv_reenable(UINT8 inst_id);
 extern void btm_ble_multi_adv_enb_privacy(BOOLEAN enable);
 extern char btm_ble_map_adv_tx_power(int tx_power_index);
+extern void btm_ble_batchscan_init(void);
 extern void btm_ble_adv_filter_init(void);
+extern void btm_ble_adv_filter_cleanup(void);
 extern BOOLEAN btm_ble_topology_check(tBTM_BLE_STATE_MASK request);
 extern BOOLEAN btm_ble_clear_topology_mask(tBTM_BLE_STATE_MASK request_state);
 extern BOOLEAN btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state);
 
-#if (defined BLE_VND_INCLUDED && BLE_VND_INCLUDED == TRUE)
 /* BLE address mapping with CS feature */
 extern BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type);
 extern BOOLEAN btm_random_pseudo_to_public(BD_ADDR random_pseudo, UINT8 *p_static_addr_type);
 extern void btm_ble_refresh_rra(BD_ADDR pseudo_bda, BD_ADDR rra);
-#endif
 
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE
 BT_API extern void btm_ble_set_no_disc_if_pair_fail (BOOLEAN disble_disc);
