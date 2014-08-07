@@ -84,7 +84,6 @@ BOOLEAN hci_logging_enabled = FALSE;    /* by default, turn hci log off */
 BOOLEAN hci_logging_config = FALSE;    /* configured from bluetooth framework */
 char hci_logfile[256] = HCI_LOGGING_FILENAME;
 
-
 /*******************************************************************************
 **  Static variables
 *******************************************************************************/
@@ -92,6 +91,8 @@ static bt_hc_interface_t *bt_hc_if=NULL;
 static const bt_hc_callbacks_t hc_callbacks;
 static BOOLEAN lpm_enabled = FALSE;
 static bt_preload_retry_cb_t preload_retry_cb;
+// Lock to serialize cleanup requests from upper layer.
+static pthread_mutex_t cleanup_lock;
 
 /*******************************************************************************
 **  Static functions
@@ -171,6 +172,9 @@ void bte_main_boot_entry(void)
     /* Initialize trace feature */
     BTTRC_TraceInit(MAX_TRACE_RAM_SIZE, &BTE_TraceLogBuf[0], BTTRC_METHOD_RAM);
 #endif
+
+    pthread_mutex_init(&cleanup_lock, NULL);
+
 }
 
 /******************************************************************************
@@ -184,6 +188,8 @@ void bte_main_boot_entry(void)
 ******************************************************************************/
 void bte_main_shutdown()
 {
+    pthread_mutex_destroy(&cleanup_lock);
+
     GKI_shutdown();
 }
 
@@ -325,12 +331,17 @@ static void bte_hci_disable(void)
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
-    if (bt_hc_if)
-    {
-        if (hci_logging_enabled == TRUE ||  hci_logging_config == TRUE)
-            bt_hc_if->logging(BT_HC_LOGGING_OFF, hci_logfile);
-        bt_hc_if->cleanup();
-    }
+    if (!bt_hc_if)
+        return;
+
+    // Cleanup is not thread safe and must be protected.
+    pthread_mutex_lock(&cleanup_lock);
+
+    if (hci_logging_enabled == TRUE ||  hci_logging_config == TRUE)
+        bt_hc_if->logging(BT_HC_LOGGING_OFF, hci_logfile);
+    bt_hc_if->cleanup();
+
+    pthread_mutex_unlock(&cleanup_lock);
 }
 
 /*******************************************************************************

@@ -74,6 +74,8 @@ void init_vnd_if(unsigned char *local_bdaddr);
 bt_hc_callbacks_t *bt_hc_cbacks = NULL;
 tHCI_IF *p_hci_if;
 volatile bool fwcfg_acked;
+// Cleanup state indication.
+volatile bool has_cleaned_up = false;
 
 /******************************************************************************
 **  Local type definitions
@@ -325,6 +327,7 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
 
     hc_cb.epilog_timer_created = false;
     fwcfg_acked = false;
+    has_cleaned_up = false;
 
     pthread_mutex_init(&hc_cb.worker_thread_lock, NULL);
 
@@ -446,9 +449,15 @@ static int tx_hc_cmd(TRANSAC transac, char *p_buf, int len) {
   return BT_HC_STATUS_SUCCESS;
 }
 
-/** Closes the interface */
-static void cleanup( void )
+// Closes the interface.
+// This routine is not thread safe.
+static void cleanup(void)
 {
+    if (has_cleaned_up) {
+        ALOGW("%s Already cleaned up for this session\n", __func__);
+        return;
+    }
+
     BTHCDBG("cleanup");
 
     if (hc_cb.worker_thread)
@@ -484,6 +493,7 @@ static void cleanup( void )
 
     fwcfg_acked = false;
     bt_hc_cbacks = NULL;
+    has_cleaned_up = true;
 }
 
 static const bt_hc_interface_t bluetoothHCLibInterface = {
