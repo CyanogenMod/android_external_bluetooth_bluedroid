@@ -1390,7 +1390,7 @@ and USER_HW_DISABLE_API macros */
 #endif
 
 #ifndef GATT_MAX_APPS
-#define GATT_MAX_APPS            10 /* note: 2 apps used internally GATT and GAP */
+#define GATT_MAX_APPS            32 /* note: 2 apps used internally GATT and GAP */
 #endif
 
 #ifndef GATT_MAX_CL_PROFILES
