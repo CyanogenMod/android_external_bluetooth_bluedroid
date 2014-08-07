@@ -324,8 +324,6 @@ typedef UINT8   tBTM_BLE_AD_TYPE;
 typedef UINT8 tBTM_BLE_ADV_TX_POWER;
 
 /* adv tx power in dBm */
-#define BTM_BLE_ADV_TX_POWER {-21, -15, -7, 1, 9}
-
 typedef struct
 {
     UINT8 adv_inst_max;         /* max adv instance supported in controller */

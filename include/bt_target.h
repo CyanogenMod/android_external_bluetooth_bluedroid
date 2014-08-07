@@ -1311,6 +1311,16 @@ and USER_HW_DISABLE_API macros */
 #ifndef BLE_VND_INCLUDED
 #define BLE_VND_INCLUDED        FALSE
 #endif
+
+#ifndef BTM_BLE_ADV_TX_POWER
+#define BTM_BLE_ADV_TX_POWER {-21, -15, -7, 1, 9}
+#endif
+
+
+#ifndef BLE_BATCH_SCAN_INCLUDED
+#define BLE_BATCH_SCAN_INCLUDED  TRUE
+#endif
+
 /******************************************************************************
 **
 ** ATT/GATT Protocol/Profile Settings
