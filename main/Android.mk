@@ -55,7 +55,8 @@ LOCAL_SRC_FILES += \
         ../btif/src/btif_gatt_qual.c \
         ../btif/src/btif_gap.c \
         ../btif/src/btif_smp.c \
-        ../btif/src/btif_sdp.c
+        ../btif/src/btif_sdp.c\
+        ../btif/src/btif_rfcomm.c \
 
 # callouts
 LOCAL_SRC_FILES += \

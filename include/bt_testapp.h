@@ -181,13 +181,45 @@ typedef struct
     void (*Gap_SetConnectableMode) (UINT16 mode, UINT16 duration, UINT16 interval);
 }btgap_interface_t;
 
+/** Bluetooth RFC tool commands */
+typedef enum {
+    RFC_TEST_CLIENT =1,
+    RFC_TEST_FRAME_ERROR,
+    RFC_TEST_ROLE_SWITCH,
+    RFC_TEST_SERVER,
+    RFC_TEST_DISCON,
+    RFC_TEST_WRITE_DATA
+}rfc_test_cmd_t;
+
+
 typedef struct {
-    size_t      size;
-    bt_status_t (*Init)(tL2CAP_APPL_INFO* callbacks);
-    bt_status_t (*RegisterPsm)(UINT16 psm);
-    bt_status_t (*Deregister)(UINT16 psm);
-    bt_status_t (*Connect)(bt_bdaddr_t *bd_addr);
-    void  (*Cleanup)(void);
+    bt_bdaddr_t bdadd;
+    uint8_t     scn; //Server Channel Number
+}bt_rfc_conn_t;
+
+typedef struct {
+    bt_bdaddr_t bdadd;
+    uint8_t     role; //0x01 for master
+}bt_role_sw;
+
+typedef union {
+    bt_rfc_conn_t  conn;
+    uint8_t        server;
+    bt_role_sw     role_switch;
+}tRfcomm_test;
+
+typedef struct {
+    rfc_test_cmd_t param;
+    tRfcomm_test   data;
+}tRFC;
+
+typedef struct {
+    size_t          size;
+    bt_status_t (*init)( tL2CAP_APPL_INFO* callbacks );
+    void  (*rdut_rfcomm)( BOOLEAN server );
+    void  (*rdut_rfcomm_test_interface)( tRFC *input);
+    bt_status_t (*connect)( bt_bdaddr_t *bd_addr );
+    void  (*cleanup)( void );
 } btrfcomm_interface_t;
 
 #endif
