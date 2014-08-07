@@ -241,6 +241,13 @@ static uint8_t rssi_request_client_if;
 **  Static functions
 ********************************************************************************/
 
+static bt_status_t btif_gattc_multi_adv_disable(int client_if);
+static void btif_multi_adv_stop_cb(void *data)
+{
+    int client_if = (int)data;
+    btif_gattc_multi_adv_disable(client_if); // Does context switch
+}
+
 static void btapp_gattc_req_data(UINT16 event, char *p_dest, char *p_src)
 {
     tBTA_GATTC *p_dest_data = (tBTA_GATTC*) p_dest;
@@ -630,6 +637,8 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
                     , p_btif_cb->client_if
                     , p_btif_cb->status
                 );
+            btif_multi_adv_timer_ctrl(p_btif_cb->client_if,
+                    (p_btif_cb->status==0 ? btif_multi_adv_stop_cb : NULL));
             break;
         }
 
@@ -640,6 +649,8 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
                 , p_btif_cb->client_if
                 , p_btif_cb->status
             );
+            btif_multi_adv_timer_ctrl(p_btif_cb->client_if,
+                    (p_btif_cb->status==0 ? btif_multi_adv_stop_cb : NULL));
             break;
         }
 
@@ -1076,6 +1087,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
 
         case BTIF_GATTC_UNREGISTER_APP:
+            btif_gattc_clear_clientif(p_cb->client_if);
             btif_gattc_destroy_multi_adv_cb();
             BTA_GATTC_AppDeregister(p_cb->client_if);
             break;
@@ -2060,7 +2072,7 @@ static int btif_gattc_get_device_type( const bt_bdaddr_t *bd_addr )
 }
 
 static bt_status_t btif_gattc_multi_adv_enable(int client_if, int min_interval, int max_interval,
-                                            int adv_type, int chnl_map, int tx_power)
+                                            int adv_type, int chnl_map, int tx_power, int timeout_s)
 {
     CHECK_BTGATT_INIT();
     btgatt_multi_adv_inst_cb adv_cb;
@@ -2072,12 +2084,13 @@ static bt_status_t btif_gattc_multi_adv_enable(int client_if, int min_interval, 
     adv_cb.param.channel_map = chnl_map;
     adv_cb.param.adv_filter_policy = 0;
     adv_cb.param.tx_power = tx_power;
+    adv_cb.timeout_s = timeout_s;
     return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_ADV_INSTANCE_ENABLE,
                              (char*) &adv_cb, sizeof(btgatt_multi_adv_inst_cb), NULL);
 }
 
 static bt_status_t btif_gattc_multi_adv_update(int client_if, int min_interval, int max_interval,
-                                            int adv_type, int chnl_map,int tx_power)
+                                            int adv_type, int chnl_map,int tx_power, int timeout_s)
 {
     CHECK_BTGATT_INIT();
     btgatt_multi_adv_inst_cb adv_cb;
@@ -2089,17 +2102,16 @@ static bt_status_t btif_gattc_multi_adv_update(int client_if, int min_interval, 
     adv_cb.param.channel_map = chnl_map;
     adv_cb.param.adv_filter_policy = 0;
     adv_cb.param.tx_power = tx_power;
+    adv_cb.timeout_s = timeout_s;
     return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_ADV_INSTANCE_UPDATE,
                          (char*) &adv_cb, sizeof(btgatt_multi_adv_inst_cb), NULL);
 }
 
 static bt_status_t btif_gattc_multi_adv_setdata(int client_if, bool set_scan_rsp,
-                                                   bool include_name, bool incl_txpower,
-                                                   int appearance, uint16_t manufacturer_len,
-                                                   char* manufacturer_data,
-                                                   uint16_t service_data_len,
-                                                   char* service_data, uint16_t service_uuid_len,
-                                                   char* service_uuid)
+                bool include_name, bool incl_txpower, int appearance,
+                int manufacturer_len, char* manufacturer_data,
+                int service_data_len, char* service_data,
+                int service_uuid_len, char* service_uuid)
 {
     CHECK_BTGATT_INIT();
 

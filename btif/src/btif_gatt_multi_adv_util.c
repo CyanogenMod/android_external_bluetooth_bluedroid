@@ -59,18 +59,25 @@ btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
         p_multi_adv_com_data_cb = GKI_getbuf(sizeof(btgatt_multi_adv_common_data));
         if (NULL != p_multi_adv_com_data_cb)
         {
-           memset(p_multi_adv_com_data_cb, 0, sizeof(btgatt_multi_adv_common_data));
+            memset(p_multi_adv_com_data_cb, 0, sizeof(btgatt_multi_adv_common_data));
 
-           /* Storing both client_if and inst_id details */
-           p_multi_adv_com_data_cb->clntif_map =
+            /* Storing both client_if and inst_id details */
+            p_multi_adv_com_data_cb->clntif_map =
                   GKI_getbuf(( BTM_BleMaxMultiAdvInstanceCount() * INST_ID_IDX_MAX)* sizeof(INT8));
-           memset(p_multi_adv_com_data_cb->clntif_map, 0 ,
+            memset(p_multi_adv_com_data_cb->clntif_map, 0 ,
                   ( BTM_BleMaxMultiAdvInstanceCount() * INST_ID_IDX_MAX)* sizeof(INT8));
 
-           p_multi_adv_com_data_cb->inst_cb = GKI_getbuf(( BTM_BleMaxMultiAdvInstanceCount() + 1 )
+            p_multi_adv_com_data_cb->inst_cb = GKI_getbuf(( BTM_BleMaxMultiAdvInstanceCount() + 1 )
                                               * sizeof(btgatt_multi_adv_inst_cb));
-           memset(p_multi_adv_com_data_cb->inst_cb, 0 ,
+            memset(p_multi_adv_com_data_cb->inst_cb, 0 ,
                  ( BTM_BleMaxMultiAdvInstanceCount() + 1) * sizeof(btgatt_multi_adv_inst_cb));
+
+            for (int i=0; i <  BTM_BleMaxMultiAdvInstanceCount(); i += 2)
+            for (int i=0; i < BTM_BLE_MULTI_ADV_MAX; i++)
+            {
+                p_multi_adv_com_data_cb->clntif_map[i] = INVALID_ADV_INST;
+                p_multi_adv_com_data_cb->clntif_map[i+1] = INVALID_ADV_INST;
+            }
         }
     }
 
@@ -79,29 +86,17 @@ btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
 
 void btif_gattc_init_multi_adv_cb(void)
 {
-    int i;
-    btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-
-    if (NULL == p_multi_adv_data_cb)
-        return;
-
-    if (0 == multi_adv_enable_count)
-    {
-        for (i=0; i <  BTM_BleMaxMultiAdvInstanceCount(); i++)
-        {
-           p_multi_adv_data_cb->clntif_map[i + i] = INVALID_ADV_INST;
-           p_multi_adv_data_cb->clntif_map[i + (i + 1)] = INVALID_ADV_INST;
-        }
-    }
-    multi_adv_enable_count++;
+    // TODO: Instead of using a fragile reference counter here, one could
+    //       simply track the client_if instances that are in the map.
+    ++multi_adv_enable_count;
 }
 
-void btif_gattc_destroy_multi_adv_cb()
+void btif_gattc_destroy_multi_adv_cb(int client_if)
 {
     if (multi_adv_enable_count > 0)
         multi_adv_enable_count --;
 
-    if (0 == multi_adv_enable_count)
+    if(multi_adv_enable_count == 0 && p_multi_adv_com_data_cb != 0)
     {
         if (NULL != p_multi_adv_com_data_cb)
         {
@@ -118,7 +113,6 @@ int btif_multi_adv_add_instid_map(int client_if, int inst_id, BOOLEAN gen_temp_i
     int i=1;
 
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-
     if (NULL == p_multi_adv_data_cb)
         return INVALID_ADV_INST;
 
@@ -226,8 +220,8 @@ int btif_gattc_obtain_idx_for_datacb(int value, int clnt_inst_index)
 
 void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
                 bool include_name, bool include_txpower, int min_interval, int max_interval,
-                int appearance, uint16_t manufacturer_len, char* manufacturer_data,
-                uint16_t service_data_len, char* service_data, uint16_t service_uuid_len,
+                int appearance, int manufacturer_len, char* manufacturer_data,
+                int service_data_len, char* service_data, int service_uuid_len,
                 char* service_uuid, btif_adv_data_t *p_multi_adv_inst)
 {
     memset(p_multi_adv_inst, 0 , sizeof(btif_adv_data_t));
@@ -276,7 +270,9 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
     if (!p_adv_data->set_scan_rsp)
     {
          p_multi_adv_data_cb->inst_cb[cbindex].mask = BTM_BLE_AD_BIT_FLAGS;
-         p_multi_adv_data_cb->inst_cb[cbindex].data.flag = ADV_FLAGS;
+         p_multi_adv_data_cb->inst_cb[cbindex].data.flag = ADV_FLAGS_GENERAL;
+         if (p_multi_adv_data_cb->inst_cb[cbindex].timeout_s)
+             p_multi_adv_data_cb->inst_cb[cbindex].data.flag = ADV_FLAGS_LIMITED;
     }
 
     if (p_adv_data->include_name)
@@ -449,23 +445,21 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
 
 void btif_gattc_clear_clientif(int client_if)
 {
-    int i=0;
-
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-
     if (NULL == p_multi_adv_data_cb)
         return;
 
     // Clear both the inst_id and client_if values
-    for (i=0; i <  BTM_BleMaxMultiAdvInstanceCount(); i++)
+    for (i=0; i <  BTM_BleMaxMultiAdvInstanceCount(); i+=2)
     {
-       if (client_if == p_multi_adv_data_cb->clntif_map[i + i])
-       {
-          p_multi_adv_data_cb->clntif_map[i + (i + 1)] = INVALID_ADV_INST;
-          p_multi_adv_data_cb->clntif_map[i + i] = INVALID_ADV_INST;
-          BTIF_TRACE_DEBUG("Cleaning up index %d for clnt_if :%d,", i, client_if);
-          break;
-       }
+        if (client_if == p_multi_adv_data_cb->clntif_map[i])
+        {
+            btif_gattc_cleanup_inst_cb(p_multi_adv_data_cb->clntif_map[i+1]);
+            p_multi_adv_data_cb->clntif_map[i] = INVALID_ADV_INST;
+            p_multi_adv_data_cb->clntif_map[i+1] = INVALID_ADV_INST;
+            BTIF_TRACE_DEBUG("Cleaning up index %d for clnt_if :%d,", i, client_if);
+            break;
+        }
     }
 }
 
@@ -477,7 +471,6 @@ void btif_gattc_cleanup_inst_cb(int inst_id)
         return;
 
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-
     if (NULL == p_multi_adv_data_cb)
         return;
 
@@ -486,17 +479,25 @@ void btif_gattc_cleanup_inst_cb(int inst_id)
         cbindex = btif_gattc_obtain_idx_for_datacb(inst_id, INST_ID_IDX);
         if (cbindex < 0)
             return;
+    } else {
+        if (STD_ADV_INSTID == inst_id)
+          cbindex = STD_ADV_INSTID;
     }
-    else
-    if (STD_ADV_INSTID == inst_id)
-       cbindex = STD_ADV_INSTID;
 
-    BTIF_TRACE_DEBUG("Cleaning up multi_inst_cb for inst_id %d, cbindex %d", inst_id, cbindex);
-    btif_gattc_cleanup_multi_inst_cb(&p_multi_adv_data_cb->inst_cb[cbindex]);
+    if (inst_id != INVALID_ADV_INST)
+    {
+        BTIF_TRACE_DEBUG("Cleaning up multi_inst_cb for inst_id %d, cbindex %d", inst_id, cbindex);
+        btif_gattc_cleanup_multi_inst_cb(&p_multi_adv_data_cb->inst_cb[cbindex]);
+        p_multi_adv_data_cb->inst_cb[cbindex].inst_id = INVALID_ADV_INST;
+    }
 }
 
 void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb)
 {
+    // Discoverability timer cleanup
+    alarm_free(p_multi_inst_cb->limited_timer);
+    p_multi_inst_cb->limited_timer = NULL;
+
     // Manufacturer data cleanup
     if (p_multi_inst_cb->data.p_manu != NULL)
     {
@@ -565,6 +566,42 @@ void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb)
 
     if (p_multi_inst_cb->data.p_sol_service_128b != NULL)
         GKI_freebuf(p_multi_inst_cb->data.p_sol_service_128b);
+}
+
+void btif_multi_adv_timer_ctrl(int client_if, alarm_callback_t cb)
+{
+    int inst_id = btif_multi_adv_instid_for_clientif(client_if);
+    if (inst_id == INVALID_ADV_INST)
+        return;
+
+    int cbindex = btif_gattc_obtain_idx_for_datacb(inst_id, INST_ID_IDX);
+    if (cbindex == INVALID_ADV_INST)
+        return;
+
+    btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
+    if (p_multi_adv_data_cb == NULL)
+        return;
+
+    if (cb == NULL)
+    {
+        alarm_free(p_multi_adv_data_cb->inst_cb[cbindex].limited_timer);
+        p_multi_adv_data_cb->inst_cb[cbindex].limited_timer = NULL;
+    } else {
+        if (p_multi_adv_data_cb->inst_cb[cbindex].timeout_s != 0)
+        {
+            if (p_multi_adv_data_cb->inst_cb[cbindex].limited_timer == NULL)
+                p_multi_adv_data_cb->inst_cb[cbindex].limited_timer = alarm_new();
+            else
+                alarm_cancel(p_multi_adv_data_cb->inst_cb[cbindex].limited_timer);
+
+            if (p_multi_adv_data_cb->inst_cb[cbindex].limited_timer)
+            {
+                alarm_set(p_multi_adv_data_cb->inst_cb[cbindex].limited_timer,
+                          p_multi_adv_data_cb->inst_cb[cbindex].timeout_s * 1000,
+                          cb, (void*)inst_id);
+            }
+        }
+    }
 }
 
 #endif

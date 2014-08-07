@@ -21,6 +21,7 @@
 #define BTIF_GATT_MULTI_ADV_UTIL_H
 
 #include <hardware/bluetooth.h>
+#include "alarm.h"
 #include "bta_api.h"
 
 #define CLNT_IF_IDX 0
@@ -28,7 +29,10 @@
 #define INST_ID_IDX_MAX INST_ID_IDX + 1
 #define INVALID_ADV_INST -1
 #define STD_ADV_INSTID 0
-#define ADV_FLAGS 0x02
+
+/* Default ADV flags for general and limited discoverability */
+#define ADV_FLAGS_LIMITED 0x01
+#define ADV_FLAGS_GENERAL 0x02
 
 typedef struct
 {
@@ -56,6 +60,8 @@ typedef struct
     tBTA_BLE_AD_MASK mask;
     tBTA_BLE_ADV_DATA data;
     tBTA_BLE_ADV_PARAMS param;
+    alarm_t* limited_timer;
+    int timeout_s;
 }btgatt_multi_adv_inst_cb;
 
 typedef struct
@@ -80,10 +86,10 @@ extern BOOLEAN btif_gattc_copy_datacb(int arrindex, btif_adv_data_t *p_adv_data,
                                             BOOLEAN bInstData);
 extern void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
                 bool include_name, bool include_txpower, int min_interval, int max_interval,
-                int appearance, uint16_t manufacturer_len, char* manufacturer_data,
-                uint16_t service_data_len, char* service_data, uint16_t service_uuid_len,
+                int appearance, int manufacturer_len, char* manufacturer_data,
+                int service_data_len, char* service_data, int service_uuid_len,
                 char* service_uuid, btif_adv_data_t *p_multi_adv_inst);
-
+void btif_multi_adv_timer_ctrl(int client_if, alarm_callback_t cb);
 #endif
 
 
