@@ -450,7 +450,7 @@ void btif_gattc_clear_clientif(int client_if)
         return;
 
     // Clear both the inst_id and client_if values
-    for (i=0; i <  BTM_BleMaxMultiAdvInstanceCount(); i+=2)
+    for (int i=0; i <  BTM_BleMaxMultiAdvInstanceCount(); i+=2)
     {
         if (client_if == p_multi_adv_data_cb->clntif_map[i])
         {
