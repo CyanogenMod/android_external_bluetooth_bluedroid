@@ -1822,14 +1822,15 @@ static void bta_dm_discover_send_msg(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_s
 
         if (p_services != NULL)
         {
+#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
             p_msg->services = p_services->srvc_mask;
             p_msg->num_uuid = p_services->num_uuid;
-
             if (p_services->num_uuid != 0)
             {
                 p_msg->p_uuid = (tBT_UUID *)(p_msg + 1);
                 memcpy(p_msg->p_uuid, p_services->p_uuid, sizeof(tBT_UUID) * p_services->num_uuid);
             }
+#endif
         }
 
         bta_sys_sendmsg(p_msg);

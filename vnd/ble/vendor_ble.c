@@ -657,7 +657,6 @@ tBTM_STATUS btm_ble_vendor_enable_irk_feature(BOOLEAN enable)
     return BTM_MODE_UNSUPPORTED;
 }
 
-#endif
 
 /*******************************************************************************
 **
@@ -723,5 +722,5 @@ void btm_ble_vendor_cleanup(void)
     memset(&btm_ble_vendor_cb, 0, sizeof(tBTM_BLE_VENDOR_CB));
 }
 
-
+#endif
 
