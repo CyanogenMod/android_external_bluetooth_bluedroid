@@ -2148,7 +2148,11 @@ static BOOLEAN btm_sec_is_upgrade_possible(tBTM_SEC_DEV_REC  *p_dev_rec, BOOLEAN
         ** Is a link key upgrade even possible?
         */
         if ((p_dev_rec->security_required & mtm_check)                          /* needs MITM */
-            && (p_dev_rec->link_key_type == BTM_LKEY_TYPE_UNAUTH_COMB) /* has unauthenticated link key */
+            && ( (p_dev_rec->link_key_type == BTM_LKEY_TYPE_UNAUTH_COMB)
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+                || (p_dev_rec->link_key_type == HCI_LKEY_TYPE_UNAUTH_COMB_P256)
+#endif
+            ) /* has unauthenticated link key */
             && (p_dev_rec->rmt_io_caps < BTM_IO_CAP_MAX)                           /* a valid peer IO cap */
             && (btm_sec_io_map[p_dev_rec->rmt_io_caps][btm_cb.devcb.loc_io_caps])) /* authenticated link key is possible */
         {
