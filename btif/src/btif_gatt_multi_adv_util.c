@@ -72,8 +72,7 @@ btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
             memset(p_multi_adv_com_data_cb->inst_cb, 0 ,
                  ( BTM_BleMaxMultiAdvInstanceCount() + 1) * sizeof(btgatt_multi_adv_inst_cb));
 
-            for (int i=0; i <  BTM_BleMaxMultiAdvInstanceCount(); i += 2)
-            for (int i=0; i < BTM_BLE_MULTI_ADV_MAX; i++)
+            for (int i=0; i < BTM_BleMaxMultiAdvInstanceCount()*2; i += 2)
             {
                 p_multi_adv_com_data_cb->clntif_map[i] = INVALID_ADV_INST;
                 p_multi_adv_com_data_cb->clntif_map[i+1] = INVALID_ADV_INST;
@@ -450,14 +449,14 @@ void btif_gattc_clear_clientif(int client_if)
         return;
 
     // Clear both the inst_id and client_if values
-    for (int i=0; i <  BTM_BleMaxMultiAdvInstanceCount(); i+=2)
+    for (int i=0; i < BTM_BleMaxMultiAdvInstanceCount()*2; i+=2)
     {
         if (client_if == p_multi_adv_data_cb->clntif_map[i])
         {
             btif_gattc_cleanup_inst_cb(p_multi_adv_data_cb->clntif_map[i+1]);
             p_multi_adv_data_cb->clntif_map[i] = INVALID_ADV_INST;
             p_multi_adv_data_cb->clntif_map[i+1] = INVALID_ADV_INST;
-            BTIF_TRACE_DEBUG("Cleaning up index %d for clnt_if :%d,", i, client_if);
+            BTIF_TRACE_DEBUG("Cleaning up index %d for clnt_if :%d,", i/2, client_if);
             break;
         }
     }
