@@ -1874,7 +1874,7 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
     tBTIF_MEDIA_UPDATE_AUDIO * pUpdateAudio = (tBTIF_MEDIA_UPDATE_AUDIO *) p_msg;
     SBC_ENC_PARAMS *pstrEncParams = &btif_media_cb.encoder;
     UINT16 s16SamplingFreq;
-    SINT16 s16BitPool;
+    SINT16 s16BitPool = 0;
     SINT16 s16BitRate;
     SINT16 s16FrameLen;
     UINT8 protect = 0;
@@ -1904,6 +1904,16 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
 
         do
         {
+            if (pstrEncParams->s16NumOfBlocks == 0 || pstrEncParams->s16NumOfSubBands == 0
+                || pstrEncParams->s16NumOfChannels == 0)
+            {
+                APPL_TRACE_ERROR("btif_media_task_enc_update() - Avoiding division by zero...");
+                APPL_TRACE_ERROR("btif_media_task_enc_update() - block=%d, subBands=%d, channels=%d",
+                    pstrEncParams->s16NumOfBlocks, pstrEncParams->s16NumOfSubBands,
+                    pstrEncParams->s16NumOfChannels);
+                break;
+            }
+
             if ((pstrEncParams->s16ChannelMode == SBC_JOINT_STEREO) ||
                 (pstrEncParams->s16ChannelMode == SBC_STEREO) )
             {
