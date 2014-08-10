@@ -341,7 +341,7 @@ tBTM_STATUS btm_ble_multi_adv_write_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst, BD_ADD
         /* start a periodical timer to refresh random addr */
         btu_stop_timer(&p_inst->raddr_timer_ent);
         p_inst->raddr_timer_ent.param = (TIMER_PARAM_TYPE) p_inst;
-        btu_start_timer (&p_inst->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
+        btu_start_timer_oneshot(&p_inst->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
                          BTM_BLE_PRIVATE_ADDR_INT);
 
         btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR, p_inst->inst_id, 0);
