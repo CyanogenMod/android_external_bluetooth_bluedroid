@@ -206,7 +206,11 @@ static const UINT8 rc_black_addr_prefix[][3] = {
 
 static const UINT8 rc_white_addr_prefix[][3] = {
     {0x94, 0xCE, 0x2C}, // Sony SBH50
-    {0x30, 0x17, 0xC8} // Sony wm600
+    {0x30, 0x17, 0xC8}, // Sony wm600
+    {0x00, 0x15, 0x83}, // BlueSoleil dongle
+    {0x00, 0x80, 0x98}, // PTS dongle
+    {0x48, 0xC1, 0xAC}, // Plantronics Backbeat Go
+    {0x00, 0x1B, 0xDC}  // PTS dongle 2
 };
 
 static const char* rc_white_name[] = {
