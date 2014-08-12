@@ -300,14 +300,14 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             break;
 
         case BTIF_AV_CONNECT_REQ_EVT:
-             /* For outgoing connect stack and app are in sync.
-              */
+            /* For outgoing connect stack and app are in sync.
+             */
             memcpy(&btif_av_cb.peer_bda, ((btif_av_connect_req_t*)p_data)->target_bda,
                                                                      sizeof(bt_bdaddr_t));
-			BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
+            BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
                     TRUE, BTA_SEC_NONE, ((btif_av_connect_req_t*)p_data)->uuid);
-             btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
-             break;
+            btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
+            break;
 
         case BTA_AV_PENDING_EVT:
         case BTA_AV_RC_OPEN_EVT:
@@ -328,7 +328,7 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
                 BTIF_TRACE_DEBUG("Processing another RC Event ");
                 return FALSE;
             }
-            idle_rc_event = event;
+
             memcpy(&idle_rc_data, ((tBTA_AV*)p_data), sizeof(tBTA_AV));
             if (event == BTA_AV_RC_OPEN_EVT )
             {
@@ -343,12 +343,12 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             if (event == BTA_AV_PENDING_EVT)
                 btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
 
-            if (btif_av_cb.peer_sep == AVDT_TSEP_SRC && bt_av_sink_callbacks != NULL) {
-                HAL_CBACK(bt_av_sink_callbacks, connection_priority_cb,
-                    &(btif_av_cb.peer_bda));
-            } else if (btif_av_cb.peer_sep == AVDT_TSEP_SNK && bt_av_src_callbacks != NULL) {
+            if (bt_av_src_callbacks != NULL)
+            {
+                BTIF_TRACE_DEBUG("Callling connection priority callback");
+                idle_rc_event = event;
                 HAL_CBACK(bt_av_src_callbacks, connection_priority_cb,
-                    &(btif_av_cb.peer_bda));
+                         &(btif_av_cb.peer_bda));
             }
             break;
 
@@ -396,7 +396,16 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
     {
         case BTIF_SM_ENTER_EVT:
             /* inform the application that we are entering connecting state */
-            btif_report_connection_state(BTAV_CONNECTION_STATE_CONNECTING, &(btif_av_cb.peer_bda));
+            if (bt_av_sink_callbacks != NULL)
+            {
+                HAL_CBACK(bt_av_sink_callbacks, connection_state_cb,
+                         BTAV_CONNECTION_STATE_CONNECTING, &(btif_av_cb.peer_bda));
+            }
+            else if (bt_av_src_callbacks != NULL)
+            {
+                HAL_CBACK(bt_av_src_callbacks, connection_state_cb,
+                         BTAV_CONNECTION_STATE_CONNECTING, &(btif_av_cb.peer_bda));
+            }
             break;
 
         case BTIF_SM_EXIT_EVT:
