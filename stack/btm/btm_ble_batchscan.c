@@ -371,6 +371,29 @@ void btm_ble_batchscan_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params)
              }
              BTM_TRACE_DEBUG("BTM_BLE_BATCH_SCAN_ENB_DISAB_CUST_FEAT status = %d, state: %d,evt=%d",
                                 status, ble_batchscan_cb.cur_state, cb_evt);
+            /* Clear the queues here */
+            if(BTM_SUCCESS == status && BTM_BLE_SCAN_DISABLE_CALLED == cur_state)
+            {
+                for (index = 0; index < BTM_BLE_BATCH_REP_MAIN_Q_SIZE; index++)
+                {
+                    ble_batchscan_cb.main_rep_q.rep_mode[index] = 0;
+                    if (NULL != ble_batchscan_cb.main_rep_q.p_data[index])
+                        GKI_freebuf(ble_batchscan_cb.main_rep_q.p_data[index]);
+                    ble_batchscan_cb.main_rep_q.p_data[index] = NULL;
+                    ble_batchscan_cb.main_rep_q.ref_value[index] = 0;
+                    ble_batchscan_cb.main_rep_q.num_records[index] = 0;
+                }
+
+                for (index = 0; index < BTM_BLE_BATCH_SCAN_MAX; index++)
+                {
+                    ble_batchscan_cb.op_q.sub_code[index] = 0;
+                    ble_batchscan_cb.op_q.ref_value[index] = 0;
+                    ble_batchscan_cb.op_q.cur_state[index] = 0;
+                }
+                ble_batchscan_cb.op_q.pending_idx = 0;
+                ble_batchscan_cb.op_q.next_idx = 0;
+            }
+
              if (cb_evt != 0 && NULL != ble_batchscan_cb.p_setup_cback)
                 ble_batchscan_cb.p_setup_cback(cb_evt, ref_value, status);
              break;
@@ -803,12 +826,15 @@ tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
         && (BTM_BLE_SCAN_ENABLED_STATE == ble_batchscan_cb.cur_state ||
             BTM_BLE_SCAN_ENABLE_CALLED == ble_batchscan_cb.cur_state))
     {
-        status = btm_ble_read_batchscan_reports(scan_mode, ref_value);
-        if (BTM_CMD_STARTED == status)
+        status = btm_ble_batchscan_enq_rep_q(scan_mode, ref_value);
+        if (BTM_SUCCESS == status)
         {
+            status = btm_ble_read_batchscan_reports(scan_mode, ref_value);
             if (BTM_CMD_STARTED != status)
-                btm_ble_batchscan_deq_rep_data(scan_mode, &ref_value,
-                                               &num_records, &p_data, &data_len);
+            {
+                    btm_ble_batchscan_deq_rep_data(scan_mode, &ref_value,
+                                                   &num_records, &p_data, &data_len);
+            }
         }
     }
     else
