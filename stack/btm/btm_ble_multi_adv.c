@@ -27,6 +27,7 @@
 #include "bt_utils.h"
 #include "hcidefs.h"
 #include "btm_ble_api.h"
+#include "l2c_int.h"
 
 /* length of each multi adv sub command */
 #define BTM_BLE_MULTI_ADV_ENB_LEN                       3
@@ -34,7 +35,6 @@
 #define BTM_BLE_MULTI_ADV_WRITE_DATA_LEN                (BTM_BLE_AD_DATA_LEN + 3)
 #define BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN           8
 
-tBTM_BLE_MULTI_ADV_CB  btm_multi_adv_cb;
 tBTM_BLE_MULTI_ADV_INST_IDX_Q btm_multi_adv_idx_q;
 
 #define BTM_BLE_MULTI_ADV_CB_EVT_MASK   0xF0
@@ -734,6 +734,8 @@ void btm_ble_multi_adv_vse_cback(UINT8 len, UINT8 *p)
 {
     UINT8   sub_event;
     UINT8   adv_inst, reason, conn_handle, idx;
+    tL2C_LCB  *p_lcb;
+    tBTM_BLE_MULTI_ADV_INST *p_inst;
 
     /* Check if this is a BLE RSSI vendor specific event */
     STREAM_TO_UINT8(sub_event, p);
@@ -745,6 +747,9 @@ void btm_ble_multi_adv_vse_cback(UINT8 len, UINT8 *p)
         STREAM_TO_UINT8(adv_inst, p);
         STREAM_TO_UINT8(reason, p);
         STREAM_TO_UINT16(conn_handle, p);
+        p_lcb = l2cu_find_lcb_by_handle(conn_handle);
+        p_inst = &btm_multi_adv_cb.p_adv_inst[adv_inst - 1];
+        memcpy(btm_cb.ble_ctr_cb.addr_mgnt_cb.multi_adv_bda, p_inst->rpa, BD_ADDR_LEN);
 
         if ((idx = btm_handle_to_acl_index(conn_handle)) != MAX_L2CAP_LINKS)
         {
@@ -761,6 +766,9 @@ void btm_ble_multi_adv_vse_cback(UINT8 len, UINT8 *p)
         {
             BTM_TRACE_EVENT("btm_ble_multi_adv_reenable called");
             btm_ble_multi_adv_reenable(adv_inst);
+            if(reason == HCI_SUCCESS) {
+                btm_acl_created(p_lcb->remote_bd_addr, NULL, p_lcb->remote_bd_name, conn_handle, p_lcb->link_role, BT_TRANSPORT_LE);
+            }
         }
         /* re-enable connectibility */
         else if (adv_inst == BTM_BLE_MULTI_ADV_DEFAULT_STD)

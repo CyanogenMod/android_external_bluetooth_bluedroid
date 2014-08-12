@@ -169,6 +169,7 @@ typedef struct
     tBLE_ADDR_TYPE              own_addr_type;         /* local device LE address type */
     BD_ADDR                     private_addr;
     BD_ADDR                     random_bda;
+    BD_ADDR                     multi_adv_bda;
     BOOLEAN                     busy;
     UINT16                       index;
     tBTM_BLE_RESOLVE_CBACK      *p_resolve_cback;

@@ -249,7 +249,15 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                 if (btm_cb.ble_ctr_cb.privacy)
                 {
                     p->conn_addr_type = btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type;
-                    memcpy(p->conn_addr, btm_cb.ble_ctr_cb.addr_mgnt_cb.private_addr, BD_ADDR_LEN);
+                    //If BLE peripheral and Multi Adv supported
+                    if(p->link_role == HCI_ROLE_SLAVE && (btm_cb.cmn_ble_vsc_cb.adv_inst_max > 0))
+                    {
+                        memcpy(p->conn_addr, btm_cb.ble_ctr_cb.addr_mgnt_cb.multi_adv_bda, BD_ADDR_LEN);
+                    }
+                    else
+                    {
+                        memcpy(p->conn_addr, btm_cb.ble_ctr_cb.addr_mgnt_cb.private_addr, BD_ADDR_LEN);
+                    }
                 }
                 else
 #endif
