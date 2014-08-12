@@ -242,9 +242,9 @@ static uint8_t rssi_request_client_if;
 ********************************************************************************/
 
 static bt_status_t btif_gattc_multi_adv_disable(int client_if);
-static void btif_multi_adv_stop_cb(void *data)
+static void btif_multi_adv_stop_cb(void *p_tle)
 {
-    int client_if = (int)data;
+    int client_if = ((TIMER_LIST_ENT*)p_tle)->data;
     btif_gattc_multi_adv_disable(client_if); // Does context switch
 }
 
@@ -657,7 +657,6 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         case BTA_GATTC_MULT_ADV_DATA_EVT:
          {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
-            btif_gattc_cleanup_inst_cb(p_btif_cb->inst_id);
             HAL_CBACK(bt_gatt_callbacks, client->multi_adv_data_cb
                 , p_btif_cb->client_if
                 , p_btif_cb->status
@@ -1520,6 +1519,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                 btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
                 memcpy(&p_multi_adv_data_cb->inst_cb[cbindex].param,
                        &p_inst_cb->param, sizeof(tBTA_BLE_ADV_PARAMS));
+                p_multi_adv_data_cb->inst_cb[cbindex].timeout_s = p_inst_cb->timeout_s;
                 BTIF_TRACE_DEBUG("%s, client_if value: %d", __FUNCTION__,
                             p_multi_adv_data_cb->clntif_map[arrindex + arrindex]);
                 BTA_BleEnableAdvInstance(&(p_multi_adv_data_cb->inst_cb[cbindex].param),

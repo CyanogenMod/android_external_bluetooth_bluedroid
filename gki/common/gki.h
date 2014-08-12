@@ -92,6 +92,7 @@ typedef struct _tle
     INT32         ticks;
     INT32         ticks_initial;
     TIMER_PARAM_TYPE   param;
+    TIMER_PARAM_TYPE   data;
     UINT16        event;
     UINT8         in_use;
 } TIMER_LIST_ENT;
