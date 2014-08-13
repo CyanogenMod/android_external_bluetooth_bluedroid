@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "btu.h"
 #include "bt_target.h"
 
 #define LOG_TAG "BtGatt.btif"
@@ -493,9 +494,12 @@ void btif_gattc_cleanup_inst_cb(int inst_id)
 
 void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb)
 {
+    if (p_multi_inst_cb == NULL)
+        return;
+
     // Discoverability timer cleanup
-    alarm_free(p_multi_inst_cb->limited_timer);
-    p_multi_inst_cb->limited_timer = NULL;
+    if (p_multi_inst_cb->tle_limited_timer.in_use)
+        btu_stop_timer_oneshot(&p_multi_inst_cb->tle_limited_timer);
 
     // Manufacturer data cleanup
     if (p_multi_inst_cb->data.p_manu != NULL)
@@ -567,7 +571,7 @@ void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb)
         GKI_freebuf(p_multi_inst_cb->data.p_sol_service_128b);
 }
 
-void btif_multi_adv_timer_ctrl(int client_if, alarm_callback_t cb)
+void btif_multi_adv_timer_ctrl(int client_if, TIMER_CBACK cb)
 {
     int inst_id = btif_multi_adv_instid_for_clientif(client_if);
     if (inst_id == INVALID_ADV_INST)
@@ -583,22 +587,19 @@ void btif_multi_adv_timer_ctrl(int client_if, alarm_callback_t cb)
 
     if (cb == NULL)
     {
-        alarm_free(p_multi_adv_data_cb->inst_cb[cbindex].limited_timer);
-        p_multi_adv_data_cb->inst_cb[cbindex].limited_timer = NULL;
+        if (p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer.in_use)
+            btu_stop_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer);
     } else {
         if (p_multi_adv_data_cb->inst_cb[cbindex].timeout_s != 0)
         {
-            if (p_multi_adv_data_cb->inst_cb[cbindex].limited_timer == NULL)
-                p_multi_adv_data_cb->inst_cb[cbindex].limited_timer = alarm_new();
-            else
-                alarm_cancel(p_multi_adv_data_cb->inst_cb[cbindex].limited_timer);
+            if (p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer.in_use)
+                btu_stop_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer);
 
-            if (p_multi_adv_data_cb->inst_cb[cbindex].limited_timer)
-            {
-                alarm_set(p_multi_adv_data_cb->inst_cb[cbindex].limited_timer,
-                          p_multi_adv_data_cb->inst_cb[cbindex].timeout_s * 1000,
-                          cb, (void*)inst_id);
-            }
+            memset(&p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer, 0, sizeof(TIMER_LIST_ENT));
+            p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer.param = (UINT32)cb;
+            p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer.data = (UINT32)client_if;
+            btu_start_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer,
+                    BTU_TTYPE_USER_FUNC, p_multi_adv_data_cb->inst_cb[cbindex].timeout_s);
         }
     }
 }
