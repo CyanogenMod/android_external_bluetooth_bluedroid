@@ -732,7 +732,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
             uint8_t *p_rep_data = NULL;
 
-            if (p_data->read_reports.data_len > 0)
+            if (p_data->read_reports.data_len > 0 && NULL != p_data->read_reports.p_rep_data)
             {
                 p_rep_data = GKI_getbuf(p_data->read_reports.data_len);
                 memcpy(p_rep_data, p_data->read_reports.p_rep_data, p_data->read_reports.data_len);
@@ -741,6 +741,8 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             HAL_CBACK(bt_gatt_callbacks, client->batchscan_reports_cb
                     , p_data->client_if, p_data->status, p_data->read_reports.report_format
                     , p_data->read_reports.num_records, p_data->read_reports.data_len, p_rep_data);
+            if (NULL != p_rep_data)
+                GKI_freebuf(p_rep_data);
             break;
         }
 
@@ -926,6 +928,7 @@ static void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value, UINT8 rep
                                             UINT8* p_rep_data, tBTA_STATUS status)
 {
     btgatt_batch_track_cb_t btif_scan_track_cb;
+    memset(&btif_scan_track_cb, 0, sizeof(btgatt_batch_track_cb_t));
     BTIF_TRACE_DEBUG("%s - client_if:%d, %d, %d, %d",__FUNCTION__, ref_value, status, num_records,
                                     data_len);
 

@@ -2544,13 +2544,18 @@ void BTA_VendorInit (void)
 void BTA_VendorCleanup (void)
 {
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
+    BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
 
 #if (BLE_INCLUDED == TRUE && BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
-    btm_ble_adv_filter_cleanup();
-    btm_ble_vendor_cleanup();
-#endif
+    if (cmn_ble_vsc_cb.max_filter > 0)
+    {
+        btm_ble_adv_filter_cleanup();
+        btm_ble_vendor_cleanup();
+    }
 
-   BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
+    if (cmn_ble_vsc_cb.tot_scan_results_strg > 0)
+        btm_ble_batchscan_cleanup();
+#endif
 
    if(cmn_ble_vsc_cb.adv_inst_max > 0)
       btm_ble_multi_adv_cleanup();
