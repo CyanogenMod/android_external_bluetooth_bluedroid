@@ -2092,12 +2092,20 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
                 bta_ar_dereg_avrc (UUID_SERVCLASS_AV_REMOTE_CONTROL, BTA_ID_AV);
 #endif
-                bta_av_del_sdp_rec(&p_cb->sdp_a2d_handle);
-                bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
+                if (p_cb->sdp_a2d_handle)
+                {
+                    bta_av_del_sdp_rec(&p_cb->sdp_a2d_handle);
+                    p_cb->sdp_a2d_handle = 0;
+                    bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
+                }
 
 #if (BTA_AV_SINK_INCLUDED == TRUE)
-                bta_av_del_sdp_rec(&p_cb->sdp_a2d_snk_handle);
-                bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SINK);
+                if (p_cb->sdp_a2d_snk_handle)
+                {
+                    bta_av_del_sdp_rec(&p_cb->sdp_a2d_snk_handle);
+                    p_cb->sdp_a2d_snk_handle = 0;
+                    bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SINK);
+                }
 #endif
             }
         }

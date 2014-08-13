@@ -572,7 +572,7 @@ BTA_API void BTA_AvDisable(void);
 **
 *******************************************************************************/
 BTA_API void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name,
-                            UINT8 app_id, tBTA_AV_DATA_CBACK  *p_data_cback);
+                            UINT8 app_id, tBTA_AV_DATA_CBACK  *p_data_cback, UINT16 service_uuid);
 
 /*******************************************************************************
 **

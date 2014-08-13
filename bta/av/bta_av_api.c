@@ -109,7 +109,8 @@ void BTA_AvDisable(void)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name, UINT8 app_id, tBTA_AV_DATA_CBACK  *p_data_cback)
+void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name, UINT8 app_id, tBTA_AV_DATA_CBACK  *p_data_cback,
+                    UINT16 service_uuid)
 {
     tBTA_AV_API_REG  *p_buf;
 
@@ -129,6 +130,7 @@ void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name, UINT8 app_id,
         }
         p_buf->app_id = app_id;
         p_buf->p_app_data_cback = p_data_cback;
+        p_buf->service_uuid = service_uuid;
         bta_sys_sendmsg(p_buf);
     }
 }

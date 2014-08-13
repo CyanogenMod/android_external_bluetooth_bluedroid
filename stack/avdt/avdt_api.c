@@ -197,7 +197,6 @@ void AVDT_SINK_Activate()
         if ((p_scb->allocated) && (p_scb->cs.tsep == AVDT_TSEP_SNK))
         {
             AVDT_TRACE_DEBUG("AVDT_SINK_Activate found scb");
-            p_scb->sink_activated = TRUE;
             /* update in_use */
             p_scb->in_use = FALSE;
             break;
@@ -228,7 +227,6 @@ void AVDT_SINK_Deactivate()
         if ((p_scb->allocated) && (p_scb->cs.tsep == AVDT_TSEP_SNK))
         {
             AVDT_TRACE_DEBUG("AVDT_SINK_Deactivate, found scb");
-            p_scb->sink_activated = FALSE;
             /* update in_use */
             p_scb->in_use = TRUE;
             break;

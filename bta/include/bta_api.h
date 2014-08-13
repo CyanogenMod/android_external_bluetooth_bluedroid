@@ -75,7 +75,7 @@ typedef UINT8 tBTA_STATUS;
 #define BTA_NAP_SERVICE_ID      15          /* PAN Network access point */
 #define BTA_GN_SERVICE_ID       16          /* PAN Group Ad-hoc networks */
 #define BTA_SAP_SERVICE_ID      17          /* SIM Access profile */
-#define BTA_A2DP_SERVICE_ID     18          /* A2DP Sink */
+#define BTA_A2DP_SRC_SERVICE_ID     18      /* A2DP Src */
 #define BTA_AVRCP_SERVICE_ID    19          /* A/V remote control */
 #define BTA_HID_SERVICE_ID      20          /* HID */
 #define BTA_VDP_SERVICE_ID      21          /* Video distribution */
@@ -86,19 +86,20 @@ typedef UINT8 tBTA_STATUS;
 #define BTA_MN_SERVICE_ID       26          /* Message Notification Service */
 #define BTA_HDP_SERVICE_ID      27          /* Health Device Profile */
 #define BTA_PCE_SERVICE_ID      28          /* PhoneBook Access Client*/
+#define BTA_A2DP_SINK_SERVICE_ID 29          /* A2DP Sink */
 
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
 /* BLE profile service ID */
-#define BTA_BLE_SERVICE_ID      29          /* GATT profile */
+#define BTA_BLE_SERVICE_ID      30          /* GATT profile */
 
 // btla-specific ++
-#define BTA_USER_SERVICE_ID     30          /* User requested UUID */
+#define BTA_USER_SERVICE_ID     31          /* User requested UUID */
 
-#define BTA_MAX_SERVICE_ID      31
+#define BTA_MAX_SERVICE_ID      32
 // btla-specific --
 #else
-#define BTA_USER_SERVICE_ID     29          /* User requested UUID */
-#define BTA_MAX_SERVICE_ID      30
+#define BTA_USER_SERVICE_ID     30          /* User requested UUID */
+#define BTA_MAX_SERVICE_ID      31
 #endif
 /* service IDs (BTM_SEC_SERVICE_FIRST_EMPTY + 1) to (BTM_SEC_MAX_SERVICES - 1)
  * are used by BTA JV */

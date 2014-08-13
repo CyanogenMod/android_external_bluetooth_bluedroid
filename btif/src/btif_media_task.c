@@ -70,6 +70,11 @@
 #include "oi_codec_sbc.h"
 #include "oi_status.h"
 #endif
+
+#ifdef AVK_BACKPORT
+#include "bluetoothTrack.h"
+#endif
+
 #include "stdio.h"
 #include <dlfcn.h>
 
@@ -214,7 +219,7 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 
 //#define BTIF_MEDIA_VERBOSE_ENABLED
 /* In case of A2DP SINK, we will delay start by 5 AVDTP Packets*/
-#define MAX_A2DP_DELAYED_START_FRAME_COUNT 5
+#define MAX_A2DP_DELAYED_START_FRAME_COUNT 1
 #define PACKET_PLAYED_PER_TICK_48 8
 #define PACKET_PLAYED_PER_TICK_44 7
 #define PACKET_PLAYED_PER_TICK_32 5
@@ -284,6 +289,9 @@ typedef struct
 
     UINT32  sample_rate;
     UINT8   channel_count;
+#ifdef AVK_BACKPORT
+    btif_media_AudioFocus_state rx_audio_focus_gained;
+#endif
 #endif
 
 } tBTIF_MEDIA_CB;
@@ -937,6 +945,9 @@ void btif_a2dp_on_idle(void)
         btif_media_task_stop_decoding_req();
         btif_media_task_clear_track();
         APPL_TRACE_DEBUG("Stopped BT track");
+#ifdef AVK_BACKPORT
+        btif_media_cb.rx_audio_focus_gained = BTIF_MEDIA_AUDIOFOCUS_LOSS;
+#endif
     }
 #endif
 }
@@ -1236,6 +1247,20 @@ void btif_a2dp_set_tx_flush(BOOLEAN enable)
 }
 
 #if (BTA_AV_SINK_INCLUDED == TRUE)
+#ifdef AVK_BACKPORT
+void btif_a2dp_set_audio_focus_state(btif_media_AudioFocus_state state)
+{
+    btif_media_cb.rx_audio_focus_gained = state;
+    if (btif_media_cb.rx_audio_focus_gained ==  BTIF_MEDIA_AUDIOFOCUS_LOSS)
+    {
+        btif_a2dp_set_rx_flush(TRUE);
+    }
+    if (btif_media_cb.rx_audio_focus_gained ==  BTIF_MEDIA_AUDIOFOCUS_GAIN)
+    {
+        btif_a2dp_set_rx_flush(FALSE);
+    }
+}
+#endif
 /*******************************************************************************
  **
  ** Function         btif_media_task_avk_handle_timer
@@ -1599,6 +1624,9 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
     OI_STATUS status;
     int num_sbc_frames = p_msg->num_frames_to_be_processed;
     UINT32 sbc_frame_len = p_msg->len - 1;
+#ifdef AVK_BACKPORT
+    int retwriteAudioTrack = 0;
+#endif
     availPcmBytes = 2*sizeof(pcmData);
 
     if ((btif_media_cb.peer_sep == AVDT_TSEP_SNK) || (btif_media_cb.rx_flush))
@@ -1607,9 +1635,11 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
         return;
     }
 
+#ifndef AVK_BACKPORT
     // ignore data if no one is listening
     if (!btif_media_cb.data_channel_open)
         return;
+#endif
 
     APPL_TRACE_DEBUG("Number of sbc frames %d, frame_len %d", num_sbc_frames, sbc_frame_len);
 
@@ -1629,8 +1659,11 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
         p_msg->offset += (p_msg->len - 1) - sbc_frame_len;
         p_msg->len = sbc_frame_len + 1;
     }
-
+#ifdef AVK_BACKPORT
+    retwriteAudioTrack = btWriteData((void*)pcmData, (2*sizeof(pcmData) - availPcmBytes));
+#else
     UIPC_Send(UIPC_CH_ID_AV_AUDIO, 0, (UINT8 *)pcmData, (2*sizeof(pcmData) - availPcmBytes));
+#endif
 }
 #endif
 
@@ -2201,6 +2234,23 @@ int btif_a2dp_get_track_channel_count(UINT8 channeltype) {
     return count;
 }
 
+#ifdef AVK_BACKPORT
+int a2dp_get_track_channel_type(UINT8 channeltype) {
+    int count = 1;
+    switch (channeltype) {
+        case A2D_SBC_IE_CH_MD_MONO:
+            count = 1;
+            break;
+        case A2D_SBC_IE_CH_MD_DUAL:
+        case A2D_SBC_IE_CH_MD_STEREO:
+        case A2D_SBC_IE_CH_MD_JOINT:
+            count = 3;
+            break;
+    }
+    return count;
+}
+#endif
+
 void btif_a2dp_set_peer_sep(UINT8 sep) {
     btif_media_cb.peer_sep = sep;
 }
@@ -2218,6 +2268,10 @@ static void btif_media_task_aa_handle_stop_decoding(void )
 {
     btif_media_cb.is_rx_timer = FALSE;
     GKI_stop_timer(BTIF_MEDIA_AVK_TASK_TIMER_ID);
+#ifdef AVK_BACKPORT
+    btPauseTrack();
+#endif
+
 }
 
 /*******************************************************************************
@@ -2233,6 +2287,9 @@ static void btif_media_task_aa_handle_start_decoding(void )
 {
     if(btif_media_cb.is_rx_timer == TRUE)
         return;
+#ifdef AVK_BACKPORT
+    btStartTrack();
+#endif
     btif_media_cb.is_rx_timer = TRUE;
     GKI_start_timer(BTIF_MEDIA_AVK_TASK_TIMER_ID, GKI_MS_TO_TICKS(BTIF_SINK_MEDIA_TIME_TICK), TRUE);
 }
@@ -2242,6 +2299,10 @@ static void btif_media_task_aa_handle_start_decoding(void )
 static void btif_media_task_aa_handle_clear_track (void)
 {
     APPL_TRACE_DEBUG("btif_media_task_aa_handle_clear_track");
+#ifdef AVK_BACKPORT
+    btStopTrack();
+    btDeleteTrack();
+#endif
 }
 
 /*******************************************************************************
@@ -2277,14 +2338,24 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
     btif_media_cb.sample_rate = btif_a2dp_get_track_frequency(sbc_cie.samp_freq);
     btif_media_cb.channel_count = btif_a2dp_get_track_channel_count(sbc_cie.ch_mode);
 
+#ifndef AVK_BACKPORT
     btif_media_cb.rx_flush = FALSE;
+#endif
+
     APPL_TRACE_DEBUG("Reset to sink role");
     status = OI_CODEC_SBC_DecoderReset(&context, contextData, sizeof(contextData), 2, 2, FALSE);
     if (!OI_SUCCESS(status)) {
         APPL_TRACE_ERROR("OI_CODEC_SBC_DecoderReset failed with error code %d\n", status);
     }
-
+#ifdef AVK_BACKPORT
+    APPL_TRACE_DEBUG("A2dpSink: Crate Track");
+    if (btCreateTrack(btif_a2dp_get_track_frequency(sbc_cie.samp_freq), a2dp_get_track_channel_type(sbc_cie.ch_mode)) == -1) {
+        APPL_TRACE_ERROR("A2dpSink: Track creation fails!!!");
+        return;
+    }
+#else
     UIPC_Open(UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb);
+#endif
 
     switch(sbc_cie.samp_freq)
     {

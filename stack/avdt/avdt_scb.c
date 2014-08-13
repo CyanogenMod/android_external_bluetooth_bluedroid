@@ -602,13 +602,6 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
             p_scb->allocated = TRUE;
             p_scb->p_ccb = NULL;
 
-            /* initialize sink as activated */
-            if (p_cs->tsep == AVDT_TSEP_SNK)
-            {
-                p_scb->sink_activated = FALSE;
-                p_scb->in_use         = TRUE;
-            }
-
             memcpy(&p_scb->cs, p_cs, sizeof(tAVDT_CS));
 #if AVDT_MULTIPLEXING == TRUE
             /* initialize fragments gueue */

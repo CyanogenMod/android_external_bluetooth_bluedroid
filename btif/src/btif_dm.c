@@ -227,6 +227,7 @@ static char* btif_get_default_local_name();
 extern UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID];
 extern bt_status_t btif_hf_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_av_execute_service(BOOLEAN b_enable);
+extern bt_status_t btif_avk_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_hh_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_hf_client_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_mce_execute_service(BOOLEAN b_enable);
@@ -250,9 +251,13 @@ bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
          {
               btif_hf_execute_service(b_enable);
          }break;
-         case BTA_A2DP_SERVICE_ID:
+         case BTA_A2DP_SRC_SERVICE_ID:
          {
               btif_av_execute_service(b_enable);
+         }break;
+         case BTA_A2DP_SINK_SERVICE_ID:
+         {
+              btif_avk_execute_service(b_enable);
          }break;
          case BTA_HID_SERVICE_ID:
          {

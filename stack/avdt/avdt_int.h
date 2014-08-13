@@ -491,7 +491,6 @@ typedef struct {
     UINT16          media_seq;      /* media packet sequence number */
     BOOLEAN         allocated;      /* whether scb is allocated or unused */
     BOOLEAN         in_use;         /* whether stream being used by peer */
-    BOOLEAN         sink_activated; /* A2DP Sink activated/de-activated from Application */
     UINT8           role;           /* initiator/acceptor role in current procedure */
     BOOLEAN         remove;         /* whether CB is marked for removal */
     UINT8           state;          /* state machine state */

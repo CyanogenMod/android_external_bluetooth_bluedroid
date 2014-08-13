@@ -124,7 +124,7 @@ void btif_dispatch_sm_event(btif_av_sm_event_t event, void *p_data, int len);
 **
 *******************************************************************************/
 
-bt_status_t btif_av_init(void);
+bt_status_t btif_av_init(int service_id);
 
 /*******************************************************************************
 **

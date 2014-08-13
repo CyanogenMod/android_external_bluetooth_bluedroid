@@ -736,9 +736,15 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
                                               p_uuid+num_uuids);
                             num_uuids++;
                         }break;
-                    case BTA_A2DP_SERVICE_ID:
+                    case BTA_A2DP_SRC_SERVICE_ID:
                         {
                             uuid16_to_uuid128(UUID_SERVCLASS_AUDIO_SOURCE,
+                                              p_uuid+num_uuids);
+                            num_uuids++;
+                        }break;
+                    case BTA_A2DP_SINK_SERVICE_ID:
+                        {
+                            uuid16_to_uuid128(UUID_SERVCLASS_AUDIO_SINK,
                                               p_uuid+num_uuids);
                             num_uuids++;
                         }break;

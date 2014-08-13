@@ -629,8 +629,8 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
     /* callback to HAL */
     if (status == BTA_SUCCESS)
     {
-        /* initialize a2dp service */
-        btif_av_init();
+        /* don't initialize a2dp service */
+        //btif_av_init(); // we need av_init only from init_sink, init_src
 
         /* init rfcomm & l2cap api */
         btif_sock_init();
