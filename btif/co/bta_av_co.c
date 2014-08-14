@@ -676,7 +676,7 @@ BTA_API UINT8 bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_t
             /* Build the codec configuration for this sink */
             if (bta_av_co_audio_codec_build_config(p_sink->codec_caps, codec_cfg))
             {
-                APPL_TRACE_DEBUG("bta_av_co_audio_getconfig reconfig p_codec_info[%x:%x:%x:%x:%x:%x]",
+                APPL_TRACE_IMP("bta_av_co_audio_getconfig reconfig p_codec_info[%x:%x:%x:%x:%x:%x]",
                         codec_cfg[1], codec_cfg[2], codec_cfg[3],
                         codec_cfg[4], codec_cfg[5], codec_cfg[6]);
 
@@ -752,7 +752,7 @@ BTA_API void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_ty
 
     FUNC_TRACE();
 
-    APPL_TRACE_DEBUG("bta_av_co_audio_setconfig p_codec_info[%x:%x:%x:%x:%x:%x]",
+    APPL_TRACE_IMP("bta_av_co_audio_setconfig p_codec_info[%x:%x:%x:%x:%x:%x]",
             p_codec_info[1], p_codec_info[2], p_codec_info[3],
             p_codec_info[4], p_codec_info[5], p_codec_info[6]);
     APPL_TRACE_DEBUG("num_protect:0x%02x protect_info:0x%02x%02x%02x",
@@ -865,7 +865,7 @@ BTA_API void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_ty
 
     if (status != A2D_SUCCESS)
     {
-        APPL_TRACE_DEBUG("bta_av_co_audio_setconfig reject s=%d c=%d", status, category);
+        APPL_TRACE_ERROR("bta_av_co_audio_setconfig reject s=%d c=%d", status, category);
 
         /* Call call-in rejecting the configuration */
         bta_av_ci_setconfig(hndl, status, category, 0, NULL, FALSE, avdt_handle);
