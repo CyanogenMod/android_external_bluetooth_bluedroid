@@ -29,7 +29,6 @@
 #include <hardware/bt_sock.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <stdlib.h>
 #include <errno.h>
 
 #define LOG_TAG "BTIF_SOCK_SDP"
@@ -299,6 +298,10 @@ static int add_pbap_sdp(const char* p_service_name, int scn)
  * a channel number to a hard coded SDP entry.
  * TODO: expose a prober SDP API, to avoid hacks like this, and make it possible
  *        to set useful names for the ServiceName */
+#define BTA_MAP_MSG_TYPE_EMAIL    0x01
+#define BTA_MAP_MSG_TYPE_SMS_GSM  0x02
+#define BTA_MAP_MSG_TYPE_SMS_CDMA 0x04
+#define BTA_MAP_MSG_TYPE_MMS      0x08
 
 #define BTA_MAPS_DEFAULT_VERSION 0x0101 /* MAP 1.1 */
 typedef struct
@@ -307,7 +310,18 @@ typedef struct
     const char* service_name;          /* Description of the MAS instance */
     UINT8       supported_message_types;/* Server supported message types - SMS/MMS/EMAIL */
 } tBTA_MAPS_CFG;
-
+const tBTA_MAPS_CFG bta_maps_cfg_sms =
+{
+    0,                  /* Mas id 0 is for SMS/MMS */
+    "MAP SMS",
+    BTA_MAP_MSG_TYPE_SMS_GSM | BTA_MAP_MSG_TYPE_SMS_CDMA
+};
+const tBTA_MAPS_CFG bta_maps_cfg_email =
+{
+    1,                  /* Mas id 1 is for EMAIL */
+    "MAP EMAIL",
+    BTA_MAP_MSG_TYPE_EMAIL
+};
 static int add_maps_sdp(const char* p_service_name, int scn)
 {
 
@@ -316,28 +330,10 @@ static int add_maps_sdp(const char* p_service_name, int scn)
     UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
     BOOLEAN             status = FALSE;
     UINT32              sdp_handle = 0;
-    char                map_handle_buf[2];
-    char                map_type_buf[2];
-    char                *map_name = (char*)&(p_service_name[4]);
-    tBTA_MAPS_CFG       bta_maps_cfg;
-    tBTA_MAPS_CFG       *p_bta_maps_cfg;
-    APPL_TRACE_DEBUG("add_maps_sdp: scn %d, service name %s", scn, p_service_name);
+    // TODO: To add support for EMAIL set below depending on the scn to either SMS or Email
+    const tBTA_MAPS_CFG *p_bta_maps_cfg = &bta_maps_cfg_sms;
 
-    /* Service name for map is build as XX|YY|name where XX and YY is
-     * MasId and Type flag as 2byte hex as string */
-    map_handle_buf[0] = p_service_name[0];
-    map_handle_buf[1] = p_service_name[1];
-    map_type_buf[0]   = p_service_name[2];
-    map_type_buf[1]   = p_service_name[3];
-
-    p_bta_maps_cfg = &bta_maps_cfg;
-    p_bta_maps_cfg->mas_id = (UINT16)strtol(&map_handle_buf[0],NULL, 16);
-    p_bta_maps_cfg->supported_message_types = (UINT16)strtol(&map_type_buf[0],NULL, 16);
-    p_bta_maps_cfg->service_name = map_name;
-
-    APPL_TRACE_DEBUG("  service_name: %s, mas-id: %d, flags: 0x%02x",
-            p_bta_maps_cfg->service_name, p_bta_maps_cfg->mas_id,
-            p_bta_maps_cfg->supported_message_types);
+    APPL_TRACE_DEBUG("add_maps_sdd:scn %d, service name %s", scn, p_service_name);
 
     if ((sdp_handle = SDP_CreateRecord()) == 0)
     {
