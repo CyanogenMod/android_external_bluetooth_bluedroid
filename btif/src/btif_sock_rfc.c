@@ -173,7 +173,7 @@ static inline rfc_slot_t* find_free_slot()
     }
     return NULL;
 }
-static inline rfc_slot_t* find_rfc_slot_by_id(uint32_t id)
+static inline rfc_slot_t* find_rfc_slot_by_id(uint32_t id, const char* label)
 {
     int i;
     if(id)
@@ -186,7 +186,7 @@ static inline rfc_slot_t* find_rfc_slot_by_id(uint32_t id)
             }
         }
     }
-    APPL_TRACE_WARNING1("invalid rfc slot id: %d", id);
+    APPL_TRACE_WARNING2("invalid rfc slot id: %d, %s", id, label);
     return NULL;
 }
 static inline rfc_slot_t* find_rfc_slot_by_pending_sdp()
@@ -561,8 +561,8 @@ static BOOLEAN send_app_connect_signal(int fd, const bt_bdaddr_t* addr, int chan
 }
 static void on_cl_rfc_init(tBTA_JV_RFCOMM_CL_INIT *p_init, uint32_t id)
 {
-   lock_slot(&slot_lock);
-    rfc_slot_t* rs = find_rfc_slot_by_id(id);
+    lock_slot(&slot_lock);
+    rfc_slot_t* rs = find_rfc_slot_by_id(id, "on_cl_rfc_init");
     if(rs)
     {
         if (p_init->status != BTA_JV_SUCCESS)
@@ -577,7 +577,7 @@ static void on_cl_rfc_init(tBTA_JV_RFCOMM_CL_INIT *p_init, uint32_t id)
 static void  on_srv_rfc_listen_started(tBTA_JV_RFCOMM_START *p_start, uint32_t id)
 {
     lock_slot(&slot_lock);
-    rfc_slot_t* rs = find_rfc_slot_by_id(id);
+    rfc_slot_t* rs = find_rfc_slot_by_id(id, "on_srv_rfc_listen_started");
     if(rs)
     {
         if (p_start->status != BTA_JV_SUCCESS)
@@ -600,7 +600,7 @@ static uint32_t on_srv_rfc_connect(tBTA_JV_RFCOMM_SRV_OPEN *p_open, uint32_t id)
 {
     uint32_t new_listen_slot_id = 0;
     lock_slot(&slot_lock);
-    rfc_slot_t* srv_rs = find_rfc_slot_by_id(id);
+    rfc_slot_t* srv_rs = find_rfc_slot_by_id(id, "on_srv_rfc_connect");
     if(srv_rs)
     {
         rfc_slot_t* accept_rs = create_srv_accept_rfc_slot(srv_rs, (const bt_bdaddr_t*)p_open->rem_bda,
@@ -624,7 +624,7 @@ static uint32_t on_srv_rfc_connect(tBTA_JV_RFCOMM_SRV_OPEN *p_open, uint32_t id)
 static void on_cli_rfc_connect(tBTA_JV_RFCOMM_OPEN *p_open, uint32_t id)
 {
     lock_slot(&slot_lock);
-    rfc_slot_t* rs = find_rfc_slot_by_id(id);
+    rfc_slot_t* rs = find_rfc_slot_by_id(id, "on_cli_rfc_connect");
     if(rs && p_open->status == BTA_JV_SUCCESS)
     {
         rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(p_open->handle);
@@ -649,7 +649,7 @@ static void on_rfc_close(tBTA_JV_RFCOMM_CLOSE * p_close, uint32_t id)
 {
     UNUSED(p_close);
     lock_slot(&slot_lock);
-    rfc_slot_t* rs = find_rfc_slot_by_id(id);
+    rfc_slot_t* rs = find_rfc_slot_by_id(id, "on_rfc_close");
     if(rs)
     {
         APPL_TRACE_DEBUG4("on_rfc_close, slot id:%d, fd:%d, rfc scn:%d, server:%d",
@@ -666,7 +666,7 @@ static void on_rfc_write_done(tBTA_JV_RFCOMM_WRITE *p, uint32_t id)
     UNUSED(p);
 
     lock_slot(&slot_lock);
-    rfc_slot_t* rs = find_rfc_slot_by_id(id);
+    rfc_slot_t* rs = find_rfc_slot_by_id(id, "on_rfc_write_done");
     if(rs && !rs->f.outgoing_congest)
     {
         //mointer the fd for any outgoing data
@@ -677,7 +677,7 @@ static void on_rfc_write_done(tBTA_JV_RFCOMM_WRITE *p, uint32_t id)
 static void on_rfc_outgoing_congest(tBTA_JV_RFCOMM_CONG *p, uint32_t id)
 {
     lock_slot(&slot_lock);
-    rfc_slot_t* rs = find_rfc_slot_by_id(id);
+    rfc_slot_t* rs = find_rfc_slot_by_id(id, "on_rfc_outgoing_congest");
     if(rs)
     {
         rs->f.outgoing_congest = p->cong ? 1 : 0;
@@ -750,7 +750,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
         case BTA_JV_CREATE_RECORD_EVT:
             {
                 lock_slot(&slot_lock);
-                rfc_slot_t* rs = find_rfc_slot_by_id(id);
+                rfc_slot_t* rs = find_rfc_slot_by_id(id, "jv_dm_cback: BTA_JV_CREATE_RECORD_EVT");
                 if(rs && create_server_sdp_record(rs))
                 {
                     //now start the rfcomm server after sdp & channel # assigned
@@ -774,7 +774,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
                     APPL_TRACE_DEBUG3("BTA_JV_DISCOVERY_COMP_EVT, slot id:%d, status:%d, scn:%d",
                                       id, p_data->disc_comp.status, p_data->disc_comp.scn);
 
-                    rs = find_rfc_slot_by_id(id);
+                    rs = find_rfc_slot_by_id(id, "jv_dm_cback: BTA_JV_DISCOVERY_COMP_EVT");
                     if(rs && rs->f.doing_sdp_request)
                     {
                         if(BTA_JvRfcommConnect(rs->security, rs->role, p_data->disc_comp.scn, rs->addr.address,
@@ -796,10 +796,10 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
                 }
                 else
                 {
-                    APPL_TRACE_ERROR3("DISCOVERY_COMP_EVT slot id:%d, failed to find channle, \
+                    APPL_TRACE_ERROR3("DISCOVERY_COMP_EVT slot id:%d, failed to find channel, \
                                       status:%d, scn:%d", id, p_data->disc_comp.status,
                                       p_data->disc_comp.scn);
-                    rs = find_rfc_slot_by_id(id);
+                    rs = find_rfc_slot_by_id(id, "jv_dm_cback: BTA_JV_DISCOVERY_COMP_EVT, no channel");
                     if(rs)
                         cleanup_rfc_slot(rs);
                 }
@@ -888,7 +888,7 @@ static BOOLEAN flush_incoming_que_on_wr_signal(rfc_slot_t* rs)
 void btsock_rfc_signaled(int fd, int flags, uint32_t user_id)
 {
     lock_slot(&slot_lock);
-    rfc_slot_t* rs = find_rfc_slot_by_id(user_id);
+    rfc_slot_t* rs = find_rfc_slot_by_id(user_id, "btsock_rfc_signaled");
     if(rs)
     {
         APPL_TRACE_DEBUG3("rfc slot id:%d, fd:%d, flags:%x", rs->id, fd, flags);
@@ -948,7 +948,7 @@ int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf)
     uint32_t id = (uintptr_t)user_data;
     int ret = 0;
     lock_slot(&slot_lock);
-    rfc_slot_t* rs = find_rfc_slot_by_id(id);
+    rfc_slot_t* rs = find_rfc_slot_by_id(id, "bta_co_rfc_data_incoming");
     if(rs)
     {
         if(!GKI_queue_is_empty(&rs->incoming_que))
@@ -985,7 +985,7 @@ int bta_co_rfc_data_outgoing_size(void *user_data, int *size)
     int ret = FALSE;
     *size = 0;
     lock_slot(&slot_lock);
-    rfc_slot_t* rs = find_rfc_slot_by_id(id);
+    rfc_slot_t* rs = find_rfc_slot_by_id(id, "bta_co_rfc_data_outgoing_size");
     if(rs)
     {
         if(ioctl(rs->fd, FIONREAD, size) == 0)
@@ -1008,7 +1008,7 @@ int bta_co_rfc_data_outgoing(void *user_data, UINT8* buf, UINT16 size)
     uint32_t id = (uintptr_t)user_data;
     int ret = FALSE;
     lock_slot(&slot_lock);
-    rfc_slot_t* rs = find_rfc_slot_by_id(id);
+    rfc_slot_t* rs = find_rfc_slot_by_id(id, "bta_co_rfc_data_outgoing");
     if(rs)
     {
         int received = recv(rs->fd, buf, size, 0);
@@ -1025,4 +1025,3 @@ int bta_co_rfc_data_outgoing(void *user_data, UINT8* buf, UINT16 size)
     unlock_slot(&slot_lock);
     return ret;
 }
-
