@@ -50,6 +50,8 @@
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #endif
 
+#define TRANSPORT_BREDR 1  //Add tranport parameter to create bond
+
 /************************************************************************************
 **  Local type definitions
 ************************************************************************************/
@@ -927,7 +929,7 @@ static int l2c_pair(char *p)
 {
     bt_bdaddr_t bd_addr = {{0}};
     GetBdAddr(p, &bd_addr);
-    if(BT_STATUS_SUCCESS != sBtInterface->create_bond(&bd_addr))
+    if(BT_STATUS_SUCCESS != sBtInterface->create_bond(&bd_addr,TRANSPORT_BREDR))
     {
         printf("Failed to Initiate Pairing \n");
         return FALSE;
