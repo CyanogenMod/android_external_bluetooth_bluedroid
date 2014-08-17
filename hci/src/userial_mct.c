@@ -332,6 +332,19 @@ uint16_t userial_write(uint16_t msg_id, const uint8_t *p_data, uint16_t len)
     return ((uint16_t)total);
 }
 
+void userial_close_reader(void) {
+    // Join the reader thread if it is still running.
+    if (userial_running) {
+        send_wakeup_signal(USERIAL_RX_EXIT);
+        int result = pthread_join(userial_cb.read_thread, NULL);
+        USERIALDBG("%s Joined userial reader thread: %d", __func__, result);
+        if (result)
+            ALOGE("%s failed to join reader thread: %d", __func__, result);
+        return;
+    }
+    ALOGW("%s Already closed userial reader thread", __func__);
+}
+
 /*******************************************************************************
 **
 ** Function        userial_close
