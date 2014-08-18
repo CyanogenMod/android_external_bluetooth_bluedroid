@@ -231,8 +231,8 @@ static int add_maps_sdp(const char* p_service_name, int scn)
     UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
     BOOLEAN             status = FALSE;
     UINT32              sdp_handle = 0;
-    char                map_handle_buf[2];
-    char                map_type_buf[2];
+    char                map_handle_buf[3];
+    char                map_type_buf[3];
     char                *map_name = (char*)&(p_service_name[4]);
     tBTA_MAPS_CFG       bta_maps_cfg;
     tBTA_MAPS_CFG       *p_bta_maps_cfg;
@@ -242,8 +242,11 @@ static int add_maps_sdp(const char* p_service_name, int scn)
      * MasId and Type flag as 2byte hex as string */
     map_handle_buf[0] = p_service_name[0];
     map_handle_buf[1] = p_service_name[1];
+    map_handle_buf[2] = '\0';
+
     map_type_buf[0]   = p_service_name[2];
     map_type_buf[1]   = p_service_name[3];
+    map_type_buf[2]   = '\0';
 
     p_bta_maps_cfg = &bta_maps_cfg;
     p_bta_maps_cfg->mas_id = (UINT16)strtol(&map_handle_buf[0],NULL, 16);
