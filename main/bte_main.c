@@ -63,7 +63,7 @@
 
 /* Stack preload process maximum retry attempts  */
 #ifndef PRELOAD_MAX_RETRY_ATTEMPTS
-#define PRELOAD_MAX_RETRY_ATTEMPTS 0
+#define PRELOAD_MAX_RETRY_ATTEMPTS 2
 #endif
 
 /*******************************************************************************
