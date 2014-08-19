@@ -840,7 +840,7 @@ typedef union
 #define AVRC_IS_VALID_CAP_ID(a)           (((a == AVRC_CAP_COMPANY_ID) || (a == AVRC_CAP_EVENTS_SUPPORTED)) ? TRUE : FALSE)
 
 #define AVRC_IS_VALID_EVENT_ID(a)           (((a >= AVRC_EVT_PLAY_STATUS_CHANGE) && \
-                                              (a <= AVRC_EVT_ADDR_PLAYER_CHANGE)) ? TRUE : FALSE)
+                                              (a <= AVRC_NUM_NOTIF_EVENTS)) ? TRUE : FALSE)
 
 #define AVRC_IS_VALID_ATTRIBUTE(a)          (((((a > 0) && a <= AVRC_PLAYER_SETTING_SCAN)) || \
                                                ((a >= AVRC_PLAYER_SETTING_LOW_MENU_EXT) && \
