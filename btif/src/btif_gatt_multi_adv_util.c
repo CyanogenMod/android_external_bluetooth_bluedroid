@@ -273,6 +273,11 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
          p_multi_adv_data_cb->inst_cb[cbindex].data.flag = ADV_FLAGS_GENERAL;
          if (p_multi_adv_data_cb->inst_cb[cbindex].timeout_s)
              p_multi_adv_data_cb->inst_cb[cbindex].data.flag = ADV_FLAGS_LIMITED;
+         if (p_multi_adv_data_cb->inst_cb[cbindex].param.adv_type == BTA_BLE_NON_CONNECT_EVT)
+             p_multi_adv_data_cb->inst_cb[cbindex].data.flag &=
+                    ~(BTA_DM_LIMITED_DISC | BTA_DM_GENERAL_DISC);
+         if (p_multi_adv_data_cb->inst_cb[cbindex].data.flag == 0)
+            p_multi_adv_data_cb->inst_cb[cbindex].mask = 0;
     }
 
     if (p_adv_data->include_name)

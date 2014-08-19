@@ -30,8 +30,8 @@
 #define STD_ADV_INSTID 0
 
 /* Default ADV flags for general and limited discoverability */
-#define ADV_FLAGS_LIMITED 0x01
-#define ADV_FLAGS_GENERAL 0x02
+#define ADV_FLAGS_LIMITED BTA_DM_LIMITED_DISC
+#define ADV_FLAGS_GENERAL BTA_DM_GENERAL_DISC
 
 typedef struct
 {
