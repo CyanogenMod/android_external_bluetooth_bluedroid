@@ -1149,111 +1149,13 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
         }
         break;
         case AVRC_PDU_LIST_PLAYER_APP_ATTR:
-        {
-            BTIF_TRACE_DEBUG0("AVRC_PDU_LIST_PLAYER_APP_ATTR ");
-            FILL_PDU_QUEUE(IDX_LIST_APP_ATTR_RSP, ctype, label, TRUE)
-            HAL_CBACK(bt_rc_callbacks, list_player_app_attr_cb);
-        }
-        break;
         case AVRC_PDU_LIST_PLAYER_APP_VALUES:
-        {
-            BTIF_TRACE_DEBUG1("AVRC_PDU_LIST_PLAYER_APP_VALUES =%d" ,pavrc_cmd->list_app_values.attr_id);
-            if (pavrc_cmd->list_app_values.attr_id == 0)
-            {
-                send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
-                break;
-            }
-            FILL_PDU_QUEUE(IDX_LIST_APP_VALUE_RSP, ctype, label, TRUE)
-            HAL_CBACK(bt_rc_callbacks, list_player_app_values_cb ,pavrc_cmd->list_app_values.attr_id);
-        }
-        break;
         case AVRC_PDU_GET_CUR_PLAYER_APP_VALUE:
-        {
-            btrc_player_attr_t player_attr[BTRC_MAX_ELEM_ATTR_SIZE];
-            UINT8 player_attr_num;
-            BTIF_TRACE_DEBUG1("PLAYER_APP_VALUE PDU 0x13 = %d",pavrc_cmd->get_cur_app_val.num_attr);
-            if ((pavrc_cmd->get_cur_app_val.num_attr == 0) ||
-                  (pavrc_cmd->get_cur_app_val.num_attr > BTRC_MAX_ELEM_ATTR_SIZE))
-            {
-                send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
-                break;
-            }
-            memset( player_attr, 0, sizeof(player_attr));
-            for (player_attr_num = 0 ; player_attr_num < pavrc_cmd->get_cur_app_val.num_attr;
-                                                                            ++player_attr_num)
-            {
-                player_attr[player_attr_num] = pavrc_cmd->get_cur_app_val.attrs[player_attr_num];
-            }
-            FILL_PDU_QUEUE(IDX_GET_CURR_APP_VAL_RSP, ctype, label, TRUE)
-            HAL_CBACK(bt_rc_callbacks, get_player_app_value_cb ,
-                                               pavrc_cmd->get_cur_app_val.num_attr, player_attr );
-        }
-        break;
         case AVRC_PDU_SET_PLAYER_APP_VALUE:
-        {
-            btrc_player_settings_t attr;
-            UINT8 count;
-            tAVRC_RESPONSE avrc_rsp;
-            if ((pavrc_cmd->set_app_val.num_val== 0) ||
-                              (pavrc_cmd->set_app_val.num_val > BTRC_MAX_ELEM_ATTR_SIZE))
-            {
-                send_reject_response (btif_rc_cb.rc_handle, label,
-                                       pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
-                break;
-            }
-            else
-            {
-                for(count = 0; count < pavrc_cmd->set_app_val.num_val ; ++count)
-                {
-                    attr.attr_ids[count] = pavrc_cmd->set_app_val.p_vals[count].attr_id ;
-                    attr.attr_values[count]= pavrc_cmd->set_app_val.p_vals[count].attr_val;
-                }
-                attr.num_attr  =  pavrc_cmd->set_app_val.num_val ;
-                FILL_PDU_QUEUE(IDX_SET_APP_VAL_RSP, ctype, label, TRUE)
-                HAL_CBACK(bt_rc_callbacks, set_player_app_value_cb, &attr );
-            }
-        }
-        break;
         case AVRC_PDU_GET_PLAYER_APP_ATTR_TEXT:
-        {
-            btrc_player_attr_t player_attr_txt [BTRC_MAX_ELEM_ATTR_SIZE];
-            UINT8 count_txt = 0 ;
-            if ((pavrc_cmd->get_app_attr_txt.num_attr == 0) ||
-                   (pavrc_cmd->get_app_attr_txt.num_attr > BTRC_MAX_ELEM_ATTR_SIZE))
-            {
-                send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
-            }
-            else
-            {
-                for (count_txt = 0;count_txt < pavrc_cmd->get_app_attr_txt.num_attr ; ++count_txt)
-                {
-                    player_attr_txt[count_txt] = pavrc_cmd->get_app_attr_txt.attrs[count_txt];
-                }
-                FILL_PDU_QUEUE(IDX_GET_APP_ATTR_TXT_RSP, ctype, label, TRUE)
-                HAL_CBACK(bt_rc_callbacks, get_player_app_attrs_text_cb,
-                            pavrc_cmd->get_app_attr_txt.num_attr, player_attr_txt );
-            }
-        }
-        break;
         case AVRC_PDU_GET_PLAYER_APP_VALUE_TEXT:
         {
-            if (pavrc_cmd->get_app_val_txt.attr_id == 0 ||
-                     pavrc_cmd->get_app_val_txt.attr_id > AVRC_PLAYER_VAL_GROUP_REPEAT)
-            {
-                send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
-                break;
-            }
-            if (pavrc_cmd->get_app_val_txt.num_val == 0)
-            {
-                send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_PARAM);
-            }
-            else
-            {
-                FILL_PDU_QUEUE(IDX_GET_APP_VAL_TXT_RSP, ctype, label, TRUE)
-                HAL_CBACK(bt_rc_callbacks, get_player_app_values_text_cb,
-                          pavrc_cmd->get_app_val_txt.attr_id, pavrc_cmd->get_app_val_txt.num_val,
-                          pavrc_cmd->get_app_val_txt.vals);
-            }
+            send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu, AVRC_STS_BAD_CMD);
         }
         break;
         case AVRC_PDU_GET_ELEMENT_ATTR:
