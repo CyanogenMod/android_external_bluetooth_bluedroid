@@ -728,6 +728,37 @@ void btm_ble_enqueue_direct_conn_req(void *p_param)
 }
 /*******************************************************************************
 **
+** Function         btm_ble_dequeue_direct_conn_req
+**
+** Description      This function dequeues the direct connection request
+**
+** Returns          None.
+**
+*******************************************************************************/
+void btm_ble_dequeue_direct_conn_req(BD_ADDR rem_bda)
+{
+    tBTM_BLE_CONN_REQ   *p_req;
+    tL2C_LCB *p_lcb;
+    if(btm_cb.ble_ctr_cb.conn_pending_q.count)
+    {
+        p_req = (tBTM_BLE_CONN_REQ*)GKI_getfirst(&btm_cb.ble_ctr_cb.conn_pending_q);
+    }
+    while(p_req != NULL)
+    {
+        p_lcb = (tL2C_LCB *)p_req->p_param;
+        //If BD address matches
+        if(!memcmp (rem_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN))
+        {
+            GKI_remove_from_queue(&btm_cb.ble_ctr_cb.conn_pending_q, p_req);
+            l2cu_release_lcb ((tL2C_LCB *)p_req->p_param);
+            GKI_freebuf((void *)p_req);
+            break;
+        }
+        p_req = (tBTM_BLE_CONN_REQ*)GKI_getnext(p_req);
+    }
+}
+/*******************************************************************************
+**
 ** Function         btm_send_pending_direct_conn
 **
 ** Description      This function send the pending direct connection request in queue
