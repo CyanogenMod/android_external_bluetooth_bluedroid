@@ -201,6 +201,11 @@ BOOLEAN gatt_disconnect (tGATT_TCB *p_tcb)
                 {
                     gatt_set_ch_state(p_tcb, GATT_CH_CLOSING);
                     ret = L2CA_CancelBleConnectReq (p_tcb->peer_bda);
+
+                    if(!ret)
+                    {
+                        gatt_set_ch_state(p_tcb, GATT_CH_CLOSE);
+                    }
                 }
             }
             else

@@ -63,7 +63,7 @@ BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda)
                               (l2cb.ble_connecting_bda[0]<<24)+(l2cb.ble_connecting_bda[1]<<16)+(l2cb.ble_connecting_bda[2]<<8)+l2cb.ble_connecting_bda[3],
                               (l2cb.ble_connecting_bda[4]<<8)+l2cb.ble_connecting_bda[5],
                               (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
-
+        btm_ble_dequeue_direct_conn_req(rem_bda);
         return(FALSE);
     }
 
