@@ -773,7 +773,7 @@ and USER_HW_DISABLE_API macros */
 #define BTM_SCO_HCI_INCLUDED            FALSE       /* TRUE includes SCO over HCI code */
 #endif
 
-#if (BLUETOOTH_QCOM_SW == TRUE) /* Enable WBS only under this flag.*/
+#if (BLUETOOTH_QTI_SW == TRUE) /* Enable WBS only under this flag.*/
 #define BTM_WBS_INCLUDED            TRUE
 #else
 /* Includes WBS if TRUE */
