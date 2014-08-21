@@ -53,6 +53,7 @@ typedef UINT32 tBTM_BLE_REF_VALUE;
 #define BTM_BLE_SCAN_MODE_NONE      0xff
 typedef UINT8 tBTM_BLE_SCAN_MODE;
 
+#define BTM_BLE_BATCH_SCAN_MODE_DISABLE 0
 #define BTM_BLE_BATCH_SCAN_MODE_PASS  1
 #define BTM_BLE_BATCH_SCAN_MODE_ACTI  2
 #define BTM_BLE_BATCH_SCAN_MODE_PASS_ACTI 3
@@ -493,6 +494,13 @@ typedef enum
     BTM_BLE_SCAN_DISABLED_STATE=4
 }tBTM_BLE_BATCH_SCAN_STATE;
 
+enum
+{
+    BTM_BLE_DISCARD_OLD_ITEMS,
+    BTM_BLE_DISCARD_LOWER_RSSI_ITEMS
+};
+typedef UINT8 tBTM_BLE_DISCARD_RULE;
+
 typedef struct
 {
     UINT8   sub_code[BTM_BLE_BATCH_SCAN_MAX];
@@ -517,6 +525,10 @@ typedef struct
 {
     tBTM_BLE_BATCH_SCAN_STATE      cur_state;
     tBTM_BLE_BATCH_SCAN_MODE scan_mode;
+    UINT32                  scan_interval;
+    UINT32                  scan_window;
+    tBLE_ADDR_TYPE          addr_type;
+    tBTM_BLE_DISCARD_RULE   discard_rule;
     tBTM_BLE_BATCH_SCAN_OPQ  op_q;
     tBTM_BLE_BATCH_SCAN_REP_Q main_rep_q;
     tBTM_BLE_SCAN_SETUP_CBACK     *p_setup_cback;
@@ -749,13 +761,6 @@ enum
     BTM_BLE_CONN_SELECTIVE
 };
 typedef UINT8   tBTM_BLE_CONN_TYPE;
-
-enum
-{
-    BTM_BLE_DISCARD_OLD_ITEMS,
-    BTM_BLE_DISCARD_LOWER_RSSI_ITEMS
-};
-typedef UINT8 tBTM_BLE_DISCARD_RULE;
 
 typedef void (tBTM_BLE_TRACK_ADV_CBACK)(int filt_index, tBLE_ADDR_TYPE addr_type, BD_ADDR bda,
                                         int adv_state, tBTM_BLE_REF_VALUE ref_value);
