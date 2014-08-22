@@ -528,8 +528,8 @@ tBTM_STATUS btm_ble_set_batchscan_param(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
 
     UINT8_TO_STREAM (pp_scan, BTM_BLE_BATCH_SCAN_SET_PARAMS);
     UINT8_TO_STREAM (pp_scan, scan_mode);
-    UINT32_TO_STREAM (pp_scan, scan_interval);
     UINT32_TO_STREAM (pp_scan, scan_window);
+    UINT32_TO_STREAM (pp_scan, scan_interval);
     UINT8_TO_STREAM (pp_scan, addr_type);
     UINT8_TO_STREAM (pp_scan, discard_rule);
 
