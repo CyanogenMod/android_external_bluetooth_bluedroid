@@ -27,7 +27,6 @@
 
 
 #define GKI_NO_NEW_TMRS_STARTED (0x7fffffffL)   /* Largest signed positive timer count */
-#define GKI_UNUSED_LIST_ENTRY   (0x80000000L)   /* Marks an unused timer list entry (initial value) */
 
 // Used for controlling alarms from AlarmService.
 extern void alarm_service_reschedule(void);
@@ -694,18 +693,19 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
 ** Parameters       p_timer_listq   - (input) pointer to the timer list queue object
 **                  p_tle           - (input) pointer to a timer list queue entry
 **
-** Returns          void
+** Returns          TRUE if the entry has been unlinked successfully
 **
 *******************************************************************************/
-void GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
+BOOLEAN GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
 {
     UINT8 tt;
 
     /* Verify that the entry is valid */
-    if (p_tle == NULL || p_tle->in_use == FALSE || p_timer_listq->p_first == NULL)
-    {
-        return;
-    }
+    if (p_tle == NULL || p_timer_listq->p_first == NULL)
+        return FALSE;
+
+    p_tle->ticks = 0;
+    p_tle->in_use = FALSE;
 
     /* Add the ticks remaining in this timer (if any) to the next guy in the list.
     ** Note: Expired timers have a tick value of '0'.
@@ -741,24 +741,17 @@ void GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p
             if (p_tle->p_next != NULL && p_tle->p_next->p_prev == p_tle)
                 p_tle->p_next->p_prev = p_tle->p_prev;
             else
-            {
-                /* Error case - chain messed up ?? */
-                return;
-            }
+                return FALSE; // Timer list broken?!
 
             if (p_tle->p_prev != NULL && p_tle->p_prev->p_next == p_tle)
                 p_tle->p_prev->p_next = p_tle->p_next;
             else
-            {
-                /* Error case - chain messed up ?? */
-                return;
-            }
+                return FALSE; // Timer list broken?!
         }
     }
 
     p_tle->p_next = p_tle->p_prev = NULL;
-    p_tle->ticks = GKI_UNUSED_LIST_ENTRY;
-    p_tle->in_use = FALSE;
+    return TRUE;
 }
 
 
