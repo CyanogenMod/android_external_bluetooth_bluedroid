@@ -459,6 +459,7 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
     else
     {
         bta_dm_cb.disable_timer.p_cback = (TIMER_CBACK*)&bta_dm_disable_timer_cback;
+        bta_dm_cb.disable_timer.param = 0;
         bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, 5000);
     }
 
@@ -481,11 +482,12 @@ static void bta_dm_disable_timer_cback (TIMER_LIST_ENT *p_tle)
     UNUSED(p_tle);
     UINT8 i;
     tBT_TRANSPORT transport = BT_TRANSPORT_BR_EDR;
+    BOOLEAN trigger_disc = FALSE;
 
 
-    APPL_TRACE_EVENT(" bta_dm_disable_timer_cback  ");
+    APPL_TRACE_EVENT(" bta_dm_disable_timer_cback trial %d ", p_tle->param);
 
-    if(BTM_GetNumAclLinks())
+    if(BTM_GetNumAclLinks() && p_tle->param == 0)
     {
         for(i=0; i<bta_dm_cb.device_list.count; i++)
         {
@@ -493,8 +495,17 @@ static void bta_dm_disable_timer_cback (TIMER_LIST_ENT *p_tle)
             transport = bta_dm_cb.device_list.peer_device[i].transport;
 #endif
             btm_remove_acl(bta_dm_cb.device_list.peer_device[i].peer_bdaddr, transport);
+            trigger_disc = TRUE;
         }
 
+        /* Retrigger disable timer in case ACL disconnect failed, DISABLE_EVT still need
+            to be sent out to avoid jave layer disable timeout */
+        if (trigger_disc)
+        {
+            bta_dm_cb.disable_timer.p_cback = (TIMER_CBACK*)&bta_dm_disable_timer_cback;
+            bta_dm_cb.disable_timer.param = 1;
+            bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, 1500);
+        }
     }
     else
     {
