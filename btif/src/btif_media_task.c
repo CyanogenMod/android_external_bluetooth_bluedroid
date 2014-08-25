@@ -651,9 +651,6 @@ static void btif_a2dp_data_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
                        (void *)A2DP_DATA_READ_POLL_MS);
 
             if (btif_media_cb.peer_sep == AVDT_TSEP_SNK) {
-                /* Start the media task to encode SBC */
-                btif_media_task_start_aa_req();
-
                 /* make sure we update any changed sbc encoder params */
                 /*post a message to btif_av to serialize encode update and encode init*/
                 btif_dispatch_sm_event(BTIF_AV_UPDATE_ENCODER_REQ_EVT, NULL, 0);
@@ -912,6 +909,8 @@ void btif_a2dp_update_codec(void)
     APPL_TRACE_EVENT("## A2DP UPDATE CODEC ##");
 
     GKI_disable();
+    /* Start the media task to encode SBC */
+    btif_media_task_start_aa_req();
     btif_a2dp_encoder_update();
     GKI_enable();
 }
