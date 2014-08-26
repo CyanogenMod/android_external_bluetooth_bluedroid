@@ -533,6 +533,8 @@
 
 #ifndef PAN_POOL_ID
 #define PAN_POOL_ID                 GKI_POOL_ID_3
+/* Maximum amount of the shared buffer to allocate for PAN */
+#define PAN_POOL_MAX                (GKI_BUF3_MAX / 4)
 #endif
 
 /* UNV pool for read/write serialization */
