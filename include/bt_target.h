@@ -1063,7 +1063,7 @@ and USER_HW_DISABLE_API macros */
 
 /* Maximum number of callbacks that can be registered using BTM_RegisterForVSEvents */
 #ifndef BTM_MAX_VSE_CALLBACKS
-#define BTM_MAX_VSE_CALLBACKS           3
+#define BTM_MAX_VSE_CALLBACKS           4
 #endif
 
 /******************************************
