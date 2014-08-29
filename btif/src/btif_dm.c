@@ -598,9 +598,9 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr, tBTA_TRANSPORT transpor
     int addr_type;
     bdstr_t bdstr;
     bd2str(bd_addr, &bdstr);
-    if(btif_config_get_int("Remote", (char const *)&bdstr,"DevType", &device_type) &&
+    if((btif_config_get_int("Remote", (char const *)&bdstr,"DevType", &device_type) &&
        (btif_storage_get_remote_addr_type(bd_addr, &addr_type) == BT_STATUS_SUCCESS) &&
-       (device_type == BT_DEVICE_TYPE_BLE))
+       (device_type == BT_DEVICE_TYPE_BLE)) || (transport == BT_TRANSPORT_LE))
     {
         BTA_DmAddBleDevice(bd_addr->address, addr_type, BT_DEVICE_TYPE_BLE);
     }
