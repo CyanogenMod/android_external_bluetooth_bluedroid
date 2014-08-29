@@ -192,7 +192,6 @@ BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 attr
 {
     /* look up the sec device record, and find the address */
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    BOOLEAN     started = FALSE;
     UINT8       wl_state = p_cb->wl_state;
 
     if ((to_add && p_cb->num_empty_filter == 0) ||
@@ -200,7 +199,7 @@ BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 attr
     {
         BTM_TRACE_ERROR("WL full or empty, unable to update to WL. num_entry available: %d",
                           p_cb->num_empty_filter);
-        return started;
+        return FALSE;
     }
 
     btm_suspend_wl_activity(wl_state);
@@ -210,7 +209,7 @@ BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr, UINT8 attr
 
     btm_resume_wl_activity(wl_state);
 
-    return started;
+    return TRUE;
 }
 /*******************************************************************************
 **

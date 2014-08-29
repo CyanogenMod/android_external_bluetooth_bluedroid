@@ -1280,6 +1280,31 @@ void bta_hh_le_notify_enc_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
 
 /*******************************************************************************
 **
+** Function         bta_hh_clear_service_cache
+**
+** Description    clear the service cache
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_hh_clear_service_cache(tBTA_HH_DEV_CB *p_cb)
+{
+    UINT8 i;
+    tBTA_HH_LE_HID_SRVC     *p_hid_srvc = &p_cb->hid_srvc[0];
+
+    p_cb->app_id = 0;
+    p_cb->total_srvc = 0;
+    p_cb->dscp_info.descriptor.dsc_list = NULL;
+
+    for (i = 0; i < BTA_HH_LE_HID_SRVC_MAX; i ++, p_hid_srvc ++)
+    {
+        utl_freebuf((void **)&p_hid_srvc->rpt_map);
+        memset(p_hid_srvc, 0, sizeof(tBTA_HH_LE_HID_SRVC));
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         bta_hh_start_security
 **
 ** Description      start the security check of the established connection
@@ -1325,6 +1350,7 @@ void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
     {
         sec_flag = BTM_BLE_SEC_ENCRYPT_NO_MITM;
         p_cb->status = BTA_HH_ERR_AUTH_FAILED;
+        bta_hh_clear_service_cache(p_cb);
         BTM_SetEncryption(p_cb->addr, BTA_TRANSPORT_LE, bta_hh_le_encrypt_cback, &sec_flag);
     }
     /* otherwise let it go through */
@@ -2307,18 +2333,11 @@ void bta_hh_le_open_fail(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CONN            conn_dat ;
     tBTA_HH_LE_HID_SRVC     *p_hid_srvc = &p_cb->hid_srvc[0];
-    UINT8   i;
 
     /* open failure in the middle of service discovery, clear all services */
     if (p_cb->disc_active & BTA_HH_LE_DISC_HIDS)
     {
-        p_cb->total_srvc = 0;
-        p_cb->dscp_info.descriptor.dsc_list = NULL;
-        for (i = 0; i < BTA_HH_LE_HID_SRVC_MAX; i ++, p_hid_srvc ++)
-        {
-            utl_freebuf((void **)&p_hid_srvc->rpt_map);
-            memset(p_hid_srvc, 0, sizeof(tBTA_HH_LE_HID_SRVC));
-        }
+        bta_hh_clear_service_cache(p_cb);
     }
 
     p_cb->disc_active = BTA_HH_LE_DISC_NONE;

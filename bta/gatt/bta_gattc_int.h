@@ -378,6 +378,7 @@ typedef struct
 #define BTA_GATTC_REQ_WAITING       0x10
 
     UINT8               auto_update; /* auto update is waiting */
+    BOOLEAN             disc_active;
     BOOLEAN             in_use;
     tBTA_GATTC_STATE    state;
     tBTA_GATT_STATUS    status;

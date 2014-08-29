@@ -4191,6 +4191,9 @@ void btm_sec_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
 
     if (p_acl && p_acl->transport == BT_TRANSPORT_LE)
     {
+        if (status == HCI_ERR_KEY_MISSING || status == HCI_ERR_AUTH_FAILURE
+            ||status == HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE)
+            p_dev_rec->sec_flags &= ~ (BTM_SEC_LE_LINK_KEY_KNOWN);
         btm_ble_link_encrypted(p_dev_rec->bd_addr, encr_enable);
         return;
     }
