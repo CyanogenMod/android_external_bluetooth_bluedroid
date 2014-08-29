@@ -2573,6 +2573,10 @@ bt_status_t btif_dm_pin_reply( const bt_bdaddr_t *bd_addr, uint8_t accept,
             passkey += (multi[i] * (pin_code->pin[i] - '0'));
         }
         BTIF_TRACE_DEBUG("btif_dm_pin_reply: passkey: %d", passkey);
+        if(pin_len > BTIF_DM_LE_PIN_LEN_MAX)/*incorrect key len*/
+        {
+            accept = FALSE;
+        }
         BTA_DmBlePasskeyReply(remote_bd_addr, accept, passkey);
 
     }
