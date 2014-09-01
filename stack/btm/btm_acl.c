@@ -1382,6 +1382,16 @@ void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read_pages)
         btm_process_remote_ext_features_page (p_acl_cb, p_dev_rec, page_idx);
     }
 
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+    if( (num_read_pages == HCI_EXT_FEATURES_PAGE_2 + 1) &&
+        (HCI_SECURE_CONN_CTRL_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_2])) &&
+        (HCI_SECURE_CONN_HOST_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_1])))
+    {
+        BTM_TRACE_WARNING ("btm_process_remote_ext_features: Remote supports Secure connection");
+        p_dev_rec->sec_conn_supported = TRUE;
+    }
+#endif
+
     // Retrieve remote name only if not already in progress by security module
     if (!(p_dev_rec->sec_state & BTM_SEC_STATE_GETTING_NAME))
     {
