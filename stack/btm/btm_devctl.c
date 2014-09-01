@@ -35,6 +35,10 @@
 #include "btm_int.h"
 #include "l2c_int.h"
 
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+#include <cutils/properties.h>
+#endif
+
 #if BLE_INCLUDED == TRUE
 #include "gatt_int.h"
 
@@ -171,6 +175,7 @@ void btm_dev_init (void)
 
 #if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
     btm_cb.btm_sec_conn_supported = FALSE;
+    btm_cb.btm_sec_conn_only_mode = FALSE;
 #endif
 
     btm_cb.first_disabled_channel = 0xff; /* To allow disabling 0th channel alone */
@@ -1243,6 +1248,13 @@ void btm_reset_ctrlr_complete ()
         (HCI_SECURE_CONN_HOST_SUPPORTED(p_devcb->local_lmp_features[HCI_EXT_FEATURES_PAGE_1])))
     {
         btm_cb.btm_sec_conn_supported = TRUE;
+        char value[PROPERTY_VALUE_MAX];
+        if( (property_get("bluetooth.sec_conn_only_mode", value, "false")) &&
+                !strcmp(value, "true"))
+        {
+            BTM_TRACE_WARNING ("Bluetooth: Secure connection only mode Enabled");
+            btm_cb.btm_sec_conn_only_mode = TRUE;
+        }
     }
 #endif
 

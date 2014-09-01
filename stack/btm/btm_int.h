@@ -632,6 +632,9 @@ typedef struct
 #define BTM_SEC_NO_LAST_SERVICE_ID      0
     UINT8           last_author_service_id;         /* ID of last serviced authorized: Reset after each l2cap connection */
 
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+    BOOLEAN     sec_conn_supported;  /* secure connection support from Host and Controller of Remote device */
+#endif
 } tBTM_SEC_DEV_REC;
 
 #define BTM_SEC_IS_SM4(sm) ((BOOLEAN)(BTM_SM4_TRUE == ((sm)&BTM_SM4_TRUE)))
@@ -866,6 +869,7 @@ typedef struct
 
 #if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
     BOOLEAN     btm_sec_conn_supported;  /* secure connection support from Host and Controller */
+    BOOLEAN     btm_sec_conn_only_mode;  /* secure connection only mode enabled */
 #endif
 
     /*****************************************************

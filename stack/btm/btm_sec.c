@@ -713,7 +713,11 @@ static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_na
         {
             p_srec->security_flags &=
             ~(BTM_SEC_OUT_AUTHORIZE | BTM_SEC_OUT_ENCRYPT    | BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_MITM |
-              BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER | BTM_SEC_FORCE_SLAVE | BTM_SEC_ATTEMPT_SLAVE);
+              BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER | BTM_SEC_FORCE_SLAVE | BTM_SEC_ATTEMPT_SLAVE
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+             | BTM_SEC_SECURE_CONN
+#endif
+            );
         }
 
         /* Parameter validation.  Originator should not set requirements for incoming connections */
@@ -758,7 +762,11 @@ static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_na
         {
             p_srec->security_flags &=
             ~(BTM_SEC_IN_AUTHORIZE | BTM_SEC_IN_ENCRYPT     | BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_MITM |
-              BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER | BTM_SEC_FORCE_SLAVE | BTM_SEC_ATTEMPT_SLAVE);
+              BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER | BTM_SEC_FORCE_SLAVE | BTM_SEC_ATTEMPT_SLAVE
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+             | BTM_SEC_SECURE_CONN
+#endif
+            );
         }
 
         /* Parameter validation.  Acceptor should not set requirements for outgoing connections */
@@ -5459,6 +5467,42 @@ extern tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec)
         }
         return(BTM_CMD_STARTED);
     }
+
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+    /* check for local and remote device Secure conneciton feature bits
+       and if both are set go ahead with next checks */
+    if((btm_cb.btm_sec_conn_only_mode == TRUE) && (p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED) )
+    {
+        if(!(p_dev_rec->sec_conn_supported == TRUE) || !(btm_cb.btm_sec_conn_supported == TRUE))
+        {
+            BTM_TRACE_WARNING ("%s:SC OnlyMode failed due to device doesn't support SC",__FUNCTION__);
+            return BTM_FAILED_ON_SECURITY;
+        }
+        else if( (p_dev_rec->security_required & (BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_IN_AUTHENTICATE)) &&
+                 (p_dev_rec->link_key_type != HCI_LKEY_TYPE_AUTH_COMB_P256) )
+        {
+            BTM_TRACE_WARNING ("%s:SC OnlyMode failed due to insufficient security level",__FUNCTION__);
+            return BTM_FAILED_ON_SECURITY;
+        }
+        else
+        {
+            BTM_TRACE_WARNING ("%s:SC OnlyMode Succeeded",__FUNCTION__);
+        }
+    }
+
+    /* implement the level 4 support of Security mode 4 */
+    if((p_dev_rec->security_required & BTM_SEC_SECURE_CONN) &&
+       (p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED) )
+    {
+        if( p_dev_rec->link_key_type != HCI_LKEY_TYPE_AUTH_COMB_P256)
+        {
+            BTM_TRACE_WARNING ("%s:Service requires Level 4 and failed security check",__FUNCTION__);
+            return BTM_FAILED_ON_SECURITY;
+        }
+    }
+
+#endif
+
 
     /* If connection is not encrypted and encryption is required */
     /* start encryption and return PENDING to the caller */
