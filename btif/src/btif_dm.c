@@ -1073,6 +1073,9 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             {
                 BTIF_TRACE_DEBUG("%s: sending BT_BOND_STATE_NONE for Temp pairing",
                         __FUNCTION__);
+                if (btif_storage_is_device_bonded(&bd_addr) == TRUE) {
+                    btif_storage_remove_bonded_device(&bd_addr);
+                }
                 bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_NONE);
                 return;
             }
