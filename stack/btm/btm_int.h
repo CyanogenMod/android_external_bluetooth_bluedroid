@@ -1022,6 +1022,8 @@ extern void         btm_read_remote_features_complete (UINT8 *p);
 extern void         btm_read_remote_ext_features_complete (UINT8 *p);
 extern void         btm_read_remote_ext_features_failed (UINT8 status, UINT16 handle);
 extern void         btm_read_remote_version_complete (UINT8 *p);
+extern void         btm_establish_continue (tACL_CONN *p_acl_cb);
+
 // btla-specific ++
 extern void         btm_acl_chk_peer_pkt_type_support (tACL_CONN *p, UINT16 *p_pkt_type);
 // btla-specific --

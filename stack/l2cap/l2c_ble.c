@@ -270,6 +270,23 @@ UINT16 L2CA_GetDisconnectReason (BD_ADDR remote_bda, tBT_TRANSPORT transport)
 
 /*******************************************************************************
 **
+** Function l2cble_notify_le_connection
+**
+** Description This function notifiy the l2cap connection to the app layer
+**
+** Returns none
+**
+*******************************************************************************/
+void l2cble_notify_le_connection (BD_ADDR bda)
+{
+    tL2C_LCB *p_lcb = l2cu_find_lcb_by_bd_addr (bda, BT_TRANSPORT_LE);
+
+    if (p_lcb != NULL)
+        l2cu_process_fixed_chnl_resp (p_lcb);
+}
+
+/*******************************************************************************
+**
 ** Function         l2cble_scanner_conn_comp
 **
 ** Description      This function is called when an HCI Connection Complete
@@ -356,9 +373,14 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
     /* Tell BTM Acl management about the link */
     btm_acl_created (bda, NULL, p_dev_rec->sec_bd_name, handle, p_lcb->link_role, BT_TRANSPORT_LE);
 
+#if(defined(BTA_SKIP_BLE_READ_REMOTE_FEAT) && BTA_SKIP_BLE_READ_REMOTE_FEAT == TRUE)
+    {
+            l2cu_process_fixed_chnl_resp (p_lcb);
+    }
+#endif
+
     p_lcb->peer_chnl_mask[0] = L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
 
-    l2cu_process_fixed_chnl_resp (p_lcb);
 
     btm_ble_set_conn_st(BLE_CONN_IDLE);
 }
@@ -423,7 +445,16 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
 
     p_lcb->peer_chnl_mask[0] = L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
 
-    l2cu_process_fixed_chnl_resp (p_lcb);
+#if (defined(BTA_SKIP_BLE_READ_REMOTE_FEAT) && BTA_SKIP_BLE_READ_REMOTE_FEAT == TRUE)
+    {
+        l2cu_process_fixed_chnl_resp (p_lcb);
+    }
+#else
+    if (!HCI_LE_SLAVE_INIT_FEAT_EXC_SUPPORTED(btm_cb.devcb.local_le_features))
+    {
+        l2cu_process_fixed_chnl_resp (p_lcb);
+    }
+#endif
 
     /* when adv and initiating are both active, cancel the direct connection */
     if (l2cb.is_ble_connecting && memcmp(bda, l2cb.ble_connecting_bda, BD_ADDR_LEN) == 0)

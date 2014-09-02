@@ -40,7 +40,6 @@
 #include "bd.h"
 #include "bt_utils.h"
 
-static void btm_establish_continue (tACL_CONN *p_acl_cb);
 static void btm_read_remote_features (UINT16 handle);
 static void btm_read_remote_ext_features (UINT16 handle, UINT8 page_number);
 static void btm_process_remote_ext_features_page (tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_dev_rec,
@@ -374,14 +373,16 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                 btm_ble_get_acl_remote_addr (p_dev_rec, p->active_remote_addr,
                     &p->active_remote_addr_type);
 #endif
-                btm_establish_continue(p);
 
 #if (!defined(BTA_SKIP_BLE_READ_REMOTE_FEAT) || BTA_SKIP_BLE_READ_REMOTE_FEAT == FALSE)
-                if (link_role == HCI_ROLE_MASTER)
+                if (HCI_LE_SLAVE_INIT_FEAT_EXC_SUPPORTED(btm_cb.devcb.local_le_features)
+                    || link_role == HCI_ROLE_MASTER)
                 {
                     btsnd_hcic_ble_read_remote_feat(p->hci_handle);
                 }
+                else
 #endif
+                btm_establish_continue(p);
             }
             else
 #endif
@@ -1657,7 +1658,7 @@ void btm_read_remote_ext_features_failed (UINT8 status, UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-static void btm_establish_continue (tACL_CONN *p_acl_cb)
+void btm_establish_continue (tACL_CONN *p_acl_cb)
 {
 #if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
         tBTM_BL_EVENT_DATA  evt_data;

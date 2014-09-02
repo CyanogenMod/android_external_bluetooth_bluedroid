@@ -768,6 +768,7 @@ extern void l2cble_conn_comp (UINT16 handle, UINT8 role, BD_ADDR bda, tBLE_ADDR_
                               UINT16 conn_interval, UINT16 conn_latency, UINT16 conn_timeout);
 extern BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb);
 extern void l2c_enable_conn_param_timeout(tL2C_LCB * p_lcb);
+extern void l2cble_notify_le_connection (BD_ADDR bda);
 #if (defined BLE_LLT_INCLUDED) && (BLE_LLT_INCLUDED == TRUE)
 extern void l2cble_process_rc_param_request_evt(UINT16 handle, UINT16 int_min, UINT16 int_max,
                                                         UINT16 latency, UINT16 timeout);
