@@ -4855,6 +4855,8 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
             (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_HOST_DISCONN);
         else if(reason == HCI_ERR_PEER_USER)
             (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_PEER_DISCONN);
+        else if(reason == HCI_ERR_LMP_RESPONSE_TIMEOUT)
+            (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_LMP_TIMEOUT);
         else
             (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_ERR_PROCESSING);
     }

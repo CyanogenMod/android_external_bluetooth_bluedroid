@@ -4849,6 +4849,8 @@ void bta_dm_encrypt_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_
             break;
         case BTM_PEER_DISCONN:
             bta_status = BTA_PEER_DISCONN;
+        case BTM_LMP_TIMEOUT:
+            bta_status = BTA_LMP_TIMEOUT;
             break;
         default:
             bta_status = BTA_FAILURE;
