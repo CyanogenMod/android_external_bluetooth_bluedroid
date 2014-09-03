@@ -562,13 +562,8 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             break;
 
         case BTIF_AV_START_STREAM_REQ_EVT:
-            if (btif_av_cb.peer_sep == AVDT_TSEP_SRC)
-            {
-                BTA_AvStart();
-                btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
-                break;
-            }
-            btif_a2dp_setup_codec();
+            if (btif_av_cb.peer_sep != AVDT_TSEP_SRC)
+                btif_a2dp_setup_codec();
             BTA_AvStart();
             btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
             break;

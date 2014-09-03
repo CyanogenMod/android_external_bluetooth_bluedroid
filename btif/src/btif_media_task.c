@@ -510,8 +510,11 @@ static void btif_recv_ctrl_data(void)
 
                 /* post start event and wait for audio path to open */
                 btif_dispatch_sm_event(BTIF_AV_START_STREAM_REQ_EVT, NULL, 0);
-//FIXME
-                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+
+#if (BTA_AV_SINK_INCLUDED == TRUE)
+                if (btif_media_cb.peer_sep == AVDT_TSEP_SRC)
+                    a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
+#endif
             }
             else if (btif_av_stream_started_ready())
             {
