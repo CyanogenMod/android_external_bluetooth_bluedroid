@@ -343,8 +343,13 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
         BTA_JvCreateRecordByUser((void *)(intptr_t)rs->id);
         *sock_fd = rs->app_fd;
         rs->app_fd = -1; //the fd ownership is transferred to app
-        status = BT_STATUS_SUCCESS;
-        btsock_thread_add_fd(pth, rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_EXCEPTION, rs->id);
+        if (btsock_thread_add_fd(pth, rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_EXCEPTION, rs->id)) {
+            status = BT_STATUS_SUCCESS;
+        }
+        else
+        {
+            cleanup_rfc_slot(rs);
+        }
     }
     unlock_slot(&slot_lock);
     return status;
