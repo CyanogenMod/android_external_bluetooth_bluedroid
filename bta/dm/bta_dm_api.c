@@ -2165,21 +2165,46 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
     tBTA_DM_API_CFG_FILTER_COND *p_msg;
     APPL_TRACE_API ("BTA_DmBleCfgFilterCondition: %d, %d", action, cond_type);
 
-    UINT16  len = sizeof(tBTA_DM_API_CFG_FILTER_COND) + sizeof(tBTA_DM_BLE_PF_COND_PARAM) + \
-                BTM_BLE_PF_STR_LEN_MAX + BTM_BLE_PF_STR_LEN_MAX + sizeof(tBTA_DM_BLE_PF_COND_MASK);
-
+    UINT16  len = sizeof(tBTA_DM_API_CFG_FILTER_COND) +
+                  sizeof(tBTA_DM_BLE_PF_COND_PARAM);
     UINT8 *p;
+
+    if (NULL != p_cond)
+    {
+        switch(cond_type)
+        {
+            case BTA_DM_BLE_PF_SRVC_DATA_PATTERN:
+            case BTA_DM_BLE_PF_MANU_DATA:
+                /* Length of pattern and pattern mask and other elements in */
+                /* tBTA_DM_BLE_PF_MANU_COND */
+                len += ((p_cond->manu_data.data_len) * 2) +
+                        sizeof(UINT16) + sizeof(UINT16) + sizeof(UINT8);
+                break;
+
+            case BTA_DM_BLE_PF_LOCAL_NAME:
+                len += ((p_cond->local_name.data_len) + sizeof(UINT8));
+                break;
+
+            case BTM_BLE_PF_SRVC_UUID:
+            case BTM_BLE_PF_SRVC_SOL_UUID:
+                len += sizeof(tBLE_BD_ADDR) + sizeof(tBTA_DM_BLE_PF_COND_MASK);
+                break;
+
+            default:
+                break;
+        }
+    }
 
     if ((p_msg = (tBTA_DM_API_CFG_FILTER_COND *) GKI_getbuf(len)) != NULL)
     {
         memset (p_msg, 0, len);
-
         p_msg->hdr.event        = BTA_DM_API_CFG_FILTER_COND_EVT;
         p_msg->action           = action;
         p_msg->cond_type        = cond_type;
         p_msg->filt_index       = filt_index;
         p_msg->p_filt_cfg_cback = p_cmpl_cback;
         p_msg->ref_value        = ref_value;
+
         if (p_cond)
         {
             p_msg->p_cond_param = (tBTA_DM_BLE_PF_COND_PARAM *)(p_msg + 1);
@@ -2211,10 +2236,13 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
             else if (cond_type == BTA_DM_BLE_PF_LOCAL_NAME)
             {
                 p_msg->p_cond_param->local_name.p_data = p;
+                p_msg->p_cond_param->local_name.data_len =
+                    p_cond->local_name.data_len;
                 memcpy(p_msg->p_cond_param->local_name.p_data,
                     p_cond->local_name.p_data, p_cond->local_name.data_len);
             }
-            else if ((cond_type == BTM_BLE_PF_SRVC_UUID || cond_type == BTM_BLE_PF_SRVC_SOL_UUID))
+            else if ((cond_type == BTM_BLE_PF_SRVC_UUID
+                || cond_type == BTM_BLE_PF_SRVC_SOL_UUID))
             {
                 if (p_cond->srvc_uuid.p_target_addr != NULL)
                 {

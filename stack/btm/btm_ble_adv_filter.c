@@ -542,7 +542,7 @@ tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
           len = BTM_BLE_ADV_FILT_META_HDR_LENGTH;
     tBTM_STATUS st = BTM_ILLEGAL_VALUE;
 
-    if (NULL!= p_data && 0 == p_data->manu_data.data_len && 0 == p_data->srvc_data.data_len)
+    if (NULL == p_data)
         return st;
 
     memset(param, 0, BTM_BLE_PF_STR_LEN_MAX + BTM_BLE_PF_STR_LEN_MAX
@@ -562,8 +562,7 @@ tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
     /* Filter index */
     UINT8_TO_STREAM(p, filt_index);
 
-    if (BTM_BLE_SCAN_COND_ADD == action ||
-        BTM_BLE_SCAN_COND_DELETE == action)
+    if (BTM_BLE_SCAN_COND_ADD == action || BTM_BLE_SCAN_COND_DELETE == action)
     {
         if (BTM_BLE_PF_SRVC_DATA_PATTERN == cond_type)
         {
@@ -585,31 +584,42 @@ tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
         else
         {
             if (NULL == p_manu_data)
+            {
+                BTM_TRACE_ERROR("btm_ble_update_pf_manu_data - No manuf data");
                 return st;
-           if (p_manu_data->data_len > (BTM_BLE_PF_STR_LEN_MAX - 2))
-               p_manu_data->data_len = (BTM_BLE_PF_STR_LEN_MAX - 2);
+            }
+            BTM_TRACE_EVENT("btm_ble_update_pf_manu_data length: %d",
+                                    p_manu_data->data_len);
+            if (p_manu_data->data_len > (BTM_BLE_PF_STR_LEN_MAX - 2))
+                p_manu_data->data_len = (BTM_BLE_PF_STR_LEN_MAX - 2);
 
-           UINT16_TO_STREAM(p, p_manu_data->company_id);
-
-           if (p_manu_data->data_len > 0)
+            UINT16_TO_STREAM(p, p_manu_data->company_id);
+            if (p_manu_data->data_len > 0 && p_manu_data->p_pattern_mask != NULL)
+            {
                 ARRAY_TO_STREAM(p, p_manu_data->p_pattern, p_manu_data->data_len);
-           len += (p_manu_data->data_len + 2);
+                len += (p_manu_data->data_len + 2);
+            }
+            else
+                len += 2;
 
-           if (p_manu_data->company_id_mask != 0)
-           {
-               UINT16_TO_STREAM (p, p_manu_data->company_id_mask);
-           }
-           else
-           {
-               memset(p, 0xff, 2);
-               p += 2;
-           }
+            if (p_manu_data->company_id_mask != 0)
+            {
+                UINT16_TO_STREAM (p, p_manu_data->company_id_mask);
+            }
+            else
+            {
+                memset(p, 0xff, 2);
+                p += 2;
+            }
+            len += 2;
 
-           if (p_manu_data->data_len > 0)
-              ARRAY_TO_STREAM(p, p_manu_data->p_pattern_mask, p_manu_data->data_len);
-           len += (p_manu_data->data_len + 2);
+            if (p_manu_data->data_len > 0 && p_manu_data->p_pattern_mask != NULL)
+            {
+                ARRAY_TO_STREAM(p, p_manu_data->p_pattern_mask, p_manu_data->data_len);
+                len += (p_manu_data->data_len);
+            }
 
-           BTM_TRACE_DEBUG("Manuf data length: %d", len);
+            BTM_TRACE_DEBUG("Manuf data length: %d", len);
         }
     }
 
