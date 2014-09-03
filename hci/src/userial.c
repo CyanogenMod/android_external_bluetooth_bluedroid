@@ -281,9 +281,12 @@ bool userial_open(userial_port_t port) {
 
     // Call in to the vendor-specific library to open the serial port.
     int fd_array[CH_MAX];
+    for (int i = 0; i < CH_MAX; i++)
+        fd_array[i] = -1;
+
     int num_ports = vendor_send_command(BT_VND_OP_USERIAL_OPEN, &fd_array);
 
-    if (num_ports > 1) {
+    if (num_ports != 1) {
         ALOGE("%s opened wrong number of ports: got %d, expected 1.", __func__, num_ports);
         goto error;
     }
