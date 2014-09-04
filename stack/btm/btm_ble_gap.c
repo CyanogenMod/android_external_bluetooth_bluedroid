@@ -582,7 +582,7 @@ void BTM_BleConfigPrivacy(BOOLEAN enable)
         if (p_cb->privacy)
         {
             /* generate resolvable private address */
-            btm_gen_resolvable_private_addr(NULL);
+            btm_gen_resolvable_private_addr((void*)btm_gen_resolve_paddr_low);
         }
         else /* if privacy disabled, always use public address */
         {
