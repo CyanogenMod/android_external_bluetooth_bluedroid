@@ -428,6 +428,8 @@ int btpan_tap_open()
     BTM_GetLocalDeviceAddr (local_addr);
     if(tap_if_up(TAP_IF_NAME, local_addr) == 0)
     {
+        int flags = fcntl(fd, F_GETFL, 0);
+        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
         return fd;
     }
     BTIF_TRACE_ERROR("can not bring up tap interface:%s", TAP_IF_NAME);
@@ -678,8 +680,10 @@ static void btu_exec_tap_fd_read(void *p_param) {
     if (fd == -1 || fd != btpan_cb.tap_fd)
         return;
 
-    // Keep sending until someone either turns off BTIF or disables data the flow.
-    while (btif_is_enabled() && btpan_cb.flow) {
+    // Don't occupy BTU context too long, avoid GKI buffer overruns and
+    // give other profiles a chance to run by limiting the amount of memory
+    // PAN can use from the shared pool buffer.
+    for(int i = 0; i < PAN_POOL_MAX && btif_is_enabled() && btpan_cb.flow; i++) {
         BT_HDR *buffer = (BT_HDR *)GKI_getpoolbuf(PAN_POOL_ID);
         if (!buffer) {
             BTIF_TRACE_WARNING("%s unable to allocate buffer for packet.", __func__);
