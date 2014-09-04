@@ -838,9 +838,9 @@ UINT8 handle_get_folder_item_mediaplyerlist_cmd (tBTA_AV_BROWSE_MSG *pbrowse_msg
     //Check length
     p_length = &pbrowse_msg->p_msg->browse.p_browse_data[1];
     BE_STREAM_TO_UINT16(length, p_length);
-    if (length != 10) //Refer to spec
+    if (length < 10)
     {
-        BTIF_TRACE_ERROR("GET_FOLDER_ITEMS: length error: =%d",length);
+        BTIF_TRACE_ERROR("GET_FOLDER_ITEMS: length error: =%d", length);
         return TRUE;
     }
     else
