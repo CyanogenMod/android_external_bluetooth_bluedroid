@@ -317,6 +317,12 @@
 #define BTIF_DM_OOB_TEST  TRUE
 #endif
 
+// How long to wait before activating sniff mode after entering the
+// idle state for FTS, OPS connections
+#ifndef BTA_FTS_OPS_IDLE_TO_SNIFF_DELAY_MS
+#define BTA_FTS_OPS_IDLE_TO_SNIFF_DELAY_MS 7000
+#endif
+
 //------------------End added from bdroid_buildcfg.h---------------------
 
 
@@ -3327,7 +3333,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define SAP_SERVER_INCLUDED         FALSE
 #endif
 
-
 /*************************************************************************
  * A2DP Definitions
  */
@@ -3784,4 +3789,3 @@ The maximum number of payload octets that the local device can receive in a sing
 #include "bt_trace.h"
 
 #endif /* BT_TARGET_H */
-
