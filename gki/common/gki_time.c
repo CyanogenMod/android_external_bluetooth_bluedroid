@@ -704,9 +704,6 @@ BOOLEAN GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT 
     if (p_tle == NULL || p_timer_listq->p_first == NULL)
         return FALSE;
 
-    p_tle->ticks = 0;
-    p_tle->in_use = FALSE;
-
     /* Add the ticks remaining in this timer (if any) to the next guy in the list.
     ** Note: Expired timers have a tick value of '0'.
     */
@@ -714,6 +711,9 @@ BOOLEAN GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT 
     {
         p_tle->p_next->ticks += p_tle->ticks;
     }
+
+    p_tle->ticks = 0;
+    p_tle->in_use = FALSE;
 
     /* Unlink timer from the list.
     */
