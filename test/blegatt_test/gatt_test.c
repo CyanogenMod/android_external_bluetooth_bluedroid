@@ -1342,26 +1342,26 @@ void do_le_client_deregister(char *p)
 void do_le_client_connect (char *p)
 {
     BOOLEAN        Ret;
-    bt_bdaddr_t bd_addr = {{0}};
-	int transport = BT_TRANSPORT_BR_EDR;
+    bt_bdiiaddr_t bd_addr = {{0}};
+    int transport = BT_TRANSPORT_BR_EDR;
     transport = get_int(&p, -1);
     if(FALSE == GetBdAddr(p, &bd_addr))    return;
-    
-	if(transport == BT_TRANSPORT_BR_EDR) 
-	{
-	  //Outgoing Connection
-    
-    //    g_SecLevel |= BTM_SEC_OUT_AUTHENTICATE;
-   //     g_SecLevel |= BTM_SEC_OUT_ENCRYPT ;
-        g_PSM= 1;
-	     g_SecLevel = 0;
+
+    if(transport == BT_TRANSPORT_BR_EDR)
+    {
+        //Outgoing Connection
+
+        //    g_SecLevel |= BTM_SEC_OUT_AUTHENTICATE;
+        //     g_SecLevel |= BTM_SEC_OUT_ENCRYPT ;
+        g_PSM= 1;i
+	g_SecLevel = 0;
         printf("g_SecLevel = %d \n", g_SecLevel);
         sL2capInterface->RegisterPsm(g_PSM, g_ConnType, g_SecLevel /*BTM_SEC_IN_AUTHORIZE */);
         sleep(3);
 
-	  l2c_connect(&bd_addr);
-	}  
-	else if(Btif_gatt_layer)
+	l2c_connect(&bd_addr);
+    }
+    else if(Btif_gatt_layer)
     {
         Ret = sGattIfaceScan->client->connect(g_client_if_scan, &bd_addr, TRUE, transport);
     }
@@ -1442,11 +1442,11 @@ void do_le_client_multi_adv_set_inst_data(char *p)
     bool              SetScanRsp        = FALSE;
     bool              IncludeName        = FALSE;
     bool              IncludeTxPower    = FALSE;
-   
+
     SetScanRsp         = get_int(&p, -1);  // arg1  Other than zero will be considered as true.
     IncludeName     = get_int(&p, -1);  // arg2  Other than zero will be considered as true.
     IncludeTxPower     = get_int(&p, -1);  // arg3  Other than zero will be considered as true.
-   
+
     //To start with we are going with hard-code values.
     Ret = sGattIfaceScan->client->multi_adv_set_inst_data(g_client_if_scan /*g_client_if_scan*/, SetScanRsp, IncludeName, IncludeTxPower,0,8, "QUALCOMM", 0, NULL,0,NULL);
 }
@@ -1455,18 +1455,18 @@ void do_le_client_adv_update(char *p)
 {
     bt_status_t        Ret;
     int               TxPower    = 3;
-	int 			  chnlMap    = 7;	
+	int 			  chnlMap    = 7;
     int               min_interval = 160;
     int               max_interval = 240;
-	int 			  adv_type    = 3 ;//non-connectable undirect  	
+	int 			  adv_type    = 3 ;//non-connectable undirect
     int               adv_if   =  g_server_if_scan;
 
-	adv_if       =  get_int(&p, -1);   
+	adv_if       =  get_int(&p, -1);
     min_interval =  get_int(&p, -1);
     max_interval =  get_int(&p, -1);
 	adv_type     =  get_int(&p, -1);
 	chnlMap      =  get_int(&p, -1);
-	TxPower      =  get_int(&p, -1); 
+	TxPower      =  get_int(&p, -1);
     //To start with we are going with hard-code values.
     Ret = sGattIfaceScan->client->multi_adv_update(adv_if, min_interval, max_interval,adv_type,chnlMap,TxPower);
 }
@@ -1475,13 +1475,13 @@ void do_le_client_adv_enable(char *p)
 {
     bt_status_t        Ret;
     int               TxPower    = 4;
-	int 			  chnlMap    = 7;	
+	int 			  chnlMap    = 7;
     int               min_interval = 48;
     int               max_interval = 96;
-	int 			  adv_type    = 0; //connectable undirect  
+	int 			  adv_type    = 0; //connectable undirect
     int 			  adv_if   =  g_server_if_scan;
-	
-	adv_if       =  get_int(&p, -1);   
+
+	adv_if       =  get_int(&p, -1);
 	min_interval =  get_int(&p, -1);
     max_interval =  get_int(&p, -1);
 	adv_type     =  get_int(&p, -1);
@@ -1495,15 +1495,15 @@ void do_le_client_adv_disable(char *p)
 {
     bt_status_t        Ret;
 	 int 			  adv_if   =  g_server_if_scan;
-	
-	adv_if       =  get_int(&p, -1);   
+
+	adv_if       =  get_int(&p, -1);
     Ret = sGattIfaceScan->client->multi_adv_disable(adv_if);
     printf("%s:: Ret=%d \n", __FUNCTION__, Ret);
 }
 
 /*void do_set_adv_params(char *p)
 {
-   
+
         bt_bdaddr_t bd_addr = {{0}};
 	   int int_min = 0x0, int_max = 0x0, addr_type = 0;
 	   int_max = get_int(&p, -1);
@@ -1514,7 +1514,7 @@ void do_le_client_adv_disable(char *p)
 	   if(FALSE == GetBdAddr(p, &bd_addr))	  return;
        printf("%s:: \n", __FUNCTION__);
 	   sBtInterface->le_set_adv_params(int_min, int_max, &bd_addr, addr_type);
-        
+
 }*/
 
 
@@ -1893,13 +1893,15 @@ void do_l2cap_init(char *p)
 static int l2c_pair(char *p)
 {
     bt_bdaddr_t bd_addr = {{0}};
+    int transport = BT_TRANSPORT_BR_EDR;
+    transport = get_int(&p, -1);
     GetBdAddr(p, &bd_addr);
-    if(BT_STATUS_SUCCESS != sBtInterface->create_bond(&bd_addr))
+    if(BT_STATUS_SUCCESS != sBtInterface->create_bond(&bd_addr,transport))
     {
         printf("Failed to Initiate Pairing \n");
         return FALSE;
     }
-     sleep(20);   
+     sleep(20);
      return TRUE;
 }
 
@@ -2246,10 +2248,10 @@ int main (int argc, char * argv[])
 
     bdt_log("Get L2CAP IF");
     sL2capInterface        = sBtInterface->get_testapp_interface(TEST_APP_L2CAP);
-	
+
     sGattIfaceScan->init(&sGatt_cb);
     bdt_log("GATT IF INIT Done");
-    
+
 	printf("\n Before l2cap init\n");
 	 do_l2cap_init(NULL);
 	printf("\n after l2cap init\n");
