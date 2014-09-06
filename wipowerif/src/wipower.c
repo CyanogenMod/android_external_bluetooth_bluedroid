@@ -440,7 +440,8 @@ int enable_data_notify(bool enable)
         }
     }
     else {
-        timer_delete(wp_data_timer);
+        if (wp_data_timer != 0)
+            timer_delete(wp_data_timer);
     }
 
     return status;
