@@ -411,11 +411,16 @@ void srvc_eng_release_channel (UINT16 conn_id)
 {
     tSRVC_CLCB *p_clcb =  srvc_eng_find_clcb_by_conn_id(conn_id);
 
+    if (p_clcb == NULL)
+    {
+        GATT_TRACE_ERROR("%s: invalid connection id %d", __FUNCTION__, conn_id);
+        return;
+    }
+
     p_clcb->cur_srvc_id = SRVC_ID_NONE;
 
     /* check pending request */
-    //if (p_clcb->pend_req == NULL)
-        GATT_Disconnect(p_clcb->conn_id);
+    GATT_Disconnect(p_clcb->conn_id);
 }
 /*******************************************************************************
 **
