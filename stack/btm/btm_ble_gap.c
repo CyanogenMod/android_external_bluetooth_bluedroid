@@ -3009,6 +3009,8 @@ void btm_ble_read_remote_features_complete(UINT8 *p)
             if ((p_acl_cb->in_use) && (p_acl_cb->hci_handle == handle))
             {
                 STREAM_TO_ARRAY(p_acl_cb->peer_le_features, p, BD_FEATURES_LEN);
+                /* notify link up here */
+                btm_establish_continue(p_acl_cb);
                 l2cble_notify_le_connection (p_acl_cb->remote_addr);
                 break;
             }
