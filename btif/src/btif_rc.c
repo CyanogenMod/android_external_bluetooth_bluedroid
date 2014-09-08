@@ -2809,8 +2809,30 @@ static void cleanup()
     }
     memset(&btif_rc_cb, 0, sizeof(btif_rc_cb_t));
     lbl_destroy();
+    BTIF_TRACE_EVENT("## %s ## completed", __FUNCTION__);
 }
 
+/***************************************************************************
+**
+** Function         cleanup_ctrl
+**
+** Description      Closes the AVRC Controller interface
+**
+** Returns          void
+**
+***************************************************************************/
+static void cleanup_ctrl()
+{
+    BTIF_TRACE_EVENT("## %s ##", __FUNCTION__);
+
+    if (bt_rc_ctrl_callbacks)
+    {
+        bt_rc_ctrl_callbacks = NULL;
+    }
+    memset(&btif_rc_cb, 0, sizeof(btif_rc_cb_t));
+    lbl_destroy();
+    BTIF_TRACE_EVENT("## %s ## completed", __FUNCTION__);
+}
 
 static bt_status_t send_passthrough_cmd(bt_bdaddr_t *bd_addr, uint8_t key_code, uint8_t key_state)
 {
@@ -2874,7 +2896,7 @@ static const btrc_ctrl_interface_t bt_rc_ctrl_interface = {
     sizeof(bt_rc_ctrl_interface),
     init_ctrl,
     send_passthrough_cmd,
-    cleanup,
+    cleanup_ctrl,
 };
 
 /*******************************************************************************
