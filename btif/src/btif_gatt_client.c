@@ -65,6 +65,9 @@
         BTIF_TRACE_DEBUG("%s", __FUNCTION__);\
     }
 
+#define BLE_RESOLVE_ADDR_MSB                 0x40   /* bit7, bit6 is 01 to be resolvable random */
+#define BLE_RESOLVE_ADDR_MASK                0xc0   /* bit 6, and bit7 */
+#define BTM_BLE_IS_RESOLVE_BDA(x)           ((x[0] & BLE_RESOLVE_ADDR_MASK) == BLE_RESOLVE_ADDR_MSB)
 
 typedef enum {
     BTIF_GATTC_REGISTER_APP = 1000,
@@ -1116,7 +1119,23 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
             // Mark background connections
             if (!p_cb->is_direct)
+            {
+                // Check if RPA offloading is supported, otherwise, do not start
+                // background connection, since it will not connect after address
+                // changes
+                if (BTM_BLE_IS_RESOLVE_BDA(p_cb->bd_addr.address))
+                {
+                    tBTM_BLE_VSC_CB vnd_capabilities;
+                    BTM_BleGetVendorCapabilities(&vnd_capabilities);
+                    if (!vnd_capabilities.rpa_offloading)
+                    {
+                        HAL_CBACK(bt_gatt_callbacks, client->open_cb, 0, BT_STATUS_UNSUPPORTED,
+                                        p_cb->client_if, &p_cb->bd_addr);
+                        return;
+                    }
+                }
                 BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
+            }
 
             switch(device_type)
             {
