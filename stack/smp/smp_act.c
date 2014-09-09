@@ -648,7 +648,8 @@ void smp_proc_discard(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     UNUSED(p_data);
 
     SMP_TRACE_DEBUG ("smp_proc_discard ");
-    smp_reset_control_value(p_cb);
+    if (!(p_cb->flags & SMP_PAIR_FLAGS_WE_STARTED_DD))
+        smp_reset_control_value(p_cb);
 }
 /*******************************************************************************
 ** Function     smp_proc_release_delay
