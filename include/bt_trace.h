@@ -91,6 +91,7 @@
 #define BTTRC_ID_STK_CE                    51
 #define BTTRC_ID_STK_SNEP                  52
 #define BTTRC_ID_STK_NDEF                  53
+#define BTTRC_ID_STK_HIDD                  54
 
 
 /* LayerIDs for BTA */
@@ -601,6 +602,7 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 #define HIDD_TRACE_API(...)                       {if (hd_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_API, ##__VA_ARGS__);}
 #define HIDD_TRACE_EVENT(...)                     {if (hd_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_EVENT, ##__VA_ARGS__);}
 #define HIDD_TRACE_DEBUG(...)                     {if (hd_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
+#define HIDD_TRACE_VERBOSE(...)                   {if (hd_cb.trace_level >= BT_TRACE_LEVEL_VERBOSE) BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 
 /* define traces for BNEP */
 
@@ -735,6 +737,14 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 #define HIDH_TRACE_EVENT(...)
 #define HIDH_TRACE_DEBUG(...)
 #define HIDH_TRACE_VERBOSE(...)
+
+/* define traces for HID Device */
+#define HIDD_TRACE_ERROR(...)
+#define HIDD_TRACE_WARNING(...)
+#define HIDD_TRACE_API(...)
+#define HIDD_TRACE_EVENT(...)
+#define HIDD_TRACE_DEBUG(...)
+#define HIDD_TRACE_VERBOSE(...)
 
 /* define traces for BNEP */
 

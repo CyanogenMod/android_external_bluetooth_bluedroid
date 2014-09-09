@@ -32,8 +32,8 @@
 #include "l2c_api.h"
 
 enum {
-    HID_DEV_NO_CONN,
-    HID_DEV_CONNECTED
+    HIDD_DEV_NO_CONN,
+    HIDD_DEV_CONNECTED
 };
 
 typedef struct device_ctb

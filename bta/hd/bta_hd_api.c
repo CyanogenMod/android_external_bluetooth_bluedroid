@@ -201,7 +201,7 @@ BTA_API extern void BTA_HdSendReport(tBTA_HD_REPORT *p_report)
 {
     tBTA_HD_SEND_REPORT *p_buf;
 
-    APPL_TRACE_API("%s", __FUNCTION__);
+    APPL_TRACE_VERBOSE("%s", __FUNCTION__);
 
     if ((p_buf = (tBTA_HD_SEND_REPORT *) GKI_getbuf(sizeof(tBTA_HD_SEND_REPORT))) != NULL)
     {

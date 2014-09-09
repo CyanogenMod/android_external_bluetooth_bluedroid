@@ -2705,11 +2705,11 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 
 /* HID Device Role Included */
 #ifndef HID_DEV_INCLUDED
-#define HID_DEV_INCLUDED             FALSE
+#define HID_DEV_INCLUDED             TRUE
 #endif
 
 #ifndef HID_DEV_PM_INCLUDED
-#define HID_DEV_PM_INCLUDED         TRUE
+#define HID_DEV_PM_INCLUDED         FALSE
 #endif
 
 /* The HID Device is a virtual cable */

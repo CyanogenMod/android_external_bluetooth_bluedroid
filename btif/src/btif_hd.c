@@ -489,7 +489,7 @@ static bt_status_t send_report(bthd_report_type_t type, uint8_t id, uint16_t len
 {
     tBTA_HD_REPORT report;
 
-    BTIF_TRACE_API("%s: type=%d id=%d len=%d", __FUNCTION__, type, id, len);
+    APPL_TRACE_VERBOSE("%s: type=%d id=%d len=%d", __FUNCTION__, type, id, len);
 
     if (!btif_hd_cb.app_registered)
     {

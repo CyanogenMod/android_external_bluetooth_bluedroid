@@ -359,7 +359,7 @@ extern void bta_hd_send_report_act(tBTA_HD_DATA *p_data)
     UINT8 channel;
     UINT8 report_id;
 
-    APPL_TRACE_API("%s", __FUNCTION__);
+    APPL_TRACE_VERBOSE("%s", __FUNCTION__);
 
     channel = p_report->use_intr ? HID_CHANNEL_INTR : HID_CHANNEL_CTRL ;
     report_id = (bta_hd_cb.use_report_id  || bta_hd_cb.boot_mode) ? p_report->id : 0x00;

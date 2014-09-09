@@ -301,7 +301,6 @@ static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 p
 *******************************************************************************/
 void hidh_proc_repage_timeout (TIMER_LIST_ENT *p_tle)
 {
-    HIDH_TRACE_VERBOSE ("HID-Host repage timeout");
     hidh_conn_initiate( (UINT8) p_tle->param ) ;
     hh_cb.devices[p_tle->param].conn_tries++;
     hh_cb.callback( (UINT8) p_tle->param, hh_cb.devices[p_tle->param].addr,
@@ -344,7 +343,6 @@ void hidh_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, voi
 
     if( res != BTM_SUCCESS && p_dev->conn.conn_state == HID_CONN_STATE_SECURITY )
     {
-        HIDH_TRACE_WARNING ("HID-Host Originator security failed, res = %d", res);
 #if (HID_HOST_MAX_CONN_RETRY > 0)
         if( res == BTM_DEVICE_TIMEOUT )
         {
@@ -381,9 +379,6 @@ static void hidh_l2cif_connect_cfm (UINT16 l2cap_cid, UINT16 result)
     UINT32  reason;
     tHID_HOST_DEV_CTB *p_dev = NULL;
 
-    HIDH_TRACE_VERBOSE ("HID-Host Rcvd conn cnf, CID 0x%x, result = %d ",
-        l2cap_cid, result);
-
     /* Find CCB based on CID, and verify we are in a state to accept this message */
     if( (dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES )
     {
@@ -408,7 +403,6 @@ static void hidh_l2cif_connect_cfm (UINT16 l2cap_cid, UINT16 result)
         else
             p_hcon->intr_cid = 0;
 
-        HIDH_TRACE_WARNING ("HID-Host Rcvd L2CAP cfg ind failed, result = %d", result);
         hidh_conn_disconnect(dhandle);
 
 #if (HID_HOST_MAX_CONN_RETRY > 0)
@@ -568,7 +562,6 @@ static void hidh_l2cif_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     {
         hidh_conn_disconnect (dhandle);
         reason = HID_L2CAP_CFG_FAIL | (UINT32) p_cfg->result ;
-        HIDH_TRACE_WARNING ("HID-Host Rcvd L2CAP cfg ind failed, result = %d", p_cfg->result);
         hh_cb.callback( dhandle, hh_cb.devices[dhandle].addr, HID_HDEV_EVT_CLOSE, reason, NULL ) ;
         return;
     }
@@ -668,7 +661,6 @@ static void hidh_l2cif_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
         {
             hh_cb.devices[dhandle].conn_tries = 0;
             hh_cb.devices[dhandle].conn.timer_entry.param = (UINT32) dhandle;
-            HIDH_TRACE_VERBOSE ("HID-Host Conn Timeout, starting timer for reconnecting..");
             btu_start_timer (&(hh_cb.devices[dhandle].conn.timer_entry), BTU_TTYPE_HID_HOST_REPAGE_TO, HID_HOST_REPAGE_WIN);
             hh_cb.callback( dhandle,  hh_cb.devices[dhandle].addr, HID_HDEV_EVT_CLOSE, disc_res, NULL);
         }
@@ -850,8 +842,7 @@ static void hidh_l2cif_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
 
 
     case HID_TRANS_DATA:
-        HIDH_TRACE_VERBOSE ("HID-Host hidh_l2cif_data_ind [l2cap_cid=0x%04x], ttype=%02x]",
-            l2cap_cid, ttype);
+        HIDH_TRACE_VERBOSE ("HID-Host hidh_l2cif_data_ind [l2cap_cid=0x%04x], ttype=%02x]", l2cap_cid, ttype);
         evt = (hh_cb.devices[dhandle].conn.intr_cid == l2cap_cid) ?
                     HID_HDEV_EVT_INTR_DATA : HID_HDEV_EVT_CTRL_DATA;
         hh_cb.callback(dhandle, hh_cb.devices[dhandle].addr, evt, rep_type, p_msg);
@@ -1026,13 +1017,8 @@ tHID_STATUS hidh_conn_initiate (UINT8 dhandle)
 
     tHID_HOST_DEV_CTB *p_dev = &hh_cb.devices[dhandle];
 
-    HIDH_TRACE_VERBOSE ("HID-Host hidh_conn_initiate");
-
     if( p_dev->conn.conn_state != HID_CONN_STATE_UNUSED )
-    {
-        HIDH_TRACE_WARNING ("HID-Host: connection already in progress");
         return( HID_ERR_CONN_IN_PROCESS );
-    }
 
     p_dev->conn.ctrl_cid = 0;
     p_dev->conn.intr_cid = 0;
@@ -1090,7 +1076,6 @@ static UINT8 find_conn_by_cid (UINT16 cid)
 
 void hidh_conn_dereg( void )
 {
-    HIDH_TRACE_VERBOSE ("HID-Host hidh_conn_dereg");
     L2CA_Deregister (HID_PSM_CONTROL);
     L2CA_Deregister (HID_PSM_INTERRUPT);
 }
@@ -1108,7 +1093,6 @@ static void hidh_conn_retry(  UINT8 dhandle )
 {
     tHID_HOST_DEV_CTB *p_dev = &hh_cb.devices[dhandle];
 
-    HIDH_TRACE_VERBOSE ("HID-Host hidh_conn_retry");
     p_dev->conn.conn_state = HID_CONN_STATE_UNUSED;
     p_dev->conn.timer_entry.param = (UINT32) dhandle;
 #if (HID_HOST_REPAGE_WIN > 0)

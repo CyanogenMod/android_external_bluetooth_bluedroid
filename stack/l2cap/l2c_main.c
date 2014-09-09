@@ -180,8 +180,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     /* Extract the length and update the buffer header */
     STREAM_TO_UINT16 (hci_len, p);
     p_msg->offset += 4;
-    L2CAP_TRACE_VERBOSE("%s: received packet from handle(%04x) of len (%d)",
-        __FUNCTION__, handle, hci_len);
+    L2CAP_TRACE_VERBOSE("%s: received packet from handle(%04x) of len (%d)", __FUNCTION__, handle, hci_len);
 
 #if (L2CAP_HOST_FLOW_CTRL == TRUE)
     /* Send ack if we hit the threshold */

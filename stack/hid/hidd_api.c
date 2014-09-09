@@ -52,11 +52,30 @@ tHID_DEV_CTB   hd_cb;
 *******************************************************************************/
 void HID_DevInit(void)
 {
+    UINT8 log_level = hd_cb.trace_level;
+
     HIDD_TRACE_API("%s", __FUNCTION__);
 
     memset(&hd_cb, 0, sizeof(tHID_DEV_CTB));
+    hd_cb.trace_level = log_level;
+}
 
-    hd_cb.trace_level = BT_TRACE_LEVEL_API;
+/*******************************************************************************
+**
+** Function         HID_DevSetTraceLevel
+**
+** Description      This function sets the trace level for HID Dev. If called with
+**                  a value of 0xFF, it simply reads the current trace level.
+**
+** Returns          the new (current) trace level
+**
+*******************************************************************************/
+UINT8 HID_DevSetTraceLevel (UINT8 new_level)
+{
+    if (new_level != 0xFF)
+        hd_cb.trace_level = new_level;
+
+    return (hd_cb.trace_level);
 }
 
 /*******************************************************************************
@@ -373,7 +392,7 @@ tHID_STATUS HID_DevAddRecord(UINT32 handle, char *p_name, char *p_description, c
 *******************************************************************************/
 tHID_STATUS HID_DevSendReport(UINT8 channel, UINT8 type, UINT8 id, UINT16 len, UINT8 *p_data)
 {
-    HIDD_TRACE_API("%s: channel=%d type=%d id=%d len=%d", __FUNCTION__, channel, type, id, len);
+    HIDD_TRACE_VERBOSE("%s: channel=%d type=%d id=%d len=%d", __FUNCTION__, channel, type, id, len);
 
     if (channel == HID_CHANNEL_CTRL)
     {
@@ -465,7 +484,7 @@ tHID_STATUS HID_DevConnect(void)
         return HID_ERR_INVALID_PARAM;
     }
 
-    if (hd_cb.device.state != HID_DEV_NO_CONN)
+    if (hd_cb.device.state != HIDD_DEV_NO_CONN)
     {
         return HID_ERR_ALREADY_CONN;
     }
@@ -494,7 +513,7 @@ tHID_STATUS HID_DevDisconnect(void)
         return HID_ERR_INVALID_PARAM;
     }
 
-    if (hd_cb.device.state == HID_DEV_NO_CONN)
+    if (hd_cb.device.state == HIDD_DEV_NO_CONN)
     {
         return HID_ERR_NO_CONNECTION;
     }

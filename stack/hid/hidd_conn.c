@@ -45,9 +45,6 @@
 #include "hidd_int.h"
 #include "bt_utils.h"
 
-// uncomment following to enable log when report is sent to L2CAP (for measurements)
-//#define REPORT_TRANSFER_TIMESTAMP
-
 static void hidd_l2cif_connect_ind(BD_ADDR  bd_addr, UINT16 cid, UINT16 psm, UINT8 id);
 static void hidd_l2cif_connect_cfm(UINT16 cid, UINT16 result);
 static void hidd_l2cif_config_ind(UINT16 cid, tL2CAP_CFG_INFO *p_cfg);
@@ -92,7 +89,7 @@ static void hidd_check_config_done()
     {
         p_hcon->conn_state = HID_CONN_STATE_CONNECTED;
 
-        hd_cb.device.state = HID_DEV_CONNECTED;
+        hd_cb.device.state = HIDD_DEV_CONNECTED;
 
         hd_cb.callback(hd_cb.device.addr, HID_DHOST_EVT_OPEN, 0, NULL);
 
@@ -216,7 +213,7 @@ static void hidd_l2cif_connect_ind(BD_ADDR  bd_addr, UINT16 cid, UINT16 psm, UIN
     {
         p_dev->in_use = TRUE;
         memcpy(p_dev->addr, bd_addr, sizeof(BD_ADDR));
-        p_dev->state = HID_DEV_NO_CONN;
+        p_dev->state = HIDD_DEV_NO_CONN;
     }
 
     p_hcon = &hd_cb.device.conn;
@@ -572,7 +569,7 @@ static void hidd_l2cif_disconnect_ind(UINT16 cid, BOOLEAN ack_needed)
             hd_cb.pending_data = NULL;
         }
 
-        hd_cb.device.state = HID_DEV_NO_CONN;
+        hd_cb.device.state = HIDD_DEV_NO_CONN;
         p_hcon->conn_state = HID_CONN_STATE_UNUSED;
 
         hd_cb.callback(hd_cb.device.addr, HID_DHOST_EVT_CLOSE, p_hcon->disc_reason, NULL);
@@ -619,7 +616,7 @@ static void hidd_l2cif_disconnect_cfm(UINT16 cid, UINT16 result)
     {
         HIDD_TRACE_EVENT("%s: INTR and CTRL disconnected", __FUNCTION__);
 
-        hd_cb.device.state = HID_DEV_NO_CONN;
+        hd_cb.device.state = HIDD_DEV_NO_CONN;
         p_hcon->conn_state = HID_CONN_STATE_UNUSED;
 
         if (hd_cb.pending_vc_unplug)
@@ -948,9 +945,9 @@ tHID_STATUS hidd_conn_send_data(UINT8 channel, UINT8 msg_type, UINT8 param,
     BOOLEAN   use_intr;
     UINT8     pool_id;
     UINT16    cid;
-#ifdef REPORT_TRANSFER_TIMESTAMP
-    BOOLEAN   report_transfer = FALSE;
-#endif
+
+    HIDD_TRACE_VERBOSE("%s: channel(%d), msg_type(%d), len(%d)",
+        __FUNCTION__, channel, msg_type, len);
 
     p_hcon = &hd_cb.device.conn;
 
@@ -976,9 +973,6 @@ tHID_STATUS hidd_conn_send_data(UINT8 channel, UINT8 msg_type, UINT8 param,
         {
             cid = p_hcon->intr_cid;
             pool_id = HID_INTERRUPT_POOL_ID;
-#ifdef REPORT_TRANSFER_TIMESTAMP
-            report_transfer = TRUE;
-#endif
         }
         break;
     default:
@@ -1013,7 +1007,7 @@ tHID_STATUS hidd_conn_send_data(UINT8 channel, UINT8 msg_type, UINT8 param,
     }
 
     // check if connected
-    if (hd_cb.device.state != HID_DEV_CONNECTED)
+    if (hd_cb.device.state != HIDD_DEV_CONNECTED)
     {
         // for DATA on intr we hold transfer and try to reconnect
         if (msg_type == HID_TRANS_DATA && cid == p_hcon->intr_cid)
@@ -1043,6 +1037,7 @@ tHID_STATUS hidd_conn_send_data(UINT8 channel, UINT8 msg_type, UINT8 param,
         HIDD_TRACE_ERROR("%s: report sent", __FUNCTION__);
     }
 #endif
+    HIDD_TRACE_VERBOSE("%s: report sent", __FUNCTION__);
 
     if (!L2CA_DataWrite (cid, p_buf))
         return (HID_ERR_CONGESTED);
