@@ -414,7 +414,7 @@ void rfc_inc_credit (tPORT *p_port, UINT8 credit)
     {
         p_port->credit_tx += credit;
 
-        RFCOMM_TRACE_WARNING1 ("rfc_inc_credit:%d", p_port->credit_tx);
+        RFCOMM_TRACE_DEBUG1 ("rfc_inc_credit:%d", p_port->credit_tx);
 
         if (p_port->tx.peer_fc == TRUE)
             PORT_FlowInd(p_port->rfc.p_mcb, p_port->dlci, TRUE);
@@ -438,7 +438,7 @@ void rfc_dec_credit (tPORT *p_port)
     {
         if (p_port->credit_tx > 0)
             p_port->credit_tx--;
-        RFCOMM_TRACE_WARNING1 ("rfc_dec_credit:%d", p_port->credit_tx);
+        RFCOMM_TRACE_DEBUG1 ("rfc_dec_credit:%d", p_port->credit_tx);
 
         if (p_port->credit_tx == 0)
             p_port->tx.peer_fc = TRUE;
