@@ -614,6 +614,11 @@ void btm_ble_vendor_irk_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec)
     if (btm_cb.cmn_ble_vsc_cb.max_irk_list_sz == 0)
         return;
 
+    if(p_cs_cb->irk_list == 0)
+    {
+        BTM_TRACE_ERROR("IRK list is null ..returning ");
+        return;
+    }
     if ((p_irk_entry = btm_ble_vendor_find_irk_entry_by_psuedo_addr(p_dev_rec->bd_addr)) != NULL &&
         btm_ble_vendor_find_irk_pending_entry(p_dev_rec->bd_addr, FALSE) == FALSE)
     {
