@@ -851,9 +851,10 @@ void bta_gattc_reset_discover_st(tBTA_GATTC_SERV *p_srcb, tBTA_GATT_STATUS statu
 void bta_gattc_disc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     APPL_TRACE_DEBUG("Discovery cancel conn_id=%d",p_clcb->bta_conn_id);
-
-    bta_gattc_reset_discover_st(p_clcb->p_srcb, BTA_GATT_ERROR);
-    bta_gattc_sm_execute(p_clcb, BTA_GATTC_API_CLOSE_EVT, p_data);
+    if (p_clcb->disc_active)
+        bta_gattc_reset_discover_st(p_clcb->p_srcb, BTA_GATT_ERROR);
+    else
+        p_clcb->state = BTA_GATTC_CONN_ST;
 }
 /*******************************************************************************
 **
@@ -978,6 +979,8 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
                 APPL_TRACE_ERROR("discovery on server failed");
                 bta_gattc_reset_discover_st(p_clcb->p_srcb, p_clcb->status);
             }
+            else
+                p_clcb->disc_active = TRUE;
         }
         else
         {
@@ -1015,6 +1018,7 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         L2CA_EnableUpdateBleConnParams(p_clcb->p_srcb->server_bda, TRUE);
 #endif
     p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
+    p_clcb->disc_active = FALSE;
 
     if (p_clcb->status != GATT_SUCCESS)
     {
