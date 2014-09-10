@@ -3794,7 +3794,7 @@ The maximum number of payload octets that the local device can receive in a sing
 
 /* TEST_APP_INTERFACE */
 #ifndef TEST_APP_INTERFACE
-#define TEST_APP_INTERFACE           FALSE
+#define TEST_APP_INTERFACE           TRUE
 #endif
 
 /* When TRUE remote terminal code included (RPC MUST be included) */

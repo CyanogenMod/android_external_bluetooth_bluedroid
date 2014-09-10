@@ -1,4 +1,3 @@
-ifeq (TEST_APP_INTERFACE, TRUE)
 LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
@@ -49,4 +48,3 @@ LOCAL_SHARED_LIBRARIES += libcutils   \
 LOCAL_MULTILIB := 32
 
 include $(BUILD_EXECUTABLE)
-endif
