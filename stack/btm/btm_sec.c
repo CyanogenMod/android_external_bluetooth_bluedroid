@@ -4743,7 +4743,7 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
 
 #if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
     p_dev_rec->enc_key_size = 0;
-    btm_ble_update_mode_operation(HCI_ROLE_UNKNOWN, p_dev_rec->bd_addr, FALSE);
+    btm_ble_update_mode_operation(HCI_ROLE_UNKNOWN, p_dev_rec->bd_addr, HCI_SUCCESS);
     /* see sec_flags processing in btm_acl_removed */
 
     if (transport == BT_TRANSPORT_LE)

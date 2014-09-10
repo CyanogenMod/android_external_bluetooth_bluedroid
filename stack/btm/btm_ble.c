@@ -1640,7 +1640,7 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
 #endif
     UINT8       role, status, bda_type;
     UINT16      handle;
-    BD_ADDR     bda;
+    BD_ADDR     bda = {0};
     UINT16      conn_interval, conn_latency, conn_timeout;
     BOOLEAN     match = FALSE;
     UNUSED(evt_len);
@@ -1706,9 +1706,23 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
         }
     }
     btm_ble_set_conn_st(BLE_CONN_IDLE);
-    btm_ble_update_mode_operation(role, bda, TRUE);
+    btm_ble_update_mode_operation(role, bda, status);
 }
 
+/*****************************************************************************
+** Function btm_ble_create_ll_conn_complete
+**
+** Description LE connection complete.
+**
+******************************************************************************/
+void btm_ble_create_ll_conn_complete (UINT8 status)
+{
+    if (status != 0)
+    {
+        btm_ble_set_conn_st(BLE_CONN_IDLE);
+        btm_ble_update_mode_operation(HCI_ROLE_UNKNOWN, NULL, status);
+    }
+}
 /*****************************************************************************
 **  Function        btm_proc_smp_cback
 **

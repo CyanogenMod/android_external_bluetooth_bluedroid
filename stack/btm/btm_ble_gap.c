@@ -2844,14 +2844,13 @@ BOOLEAN btm_ble_clear_topology_mask (tBTM_BLE_STATE_MASK request_state_mask)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_update_mode_operation(UINT8 link_role, BD_ADDR bd_addr, BOOLEAN conn_cancel)
+void btm_ble_update_mode_operation(UINT8 link_role, BD_ADDR bd_addr, UINT8 status)
 {
     tACL_CONN   *pa = &btm_cb.acl_db[0];
     UINT16       xx;
     UINT16       mask = BTM_BLE_STATE_ALL_CONN_MASK;
 
     UNUSED(bd_addr);
-    UNUSED (conn_cancel);
 
     if (link_role == HCI_ROLE_SLAVE)
     {
@@ -2880,7 +2879,7 @@ void btm_ble_update_mode_operation(UINT8 link_role, BD_ADDR bd_addr, BOOLEAN con
         btm_ble_set_connectability ( btm_cb.ble_ctr_cb.inq_var.connectable_mode );
     }
 
-    if (btm_ble_get_conn_st() == BLE_CONN_IDLE)
+    if (btm_ble_get_conn_st() == BLE_CONN_IDLE && status != HCI_ERR_HOST_REJECT_RESOURCES)
     {
         if (!btm_send_pending_direct_conn())
         {
