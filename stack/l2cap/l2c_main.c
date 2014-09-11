@@ -267,8 +267,12 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
              (l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb != NULL) )
     {
         /* If no CCB for this channel, allocate one */
-        if (l2cu_initialize_fixed_ccb (p_lcb, rcv_cid, &l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].fixed_chnl_opts))
+        if (p_lcb && l2cu_initialize_fixed_ccb (p_lcb, rcv_cid,
+                &l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].fixed_chnl_opts))
         {
+#if(defined BLE_INCLUDED && (BLE_INCLUDED == TRUE))
+            l2cble_notify_le_connection(p_lcb->remote_bd_addr);
+#endif
             p_ccb = p_lcb->p_fixed_ccbs[rcv_cid - L2CAP_FIRST_FIXED_CHNL];
 
             if (p_ccb->peer_cfg.fcr.mode != L2CAP_FCR_BASIC_MODE)

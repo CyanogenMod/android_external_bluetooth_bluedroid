@@ -132,6 +132,9 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     p_lcb->in_use     = FALSE;
     p_lcb->is_bonding = FALSE;
 
+#if (BLE_INCLUDED == TRUE)
+    btu_stop_timer(&p_lcb->conn_param_enb);
+#endif
     /* Stop timers */
     btu_stop_timer (&p_lcb->timer_entry);
     btu_stop_timer (&p_lcb->info_timer_entry);
@@ -2899,13 +2902,16 @@ void l2cu_process_fixed_disc_cback (tL2C_LCB *p_lcb)
     {
         if (p_lcb->p_fixed_ccbs[xx])
         {
-            l2cu_release_ccb (p_lcb->p_fixed_ccbs[xx]);
-            p_lcb->p_fixed_ccbs[xx] = NULL;
+            if (p_lcb->p_fixed_ccbs[xx] != p_lcb->p_pending_ccb)
+            {
+                l2cu_release_ccb (p_lcb->p_fixed_ccbs[xx]);
+                p_lcb->p_fixed_ccbs[xx] = NULL;
 #if BLE_INCLUDED == TRUE
             (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
 #else
             (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
 #endif
+           }
         }
         else if ( (p_lcb->peer_chnl_mask[0] & (1 << (xx + L2CAP_FIRST_FIXED_CHNL)))
                && (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL) )

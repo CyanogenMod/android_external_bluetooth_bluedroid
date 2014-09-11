@@ -947,15 +947,14 @@ tBTA_GATTC_CLCB * bta_gattc_find_int_disconn_clcb(tBTA_GATTC_DATA *p_msg)
     tGATT_DISCONN_REASON    reason = p_msg->int_conn.reason;
 
     bta_gattc_conn_dealloc(p_msg->int_conn.remote_bda);
-    /* connection attempt timeout, send connection callback event */
-    if (reason == GATT_CONN_CANCEL || reason == GATT_CONN_L2C_FAILURE
-        || reason == GATT_CONN_FAIL_ESTABLISH)
+    if ((p_clcb = bta_gattc_find_clcb_by_conn_id(p_msg->int_conn.hdr.layer_specific)) == NULL)
     {
+        /* connection attempt failed, send connection callback event */
         p_clcb = bta_gattc_find_clcb_by_cif(p_msg->int_conn.client_if,
                                             p_msg->int_conn.remote_bda,
                                             p_msg->int_conn.transport);
     }
-    else if ((p_clcb = bta_gattc_find_clcb_by_conn_id(p_msg->int_conn.hdr.layer_specific)) == NULL)
+    if (p_clcb == NULL)
     {
         APPL_TRACE_DEBUG(" disconnection ID: [%d] not used by BTA",
             p_msg->int_conn.hdr.layer_specific);

@@ -418,38 +418,40 @@ BOOLEAN l2c_link_hci_disc_comp (UINT16 handle, UINT8 reason)
          */
         if (p_lcb->ccb_queue.p_first_ccb != NULL || p_lcb->p_pending_ccb)
         {
-#if (L2CAP_NUM_FIXED_CHNLS > 0)
-            /* If we are going to re-use the LCB without dropping it, release all fixed channels here */
-            int         xx;
-            for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
-            {
-                if (p_lcb->p_fixed_ccbs[xx] && p_lcb->p_fixed_ccbs[xx] != p_lcb->p_pending_ccb)
-                {
+            L2CAP_TRACE_DEBUG("l2c_link_hci_disc_comp: Restarting pending ACL request");
 #if BLE_INCLUDED == TRUE
-                    (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE,
-                                                             p_lcb->disc_reason, p_lcb->transport);
+            /* for LE link, always drop and re-open to ensure to get LE remote feature */
+            if (p_lcb->transport == BT_TRANSPORT_LE)
+            {
+                l2cu_release_lcb (p_lcb);
+                p_lcb->in_use = TRUE;
+                transport = BT_TRANSPORT_LE;
+            }
+            else
+#endif
+       {
+          #if (L2CAP_NUM_FIXED_CHNLS > 0)
+          /* If we are going to re-use the LCB without dropping it, release all fixed channels
+          here */
+          int xx;
+          for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
+          {
+              if (p_lcb->p_fixed_ccbs[xx] && p_lcb->p_fixed_ccbs[xx] != p_lcb->p_pending_ccb)
+              {
+#if BLE_INCLUDED == TRUE
+                  (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE,
+                       p_lcb->disc_reason, p_lcb->transport);
 #else
-                    (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE,
-                                                          p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
+                  (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE,
+                       p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
 #endif
                     l2cu_release_ccb (p_lcb->p_fixed_ccbs[xx]);
 
                     p_lcb->p_fixed_ccbs[xx] = NULL;
-                }
-#if BLE_INCLUDED == TRUE
-                else if (p_lcb->p_fixed_ccbs[xx] && p_lcb->p_fixed_ccbs[xx] ==
-                                    p_lcb->p_pending_ccb)
-                {
-                    if (p_lcb->p_fixed_ccbs[xx]->local_cid >= L2CAP_ATT_CID &&
-                        p_lcb->p_fixed_ccbs[xx]->local_cid <= L2CAP_SMP_CID)
-                        transport = BT_TRANSPORT_LE;
-                }
+              }
+          }
 #endif
-
-            }
-#endif
-            L2CAP_TRACE_DEBUG("l2c_link_hci_disc_comp: Restarting pending ACL request");
-
+        }
             if (l2cu_create_conn(p_lcb, transport))
                 lcb_is_free = FALSE; /* still using this lcb */
         }

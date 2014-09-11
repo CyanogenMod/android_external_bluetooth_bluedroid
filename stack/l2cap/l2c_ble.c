@@ -280,9 +280,16 @@ UINT16 L2CA_GetDisconnectReason (BD_ADDR remote_bda, tBT_TRANSPORT transport)
 void l2cble_notify_le_connection (BD_ADDR bda)
 {
     tL2C_LCB *p_lcb = l2cu_find_lcb_by_bd_addr (bda, BT_TRANSPORT_LE);
+    tACL_CONN *p_acl = btm_bda_to_acl(bda, BT_TRANSPORT_LE) ;
 
-    if (p_lcb != NULL)
+    if (p_lcb != NULL && p_acl != NULL && p_lcb->link_state != LST_CONNECTED)
+    {
+        /* update link status */
+        btm_establish_continue(p_acl);
+        /* update l2cap link status and send callback */
+        p_lcb->link_state = LST_CONNECTED;
         l2cu_process_fixed_chnl_resp (p_lcb);
+    }
 }
 
 /*******************************************************************************
@@ -340,7 +347,6 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
     p_lcb->handle = handle;
 
     /* Connected OK. Change state to connected, we were scanning so we are master */
-    p_lcb->link_state = LST_CONNECTED;
     p_lcb->link_role  = HCI_ROLE_MASTER;
     p_lcb->transport  = BT_TRANSPORT_LE;
 
@@ -373,14 +379,7 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
     /* Tell BTM Acl management about the link */
     btm_acl_created (bda, NULL, p_dev_rec->sec_bd_name, handle, p_lcb->link_role, BT_TRANSPORT_LE);
 
-#if(defined(BTA_SKIP_BLE_READ_REMOTE_FEAT) && BTA_SKIP_BLE_READ_REMOTE_FEAT == TRUE)
-    {
-            l2cu_process_fixed_chnl_resp (p_lcb);
-    }
-#endif
-
     p_lcb->peer_chnl_mask[0] = L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
-
 
     btm_ble_set_conn_st(BLE_CONN_IDLE);
 }
@@ -434,7 +433,6 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
     p_lcb->handle = handle;
 
     /* Connected OK. Change state to connected, we were advertising, so we are slave */
-    p_lcb->link_state = LST_CONNECTED;
     p_lcb->link_role  = HCI_ROLE_SLAVE;
     p_lcb->transport  = BT_TRANSPORT_LE;
 
@@ -445,16 +443,11 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
 
     p_lcb->peer_chnl_mask[0] = L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
 
-#if (defined(BTA_SKIP_BLE_READ_REMOTE_FEAT) && BTA_SKIP_BLE_READ_REMOTE_FEAT == TRUE)
-    {
-        l2cu_process_fixed_chnl_resp (p_lcb);
-    }
-#else
     if (!HCI_LE_SLAVE_INIT_FEAT_EXC_SUPPORTED(btm_cb.devcb.local_le_features))
     {
+        p_lcb->link_state = LST_CONNECTED;
         l2cu_process_fixed_chnl_resp (p_lcb);
     }
-#endif
 
     /* when adv and initiating are both active, cancel the direct connection */
     if (l2cb.is_ble_connecting && memcmp(bda, l2cb.ble_connecting_bda, BD_ADDR_LEN) == 0)

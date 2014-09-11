@@ -374,15 +374,15 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                     &p->active_remote_addr_type);
 #endif
 
-#if (!defined(BTA_SKIP_BLE_READ_REMOTE_FEAT) || BTA_SKIP_BLE_READ_REMOTE_FEAT == FALSE)
                 if (HCI_LE_SLAVE_INIT_FEAT_EXC_SUPPORTED(btm_cb.devcb.local_le_features)
                     || link_role == HCI_ROLE_MASTER)
                 {
                     btsnd_hcic_ble_read_remote_feat(p->hci_handle);
                 }
                 else
-#endif
-                btm_establish_continue(p);
+                {
+                    btm_establish_continue(p);
+                }
             }
             else
 #endif
