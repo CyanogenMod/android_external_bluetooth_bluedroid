@@ -1495,6 +1495,11 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
                  BTA_DmSetDeviceName(btif_get_default_local_name());
              }
 
+#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
+             /* Enable local privacy */
+             BTA_DmBleConfigLocalPrivacy(TRUE);
+#endif
+
              /* for each of the enabled services in the mask, trigger the profile
               * enable */
              service_mask = btif_get_enabled_services_mask();
@@ -1517,12 +1522,6 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
              btif_storage_load_autopair_device_list();
 
              btif_enable_bluetooth_evt(p_data->enable.status, p_data->enable.bd_addr);
-
-             #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
-             /* Enable local privacy */
-             /*TODO  Should this call be exposed to JAVA...? */
-             BTA_DmBleConfigLocalPrivacy(TRUE);
-             #endif
         }
         break;
 
