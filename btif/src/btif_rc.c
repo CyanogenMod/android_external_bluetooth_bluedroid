@@ -171,7 +171,9 @@ static int  uinput_create(char *name);
 static int  init_uinput (void);
 static void close_uinput (void);
 static BOOLEAN dev_blacklisted_for_absolute_volume(BD_ADDR peer_dev);
-
+#if (AVRC_CTLR_INCLUDED == TRUE)
+static BOOLEAN conn_status = FALSE;
+#endif
 static const struct {
     const char *name;
     uint8_t avrcp;
@@ -532,8 +534,15 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
 #if (AVRC_CTLR_INCLUDED == TRUE)
         bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
         /* report connection state if device is AVRCP target */
-        if (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG) {
+        if (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG)
+        {
             HAL_CBACK(bt_rc_ctrl_callbacks, connection_state_cb, TRUE, &rc_addr);
+            conn_status = TRUE;
+        }
+        else
+        {
+            BTIF_TRACE_ERROR("RC connection state not updated to upper layer");
+            conn_status = FALSE;
         }
 #endif
     }
@@ -592,8 +601,10 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
     memset(btif_rc_cb.rc_addr, 0, sizeof(BD_ADDR));
 #if (AVRC_CTLR_INCLUDED == TRUE)
     /* report connection state if device is AVRCP target */
-    if (features & BTA_AV_FEAT_RCTG) {
+    if (features & BTA_AV_FEAT_RCTG)
+    {
         HAL_CBACK(bt_rc_ctrl_callbacks, connection_state_cb, FALSE, &rc_addr);
+        conn_status = FALSE;
     }
 #endif
 }
@@ -1181,6 +1192,17 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
             BTIF_TRACE_DEBUG("Peer_features:%x", p_data->rc_feat.peer_features);
             btif_rc_cb.rc_features = p_data->rc_feat.peer_features;
             handle_rc_features();
+#if (AVRC_CTLR_INCLUDED == TRUE)
+            bt_bdaddr_t rc_addr;
+            bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+            if (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG &&
+                btif_rc_cb.rc_connected == TRUE && conn_status == FALSE)
+            {
+                BTIF_TRACE_DEBUG("Update RC Connection State");
+                HAL_CBACK(bt_rc_ctrl_callbacks, connection_state_cb, TRUE, &rc_addr);
+                conn_status = TRUE;
+            }
+#endif
         }
         break;
         case BTA_AV_META_MSG_EVT:
