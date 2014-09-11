@@ -60,7 +60,7 @@
 #endif
 
 #define MAX_SERIAL_PORT (USERIAL_PORT_3 + 1)
-#define MAX_RETRIAL_CLOSE 10
+#define MAX_RETRIAL_CLOSE 50
 
 enum {
     USERIAL_RX_EXIT,
@@ -280,17 +280,18 @@ bool userial_init(void)
 bool userial_open(userial_port_t port)
 {
     int result;
-    userial_state = USERIAL_STATE_OPENING;
 
     USERIALDBG("userial_open(port:%d)", port);
 
     if (userial_running)
     {
+        USERIALDBG("userial_open: userial_running =1");
         /* Userial is open; close it first */
         userial_close();
         utils_delay(50);
     }
 
+    userial_state = USERIAL_STATE_OPENING;
     if (port >= MAX_SERIAL_PORT)
     {
         ALOGE("Port > MAX_SERIAL_PORT");
@@ -422,11 +423,14 @@ void userial_close(void)
 
     USERIALDBG("userial_close");
     userial_close_pending = TRUE;
-    while((userial_state == USERIAL_STATE_OPENING) || (i< MAX_RETRIAL_CLOSE))
+    while((userial_state == USERIAL_STATE_OPENING) && (i< MAX_RETRIAL_CLOSE))
     {
         usleep(200);
         i++;
     }
+
+    if (i == MAX_RETRIAL_CLOSE)
+        USERIALDBG("USERIAL CLOSE : Timeout in creating userial read thread");
 
     if (userial_running)
         send_wakeup_signal(USERIAL_RX_EXIT);
