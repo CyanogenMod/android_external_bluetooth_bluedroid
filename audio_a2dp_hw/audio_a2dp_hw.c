@@ -23,12 +23,9 @@
  *  Description:   Implements hal for bluedroid a2dp audio device
  *
  *****************************************************************************/
-//#define BT_AUDIO_SYSTRACE_LOG
-
-#ifdef BT_AUDIO_SYSTRACE_LOG
 #define ATRACE_TAG ATRACE_TAG_ALWAYS
-#define PERF_SYSTRACE 1
-#endif
+
+#define PERF_SYSTRACE perf_systrace_enabled()
 
 #include <errno.h>
 #include <inttypes.h>
@@ -43,6 +40,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cutils/str_parms.h>
+#include <cutils/properties.h>
 #include <cutils/sockets.h>
 
 #include <system/audio.h>
@@ -58,17 +56,12 @@
 /* #define LOG_NDEBUG 0 */
 #include <log/log.h>
 
-#ifdef BT_AUDIO_SYSTRACE_LOG
 #include <cutils/trace.h>
-#endif
 
-//#define BT_AUDIO_SAMPLE_LOG
 
-#ifdef BT_AUDIO_SAMPLE_LOG
 FILE *outputpcmsamplefile;
 char btoutputfilename [50] = "/data/audio/output_sample";
 static int number =0;
-#endif
 
 
 /*****************************************************************************
@@ -157,6 +150,19 @@ static size_t out_get_buffer_size(const struct audio_stream *stream);
 /*****************************************************************************
 **   Miscellaneous helper functions
 ******************************************************************************/
+
+int perf_systrace_enabled() {
+  char value[PROPERTY_VALUE_MAX] = {'\0'};
+  property_get("bt_audio_systrace_log", value, "false");
+  return (strcmp(value, "true") == 0);
+}
+
+int audio_sample_logging_enabled() {
+  char value[PROPERTY_VALUE_MAX] = {'\0'};
+  property_get("bt_audio_sample_log", value, "false");
+  return (strcmp(value, "true") == 0);
+}
+
 
 static const char* dump_a2dp_ctrl_event(char event)
 {
@@ -506,9 +512,6 @@ static int start_audio_datapath(struct a2dp_stream_common *common)
 {
     int oldstate = common->state;
     int a2dp_status;
-    #ifdef BT_AUDIO_SYSTRACE_LOG
-    char trace_buf[512];
-    #endif
 
     INFO("state %s", dump_a2dp_hal_state(common->state));
 
@@ -517,23 +520,20 @@ static int start_audio_datapath(struct a2dp_stream_common *common)
         return -1;
     }
 
-    #ifdef BT_AUDIO_SYSTRACE_LOG
-    snprintf(trace_buf, 32, "start_audio_data_path:");
     if (PERF_SYSTRACE)
     {
+        char trace_buf[512];
+        snprintf(trace_buf, 32, "start_audio_data_path:");
         ATRACE_BEGIN(trace_buf);
     }
-    #endif
 
     common->state = AUDIO_A2DP_STATE_STARTING;
     a2dp_status =  a2dp_command(common, A2DP_CTRL_CMD_START);
 
-    #ifdef BT_AUDIO_SYSTRACE_LOG
     if (PERF_SYSTRACE)
     {
         ATRACE_END();
     }
-    #endif
 
     if (a2dp_status < 0)
     {
@@ -644,9 +644,6 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
     int sent;
-    #ifdef BT_AUDIO_SYSTRACE_LOG
-    char trace_buf[512];
-    #endif
 
     DEBUG("write %zu bytes (fd %d)", bytes, out->common.audio_fd);
 
@@ -684,33 +681,31 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
         pthread_mutex_unlock(&out->common.lock);
         return -1;
     }
-    #ifdef BT_AUDIO_SAMPLE_LOG
-    if (outputpcmsamplefile)
-    {
-        fwrite (buffer,1,bytes,outputpcmsamplefile);
+
+    if (audio_sample_logging_enabled()) {
+        if (outputpcmsamplefile)
+        {
+            fwrite (buffer,1,bytes,outputpcmsamplefile);
+        }
     }
-    #endif
 
     ts_error_log("a2dp_out_write", bytes, out->common.buffer_sz, out->common.cfg);
 
     pthread_mutex_unlock(&out->common.lock);
 
-    #ifdef BT_AUDIO_SYSTRACE_LOG
-    snprintf(trace_buf, 32, "out_write:");
     if (PERF_SYSTRACE)
     {
+        char trace_buf[512];
+        snprintf(trace_buf, 32, "out_write:");
         ATRACE_BEGIN(trace_buf);
     }
-    #endif
 
     sent = skt_write(out->common.audio_fd, buffer,  bytes);
 
-    #ifdef BT_AUDIO_SYSTRACE_LOG
     if (PERF_SYSTRACE)
     {
         ATRACE_END();
     }
-    #endif
 
     if (sent == -1)
     {
@@ -1167,11 +1162,12 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
 
     if (!out)
         return -ENOMEM;
-    #ifdef BT_AUDIO_SAMPLE_LOG
-    snprintf(btoutputfilename, sizeof(btoutputfilename), "%s%d%s", btoutputfilename, number,".pcm");
-    outputpcmsamplefile = fopen (btoutputfilename, "ab");
-    number++;
-    #endif
+
+    if (audio_sample_logging_enabled()) {
+        snprintf(btoutputfilename, sizeof(btoutputfilename), "%s%d%s", btoutputfilename, number,".pcm");
+        outputpcmsamplefile = fopen (btoutputfilename, "ab");
+        number++;
+    }
 
     out->stream.common.get_sample_rate = out_get_sample_rate;
     out->stream.common.set_sample_rate = out_set_sample_rate;
@@ -1240,10 +1236,10 @@ static void adev_close_output_stream(struct audio_hw_device *dev,
     if ((out->common.state == AUDIO_A2DP_STATE_STARTED) || (out->common.state == AUDIO_A2DP_STATE_STOPPING))
         stop_audio_datapath(&out->common);
 
-    #ifdef BT_AUDIO_SAMPLE_LOG
-    ALOGV("close file output");
-    fclose (outputpcmsamplefile);
-    #endif
+    if (audio_sample_logging_enabled()) {
+        ALOGV("close file output");
+        fclose (outputpcmsamplefile);
+    }
 
     skt_disconnect(out->common.ctrl_fd);
     free(stream);
