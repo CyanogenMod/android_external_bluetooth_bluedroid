@@ -718,7 +718,7 @@ typedef struct
     BT_HDR                          hdr;
     UINT8                           action;
     tBTA_DM_BLE_PF_FILT_INDEX       filt_index;
-    tBTA_DM_BLE_PF_FILT_PARAMS      *p_filt_params;
+    tBTA_DM_BLE_PF_FILT_PARAMS      filt_params;
     tBLE_BD_ADDR                    *p_target;
     tBTA_DM_BLE_PF_PARAM_CBACK      *p_filt_param_cback;
     tBTA_DM_BLE_REF_VALUE            ref_value;

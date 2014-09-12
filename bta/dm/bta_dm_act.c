@@ -5929,7 +5929,7 @@ void bta_dm_scan_filter_param_setup (tBTA_DM_MSG *p_data)
     {
         if ((st = BTM_BleAdvFilterParamSetup(p_data->ble_scan_filt_param_setup.action,
                    p_data->ble_scan_filt_param_setup.filt_index,
-                  (tBTM_BLE_PF_FILT_PARAMS *)p_data->ble_scan_filt_param_setup.p_filt_params,
+                  (tBTM_BLE_PF_FILT_PARAMS *)&p_data->ble_scan_filt_param_setup.filt_params,
                    p_data->ble_scan_filt_param_setup.p_target,
                    p_data->ble_scan_filt_param_setup.p_filt_param_cback,
                    p_data->ble_scan_filt_param_setup.ref_value)) == BTM_CMD_STARTED)

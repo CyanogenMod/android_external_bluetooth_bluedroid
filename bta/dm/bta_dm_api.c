@@ -2311,7 +2311,10 @@ void BTA_DmBleScanFilterSetup(UINT8 action, tBTA_DM_BLE_PF_FILT_INDEX filt_index
         p_msg->hdr.event        = BTA_DM_API_SCAN_FILTER_SETUP_EVT;
         p_msg->action       = action;
         p_msg->filt_index = filt_index;
-        p_msg->p_filt_params = p_filt_params;
+        if(p_filt_params)
+        {
+            memcpy(&p_msg->filt_params, p_filt_params, sizeof(tBTA_DM_BLE_PF_FILT_PARAMS));
+        }
         p_msg->p_filt_param_cback = p_cmpl_cback;
         p_msg->ref_value        = ref_value;
 
