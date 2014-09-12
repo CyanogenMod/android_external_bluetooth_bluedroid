@@ -265,6 +265,7 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
 
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
     memset(&p_multi_adv_data_cb->inst_cb[cbindex].data, 0, sizeof(tBTA_BLE_ADV_DATA));
+    p_multi_adv_data_cb->inst_cb[cbindex].mask = 0;
 
     p_multi_adv_data_cb->inst_cb[cbindex].is_scan_rsp = p_adv_data->set_scan_rsp ? 1 : 0;
     if (!p_adv_data->set_scan_rsp)
@@ -339,13 +340,11 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
                     p_adv_data->p_manufacturer_data, p_adv_data->manufacturer_len);
             }
          }
-     }
+    }
 
-     tBTA_BLE_PROP_ELEM *p_elem_service_data = NULL;
-     tBTA_BLE_PROP_ELEM *p_elem_service_128 = NULL;
-
-     if (p_adv_data->service_data_len > 0 && p_adv_data->p_service_data != NULL)
-     {
+    tBTA_BLE_PROP_ELEM *p_elem_service_data = NULL;
+    if (p_adv_data->service_data_len > 0 && p_adv_data->p_service_data != NULL)
+    {
          BTIF_TRACE_DEBUG("%s - In service_data", __FUNCTION__);
          p_elem_service_data = GKI_getbuf(sizeof(tBTA_BLE_PROP_ELEM));
          if (p_elem_service_data != NULL)
@@ -361,86 +360,123 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
                      GKI_freebuf(p_elem_service_data);
                      p_elem_service_data = NULL;
                }
-             }
          }
+    }
 
-         if (p_adv_data->service_uuid_len > 0 && p_adv_data->p_service_uuid != NULL)
-         {
-             p_multi_adv_data_cb->inst_cb[cbindex].data.p_services =
-                                            GKI_getbuf(sizeof(tBTA_BLE_SERVICE));
-             p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->list_cmpl = FALSE;
-             p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->num_service = 0;
-             p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->p_uuid =
-                 GKI_getbuf(p_adv_data->service_uuid_len / LEN_UUID_128 * LEN_UUID_16);
-             if (p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->p_uuid != NULL)
+    if (NULL != p_elem_service_data)
+    {
+        p_multi_adv_data_cb->inst_cb[cbindex].data.p_proprietary =
+                                                   GKI_getbuf(sizeof(tBTA_BLE_PROPRIETARY));
+        if (NULL != p_multi_adv_data_cb->inst_cb[cbindex].data.p_proprietary)
+        {
+            tBTA_BLE_PROP_ELEM *p_elem = NULL;
+            tBTA_BLE_PROPRIETARY *p_prop = p_multi_adv_data_cb->inst_cb[cbindex].data.p_proprietary;
+            p_prop->num_elem = 0;
+            p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_PROPRIETARY;
+            p_prop->num_elem = 1;
+            p_prop->p_elem = GKI_getbuf(sizeof(tBTA_BLE_PROP_ELEM) * p_prop->num_elem);
+            p_elem = p_prop->p_elem;
+            if (NULL != p_elem)
+                memcpy(p_elem++, p_elem_service_data, sizeof(tBTA_BLE_PROP_ELEM));
+            GKI_freebuf(p_elem_service_data);
+        }
+    }
+
+    if (p_adv_data->service_uuid_len > 0 && NULL != p_adv_data->p_service_uuid)
+    {
+        UINT16 *p_uuid_out16 = NULL;
+        UINT32 *p_uuid_out32 = NULL;
+        while (p_adv_data->service_uuid_len >= LEN_UUID_128)
+        {
+             bt_uuid_t uuid;
+             memset(&uuid, 0, sizeof(bt_uuid_t));
+             memcpy(&uuid.uu, p_adv_data->p_service_uuid, LEN_UUID_128);
+
+             tBT_UUID bt_uuid;
+             memset(&bt_uuid, 0, sizeof(tBT_UUID));
+             btif_to_bta_uuid(&bt_uuid, &uuid);
+
+             switch(bt_uuid.len)
              {
-                 UINT16 *p_uuid_out = p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->p_uuid;
-                 while (p_adv_data->service_uuid_len >= LEN_UUID_128)
-                 {
-                     bt_uuid_t uuid;
-                     memset(&uuid, 0, sizeof(bt_uuid_t));
-                     memcpy(&uuid.uu, p_adv_data->p_service_uuid, LEN_UUID_128);
-                     tBT_UUID bt_uuid;
-                     memset(&bt_uuid, 0, sizeof(tBT_UUID));
-                     btif_to_bta_uuid(&bt_uuid, &uuid);
+                case (LEN_UUID_16):
+                {
+                  if (NULL == p_multi_adv_data_cb->inst_cb[cbindex].data.p_services)
+                  {
+                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_services =
+                                                          GKI_getbuf(sizeof(tBTA_BLE_SERVICE));
+                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->list_cmpl = FALSE;
+                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->num_service = 0;
+                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->p_uuid =
+                              GKI_getbuf(p_adv_data->service_uuid_len / LEN_UUID_128 * LEN_UUID_16);
+                      p_uuid_out16 = p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->p_uuid;
+                  }
 
-                     if (bt_uuid.len == LEN_UUID_16)
-                     {
-                         p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_SERVICE;
-                         ++p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->num_service;
-                         *p_uuid_out++ = bt_uuid.uu.uuid16;
-                     } else if (bt_uuid.len == LEN_UUID_128 && p_elem_service_128 == NULL) {
-                         /* Currently, only one 128-bit UUID is supported */
-                         p_elem_service_128 = GKI_getbuf(sizeof(tBTA_BLE_PROP_ELEM));
-                         if (p_elem_service_128 != NULL)
-                         {
-                             p_elem_service_128->p_val = GKI_getbuf(LEN_UUID_128);
-                             if (p_elem_service_128->p_val != NULL)
-                             {
-                                 p_elem_service_128->adv_type = BTM_BLE_AD_TYPE_128SRV_PART;
-                                 p_elem_service_128->len = LEN_UUID_128;
-                                 memcpy(p_elem_service_128->p_val, bt_uuid.uu.uuid128, LEN_UUID_128);
-                             } else {
-                                 GKI_freebuf(p_elem_service_128);
-                                 p_elem_service_128 = NULL;
-                             }
-                         }
-                     }
-                     p_adv_data->p_service_uuid += LEN_UUID_128;
-                     p_adv_data->service_uuid_len -= LEN_UUID_128;
-                 }
-             }
-         }
+                  if (NULL != p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->p_uuid)
+                  {
+                     BTIF_TRACE_DEBUG("%s - In 16-UUID_data", __FUNCTION__);
+                     p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_SERVICE;
+                     ++p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->num_service;
+                     *p_uuid_out16++ = bt_uuid.uu.uuid16;
+                  }
+                  break;
+                }
 
-         if (p_elem_service_data != NULL || p_elem_service_128 != NULL)
-         {
-             p_multi_adv_data_cb->inst_cb[cbindex].data.p_proprietary =
-                                                GKI_getbuf(sizeof(tBTA_BLE_PROPRIETARY));
-             if (p_multi_adv_data_cb->inst_cb[cbindex].data.p_proprietary != NULL)
-             {
-                 tBTA_BLE_PROPRIETARY *p_prop = p_multi_adv_data_cb->inst_cb[cbindex].
-                            data.p_proprietary;
-                 tBTA_BLE_PROP_ELEM *p_elem = NULL;
-                 p_prop->num_elem = 0;
-                 p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_PROPRIETARY;
-                 if (p_elem_service_128 != NULL)
-                     ++p_prop->num_elem;
-                 if (p_elem_service_data != NULL)
-                     ++p_prop->num_elem;
-                 p_prop->p_elem = GKI_getbuf(sizeof(tBTA_BLE_PROP_ELEM) * p_prop->num_elem);
-                 p_elem = p_prop->p_elem;
-                 if (p_elem_service_128 != NULL)
-                 {
-                     memcpy(p_elem++, p_elem_service_128, sizeof(tBTA_BLE_PROP_ELEM));
-                     GKI_freebuf(p_elem_service_128);
-                 }
-                 if (p_elem_service_data != NULL)
-                 {
-                     memcpy(p_elem++, p_elem_service_data, sizeof(tBTA_BLE_PROP_ELEM));
-                     GKI_freebuf(p_elem_service_data);
-                 }
+                case (LEN_UUID_32):
+                {
+                   if (NULL == p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b)
+                   {
+                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b =
+                                                          GKI_getbuf(sizeof(tBTA_BLE_32SERVICE));
+                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->list_cmpl = FALSE;
+                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->num_service = 0;
+                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->p_uuid =
+                             GKI_getbuf(p_adv_data->service_uuid_len / LEN_UUID_128 * LEN_UUID_32);
+                      p_uuid_out32 = p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->p_uuid;
+                   }
+
+                   if (NULL != p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->p_uuid)
+                   {
+                      BTIF_TRACE_DEBUG("%s - In 32-UUID_data", __FUNCTION__);
+                      p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_SERVICE_32;
+                      ++p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->num_service;
+                      *p_uuid_out32++ = bt_uuid.uu.uuid32;
+                   }
+                   break;
+                }
+
+                case (LEN_UUID_128):
+                {
+                   /* Currently, only one 128-bit UUID is supported */
+                   if (NULL == p_multi_adv_data_cb->inst_cb[cbindex].data.p_services_128b)
+                   {
+                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_services_128b =
+                                                          GKI_getbuf(sizeof(tBTA_BLE_128SERVICE));
+                      if (NULL != p_multi_adv_data_cb->inst_cb[cbindex].data.p_services_128b)
+                      {
+                         BTIF_TRACE_DEBUG("%s - In 128-UUID_data", __FUNCTION__);
+                         p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_SERVICE_128;
+                         memcpy(p_multi_adv_data_cb->inst_cb[cbindex].data.p_services_128b->uuid128,
+                                                         bt_uuid.uu.uuid128, LEN_UUID_128);
+                         BTIF_TRACE_DEBUG("%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x", bt_uuid.uu.uuid128[0],
+                            bt_uuid.uu.uuid128[1],bt_uuid.uu.uuid128[2], bt_uuid.uu.uuid128[3],
+                            bt_uuid.uu.uuid128[4],bt_uuid.uu.uuid128[5],bt_uuid.uu.uuid128[6],
+                            bt_uuid.uu.uuid128[7],bt_uuid.uu.uuid128[8],bt_uuid.uu.uuid128[9],
+                            bt_uuid.uu.uuid128[10],bt_uuid.uu.uuid128[11],bt_uuid.uu.uuid128[12],
+                            bt_uuid.uu.uuid128[13],bt_uuid.uu.uuid128[14],bt_uuid.uu.uuid128[15]);
+                         p_multi_adv_data_cb->inst_cb[cbindex].data.p_services_128b->list_cmpl = TRUE;
+                      }
+                   }
+                   break;
+                }
+
+                default:
+                     break;
              }
-         }
+
+             p_adv_data->p_service_uuid += LEN_UUID_128;
+             p_adv_data->service_uuid_len -= LEN_UUID_128;
+        }
+    }
 
 #if (defined(BLE_PERIPHERAL_ADV_NAME) && (BLE_PERIPHERAL_ADV_NAME == TRUE))
      p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_DEV_NAME;
