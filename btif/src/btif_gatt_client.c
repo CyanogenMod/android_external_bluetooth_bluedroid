@@ -1986,6 +1986,7 @@ static bt_status_t btif_gattc_scan_filter_param_setup(int client_if, int action,
     CHECK_BTGATT_INIT();
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
     btgatt_adv_filter_cb_t btif_filt_cb;
+    memset(&btif_filt_cb, 0, sizeof(btgatt_adv_filter_cb_t));
     btif_filt_cb.action = action;
     btif_filt_cb.client_if = client_if;
     btif_filt_cb.filt_index = filt_index;
@@ -2011,6 +2012,7 @@ static bt_status_t btif_gattc_scan_filter_add_remove(int client_if, int action,
 {
     CHECK_BTGATT_INIT();
     btgatt_adv_filter_cb_t btif_filt_cb;
+    memset(&btif_filt_cb, 0, sizeof(btgatt_adv_filter_cb_t));
     BTIF_TRACE_DEBUG("%s, %d, %d", __FUNCTION__, action, filt_type);
 
     /* If data is passed, both mask and data have to be the same length */
@@ -2050,6 +2052,7 @@ static bt_status_t btif_gattc_scan_filter_clear(int client_if, int filt_index)
     BTIF_TRACE_DEBUG("%s, %d", __FUNCTION__, filt_index);
 
     btgatt_adv_filter_cb_t btif_filt_cb;
+    memset(&btif_filt_cb, 0, sizeof(btgatt_adv_filter_cb_t));
     btif_filt_cb.client_if = client_if;
     btif_filt_cb.filt_index = filt_index;
     btif_filt_cb.action = BTA_DM_BLE_SCAN_COND_CLEAR;
@@ -2064,6 +2067,7 @@ static bt_status_t btif_gattc_scan_filter_enable(int client_if, bool enable)
     BTIF_TRACE_DEBUG("%s, %d", __FUNCTION__, enable);
 
     btgatt_adv_filter_cb_t btif_filt_cb;
+    memset(&btif_filt_cb, 0, sizeof(btgatt_adv_filter_cb_t));
     btif_filt_cb.client_if = client_if;
     if (true == enable)
         action = 1;
@@ -2098,6 +2102,7 @@ static bt_status_t btif_gattc_multi_adv_enable(int client_if, int min_interval, 
 {
     CHECK_BTGATT_INIT();
     btgatt_multi_adv_inst_cb adv_cb;
+    memset(&adv_cb, 0, sizeof(btgatt_multi_adv_inst_cb));
     adv_cb.client_if = (uint8_t) client_if;
 
     adv_cb.param.adv_int_min = min_interval;
@@ -2116,6 +2121,7 @@ static bt_status_t btif_gattc_multi_adv_update(int client_if, int min_interval, 
 {
     CHECK_BTGATT_INIT();
     btgatt_multi_adv_inst_cb adv_cb;
+    memset(&adv_cb, 0, sizeof(btgatt_multi_adv_inst_cb));
     adv_cb.client_if = (uint8_t) client_if;
 
     adv_cb.param.adv_int_min = min_interval;
@@ -2141,6 +2147,7 @@ static bt_status_t btif_gattc_multi_adv_setdata(int client_if, bool set_scan_rsp
     bt_status_t status =0;
 
     btif_adv_data_t multi_adv_data_inst;
+    memset(&multi_adv_data_inst, 0, sizeof(btif_adv_data_t));
 
     btif_gattc_adv_data_packager(client_if, set_scan_rsp, include_name, incl_txpower,
         min_interval, max_interval, appearance, manufacturer_len, manufacturer_data,
@@ -2165,6 +2172,7 @@ static bt_status_t btif_gattc_multi_adv_disable(int client_if)
 {
     CHECK_BTGATT_INIT();
     btgatt_multi_adv_inst_cb adv_cb;
+    memset(&adv_cb, 0, sizeof(btgatt_multi_adv_inst_cb));
     adv_cb.client_if = (uint8_t) client_if;
 
     return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_ADV_INSTANCE_DISABLE,
@@ -2176,6 +2184,7 @@ static bt_status_t btif_gattc_cfg_storage(int client_if,int batch_scan_full_max,
 {
     CHECK_BTGATT_INIT();
     btgatt_batch_track_cb_t bt_scan_cb;
+    memset(&bt_scan_cb, 0, sizeof(btgatt_batch_track_cb_t));
     bt_scan_cb.client_if = (uint8_t) client_if;
     bt_scan_cb.batch_scan_full_max = batch_scan_full_max;
     bt_scan_cb.batch_scan_trunc_max = batch_scan_trunc_max;
@@ -2189,6 +2198,7 @@ static bt_status_t btif_gattc_enb_batch_scan(int client_if,int scan_mode, int sc
 {
     CHECK_BTGATT_INIT();
     btgatt_batch_track_cb_t bt_scan_cb;
+    memset(&bt_scan_cb, 0, sizeof(btgatt_batch_track_cb_t));
     bt_scan_cb.client_if = (uint8_t) client_if;
     bt_scan_cb.scan_mode = scan_mode;
     bt_scan_cb.scan_interval = scan_interval;
@@ -2203,6 +2213,7 @@ static bt_status_t btif_gattc_dis_batch_scan(int client_if)
 {
     CHECK_BTGATT_INIT();
     btgatt_batch_track_cb_t bt_scan_cb;
+    memset(&bt_scan_cb, 0, sizeof(btgatt_batch_track_cb_t));
     bt_scan_cb.client_if = (uint8_t) client_if;
     return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_DISABLE_BATCH_SCAN,
                                  (char*) &bt_scan_cb, sizeof(btgatt_batch_track_cb_t), NULL);
@@ -2212,6 +2223,7 @@ static bt_status_t btif_gattc_read_batch_scan_reports(int client_if, int scan_mo
 {
     CHECK_BTGATT_INIT();
     btgatt_batch_track_cb_t bt_scan_cb;
+    memset(&bt_scan_cb, 0, sizeof(btgatt_batch_track_cb_t));
     bt_scan_cb.client_if = (uint8_t) client_if;
     bt_scan_cb.scan_mode = scan_mode;
     return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_READ_BATCH_SCAN_REPORTS,
