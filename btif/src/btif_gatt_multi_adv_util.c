@@ -95,7 +95,9 @@ void btif_gattc_destroy_multi_adv_cb(int client_if)
 {
     if (multi_adv_enable_count > 0)
         multi_adv_enable_count --;
-
+    if (client_if == INVALID_CLIENT_IF) {
+        multi_adv_enable_count = 0;
+    }
     if(multi_adv_enable_count == 0 && p_multi_adv_com_data_cb != 0)
     {
         if (NULL != p_multi_adv_com_data_cb)

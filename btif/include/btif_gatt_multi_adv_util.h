@@ -33,6 +33,8 @@
 #define ADV_FLAGS_LIMITED BTA_DM_LIMITED_DISC
 #define ADV_FLAGS_GENERAL BTA_DM_GENERAL_DISC
 
+#define INVALID_CLIENT_IF 0xFF
+
 typedef struct
 {
     int client_if;
