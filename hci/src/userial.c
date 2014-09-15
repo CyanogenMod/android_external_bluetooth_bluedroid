@@ -219,7 +219,11 @@ static void *userial_read_thread(void *arg)
             p_buf->layer_specific = 0;
 
             p = (uint8_t *) (p_buf + 1);
-            rx_length = select_read(userial_cb.fd, p, HCI_MAX_FRAME_SIZE + 1);
+            int userial_fd = userial_cb.fd;
+            if (userial_fd != -1)
+                rx_length = select_read(userial_fd, p, HCI_MAX_FRAME_SIZE + 1);
+            else
+                rx_length = 0;
         }
         else
         {
