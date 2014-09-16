@@ -1256,6 +1256,24 @@ static void bta_jv_start_discovery_cback(UINT16 result, void * user_data)
     }
 }
 
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+BOOLEAN compare_bt_app_uuids (tBT_UUID *old_uuid, tBT_UUID *new_uuid)
+{
+    /* Lengths must match for BT UUIDs to match */
+    if (old_uuid->len == new_uuid->len)
+    {
+        if (old_uuid->len == 2)
+            return (old_uuid->uu.uuid16 == new_uuid->uu.uuid16);
+        else if (old_uuid->len == 4)
+            return (old_uuid->uu.uuid32 == new_uuid->uu.uuid32);
+        else if (!memcmp (old_uuid->uu.uuid128, new_uuid->uu.uuid128, 16))
+            return (TRUE);
+    }
+
+    return (FALSE);
+}
+#endif
+
 /*******************************************************************************
 **
 ** Function     bta_jv_start_discovery
@@ -1282,8 +1300,21 @@ void bta_jv_start_discovery(tBTA_JV_MSG *p_data)
     if( (bdcmp(bta_jv_cb.sdp_bd_addr, p_data->start_discovery.bd_addr) == 0) &&
         (bta_jv_cb.sdp_sucessful == TRUE) && !(((uint32_t)p_data->start_discovery.user_data) & L2CAP_MASK))
     {
-        bta_jv_start_discovery_cback(SDP_SUCCESS, p_data->start_discovery.user_data);
-        return;
+        /* compare the current UUID with exising UUID, if they are same then respond with
+           previous SDP result as both UUIDs are same */
+        tBT_UUID old_uuid = shorten_sdp_uuid(&bta_jv_cb.uuid);
+        tBT_UUID new_uuid = shorten_sdp_uuid(&p_data->start_discovery.uuid_list[0]);
+
+        if(compare_bt_app_uuids(&old_uuid, &new_uuid) == TRUE)
+        {
+            bta_jv_start_discovery_cback(SDP_SUCCESS, p_data->start_discovery.user_data);
+            return;
+        }
+        else
+        {
+            /* reset the sdp_sucessful variable */
+            bta_jv_cb.sdp_sucessful == FALSE;
+        }
     }
 #endif
 /*
