@@ -427,13 +427,13 @@ static int transmit_buf(TRANSAC transac, UNUSED_ATTR char *p_buf, UNUSED_ATTR in
 }
 
 /** Controls HCI logging on/off */
-static int logging(bt_hc_logging_state_t state, char *p_path) {
+static int logging(bt_hc_logging_state_t state, char *p_path, bool save_existing) {
   BTHCDBG("logging %d", state);
 
   if (state != BT_HC_LOGGING_ON)
     btsnoop_close();
   else if (p_path != NULL)
-    btsnoop_open(p_path);
+    btsnoop_open(p_path, save_existing);
 
   return BT_HC_STATUS_SUCCESS;
 }

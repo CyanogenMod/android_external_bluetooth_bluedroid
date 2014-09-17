@@ -20,6 +20,7 @@
 #define BT_HCI_LIB_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
 
@@ -187,7 +188,7 @@ typedef struct {
     int (*transmit_buf)(TRANSAC transac, char *p_buf, int len);
 
     /** Controls HCI logging on/off */
-    int (*logging)(bt_hc_logging_state_t state, char *p_path);
+    int (*logging)(bt_hc_logging_state_t state, char *p_path, bool save_existing);
 
     /** Closes the interface */
     void  (*cleanup)( void );

@@ -29,6 +29,7 @@
 // TODO: eliminate these global variables.
 extern char hci_logfile[256];
 extern BOOLEAN hci_logging_enabled;
+extern BOOLEAN hci_save_log;
 extern BOOLEAN trace_conf_enabled;
 void bte_trace_conf_config(const config_t *config);
 
@@ -47,6 +48,7 @@ void bte_load_conf(const char *path) {
 
   strlcpy(hci_logfile, config_get_string(config, CONFIG_DEFAULT_SECTION, "BtSnoopFileName", ""), sizeof(hci_logfile));
   hci_logging_enabled = config_get_bool(config, CONFIG_DEFAULT_SECTION, "BtSnoopLogOutput", false);
+  hci_save_log = config_get_bool(config, CONFIG_DEFAULT_SECTION, "BtSnoopSaveLog", false);
   trace_conf_enabled = config_get_bool(config, CONFIG_DEFAULT_SECTION, "TraceConf", false);
 
   bte_trace_conf_config(config);

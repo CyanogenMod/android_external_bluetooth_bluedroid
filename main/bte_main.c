@@ -82,6 +82,7 @@ typedef struct
 ******************************************************************************/
 BOOLEAN hci_logging_enabled = FALSE;    /* by default, turn hci log off */
 BOOLEAN hci_logging_config = FALSE;    /* configured from bluetooth framework */
+BOOLEAN hci_save_log = FALSE; /* save a copy of the log before starting again */
 char hci_logfile[256] = HCI_LOGGING_FILENAME;
 
 /*******************************************************************************
@@ -266,7 +267,7 @@ void bte_main_config_hci_logging(BOOLEAN enable, BOOLEAN bt_disabled)
         return;
     }
 
-    bt_hc_if->logging(new ? BT_HC_LOGGING_ON : BT_HC_LOGGING_OFF, hci_logfile);
+    bt_hc_if->logging(new ? BT_HC_LOGGING_ON : BT_HC_LOGGING_OFF, hci_logfile, hci_save_log);
 }
 
 /******************************************************************************
@@ -292,7 +293,7 @@ static void bte_hci_enable(void)
         assert(result == BT_HC_STATUS_SUCCESS);
 
         if (hci_logging_enabled == TRUE || hci_logging_config == TRUE)
-            bt_hc_if->logging(BT_HC_LOGGING_ON, hci_logfile);
+            bt_hc_if->logging(BT_HC_LOGGING_ON, hci_logfile, hci_save_log);
 
 #if (defined (BT_CLEAN_TURN_ON_DISABLED) && BT_CLEAN_TURN_ON_DISABLED == TRUE)
         APPL_TRACE_DEBUG("%s  Not Turninig Off the BT before Turninig ON", __FUNCTION__);
@@ -338,7 +339,7 @@ static void bte_hci_disable(void)
     pthread_mutex_lock(&cleanup_lock);
 
     if (hci_logging_enabled == TRUE ||  hci_logging_config == TRUE)
-        bt_hc_if->logging(BT_HC_LOGGING_OFF, hci_logfile);
+        bt_hc_if->logging(BT_HC_LOGGING_OFF, hci_logfile, hci_save_log);
     bt_hc_if->cleanup();
 
     pthread_mutex_unlock(&cleanup_lock);
