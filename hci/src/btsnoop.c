@@ -120,7 +120,7 @@ static void btsnoop_write_packet(packet_type_t type, const uint8_t *packet, bool
   utils_unlock();
 }
 
-void btsnoop_open(const char *p_path) {
+void btsnoop_open(const char *p_path, const bool save_existing) {
   assert(p_path != NULL);
   assert(*p_path != '\0');
 
@@ -129,6 +129,14 @@ void btsnoop_open(const char *p_path) {
   if (hci_btsnoop_fd != -1) {
     ALOGE("%s btsnoop log file is already open.", __func__);
     return;
+  }
+
+  if (save_existing)
+  {
+    char fname_backup[266] = {0};
+    strncat(fname_backup, p_path, 255);
+    strcat(fname_backup, ".last");
+    rename(p_path, fname_backup);
   }
 
   hci_btsnoop_fd = open(p_path,
