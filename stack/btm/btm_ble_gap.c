@@ -453,6 +453,7 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.filter_support, p);
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.max_filter, p);
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.energy_support, p);
+        btm_cb.cmn_ble_vsc_cb.values_read = TRUE;
     }
 
     BTM_TRACE_DEBUG("btm_ble_vnd_cap_vsc_cmpl_cback: stat=%d, irk=%d, ADV ins:%d, rpa=%d, ener=%d",
@@ -513,6 +514,9 @@ BTM_API extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
 *******************************************************************************/
 BTM_API extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_cback)
 {
+    if (TRUE == btm_cb.cmn_ble_vsc_cb.values_read)
+        return;
+
 #if BLE_VND_INCLUDED == TRUE
     BTM_TRACE_DEBUG("BTM_BleReadControllerFeatures");
 
@@ -3078,6 +3082,7 @@ void btm_ble_init (void)
 
     memset(p_cb, 0, sizeof(tBTM_BLE_CB));
     memset(&(btm_cb.cmn_ble_vsc_cb), 0 , sizeof(tBTM_BLE_VSC_CB));
+    btm_cb.cmn_ble_vsc_cb.values_read = FALSE;
     p_cb->cur_states       = 0;
 
     p_cb->inq_var.adv_mode = BTM_BLE_ADV_DISABLE;

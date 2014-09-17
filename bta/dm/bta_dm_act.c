@@ -384,6 +384,11 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
 #else
         BTM_AclRegisterForChanges(bta_dm_acl_change_cback);
 #endif
+
+#if BLE_VND_INCLUDED == TRUE
+        BTM_BleReadControllerFeatures (bta_dm_ctrl_features_rd_cmpl_cback);
+#endif
+
         /* Earlier, we used to invoke BTM_ReadLocalAddr which was just copying the bd_addr
            from the control block and invoking the callback which was sending the DM_ENABLE_EVT.
            But then we have a few HCI commands being invoked above which were still in progress
@@ -3184,9 +3189,6 @@ static void bta_dm_local_name_cback(UINT8 *p_name)
     if(bta_dm_cb.p_sec_cback)
         bta_dm_cb.p_sec_cback(BTA_DM_ENABLE_EVT, &sec_event);
 
-#if BLE_VND_INCLUDED == TRUE
-    BTM_BleReadControllerFeatures (bta_dm_ctrl_features_rd_cmpl_cback);
-#endif
 }
 
 /*******************************************************************************

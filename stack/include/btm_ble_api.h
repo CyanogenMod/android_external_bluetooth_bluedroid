@@ -334,6 +334,7 @@ typedef struct
     UINT8 filter_support;
     UINT8 max_filter;
     UINT8 energy_support;
+    BOOLEAN values_read;
 }tBTM_BLE_VSC_CB;
 
 /* slave preferred connection interval range */
