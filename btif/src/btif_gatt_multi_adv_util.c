@@ -271,9 +271,9 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
     if (!p_adv_data->set_scan_rsp)
     {
          p_multi_adv_data_cb->inst_cb[cbindex].mask = BTM_BLE_AD_BIT_FLAGS;
-         p_multi_adv_data_cb->inst_cb[cbindex].data.flag = ADV_FLAGS_GENERAL;
+         p_multi_adv_data_cb->inst_cb[cbindex].data.flag = (ADV_FLAGS_GENERAL | BTM_BLE_DMT_CONTROLLER_SPT | BTM_BLE_DMT_HOST_SPT);
          if (p_multi_adv_data_cb->inst_cb[cbindex].timeout_s)
-             p_multi_adv_data_cb->inst_cb[cbindex].data.flag = ADV_FLAGS_LIMITED;
+             p_multi_adv_data_cb->inst_cb[cbindex].data.flag = (ADV_FLAGS_LIMITED | BTM_BLE_DMT_CONTROLLER_SPT | BTM_BLE_DMT_HOST_SPT);
          if (p_multi_adv_data_cb->inst_cb[cbindex].param.adv_type == BTA_BLE_NON_CONNECT_EVT)
              p_multi_adv_data_cb->inst_cb[cbindex].data.flag &=
                     ~(BTA_DM_LIMITED_DISC | BTA_DM_GENERAL_DISC);
