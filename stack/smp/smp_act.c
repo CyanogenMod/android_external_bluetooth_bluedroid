@@ -109,13 +109,6 @@ void smp_send_app_cback(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
         {
             p_cb->loc_auth_req   = cb_data.io_req.auth_req;
             p_cb->loc_io_caps    = cb_data.io_req.io_cap;
-
-#if (defined(BLE_PERIPHERAL_DISPLAYONLY) && (BLE_PERIPHERAL_DISPLAYONLY == TRUE))
-            if (p_cb->role == HCI_ROLE_SLAVE)
-            {
-                p_cb->loc_io_caps    = SMP_IO_CAP_OUT;
-            }
-#endif
             p_cb->loc_oob_flag   = cb_data.io_req.oob_data;
             p_cb->loc_enc_size   = cb_data.io_req.max_key_size;
             p_cb->loc_i_key      = cb_data.io_req.init_keys;
