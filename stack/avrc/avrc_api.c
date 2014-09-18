@@ -779,7 +779,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
         opcode = p_data[0];
         AVRC_TRACE_DEBUG("opcode:%x, length:%x",opcode, p_pkt->len);
         /*Do sanity Check here*/
-        if (cr == AVCT_CMD)
+        if ((avrc_cb.ccb[handle].control & AVRC_CT_TARGET) && (cr == AVCT_CMD))
         {
             opcode  =  AVRC_OP_BROWSE;
             msg.browse.browse_len = p_pkt->len;
@@ -790,7 +790,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
         }
         else
         {
-            AVRC_TRACE_ERROR("### expect AVCT_CMD");
+            AVRC_TRACE_ERROR("Drop invalid Avrcp Browse message");
             GKI_freebuf(p_pkt);
         }
     }
