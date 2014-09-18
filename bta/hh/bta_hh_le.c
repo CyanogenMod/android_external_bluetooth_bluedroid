@@ -3027,6 +3027,7 @@ void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, UINT8 srvc_inst)
                                p_rpt->uuid,
                                BTA_HH_LE_RPT_GET_RPT_INST_ID(p_rpt->inst_id),
                                GATT_UUID_CHAR_CLIENT_CONFIG);
+                break;
             }
         }
         if (p_rpt->index == BTA_HH_LE_RPT_MAX - 1)
