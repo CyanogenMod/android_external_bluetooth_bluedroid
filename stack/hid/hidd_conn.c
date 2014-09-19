@@ -701,7 +701,14 @@ static void hidd_l2cif_data_ind(UINT16 cid, BT_HDR *p_msg)
         p_msg->offset++;
         p_msg->len--;
 
-        hd_cb.callback(hd_cb.device.addr, HID_DHOST_EVT_INTR_DATA, 0, p_msg);
+        if (p_msg->len > 0)
+            hd_cb.callback(hd_cb.device.addr, HID_DHOST_EVT_INTR_DATA, 0, p_msg);
+        else
+        {
+            HIDD_TRACE_WARNING("%s: got invalid transaction data on Intrpt "
+                "channel, ignoring...", __FUNCTION__);
+            GKI_freebuf(p_msg);
+        }
         return;
     }
 
