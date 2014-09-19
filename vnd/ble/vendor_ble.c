@@ -61,6 +61,8 @@ static const BD_ADDR     na_bda= {0};
 void btm_ble_vendor_enq_irk_pending(BD_ADDR target_bda, BD_ADDR psuedo_bda, UINT8 to_add)
 {
 #if BLE_PRIVACY_SPT == TRUE
+    if(btm_ble_vendor_cb.irk_pend_q.irk_q == 0 || btm_ble_vendor_cb.irk_pend_q.irk_q == NULL)
+        return;
     tBTM_BLE_IRK_Q          *p_q = &btm_ble_vendor_cb.irk_pend_q;
 
     memcpy(p_q->irk_q[p_q->q_next], target_bda, BD_ADDR_LEN);
@@ -87,6 +89,8 @@ void btm_ble_vendor_enq_irk_pending(BD_ADDR target_bda, BD_ADDR psuedo_bda, UINT
 BOOLEAN btm_ble_vendor_find_irk_pending_entry(BD_ADDR psuedo_addr, UINT8 action)
 {
 #if BLE_PRIVACY_SPT == TRUE
+    if(btm_ble_vendor_cb.irk_pend_q.irk_q == 0 || btm_ble_vendor_cb.irk_pend_q.irk_q == NULL)
+        return FALSE;
     tBTM_BLE_IRK_Q          *p_q = &btm_ble_vendor_cb.irk_pend_q;
     UINT8   i;
 
@@ -117,6 +121,8 @@ BOOLEAN btm_ble_vendor_find_irk_pending_entry(BD_ADDR psuedo_addr, UINT8 action)
 BOOLEAN btm_ble_vendor_deq_irk_pending(BD_ADDR target_bda, BD_ADDR psuedo_addr)
 {
 #if BLE_PRIVACY_SPT == TRUE
+    if(btm_ble_vendor_cb.irk_pend_q.irk_q == 0 || btm_ble_vendor_cb.irk_pend_q.irk_q == NULL)
+        return FALSE;
     tBTM_BLE_IRK_Q          *p_q = &btm_ble_vendor_cb.irk_pend_q;
 
     if (p_q->q_next != p_q->q_pending)
@@ -145,6 +151,9 @@ BOOLEAN btm_ble_vendor_deq_irk_pending(BD_ADDR target_bda, BD_ADDR psuedo_addr)
 tBTM_BLE_IRK_ENTRY * btm_ble_vendor_find_irk_entry(BD_ADDR target_bda)
 {
 #if BLE_PRIVACY_SPT == TRUE
+    if(btm_ble_vendor_cb.irk_list == 0 || btm_ble_vendor_cb.irk_list == NULL)
+        return NULL;
+
     tBTM_BLE_IRK_ENTRY  *p_irk_entry = &btm_ble_vendor_cb.irk_list[0];
     UINT8   i;
 
@@ -170,6 +179,9 @@ tBTM_BLE_IRK_ENTRY * btm_ble_vendor_find_irk_entry(BD_ADDR target_bda)
 tBTM_BLE_IRK_ENTRY * btm_ble_vendor_find_irk_entry_by_psuedo_addr (BD_ADDR psuedo_bda)
 {
 #if BLE_PRIVACY_SPT == TRUE
+    if(btm_ble_vendor_cb.irk_list == 0 || btm_ble_vendor_cb.irk_list == NULL)
+        return NULL;
+
     tBTM_BLE_IRK_ENTRY  *p_irk_entry = &btm_ble_vendor_cb.irk_list[0];
     UINT8   i;
 
@@ -198,6 +210,9 @@ tBTM_BLE_IRK_ENTRY * btm_ble_vendor_find_irk_entry_by_psuedo_addr (BD_ADDR psued
 UINT8 btm_ble_vendor_alloc_irk_entry(BD_ADDR target_bda, BD_ADDR pseudo_bda)
 {
 #if BLE_PRIVACY_SPT == TRUE
+    if(btm_ble_vendor_cb.irk_list == 0 || btm_ble_vendor_cb.irk_list == NULL)
+        return BTM_CS_IRK_LIST_INVALID;
+
     tBTM_BLE_IRK_ENTRY  *p_irk_entry = &btm_ble_vendor_cb.irk_list[0];
     UINT8   i;
 
@@ -299,6 +314,11 @@ void btm_ble_vendor_irk_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
         BTM_TRACE_DEBUG("IRK enable: %d, %d", status, op_subcode);
         return;
     }
+    if (btm_ble_vendor_cb.irk_list == NULL || btm_ble_vendor_cb.irk_list == 0)
+    {
+        BTM_TRACE_DEBUG("IRK list invalid or null");
+        return;
+    }
     else
     if (op_subcode == BTM_BLE_META_CLEAR_IRK_LIST)
     {
@@ -391,6 +411,12 @@ tBTM_STATUS btm_ble_remove_irk_entry(tBTM_SEC_DEV_REC *p_dev_rec)
 
     if (btm_cb.cmn_ble_vsc_cb.max_irk_list_sz == 0)
         return BTM_MODE_UNSUPPORTED;
+
+    if(p_cb->irk_list == 0 || p_cb->irk_list == NULL)
+    {
+        BTM_TRACE_ERROR("IRK list is null ..returning ");
+        return BTM_MODE_UNSUPPORTED;
+    }
 
     p = param;
     memset(param, 0, 20);
@@ -549,6 +575,11 @@ BOOLEAN btm_ble_vendor_irk_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
     if (btm_cb.cmn_ble_vsc_cb.max_irk_list_sz == 0)
         return FALSE;
 
+    if(p_cb->irk_list == 0 || p_cb->irk_list == NULL)
+    {
+        BTM_TRACE_ERROR("IRK list is null ..returning ");
+        return FALSE;
+    }
     if (p_dev_rec != NULL && /* RPA is being used and PID is known */
         (p_dev_rec->ble.key_type & BTM_LE_KEY_PID) != 0)
     {
@@ -614,7 +645,7 @@ void btm_ble_vendor_irk_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec)
     if (btm_cb.cmn_ble_vsc_cb.max_irk_list_sz == 0)
         return;
 
-    if(p_cs_cb->irk_list == 0)
+    if(p_cs_cb->irk_list == 0 || p_cs_cb->irk_list == NULL)
     {
         BTM_TRACE_ERROR("IRK list is null ..returning ");
         return;
