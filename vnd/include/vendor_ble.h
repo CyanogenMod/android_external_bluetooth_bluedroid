@@ -122,7 +122,8 @@ extern void btm_ble_vendor_init(UINT8 max_irk_list_sz);
 extern void btm_ble_vendor_cleanup(void);
 extern BOOLEAN btm_ble_vendor_write_device_wl_attribute (tBLE_ADDR_TYPE addr_type, BD_ADDR bd_addr, UINT8 attribute);
 extern tBTM_STATUS btm_ble_vendor_enable_irk_feature(BOOLEAN enable);
-
+extern tBTM_BLE_IRK_ENTRY *btm_ble_vendor_find_irk_entry_by_psuedo_addr (BD_ADDR psuedo_bda);
+extern UINT8 btm_ble_vendor_get_irk_list_size(void);
 #ifdef __cplusplus
 }
 #endif

@@ -298,6 +298,34 @@ UINT8 btm_ble_count_unconn_dev_in_whitelist(void)
     return count;
 
 }
+
+#if BLE_PRIVACY_SPT == TRUE
+/*******************************************************************************
+**
+** Function         btm_ble_count_unconn_dev_in_wl_irk
+**
+** Description      This function find the number of un-connected background device
+*******************************************************************************/
+UINT8 btm_ble_count_unconn_dev_in_wl_irk(void)
+{
+    tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
+    UINT8 i, count = 0;
+
+    for (i = 0; i < BTM_BLE_MAX_BG_CONN_DEV_NUM; i ++)
+    {
+        if (p_cb->bg_dev_list[i].in_use &&
+            !BTM_IsAclConnectionUp(p_cb->bg_dev_list[i].bd_addr, BT_TRANSPORT_LE))
+        {
+            if(btm_ble_vendor_find_irk_entry_by_psuedo_addr(p_cb->bg_dev_list[i].bd_addr))
+            {
+                count ++;
+            }
+        }
+    }
+    return count;
+}
+#endif
+
 /*******************************************************************************
 **
 ** Function         btm_update_bg_conn_list
@@ -383,6 +411,11 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
         if ((p_cb->conn_state == BLE_CONN_IDLE && btm_ble_count_unconn_dev_in_whitelist() > 0)
             && btm_ble_topology_check(BTM_BLE_STATE_INIT))
         {
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+            /*enable offload if any unconn dev in WL are in IRK list*/
+            if (btm_cb.cmn_ble_vsc_cb.rpa_offloading == TRUE && btm_ble_count_unconn_dev_in_wl_irk() > 0)
+                btm_ble_vendor_enable_irk_feature(TRUE);
+#endif
             scan_int = (p_cb->scan_int == BTM_BLE_CONN_PARAM_UNDEF) ? BTM_BLE_SCAN_SLOW_INT_1 : p_cb->scan_int;
             scan_win = (p_cb->scan_win == BTM_BLE_CONN_PARAM_UNDEF) ? BTM_BLE_SCAN_SLOW_WIN_1 : p_cb->scan_win;
 
@@ -422,11 +455,6 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
             btsnd_hcic_ble_create_conn_cancel();
             btm_ble_set_conn_st (BLE_CONN_CANCEL);
             p_cb->wl_state |= BTM_BLE_WL_INIT;
-
-#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
-            if (btm_cb.cmn_ble_vsc_cb.rpa_offloading == TRUE)
-                btm_ble_vendor_disable_irk_list();
-#endif
         }
         else
         {

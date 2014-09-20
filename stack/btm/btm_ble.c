@@ -1652,6 +1652,7 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
     BD_ADDR     bda = {0};
     UINT16      conn_interval, conn_latency, conn_timeout;
     BOOLEAN     match = FALSE;
+    tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
     UNUSED(evt_len);
 
     STREAM_TO_UINT8   (status, p);
@@ -1714,6 +1715,13 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
             }
         }
     }
+
+#if (BLE_PRIVACY_SPT == TRUE )
+    if ((btm_cb.cmn_ble_vsc_cb.rpa_offloading == TRUE) &&
+        (!BTM_BLE_IS_SCAN_ACTIVE(p_cb->scan_activity) || !btm_ble_vendor_get_irk_list_size()))
+        btm_ble_vendor_disable_irk_list();
+#endif
+
     btm_ble_set_conn_st(BLE_CONN_IDLE);
     btm_ble_update_mode_operation(role, bda, status);
 }

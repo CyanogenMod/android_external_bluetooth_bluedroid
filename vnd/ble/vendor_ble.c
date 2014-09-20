@@ -684,6 +684,24 @@ void btm_ble_vendor_disable_irk_list(void)
 
 /*******************************************************************************
 **
+** Function         btm_ble_vendor_get_irk_list_size
+**
+** Description      get the irk list size
+**
+** Parameters
+**
+** Returns          irk list size
+**
+*******************************************************************************/
+UINT8 btm_ble_vendor_get_irk_list_size(void)
+{
+#if BLE_PRIVACY_SPT == TRUE
+    return btm_ble_vendor_cb.irk_list_size;
+#endif
+}
+
+/*******************************************************************************
+**
 ** Function         btm_ble_vendor_enable_irk_feature
 **
 ** Description      This function is called to enable or disable the RRA
