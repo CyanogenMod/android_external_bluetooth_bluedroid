@@ -1408,6 +1408,11 @@ update_call_states:
 BOOLEAN btif_hf_is_call_idle()
 {
     int i, j = 1;
+
+    if (bt_hf_callbacks == NULL)
+    {
+        return TRUE;
+    }
     for (i = 0; i < btif_max_hf_clients; i++)
     {
         BTIF_TRACE_EVENT("%s: call_setup_state: %d for handle: %d",
