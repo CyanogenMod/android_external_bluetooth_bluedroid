@@ -386,6 +386,8 @@ void bta_ag_rfc_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     p_scb->role = 0;
     p_scb->svc_conn = FALSE;
     p_scb->hsp_version = HSP_VERSION_1_2;
+    /*Clear the BD address*/
+    bdcpy(p_scb->peer_addr, bd_addr_null);
 
     /* reopen registered servers */
     bta_ag_start_servers(p_scb, p_scb->reg_services);
