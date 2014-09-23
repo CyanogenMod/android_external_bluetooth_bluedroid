@@ -2441,10 +2441,11 @@ void btm_ble_process_adv_pkt (UINT8 *p_data)
 #endif
 
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
-    /* map address to security record */
-    btm_public_addr_to_random_pseudo(bda, &addr_type);
-    BTM_TRACE_ERROR("new address: %02x:%02x:%02x:%02x:%02x:%02x",
-                     bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
+        match = btm_cb.cmn_ble_vsc_cb.rpa_offloading;
+        /* map address to security record */
+        btm_public_addr_to_random_pseudo(bda, &addr_type);
+        BTM_TRACE_ERROR("new address: %02x:%02x:%02x:%02x:%02x:%02x",
+                      bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
 #endif
 
         /* Only process the results if the inquiry is still active */
@@ -2455,7 +2456,7 @@ void btm_ble_process_adv_pkt (UINT8 *p_data)
                                      bda[0],bda[1],bda[2],bda[3],bda[4],bda[5]);
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
 #if SMP_INCLUDED == TRUE
-        /* always do RRA resolution on host */
+        /* do RPA resolution on host if rpa offloading is disabled */
         if (!match && BTM_BLE_IS_RESOLVE_BDA(bda))
         {
             btm_ble_resolve_random_addr(bda, btm_ble_resolve_random_addr_on_adv, p_data);
