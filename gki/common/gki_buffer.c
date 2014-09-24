@@ -402,7 +402,11 @@ void *GKI_getbuf (UINT16 size)
         if (((UINT16)1 << p_cb->pool_list[i]) & p_cb->pool_access_mask)
             continue;
 
-        Q = &p_cb->freeq[p_cb->pool_list[i]];
+        if ( size <= p_cb->freeq[p_cb->pool_list[i]].size )
+            Q = &p_cb->freeq[p_cb->pool_list[i]];
+        else
+            continue;
+
         if(Q->cur_cnt < Q->total)
         {
 // btla-specific ++
