@@ -173,6 +173,9 @@ tBTM_BLE_IRK_ENTRY * btm_ble_vendor_find_irk_entry_by_psuedo_addr (BD_ADDR psued
     tBTM_BLE_IRK_ENTRY  *p_irk_entry = &btm_ble_vendor_cb.irk_list[0];
     UINT8   i;
 
+    if(p_irk_entry == NULL)
+        return NULL;
+
     for (i = 0; i < btm_cb.cmn_ble_vsc_cb.max_irk_list_sz; i ++, p_irk_entry++)
     {
         if (p_irk_entry->in_use && memcmp(p_irk_entry->psuedo_bda, psuedo_bda, BD_ADDR_LEN) == 0)
