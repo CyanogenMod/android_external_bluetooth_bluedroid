@@ -1660,7 +1660,7 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
 
         /* possiblly receive connection complete with resolvable random on
            slave role while the device has been paired */
-        if (!match && role == HCI_ROLE_SLAVE && BTM_BLE_IS_RESOLVE_BDA(bda))
+        if (!match && /*role == HCI_ROLE_SLAVE && */BTM_BLE_IS_RESOLVE_BDA(bda))
         {
             btm_ble_resolve_random_addr(bda, btm_ble_resolve_random_addr_on_conn_cmpl, p_data);
         }

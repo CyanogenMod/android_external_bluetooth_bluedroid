@@ -648,9 +648,14 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
     memcpy(init_addr, p_lcb->remote_bd_addr, BD_ADDR_LEN);
 
 #if BLE_PRIVACY_SPT == TRUE
-    if (p_dev_rec->ble.active_addr_type == BTM_BLE_ADDR_RRA)
+    /* if RPA offloading supported */
+    if (btm_ble_vendor_irk_list_load_dev(p_dev_rec))
+        btm_random_pseudo_to_public(init_addr, &init_addr_type);
+    /* otherwise, if remote is RPA enabled, use latest RPA */
+    else if (p_dev_rec->ble.active_addr_type == BTM_BLE_ADDR_RRA)
     {
         init_addr_type = BLE_ADDR_RANDOM;
+        memcpy(init_addr, p_dev_rec->ble.cur_rand_addr, BD_ADDR_LEN);
     }
     /* if privacy is on and current do not consider using reconnection address */
     if (btm_cb.ble_ctr_cb.privacy ) /* && p_dev_rec->ble.use_reconn_addr */
@@ -662,12 +667,6 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
         l2cu_release_lcb (p_lcb);
         L2CAP_TRACE_ERROR("initate direct connection fail, topology limitation");
         return FALSE;
-    }
-    if (btm_ble_vendor_irk_list_load_dev(p_dev_rec) &&
-        (btm_cb.cmn_ble_vsc_cb.rpa_offloading == TRUE ))
-    {
-        btm_ble_vendor_enable_irk_feature(TRUE);
-        btm_random_pseudo_to_public(init_addr, &init_addr_type);
     }
 
     if (!btsnd_hcic_ble_create_ll_conn (scan_int,/* UINT16 scan_int      */
