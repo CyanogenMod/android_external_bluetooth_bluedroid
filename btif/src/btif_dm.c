@@ -1397,6 +1397,12 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
             */
            if (btif_dm_inquiry_in_progress == FALSE)
            {
+#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
+            tBTA_DM_BLE_PF_FILT_PARAMS adv_filt_param;
+            memset(&adv_filt_param, 0, sizeof(tBTA_DM_BLE_PF_FILT_PARAMS));
+            BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_DELETE, 0, &adv_filt_param, NULL,
+                                     bte_scan_filt_param_cfg_evt, 0);
+#endif
                HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb, BT_DISCOVERY_STOPPED);
            }
         }
