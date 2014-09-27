@@ -1670,6 +1670,7 @@ void btm_establish_continue (tACL_CONN *p_acl_cb)
 #if BLE_INCLUDED == TRUE
             evt_data.conn.handle = p_acl_cb->hci_handle;
             evt_data.conn.transport = p_acl_cb->transport;
+            evt_data.conn.remote_addr_type = p_acl_cb->active_remote_addr_type;
 #endif
 
             (*btm_cb.p_bl_changed_cb)(&evt_data);

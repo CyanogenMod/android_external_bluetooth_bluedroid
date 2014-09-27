@@ -868,6 +868,7 @@ typedef struct
 #if BLE_INCLUDED == TRUE
     UINT16          handle;     /* connection handle */
     tBT_TRANSPORT   transport; /* link is LE or not */
+    UINT8           remote_addr_type;
 #endif
 } tBTM_BL_CONN_DATA;
 

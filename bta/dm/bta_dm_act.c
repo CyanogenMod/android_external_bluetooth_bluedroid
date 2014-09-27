@@ -3456,6 +3456,7 @@ static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data)
 #if BLE_INCLUDED == TRUE
             p_msg->transport = p_data->conn.transport;
             p_msg->handle = p_data->conn.handle;
+            p_msg->remote_addr_type = p_data->conn.remote_addr_type;
 #endif
             break;
         case BTM_BL_DISCN_EVT:
@@ -3721,6 +3722,7 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
 #if BLE_INCLUDED == TRUE
         conn.link_up.link_type = p_data->acl_change.transport;
         bta_dm_cb.device_list.peer_device[i].transport = p_data->acl_change.transport;
+        conn.link_up.remote_addr_type = p_data->acl_change.remote_addr_type;
 #endif
 
         if (((NULL != (p = BTM_ReadLocalFeatures ())) && HCI_SNIFF_SUB_RATE_SUPPORTED(p)) &&

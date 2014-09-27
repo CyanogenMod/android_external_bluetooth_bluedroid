@@ -626,6 +626,35 @@ static void btif_update_remote_properties(BD_ADDR bd_addr, BD_NAME bd_name,
                      status, &bdaddr, num_properties, properties);
 }
 
+void btif_update_remote_device_type(BD_ADDR bd_addr, tBT_DEVICE_TYPE device_type)
+{
+    int num_properties = 0;
+    bt_property_t properties[2];
+    bt_bdaddr_t bdaddr;
+    bt_status_t status;
+    UINT32 cod;
+    bt_device_type_t dev_type;
+
+    memset(properties, 0, sizeof(properties));
+    bdcpy(bdaddr.address, bd_addr);
+    BTIF_TRACE_DEBUG("%s():", __FUNCTION__);
+
+    /* device addr */
+    dev_type = device_type;
+    BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+            BT_PROPERTY_BDADDR, sizeof(bdaddr), &bdaddr);
+    num_properties++;
+    /* device type */
+    dev_type = device_type;
+    BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+            BT_PROPERTY_TYPE_OF_DEVICE, sizeof(dev_type), &dev_type);
+    status = btif_storage_set_remote_device_property(&bdaddr, &properties[num_properties]);
+    ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device type", status);
+    num_properties++;
+
+    btif_storage_add_remote_device(&bdaddr, num_properties, properties);
+}
+
 /*******************************************************************************
 **
 ** Function         btif_dm_cb_hid_remote_name
@@ -1686,6 +1715,9 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
     tBTA_SERVICE_MASK service_mask;
     uint32_t i;
     bt_bdaddr_t bd_addr;
+    int dev_type = 0;
+    bdstr_t bdstr;
+
 
     BTIF_TRACE_EVENT("btif_dm_upstreams_cback  ev: %s", dump_dm_event(event));
 
@@ -1828,6 +1860,20 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             bdcpy(bd_addr.address, p_data->link_up.bd_addr);
             BTIF_TRACE_DEBUG("BTA_DM_LINK_UP_EVT. Sending BT_ACL_STATE_CONNECTED");
 
+            bd2str(&bd_addr, &bdstr);
+            if(btif_config_get_int("Remote", (char const *)&bdstr,"DevType", &dev_type) &&
+                    p_data->link_up.link_type == BT_TRANSPORT_LE && dev_type == BT_DEVICE_TYPE_BREDR)
+            {
+                btif_update_remote_properties(bd_addr.address, NULL, NULL, dev_type | p_data->link_up.link_type);
+            }
+            if(p_data->link_up.link_type == BT_TRANSPORT_LE)
+            {
+                if(dev_type == 0)
+                {
+                    btif_update_remote_device_type(p_data->link_up.bd_addr, BT_TRANSPORT_LE);
+                }
+                btif_storage_set_remote_addr_type(&bd_addr, p_data->link_up.remote_addr_type);
+            }
             btif_update_remote_version_property(&bd_addr);
 
             HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,

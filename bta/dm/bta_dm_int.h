@@ -391,6 +391,7 @@ typedef struct
 #if BLE_INCLUDED == TRUE
     UINT16          handle;
     tBT_TRANSPORT   transport;
+    UINT8  remote_addr_type;
 #endif
 } tBTA_DM_ACL_CHANGE;
 

@@ -795,6 +795,7 @@ typedef struct
     BD_ADDR         bd_addr;            /* BD address peer device. */
 #if BLE_INCLUDED == TRUE
     tBTA_TRANSPORT  link_type;
+    UINT8  remote_addr_type;
 #endif
 } tBTA_DM_LINK_UP;
 
