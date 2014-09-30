@@ -1722,13 +1722,28 @@ tBTM_STATUS btm_ble_start_inquiry (UINT8 mode, UINT8   duration)
 
     if (!BTM_BLE_IS_SCAN_ACTIVE(p_ble_cb->scan_activity))
     {
-        btm_update_scanner_filter_policy(SP_ADV_ALL);
-
+        btsnd_hcic_ble_set_scan_params (BTM_BLE_SCAN_MODE_ACTI,
+                                        BTM_BLE_LOW_LATENCY_SCAN_INT,
+                                        BTM_BLE_LOW_LATENCY_SCAN_WIN,
+                                        btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type,
+                                        SP_ADV_ALL);
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
         /* enable IRK list */
         btm_ble_vendor_irk_list_known_dev (TRUE);
 #endif
         status = btm_ble_start_scan(BTM_BLE_DUPLICATE_DISABLE);
+    }
+    else if((p_ble_cb->inq_var.scan_interval != BTM_BLE_LOW_LATENCY_SCAN_INT) ||
+            (p_ble_cb->inq_var.scan_window != BTM_BLE_LOW_LATENCY_SCAN_WIN))
+    {
+        BTM_TRACE_DEBUG("%s, restart LE scan with low latency scan params", __FUNCTION__);
+        btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_DISABLE, BTM_BLE_DUPLICATE_ENABLE);
+        btsnd_hcic_ble_set_scan_params (BTM_BLE_SCAN_MODE_ACTI,
+                                        BTM_BLE_LOW_LATENCY_SCAN_INT,
+                                        BTM_BLE_LOW_LATENCY_SCAN_WIN,
+                                        btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type,
+                                        SP_ADV_ALL);
+        btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_ENABLE, BTM_BLE_DUPLICATE_DISABLE);
     }
 
     if (status == BTM_CMD_STARTED)
@@ -1741,7 +1756,7 @@ tBTM_STATUS btm_ble_start_inquiry (UINT8 mode, UINT8   duration)
         if (duration != 0)
         {
             /* start inquiry timer */
-            btu_start_timer (&p_inq->inq_timer_ent, BTU_TTYPE_BLE_INQUIRY, duration);
+            btu_start_timer (&p_ble_cb->inq_var.inq_timer_ent, BTU_TTYPE_BLE_INQUIRY, duration);
         }
     }
 
@@ -2667,6 +2682,13 @@ void btm_ble_stop_inquiry(void)
     /* If no more scan activity, stop LE scan now */
     if (!BTM_BLE_IS_SCAN_ACTIVE(p_ble_cb->scan_activity))
         btm_ble_stop_scan();
+    else if((p_ble_cb->inq_var.scan_interval != BTM_BLE_LOW_LATENCY_SCAN_INT) ||
+            (p_ble_cb->inq_var.scan_window != BTM_BLE_LOW_LATENCY_SCAN_WIN))
+    {
+        BTM_TRACE_DEBUG("%s: setting default params for ongoing observe", __FUNCTION__);
+        btm_ble_stop_scan();
+        btm_ble_start_scan(BTM_BLE_DUPLICATE_DISABLE);
+    }
 
     /* If we have a callback registered for inquiry complete, call it */
     BTM_TRACE_DEBUG ("BTM Inq Compl Callback: status 0x%02x, num results %d",
