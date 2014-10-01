@@ -33,7 +33,7 @@ LOCAL_C_INCLUDES := . \
 LOCAL_CFLAGS += -std=c99
 
 LOCAL_CFLAGS += $(bdroid_CFLAGS)
-LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_TAGS := debug optional
 
 LOCAL_MODULE:= gatt_testtool
 
