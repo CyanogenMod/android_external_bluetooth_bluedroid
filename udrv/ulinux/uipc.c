@@ -480,6 +480,8 @@ static void uipc_read_task(void *arg)
 
     prctl(PR_SET_NAME, (unsigned long)"uipc-main", 0, 0, 0);
 
+    raise_priority_a2dp(TASK_UIPC_READ);
+
     while (uipc_main.running)
     {
         uipc_main.read_set = uipc_main.active_set;
