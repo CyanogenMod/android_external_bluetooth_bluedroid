@@ -825,14 +825,6 @@ static void do_set_adv_params(char *p)
 //    if(FALSE == GetBdAddr(p, &bd_addr))    return;
 //    sBtInterface->le_set_adv_params(int_min, int_max, &bd_addr, addr_type);
 }
-static void do_start_advertisment(char *p)
-{
-//    int V2 = 3;
-//    V2 = get_int(&p, -1);  // arg1  Other than zero will be considered as true.
-//    bt_property_t property = {BT_PROPERTY_ADAPTER_BLE_ADV_MODE , 2, &V2};
-//    status = sBtInterface->set_adapter_property(&property);
-//      status = sGattInterface->Gatt_Listen();
-}
 */
 
 static void do_set_localname(char *p)
@@ -1388,6 +1380,20 @@ void do_le_client_connect (char *p)
     printf("%s:: Ret=%d \n", __FUNCTION__, Ret);
 }
 
+void do_le_client_refresh (char *p)
+{
+    BOOLEAN        Ret;
+    bt_bdaddr_t bd_addr = {{0}};
+    if(FALSE == GetBdAddr(p, &bd_addr))    return;
+
+    if(Btif_gatt_layer)
+    {
+        Ret = sGattIfaceScan->client->refresh(g_client_if_scan, &bd_addr);
+        printf("%s:: Ret=%d \n", __FUNCTION__, Ret);
+    }
+}
+
+
 void do_le_client_connect_auto (char *p)
 {
     BOOLEAN        Ret;
@@ -1456,8 +1462,8 @@ void do_le_client_multi_adv_set_inst_data(char *p)
 {
     bt_status_t        Ret;
     bool              SetScanRsp        = FALSE;
-    bool              IncludeName        = FALSE;
-    bool              IncludeTxPower    = FALSE;
+    bool              IncludeName        = TRUE;
+    bool              IncludeTxPower    = TRUE;
 
     SetScanRsp         = get_int(&p, -1);  // arg1  Other than zero will be considered as true.
     IncludeName     = get_int(&p, -1);  // arg2  Other than zero will be considered as true.
@@ -1520,38 +1526,6 @@ void do_le_client_adv_disable(char *p)
     Ret = sGattIfaceScan->client->multi_adv_disable(adv_if);
     printf("%s:: Ret=%d \n", __FUNCTION__, Ret);
 }
-
-/*void do_set_adv_params(char *p)
-{
-
-        bt_bdaddr_t bd_addr = {{0}};
-	   int int_min = 0x0, int_max = 0x0, addr_type = 0;
-	   int_max = get_int(&p, -1);
-	   int_min = get_int(&p, -1);
-	   addr_type = get_int(&p, -1);
-	   if(int_max < int_min)
-		   return;
-	   if(FALSE == GetBdAddr(p, &bd_addr))	  return;
-       printf("%s:: \n", __FUNCTION__);
-	   sBtInterface->le_set_adv_params(int_min, int_max, &bd_addr, addr_type);
-
-}*/
-
-
-void do_le_client_listen_start(char *p)
-{
-    bt_status_t        Ret;
-    Ret = sGattIfaceScan->client->listen(g_client_if_scan, TRUE);
-    printf("%s:: Ret=%d \n", __FUNCTION__, Ret);
-}
-
-void do_le_client_listen_stop(char *p)
-{
-    bt_status_t        Ret;
-    Ret = sGattIfaceScan->client->listen(g_client_if_scan, FALSE);
-    printf("%s:: Ret=%d \n", __FUNCTION__, Ret);
-}
-
 
 void do_le_client_configureMTU(char *p)
 {
@@ -2129,6 +2103,7 @@ const t_cmd console_cmd_list[] =
     { "c_register", do_le_client_register, "::UUID: 1<1111..> 2<12323..> 3<321111..>", 0 },
     { "c_deregister", do_le_client_deregister, "::UUID: 1<1111..> 2<12323..> 3<321111..>", 0 },
     { "c_connect", do_le_client_connect, ":: transport-type<0,1...> , BdAddr<00112233445566>", 0 },
+    { "c_refresh", do_le_client_refresh, ":: BdAddr<00112233445566>", 0 },
     { "c_connect_auto", do_le_client_connect_auto, ":: BdAddr<00112233445566>", 0 },
     { "c_disconnect", do_le_client_disconnect, ":: BdAddr<00112233445566>", 0 },
     { "c_configureMTU", do_le_client_configureMTU, ":: 23", 0 },
@@ -2144,17 +2119,13 @@ const t_cmd console_cmd_list[] =
     { "c_execute_write", do_le_execute_write, "is_execute", 0 },
     { "c_scan_start", do_le_client_scan_start, "::", 0 },
     { "c_scan_stop", do_le_client_scan_stop, "::", 0 },
-    { "c_set_adv_data", do_le_client_set_adv_data, "::EnableScan<0/1>, IncludeName<0/1> IncludeTxPower<0/1> min_iinterval max_interval", 0 },
-    { "c_listen_start", do_le_client_listen_start, "::", 0 },
-    { "c_listen_stop", do_le_client_listen_stop, "::", 0 },
+    { "c_set_adv_data", do_le_client_multi_adv_set_inst_data, "::EnableScanrsp<0/1>, IncludeName<0/1> IncludeTxPower<0/1>", 0 },
     { "start_advertising", do_le_client_adv_enable, "::int client_if,nt min_interval,int max_interval,int adv_type,int chnl_map, int tx_power timeout",0},
-    { "c_adv_update", do_le_client_adv_update, "::int min_interval,int max_interval,int adv_type,int chnl_map, int tx_power timeout",0},
-    { "stop_advertising", do_le_client_adv_disable, "::",0},
+    { "c_adv_update", do_le_client_adv_update, "::int min_interval,int max_interval,int adv_type,int chnl_map, int tx_power, int timeout",0},
+    { "stop_advertising", do_le_client_adv_disable, "::int adv_if",0},
     { "c_set_idle_timeout", do_le_set_idle_timeout, "bd_addr, time_out(int)", 0 },
     { "c_gap_attr_init", do_le_gap_attr_init, "::", 0 },
     { "c_gap_conn_param_update", do_le_gap_conn_param_update, "::", 0 },
-    { "c_gap_set_disc", do_le_gap_set_disc, "::mode(1-nondisc, 2-LimitedDisc, 3-GeneralDisc), duration<12-1000>, interval<12-1000)", 0 },
-    { "c_gap_set_connectable", do_le_gap_set_conn, "::mode(1-nonConn, 2-Connectable), duration<12-1000>, interval<12-1000)", 0 },
 
     { "s_register", do_le_server_register, "::UUID: 1<1111..> 2<12323..> 3<321111..>", 0 },
     { "s_connect", do_le_server_connect, ":: BdAddr<00112233445566>", 0 },
@@ -2172,15 +2143,6 @@ const t_cmd console_cmd_list[] =
     //{ "smp_encrypt", do_smp_encrypt, "::", 0 },
     { "l2cap_send_data_cid", do_l2cap_send_data_cid, ":: BdAddr<00112233445566>, CID<>", 0 },
 
-  //  { "set_adv_parameters", do_set_adv_params, ":: int_max, int_min, direct_addr_type<0/1>, BdAddr<00112233445566>", 0 },
-/*    { "start_advertising", do_start_advertisment, ":: starts advertisment <mode> \
-                                                      \n\t 0 - BLE_ADV_MODE_NONE \
-                                                      \n\t 1 - BLE_ADV_IND_GENERAL_CONNECTABLE \
-                                                      \n\t 2 - BLE_ADV_IND_LIMITED_CONNECTABLE \
-                                                      \n\t 3 - BLE_ADV_DIR_CONNECTABLE        \
-                                                      \n\t 4 - BLE_ADV_IND_GENERAL_NON_CONNECTABLE \
-                                                      \n\t 5 - BLE_ADV_IND_LIMITED_NON_CONNECTABLE \
-                                                      \n\t 6 - BLE_ADV_IND_NON_DISC_CONNECTABLE" , 0},*/
     { "set_local_name", do_set_localname, ":: setName<name>", 0 },
     /* add here */
 
