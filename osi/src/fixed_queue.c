@@ -55,11 +55,13 @@ fixed_queue_t *fixed_queue_new(size_t capacity) {
 
   return ret;
 
-error:;
+error:
   if (ret) {
     list_free(ret->list);
-    semaphore_free(ret->enqueue_sem);
-    semaphore_free(ret->dequeue_sem);
+    if (ret->enqueue_sem)
+      semaphore_free(ret->enqueue_sem);
+    if (ret->dequeue_sem)
+      semaphore_free(ret->dequeue_sem);
   }
 
   free(ret);
