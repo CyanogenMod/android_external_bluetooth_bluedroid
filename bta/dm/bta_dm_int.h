@@ -1283,5 +1283,6 @@ extern void bta_dm_execute_callback(tBTA_DM_MSG *p_data);
 
 extern void bta_dm_set_afh_channel_assesment(tBTA_DM_MSG *p_data);
 extern void bta_dm_hci_raw_command(tBTA_DM_MSG *p_data);
+extern void bta_dm_gattc_service_search_close(UINT16 event);
 #endif /* BTA_DM_INT_H */
 
