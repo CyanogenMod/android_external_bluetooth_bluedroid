@@ -120,6 +120,7 @@ static void check_do_scheduling_group(void) {
 void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
     int rc = 0;
     int tid = gettid();
+    int priority = ANDROID_PRIORITY_AUDIO;
 
     pthread_mutex_lock(&gIdxLock);
     g_TaskIdx = high_task;
@@ -136,8 +137,15 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
         ALOGW("failed to change sched policy, tid %d, err: %d", tid, errno);
     }
 
-    if (setpriority(PRIO_PROCESS, tid, ANDROID_PRIORITY_AUDIO) < 0) {
-        ALOGW("failed to change priority tid: %d to %d", tid, ANDROID_PRIORITY_AUDIO);
+    // always use urgent priority for HCI worker thread until we can adjust
+    // its prio individually. All other threads can be dynamically adjusted voa
+    // adjust_priority_a2dp()
+
+    if (high_task == TASK_HIGH_HCI_WORKER)
+       priority = ANDROID_PRIORITY_URGENT_AUDIO;
+
+    if (setpriority(PRIO_PROCESS, tid, priority) < 0) {
+        ALOGW("failed to change priority tid: %d to %d", tid, priority);
     }
 }
 
@@ -157,7 +165,7 @@ void adjust_priority_a2dp(int start) {
     int tid;
     int i;
 
-    for (i = TASK_HIGH_GKI_TIMER; i < TASK_HIGH_MAX; i++)
+    for (i = 0; i < TASK_HIGH_MAX; i++)
     {
         tid = g_TaskIDs[i];
         if (tid != INVALID_TASK_ID)

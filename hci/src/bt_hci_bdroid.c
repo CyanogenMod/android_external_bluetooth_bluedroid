@@ -357,13 +357,16 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
         ALOGW("init has been called repeatedly without calling cleanup ?");
     }
 
+    // Set prio here and let hci worker thread inherit prio
+    // remove once new thread api (thread_set_priority() ?)
+    // can switch prio
+    raise_priority_a2dp(TASK_HIGH_HCI_WORKER);
+
     hc_cb.worker_thread = thread_new("bt_hc_worker");
     if (!hc_cb.worker_thread) {
         ALOGE("%s unable to create worker thread.", __func__);
         return BT_HC_STATUS_FAIL;
     }
-
-    // TODO(sharvil): increase thread priority (raise_priority_a2dp)
 
     return BT_HC_STATUS_SUCCESS;
 }

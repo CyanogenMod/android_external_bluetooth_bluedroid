@@ -39,6 +39,7 @@
 #include "l2c_int.h"
 #include "btu.h"
 #include "bt_utils.h"
+#include <sys/prctl.h>
 
 #include "sdpint.h"
 
@@ -220,6 +221,8 @@ BTU_API UINT32 btu_task (UINT32 param)
 
     /* Send a startup evt message to BTIF_TASK to kickstart the init procedure */
     GKI_send_event(BTIF_TASK, BT_EVT_TRIGGER_STACK_INIT);
+
+    prctl(PR_SET_NAME, (unsigned long)"BTU TASK", 0, 0, 0);
 
     raise_priority_a2dp(TASK_HIGH_BTU);
 
