@@ -6130,6 +6130,26 @@ static void bta_dm_gatt_disc_result(tBTA_GATT_ID service_id)
 
 /*******************************************************************************
 **
+** Function         bta_dm_gattc_service_search_close
+**
+** Description      This function stops gatt close timer if it is in use.
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_gattc_service_search_close(UINT16 event)
+{
+    if (bta_dm_search_cb.gatt_close_timer.in_use) {
+        bta_sys_stop_timer(&bta_dm_search_cb.gatt_close_timer);
+        bta_dm_close_gatt_conn(NULL);
+        if (event == BTA_DM_API_SEARCH_EVT) {
+            bdsetany(bta_dm_search_cb.peer_bdaddr);
+        }
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         bta_dm_gatt_disc_complete
 **
 ** Description      This function process the GATT service search complete.
