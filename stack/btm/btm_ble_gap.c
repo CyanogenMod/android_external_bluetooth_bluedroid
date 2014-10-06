@@ -28,8 +28,9 @@
 
 #include "bt_types.h"
 #include "bt_utils.h"
-#include "btu.h"
 #include "btm_int.h"
+#include "btm_ble_api.h"
+#include "btu.h"
 #include "hcimsgs.h"
 #if (GAP_INCLUDED == TRUE)
 #include "gap_api.h"
@@ -613,7 +614,8 @@ void BTM_BleConfigPrivacy(BOOLEAN enable)
 *******************************************************************************/
 BTM_API extern UINT8  BTM_BleMaxMultiAdvInstanceCount()
 {
-    return btm_cb.cmn_ble_vsc_cb.adv_inst_max;
+    return btm_cb.cmn_ble_vsc_cb.adv_inst_max < BTM_BLE_MULTI_ADV_MAX ?
+        btm_cb.cmn_ble_vsc_cb.adv_inst_max : BTM_BLE_MULTI_ADV_MAX;
 }
 
 #if BLE_PRIVACY_SPT == TRUE

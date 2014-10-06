@@ -383,7 +383,7 @@ void btm_ble_multi_adv_gen_rpa_cmpl(tBTM_RAND_ENC *p)
         }
         else
         {
-            btm_multi_adv_idx_q.front = btm_multi_adv_idx_q.front +1 % BTM_BLE_MULTI_ADV_MAX;
+            btm_multi_adv_idx_q.front = (btm_multi_adv_idx_q.front + 1) % BTM_BLE_MULTI_ADV_MAX;
         }
     }
 
@@ -433,7 +433,7 @@ void btm_ble_multi_adv_gen_rpa_cmpl(tBTM_RAND_ENC *p)
 *******************************************************************************/
 void btm_ble_multi_adv_configure_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst)
 {
-    if (btm_multi_adv_idx_q.front == btm_multi_adv_idx_q.rear +1 % BTM_BLE_MULTI_ADV_MAX)
+    if (btm_multi_adv_idx_q.front == (btm_multi_adv_idx_q.rear + 1) % BTM_BLE_MULTI_ADV_MAX)
     {
         BTM_TRACE_ERROR("outstanding rand generation exceeded max allowed ");
         return;
@@ -447,7 +447,7 @@ void btm_ble_multi_adv_configure_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst)
         }
         else
         {
-            btm_multi_adv_idx_q.rear = btm_multi_adv_idx_q.rear +1 % BTM_BLE_MULTI_ADV_MAX;
+            btm_multi_adv_idx_q.rear = (btm_multi_adv_idx_q.rear + 1) % BTM_BLE_MULTI_ADV_MAX;
         }
         btm_multi_adv_idx_q.inst_index_queue[btm_multi_adv_idx_q.rear] = p_inst->index;
     }
