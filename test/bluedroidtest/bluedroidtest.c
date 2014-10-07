@@ -51,6 +51,7 @@
 ************************************************************************************/
 
 #define PID_FILE "/data/.bdt_pid"
+#define DEVICE_DISCOVERY_TIMEOUT 20
 
 #ifndef MAX
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
@@ -82,6 +83,10 @@ static gid_t groups[] = { AID_NET_BT, AID_INET, AID_NET_BT_ADMIN,
 
 /* Set to 1 when the Bluedroid stack is enabled */
 static unsigned char bt_enabled = 0;
+static int deviceCount;
+static int wantMore = 0;
+pthread_mutex_t deviceCount_mutex;
+pthread_cond_t deviceCount_cond;
 
 /************************************************************************************
 **  Static functions
@@ -90,6 +95,7 @@ static unsigned char bt_enabled = 0;
 static void process_cmd(char *p, unsigned char is_job);
 static void job_handler(void *param);
 static void bdt_log(const char *fmt_str, ...);
+static void discover_device(void *arg);
 
 
 /************************************************************************************
@@ -481,12 +487,32 @@ static void le_test_mode(bt_status_t status, uint16_t packet_count)
     bdt_log("LE TEST MODE END status:%s number_of_packets:%d", dump_bt_status(status), packet_count);
 }
 
+static void device_found_cb(int num_properties, bt_property_t *properties)
+{
+    int i;
+    for (i = 0; i < num_properties; i++)
+    {
+        if (properties[i].type == BT_PROPERTY_BDNAME)
+        {
+            pthread_mutex_lock(&deviceCount_mutex);
+            deviceCount++;
+            bdt_log("Device name is : %s\n",
+                  (char*)properties[i].val);
+            if (deviceCount > 0 && wantMore == 0)
+            {
+                pthread_cond_signal(&deviceCount_cond);
+            }
+            pthread_mutex_unlock(&deviceCount_mutex);
+        }
+    }
+}
+
 static bt_callbacks_t bt_callbacks = {
     sizeof(bt_callbacks_t),
     adapter_state_changed,
     NULL, /* adapter_properties_cb */
     NULL, /* remote_device_properties_cb */
-    NULL, /* device_found_cb */
+    device_found_cb, /* device_found_cb */
     NULL, /* discovery_state_changed_cb */
     NULL, /* pin_request_cb  */
     NULL, /* ssp_request_cb  */
@@ -781,12 +807,37 @@ static void process_cmd(char *p, unsigned char is_job)
     do_help(NULL);
 }
 
+static void discover_device(void *arg)
+{
+    struct timespec ts = {0, 0};
+    ts.tv_sec = time(NULL) + DEVICE_DISCOVERY_TIMEOUT;
+
+    sBtInterface->start_discovery();
+    pthread_mutex_lock(&deviceCount_mutex);
+    pthread_cond_timedwait(&deviceCount_cond, &deviceCount_mutex, &ts);
+    if (deviceCount == 0)
+    {
+        bdt_log("No device found\n");
+    }
+    else
+    {
+        deviceCount = 0;
+    }
+    pthread_mutex_unlock(&deviceCount_mutex);
+    wantMore = 0;
+    bdt_log("Cancelling discovery\n");
+    sBtInterface->cancel_discovery();
+    pthread_exit(0);
+}
+
 int main (int UNUSED argc, char UNUSED *argv[])
 {
     int opt;
     char cmd[128];
     int args_processed = 0;
     int pid = -1;
+    int enable_wait_count = 0;
+    pthread_t discoveryThread;
 
     config_permissions();
     bdt_log("\n:::::::::::::::::::::::::::::::::::::::::::::::::::");
@@ -799,10 +850,42 @@ int main (int UNUSED argc, char UNUSED *argv[])
     }
 
     setup_test_env();
+    pthread_mutex_init(&deviceCount_mutex, NULL);
+    pthread_cond_init (&deviceCount_cond, NULL);
 
     /* Automatically perform the init */
     bdt_init();
+    if (argc > 1)
+    {
+        bdt_log("Command line mode\n");
+        if (strncmp(argv[1],"get_ap_list",11) == 0) {
+            wantMore = 1;
+        } else if (strncmp(argv[1],"get_a_device",12) == 0) {
+            wantMore = 0;
+        } else {
+             bdt_log("Unrecognised command");
+             goto cleanup;
+        }
+        bdt_log("Enabling BT for 45 seconds\n");
+        bdt_enable();
+        do {
+            if (bt_enabled)
+                break;
+                bdt_log("Waiting for bt_enabled to become true\n");
+                sleep(2);
+        } while(enable_wait_count++ < 10);
 
+        if (bt_enabled) {
+            pthread_create(&discoveryThread, NULL, (void*)discover_device, NULL);
+            pthread_join(discoveryThread, NULL);
+        } else {
+            bdt_log("Failed to enable BT\n");
+            goto cleanup;
+        }
+        bdt_log("Disabling BT\n");
+        bdt_disable();
+        goto cleanup;
+    }
     while(!main_done)
     {
         char line[128];
@@ -825,8 +908,11 @@ int main (int UNUSED argc, char UNUSED *argv[])
 
     /* FIXME: Commenting this out as for some reason, the application does not exit otherwise*/
     //bdt_cleanup();
-
+cleanup:
     HAL_unload();
+
+    pthread_mutex_destroy(&deviceCount_mutex);
+    pthread_cond_destroy(&deviceCount_cond);
 
     bdt_log(":: Bluedroid test app terminating");
 
