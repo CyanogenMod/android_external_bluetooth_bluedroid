@@ -170,6 +170,7 @@ static void alarm_service_init()
     alarm_service.timer_started_us = 0;
     alarm_service.timer_last_expired_us = 0;
     alarm_service.wakelock = FALSE;
+    raise_priority_a2dp(TASK_JAVA_ALARM);
 }
 
 /** Requests an alarm from AlarmService to fire when the next
