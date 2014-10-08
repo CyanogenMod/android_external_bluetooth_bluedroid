@@ -201,7 +201,9 @@ static const UINT8 rc_black_addr_prefix[][3] = {
 
 static const UINT8 rc_white_addr_prefix[][3] = {
     {0x94, 0xCE, 0x2C}, // Sony SBH50
-    {0x30, 0x17, 0xC8}  // Sony wm600
+    {0x30, 0x17, 0xC8}, // Sony wm600
+    {0x34, 0xDF, 0x2A}, // Jabra REVO
+    {0x0C, 0xA6, 0x94}  // JBL Pulse
 };
 
 static void send_reject_response (UINT8 rc_handle, UINT8 label,
