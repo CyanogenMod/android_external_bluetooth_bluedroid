@@ -828,6 +828,9 @@ static bt_status_t connect_audio( bt_bdaddr_t *bd_addr )
     CHECK_BTHF_INIT();
 
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
+    /* Check if SLC is connected */
+    if (btif_hf_check_if_slc_connected() != BT_STATUS_SUCCESS)
+        return BT_STATUS_NOT_READY;
 
     if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX))
     {
