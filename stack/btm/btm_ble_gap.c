@@ -2458,7 +2458,7 @@ void btm_ble_process_adv_pkt (UINT8 *p_data)
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
         match = btm_cb.cmn_ble_vsc_cb.rpa_offloading;
         /* map address to security record */
-        btm_public_addr_to_random_pseudo(bda, &addr_type);
+        btm_public_addr_to_random_pseudo(bda, &addr_type, FALSE);
         BTM_TRACE_ERROR("new address: %02x:%02x:%02x:%02x:%02x:%02x",
                       bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
 #endif

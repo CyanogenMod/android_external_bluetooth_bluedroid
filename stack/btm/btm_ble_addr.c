@@ -417,7 +417,7 @@ tBTM_SEC_DEV_REC* btm_find_dev_by_public_static_addr(BD_ADDR bd_addr)
 **                  in security database.
 **
 *******************************************************************************/
-BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type)
+BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type, BOOLEAN read_irk)
 {
 #if BLE_PRIVACY_SPT == TRUE
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev_by_public_static_addr(bd_addr);
@@ -425,7 +425,7 @@ BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type)
     BTM_TRACE_EVENT ("btm_public_addr_to_random_pseudo");
 
     /* evt reported on static address, map static address to random pseudo */
-    if (p_dev_rec  != NULL &&
+    if (p_dev_rec  != NULL && read_irk &&
         /* static address is not static address */
         memcmp(p_dev_rec->bd_addr, bd_addr, BD_ADDR_LEN) != 0)
         /* update current random */

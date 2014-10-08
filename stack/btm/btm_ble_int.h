@@ -412,7 +412,7 @@ extern BOOLEAN btm_ble_clear_topology_mask(tBTM_BLE_STATE_MASK request_state);
 extern BOOLEAN btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state);
 
 /* BLE address mapping with CS feature */
-extern BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type);
+extern BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type, BOOLEAN read_irk);
 extern BOOLEAN btm_random_pseudo_to_public(BD_ADDR random_pseudo, UINT8 *p_static_addr_type);
 extern void btm_ble_refresh_rra(BD_ADDR pseudo_bda, BD_ADDR rra);
 

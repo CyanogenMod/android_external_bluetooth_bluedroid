@@ -1663,7 +1663,7 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
 #if (BLE_PRIVACY_SPT == TRUE )
 
         if (btm_cb.cmn_ble_vsc_cb.rpa_offloading == TRUE)
-            match = btm_public_addr_to_random_pseudo (bda, &bda_type);
+            match = btm_public_addr_to_random_pseudo (bda, &bda_type, TRUE);
 
         /* possiblly receive connection complete with resolvable random on
            slave role while the device has been paired */
