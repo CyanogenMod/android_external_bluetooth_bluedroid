@@ -797,6 +797,7 @@ void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr)
      bt_bdname_t alias;
      bt_property_t properties[1];
      uint32_t num_properties = 0;
+     bt_status_t status = BT_STATUS_FAIL;
      memset(&alias, 0, sizeof(alias));
      BTIF_DM_GET_REMOTE_PROP(bd_addr, BT_PROPERTY_REMOTE_FRIENDLY_NAME,
             &alias, sizeof(alias), properties[num_properties]);
@@ -808,6 +809,17 @@ void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr)
 
          btif_storage_set_remote_device_property(bd_addr, &properties[0]);
      }
+
+     /* Reset the remoteTrustvalue*/
+     properties[0].type = BT_PROPERTY_REMOTE_TRUST_VALUE;
+     *((int *) (properties[0].val)) = 0;
+     properties[0].len = sizeof(int);
+     /* Also write this to the NVRAM */
+     status = btif_storage_set_remote_device_property(bd_addr, &properties[0]);
+     ASSERTC(status == BT_STATUS_SUCCESS, "resetting trust failed", status);
+     /* Callback to notify upper layer of remote device property change */
+     HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
+                      BT_STATUS_SUCCESS, bd_addr, 1, properties);
 
      /*special handling for HID devices */
      /*  VUP needs to be sent if its a HID Device. The HID HOST module will check if there
@@ -1176,7 +1188,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             /* Also write this to the NVRAM */
             status = btif_storage_set_remote_device_property(&bd_addr, &prop);
             ASSERTC(status == BT_STATUS_SUCCESS, "storing remote services failed", status);
-            /* Send the event to the BTIF */
+            /* Send the event from BTIF */
             HAL_CBACK(bt_hal_cbacks, remote_device_properties_cb,
                              BT_STATUS_SUCCESS, &bd_addr, 1, &prop);
         }
