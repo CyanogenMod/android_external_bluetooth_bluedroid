@@ -209,7 +209,7 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 /* 18 frames is equivalent to 6.89*18*2.9 ~= 360 ms @ 44.1 khz, 20 ms mediatick */
 #define MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ 18
 #define A2DP_PACKET_COUNT_LOW_WATERMARK 5
-#define MAX_PCM_FRAME_NUM_PER_TICK     40
+#define MAX_PCM_FRAME_NUM_PER_TICK     20
 #define RESET_RATE_COUNTER_THRESHOLD_MS    2000
 
 //#define BTIF_MEDIA_VERBOSE_ENABLED
@@ -2481,6 +2481,11 @@ static UINT8 btif_get_num_aa_frame(void)
             } else {
                 result = 0;
             }
+
+            /* smooth out the compensation over time to minimize burstiness towards UIPC */
+            if (result > MAX_PCM_FRAME_NUM_PER_TICK)
+                result = MAX_PCM_FRAME_NUM_PER_TICK;
+
             VERBOSE("WRITE %d FRAMES", result);
         }
         break;
