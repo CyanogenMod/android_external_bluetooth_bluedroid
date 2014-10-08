@@ -354,6 +354,11 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
                 HAL_CBACK(bt_av_src_callbacks, connection_priority_cb,
                          &(btif_av_cb.peer_bda));
             }
+            if (bt_av_sink_callbacks != NULL)
+            {
+                BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
+                       TRUE, BTA_SEC_NONE, UUID_SERVCLASS_AUDIO_SINK);
+            }
             break;
 
         case BTA_AV_OPEN_EVT:
@@ -1502,7 +1507,6 @@ static void allow_connection(int is_valid)
             {
                 BTA_AvOpen(btif_av_cb.peer_bda.address, btif_av_cb.bta_handle,
                        TRUE, BTA_SEC_NONE, UUID_SERVCLASS_AUDIO_SOURCE);
-                btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENING);
             }
             else
             {
