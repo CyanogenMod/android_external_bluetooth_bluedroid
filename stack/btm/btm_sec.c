@@ -5107,6 +5107,7 @@ static void btm_sec_pairing_timeout (TIMER_LIST_ENT *p_tle)
             break;
 
         case BTM_PAIR_STATE_WAIT_AUTH_COMPLETE:
+        case BTM_PAIR_STATE_GET_REM_NAME:
             /* We need to notify the UI that timeout has happened while waiting for authentication*/
             btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
             if (btm_cb.api.p_auth_complete_callback)
