@@ -2999,6 +2999,7 @@ static void bta_dm_pinname_cback (void *p_data)
         /* Retrieved saved device class and bd_addr */
         bdcpy(sec_event.pin_req.bd_addr, bta_dm_cb.pin_bd_addr);
         BTA_COPY_DEVICE_CLASS(sec_event.pin_req.dev_class, bta_dm_cb.pin_dev_class);
+        sec_event.pin_req.secure = bta_dm_cb.secure;
 
         if (p_result && p_result->status == BTM_SUCCESS)
         {
@@ -3036,11 +3037,14 @@ static UINT8 bta_dm_pin_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_
     if (!bta_dm_cb.p_sec_cback)
         return BTM_NOT_AUTHORIZED;
 
-    /* If the device name is not known, save bdaddr and devclass and initiate a name request */
+    APPL_TRACE_DEBUG(" bta_dm_pin_cback(): secure = %d", secure);
+    /* If the device name is not known, save bdaddr, secure and
+       devclass and initiate a name request */
     if (bd_name[0] == 0)
     {
         bta_dm_cb.pin_evt = BTA_DM_PIN_REQ_EVT;
         bdcpy(bta_dm_cb.pin_bd_addr, bd_addr);
+        bta_dm_cb.secure = secure;
         BTA_COPY_DEVICE_CLASS(bta_dm_cb.pin_dev_class, dev_class);
         if ((BTM_ReadRemoteDeviceName(bd_addr, bta_dm_pinname_cback, BT_TRANSPORT_BR_EDR)) == BTM_CMD_STARTED)
             return BTM_CMD_STARTED;
