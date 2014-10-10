@@ -850,9 +850,12 @@ void bta_gattc_reset_discover_st(tBTA_GATTC_SERV *p_srcb, tBTA_GATT_STATUS statu
 *******************************************************************************/
 void bta_gattc_disc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
-    APPL_TRACE_DEBUG("Discovery cancel conn_id=%d",p_clcb->bta_conn_id);
+    APPL_TRACE_DEBUG("Discovery cancel conn_id=%d, disc_active=%d",p_clcb->bta_conn_id, p_clcb->disc_active);
     if (p_clcb->disc_active)
+    {
         bta_gattc_reset_discover_st(p_clcb->p_srcb, BTA_GATT_ERROR);
+        bta_gattc_sm_execute(p_clcb, BTA_GATTC_API_CLOSE_EVT, p_data);
+    }
     else
         p_clcb->state = BTA_GATTC_CONN_ST;
 }
