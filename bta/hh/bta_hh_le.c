@@ -2898,7 +2898,7 @@ void bta_hh_le_update_scpp(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
     BTA_GATTC_WriteCharValue(p_dev_cb->conn_id,
                              &char_id,
                              BTA_GATTC_TYPE_WRITE_NO_RSP,
-                             2,
+                             4,
                              value,
                              BTA_GATT_AUTH_REQ_NONE);
 
@@ -2977,6 +2977,11 @@ static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 
 
         case BTA_GATTC_NOTIF_EVT: /* 10 */
+            p_dev_cb = bta_hh_le_find_dev_cb_by_conn_id(p_data->notify.conn_id);
+           if( p_data->notify.char_id.char_id.uuid.uu.uuid16 ==  GATT_UUID_SCAN_REFRESH ) {
+               BTA_HhUpdateLeScanParam(p_dev_cb->hid_handle,BTM_BLE_SCAN_SLOW_INT_1,BTM_BLE_SCAN_SLOW_WIN_1);
+           }
+           else
             bta_hh_le_input_rpt_notify(&p_data->notify);
             break;
 
