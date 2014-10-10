@@ -72,8 +72,8 @@ typedef struct
 } btgatt_multi_adv_common_data;
 
 extern btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb();
-extern void btif_gattc_init_multi_adv_cb(void);
-extern void btif_gattc_destroy_multi_adv_cb();
+extern void btif_gattc_incr_app_count(void);
+extern void btif_gattc_decr_app_count(void);
 extern int btif_multi_adv_add_instid_map(int client_if, int inst_id,
         BOOLEAN gen_temp_instid);
 extern int btif_multi_adv_instid_for_clientif(int client_if);

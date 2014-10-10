@@ -1087,13 +1087,13 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
     {
         case BTIF_GATTC_REGISTER_APP:
             btif_to_bta_uuid(&uuid, &p_cb->uuid);
-            btif_gattc_init_multi_adv_cb();
+            btif_gattc_incr_app_count();
             BTA_GATTC_AppRegister(&uuid, bta_gattc_cback);
             break;
 
         case BTIF_GATTC_UNREGISTER_APP:
             btif_gattc_clear_clientif(p_cb->client_if);
-            btif_gattc_destroy_multi_adv_cb();
+            btif_gattc_decr_app_count();
             BTA_GATTC_AppDeregister(p_cb->client_if);
             break;
 

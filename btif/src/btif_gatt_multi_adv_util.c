@@ -42,7 +42,7 @@
 /*******************************************************************************
 **  Static variables
 ********************************************************************************/
-static int multi_adv_enable_count = 0;
+static int user_app_count = 0;
 static btgatt_multi_adv_common_data *p_multi_adv_com_data_cb = NULL;
 
 btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
@@ -52,9 +52,15 @@ btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
         max_adv_inst = 1;
 
     BTIF_TRACE_DEBUG("%s, Count:%d", __FUNCTION__, max_adv_inst);
+    if(0 == BTM_BleMaxMultiAdvInstanceCount())
+    {
+        BTIF_TRACE_WARNING("BTM_BleMaxMultiAdvInstanceCount - No instances found");
+        return NULL;
+    }
+
+    BTIF_TRACE_DEBUG("BTM_BleMaxMultiAdvInstanceCount count:%d", BTM_BleMaxMultiAdvInstanceCount());
     if (NULL == p_multi_adv_com_data_cb)
     {
-        BTIF_TRACE_DEBUG("Initializing in %s", __FUNCTION__);
         p_multi_adv_com_data_cb = GKI_getbuf(sizeof(btgatt_multi_adv_common_data));
         if (NULL != p_multi_adv_com_data_cb)
         {
@@ -82,27 +88,24 @@ btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
     return p_multi_adv_com_data_cb;
 }
 
-void btif_gattc_init_multi_adv_cb(void)
+void btif_gattc_incr_app_count(void)
 {
     // TODO: Instead of using a fragile reference counter here, one could
     //       simply track the client_if instances that are in the map.
-    ++multi_adv_enable_count;
+    ++user_app_count;
 }
 
-void btif_gattc_destroy_multi_adv_cb(int client_if)
+void btif_gattc_decr_app_count(void)
 {
-    if (multi_adv_enable_count > 0)
-        multi_adv_enable_count --;
+    if (user_app_count > 0)
+        user_app_count --;
 
-    if(multi_adv_enable_count == 0 && p_multi_adv_com_data_cb != 0)
+    if(user_app_count == 0 && NULL != p_multi_adv_com_data_cb)
     {
-        if (NULL != p_multi_adv_com_data_cb)
-        {
-            GKI_freebuf (p_multi_adv_com_data_cb->clntif_map);
-            GKI_freebuf (p_multi_adv_com_data_cb->inst_cb);
-            GKI_freebuf(p_multi_adv_com_data_cb);
-            p_multi_adv_com_data_cb = NULL;
-        }
+       GKI_freebuf (p_multi_adv_com_data_cb->clntif_map);
+       GKI_freebuf (p_multi_adv_com_data_cb->inst_cb);
+       GKI_freebuf(p_multi_adv_com_data_cb);
+       p_multi_adv_com_data_cb = NULL;
     }
 }
 
