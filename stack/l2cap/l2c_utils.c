@@ -297,15 +297,6 @@ tL2C_LCB  *l2cu_find_lcb_by_bd_addr (BD_ADDR p_bd_addr, tBT_TRANSPORT transport)
 *******************************************************************************/
 UINT8 l2cu_get_conn_role (tL2C_LCB *p_this_lcb)
 {
-    UINT8 i;
-    for (i = 0; i < BTM_ROLE_DEVICE_NUM; i++) {
-        if ((btm_cb.previous_connected_role[i] != BTM_ROLE_UNDEFINED) &&
-            (!bdcmp(p_this_lcb->remote_bd_addr, btm_cb.previous_connected_remote_addr[i]))) {
-            L2CAP_TRACE_WARNING ("l2cu_get_conn_role %d",
-                                  btm_cb.previous_connected_role[i]);
-            return btm_cb.previous_connected_role[i];
-        }
-    }
     return l2cb.desire_role;
 }
 
