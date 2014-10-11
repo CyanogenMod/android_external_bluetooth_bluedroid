@@ -751,6 +751,7 @@ BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
 BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NAME_CBACK *p_cback)
 {
     tGAP_CLCB   *p_clcb = NULL;
+    BOOLEAN  status = TRUE;
 
     if (p_cback == NULL)
         return(FALSE);
@@ -774,8 +775,11 @@ BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NAME_CBACK *p_cba
         return(FALSE);
 
     /* hold the link here */
-
-    if (GATT_Connect(gap_cb.gatt_if, p_clcb->bda, TRUE, BT_TRANSPORT_LE))
+    if( BTM_IsInquiryActive()|| BTM_IsRnrActive() )
+    {
+       status = GATT_Connect(gap_cb.gatt_if, p_clcb->bda, TRUE, BT_TRANSPORT_LE);
+    }
+    if(status)
     {
         if (p_clcb->connected)
         {
@@ -786,11 +790,8 @@ BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NAME_CBACK *p_cba
         /* Mark currently active operation */
         p_clcb->cl_op_uuid = GATT_UUID_GAP_DEVICE_NAME;
 
-
-        return(TRUE);
     }
-    else
-        return FALSE;
+    return FALSE;
 }
 
 
