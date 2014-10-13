@@ -1148,12 +1148,6 @@ UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst,
 
     BTM_TRACE_EVENT (" btm_ble_build_adv_data");
 
-    /* Currently been hardcoded as Limited mode for wipower.  This will be taken out once
-       the API to set adv mode is available in the framework.  This good as none uses the
-       peripheral except wipower
-    */
-    p_data->flag = (0x01 | BTM_BLE_DMT_CONTROLLER_SPT | BTM_BLE_DMT_HOST_SPT);
-
     /* build the adv data structure and build the data string */
     if (data_mask)
     {
