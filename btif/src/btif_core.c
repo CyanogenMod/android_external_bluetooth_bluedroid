@@ -1629,3 +1629,18 @@ void btif_data_profile_register(int value)
         btif_set_adapter_property(&property);
     }
 }
+
+/*******************************************************************************
+**
+** Function         btif_is_shutdown
+**
+** Description      Check btif_core_state before freeing gki buffer, do not
+**                  call gki free if the gki is already shutdown.
+**
+** Returns          btif_core_state boolean
+**
+*******************************************************************************/
+BOOLEAN btif_is_shutdown(void)
+{
+   return (btif_core_state == BTIF_CORE_STATE_DISABLED);
+}
