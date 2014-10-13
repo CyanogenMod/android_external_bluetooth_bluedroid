@@ -1654,6 +1654,7 @@ void avdt_msg_send_grej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     BT_HDR      *p_buf;
     UINT8       *p;
     UINT8       *p_start;
+    UNUSED(sig_id);
 
     /* get a buffer */
     p_buf = (BT_HDR *) GKI_getpoolbuf(AVDT_CMD_POOL_ID);
@@ -1666,11 +1667,9 @@ void avdt_msg_send_grej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     /* calculate length */
     p_buf->len = (UINT16) (p - p_start);
 
-    /* stash sig, label, and message type in buf */
-    p_buf->event = sig_id;
+    /* stash label, and message type in buf */
     AVDT_BLD_LAYERSPEC(p_buf->layer_specific, AVDT_MSG_TYPE_GRJ, p_params->hdr.label);
-    //p_buf->event = 0;
-    //AVDT_BLD_LAYERSPEC(p_buf->layer_specific, 0, p_params->hdr.label);
+    p_buf->event = 0;
     AVDT_TRACE_DEBUG0("avdt_msg_send_grej");
 
     /* queue message and trigger ccb to send it */
