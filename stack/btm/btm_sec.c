@@ -4406,6 +4406,13 @@ void btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode)
         }
         else
         {
+            /* if the device matches with stored paring address
+             * reset the paring state to idle */
+            if ( (btm_cb.pairing_state != BTM_PAIR_STATE_IDLE)
+                && (memcmp (btm_cb.pairing_bda, bda, BD_ADDR_LEN) == 0) )
+            {
+                btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
+            }
             /* can not find the device record and the status is error,
              * just ignore it */
             return;
