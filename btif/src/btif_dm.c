@@ -1915,7 +1915,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             if(btif_config_get_int("Remote", (char const *)&bdstr,"DevType", &dev_type) &&
                     p_data->link_up.link_type == BT_TRANSPORT_LE && dev_type == BT_DEVICE_TYPE_BREDR)
             {
-                btif_update_remote_properties(bd_addr.address, NULL, NULL, dev_type | p_data->link_up.link_type);
+                btif_update_remote_properties(bd_addr.address, (UINT8 *)"", NULL, dev_type | p_data->link_up.link_type);
             }
             if(p_data->link_up.link_type == BT_TRANSPORT_LE)
             {
