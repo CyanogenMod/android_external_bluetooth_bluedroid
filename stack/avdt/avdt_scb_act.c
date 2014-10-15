@@ -1234,7 +1234,7 @@ void avdt_scb_hdl_write_req_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
         p_data->apiwrite.p_buf->len += AVDT_MEDIA_HDR_SIZE;
         p_data->apiwrite.p_buf->offset -= AVDT_MEDIA_HDR_SIZE;
-
+        p_scb->media_seq++;
         p = (UINT8 *)(p_data->apiwrite.p_buf + 1) + p_data->apiwrite.p_buf->offset;
 
         UINT8_TO_BE_STREAM(p, AVDT_MEDIA_OCTET1);
@@ -1243,8 +1243,6 @@ void avdt_scb_hdl_write_req_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         UINT32_TO_BE_STREAM(p, p_data->apiwrite.time_stamp);
         UINT32_TO_BE_STREAM(p, ssrc);
     }
-
-    p_scb->media_seq++;
 
     /* store it */
     p_scb->p_pkt = p_data->apiwrite.p_buf;
