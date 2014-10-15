@@ -3035,23 +3035,21 @@ void btm_ble_read_remote_features_complete(UINT8 *p)
 
     STREAM_TO_UINT8(status, p);
     /* if LE read remote feature failed, expect disconnect complete to be received */
-    if (status == HCI_SUCCESS)
+    STREAM_TO_UINT16 (handle, p);
+    /* Look up the connection by handle and copy features */
+    for (xx = 0; xx < MAX_L2CAP_LINKS; xx++, p_acl_cb++)
     {
-        STREAM_TO_UINT16 (handle, p);
-
-        /* Look up the connection by handle and copy features */
-        for (xx = 0; xx < MAX_L2CAP_LINKS; xx++, p_acl_cb++)
+        if ((p_acl_cb->in_use) && (p_acl_cb->hci_handle == handle))
         {
-            if ((p_acl_cb->in_use) && (p_acl_cb->hci_handle == handle))
+            if (status == HCI_SUCCESS)
             {
                 STREAM_TO_ARRAY(p_acl_cb->peer_le_features, p, BD_FEATURES_LEN);
-                /*notify link up here */
-                l2cble_notify_le_connection (p_acl_cb->remote_addr);
-                break;
             }
+            /*notify link up here */
+            l2cble_notify_le_connection (p_acl_cb->remote_addr);
+            break;
         }
     }
-
 }
 
 /*******************************************************************************
