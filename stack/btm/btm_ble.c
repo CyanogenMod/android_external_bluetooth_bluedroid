@@ -1721,8 +1721,8 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len)
         (!BTM_BLE_IS_SCAN_ACTIVE(p_cb->scan_activity) || !btm_ble_vendor_get_irk_list_size()))
         btm_ble_vendor_disable_irk_list();
 #endif
-
-    btm_ble_set_conn_st(BLE_CONN_IDLE);
+    if(role != HCI_ROLE_SLAVE)
+        btm_ble_set_conn_st(BLE_CONN_IDLE);
     btm_ble_update_mode_operation(role, bda, status);
 }
 
