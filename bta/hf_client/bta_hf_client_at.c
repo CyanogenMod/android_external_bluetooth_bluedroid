@@ -978,6 +978,12 @@ static char *bta_hf_client_parse_cops(char *buffer)
     AT_CHECK_RN(buffer);
 
     bta_hf_client_handle_cops(opstr, mode);
+    // check for OK Response in end
+    AT_CHECK_EVENT(buffer, "OK");
+    AT_CHECK_RN(buffer);
+
+    bta_hf_client_handle_ok();
+
     return buffer;
 }
 
@@ -1011,6 +1017,13 @@ static char *bta_hf_client_parse_binp(char *buffer)
     AT_CHECK_RN(buffer);
 
     bta_hf_client_handle_binp(numstr);
+
+    // check for OK response in end
+    AT_CHECK_EVENT(buffer, "OK");
+    AT_CHECK_RN(buffer);
+
+    bta_hf_client_handle_ok();
+
     return buffer;
 }
 
@@ -1093,6 +1106,11 @@ static char *bta_hf_client_parse_clcc(char *buffer)
         bta_hf_client_handle_clcc(idx, dir, status, mode, mpty, NULL, 0);
     }
 
+    // check for OK response in end
+    AT_CHECK_EVENT(buffer, "OK");
+    AT_CHECK_RN(buffer);
+
+    bta_hf_client_handle_ok();
     return buffer;
 }
 
@@ -1154,6 +1172,12 @@ static char *bta_hf_client_parse_cnum(char *buffer)
     }
 
     bta_hf_client_handle_cnum(numstr, type, service);
+
+    // check for OK response in end
+    AT_CHECK_EVENT(buffer, "OK");
+    AT_CHECK_RN(buffer);
+
+    bta_hf_client_handle_ok();
     return buffer;
 }
 
