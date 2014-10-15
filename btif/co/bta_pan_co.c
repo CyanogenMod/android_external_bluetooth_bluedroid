@@ -169,12 +169,18 @@ void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
     BTIF_TRACE_API("bta_pan_co_tx_path, handle:%d, app_id:%d", handle, app_id);
 
     btpan_conn_t* conn = btpan_find_conn_handle(handle);
-    if(!conn || conn->state != PAN_STATE_OPEN)
+    if (!conn)
     {
-        BTIF_TRACE_ERROR("bta_pan_co_tx_path: cannot find pan connction or conn"
-            "is not opened, conn:%p, conn->state:%d", conn, conn->state);
+        BTIF_TRACE_ERROR("bta_pan_co_tx_path: cannot find pan connection");
         return;
     }
+    else if(conn->state != PAN_STATE_OPEN)
+    {
+        BTIF_TRACE_ERROR("bta_pan_co_tx_path: conn is not opened, conn:%p, conn->state:%d",
+            conn, conn->state);
+        return;
+    }
+
     do
     {
         /* read next data buffer from pan */
