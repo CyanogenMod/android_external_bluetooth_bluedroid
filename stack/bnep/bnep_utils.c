@@ -172,10 +172,11 @@ void bnep_send_conn_req (tBNEP_CONN *p_bcb)
     BT_HDR  *p_buf;
     UINT8   *p, *p_start;
 
-    BNEP_TRACE_DEBUG1 ("BNEP sending setup req with dst uuid %x", p_bcb->dst_uuid.uu.uuid16);
+    BNEP_TRACE_DEBUG2 ("%s: sending setup req with dst uuid %x",
+        __func__, p_bcb->dst_uuid.uu.uuid16);
     if ((p_buf = (BT_HDR *)GKI_getpoolbuf (BNEP_POOL_ID)) == NULL)
     {
-        BNEP_TRACE_ERROR0 ("BNEP - not able to send connection request");
+        BNEP_TRACE_ERROR1 ("%s: not able to send connection request", __func__);
         return;
     }
 
@@ -201,7 +202,7 @@ void bnep_send_conn_req (tBNEP_CONN *p_bcb)
         UINT32_TO_BE_STREAM (p, p_bcb->dst_uuid.uu.uuid32);
         UINT32_TO_BE_STREAM (p, p_bcb->src_uuid.uu.uuid32);
     }
-    else
+    else if (p_bcb->dst_uuid.len == 16)
     {
         memcpy (p, p_bcb->dst_uuid.uu.uuid128, p_bcb->dst_uuid.len);
         p += p_bcb->dst_uuid.len;
@@ -209,6 +210,11 @@ void bnep_send_conn_req (tBNEP_CONN *p_bcb)
         p += p_bcb->dst_uuid.len;
     }
 #endif
+    else
+    {
+        BNEP_TRACE_ERROR3 ("%s: uuid: %x, invalid length: %x",
+            __func__, p_bcb->dst_uuid.uu.uuid16, p_bcb->dst_uuid.len);
+    }
 
     p_buf->len = (UINT16)(p - p_start);
 

@@ -368,8 +368,8 @@ static void bnep_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
     }
     else
     {
-        if (((p_bcb->con_flags & BNEP_FLAGS_IS_ORIG) && (bnep_cb.p_conn_state_cb)) ||
-            p_bcb->con_flags & BNEP_FLAGS_CONN_COMPLETED)
+        if ((bnep_cb.p_conn_state_cb) && ((p_bcb->con_flags & BNEP_FLAGS_IS_ORIG) ||
+            (p_bcb->con_flags & BNEP_FLAGS_CONN_COMPLETED)))
             (*bnep_cb.p_conn_state_cb) (p_bcb->handle, p_bcb->rem_bda, BNEP_CONN_FAILED, FALSE);
     }
 

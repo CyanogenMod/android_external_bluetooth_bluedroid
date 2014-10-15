@@ -398,9 +398,9 @@ int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 prot
         memcpy(&eth_hdr.h_dest, dst, ETH_ADDR_LEN);
         memcpy(&eth_hdr.h_src, src, ETH_ADDR_LEN);
         eth_hdr.h_proto = htons(proto);
-        char packet[2000];
+        char packet[TAP_MAX_PKT_WRITE_LEN + sizeof(tETH_HDR)];
         memcpy(packet, &eth_hdr, sizeof(tETH_HDR));
-        if(len > 2000)
+        if (len > TAP_MAX_PKT_WRITE_LEN)
         {
             ALOGE("btpan_tap_send eth packet size:%d is exceeded limit!", len);
             return -1;
