@@ -3018,10 +3018,17 @@ void btm_sec_abort_access_req (BD_ADDR bd_addr)
 *******************************************************************************/
 static tBTM_STATUS btm_sec_dd_create_conn (tBTM_SEC_DEV_REC *p_dev_rec)
 {
-    tL2C_LCB         *p_lcb;
+    tL2C_LCB         *p_lcb = NULL;
+
+    p_lcb = l2cu_find_lcb_by_bd_addr(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR);
+    if(p_lcb && (p_lcb->link_state == LST_CONNECTED || p_lcb->link_state == LST_CONNECTING))
+    {
+       BTM_TRACE_WARNING( "Security Manager: Connection already exists");
+       return BTM_CMD_STARTED;
+    }
 
     /* Make sure an L2cap link control block is available */
-    if ((p_lcb = l2cu_allocate_lcb (p_dev_rec->bd_addr, TRUE, BT_TRANSPORT_BR_EDR)) == NULL)
+    if (!p_lcb && (p_lcb = l2cu_allocate_lcb (p_dev_rec->bd_addr, TRUE, BT_TRANSPORT_BR_EDR)) == NULL)
     {
         BTM_TRACE_WARNING ("Security Manager: failed allocate LCB [%02x%02x%02x%02x%02x%02x]",
                             p_dev_rec->bd_addr[0], p_dev_rec->bd_addr[1], p_dev_rec->bd_addr[2],
