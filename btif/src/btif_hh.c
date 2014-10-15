@@ -485,6 +485,9 @@ void btif_hh_start_vup_timer(bt_bdaddr_t *bd_addr)
 {
     btif_hh_device_t *p_dev  = btif_hh_find_connected_dev_by_bda(bd_addr);
 
+    if (p_dev == NULL)
+        return;
+
     if (p_dev->vup_timer_active == FALSE)
     {
         BTIF_TRACE_DEBUG("Start VUP timer ");
@@ -500,7 +503,7 @@ void btif_hh_start_vup_timer(bt_bdaddr_t *bd_addr)
         btu_start_timer(&p_dev->vup_timer, BTU_TTYPE_USER_FUNC,
                         BTIF_TIMEOUT_VUP_SECS);
     }
-        p_dev->vup_timer_active = TRUE;
+    p_dev->vup_timer_active = TRUE;
 
 }
 

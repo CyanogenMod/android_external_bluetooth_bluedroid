@@ -289,7 +289,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
     if (!p_cb)
     {
         /* BTA HH enabled already? otherwise ignore the event although it's bad*/
-        if (bta_hh_cb.p_cback != NULL)
+        if (bta_hh_cb.p_cback != NULL && p_data != NULL)
         {
             switch (event)
             {
@@ -392,7 +392,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
 
         p_cb->state = state_table[event][BTA_HH_NEXT_STATE] ;
 
-        if ((action = state_table[event][BTA_HH_ACTION]) != BTA_HH_IGNORE)
+        if ((action = state_table[event][BTA_HH_ACTION]) < BTA_HH_IGNORE)
         {
             (*bta_hh_action[action])(p_cb, p_data);
         }
@@ -463,8 +463,8 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
                       * So if REMOVE_DEVICE is called and in_use is FALSE then we should treat this as a NULL p_cb. Hence we
                       * force the index to be IDX_INVALID
                       */
-                    if ((index != BTA_HH_IDX_INVALID) &&
-                        (bta_hh_cb.kdev[index].in_use == FALSE)) {
+                    if ((index != BTA_HH_IDX_INVALID) && (index < BTA_HH_MAX_DEVICE)
+                        && (bta_hh_cb.kdev[index].in_use == FALSE)) {
                         index = BTA_HH_IDX_INVALID;
                     }
 // btla-specific --
@@ -477,7 +477,7 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
             else
                 index = bta_hh_dev_handle_to_cb_idx((UINT8)p_msg->layer_specific);
 
-            if (index != BTA_HH_IDX_INVALID)
+            if ((index != BTA_HH_IDX_INVALID)  && (index < BTA_HH_MAX_DEVICE))
                 p_cb = &bta_hh_cb.kdev[index];
 
 #if BTA_HH_DEBUG
