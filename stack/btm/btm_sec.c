@@ -3401,8 +3401,14 @@ void btm_io_capabilities_req (UINT8 *p)
             /* received IO capability response already-> not the originator of SSP */
             is_orig = FALSE;
 
-            if (btm_cb.pairing_flags & BTM_PAIR_FLAGS_PEER_STARTED_DD)
+            if (BTM_AUTH_SP_YES == p_dev_rec->rmt_auth_req)
+            {
+                evt_data.auth_req = BTM_AUTH_SP_YES;
+            }
+            else if (btm_cb.pairing_flags & BTM_PAIR_FLAGS_PEER_STARTED_DD)
+            {
                 evt_data.auth_req = BTM_DEFAULT_DD_AUTH_REQ;
+            }
         }
         /* security is already in progress */
         else if (btm_cb.pairing_state == BTM_PAIR_STATE_WAIT_PIN_REQ)
