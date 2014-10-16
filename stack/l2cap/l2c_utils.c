@@ -132,9 +132,6 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     p_lcb->in_use     = FALSE;
     p_lcb->is_bonding = FALSE;
 
-#if (BLE_INCLUDED == TRUE)
-    btu_stop_timer(&p_lcb->conn_param_enb);
-#endif
     /* Stop timers */
     btu_stop_timer (&p_lcb->timer_entry);
     btu_stop_timer (&p_lcb->info_timer_entry);

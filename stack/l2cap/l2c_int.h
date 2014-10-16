@@ -53,7 +53,6 @@
 #define L2CAP_LINK_INFO_RESP_TOUT    2            /* 2  seconds */
 #define L2CAP_BLE_LINK_CONNECT_TOUT  30           /* 30 seconds */
 #define L2CAP_BLE_CONN_PARAM_UPD_TOUT   30           /* 30 seconds */
-#define L2CAP_BLE_ENB_CONN_PARAM_TOUT   1           /* 1 seconds */
 
 /* quick timer uses millisecond unit */
 #define L2CAP_DEFAULT_RETRANS_TOUT   2000         /* 2000 milliseconds */
@@ -437,14 +436,13 @@ typedef struct t_l2c_linkcb
     tBT_TRANSPORT       transport;
 #if (BLE_INCLUDED == TRUE)
     tBLE_ADDR_TYPE      ble_addr_type;
-    TIMER_LIST_ENT      conn_param_enb;         /* Timer entry for enabling connection parameter update */
 
-#define UPD_ENABLED     0  /* If peer requests update, we will change params */
-#define UPD_DISABLED    1  /* application requested not to update */
-#define UPD_ENB_TOUT    2  /* while updates are disabled, peer requested new parameters */
-#define UPD_ST_MASK     0x0f
-#define UPD_REQUEST     0x10  /* remote device set preferred conn param */
+#define L2C_BLE_CONN_UPDATE_DISABLE 0x1  /* disable update connection parameters */
+#define L2C_BLE_NEW_CONN_PARAM      0x2  /* new connection parameter to be set */
+#define L2C_BLE_UPDATE_PENDING      0x4  /* waiting for connection update finished */
+#define L2C_BLE_NOT_DEFAULT_PARAM   0x8  /* not using default connection parameters */
     UINT8               conn_update_mask;
+
     UINT16              min_interval; /* parameters as requested by peripheral */
     UINT16              max_interval;
     UINT16              latency;
@@ -771,9 +769,9 @@ extern void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len);
 extern void l2cble_conn_comp (UINT16 handle, UINT8 role, BD_ADDR bda, tBLE_ADDR_TYPE type,
                               UINT16 conn_interval, UINT16 conn_latency, UINT16 conn_timeout);
 extern BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb);
-extern void l2c_enable_conn_param_timeout(tL2C_LCB * p_lcb);
 extern void l2cble_notify_le_connection (BD_ADDR bda);
 extern void l2c_ble_link_adjust_allocation (void);
+extern void l2cble_process_conn_update_evt (UINT16 handle, UINT8 status);
 
 #if (defined BLE_LLT_INCLUDED) && (BLE_LLT_INCLUDED == TRUE)
 extern void l2cble_process_rc_param_request_evt(UINT16 handle, UINT16 int_min, UINT16 int_max,
