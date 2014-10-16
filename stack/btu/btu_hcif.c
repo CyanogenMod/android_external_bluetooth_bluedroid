@@ -136,7 +136,7 @@ extern void hidd_pm_proc_mode_change( UINT8 hci_status, UINT8 mode, UINT16 inter
 static void btu_ble_ll_conn_complete_evt (UINT8 *p, UINT16 evt_len);
 static void btu_ble_process_adv_pkt (UINT8 *p);
 static void btu_ble_read_remote_feat_evt (UINT8 *p);
-static void btu_ble_ll_conn_param_upd_evt (UINT8 *p);
+static void btu_ble_ll_conn_param_upd_evt (UINT8 *p, UINT16 evt_len);
 static void btu_ble_proc_ltk_req (UINT8 *p);
 static void btu_hcif_encryption_key_refresh_cmpl_evt (UINT8 *p);
 #if (BLE_LLT_INCLUDED == TRUE)
@@ -413,7 +413,7 @@ void btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_msg)
                     btu_ble_ll_conn_complete_evt(p, hci_evt_len);
                     break;
                 case HCI_BLE_LL_CONN_PARAM_UPD_EVT:
-                    btu_ble_ll_conn_param_upd_evt(p);
+                    btu_ble_ll_conn_param_upd_evt(p, hci_evt_len);
                     break;
                 case HCI_BLE_READ_REMOTE_FEAT_CMPL_EVT:
                     btu_ble_read_remote_feat_evt(p);
@@ -2276,9 +2276,17 @@ static void btu_ble_ll_conn_complete_evt ( UINT8 *p, UINT16 evt_len)
     btm_ble_conn_complete(p, evt_len);
 }
 
-static void btu_ble_ll_conn_param_upd_evt (UINT8 *p)
+static void btu_ble_ll_conn_param_upd_evt (UINT8 *p, UINT16 evt_len)
 {
-    /* This is empty until an upper layer cares about returning event */
+    /* LE connection update has completed successfully as a master. */
+    /* We can enable the update request if the result is a success. */
+    /* extract the HCI handle first */
+    UINT8   status;
+    UINT16  handle;
+
+    STREAM_TO_UINT8  (status, p);
+    STREAM_TO_UINT16 (handle, p);
+    l2cble_process_conn_update_evt(handle, status);
 }
 
 static void btu_ble_read_remote_feat_evt (UINT8 *p)

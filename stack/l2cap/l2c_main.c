@@ -938,12 +938,6 @@ void l2c_process_timeout (TIMER_LIST_ENT *p_tle)
     case BTU_TTYPE_L2CAP_INFO:
         l2c_info_timeout((tL2C_LCB *)p_tle->param);
         break;
-
-#if (BLE_INCLUDED == TRUE)
-    case BTU_TTYPE_L2CAP_END_CONN_UPD:
-        l2c_enable_conn_param_timeout((tL2C_LCB *)p_tle->param);
-        break;
-#endif
     }
 }
 

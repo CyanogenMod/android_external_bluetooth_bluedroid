@@ -420,10 +420,6 @@ BTU_API UINT32 btu_task (UINT32 param)
                     case BTU_TTYPE_L2CAP_HOLD:
                     case BTU_TTYPE_L2CAP_INFO:
                     case BTU_TTYPE_L2CAP_FCR_ACK:
-#if (BLE_INCLUDED == TRUE)
-                    case BTU_TTYPE_L2CAP_END_CONN_UPD:
-#endif
-
                         l2c_process_timeout (p_tle);
                         break;
 
