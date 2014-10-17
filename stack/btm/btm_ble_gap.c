@@ -644,15 +644,11 @@ static void btm_ble_resolve_random_addr_on_adv(void * p_rec, void *p)
 
     if (match_rec)
     {
-        BTM_TRACE_ERROR("Random match");
+        BTM_TRACE_DEBUG("Random match");
         match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
         memcpy(match_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
         memcpy(bda, match_rec->bd_addr, BD_ADDR_LEN);
         addr_type = match_rec->ble.ble_addr_type;
-    }
-    else
-    {
-        BTM_TRACE_ERROR("Random unmatch");
     }
 
     btm_ble_process_adv_pkt_cont(bda, addr_type, evt_type, pp);
@@ -2437,7 +2433,7 @@ void btm_ble_process_adv_pkt (UINT8 *p_data)
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
     /* map address to security record */
     btm_public_addr_to_random_pseudo(bda, &addr_type);
-    BTM_TRACE_ERROR("new address: %02x:%02x:%02x:%02x:%02x:%02x",
+    BTM_TRACE_DEBUG("new address: %02x:%02x:%02x:%02x:%02x:%02x",
                      bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
 #endif
 
