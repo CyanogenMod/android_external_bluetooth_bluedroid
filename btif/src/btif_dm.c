@@ -44,6 +44,34 @@
 #include "btif_config.h"
 
 #include "bta_gatt_api.h"
+
+/******************************************************************************
+**  Device specific workarounds
+******************************************************************************/
+
+/**
+ * The devices below have proven problematic during the pairing process, often
+ * requiring multiple retries to complete pairing. To avoid degrading the user
+ * experience for other devices, explicitely blacklist troubled devices here.
+ */
+static const UINT8 blacklist_pairing_retries[][3] = {
+    {0x9C, 0xDF, 0x03} // BMW car kits (Harman/Becker)
+};
+
+BOOLEAN blacklistPairingRetries(BD_ADDR bd_addr)
+{
+    const unsigned blacklist_size = sizeof(blacklist_pairing_retries)
+        / sizeof(blacklist_pairing_retries[0]);
+    for (unsigned i = 0; i != blacklist_size; ++i)
+    {
+        if (blacklist_pairing_retries[i][0] == bd_addr[0] &&
+            blacklist_pairing_retries[i][1] == bd_addr[1] &&
+            blacklist_pairing_retries[i][2] == bd_addr[2])
+            return TRUE;
+    }
+    return FALSE;
+}
+
 /******************************************************************************
 **  Constants & Macros
 ******************************************************************************/
@@ -63,6 +91,8 @@
 #define BTIF_DM_DEFAULT_INQ_MAX_RESULTS     0
 #define BTIF_DM_DEFAULT_INQ_MAX_DURATION    10
 #define BTIF_DM_MAX_SDP_ATTEMPTS_AFTER_PAIRING 2
+
+#define NUM_TIMEOUT_RETRIES                 5
 
 #define PROPERTY_PRODUCT_MODEL "ro.product.model"
 #define DEFAULT_LOCAL_NAME_MAX  31
@@ -89,6 +119,7 @@ typedef struct
     UINT8   auth_req;
     UINT8   io_cap;
     UINT8   autopair_attempts;
+    UINT8   timeout_retries;
     UINT8   is_local_initiated;
     UINT8   sdp_attempts;
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
@@ -984,6 +1015,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
     // Skip SDP for certain  HID Devices
     if (p_auth_cmpl->success)
     {
+        pairing_cb.timeout_retries = 0;
         status = BT_STATUS_SUCCESS;
         state = BT_BOND_STATE_BONDED;
         bdcpy(bd_addr.address, p_auth_cmpl->bd_addr);
@@ -1032,6 +1064,14 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         switch(p_auth_cmpl->fail_reason)
         {
             case HCI_ERR_PAGE_TIMEOUT:
+                if (blacklistPairingRetries(bd_addr.address) && pairing_cb.timeout_retries)
+                {
+                    BTIF_TRACE_WARNING("%s() - Pairing timeout; retrying (%d) ...", __FUNCTION__, pairing_cb.timeout_retries);
+                    --pairing_cb.timeout_retries;
+                    btif_dm_cb_create_bond (&bd_addr, BTA_TRANSPORT_UNKNOWN);
+                    return;
+                }
+                /* Fall-through */
             case HCI_ERR_CONNECTION_TOUT:
                 status =  BT_STATUS_RMT_DEV_DOWN;
                 break;
@@ -1865,6 +1905,7 @@ static void btif_dm_generic_evt(UINT16 event, char* p_param)
 
         case BTIF_DM_CB_CREATE_BOND:
         {
+            pairing_cb.timeout_retries = NUM_TIMEOUT_RETRIES;
             btif_dm_create_bond_cb_t *create_bond_cb = (btif_dm_create_bond_cb_t*)p_param;
             btif_dm_cb_create_bond(&create_bond_cb->bdaddr, create_bond_cb->transport);
         }
