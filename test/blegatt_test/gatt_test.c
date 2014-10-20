@@ -1393,6 +1393,26 @@ void do_le_client_refresh (char *p)
     }
 }
 
+void do_le_conn_param_update(char *p)
+{
+    BOOLEAN        Ret;
+    bt_bdaddr_t bd_addr = {{0}};
+    int min_interval = 24;
+    int max_interval = 40;
+    int latency = 0;
+    int timeout = 2000;
+    min_interval =  get_int(&p, -1);
+    max_interval =  get_int(&p, -1);
+    latency      =  get_int(&p, -1);
+    if(!min_interval)
+        min_interval = 24;
+    if(!max_interval)
+        max_interval = 40;
+    if(FALSE == GetBdAddr(p, &bd_addr))    return;
+    Ret = sGattIfaceScan->client->conn_parameter_update(&bd_addr,min_interval,max_interval,latency,timeout);
+    printf("%s:: Ret=%d \n", __FUNCTION__, Ret);
+
+}
 
 void do_le_client_connect_auto (char *p)
 {
@@ -2104,6 +2124,7 @@ const t_cmd console_cmd_list[] =
     { "c_deregister", do_le_client_deregister, "::UUID: 1<1111..> 2<12323..> 3<321111..>", 0 },
     { "c_connect", do_le_client_connect, ":: transport-type<0,1...> , BdAddr<00112233445566>", 0 },
     { "c_refresh", do_le_client_refresh, ":: BdAddr<00112233445566>", 0 },
+    { "c_conn_param_update", do_le_conn_param_update, ":: int min_interval, int max_interval,int latency, BdAddr<00112233445566>", 0 },
     { "c_connect_auto", do_le_client_connect_auto, ":: BdAddr<00112233445566>", 0 },
     { "c_disconnect", do_le_client_disconnect, ":: BdAddr<00112233445566>", 0 },
     { "c_configureMTU", do_le_client_configureMTU, ":: 23", 0 },
