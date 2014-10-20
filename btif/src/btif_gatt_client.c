@@ -660,6 +660,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         case BTA_GATTC_MULT_ADV_DATA_EVT:
          {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
+            btif_gattc_clear_clientif(p_btif_cb->client_if, FALSE);
             HAL_CBACK(bt_gatt_callbacks, client->multi_adv_data_cb
                 , p_btif_cb->client_if
                 , p_btif_cb->status
@@ -670,7 +671,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         case BTA_GATTC_MULT_ADV_DIS_EVT:
         {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
-            btif_gattc_clear_clientif(p_btif_cb->client_if);
+            btif_gattc_clear_clientif(p_btif_cb->client_if, TRUE);
             HAL_CBACK(bt_gatt_callbacks, client->multi_adv_disable_cb
                 , p_btif_cb->client_if
                 , p_btif_cb->status
@@ -680,7 +681,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_ADV_DATA_EVT:
         {
-            btif_gattc_cleanup_inst_cb(STD_ADV_INSTID);
+            btif_gattc_cleanup_inst_cb(STD_ADV_INSTID, FALSE);
             /* No HAL callback available */
             break;
         }
@@ -1092,7 +1093,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
 
         case BTIF_GATTC_UNREGISTER_APP:
-            btif_gattc_clear_clientif(p_cb->client_if);
+            btif_gattc_clear_clientif(p_cb->client_if, TRUE);
             btif_gattc_decr_app_count();
             BTA_GATTC_AppDeregister(p_cb->client_if);
             break;
