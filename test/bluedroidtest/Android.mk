@@ -28,7 +28,7 @@ LOCAL_CFLAGS += -std=c99
 
 LOCAL_CFLAGS += -std=c99
 
-LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_TAGS := debug optional
 
 LOCAL_MODULE:= bdt
 
