@@ -1615,9 +1615,6 @@ void btm_ble_connected (UINT8 *bda, UINT16 handle, UINT8 enc_mode, UINT8 role,
 
     if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_RANDOM && !addr_matched)
         memcpy(p_dev_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
-
-    if (btm_cb.cmn_ble_vsc_cb.rpa_offloading == TRUE)
-        btm_ble_vendor_disable_irk_list();
 #endif
 
     if (role == HCI_ROLE_SLAVE)

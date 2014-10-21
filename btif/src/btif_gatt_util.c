@@ -48,8 +48,6 @@ static unsigned char BASE_UUID[16] = {
     0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-extern bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr);
-
 int uuidType(unsigned char* p_uuid)
 {
     int i = 0;
@@ -297,14 +295,12 @@ static BOOLEAN btif_gatt_is_link_encrypted (BD_ADDR bd_addr)
 
 static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_TRANSPORT transport, tBTA_STATUS result)
 {
+    UNUSED(bd_addr);
     UNUSED(transport);
 
     if (result != BTA_SUCCESS && result != BTA_BUSY)
     {
-        bt_bdaddr_t bda;
-        bdcpy(bda.address, bd_addr);
-
-        btif_dm_remove_bond(&bda);
+        BTIF_TRACE_WARNING("%s() - Encryption failed (%d)", __FUNCTION__, result);
     }
 }
 
