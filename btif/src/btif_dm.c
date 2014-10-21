@@ -1723,10 +1723,19 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
                 case BTA_LE_KEY_PID:
                     BTIF_TRACE_DEBUG("Rcv BTA_LE_KEY_PID");
                     pairing_cb.ble.is_pid_key_rcvd = TRUE;
-                    memcpy(pairing_cb.ble.pid_key, p_data->ble_key.key_value.pid_key.irk, 16);
+                    pairing_cb.ble.pid_key.addr_type = p_data->ble_key.key_value.pid_key.addr_type;
+                    memcpy(pairing_cb.ble.pid_key.irk, p_data->ble_key.key_value.pid_key.irk, 16);
+                    memcpy(pairing_cb.ble.pid_key.static_addr,
+                            p_data->ble_key.key_value.pid_key.static_addr,BD_ADDR_LEN);
                     for (i=0; i<16; i++)
                     {
-                        BTIF_TRACE_DEBUG("pairing_cb.ble.pid_key[%d]=0x%02x",i,pairing_cb.ble.pid_key[i]);
+                        BTIF_TRACE_DEBUG("pairing_cb.ble.pid_key.irk[%d]=0x%02x"
+                                            ,i,pairing_cb.ble.pid_key.irk[i]);
+                    }
+                    for (i=0; i<BD_ADDR_LEN; i++)
+                    {
+                        BTIF_TRACE_DEBUG("piaring_cb.ble.pid_address[%d] = %x"
+                                            ,i, pairing_cb.ble.pid_key.static_addr[i]);
                     }
                     break;
 
@@ -2880,9 +2889,9 @@ void btif_dm_save_ble_bonding_keys(void)
     if (pairing_cb.ble.is_pid_key_rcvd)
     {
         btif_storage_add_ble_bonding_key(&bd_addr,
-                                         (char *) &pairing_cb.ble.pid_key[0],
+                                         (char *) &pairing_cb.ble.pid_key,
                                          BTIF_DM_LE_KEY_PID,
-                                         BT_OCTET16_LEN);
+                                         sizeof(btif_dm_ble_pid_keys_t));
     }
 
 

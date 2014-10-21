@@ -76,7 +76,7 @@ BOOLEAN btm_add_dev_to_controller (BOOLEAN to_add, BD_ADDR bd_addr)
     tBT_DEVICE_TYPE dev_type;
 
     if (p_dev_rec != NULL &&
-        p_dev_rec->device_type == BT_DEVICE_TYPE_BLE)
+        p_dev_rec->device_type & BT_DEVICE_TYPE_BLE)
     {
 
         if (to_add)
