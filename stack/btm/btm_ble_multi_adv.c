@@ -40,6 +40,11 @@ tBTM_BLE_MULTI_ADV_INST_IDX_Q btm_multi_adv_idx_q;
 #define BTM_BLE_MULTI_ADV_CB_EVT_MASK   0xF0
 #define BTM_BLE_MULTI_ADV_SUBCODE_MASK  0x0F
 
+static tBTM_BLE_ADV_PARAMS local_copy = {0, 0, 0, 0, 0, 0};
+#define BTM_BLE_MIN_ADV_INT 0x14 // 20ms advertisment interval min as per spec.
+#define WIPOWER_16_UUID_LSB 0xFE
+#define WIPOWER_16_UUID_MSB 0xFF
+
 /*******************************************************************************
 **
 ** Function         btm_ble_multi_adv_enq_op_q
@@ -543,6 +548,14 @@ tBTM_STATUS BTM_BleEnableAdvInstance (tBTM_BLE_ADV_PARAMS *p_params,
         return BTM_ERR_PROCESSING;
     }
 
+    /*
+    ** Maintain a local copy of adv params to update the time intervals to 20ms
+    ** if wipower profile uuid is part of the service data
+    */
+    if (p_params != NULL) {
+        memcpy(&local_copy, p_params, sizeof(tBTM_BLE_ADV_PARAMS));
+    }
+
     for (i = 0; i <  BTM_BleMaxMultiAdvInstanceCount() - 1; i ++, p_inst++)
     {
         if (p_inst->inst_id == 0)
@@ -670,6 +683,15 @@ tBTM_STATUS BTM_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
     btm_ble_build_adv_data(&data_mask, &pp, p_data);
     *p_len = (UINT8)(pp - param - 2);
     UINT8_TO_STREAM(pp_temp, inst_id);
+    /* Validate if wipower UUID is been passed*/
+    if (param[17] == WIPOWER_16_UUID_LSB && param[18] == WIPOWER_16_UUID_MSB)
+    {
+        local_copy.adv_int_min = BTM_BLE_MIN_ADV_INT;
+        local_copy.adv_int_max = BTM_BLE_MIN_ADV_INT;
+        /* Setting Advertisement Parameter happens prior to Setting Advertisement Data,
+        ** so the local_copy is guaranteed to have valid contents.*/
+        BTM_BleUpdateAdvInstParam (inst_id, &local_copy);
+    }
 
     if ((rt = BTM_VendorSpecificCommand (HCI_BLE_MULTI_ADV_OCF,
                                     (UINT8)BTM_BLE_MULTI_ADV_WRITE_DATA_LEN,
@@ -766,7 +788,7 @@ void btm_ble_multi_adv_vse_cback(UINT8 len, UINT8 *p)
         {
             BTM_TRACE_EVENT("btm_ble_multi_adv_reenable called");
             btm_ble_multi_adv_reenable(adv_inst);
-            if(reason == HCI_SUCCESS) {
+            if(reason == HCI_SUCCESS && p_lcb != NULL) {
                 btm_acl_created(p_lcb->remote_bd_addr, NULL, p_lcb->remote_bd_name, conn_handle, p_lcb->link_role, BT_TRANSPORT_LE);
             }
         }
