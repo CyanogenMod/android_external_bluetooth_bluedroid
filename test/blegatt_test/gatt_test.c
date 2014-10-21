@@ -929,19 +929,17 @@ static void le_test_mode(bt_status_t status, uint16_t packet_count)
 
 static bool set_wake_alarm(uint64_t delay_millis, bool should_wake, alarm_cb cb, void *data)
 {
-   bdt_log("set_wake_alarm : NOT IMPLEMENTED");
-   return TRUE;
+    return TRUE;
 }
 
 static int acquire_wake_lock(const char *lock_name)
 {
-  bdt_log("acquire_wake_lock : NOT IMPLEMENTED");
-  return 1;
+    return BT_STATUS_SUCCESS;
 }
+
 static int release_wake_lock(const char *lock_name)
 {
- bdt_log("release_wake_lock : NOT IMPLEMENTED");
- return 1;
+    return BT_STATUS_SUCCESS;
 }
 
 static bt_callbacks_t bt_callbacks = {
@@ -967,12 +965,10 @@ static bt_callbacks_t bt_callbacks = {
 
 static bt_os_callouts_t bt_os_callbacks = {
      sizeof(bt_os_callouts_t),
-	 set_wake_alarm,
-	 acquire_wake_lock,
-	 release_wake_lock
+     set_wake_alarm,
+     acquire_wake_lock,
+     release_wake_lock
 };
-
-
 
 static void l2test_l2c_connect_ind_cb(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
 {
@@ -1362,12 +1358,12 @@ void do_le_client_connect (char *p)
         //    g_SecLevel |= BTM_SEC_OUT_AUTHENTICATE;
         //     g_SecLevel |= BTM_SEC_OUT_ENCRYPT ;
         g_PSM= 1;
-	g_SecLevel = 0;
+        g_SecLevel = 0;
         printf("g_SecLevel = %d \n", g_SecLevel);
         sL2capInterface->RegisterPsm(g_PSM, g_ConnType, g_SecLevel /*BTM_SEC_IN_AUTHORIZE */);
         sleep(3);
 
-	l2c_connect(&bd_addr);
+        l2c_connect(&bd_addr);
     }
     else if(Btif_gatt_layer)
     {
@@ -1497,19 +1493,19 @@ void do_le_client_adv_update(char *p)
 {
     bt_status_t        Ret;
     int               TxPower    = 3;
-	int 			  chnlMap    = 7;
+    int               chnlMap    = 7;
     int               min_interval = 160;
     int               max_interval = 240;
-	int 			  adv_type    = 3 ;//non-connectable undirect
+    int               adv_type    = 3 ;//non-connectable undirect
     int               adv_if   =  g_server_if_scan;
-    int timeout_s = 30;
+    int               timeout_s =   30;
 
-	adv_if       =  get_int(&p, -1);
+    adv_if       =  get_int(&p, -1);
     min_interval =  get_int(&p, -1);
     max_interval =  get_int(&p, -1);
-	adv_type     =  get_int(&p, -1);
-	chnlMap      =  get_int(&p, -1);
-	TxPower      =  get_int(&p, -1);
+    adv_type     =  get_int(&p, -1);
+    chnlMap      =  get_int(&p, -1);
+    TxPower      =  get_int(&p, -1);
     timeout_s    =  get_int(&p, -1);
     //To start with we are going with hard-code values.
     Ret = sGattIfaceScan->client->multi_adv_update(adv_if, min_interval, max_interval,adv_type,chnlMap,TxPower, timeout_s);
@@ -1517,21 +1513,21 @@ void do_le_client_adv_update(char *p)
 
 void do_le_client_adv_enable(char *p)
 {
-    bt_status_t        Ret;
+    bt_status_t       Ret;
     int               TxPower    = 4;
-	int 			  chnlMap    = 7;
+    int               chnlMap    = 7;
     int               min_interval = 48;
     int               max_interval = 96;
-	int 			  adv_type    = 0; //connectable undirect
-    int 			  adv_if   =  g_server_if_scan;
-    int timeout_s = 30;
+    int               adv_type    = 0; //connectable undirect
+    int               adv_if   =  g_server_if_scan;
+    int               timeout_s = 30;
 
-	adv_if       =  get_int(&p, -1);
-	min_interval =  get_int(&p, -1);
+    adv_if       =  get_int(&p, -1);
+    min_interval =  get_int(&p, -1);
     max_interval =  get_int(&p, -1);
-	adv_type     =  get_int(&p, -1);
-	chnlMap      =  get_int(&p, -1);
-	TxPower      =  get_int(&p, -1);
+    adv_type     =  get_int(&p, -1);
+    chnlMap      =  get_int(&p, -1);
+    TxPower      =  get_int(&p, -1);
     timeout_s    =  get_int(&p, -1);
     Ret = sGattIfaceScan->client->multi_adv_enable(adv_if,30,60,adv_type,chnlMap,TxPower, timeout_s);
     printf("%s:: Ret=%d \n", __FUNCTION__, Ret);
@@ -1539,10 +1535,10 @@ void do_le_client_adv_enable(char *p)
 
 void do_le_client_adv_disable(char *p)
 {
-    bt_status_t        Ret;
-	 int 			  adv_if   =  g_server_if_scan;
+    bt_status_t   Ret;
+    int           adv_if = g_server_if_scan;
 
-	adv_if       =  get_int(&p, -1);
+    adv_if = get_int(&p, -1);
     Ret = sGattIfaceScan->client->multi_adv_disable(adv_if);
     printf("%s:: Ret=%d \n", __FUNCTION__, Ret);
 }
@@ -2257,9 +2253,9 @@ int main (int argc, char * argv[])
     sGattIfaceScan->init(&sGatt_cb);
     bdt_log("GATT IF INIT Done");
 
-	printf("\n Before l2cap init\n");
-	 do_l2cap_init(NULL);
-	printf("\n after l2cap init\n");
+    printf("\n Before l2cap init\n");
+    do_l2cap_init(NULL);
+    printf("\n after l2cap init\n");
 
     while(!main_done)
     {
