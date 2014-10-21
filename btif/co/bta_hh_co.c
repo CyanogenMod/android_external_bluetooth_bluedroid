@@ -31,10 +31,15 @@
 #include "bta_api.h"
 #include "bta_hh_api.h"
 #include "btif_util.h"
-
+#include "bta_hh_co.h"
 
 const char *dev_path = "/dev/uhid";
 
+#if (BLE_INCLUDED == TRUE && BTA_HH_LE_INCLUDED == TRUE)
+#include "btif_config.h"
+#define BTA_HH_NV_LOAD_MAX       16
+static tBTA_HH_RPT_CACHE_ENTRY sReportCache[BTA_HH_NV_LOAD_MAX];
+#endif
 
 /*Internal function to perform UHID write and error checking*/
 static int uhid_write(int fd, const struct uhid_event *ev)
@@ -341,7 +346,6 @@ void bta_hh_co_close(UINT8 dev_handle, UINT8 app_id)
             break;
         }
      }
-
 }
 
 
@@ -446,4 +450,118 @@ void bta_hh_co_send_hid_info(btif_hh_device_t *p_dev, char *dev_name, UINT16 ven
     }
 }
 
+#if (BLE_INCLUDED == TRUE && BTA_HH_LE_INCLUDED == TRUE)
+/*******************************************************************************
+**
+** Function         bta_hh_le_co_rpt_info
+**
+** Description      This callout function is to convey the report information on
+**                  a HOGP device to the application. Application can save this
+**                  information in NV if device is bonded and load it back when
+**                  stack reboot.
+**
+** Parameters       remote_bda  - remote device address
+**                  p_entry     - report entry pointer
+**                  app_id      - application id
+**
+** Returns          void.
+**
+*******************************************************************************/
+void bta_hh_le_co_rpt_info(BD_ADDR remote_bda, tBTA_HH_RPT_CACHE_ENTRY *p_entry, UINT8 app_id)
+{
+    UNUSED(app_id);
+
+    unsigned len = 0;
+    unsigned type = 0;
+    unsigned idx = 0;
+
+    bdstr_t bdstr;
+    sprintf(bdstr, "%02x:%02x:%02x:%02x:%02x:%02x",
+        remote_bda[0], remote_bda[1], remote_bda[2],
+        remote_bda[3], remote_bda[4], remote_bda[5]);
+
+    btif_config_get("Remote", bdstr, "HidReport", NULL, (int*)&len, (int*)&type);
+    if (len >= sizeof(tBTA_HH_RPT_CACHE_ENTRY) && len <= sizeof(sReportCache))
+    {
+        btif_config_get("Remote", bdstr, "HidReport", (char*)sReportCache, (int*)&len, (int*)&type);
+        idx = len / sizeof(tBTA_HH_RPT_CACHE_ENTRY);
+    }
+
+    if (idx < BTA_HH_NV_LOAD_MAX)
+    {
+        memcpy(&sReportCache[idx++], p_entry, sizeof(tBTA_HH_RPT_CACHE_ENTRY));
+        btif_config_set("Remote", bdstr, "HidReport", (const char*)sReportCache,
+            idx * sizeof(tBTA_HH_RPT_CACHE_ENTRY), BTIF_CFG_TYPE_BIN);
+        BTIF_TRACE_DEBUG("%s() - Saving report; dev=%s, idx=%d", __FUNCTION__, bdstr, idx);
+    }
+}
+
+
+/*******************************************************************************
+**
+** Function         bta_hh_le_co_cache_load
+**
+** Description      This callout function is to request the application to load the
+**                  cached HOGP report if there is any. When cache reading is completed,
+**                  bta_hh_le_ci_cache_load() is called by the application.
+**
+** Parameters       remote_bda  - remote device address
+**                  p_num_rpt: number of cached report
+**                  app_id      - application id
+**
+** Returns          the acched report array
+**
+*******************************************************************************/
+tBTA_HH_RPT_CACHE_ENTRY * bta_hh_le_co_cache_load (BD_ADDR remote_bda,
+                                                   UINT8 *p_num_rpt, UINT8 app_id)
+{
+    UNUSED(app_id);
+
+    unsigned len = 0;
+    unsigned type = 0;
+    unsigned idx = 0;
+
+    bdstr_t bdstr;
+    sprintf(bdstr, "%02x:%02x:%02x:%02x:%02x:%02x",
+        remote_bda[0], remote_bda[1], remote_bda[2],
+        remote_bda[3], remote_bda[4], remote_bda[5]);
+
+    btif_config_get("Remote", bdstr, "HidReport", NULL, (int*)&len, (int*)&type);
+    if (!p_num_rpt && len < sizeof(tBTA_HH_RPT_CACHE_ENTRY))
+        return NULL;
+
+    if (len > sizeof(sReportCache))
+        len = sizeof(sReportCache);
+    btif_config_get("Remote", bdstr, "HidReport", (char*)sReportCache, (int*)&len, (int*)&type);
+    *p_num_rpt = len / sizeof(tBTA_HH_RPT_CACHE_ENTRY);
+
+    BTIF_TRACE_DEBUG("%s() - Loaded %d reports; dev=%s", __FUNCTION__, *p_num_rpt, bdstr);
+
+    return sReportCache;
+}
+
+/*******************************************************************************
+**
+** Function         bta_hh_le_co_reset_rpt_cache
+**
+** Description      This callout function is to reset the HOGP device cache.
+**
+** Parameters       remote_bda  - remote device address
+**
+** Returns          none
+**
+*******************************************************************************/
+void bta_hh_le_co_reset_rpt_cache (BD_ADDR remote_bda, UINT8 app_id)
+{
+    UNUSED(app_id);
+
+    bdstr_t bdstr;
+    sprintf(bdstr, "%02x:%02x:%02x:%02x:%02x:%02x",
+        remote_bda[0], remote_bda[1], remote_bda[2],
+        remote_bda[3], remote_bda[4], remote_bda[5]);
+    btif_config_remove("Remote", bdstr, "HidReport");
+
+    BTIF_TRACE_DEBUG("%s() - Reset cache for bda %s", __FUNCTION__, bdstr);
+}
+#endif /* #if (BLE_INCLUDED == TRUE && BTA_HH_LE_INCLUDED == TRUE) */
 

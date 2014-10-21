@@ -26,6 +26,14 @@
 
 #include "bta_hh_api.h"
 
+typedef struct
+{
+    UINT16              rpt_uuid;
+    UINT8               rpt_id;
+    tBTA_HH_RPT_TYPE    rpt_type;
+    UINT8               inst_id;
+    UINT8               prop;
+}tBTA_HH_RPT_CACHE_ENTRY;
 
 /*******************************************************************************
 **
@@ -68,5 +76,59 @@ BTA_API extern void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class,
 *******************************************************************************/
 BTA_API extern void bta_hh_co_close(UINT8 dev_handle, UINT8 app_id);
 
+#if (BLE_INCLUDED == TRUE && BTA_HH_LE_INCLUDED == TRUE)
+/*******************************************************************************
+**
+** Function         bta_hh_le_co_rpt_info
+**
+** Description      This callout function is to convey the report information on
+**                  a HOGP device to the application. Application can save this
+**                  information in NV if device is bonded and load it back when
+**                  stack reboot.
+**
+** Parameters       remote_bda  - remote device address
+**                  p_entry     - report entry pointer
+**                  app_id      - application id
+**
+** Returns          void.
+**
+*******************************************************************************/
+BTA_API extern void bta_hh_le_co_rpt_info(BD_ADDR remote_bda,
+                                          tBTA_HH_RPT_CACHE_ENTRY *p_entry,
+                                          UINT8 app_id);
+
+/*******************************************************************************
+**
+** Function         bta_hh_le_co_cache_load
+**
+** Description      This callout function is to request the application to load the
+**                  cached HOGP report if there is any. When cache reading is completed,
+**                  bta_hh_le_ci_cache_load() is called by the application.
+**
+** Parameters       remote_bda  - remote device address
+**                  p_num_rpt: number of cached report
+**                  app_id      - application id
+**
+** Returns          the acched report array
+**
+*******************************************************************************/
+BTA_API extern tBTA_HH_RPT_CACHE_ENTRY *bta_hh_le_co_cache_load (BD_ADDR remote_bda,
+                                                                 UINT8 *p_num_rpt,
+                                                                 UINT8 app_id);
+
+/*******************************************************************************
+**
+** Function         bta_hh_le_co_reset_rpt_cache
+**
+** Description      This callout function is to reset the HOGP device cache.
+**
+** Parameters       remote_bda  - remote device address
+**
+** Returns          none
+**
+*******************************************************************************/
+BTA_API extern void bta_hh_le_co_reset_rpt_cache (BD_ADDR remote_bda, UINT8 app_id);
+
+#endif /* #if (BLE_INCLUDED == TRUE && BTA_HH_LE_INCLUDED == TRUE) */
 #endif /* BTA_HH_CO_H */
 

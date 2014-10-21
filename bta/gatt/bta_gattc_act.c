@@ -1665,8 +1665,8 @@ void bta_gattc_ci_open(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 void bta_gattc_ci_load(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
 
-    APPL_TRACE_DEBUG("bta_gattc_ci_load conn_id=%d load status=%d" ,
-                      p_clcb->bta_conn_id, p_data->ci_load.status );
+    APPL_TRACE_DEBUG("bta_gattc_ci_load conn_id=%d load status=%d",
+                      p_clcb->bta_conn_id, p_data->ci_load.status);
 
     if (p_data->ci_load.status == BTA_GATT_OK ||
          p_data->ci_load.status == BTA_GATT_MORE)
@@ -1702,7 +1702,7 @@ void bta_gattc_ci_load(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 }
 /*******************************************************************************
 **
-** Function         bta_gattc_ci_load
+** Function         bta_gattc_ci_save
 **
 ** Description      cache loading received.
 **

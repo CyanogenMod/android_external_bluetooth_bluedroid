@@ -194,12 +194,12 @@ typedef struct
     BOOLEAN                 in_use;
     UINT8                   inst_id;    /* share service instance ID and report instance ID, as
                                            hi 4 for service instance ID, low 4 as charatceristic instance ID */
-    tBTA_HH_RPT_TYPE	    rpt_type;
+    tBTA_HH_RPT_TYPE        rpt_type;
     UINT16                  uuid;
-    UINT16				    prop;
-    UINT8				    rpt_id;
-    BOOLEAN			        client_cfg_exist;
-    UINT16				    client_cfg_value;
+    UINT8                   prop;
+    UINT8                   rpt_id;
+    BOOLEAN                 client_cfg_exist;
+    UINT16                  client_cfg_value;
 }tBTA_HH_LE_RPT;
 
 #ifndef BTA_HH_LE_RPT_MAX
@@ -209,19 +209,15 @@ typedef struct
 typedef struct
 {
     BOOLEAN                 in_use;
-    tBTA_HH_LE_RPT		    report[BTA_HH_LE_RPT_MAX];
+    tBTA_HH_LE_RPT          report[BTA_HH_LE_RPT_MAX];
 
 #define BTA_HH_LE_PROTO_MODE_BIT        0x01
 #define BTA_HH_LE_CP_BIT                0x02
-    UINT8		            option_char; /* control point char exisit or not */
+    UINT8                   option_char; /* control point char exisit or not */
 
     BOOLEAN                 expl_incl_srvc;
     UINT8                   incl_srvc_inst; /* assuming only one included service : battery service */
     UINT8                   cur_expl_char_idx; /* currently discovering service index */
-
-#define BTA_HH_LE_REMOTE_WAKE   0x01
-#define BTA_HH_LE_NORMAL_CONN   0x02
-    UINT8                   flag;           /* HID Information flag */
     UINT8                   *rpt_map;
     UINT16                  ext_rpt_ref;
     tBTA_HH_DEV_DESCR       descriptor;
@@ -408,6 +404,7 @@ extern void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 extern void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 extern void bta_hh_le_update_scpp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 extern void bta_hh_le_notify_enc_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data);
+extern void bta_hh_ci_load_rpt (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 
 #if BTA_HH_DEBUG
 extern void bta_hh_trace_dev_db(void);
