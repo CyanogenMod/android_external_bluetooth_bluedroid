@@ -1225,7 +1225,7 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
             if (btif_storage_get_ble_bonding_key(&bd_addr,
                                                  BTIF_DM_LE_KEY_PID,
                                                  buf,
-                                                 sizeof(btif_dm_ble_pcsrk_keys_t)) == BT_STATUS_SUCCESS)
+                                                 sizeof(btif_dm_ble_pid_keys_t)) == BT_STATUS_SUCCESS)
             {
                 if(add)
                 {
@@ -1237,7 +1237,14 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
                     p = (tBTA_LE_KEY_VALUE *)buf;
                     for (i=0; i<16; i++)
                     {
-                        BTIF_TRACE_DEBUG("p->pid_key[%d]=0x%02x",i,p->pid_key.irk[i]);
+                        BTIF_TRACE_DEBUG("p->pid_key.irk[%d]=0x%02x"
+                                            ,i,p->pid_key.irk[i]);
+                    }
+                    BTIF_TRACE_DEBUG("p->pid_key.addr_type=%d",p->pid_key.addr_type);
+                    for (i=0; i<BD_ADDR_LEN; i++)
+                    {
+                        BTIF_TRACE_DEBUG("p->pid_key.static_addr[%d]=%02x"
+                                            ,i,p->pid_key.static_addr[i]);
                     }
 
                     BTA_DmAddBleKey (bta_bd_addr, (tBTA_LE_KEY_VALUE *)buf, BTIF_DM_LE_KEY_PID);
