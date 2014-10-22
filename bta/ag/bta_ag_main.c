@@ -364,6 +364,7 @@ void bta_ag_scb_dealloc(tBTA_AG_SCB *p_scb)
 #if (BTM_WBS_INCLUDED == TRUE)
     bta_sys_stop_timer(&p_scb->cn_timer);
 #endif
+    bta_sys_stop_timer(&p_scb->colli_timer);
 
     /* initialize control block */
     memset(p_scb, 0, sizeof(tBTA_AG_SCB));
