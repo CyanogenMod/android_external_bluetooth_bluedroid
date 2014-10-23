@@ -764,6 +764,12 @@ void btm_ble_vendor_init(UINT8 max_irk_list_sz)
     {
         btm_ble_vendor_cb.irk_list =  (tBTM_BLE_IRK_ENTRY*)GKI_getbuf (sizeof (tBTM_BLE_IRK_ENTRY)
                                                                         * max_irk_list_sz);
+        /*Zero initialize the List block*/
+        if(btm_ble_vendor_cb.irk_list != 0 && btm_ble_vendor_cb.irk_list != NULL)
+        {
+            memset(btm_ble_vendor_cb.irk_list, 0, (sizeof (tBTM_BLE_IRK_ENTRY) * max_irk_list_sz));
+        }
+
         btm_ble_vendor_cb.irk_pend_q.irk_q =  (BD_ADDR*) GKI_getbuf (sizeof (BD_ADDR) *
                                                                      max_irk_list_sz);
         btm_ble_vendor_cb.irk_pend_q.irk_q_random_pseudo = (BD_ADDR*)GKI_getbuf (sizeof (BD_ADDR) *

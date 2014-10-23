@@ -4993,6 +4993,7 @@ static void bta_dm_observe_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir)
     result.inq_res.ble_addr_type    = p_inq->ble_addr_type;
     result.inq_res.inq_result_type  = p_inq->inq_result_type;
     result.inq_res.device_type      = p_inq->device_type;
+    result.inq_res.flag             = p_inq->flag;
 
     /* application will parse EIR to find out remote device name */
     result.inq_res.p_eir = p_eir;
