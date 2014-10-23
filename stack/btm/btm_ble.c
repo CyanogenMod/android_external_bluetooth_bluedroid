@@ -1751,6 +1751,7 @@ void btm_ble_create_ll_conn_complete (UINT8 status)
 UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
 {
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev (bd_addr);
+    BOOLEAN              skip_cmpl_cback = FALSE;
     UINT8 res = 0;
 
     BTM_TRACE_DEBUG ("btm_proc_smp_cback event = %d, state=%d btm_cb.pairing_bda[5]=0x%0x",
@@ -1783,7 +1784,17 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
                 btm_cb.pairing_flags |= BTM_PAIR_FLAGS_LE_ACTIVE;
                 /* fall through */
             case SMP_COMPLT_EVT:
-                if (btm_cb.api.p_le_callback)
+                if(event == SMP_COMPLT_EVT)
+                {
+                    BTM_TRACE_DEBUG("btm_proc_smp_cback: role:%d, sec_state:%d, sec_flags:0x%x, reason=%d", p_dev_rec->role_master, p_dev_rec->sec_state, p_dev_rec->sec_flags, p_data->cmplt.reason);
+                    if(p_dev_rec->sec_state == BTM_SEC_STATE_ENCRYPTING && p_dev_rec->role_master &&
+                       p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN && p_data->cmplt.reason != SMP_SUCCESS && p_data->cmplt.reason != BTM_ERR_KEY_MISSING)
+                    {
+                        BTM_TRACE_DEBUG("btm_proc_smp_cback:skip bta_dm_ble_smp_cback() at SMP CMPL");
+                        skip_cmpl_cback = TRUE;
+                    }
+                }
+                if (btm_cb.api.p_le_callback && !skip_cmpl_cback)
                 {
                     /* the callback function implementation may change the IO capability... */
                     BTM_TRACE_DEBUG ("btm_cb.api.p_le_callback=0x%x", btm_cb.api.p_le_callback );
