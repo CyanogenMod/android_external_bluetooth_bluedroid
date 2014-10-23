@@ -930,11 +930,16 @@ void smp_pairing_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_pair_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
-    UNUSED(p_data);
+    SMP_TRACE_DEBUG ("smp_pair_terminate reason = %d ", p_data->reason);
 
-    SMP_TRACE_DEBUG ("smp_pair_terminate ");
-
-    p_cb->status = SMP_CONN_TOUT;
+    if(!p_data->reason)
+    {
+        p_cb->status = SMP_CONN_TOUT;
+    }
+    else
+    {
+        p_cb->status = p_data->reason;
+    }
 
     smp_proc_pairing_cmpl(p_cb);
 }
