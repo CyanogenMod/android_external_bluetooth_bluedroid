@@ -36,6 +36,7 @@
 
 
 #include <stdio.h>
+#include <sys/capability.h>
 #include <ctype.h>
 #include "l2c_api.h"
 #include "bt_testapp.h"
@@ -67,9 +68,17 @@ static unsigned char main_done = 0;
 static bt_status_t status;
 typedef struct
 {
-	UINT32 spp;
-	UINT32 dummy;
+    UINT32 spp;
+    UINT32 dummy;
 }sdp_handle;
+
+
+typedef struct
+{
+    UINT16      status;
+    UINT16      length;
+    BD_NAME     remote_bd_name;
+} remote_dev_name;
 
 static sdp_handle msdpHandle;
 UINT32 getSdpHandle(profileName pName);
@@ -98,13 +107,71 @@ const btsdp_interface_t *sSdpInterface = NULL;
 static void process_cmd(char *p, unsigned char is_job);
 static void job_handler(void *param);
 char params[MAX_PARAMS][MAX_PARAM_LENGTH];
+static void get_bdaddr(const char *str, bt_bdaddr_t *bd);
+static void get_rm_name(char *p);
+static void RemoteDeviceNameCB(void *p_data);
+
 
 //parses the command passed and returns the number of parameters passed. stores the parameters in param array
 // stores everything in lowercase
 int parseCommand(char *p);
+
+static void RemoteDeviceNameCB (void *p_data)
+{
+    remote_dev_name *rmd_name = (remote_dev_name*)p_data;
+    if(NULL != rmd_name && 0 != rmd_name->length&&
+       '\0' == rmd_name->remote_bd_name[rmd_name->length])
+    {
+        printf("Remote device name:%s\n", rmd_name->remote_bd_name);
+    }
+    else
+    {
+        printf("Failed to get Remote device name\n");
+    }
+    return;
+}
+
 static void pSDP_cmpl_cb(UINT16 result)
 {
-	printf("sdp completed .Result=%d\n\n\n\n\n",result);
+    printf("sdp completed .Result=%d\n\n\n\n\n",result);
+
+    switch(result)
+    {
+     case SDP_SUCCESS:
+     sSdpInterface->printSearchedServices();
+     break;
+     case SDP_NO_RECS_MATCH:
+     printf("SDP_NO_RECS_MATCH\n");
+     break;
+     case SDP_CONN_FAILED:
+     printf("SDP_CONN_FAILED\n");
+     break;
+     case SDP_CFG_FAILED:
+     printf("SDP_CFG_FAILED\n");
+     break;
+     case SDP_GENERIC_ERROR:
+     printf("SDP_GENERIC_ERROR\n");
+     break;
+     case SDP_DB_FULL:
+     printf("SDP_DB_FULL\n");
+     break;
+     case SDP_INVALID_PDU:
+     printf("SDP_INVALID_PDU\n");
+     break;
+     case SDP_SECURITY_ERR:
+     printf("SDP_SECURITY_ERR\n");
+     break;
+     case SDP_CONN_REJECTED:
+     printf("SDP_CONN_REJECTED\n");
+     break;
+     case SDP_CANCEL:
+     printf("SDP_CANCEL\n");
+     break;
+     default:
+     printf("SDP Failed for unknown reason\n");
+     break;
+    }
+    sSdpInterface->Cleanup();
 }
 
 
@@ -199,6 +266,19 @@ void get_str(char **p, char *Buffer)
     }
 
   *Buffer = 0;
+}
+
+static void get_bdaddr(const char *str, bt_bdaddr_t *bd) {
+    char *d = ((char *)bd), *endp;
+    int i;
+    for(i = 0; i < 6; i++) {
+        *d++ = strtol(str, &endp, 16);
+        if (*endp != ':' && i != 5) {
+            memset(bd, 0, sizeof(bt_bdaddr_t));
+            return;
+        }
+        str = endp + 1;
+    }
 }
 
 #define is_cmd(str) ((strlen(str) == strlen(cmd)) && strncmp((const char *)&cmd, str, strlen(str)) == 0)
@@ -440,9 +520,11 @@ static bt_os_callouts_t callouts = {
 void bdt_init(void)
 {
     printf("INIT BT ");
-    status = sBtInterface->init(&bt_callbacks);
-    if (status == BT_STATUS_SUCCESS) {
+
+    if (BT_STATUS_SUCCESS == (status = sBtInterface->init(&bt_callbacks))) {
         status = sBtInterface->set_os_callouts(&callouts);
+    }else {
+        printf("INIT BT Failed!!");
     }
     check_return_status(status);
 }
@@ -535,7 +617,7 @@ void do_cleanup(char *p)
 }
 
 
-btsdp_interface_t* get_sdp_interface(void)
+const btsdp_interface_t* get_sdp_interface(void)
 {
     printf("Get SDP interface");
     if (sBtInterface) {
@@ -558,13 +640,61 @@ void do_sdp_init(char *p)
 
 void do_sdp_Search_services(char *p)
 {
-    UINT8 p_bd_addr[]={0x00,0x80,0x98,0xE7,0x32,0xED};
-    if(sSdpInterface->SearchServices(p_bd_addr)==SUCCESS) {
+    bt_bdaddr_t p_bd_addr;
+    int length = parseCommand(p);
+
+
+    if(length==-1) {
+        return;
+    }
+    if(length>0) {
+        get_bdaddr(params[0], &p_bd_addr);
+    } else {
+        printf("Invalid Parameter:\n");
+        do_help(NULL);
+        return;
+    }
+
+    if(sSdpInterface->SearchServices((UINT8 *)&p_bd_addr)==SUCCESS) {
         printf("sdp started succeessfully\n");
     } else {
         printf("sdp failed\n");
     }
 }
+
+static void get_rm_name(char *p)
+{
+    bt_bdaddr_t p_bd_addr;
+    int length = parseCommand(p);
+    profileName pName;
+    UINT32 handle;
+
+    if(length==-1) {
+        return;
+    }
+    if(length>0) {
+        get_bdaddr(params[0], &p_bd_addr);
+    } else {
+        printf("Invalid Parameter:\n");
+        do_help(NULL);
+        return;
+    }
+    if(NULL != sSdpInterface) {
+        if (sSdpInterface->GetRemoteDeviceName) {
+            if(sSdpInterface->GetRemoteDeviceName((UINT8 *)&p_bd_addr, RemoteDeviceNameCB)) {
+                printf("Remote Device Name Request Started\n");
+            } else {
+                printf("Remote Device Name Request failed\n");
+            }
+        }else{
+            printf("something weird\n");
+        }
+    }
+    else {
+        printf("soemthing wrong\n");
+    }
+}
+
 /**
 Returns the Number of Parameters passed. Splits on space and stores them in the param Array
 */
@@ -632,18 +762,18 @@ UINT32 getSdpHandle(profileName pName)
     }
     switch(pName) {
         case SPP:
-            printf("msdpHandle.spp= %d\n",msdpHandle.spp);
+            printf("msdpHandle.spp= %d\n",(int)msdpHandle.spp);
             if(msdpHandle.spp==0) {
                 msdpHandle.spp=sSdpInterface->CreateNewRecord();
             }
-            printf("msdpHandle.spp= %d\n",msdpHandle.spp);
+            printf("msdpHandle.spp= %d\n",(int)msdpHandle.spp);
             return msdpHandle.spp;
         case DUMMY:
-            printf("msdpHandle.dummy= %d\n",msdpHandle.dummy);
+            printf("msdpHandle.dummy= %d\n",(int)msdpHandle.dummy);
             if(msdpHandle.dummy==0) {
                 msdpHandle.dummy=sSdpInterface->CreateNewRecord();
             }
-            printf("msdpHandle.dummy= %d\n",msdpHandle.dummy);
+            printf("msdpHandle.dummy= %d\n",(int)msdpHandle.dummy);
             return msdpHandle.dummy;
         default:
         break;
@@ -700,8 +830,9 @@ const t_cmd console_cmd_list[] =
     { "enablebt", do_enable, ":: enables bluetooth", 0 },
     { "disablebt", do_disable, ":: disables bluetooth", 0 },
     {"init",do_sdp_init,"::Initializes SDP database",0},
-    {"searchservices",do_sdp_Search_services,"::Search services on remote phone",0},
+    {"searchservices",do_sdp_Search_services,"::Search services on remote phone::searchservices <aa:aa:aa:aa:aa:aa>",0},
     {"add",do_sdp_add_Profile,"::Adds a new service on the DUT-Syntax add profilename<spp/dummy/all/opp/ftp>",0},
+    {"get_rm_name",get_rm_name,"::Deletes a service on the DUT-Syntax get_rm_name <aa:aa:aa:aa:aa:aa>",0},
     {NULL, NULL, "", 0},
 };
 

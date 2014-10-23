@@ -55,6 +55,8 @@
 
 __BEGIN_DECLS
 
+typedef void (tREMOTE_DEVICE_NAME_CB) (void *p1);
+
 enum {
     SUCCESS,
     FAIL
@@ -126,10 +128,12 @@ typedef struct {
     /** set to sizeof(BtsdpInterface) */
     size_t    size;
     int       (*Init)(tSDP_DISC_CMPL_CB* callback);
+    int       (*GetRemoteDeviceName)(UINT8 *p_bd_addr, tREMOTE_DEVICE_NAME_CB* rmd_name_callback);
     int       (*SearchServices)(UINT8 *p_bd_addr);
     UINT32    (*CreateNewRecord)(void);
     int       (*AddRecord)(UINT32 handle,profileName profile);
     void      (*Cleanup)(void);
+    void      (*printSearchedServices)(void);
 } btsdp_interface_t;
 
 typedef struct
