@@ -1548,7 +1548,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
              /* Enable local privacy */
-             BTA_DmBleConfigLocalPrivacy(TRUE);
+             BTA_DmBleConfigLocalPrivacy(BLE_LOCAL_PRIVACY_ENABLED);
 #endif
 
              /* for each of the enabled services in the mask, trigger the profile
