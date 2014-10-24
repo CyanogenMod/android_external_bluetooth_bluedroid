@@ -2222,7 +2222,10 @@ void bta_jv_l2cap_write(tBTA_JV_MSG *p_data)
         evt_data.status = BTA_JV_SUCCESS;
     }
 
-    ls->p_cb->p_cback(BTA_JV_L2CAP_WRITE_EVT, (tBTA_JV *)&evt_data, (void *)ls->req_id);
+    if (ls->p_cb->p_cback)
+    {
+        ls->p_cb->p_cback(BTA_JV_L2CAP_WRITE_EVT, (tBTA_JV *)&evt_data, (void *)ls->req_id);
+    }
 #endif
 }
 
