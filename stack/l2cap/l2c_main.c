@@ -347,7 +347,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
         STREAM_TO_UINT8  (id, p);
         STREAM_TO_UINT16 (cmd_len, p);
 
-        if(cmd_len > GKI_BUF2_SIZE || cmd_len ==0)
+        if(cmd_len > GKI_BUF2_SIZE)
         {
              L2CAP_TRACE_WARNING0 ("L2CAP - Invalid MTU Size");
              l2cu_send_peer_cmd_reject (p_lcb, L2CAP_CMD_REJ_MTU_EXCEEDED, id, 0, 0);
