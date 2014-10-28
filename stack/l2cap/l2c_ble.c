@@ -836,7 +836,7 @@ void l2c_ble_link_adjust_allocation (void)
     if (num_lowpri_links > low_quota)
     {
         l2cb.ble_round_robin_quota = low_quota;
-        qq = qq_remainder = 0;
+        qq = qq_remainder = 1;
     }
     /* If each low priority link can have at least one buffer */
     else if (num_lowpri_links > 0)
@@ -851,7 +851,7 @@ void l2c_ble_link_adjust_allocation (void)
     {
         l2cb.ble_round_robin_quota = 0;
         l2cb.ble_round_robin_unacked = 0;
-        qq = qq_remainder = 0;
+        qq = qq_remainder = 1;
     }
     L2CAP_TRACE_EVENT ("l2c_ble_link_adjust_allocation  num_hipri: %u  num_lowpri: %u  low_quota: %u  round_robin_quota: %u  qq: %u",
                         num_hipri_links, num_lowpri_links, low_quota,
