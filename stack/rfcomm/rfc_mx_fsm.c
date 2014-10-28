@@ -596,7 +596,7 @@ static void rfc_mx_conf_cnf (tRFC_MCB *p_mcb, tL2CAP_CFG_INFO *p_cfg)
 {
     RFCOMM_TRACE_EVENT ("rfc_mx_conf_cnf p_cfg:%08x res:%d ", p_cfg, (p_cfg) ? p_cfg->result : 0);
 
-    if (p_cfg->result != L2CAP_CFG_OK)
+    if (p_cfg && p_cfg->result != L2CAP_CFG_OK)
     {
         if (p_mcb->is_initiator)
         {

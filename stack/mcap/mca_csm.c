@@ -368,10 +368,18 @@ BOOLEAN mca_ccb_uses_mdl_id(tMCA_CCB *p_ccb, UINT16 mdl_id)
 {
     BOOLEAN uses = FALSE;
     tMCA_DCB *p_dcb;
-    int       i;
+    unsigned int i;
 
     i = mca_ccb_to_hdl(p_ccb)-1;
-    p_dcb = &mca_cb.dcb[i*MCA_NUM_MDLS];
+    if (i*MCA_NUM_MDLS < MCA_NUM_DCBS)
+    {
+        p_dcb = &mca_cb.dcb[i*MCA_NUM_MDLS];
+    }
+    else
+    {
+       MCA_TRACE_WARNING("dcb index out of range");
+       return uses;
+    }
     for (i=0; i<MCA_NUM_MDLS; i++, p_dcb++)
     {
         if (p_dcb->state != MCA_DCB_NULL_ST && p_dcb->mdl_id == mdl_id)

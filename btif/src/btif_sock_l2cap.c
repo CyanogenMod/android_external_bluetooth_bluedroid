@@ -857,6 +857,11 @@ static BOOLEAN flush_incoming_que_on_wr_signal(l2c_slot_t* ls)
     while(!GKI_queue_is_empty(&ls->incoming_que))
     {
         BT_HDR *p_buf = GKI_dequeue(&ls->incoming_que);
+        if (!p_buf)
+        {
+            APPL_TRACE_ERROR("GKI_dequeue() returned queue as empty");
+            return FALSE;
+        }
         int sent = send_data_to_app(ls->fd, p_buf);
         switch(sent)
         {
