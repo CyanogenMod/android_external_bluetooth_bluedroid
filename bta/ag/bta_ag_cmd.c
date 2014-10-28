@@ -1546,23 +1546,11 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             break;
 
         case BTA_AG_OUT_CALL_ORIG_RES:
-            /* if sco open and we need to close it, close sco first
-            ** then send indicators; else send indicators now
-            */
-            if (p_result->data.audio_handle == BTA_AG_HANDLE_NONE &&
-                bta_ag_sco_is_open(p_scb) && !(p_scb->features & BTA_AG_FEAT_NOSCO))
+            bta_ag_send_call_inds(p_scb, p_result->result);
+            if (p_result->data.audio_handle == bta_ag_scb_to_idx(p_scb) &&
+                !(p_scb->features & BTA_AG_FEAT_NOSCO))
             {
-                p_scb->post_sco = BTA_AG_POST_SCO_CALL_ORIG;
-                bta_ag_sco_close(p_scb, (tBTA_AG_DATA *) p_result);
-            }
-            else
-            {
-                bta_ag_send_call_inds(p_scb, p_result->result);
-                if (p_result->data.audio_handle == bta_ag_scb_to_idx(p_scb) &&
-                    !(p_scb->features & BTA_AG_FEAT_NOSCO))
-                {
-                    bta_ag_sco_open(p_scb, (tBTA_AG_DATA *) p_result);
-                }
+                bta_ag_sco_open(p_scb, (tBTA_AG_DATA *) p_result);
             }
             break;
 
