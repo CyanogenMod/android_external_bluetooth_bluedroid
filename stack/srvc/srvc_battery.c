@@ -203,7 +203,7 @@ UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info)
     tBA_INST            *p_inst;
     tGATT_CHAR_PROP     prop = GATT_CHAR_PROP_BIT_READ;
 
-    if (battery_cb.inst_id == BA_MAX_INT_NUM)
+    if (battery_cb.inst_id >= BA_MAX_INT_NUM)
     {
         GATT_TRACE_ERROR("MAX battery service has been reached");
         return 0;
