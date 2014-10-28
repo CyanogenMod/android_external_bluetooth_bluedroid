@@ -306,14 +306,15 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
             uint32_t i;
             char buf[64];
             value[0] = 0;
+            int size = sizeof(value);
             for (i=0; i < (prop->len)/sizeof(bt_uuid_t); i++)
             {
                 bt_uuid_t *p_uuid = (bt_uuid_t*)prop->val + i;
                 memset(buf, 0, sizeof(buf));
                 uuid_to_string(p_uuid, buf);
-                strcat(value, buf);
+                strlcat(value, buf, size);
                 //strcat(value, ";");
-                strcat(value, " ");
+                strlcat(value, " ", size);
             }
             btif_config_set_str("Remote", bdstr, BTIF_STORAGE_PATH_REMOTE_SERVICE, value);
             /* save UUIDs immediately */
@@ -554,7 +555,8 @@ static bt_status_t btif_in_fetch_bonded_device(char *bdstr)
             }
         }
 #if (BLE_INCLUDED == TRUE)
-        if((btif_in_fetch_bonded_ble_device(bdstr, FALSE, NULL) != BT_STATUS_SUCCESS)
+        btif_bonded_devices_t* bonded = 0;
+        if((btif_in_fetch_bonded_ble_device(bdstr, FALSE, bonded) != BT_STATUS_SUCCESS)
                 && (!bt_linkkey_file_found))
         {
             BTIF_TRACE_DEBUG("Remote device:%s, no link key or ble key found", bdstr);
@@ -1465,7 +1467,7 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
             }
 
             /* Fill in the bonded devices */
-            if (is_device_added)
+            if (is_device_added && p_bonded_devices)
             {
                 memcpy(&p_bonded_devices->devices[p_bonded_devices->num_devices++], &bd_addr, sizeof(bt_bdaddr_t));
                 btif_gatts_add_bonded_dev_from_nv(bta_bd_addr);
