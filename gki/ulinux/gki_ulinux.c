@@ -153,9 +153,18 @@ static bool set_nonwake_alarm(UINT64 delay_millis)
 /** Callback from Java thread after alarm from AlarmService fires. */
 static void bt_alarm_cb(void *data)
 {
+    UINT32 ticks_taken = 0;
+
     alarm_service.timer_last_expired_us = now_us();
-    UINT32 ticks_taken = GKI_MS_TO_TICKS((alarm_service.timer_last_expired_us
-                                        - alarm_service.timer_started_us) / 1000);
+    if (alarm_service.timer_last_expired_us > alarm_service.timer_started_us)
+    {
+        ticks_taken = GKI_MS_TO_TICKS((alarm_service.timer_last_expired_us
+                                       - alarm_service.timer_started_us) / 1000);
+    } else {
+        // this could happen on some platform
+        ALOGE("%s now_us %lld less than %lld", __func__, alarm_service.timer_last_expired_us,
+              alarm_service.timer_started_us);
+    }
 
     GKI_timer_update(ticks_taken > alarm_service.ticks_scheduled
                    ? ticks_taken : alarm_service.ticks_scheduled);
