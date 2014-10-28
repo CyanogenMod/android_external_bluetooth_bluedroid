@@ -2544,7 +2544,7 @@ BOOLEAN BTM_TryAllocateSCN(UINT8 scn)
     /* Make sure we don't exceed max port range.
      * Stack reserves scn 1 for HFP, HSP we still do the correct way.
      */
-    if ( (scn>=BTM_MAX_SCN) || (scn == 1) )
+    if ( (scn>=BTM_MAX_SCN) || (scn <= 1) )
         return FALSE;
 
     /* check if this port is available */

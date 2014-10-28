@@ -1645,6 +1645,11 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
     {
         p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->fcrb.retrans_q);
 
+        if (!p_buf)
+        {
+            L2CAP_TRACE_ERROR ("L2CAP - GKI_dequeue returned queue as empty");
+            return NULL;
+        }
         /* Update Rx Seq and FCS if we acked some packets while this one was queued */
         prepare_I_frame (p_ccb, p_buf, TRUE);
 
@@ -1715,6 +1720,11 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
     {
         p_xmit = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
 
+        if (!p_xmit)
+        {
+            L2CAP_TRACE_ERROR ("L2CAP - GKI_dequeue returned queue as empty");
+            return NULL;
+        }
         if (p_xmit->event != 0)
             last_seg = TRUE;
 

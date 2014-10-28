@@ -333,7 +333,7 @@ static void l2c_sock_conf_cnf (tL2C_SOCK_CB *p_l2c_cb, tL2CAP_CFG_INFO *p_cfg)
 {
     L2C_SOCK_TRACE_EVENT ("l2c_sock_conf_cnf p_cfg:%08x res:%d ", p_cfg, (p_cfg) ? p_cfg->result : 0);
 
-    if (p_cfg->result == L2CAP_CFG_OK)
+    if (p_cfg && p_cfg->result == L2CAP_CFG_OK)
     {
         p_l2c_cb->local_cfg_sent = TRUE;
         if ((p_l2c_cb->state == L2C_SOCK_STATE_CONFIGURE) && p_l2c_cb->peer_cfg_rcvd)

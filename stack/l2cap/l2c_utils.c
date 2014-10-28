@@ -942,8 +942,15 @@ void l2cu_send_peer_disc_req (tL2C_CCB *p_ccb)
         while (p_ccb->xmit_hold_q.p_first)
         {
             p_buf2 = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
-            l2cu_set_acl_hci_header (p_buf2, p_ccb);
-            l2c_link_check_send_pkts (p_ccb->p_lcb, p_ccb, p_buf2);
+            if (p_buf2 != NULL)
+            {
+                l2cu_set_acl_hci_header (p_buf2, p_ccb);
+                l2c_link_check_send_pkts (p_ccb->p_lcb, p_ccb, p_buf2);
+            }
+            else
+            {
+                L2CAP_TRACE_ERROR ("L2CAP - GKI_dequeue returned NULL");
+            }
         }
     }
 
