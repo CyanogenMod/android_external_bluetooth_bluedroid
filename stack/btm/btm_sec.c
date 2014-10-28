@@ -1622,7 +1622,7 @@ tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBT_TRANSPORT transport, tBTM_SE
                     p_dev_rec->security_required);
 
 #if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
-    if (transport == BT_TRANSPORT_LE)
+    if (p && transport == BT_TRANSPORT_LE)
     {
         rc = btm_ble_set_encryption(bd_addr, p_ref_data, p->link_role);
     }

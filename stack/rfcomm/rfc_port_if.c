@@ -134,7 +134,11 @@ void RFCOMM_ParNegReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu)
     UINT8 flow;
     UINT8 cl;
     UINT8 k;
-
+    if(!p_port)
+    {
+        RFCOMM_TRACE_WARNING ("RFCOMM_ParNegReq no port");
+        return;
+    }
     if (p_mcb->state != RFC_MX_STATE_CONNECTED)
     {
         p_port->error = PORT_PAR_NEG_FAILED;
@@ -200,6 +204,11 @@ void RFCOMM_ParNegRsp (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 
 void RFCOMM_PortNegReq (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
+    if(!p_port)
+    {
+        RFCOMM_TRACE_WARNING ("RFCOMM_PortNegReq no port");
+        return;
+    }
 
     if (p_mcb->state != RFC_MX_STATE_CONNECTED)
     {
@@ -248,6 +257,11 @@ void RFCOMM_PortNegRsp (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars,
 void RFCOMM_ControlReq (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
+    if(!p_port)
+    {
+        RFCOMM_TRACE_WARNING ("RFCOMM_ControlReq no port");
+        return;
+    }
 
     if ((p_port->state != PORT_STATE_OPENED)
      || (p_port->rfc.state  != RFC_STATE_OPENED))
@@ -276,6 +290,11 @@ void RFCOMM_FlowReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 enable)
 {
     tPORT      *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
+    if(!p_port)
+    {
+        RFCOMM_TRACE_WARNING ("RFCOMM_FlowReq no port");
+        return;
+    }
     if ((p_port->state != PORT_STATE_OPENED)
      || (p_port->rfc.state  != RFC_STATE_OPENED))
         return;
@@ -302,6 +321,11 @@ void RFCOMM_LineStatusReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 status)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
+    if(!p_port)
+    {
+        RFCOMM_TRACE_WARNING ("RFCOMM_LineStatusReq no port");
+        return;
+    }
     if ((p_port->state != PORT_STATE_OPENED)
      || (p_port->rfc.state  != RFC_STATE_OPENED))
         return;

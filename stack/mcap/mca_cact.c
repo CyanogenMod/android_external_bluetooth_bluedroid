@@ -108,8 +108,11 @@ void mca_ccb_snd_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
         p_dcb = mca_dcb_by_hdl(p_ccb->p_tx_req->dcb_idx);
         /* the Abort API does not have the associated mdl_id.
          * Get the mdl_id in dcb to compose the request */
-        p_msg->mdl_id = p_dcb->mdl_id;
-        mca_dcb_event(p_dcb, MCA_DCB_API_CLOSE_EVT, NULL);
+        if (p_dcb)
+        {
+            p_msg->mdl_id = p_dcb->mdl_id;
+            mca_dcb_event(p_dcb, MCA_DCB_API_CLOSE_EVT, NULL);
+        }
         mca_free_buf ((void **)&p_ccb->p_tx_req);
         p_ccb->status = MCA_CCB_STAT_NORM;
         is_abort = TRUE;
@@ -490,7 +493,7 @@ void mca_ccb_hdl_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
             if (chk_mdl)
             {
                 p_dcb = mca_dcb_by_hdl(p_ccb->p_tx_req->dcb_idx);
-                if (evt_data.rsp.rsp_code == MCA_RSP_SUCCESS)
+                if (p_dcb && evt_data.rsp.rsp_code == MCA_RSP_SUCCESS)
                 {
                     if (evt_data.hdr.mdl_id != p_dcb->mdl_id)
                     {

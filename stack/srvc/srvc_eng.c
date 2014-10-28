@@ -272,7 +272,11 @@ static void srvc_eng_s_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_RE
     tGATTS_RSP  rsp_msg ;
     UINT8       act = SRVC_ACT_IGNORE;
     UINT8   clcb_idx = srvc_eng_find_clcb_idx_by_conn_id(conn_id);
-
+    if( clcb_idx == SRVC_MAX_APPS)
+    {
+        GATT_TRACE_ERROR("srvc_eng_s_request_cback received for unknown connection");
+        return;
+    }
     GATT_TRACE_EVENT("srvc_eng_s_request_cback : recv type (0x%02x)", type);
 
     memset(&rsp_msg, 0, sizeof(tGATTS_RSP));
