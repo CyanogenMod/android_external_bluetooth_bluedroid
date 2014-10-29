@@ -58,7 +58,7 @@
 
 /* Stack preload process timeout period  */
 #ifndef PRELOAD_START_TIMEOUT_MS
-#define PRELOAD_START_TIMEOUT_MS 3000  // 3 seconds
+#define PRELOAD_START_TIMEOUT_MS 5000  // 3 seconds
 #endif
 
 /* Stack preload process maximum retry attempts  */
@@ -284,8 +284,6 @@ static void bte_hci_enable(void)
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
-    preload_start_wait_timer();
-
     if (bt_hc_if)
     {
         int result = bt_hc_if->init(&hc_callbacks, btif_local_bd_addr.address);
@@ -316,6 +314,7 @@ static void bte_hci_enable(void)
 #endif
         bt_hc_if->set_power(BT_HC_CHIP_PWR_ON);
 
+        preload_start_wait_timer();
         bt_hc_if->preload(NULL);
     }
 }
