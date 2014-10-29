@@ -1167,7 +1167,7 @@ UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst,
             data_mask &= ~BTM_BLE_AD_BIT_FLAGS;
         }
         /* appearance data */
-        if (len > 3 && data_mask & BTM_BLE_AD_BIT_APPEARANCE)
+        if (len > 3 && data_mask & BTM_BLE_AD_BIT_APPEARANCE && p_data)
         {
             *p++ = 3; /* length */
             *p++ = BTM_BLE_AD_TYPE_APPEARANCE;
@@ -1215,7 +1215,7 @@ UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst,
             data_mask &= ~BTM_BLE_AD_BIT_MANU;
         }
         /* TX power */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_TX_PWR)
+        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_TX_PWR && p_data)
         {
             *p++ = MIN_ADV_LENGTH;
             *p++ = BTM_BLE_AD_TYPE_TX_PWR;
