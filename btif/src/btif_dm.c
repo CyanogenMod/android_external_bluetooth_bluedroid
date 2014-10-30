@@ -798,6 +798,8 @@ void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr)
      bt_property_t properties[1];
      uint32_t num_properties = 0;
      bt_status_t status = BT_STATUS_FAIL;
+     int property_value = 0;
+
      memset(&alias, 0, sizeof(alias));
      BTIF_DM_GET_REMOTE_PROP(bd_addr, BT_PROPERTY_REMOTE_FRIENDLY_NAME,
             &alias, sizeof(alias), properties[num_properties]);
@@ -812,7 +814,7 @@ void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr)
 
      /* Reset the remoteTrustvalue*/
      properties[0].type = BT_PROPERTY_REMOTE_TRUST_VALUE;
-     *((int *) (properties[0].val)) = 0;
+     properties[0].val = (void *)&property_value;
      properties[0].len = sizeof(int);
      /* Also write this to the NVRAM */
      status = btif_storage_set_remote_device_property(bd_addr, &properties[0]);
