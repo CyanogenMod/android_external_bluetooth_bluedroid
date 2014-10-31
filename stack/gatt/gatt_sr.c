@@ -470,13 +470,12 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
             {
                 if ((p_msg = (tGATTS_RSP *)GKI_getbuf(sizeof(tGATTS_RSP))) != NULL)
                 {
-                    memset(p_msg, 0, sizeof(tGATTS_RSP))
-                    ;
+                    memset(p_msg, 0, sizeof(tGATTS_RSP));
                     handle = p_tcb->sr_cmd.multi_req.handles[ll];
-                    i_rcb = gatt_sr_find_i_rcb_by_handle(handle);
-
-                    p_msg->attr_value.handle = handle;
-                    err = gatts_read_attr_value_by_handle(p_tcb,
+                    if (GATT_MAX_SR_PROFILES   > (i_rcb = gatt_sr_find_i_rcb_by_handle(handle)))
+                    {
+                        p_msg->attr_value.handle = handle;
+                        err = gatts_read_attr_value_by_handle(p_tcb,
                                                           gatt_cb.sr_reg[i_rcb].p_db,
                                                           op_code,
                                                           handle,
@@ -488,9 +487,13 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
                                                           key_size,
                                                           trans_id);
 
-                    if (err == GATT_SUCCESS)
-                    {
-                        gatt_sr_process_app_rsp(p_tcb, gatt_cb.sr_reg[i_rcb].gatt_if ,trans_id, op_code, GATT_SUCCESS, p_msg);
+                        if (err == GATT_SUCCESS)
+                        {
+                            gatt_sr_process_app_rsp(p_tcb, gatt_cb.sr_reg[i_rcb].gatt_if ,
+                                    trans_id, op_code, GATT_SUCCESS, p_msg);
+                        }
+                    } else {
+                        GATT_TRACE_ERROR("Service not found");
                     }
                     /* either not using or done using the buffer, release it now */
                     GKI_freebuf(p_msg);
@@ -644,38 +647,41 @@ static tGATT_STATUS gatt_build_find_info_rsp(tGATT_SR_REG *p_rcb, BT_HDR *p_msg,
             if (p_msg->offset == 0)
                 p_msg->offset = (p_attr->uuid_type == GATT_ATTR_UUID_TYPE_16) ? GATT_INFO_TYPE_PAIR_16 : GATT_INFO_TYPE_PAIR_128;
 
-            if (len >= info_pair_len[p_msg->offset - 1])
+            if((UINT8)(sizeof(info_pair_len)/sizeof(UINT8)) > (p_msg->offset - 1))
             {
-                if (p_msg->offset == GATT_INFO_TYPE_PAIR_16 && p_attr->uuid_type == GATT_ATTR_UUID_TYPE_16)
+                if (len >= info_pair_len[p_msg->offset - 1])
                 {
-                    UINT16_TO_STREAM(p, p_attr->handle);
-                    UINT16_TO_STREAM(p, p_attr->uuid);
+                    if (p_msg->offset == GATT_INFO_TYPE_PAIR_16 && p_attr->uuid_type == GATT_ATTR_UUID_TYPE_16)
+                    {
+                        UINT16_TO_STREAM(p, p_attr->handle);
+                        UINT16_TO_STREAM(p, p_attr->uuid);
+                    }
+                    else if (p_msg->offset == GATT_INFO_TYPE_PAIR_128 && p_attr->uuid_type == GATT_ATTR_UUID_TYPE_128  )
+                    {
+                        UINT16_TO_STREAM(p, p_attr->handle);
+                        ARRAY_TO_STREAM (p, ((tGATT_ATTR128 *) p_attr)->uuid, LEN_UUID_128);
+                    }
+                    else if (p_msg->offset == GATT_INFO_TYPE_PAIR_128 && p_attr->uuid_type == GATT_ATTR_UUID_TYPE_32)
+                    {
+                        UINT16_TO_STREAM(p, p_attr->handle);
+                        gatt_convert_uuid32_to_uuid128(p, ((tGATT_ATTR32 *) p_attr)->uuid);
+                        p += LEN_UUID_128;
+                    }
+                    else
+                    {
+                        GATT_TRACE_ERROR("format mismatch");
+                        status = GATT_NO_RESOURCES;
+                        break;
+                        /* format mismatch */
+                    }
+                    p_msg->len += info_pair_len[p_msg->offset - 1];
+                    len -= info_pair_len[p_msg->offset - 1];
+                    status = GATT_SUCCESS;
                 }
-                else if (p_msg->offset == GATT_INFO_TYPE_PAIR_128 && p_attr->uuid_type == GATT_ATTR_UUID_TYPE_128  )
-                {
-                    UINT16_TO_STREAM(p, p_attr->handle);
-                    ARRAY_TO_STREAM (p, ((tGATT_ATTR128 *) p_attr)->uuid, LEN_UUID_128);
-                }
-                else if (p_msg->offset == GATT_INFO_TYPE_PAIR_128 && p_attr->uuid_type == GATT_ATTR_UUID_TYPE_32)
-                {
-                    UINT16_TO_STREAM(p, p_attr->handle);
-                    gatt_convert_uuid32_to_uuid128(p, ((tGATT_ATTR32 *) p_attr)->uuid);
-                    p += LEN_UUID_128;
-                }
-                else
-                {
-                    GATT_TRACE_ERROR("format mismatch");
-                    status = GATT_NO_RESOURCES;
-                    break;
-                    /* format mismatch */
-                }
-                p_msg->len += info_pair_len[p_msg->offset - 1];
-                len -= info_pair_len[p_msg->offset - 1];
-                status = GATT_SUCCESS;
-
             }
             else
             {
+                GATT_TRACE_ERROR("%s: %d, GATT_NO_RESOURCES", __FUNCTION__, __LINE__);
                 status = GATT_NO_RESOURCES;
                 break;
             }
