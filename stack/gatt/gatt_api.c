@@ -512,8 +512,11 @@ tGATT_STATUS GATTS_StartService (tGATT_IF gatt_if, UINT16 service_handle,
         case GATT_TRANSPORT_LE_BR_EDR:
             if (p_sreg->type == GATT_UUID_PRI_SERVICE)
             {
-                p_uuid = gatts_get_service_uuid (p_sreg->p_db);
-
+                if (NULL == (p_uuid = gatts_get_service_uuid (p_sreg->p_db)))
+                {
+                    GATT_TRACE_ERROR ("%s Failed to get service UUID", __FUNCTION__);
+                    return GATT_NOT_FOUND;
+                }
                 p_sreg->sdp_handle = gatt_add_sdp_record(p_uuid, p_sreg->s_hdl, p_sreg->e_hdl);
             }
             break;
@@ -782,15 +785,16 @@ tGATT_STATUS GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu)
 
     GATT_TRACE_API ("GATTC_ConfigureMTU conn_id=%d mtu=%d", conn_id, mtu );
 
+    if ( (p_tcb == NULL) || (p_reg==NULL) || (mtu < GATT_DEF_BLE_MTU_SIZE) || (mtu > GATT_MAX_MTU_SIZE))
+    {
+        GATT_TRACE_ERROR ("%s: GATT_ILLEGAL_PARAMETER", __FUNCTION__);
+        return GATT_ILLEGAL_PARAMETER;
+    }
+
     /* Validate that the link is BLE, not BR/EDR */
     if (p_tcb->transport != BT_TRANSPORT_LE)
     {
         return GATT_ERROR;
-    }
-
-    if ( (p_tcb == NULL) || (p_reg==NULL) || (mtu < GATT_DEF_BLE_MTU_SIZE) || (mtu > GATT_MAX_MTU_SIZE))
-    {
-        return GATT_ILLEGAL_PARAMETER;
     }
 
     if (gatt_is_clcb_allocated(conn_id))
@@ -801,6 +805,11 @@ tGATT_STATUS GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu)
 
     if ((p_clcb = gatt_clcb_alloc(conn_id)) != NULL)
     {
+        if (NULL == p_clcb->p_tcb)
+        {
+            GATT_TRACE_ERROR ("%s: NULL == p_clcb->p_tcb", __FUNCTION__);
+            return GATT_ERROR;
+        }
         p_clcb->p_tcb->payload_size = mtu;
         p_clcb->operation = GATTC_OPTYPE_CONFIG;
 
@@ -935,7 +944,11 @@ tGATT_STATUS GATTC_Read (UINT16 conn_id, tGATT_READ_TYPE type, tGATT_READ_PARAM 
             case GATT_READ_MULTIPLE:
                 p_clcb->s_handle = 0;
                 /* copy multiple handles in CB */
-                p_read_multi = (tGATT_READ_MULTI *)GKI_getbuf(sizeof(tGATT_READ_MULTI));
+                if (NULL == (p_read_multi = (tGATT_READ_MULTI *)GKI_getbuf(sizeof(tGATT_READ_MULTI))))
+                {
+                    GATT_TRACE_ERROR("%s: Failed to get memory", __FUNCTION__);
+                    return GATT_INTERNAL_ERROR;
+                }
                 p_clcb->p_attr_buf = (UINT8*)p_read_multi;
                 memcpy (p_read_multi, &p_read->read_multiple, sizeof(tGATT_READ_MULTI));
             case GATT_READ_BY_HANDLE:

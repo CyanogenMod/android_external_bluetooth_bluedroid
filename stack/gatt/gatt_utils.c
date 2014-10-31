@@ -427,13 +427,13 @@ BOOLEAN gatt_is_last_attribute(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM 
     {
         p_rcb = GATT_GET_SR_REG_PTR(p_srv->i_sreg);
 
-        p_svc_uuid = gatts_get_service_uuid (p_rcb->p_db);
-
-        if (gatt_uuid_compare(value, *p_svc_uuid))
+        if (NULL != (p_svc_uuid = gatts_get_service_uuid (p_rcb->p_db)))
         {
-            is_last_attribute = FALSE;
-            break;
-
+            if (gatt_uuid_compare(value, *p_svc_uuid))
+            {
+                is_last_attribute = FALSE;
+                break;
+            }
         }
         p_srv = p_srv->p_next;
     }
@@ -1993,9 +1993,14 @@ BOOLEAN gatt_find_app_hold_link(tGATT_TCB *p_tcb, UINT8 start_idx, UINT8 *p_foun
     {
         if (p_tcb->app_hold_link[i])
         {
-            *p_gatt_if = gatt_cb.clcb[i].p_reg->gatt_if;
-            *p_found_idx = i;
-            found = TRUE;
+            if(GATT_CL_MAX_LCB > i)
+            {
+                *p_gatt_if = gatt_cb.clcb[i].p_reg->gatt_if;
+                *p_found_idx = i;
+                found = TRUE;
+            } else {
+                GATT_TRACE_ERROR("%s: Reading beyond connection control block array size", __FUNCTION__);
+            }
             break;
         }
     }
