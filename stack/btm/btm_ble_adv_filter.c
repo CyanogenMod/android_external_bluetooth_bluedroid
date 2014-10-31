@@ -933,7 +933,7 @@ tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
     tBLE_BD_ADDR *p_target = (p_cond == NULL)? NULL : &p_cond->target_addr;
     tBTM_BLE_PF_COUNT *p_bda_filter;
     tBTM_STATUS     st = BTM_WRONG_MODE;
-    UINT8           param[20], *p;
+    UINT8           param[BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_PF_FEAT_SEL_LEN], *p;
 
     if (BTM_BLE_SCAN_COND_CLEAR != action)
     {
@@ -942,7 +942,7 @@ tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
     }
 
     p = param;
-    memset(param, 0, 20);
+    memset(param, 0, BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_PF_FEAT_SEL_LEN);
 
     p_bda_filter = btm_ble_find_addr_filter_counter(p_target);
 
