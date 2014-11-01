@@ -1150,9 +1150,13 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                     break;
 
                 case BT_DEVICE_TYPE_DUMO:
-                    if ((p_cb->transport == GATT_TRANSPORT_LE) &&
-                        (btif_storage_is_dmt_supported_device(&(p_cb->bd_addr)) == TRUE))
+                    if (p_cb->transport == GATT_TRANSPORT_LE)
+                    {
+#if (!defined(BTA_DMT_SPT_FLAG_DISABLE) || BTA_DMT_SPT_FLAG_DISABLE == FALSE)
+                    if (btif_storage_is_dmt_supported_device(&(p_cb->bd_addr)) == TRUE)
+#endif
                         transport = BTA_GATT_TRANSPORT_LE;
+                    }
                     else
                         transport = BTA_GATT_TRANSPORT_BR_EDR;
                     break;
