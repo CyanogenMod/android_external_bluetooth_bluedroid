@@ -477,6 +477,12 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
             else
                 index = bta_hh_dev_handle_to_cb_idx((UINT8)p_msg->layer_specific);
 
+            if (p_msg->event == BTA_HH_INT_CLOSE_EVT && index == BTA_HH_IDX_INVALID)
+            {
+                /* Special handling for vc unplug event before device is opened */
+                index = bta_hh_find_cb(((tBTA_HH_CBACK_DATA *)p_msg)->addr);
+            }
+
             if ((index != BTA_HH_IDX_INVALID)  && (index < BTA_HH_MAX_DEVICE))
                 p_cb = &bta_hh_cb.kdev[index];
 
