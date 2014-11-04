@@ -1301,7 +1301,11 @@ static void btif_media_task_avk_handle_timer ( void )
             return;
         }
 
-        num_frames_to_process = btif_media_cb.frames_to_process;
+        if (btif_media_cb.RxSbcQ.count > 3)
+            num_frames_to_process =  2 * btif_media_cb.frames_to_process;
+        else
+            num_frames_to_process = btif_media_cb.frames_to_process;
+
         APPL_TRACE_DEBUG(" Process Frames + ");
 
         do
