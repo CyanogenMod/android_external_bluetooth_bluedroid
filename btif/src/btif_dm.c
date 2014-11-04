@@ -960,6 +960,16 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     bdcpy(bd_addr.address, p_pin_req->bd_addr);
     memcpy(bd_name.name, p_pin_req->bd_name, BD_NAME_LEN);
 
+    /* Respond with neg pin reply, if pin req comes with high security for the
+       same device which is already in pairing */
+    if ( (p_pin_req->secure) && (pairing_cb.state == BT_BOND_STATE_BONDING) &&
+         !bdcmp(pairing_cb.bd_addr, bd_addr.address))
+    {
+        BTIF_TRACE_ERROR("%s():bonding is already in progress", __FUNCTION__);
+        BTA_DmPinReply( (UINT8 *)bd_addr.address, FALSE, 0, NULL);
+        return;
+    }
+
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
 
     cod = devclass2uint(p_pin_req->dev_class);
