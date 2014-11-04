@@ -208,7 +208,7 @@ static void bta_av_rc_ctrl_cback(UINT8 handle, UINT8 event, UINT16 result, BD_AD
 #if (defined(BTA_AV_MIN_DEBUG_TRACES) && BTA_AV_MIN_DEBUG_TRACES == TRUE)
     APPL_TRACE_EVENT2("rc_ctrl handle: %d event=0x%x", handle, event);
 #else
-    APPL_TRACE_EVENT2("bta_av_rc_ctrl_cback handle: %d event=0x%x", handle, event);
+    BTIF_TRACE_IMP2("bta_av_rc_ctrl_cback handle: %d event=0x%x", handle, event);
 #endif
     if (event == AVRC_OPEN_IND_EVT)
     {
@@ -254,7 +254,7 @@ static void bta_av_rc_msg_cback(UINT8 handle, UINT8 label, UINT8 opcode, tAVRC_M
 #if (defined(BTA_AV_MIN_DEBUG_TRACES) && BTA_AV_MIN_DEBUG_TRACES == TRUE)
     APPL_TRACE_ERROR2("rc_msg handle: %d opcode=0x%x", handle, opcode);
 #else
-    APPL_TRACE_EVENT2("bta_av_rc_msg_cback handle: %d opcode=0x%x", handle, opcode);
+    BTIF_TRACE_IMP2("bta_av_rc_msg_cback handle: %d opcode=0x%x", handle, opcode);
 #endif
     /* determine size of buffer we need */
     if (opcode == AVRC_OP_VENDOR && p_msg->vendor.p_vendor_data != NULL)
@@ -785,6 +785,16 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
     pdu = *(p_vendor->p_vendor_data);
     p_rc_rsp->pdu = pdu;
     *p_ctype = AVRC_RSP_REJ;
+    /* Check for valid Meta Length,
+     *  AVRC_MIN_CMD_LEN is 20. */
+    if ((20 + p_vendor->vendor_len) > AVRC_META_CMD_POOL_SIZE)
+    {
+        /* reject it */
+        evt = 0;
+        p_rc_rsp->rsp.status = AVRC_STS_BAD_PARAM;
+        APPL_TRACE_ERROR1("Invalid param length, we cant handle: %d", p_vendor->vendor_len);
+        return evt;
+    }
     /* Metadata messages only use PANEL sub-unit type */
     if (p_vendor->hdr.subunit_type != AVRC_SUB_PANEL)
     {
@@ -853,7 +863,7 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
         }
     }
 #else
-    APPL_TRACE_DEBUG0("AVRCP 1.3 Metadata not supporteed. Reject command.");
+    BTIF_TRACE_IMP0("AVRCP 1.3 Metadata not supporteed. Reject command.");
     /* reject invalid message without reporting to app */
     evt = 0;
     p_rc_rsp->rsp.status = AVRC_STS_BAD_CMD;
@@ -920,7 +930,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 
     rc_rsp.rsp.status = BTA_AV_STS_NO_RSP;
 #endif
-    APPL_TRACE_DEBUG1("bta_av_rc_msg opcode: %x",p_data->rc_msg.opcode);
+    BTIF_TRACE_IMP2(" %s bta_av_rc_msg opcode: %x", __FUNCTION__, p_data->rc_msg.opcode);
 
     if (p_data->rc_msg.opcode == AVRC_OP_PASS_THRU)
     {
@@ -1481,7 +1491,8 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
     UINT8   mask;
     tBTA_AV_LCB *p_lcb = NULL;
 
-    APPL_TRACE_DEBUG1("bta_av_sig_chg event: %d", event);
+    BTIF_TRACE_IMP2("%s bta_av_sig_chg event: %d",
+            __FUNCTION__, event);
     if(event == AVDT_CONNECT_IND_EVT)
     {
         p_lcb = bta_av_find_lcb(p_data->str_msg.bd_addr, BTA_AV_LCB_FIND);

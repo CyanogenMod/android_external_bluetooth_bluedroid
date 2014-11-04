@@ -272,7 +272,7 @@ void send_key (int fd, uint16_t key, int pressed)
         return;
     }
 
-    BTIF_TRACE_DEBUG3("AVRCP: Send key %d (%d) fd=%d", key, pressed, fd);
+    BTIF_TRACE_IMP3("AVRCP: Send key %d (%d) fd=%d", key, pressed, fd);
     send_event(fd, EV_KEY, key, pressed);
     send_event(fd, EV_SYN, SYN_REPORT, 0);
 }
@@ -399,7 +399,7 @@ void handle_rc_features()
     {
         rc_features |= BTRC_FEAT_METADATA;
     }
-    BTIF_TRACE_DEBUG2("%s: rc_features=0x%x", __FUNCTION__, rc_features);
+    BTIF_TRACE_IMP2("%s: rc_features=0x%x", __FUNCTION__, rc_features);
     HAL_CBACK(bt_rc_callbacks, remote_features_cb, &rc_addr, rc_features)
 
 #if (AVRC_ADV_CTRL_INCLUDED == TRUE)
@@ -448,13 +448,26 @@ void handle_rc_features()
  ***************************************************************************/
 void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
 {
-    BTIF_TRACE_DEBUG2("%s: rc_handle: %d", __FUNCTION__, p_rc_open->rc_handle);
+    BTIF_TRACE_IMP2("%s: rc_handle: %d", __FUNCTION__, p_rc_open->rc_handle);
     bt_status_t result = BT_STATUS_SUCCESS;
     int i;
     char bd_str[18];
 
     if(p_rc_open->status == BTA_AV_SUCCESS)
     {
+        //check if already some RC is connected
+        if (btif_rc_cb.rc_connected)
+        {
+            BTIF_TRACE_ERROR2("Got RC OPEN in connected state, Connected RC: %d \
+                and Current RC: %d", btif_rc_cb.rc_handle,p_rc_open->rc_handle );
+            if ((btif_rc_cb.rc_handle != p_rc_open->rc_handle)
+                && (bdcmp(btif_rc_cb.rc_addr, p_rc_open->peer_addr)))
+            {
+                BTIF_TRACE_DEBUG0("Got RC connected for some other handle");
+                BTA_AvCloseRc(p_rc_open->rc_handle);
+                return;
+            }
+        }
         memcpy(btif_rc_cb.rc_addr, p_rc_open->peer_addr, sizeof(BD_ADDR));
         btif_rc_cb.rc_features = p_rc_open->peer_features;
         btif_rc_cb.rc_vol_label=MAX_LABEL;
@@ -491,11 +504,18 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
  ***************************************************************************/
 void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
 {
-    BTIF_TRACE_DEBUG2("%s: rc_handle: %d", __FUNCTION__, p_rc_close->rc_handle);
+    BTIF_TRACE_IMP2("%s: rc_handle: %d", __FUNCTION__, p_rc_close->rc_handle);
+    if ((p_rc_close->rc_handle != btif_rc_cb.rc_handle)
+        && (bdcmp(btif_rc_cb.rc_addr, p_rc_close->peer_addr)))
+    {
+        BTIF_TRACE_ERROR0("Got disconnect of unknown device");
+        return;
+    }
 
     btif_rc_cb.rc_handle = 0;
     btif_rc_cb.rc_connected = FALSE;
     memset(btif_rc_cb.rc_addr, 0, sizeof(BD_ADDR));
+    memset(btif_rc_cb.rc_notif, 0, sizeof(btif_rc_cb.rc_notif));
     btif_rc_cb.rc_features = 0;
     btif_rc_cb.rc_vol_label=MAX_LABEL;
     btif_rc_cb.rc_volume=MAX_VOLUME;
@@ -517,6 +537,8 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
     const char *status;
     int pressed, i;
 
+    if (p_remote_cmd == NULL)
+        return;
     BTIF_TRACE_DEBUG2("%s: p_remote_cmd->rc_id=%d", __FUNCTION__, p_remote_cmd->rc_id);
 
     /* If AVRC is open and peer sends PLAY but there is no AVDT, then we queue-up this PLAY */
@@ -724,7 +746,8 @@ void handle_rc_browsemsg_cmd (tBTA_AV_BROWSE_MSG *pbrowse_msg)
     UINT8  dropmsg = TRUE;
 
     BTIF_TRACE_EVENT1("+ %s", __FUNCTION__);
-    BTIF_TRACE_EVENT1("pbrowse_msg PDU_ID :%x",pbrowse_msg->p_msg->browse.p_browse_data[0]);
+    BTIF_TRACE_IMP2("%s  pbrowse_msg PDU_ID :%x",__FUNCTION__,
+            pbrowse_msg->p_msg->browse.p_browse_data[0]);
     BTIF_TRACE_EVENT1("pbrowse_msg length :%x",pbrowse_msg->p_msg->browse.browse_len);
     switch(pbrowse_msg->p_msg->browse.p_browse_data[0])
     {
@@ -803,7 +826,7 @@ void handle_rc_browsemsg_cmd (tBTA_AV_BROWSE_MSG *pbrowse_msg)
  ***************************************************************************/
 void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
 {
-    BTIF_TRACE_DEBUG2 ("%s event:%s", __FUNCTION__, dump_rc_event(event));
+    BTIF_TRACE_IMP2 ("%s event:%s", __FUNCTION__, dump_rc_event(event));
     switch (event)
     {
         case BTA_AV_RC_OPEN_EVT:
@@ -821,7 +844,18 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
         {
             BTIF_TRACE_DEBUG2("rc_id:0x%x key_state:%d", p_data->remote_cmd.rc_id,
                                p_data->remote_cmd.key_state);
-            handle_rc_passthrough_cmd( (&p_data->remote_cmd) );
+            /** In race conditions just after 2nd AVRCP is connected
+             *  remote might send pass through commands, so check for
+             *  Rc handle before processing pass through commands
+             **/
+            if (btif_rc_cb.rc_handle == p_data->remote_cmd.rc_handle)
+            {
+                handle_rc_passthrough_cmd( (&p_data->remote_cmd) );
+            }
+            else
+            {
+                BTIF_TRACE_DEBUG0("Pas-through command for Invalid rc handle");
+            }
         }
         break;
         case BTA_AV_RC_FEAT_EVT:
@@ -836,7 +870,10 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
             BTIF_TRACE_DEBUG2("BTA_AV_META_MSG_EVT  code:%d label:%d", p_data->meta_msg.code,
                 p_data->meta_msg.rc_handle);
             /* handle the metamsg command */
+
             handle_rc_metamsg_cmd(&(p_data->meta_msg));
+            /* Free the Memory allocated for tAVRC_MSG */
+            GKI_freebuf(p_data->meta_msg.p_msg);
         }
         break;
         case BTA_AV_BROWSE_MSG_EVT:
@@ -1136,7 +1173,7 @@ int app_sendbrowsemsg(UINT8 index ,tAVRC_RESPONSE *avrc_rsp)
 *******************************************************************************/
 static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 ctype, UINT8 label)
 {
-    BTIF_TRACE_EVENT5("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
+    BTIF_TRACE_IMP5("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
         dump_rc_pdu(pavrc_cmd->pdu), btif_rc_cb.rc_handle, ctype, label);
 
     switch (event)
@@ -1429,7 +1466,7 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
 *******************************************************************************/
 static void btif_rc_upstreams_rsp_evt(UINT16 event, tAVRC_RESPONSE *pavrc_resp, UINT8 ctype, UINT8 label)
 {
-    BTIF_TRACE_EVENT5("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
+    BTIF_TRACE_IMP5("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
         dump_rc_pdu(pavrc_resp->pdu), btif_rc_cb.rc_handle, ctype, label);
 
 #if (AVRC_ADV_CTRL_INCLUDED == TRUE)
@@ -1807,7 +1844,12 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
 {
     tAVRC_RESPONSE avrc_rsp;
     CHECK_RC_CONNECTED
-    BTIF_TRACE_EVENT2("## %s ## event_id:%s", __FUNCTION__, dump_rc_notification_event_id(event_id));
+    BTIF_TRACE_IMP2("## %s ## event_id:%s", __FUNCTION__, dump_rc_notification_event_id(event_id));
+    if (btif_rc_cb.rc_notif[event_id-1].bNotify == FALSE)
+    {
+        BTIF_TRACE_ERROR1("Avrcp Event id not registered: event_id = %x", event_id);
+        return BT_STATUS_NOT_READY;
+    }
     memset(&(avrc_rsp.reg_notif), 0, sizeof(tAVRC_REG_NOTIF_RSP));
     avrc_rsp.reg_notif.event_id = event_id;
 

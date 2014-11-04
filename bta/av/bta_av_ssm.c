@@ -182,7 +182,7 @@ static const UINT8 bta_av_sst_incoming[][BTA_AV_NUM_COLS] =
 /* STR_RECONFIG_CFM_EVT */  {BTA_AV_SIGNORE,        BTA_AV_SIGNORE,        BTA_AV_INCOMING_SST },
 /* AVRC_TIMER_EVT */        {BTA_AV_SIGNORE,        BTA_AV_SIGNORE,        BTA_AV_INCOMING_SST },
 /* AVDT_CONNECT_EVT */      {BTA_AV_SIGNORE,        BTA_AV_SIGNORE,        BTA_AV_INCOMING_SST },
-/* AVDT_DISCONNECT_EVT */   {BTA_AV_CCO_CLOSE,      BTA_AV_CLEANUP,        BTA_AV_INIT_SST },
+/* AVDT_DISCONNECT_EVT */   {BTA_AV_CCO_CLOSE,      BTA_AV_DISCONNECT_REQ, BTA_AV_CLOSING_SST },
 /* ROLE_CHANGE_EVT*/        {BTA_AV_SIGNORE,        BTA_AV_SIGNORE,        BTA_AV_INCOMING_SST },
 /* AVDT_DELAY_RPT_EVT */    {BTA_AV_DELAY_CO,       BTA_AV_SIGNORE,        BTA_AV_INCOMING_SST },
 /* ACP_CONNECT_EVT */       {BTA_AV_SIGNORE,        BTA_AV_SIGNORE,        BTA_AV_INCOMING_SST }
@@ -435,12 +435,15 @@ void bta_av_ssm_execute(tBTA_AV_SCB *p_scb, UINT16 event, tBTA_AV_DATA *p_data)
         }
     }
 
-#if (defined(BTA_AV_DEBUG) && BTA_AV_DEBUG == TRUE)
-    APPL_TRACE_VERBOSE5("AV Sevent(0x%x)=0x%x(%s) state=%d(%s)",
-        p_scb->hndl, event, bta_av_evt_code(event), p_scb->state, bta_av_sst_code(p_scb->state));
-#else
-    APPL_TRACE_VERBOSE2("AV Sevent=0x%x state=%d", event, p_scb->state);
-#endif
+    if ((event != BTA_AV_STR_WRITE_CFM_EVT) && (event != BTA_AV_SRC_DATA_READY_EVT))
+    {
+        #if (defined(BTA_AV_DEBUG) && BTA_AV_DEBUG == TRUE)
+            APPL_TRACE_IMP5("AV Sevent(0x%x)=0x%x(%s) state=%d(%s)", p_scb->hndl,
+                event, bta_av_evt_code(event), p_scb->state, bta_av_sst_code(p_scb->state));
+        #else
+            APPL_TRACE_IMP2("AV Sevent=0x%x state=%d", event, p_scb->state);
+        #endif
+    }
 
     /* look up the state table for the current state */
     state_table = bta_av_sst_tbl[p_scb->state];

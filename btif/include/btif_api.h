@@ -74,6 +74,17 @@ bt_status_t btif_disable_bluetooth(void);
 
 /*******************************************************************************
 **
+** Function         btif_ssr_cleanup
+**
+** Description      Inititates ssr clean during Disable timeout.
+**
+** Returns          void
+**
+*******************************************************************************/
+void btif_ssr_cleanup(void);
+
+/*******************************************************************************
+**
 ** Function         btif_shutdown_bluetooth
 **
 ** Description      Finalizes BT scheduler shutdown and terminates BTIF

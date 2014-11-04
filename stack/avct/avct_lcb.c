@@ -219,9 +219,9 @@ void avct_lcb_event(tAVCT_LCB *p_lcb, UINT8 event, tAVCT_LCB_EVT *p_data)
     int                 i;
 
 #if BT_TRACE_VERBOSE == TRUE
-    AVCT_TRACE_EVENT3("LCB lcb=%d event=%s state=%s", p_lcb->allocated, avct_lcb_evt_str[event], avct_lcb_st_str[p_lcb->state]);
+    BTIF_TRACE_IMP3("LCB lcb=%d event=%s state=%s", p_lcb->allocated, avct_lcb_evt_str[event], avct_lcb_st_str[p_lcb->state]);
 #else
-    AVCT_TRACE_EVENT3("LCB lcb=%d event=%d state=%d", p_lcb->allocated, event, p_lcb->state);
+    BTIF_TRACE_IMP3("LCB lcb=%d event=%d state=%d", p_lcb->allocated, event, p_lcb->state);
 #endif
 
     /* look up the state table for the current state */
@@ -262,9 +262,9 @@ void avct_bcb_event(tAVCT_BCB *p_bcb, UINT8 event, tAVCT_LCB_EVT *p_data)
     int                 i;
 
 #if BT_TRACE_VERBOSE == TRUE
-    AVCT_TRACE_EVENT3("BCB lcb=%d event=%s state=%s", p_bcb->allocated, avct_lcb_evt_str[event], avct_lcb_st_str[p_bcb->state]);
+    BTIF_TRACE_IMP3("BCB lcb=%d event=%s state=%s", p_bcb->allocated, avct_lcb_evt_str[event], avct_lcb_st_str[p_bcb->state]);
 #else
-    AVCT_TRACE_EVENT3("BCB lcb=%d event=%d state=%d", p_bcb->allocated, event, p_bcb->state);
+    BTIF_TRACE_IMP3("BCB lcb=%d event=%d state=%d", p_bcb->allocated, event, p_bcb->state);
 #endif
 
     /* look up the state table for the current state */

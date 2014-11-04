@@ -36,6 +36,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/prctl.h>
 #include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -557,6 +558,8 @@ static void *sock_poll_thread(void *arg)
     struct pollfd pfds[MAX_POLL];
     memset(pfds, 0, sizeof(pfds));
     int h = (int)arg;
+
+    prctl(PR_SET_NAME, (unsigned long)"btif_sock_poll", 0, 0, 0);
     for(;;)
     {
         prepare_poll_fds(h, pfds);

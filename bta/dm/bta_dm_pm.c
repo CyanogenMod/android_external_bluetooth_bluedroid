@@ -52,11 +52,7 @@ static void bta_dm_pm_set_sniff_policy(tBTA_DM_PEER_DEVICE *p_dev, BOOLEAN bDisa
 static void bta_dm_pm_ssr(BD_ADDR peer_addr);
 #endif
 
-/* Sniff Max latency for active HID connection */
-#define BTA_HH_SSR_MAX_LATENCY_OPTIMAL 360
-
 tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
-
 
 /*******************************************************************************
 **
@@ -197,7 +193,6 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
     if(i> p_bta_dm_pm_cfg[0].app_id)
         return;
 
-    bta_dm_pm_stop_timer(peer_addr);
     /*p_dev = bta_dm_find_peer_device(peer_addr);*/
 
 #if (BTM_SSR_INCLUDED == TRUE)
@@ -236,6 +231,9 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
         {
             bta_dm_conn_srvcs.count--;
 
+            APPL_TRACE_DEBUG2("Removed power mode entry for service id = %d, count = %d",
+                               p_bta_dm_pm_cfg[i].id, bta_dm_conn_srvcs.count);
+
             for(; j<bta_dm_conn_srvcs.count ; j++)
             {
 
@@ -262,17 +260,20 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
         bta_dm_conn_srvcs.conn_srvc[j].id = id;
         bta_dm_conn_srvcs.conn_srvc[j].app_id = app_id;
         bdcpy(bta_dm_conn_srvcs.conn_srvc[j].peer_bdaddr, peer_addr);
-
-        APPL_TRACE_WARNING2("new conn_srvc id:%d, app_id:%d", id, app_id);
-
         bta_dm_conn_srvcs.count++;
         bta_dm_conn_srvcs.conn_srvc[j].state = status;
+
+        APPL_TRACE_WARNING3("new conn_srvc id:%d, app_id:%d count:%d", id, app_id,
+                             bta_dm_conn_srvcs.count);
     }
     else
     {
         /* no service is added or removed. only updating status. */
         bta_dm_conn_srvcs.conn_srvc[j].state = status;
     }
+
+    /* stop timer */
+    bta_dm_pm_stop_timer(peer_addr);
 
     if(p_dev)
     {
@@ -565,6 +566,17 @@ static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index)
     if(mode != BTM_PM_MD_SNIFF)
 #endif
     {
+#if (BTM_SSR_INCLUDED == TRUE)
+        /* Dont initiate Sniff if controller has alreay accepted
+         * remote sniff params. This avoid sniff loop issue with
+         * some agrresive headsets who use sniff latencies more than
+         * DUT supported range of Sniff intervals.*/
+        if ((mode == BTM_PM_MD_SNIFF) && (p_peer_dev->info & BTA_DM_DI_ACP_SNIFF))
+        {
+            APPL_TRACE_DEBUG0("bta_dm_pm_sniff: already in remote initiate sniff");
+            return TRUE;
+        }
+#endif
         /* if the current mode is not sniff, issue the sniff command.
          * If sniff, but SSR is not used in this link, still issue the command */
         memcpy(&pwr_md, &p_bta_dm_pm_md[index], sizeof (tBTM_PM_PWR_MD));
@@ -641,7 +653,20 @@ static void bta_dm_pm_ssr(BD_ADDR peer_addr)
                     continue;
                 APPL_TRACE_WARNING2("bta_dm_pm_ssr: Orignal Max Latency = %d, Remote Timeout = %d",
                     p_spec_cur->max_lat, p_spec_cur->min_rmt_to);
-                if (p_spec_cur->max_lat > BTA_HH_SSR_MAX_LATENCY_OPTIMAL)
+                if (p_spec_cur->max_lat == BTA_HH_SSR_MAX_LATENCY_ZERO)
+                {
+                    APPL_TRACE_WARNING0("bta_dm_pm_ssr: Max latency is 0, not sending"
+                        "SSR command as device is blacklisted");
+                    return;
+                }
+                else if (p_spec_cur->max_lat == BTA_HH_SSR_DISABLE_SSR)
+                {
+                    APPL_TRACE_WARNING0("bta_dm_pm_ssr: Need to disable SSR"
+                        "as device is blacklisted");
+                    BTM_SetSsrParams (peer_addr, 0, 0, 0);
+                    return;
+                }
+                else if (p_spec_cur->max_lat > BTA_HH_SSR_MAX_LATENCY_OPTIMAL)
                 {
                     p_spec_cur->max_lat = BTA_HH_SSR_MAX_LATENCY_OPTIMAL;
                 }
@@ -839,6 +864,12 @@ void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data)
             break;
 #endif
         case BTM_PM_STS_SNIFF:
+            if (p_data->pm_status.hci_status == 0)
+            {
+                APPL_TRACE_WARNING0("bta_dm_pm_btm_status  stopping timer if active"
+                    "since sniff mode is enabled");
+                bta_dm_pm_stop_timer(p_data->pm_status.bd_addr);
+            }
             p_dev->info &= ~(BTA_DM_DI_SET_SNIFF|BTA_DM_DI_INT_SNIFF|BTA_DM_DI_ACP_SNIFF);
             if (info & BTA_DM_DI_SET_SNIFF)
                 p_dev->info |= BTA_DM_DI_INT_SNIFF;

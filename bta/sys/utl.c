@@ -286,7 +286,9 @@ BOOLEAN utl_isdialstr(const char *p_s)
     {
         if(!(((p_s[i] >= '0') && (p_s[i] <= '9'))
             || (p_s[i] == '*') || (p_s[i] == '+') || (p_s[i] == '#') || (p_s[i] == ';')
-            || ((p_s[i] >= 'A') && (p_s[i] <= 'C'))))
+            || ((p_s[i] >= 'A') && (p_s[i] <= 'C'))
+            || ((p_s[i] == 'p') || (p_s[i] == 'P')
+            || (p_s[i] == 'w') || (p_s[i] == 'W'))))
             return FALSE;
     }
 

@@ -129,6 +129,7 @@ typedef void (tPORT_CALLBACK) (UINT32 code, UINT16 port_handle);
                                      /* or disconnected */
 #define PORT_EV_FC      0x00010000   /* data flow enabled flag changed by remote */
 #define PORT_EV_FCS     0x00020000   /* data flow enable status true = enabled */
+#define PORT_EV_TXFULL  0x00040000   /* RFCOMM Tx buffer full event */
 
 /*
 ** To register for events application should provide bitmask with

@@ -108,19 +108,17 @@ static void queue_check_connect(connect_node_t *p_param)
     connect_node_t *p_temp = p_head;
     if (connect_queue == NULL)
         return;
-    // need to delete whole list in case of single node.
-    if (p_head != NULL && connect_queue->p_next == NULL)
+    // Check for deletion of first node.
+    if ((p_param->uuid == connect_queue->uuid))
     {
-        if ((p_param->uuid == p_head->uuid))
-        {
             BTIF_TRACE_VERBOSE0("Matched Connect req with uuid for single node");
             connect_queue = connect_queue->p_next;
             GKI_freebuf(p_head);
             return;
-        }
     }
+    p_head = connect_queue->p_next;
     // parse list for common node and delete that node
-    while (p_head != NULL && connect_queue->p_next != NULL)
+    while (p_head != NULL)
     {
         if ((p_param->uuid == p_head->uuid))
         {

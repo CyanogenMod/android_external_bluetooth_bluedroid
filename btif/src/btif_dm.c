@@ -1093,12 +1093,11 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
                 status = BT_STATUS_AUTH_REJECTED;
                 break;
 
-            case HCI_ERR_LMP_RESPONSE_TIMEOUT:
-                status =  BT_STATUS_AUTH_FAILURE;
-                break;
 
             /* map the auth failure codes, so we can retry pairing if necessary */
             case HCI_ERR_AUTH_FAILURE:
+            case HCI_ERR_KEY_MISSING:
+            case HCI_ERR_LMP_RESPONSE_TIMEOUT:
                 btif_storage_remove_bonded_device(&bd_addr);
             case HCI_ERR_HOST_REJECT_SECURITY:
             case HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE:
@@ -1770,6 +1769,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             {
                 bdcpy(bd_addr.address, pairing_cb.bd_addr);
                 bond_state_changed(p_data->bond_cancel_cmpl.result, &bd_addr, BT_BOND_STATE_NONE);
+                btif_dm_remove_bond(&bd_addr);
             }
             break;
 

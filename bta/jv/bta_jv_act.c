@@ -2062,7 +2062,7 @@ static void bta_jv_port_event_cl_cback(UINT32 code, UINT16 port_handle)
         p_cb->p_cback(BTA_JV_RFCOMM_DATA_IND_EVT, &evt_data, p_pcb->user_data);
     }
 
-    if (code & PORT_EV_FC)
+    if ((code & PORT_EV_FC) || (code & PORT_EV_TXFULL))
     {
         p_pcb->cong = (code & PORT_EV_FCS) ? FALSE : TRUE;
         evt_data.rfc_cong.cong = p_pcb->cong;

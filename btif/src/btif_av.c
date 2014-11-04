@@ -35,6 +35,7 @@
 #include "btif_profile_queue.h"
 #include "bta_api.h"
 #include "btif_media.h"
+#include "btif_storage.h"
 #include "bta_av_api.h"
 #include "gki.h"
 #include "bd.h"
@@ -271,9 +272,8 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
 {
     tBTA_AV *p_bta_data;
 
-    BTIF_TRACE_DEBUG3("%s event:%s flags %x", __FUNCTION__,
+    BTIF_TRACE_IMP3("%s event:%s flags %x", __FUNCTION__,
                      dump_av_sm_event_name(event), btif_av_cb.flags);
-
     switch (event)
     {
         case BTIF_SM_ENTER_EVT:
@@ -336,6 +336,7 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
                   /* change state to open/idle based on the status */
                   btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_OPENED);
              }
+             btif_queue_advance();
              break;
 
         case BTA_AV_PENDING_EVT:
@@ -411,7 +412,7 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
 
 static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data)
 {
-    BTIF_TRACE_DEBUG3("%s event:%s flags %x", __FUNCTION__,
+    BTIF_TRACE_IMP3("%s event:%s flags %x", __FUNCTION__,
                      dump_av_sm_event_name(event), btif_av_cb.flags);
 
     switch (event)
@@ -504,6 +505,17 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
                 BTAV_CONNECTION_STATE_DISCONNECTED, &(btif_av_cb.peer_bda));
             btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
             break;
+
+        case BTA_AV_CLOSE_EVT:
+            /* avdtp link is closed */
+            btif_a2dp_on_stopped(NULL);
+            /* inform the application that we are disconnected */
+            HAL_CBACK(bt_av_callbacks, connection_state_cb,
+                BTAV_CONNECTION_STATE_DISCONNECTED, &(btif_av_cb.peer_bda));
+
+            btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
+            break;
+
         CHECK_RC_EVENT(event, p_data);
 
         default:
@@ -529,7 +541,7 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
 
 static BOOLEAN btif_av_state_closing_handler(btif_sm_event_t event, void *p_data)
 {
-    BTIF_TRACE_DEBUG3("%s event:%s flags %x", __FUNCTION__,
+    BTIF_TRACE_IMP3("%s event:%s flags %x", __FUNCTION__,
                      dump_av_sm_event_name(event), btif_av_cb.flags);
 
     switch (event)
@@ -606,7 +618,7 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
     tBTA_AV *p_av = (tBTA_AV*)p_data;
     tBTIF_STATUS status = BTIF_SUCCESS;
 
-    BTIF_TRACE_DEBUG3("%s event:%s flags %x", __FUNCTION__,
+    BTIF_TRACE_IMP3("%s event:%s flags %x", __FUNCTION__,
                      dump_av_sm_event_name(event), btif_av_cb.flags);
 
     if ( (event == BTA_AV_REMOTE_CMD_EVT) && (btif_av_cb.flags & BTIF_AV_FLAG_REMOTE_SUSPEND) &&
@@ -640,6 +652,17 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
                 BTA_AvStart();
                 btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
             }
+            else if (status == BTIF_ERROR_SRV_AV_CP_NOT_SUPPORTED)
+            {
+#if defined(BTA_AV_DISCONNECT_IF_NO_SCMS_T) && (BTA_AV_DISCONNECT_IF_NO_SCMS_T == TRUE)
+                BTIF_TRACE_ERROR0("SCMST enabled, disconnect as remote does not support SCMST");
+                BTA_AvDisconnect(btif_av_cb.peer_bda.address);
+#else
+                BTIF_TRACE_WARNING0("SCMST enabled, connecting to non SCMST SEP");
+                BTA_AvStart();
+                btif_av_cb.flags |= BTIF_AV_FLAG_PENDING_START;
+#endif
+            }
             else
             {
                 BTIF_TRACE_ERROR1("## AV Disconnect## status : %x",status);
@@ -655,8 +678,11 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             if ((p_av->start.status == BTA_SUCCESS) && (p_av->start.suspending == TRUE))
                 return TRUE;
 
-            /* if remote tries to start a2dp when call is in progress, suspend it right away */
-            if ((!(btif_av_cb.flags & BTIF_AV_FLAG_PENDING_START)) && (!btif_hf_is_call_idle()))
+            /* if remote tries to start a2dp when DUT is a2dp source
+             * then suspend. In case a2dp is sink and call is active
+             * then disconnect the AVDTP channel
+             */
+            if (!(btif_av_cb.flags & BTIF_AV_FLAG_PENDING_START))
             {
                 if (btif_av_cb.sep == SEP_SNK)
                 {
@@ -779,7 +805,7 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
 {
     tBTA_AV *p_av = (tBTA_AV*)p_data;
 
-    BTIF_TRACE_DEBUG3("%s event:%s flags %x", __FUNCTION__,
+    BTIF_TRACE_IMP3("%s event:%s flags %x", __FUNCTION__,
                      dump_av_sm_event_name(event), btif_av_cb.flags);
 
     switch (event)
@@ -937,11 +963,92 @@ static void btif_av_handle_event(UINT16 event, char* p_param)
     btif_sm_dispatch(btif_av_cb.sm_handle, event, (void*)p_param);
 }
 
+void display_meta_msg(tBTA_AV_META_MSG meta_msg)
+{
+    int index, disp_index = 0;
+    char disp_buf[128] = {0};
+
+    BTIF_TRACE_DEBUG3("rc_hndl = %d : comp_id = 0x%x : label = %d",
+        meta_msg.rc_handle, meta_msg.company_id, meta_msg.label);
+
+    BTIF_TRACE_DEBUG4("len = %d : p_data = %p : p_msg = %p : rc_handle = %d",
+        meta_msg.len, meta_msg.p_data, meta_msg.p_msg, meta_msg.rc_handle);
+
+    BTIF_TRACE_DEBUG4("AVRC Msg : Vendor Header: ctype = %d : subunit_type = %d :"
+        "subunit_id = %d : opcode = %d",
+        meta_msg.p_msg->vendor.hdr.ctype, meta_msg.p_msg->vendor.hdr.subunit_type,
+        meta_msg.p_msg->vendor.hdr.subunit_id, meta_msg.p_msg->vendor.hdr.opcode);
+
+    BTIF_TRACE_DEBUG3("AVRC Msg : Vendor: comp_id = 0x%x : p_vendor_data = %p : vendor_len = %d",
+        meta_msg.p_msg->vendor.company_id, meta_msg.p_msg->vendor.p_vendor_data,
+        meta_msg.p_msg->vendor.vendor_len);
+
+    BTIF_TRACE_DEBUG0("Vendor data : ");
+    for (index = 0; index < meta_msg.p_msg->vendor.vendor_len; index++)
+    {
+        disp_index += snprintf(disp_buf + disp_index, 128 - disp_index, "%02x ",
+                                meta_msg.p_msg->vendor.p_vendor_data[index]);
+        if (disp_index % 20 == 0)
+        {
+            BTIF_TRACE_DEBUG1("%s", disp_buf);
+            disp_index = 0;
+        }
+    }
+    if(disp_index != 0)
+    {
+        BTIF_TRACE_DEBUG1("%s", disp_buf);
+    }
+}
+
+void btif_av_msg_copy(UINT16 event, char *p_dest, char *p_src)
+{
+    if (event == BTA_AV_META_MSG_EVT)
+    {
+        tBTA_AV *p_data;
+        tAVRC_MSG *p_avrc;
+        UINT8 *p_vendor_data;
+
+        memcpy(p_dest, p_src, sizeof(tBTA_AV));  /* callback parameter data */
+        p_data = (tBTA_AV *)p_dest;
+
+        p_avrc = (tAVRC_MSG *)GKI_getbuf(sizeof(tAVRC_MSG) +
+                  p_data->meta_msg.p_msg->vendor.vendor_len);
+        if(p_avrc == NULL)
+        {
+            BTIF_TRACE_ERROR0("GKI_getbuf failed : Failed to copy Meta Msg");
+            return;
+        }
+        memcpy(p_avrc, p_data->meta_msg.p_msg, sizeof(tAVRC_MSG));
+        p_vendor_data = (UINT8*)(p_avrc + 1);
+
+        memcpy(p_vendor_data, p_data->meta_msg.p_msg->vendor.p_vendor_data,
+            p_data->meta_msg.p_msg->vendor.vendor_len);
+
+        p_data->meta_msg.p_msg = p_avrc;
+        p_data->meta_msg.p_msg->vendor.p_vendor_data = p_vendor_data;
+    }
+}
+
 static void bte_av_callback(tBTA_AV_EVT event, tBTA_AV *p_data)
 {
+    int param_len;
+
     /* Switch to BTIF context */
-    btif_transfer_context(btif_av_handle_event, event,
+    /* Special handling for META_MSG because of vendor data pointer */
+    if (event == BTA_AV_META_MSG_EVT)
+    {
+        param_len = sizeof(tAVRC_MSG) + p_data->meta_msg.p_msg->vendor.vendor_len;
+        BTIF_TRACE_DEBUG1(" Meta Message Length %d", param_len);
+
+        display_meta_msg(p_data->meta_msg);
+        btif_transfer_context(btif_av_handle_event, event,
+                          (char*)p_data, sizeof(tBTA_AV), btif_av_msg_copy);
+    }
+    else
+    {
+        btif_transfer_context(btif_av_handle_event, event,
                           (char*)p_data, sizeof(tBTA_AV), NULL);
+    }
 }
 
 static void bte_av_media_callback(tBTA_AV_EVT event, tBTA_AV_MEDIA *p_data)
@@ -1035,7 +1142,20 @@ static bt_status_t connect_int(bt_bdaddr_t *bd_addr)
 {
     BTIF_TRACE_EVENT1("%s", __FUNCTION__);
 
-    btif_sm_dispatch(btif_av_cb.sm_handle, BTIF_AV_CONNECT_REQ_EVT, (char*)bd_addr);
+    if(btif_storage_is_device_bonded (bd_addr))
+    {
+        btif_sm_dispatch(btif_av_cb.sm_handle, BTIF_AV_CONNECT_REQ_EVT, (char*)bd_addr);
+    }
+    else
+    {
+        bdstr_t bdstr;
+
+        BTIF_TRACE_ERROR1("## connect_int ## Device Not Bonded : %s", bd2str (bd_addr, &bdstr));
+        /* inform the application of the disconnection as the connection is not processed */
+        HAL_CBACK(bt_av_callbacks, connection_state_cb,
+                         BTAV_CONNECTION_STATE_DISCONNECTED, bd_addr);
+        btif_queue_advance();
+    }
 
     return BT_STATUS_SUCCESS;
 }
@@ -1505,5 +1625,6 @@ void btif_av_move_idle(bt_bdaddr_t bd_addr)
         HAL_CBACK(bt_av_callbacks, connection_state_cb,
                   BTAV_CONNECTION_STATE_DISCONNECTED, &(btif_av_cb.peer_bda));
         btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
+        btif_queue_advance();
     }
 }

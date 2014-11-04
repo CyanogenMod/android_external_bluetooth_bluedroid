@@ -363,6 +363,10 @@
 #define BTA_AV_CO_CP_SCMS_T  FALSE
 #endif
 
+#ifndef BTA_AV_DISCONNECT_IF_NO_SCMS_T
+#define BTA_AV_DISCONNECT_IF_NO_SCMS_T  FALSE
+#endif
+
 #ifndef AVDT_CONNECT_CP_ONLY
 #define AVDT_CONNECT_CP_ONLY  FALSE
 #endif
@@ -387,6 +391,10 @@
 
 #ifndef BT_TRACE_BTIF
 #define BT_TRACE_BTIF  TRUE
+#endif
+
+#ifndef BT_TRACE_LATENCY_AUDIO
+#define BT_TRACE_LATENCY_AUDIO  TRUE
 #endif
 
 #ifndef BTTRC_INCLUDED
@@ -1534,7 +1542,7 @@ and USER_HW_DISABLE_API macros */
 
 /* The maximum number of SDP records the server can support. */
 #ifndef SDP_MAX_RECORDS
-#define SDP_MAX_RECORDS             20
+#define SDP_MAX_RECORDS             25
 #endif
 
 /* The maximum number of attributes in each record. */

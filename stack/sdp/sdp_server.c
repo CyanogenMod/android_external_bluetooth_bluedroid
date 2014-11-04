@@ -52,7 +52,13 @@
  * than 1.3 and falls back to 1.0, we would like to blacklist
  * and send AVRCP versio as 1.3.
  */
-static const UINT8 sdp_black_list_prefix[][3] = {{0x00, 0x1D, 0xBA}/* JVC carkit */};
+static const UINT8 sdp_black_list_prefix[][3] = {{0x00, 0x1D, 0xBA}, /* JVC carkit */
+                                                 {0x64, 0xD4, 0xBD}, /* Honda handsfree carkit */
+                                                 {0x00, 0x06, 0xF7},  /* Denso carkit */
+                                                 {0x00, 0x1E, 0xB2},  /* AVN 3.0 Hyundai*/
+                                                 {0x00, 0x13, 0x7B},  /* BYOM Opel*/
+                                                 {0x68, 0x84, 0x70},  /* KIA MOTOR*/
+                                                 {0x00, 0x54, 0xAF}   /* Chrysler*/ };
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */

@@ -24,6 +24,11 @@
 **              settop projects that already use pthreads and not pth.
 **
 *****************************************************************************/
+//#define BT_AUDIO_SYSTRACE_LOG
+
+#ifdef BT_AUDIO_SYSTRACE_LOG
+#define ATRACE_TAG ATRACE_TAG_ALWAYS
+#endif
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -38,6 +43,11 @@
 #define LOG_TAG "GKI_LINUX"
 
 #include <utils/Log.h>
+
+#ifdef BT_AUDIO_SYSTRACE_LOG
+#include <cutils/trace.h>
+#define PERF_SYSTRACE 1
+#endif
 
 /*****************************************************************************
 **  Constants & Macros
@@ -626,6 +636,9 @@ void* timer_thread(void *arg)
     int restart;
     tGKI_OS         *p_os = &gki_cb.os;
     int  *p_run_cond = &p_os->no_timer_suspend;
+    #ifdef BT_AUDIO_SYSTRACE_LOG
+    char trace_buf[512];
+    #endif
 
     /* Indicate that tick is just starting */
     restart = 1;
@@ -700,8 +713,24 @@ void* timer_thread(void *arg)
                (more than 5 ticks) */
             if (timeout_ns < GKI_TICKS_TO_MS(-5) * 1000000)
             {
+                #ifdef BT_AUDIO_SYSTRACE_LOG
+                snprintf(trace_buf, 32, "GKI TMR DELAYED by %d ns", timeout_ns);
+
+                if (PERF_SYSTRACE)
+                {
+                    ATRACE_BEGIN(trace_buf);
+                }
+                #endif
+
                 GKI_ERROR_LOG("tick delayed > 5 slots (%d,%d) -- cpu overload ? ",
                         timeout_ns, GKI_TICKS_TO_MS(-5) * 1000000);
+
+                #ifdef BT_AUDIO_SYSTRACE_LOG
+                if (PERF_SYSTRACE)
+                {
+                    ATRACE_END();
+                }
+                #endif
             }
         }
         else

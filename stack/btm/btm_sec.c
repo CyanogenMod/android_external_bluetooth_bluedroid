@@ -2992,7 +2992,8 @@ void btm_sec_rmt_name_request_complete (UINT8 *p_bd_addr, UINT8 *p_bd_name, UINT
                 return;
             }
 
-            if (status != HCI_SUCCESS)
+            /* Ignore the Page timeout error for RNR */
+            if ((status != HCI_SUCCESS) && (status != HCI_ERR_PAGE_TIMEOUT))
             {
                 btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
 
@@ -3232,7 +3233,7 @@ False-positive: evt_data.bd_addr is set at the beginning with:     STREAM_TO_BDA
             p_dev_rec->p_cur_service &&
             (p_dev_rec->p_cur_service->security_flags & BTM_SEC_OUT_AUTHENTICATE))
         {
-            evt_data.auth_req = (p_dev_rec->p_cur_service->security_flags & BTM_SEC_OUT_MITM) ? BTM_AUTH_SP_YES : BTM_AUTH_SP_NO;
+            evt_data.auth_req = (p_dev_rec->p_cur_service->security_flags & BTM_SEC_OUT_MITM) ? BTM_AUTH_SPGB_YES : BTM_AUTH_SPGB_NO;
         }
     }
 
@@ -3594,7 +3595,7 @@ void btm_simple_pair_complete (UINT8 *p)
     {
         /* simple pairing failed */
         /* Avoid sending disconnect on HCI_ERR_PEER_USER */
-        if (status != HCI_ERR_PEER_USER)
+        if ((status != HCI_ERR_PEER_USER) && (status != HCI_ERR_CONN_CAUSE_LOCAL_HOST))
         {
             btm_sec_send_hci_disconnect (p_dev_rec, HCI_ERR_AUTH_FAILURE);
         }
@@ -3852,7 +3853,10 @@ void btm_sec_auth_complete (UINT16 handle, UINT8 status)
         p_dev_rec->security_required &= ~BTM_SEC_OUT_AUTHENTICATE;
 
         if (status != HCI_SUCCESS)
-            btm_sec_send_hci_disconnect (p_dev_rec, HCI_ERR_PEER_USER);
+        {
+            if(((status != HCI_ERR_PEER_USER) && (status != HCI_ERR_CONN_CAUSE_LOCAL_HOST)))
+                btm_sec_send_hci_disconnect (p_dev_rec, HCI_ERR_PEER_USER);
+        }
         else
             l2cu_start_post_bond_timer (p_dev_rec->hci_handle);
 
@@ -4663,6 +4667,14 @@ void btm_sec_link_key_request (UINT8 *p_bda)
         return;
     }
 
+    if( (btm_cb.pairing_state == BTM_PAIR_STATE_WAIT_PIN_REQ) && (btm_cb.collision_start_time != 0)
+        && (memcmp (btm_cb.p_collided_dev_rec->bd_addr, p_bda, BD_ADDR_LEN) == 0) )
+    {
+        BTM_TRACE_EVENT2 ("btm_sec_link_key_request() rejecting link key req  State: %d   START_TIMEOUT : %d",
+                         btm_cb.pairing_state, btm_cb.collision_start_time);
+        btsnd_hcic_link_key_neg_reply (p_bda);
+        return;
+    }
     if (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN)
     {
         btsnd_hcic_link_key_req_reply (p_bda, p_dev_rec->link_key);
@@ -5903,3 +5915,54 @@ BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_D
 }
 #endif /* BLE_INCLUDED */
 
+/*******************************************************************************
+**
+** Function         btm_sec_set_hid_as_paired
+**
+** Description       Set HID Pointing device as paired or unpaired.
+**
+** Returns         void
+**
+*******************************************************************************/
+void btm_sec_set_hid_as_paired (BD_ADDR bda, BOOLEAN paired)
+{
+
+    tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(bda);
+
+    if (p_dev_rec)
+    {
+        if (paired)
+        {
+            p_dev_rec->sec_flags |= BTM_SEC_LINK_KEY_KNOWN;
+        }
+        else
+        {
+            p_dev_rec->sec_flags &= ~BTM_SEC_LINK_KEY_KNOWN;
+        }
+        BTM_TRACE_DEBUG1 ("btm_sec_set_hid_as_paired: p_dev_rec->sec_flags=%04x",
+                p_dev_rec->sec_flags);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         btm_sec_is_a_paired_dev
+**
+** Description       Is the specified device is a paired device
+**
+** Returns          TRUE - dev is paired
+**
+*******************************************************************************/
+BOOLEAN btm_sec_is_a_paired_dev (BD_ADDR bda)
+{
+
+    tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(bda);
+    BOOLEAN is_paired = FALSE;
+
+    if (p_dev_rec && (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN))
+    {
+        is_paired = TRUE;
+    }
+    BTM_TRACE_DEBUG1 ("btm_sec_is_a_paired_dev is_paired=%d", is_paired);
+    return(is_paired);
+}
