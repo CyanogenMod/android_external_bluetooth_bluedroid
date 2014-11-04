@@ -606,8 +606,6 @@ BOOLEAN btm_ble_vendor_irk_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
                     btm_ble_vendor_enq_irk_pending(p_dev_rec->ble.static_addr, p_dev_rec->bd_addr, TRUE);
                     p_cb->irk_list_size ++;
                     rt = TRUE;
-
-                    btm_ble_vendor_enable_irk_feature(TRUE);
                 }
             }
         }
@@ -621,6 +619,12 @@ BOOLEAN btm_ble_vendor_irk_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
     {
         BTM_TRACE_DEBUG("Device not a RPA enabled device");
     }
+
+    if (rt)
+    {
+        btm_ble_vendor_enable_irk_feature(TRUE);
+    }
+
     return rt;
 #endif
     return FALSE;
