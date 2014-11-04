@@ -22,9 +22,9 @@
 
 /************************************************************************************
  *
- *  Filename:      bluedroidtest.c
+ *  Filename:      rfcommtest.c
  *
- *  Description:   Bluedroid Test application
+ *  Description:   RFCOMM Test application
  *
  ***********************************************************************************/
 
@@ -565,7 +565,49 @@ static bt_callbacks_t bt_callbacks = {
     NULL,                        /* le_lpp_read_rssi_thresh_cb */
     NULL,                        /* le_lpp_enable_rssi_monitor_cb */
     NULL                         /* le_lpp_rssi_threshold_evt_cb */
+};
 
+static bool set_wake_alarm(uint64_t delay_millis, bool should_wake, alarm_cb cb, void *data)
+{
+    static timer_t timer;
+    static bool timer_created;
+
+    if (!timer_created)
+    {
+        struct sigevent sigevent;
+        memset(&sigevent, 0, sizeof(sigevent));
+        sigevent.sigev_notify = SIGEV_THREAD;
+        sigevent.sigev_notify_function = (void (*)(union sigval))cb;
+        sigevent.sigev_value.sival_ptr = data;
+        timer_create(CLOCK_MONOTONIC, &sigevent, &timer);
+        timer_created = true;
+    }
+
+    struct itimerspec new_value;
+    new_value.it_value.tv_sec = delay_millis / 1000;
+    new_value.it_value.tv_nsec = (delay_millis % 1000) * 1000 * 1000;
+    new_value.it_interval.tv_sec = 0;
+    new_value.it_interval.tv_nsec = 0;
+    timer_settime(timer, 0, &new_value, NULL);
+
+    return true;
+}
+
+static int acquire_wake_lock(const char *lock_name)
+{
+    return BT_STATUS_SUCCESS;
+}
+
+static int release_wake_lock(const char *lock_name)
+{
+    return BT_STATUS_SUCCESS;
+}
+
+static bt_os_callouts_t callouts = {
+    sizeof(bt_os_callouts_t),
+    set_wake_alarm,
+    acquire_wake_lock,
+    release_wake_lock,
 };
 
 /* Rfcomm Client */
@@ -620,6 +662,9 @@ void bdt_init(void)
 {
     bdt_log("INIT BT ");
     status = sBtInterface->init(&bt_callbacks);
+    if (status == BT_STATUS_SUCCESS) {
+        status = sBtInterface->set_os_callouts(&callouts);
+    }
     check_return_status(status);
 }
 
@@ -796,7 +841,7 @@ void do_rfcomm(char *p)
 ************************************************/
 void do_rfc_con( char *p)
 {
-	char            buf[64];
+    char            buf[64];
     tRFC            conn_param;
     bt_bdaddr_t     remote_addr;
 
@@ -822,10 +867,44 @@ void do_rfc_con( char *p)
     }
 }
 
+
+/* For PTS test case  BV21 and BV22 */
+
+void do_rfc_con_for_test_msc_data(char *p)
+{
+    char            buf[64];
+    tRFC            conn_param;
+    bt_bdaddr_t     remote_addr;
+
+    bdt_log("bdt do_rfc_con_for_test_msc_data");
+    memset(buf, '/0', 64);
+    /*Enter BD address */
+    get_str(&p, buf);
+    str2bd(buf, &conn_param.data.conn.bdadd);
+    memset(buf ,'/0' , 64);
+    get_str(&p, buf);
+    conn_param.data.conn.scn = atoi(buf);
+    bdt_log("SCN =%d",conn_param.data.conn.scn);
+    /* Connection */
+    conn_param.param = RFC_TEST_CLIENT_TEST_MSC_DATA;
+    sRfcInterface = (btrfcomm_interface_t *)sBtInterface->
+                         get_testapp_interface(TEST_APP_RFCOMM);
+    if (sRfcInterface)
+    {
+        sRfcInterface->rdut_rfcomm_test_interface(&conn_param);
+    }
+    else
+    {
+        bdt_log("interface not loaded");
+    }
+}
+
+
+
 /* Role Switch */
 void do_role_switch(char *p)
 {
-	char   buf[64];
+    char   buf[64];
     tRFC conn_param ;
     bt_bdaddr_t remote_addr;
 
@@ -852,7 +931,7 @@ void do_role_switch(char *p)
 
 void do_rfc_rls (char *p)
 {
-	tRFC  conn_param;
+    tRFC  conn_param;
 
     bdt_log("bdt rfc_rls");
     conn_param.param = RFC_TEST_FRAME_ERROR;
@@ -867,6 +946,25 @@ void do_rfc_rls (char *p)
     }
 
 }
+
+void do_rfc_send_data (char *p)
+{
+    tRFC  conn_param;
+
+    bdt_log("bdt rfc_send_data");
+    conn_param.param = RFC_TEST_WRITE_DATA;
+    sRfcInterface = (btrfcomm_interface_t *)sBtInterface->get_testapp_interface(TEST_APP_RFCOMM);
+    if (sRfcInterface)
+    {
+        sRfcInterface->rdut_rfcomm_test_interface(&conn_param);
+    }
+    else
+    {
+        bdt_log("interface not loaded");
+    }
+
+}
+
 
 void do_rfcomm_server(char *p)
 {
@@ -908,7 +1006,9 @@ const t_cmd console_cmd_list[] =
     { "server_rfcomm", do_rfcomm_server ,"rfcomm server test", 0},
     { "dis_client", do_rfcomm_disc_frm_server, "disc from Server", 0},
     { "rfc_con", do_rfc_con, "rfc_con", 0 },
+    { "rfc_msccon", do_rfc_con_for_test_msc_data, "rfc_msccon", 0 },
     { "rfc_rls", do_rfc_rls, "rls",     0 },
+    { "rfc_senddata", do_rfc_send_data, "rfc_senddata",     0 },
     { "role_sw", do_role_switch, "role_sw", 0},
     /* last entry */
     {NULL, NULL, "", 0},

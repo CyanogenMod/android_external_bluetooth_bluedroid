@@ -188,6 +188,7 @@ typedef enum {
     RFC_TEST_ROLE_SWITCH,
     RFC_TEST_SERVER,
     RFC_TEST_DISCON,
+    RFC_TEST_CLIENT_TEST_MSC_DATA, //For PTS test case BV 21 and 22
     RFC_TEST_WRITE_DATA
 }rfc_test_cmd_t;
 
