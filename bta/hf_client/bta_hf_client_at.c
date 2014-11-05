@@ -445,6 +445,19 @@ static void bta_hf_client_handle_ciev(UINT32 index, UINT32 value)
             return;
         }
 
+        /* update service availability on +ciev from AG. */
+        if (service_index == (index - 1))
+        {
+            if (value == 1)
+            {
+                service_availability = TRUE;
+            }
+            else
+            {
+                service_availability = FALSE;
+            }
+        }
+
         /* tBTA_HF_CLIENT_IND_TYPE match index in bta_hf_client_indicators */
         bta_hf_client_ind(realind, value);
     }
