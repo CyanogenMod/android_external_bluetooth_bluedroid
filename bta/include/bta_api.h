@@ -53,6 +53,7 @@
 #define BTA_HOST_DISCONN        8
 #define BTA_PEER_DISCONN        9
 #define BTA_LMP_TIMEOUT         10
+#define BTA_ERR_KEY_MISSING     11
 typedef UINT8 tBTA_STATUS;
 
 /*
