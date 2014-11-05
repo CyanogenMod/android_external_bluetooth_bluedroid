@@ -93,10 +93,14 @@ static UINT8 *sdpu_build_uuid_seq (UINT8 *p_out, UINT16 num_uuids, tSDP_UUID *p_
             UINT8_TO_BE_STREAM  (p_out, (UUID_DESC_TYPE << 3) | SIZE_FOUR_BYTES);
             UINT32_TO_BE_STREAM (p_out, p_uuid_list->uu.uuid32);
         }
-        else
+        else if (p_uuid_list->len == 16)
         {
             UINT8_TO_BE_STREAM (p_out, (UUID_DESC_TYPE << 3) | SIZE_SIXTEEN_BYTES);
             ARRAY_TO_BE_STREAM (p_out, p_uuid_list->uu.uuid128, p_uuid_list->len);
+        }
+        else
+        {
+            SDP_TRACE_ERROR("SDP: Passed Uuid is of Invalid length: %x",p_uuid_list->len);
         }
     }
 

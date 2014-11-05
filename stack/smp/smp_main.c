@@ -516,7 +516,7 @@ const char * smp_get_event_name(tSMP_EVENT event)
 {
     const char * p_str = smp_event_name[SMP_MAX_EVT - 1];
 
-    if (event < SMP_MAX_EVT)
+    if (event && event < SMP_MAX_EVT)
     {
         p_str = smp_event_name[event- 1];
     }
