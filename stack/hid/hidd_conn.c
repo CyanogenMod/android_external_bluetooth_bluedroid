@@ -676,6 +676,7 @@ static void hidd_l2cif_data_ind(UINT16 cid, BT_HDR *p_msg)
     tHID_CONN *p_hcon;
     UINT8     *p_data = (UINT8 *)(p_msg + 1) + p_msg->offset;
     UINT8     msg_type, param;
+    BOOLEAN err = FALSE;
 
     HIDD_TRACE_EVENT("%s: cid=%04x", __FUNCTION__, cid);
 
@@ -721,6 +722,43 @@ static void hidd_l2cif_data_ind(UINT16 cid, BT_HDR *p_msg)
     case HID_TRANS_SET_REPORT:
         // as above
         hd_cb.callback(hd_cb.device.addr, HID_DHOST_EVT_SET_REPORT, 0, p_msg);
+        break;
+
+    case HID_TRANS_GET_IDLE:
+        hidd_conn_send_data(HID_CHANNEL_CTRL, HID_TRANS_DATA, HID_PAR_REP_TYPE_OTHER,
+            hd_cb.device.idle_time, 0, NULL);
+        GKI_freebuf(p_msg);
+        break;
+
+    case HID_TRANS_SET_IDLE:
+        if (p_msg->len != 2)
+        {
+            HIDD_TRACE_ERROR("%s: invalid len (%d) set idle request received",
+                __FUNCTION__, p_msg->len);
+            err = TRUE;
+        }
+        else
+        {
+            hd_cb.device.idle_time = p_data[1];
+            HIDD_TRACE_DEBUG("%s: idle_time = %d", __FUNCTION__, hd_cb.device.idle_time);
+            if (hd_cb.device.idle_time)
+            {
+                HIDD_TRACE_WARNING("%s: idle_time of %d ms not supported by HID Device",
+                    __FUNCTION__, (hd_cb.device.idle_time * 4));
+                err = TRUE;
+            }
+        }
+        if (!err)
+        {
+            hidd_conn_send_data(0, HID_TRANS_HANDSHAKE, HID_PAR_HANDSHAKE_RSP_SUCCESS,
+                0, 0, NULL);
+        }
+        else
+        {
+            hidd_conn_send_data(0, HID_TRANS_HANDSHAKE, HID_PAR_HANDSHAKE_RSP_ERR_INVALID_PARAM,
+                0, 0, NULL);
+        }
+        GKI_freebuf(p_msg);
         break;
 
     case HID_TRANS_GET_PROTOCOL:

@@ -46,6 +46,8 @@ typedef struct device_ctb
     tHID_CONN  conn;
 
     BOOLEAN    boot_mode;
+
+    UINT8      idle_time;
 } tHID_DEV_DEV_CTB;
 
 typedef struct dev_ctb
