@@ -231,6 +231,8 @@ UINT8 *sdpu_build_attrib_seq (UINT8 *p_out, UINT16 *p_attr, UINT16 num_attrs)
 *******************************************************************************/
 UINT8 *sdpu_build_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr)
 {
+    if (!p_out)
+        return p_out;
     /* First, store the attribute ID. Goes as a UINT */
     UINT8_TO_BE_STREAM  (p_out, (UINT_DESC_TYPE << 3) | SIZE_TWO_BYTES);
     UINT16_TO_BE_STREAM (p_out, p_attr->id);
@@ -1016,10 +1018,12 @@ UINT8 *sdpu_build_partial_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr, UI
 
     len_to_copy = ((attr_len - *offset) < len) ? (attr_len - *offset): len;
 
-    memcpy(p_out, &p_attr_buff[*offset], len_to_copy);
-
-    p_out = &p_out[len_to_copy];
-    *offset += len_to_copy;
+    if (p_out)
+    {
+        memcpy(p_out, &p_attr_buff[*offset], len_to_copy);
+        p_out = &p_out[len_to_copy];
+        *offset += len_to_copy;
+    }
 
     GKI_freebuf(p_attr_buff);
     return p_out;

@@ -509,6 +509,11 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t* servic
     if(!is_init_done())
         return BT_STATUS_NOT_READY;
     int status = BT_STATUS_FAIL;
+    if(!service_uuid)
+    {
+        APPL_TRACE_ERROR("Service uuid is NULL");
+        return status;
+    }
     lock_slot(&slot_lock);
     rfc_slot_t* rs = alloc_rfc_slot(bd_addr, NULL, service_uuid, channel, flags, FALSE);
     if(rs)
