@@ -542,7 +542,7 @@ static void prepare_poll_fds(int h, struct pollfd* pfds)
                     ps_i, MAX_POLL, count, ts[h].poll_count);
             return;
         }
-        if(ts[h].ps[ps_i].pfd.fd >= 0)
+        if(ts[h].ps[ps_i].pfd.fd >= 0 && pfd_i < MAX_POLL)
         {
             pfds[pfd_i] =  ts[h].ps[ps_i].pfd;
             ts[h].psi[pfd_i] = ps_i;

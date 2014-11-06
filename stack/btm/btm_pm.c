@@ -214,7 +214,7 @@ tBTM_STATUS BTM_SetPowerMode (UINT8 pm_id, BD_ADDR remote_bda, tBTM_PM_PWR_MD *p
         /* check if the requested mode is supported */
         ind = mode - BTM_PM_MD_HOLD; /* make it base 0 */
         p_features = BTM_ReadLocalFeatures();
-        if( !(p_features[ btm_pm_mode_off[ind] ] & btm_pm_mode_msk[ind] ) )
+        if( ind < BTM_PM_NUM_SET_MODES && !(p_features[ btm_pm_mode_off[ind] ] & btm_pm_mode_msk[ind] ) )
             return BTM_MODE_UNSUPPORTED;
     }
 
