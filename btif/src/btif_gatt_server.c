@@ -406,8 +406,10 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
 
                 case BT_DEVICE_TYPE_DUMO:
                     if ((p_cb->transport == GATT_TRANSPORT_LE) &&
-                        (btif_storage_is_dmt_supported_device(&(p_cb->bd_addr)) == TRUE))
-                        transport = BTA_GATT_TRANSPORT_LE;
+                        (btif_storage_is_dmt_supported_device(&(p_cb->bd_addr)) == FALSE))
+                            transport = BTA_GATT_TRANSPORT_BR_EDR;
+                        else
+                          transport = BTA_GATT_TRANSPORT_LE;
                     else
                         transport = BTA_GATT_TRANSPORT_BR_EDR;
                     break;
