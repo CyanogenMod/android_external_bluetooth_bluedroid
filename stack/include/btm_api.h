@@ -1184,6 +1184,9 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_SEC_IN_MITM            0x1000 /* inbound Do man in the middle protection */
 #define BTM_SEC_OUT_MITM           0x2000 /* outbound Do man in the middle protection */
 #define BTM_SEC_IN_AUTH_HIGH       0x4000 /* Inbound call requires high authentication 16 digits */
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+#define BTM_SEC_SECURE_CONN        0x8000 /* Inbound/Outbould call requires secure connection */
+#endif
 
 /* Security Flags [bit mask] (BTM_GetSecurityFlags)
 */
