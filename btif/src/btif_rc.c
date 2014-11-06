@@ -468,9 +468,8 @@ void handle_rc_features()
     /*Disable all TG related bits if AVRCP TG feature is not enabled*/
         BTIF_TRACE_WARNING("Avrcp TG role not enabled, disabling TG specific featuremask");
         btif_rc_cb.rc_features &= ~BTA_AV_FEAT_ADV_CTRL;
-        btif_rc_cb.rc_features &= ~BTRC_FEAT_BROWSE;
-        btif_rc_cb.rc_features &= ~BTRC_FEAT_ABSOLUTE_VOLUME;
-        btif_rc_cb.rc_features &= ~BTRC_FEAT_METADATA;
+        btif_rc_cb.rc_features &= ~BTA_AV_FEAT_BROWSE;
+        btif_rc_cb.rc_features &= ~BTA_AV_FEAT_METADATA;
     }
 }
 
