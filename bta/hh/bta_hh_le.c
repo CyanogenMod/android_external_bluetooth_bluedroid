@@ -2307,6 +2307,11 @@ void bta_hh_le_write_char_descr_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_b
         case GATT_UUID_HID_BT_KB_INPUT:
         case GATT_UUID_HID_BT_MOUSE_INPUT:
         case GATT_UUID_HID_REPORT:
+            if (hid_inst_id >= BTA_HH_LE_HID_SRVC_MAX)
+            {
+                APPL_TRACE_ERROR("Got Incorrect Service Instance ID");
+                return;
+            }
             if (p_data->status == BTA_GATT_OK)
                 p_dev_cb->hid_srvc[hid_inst_id].report[p_dev_cb->clt_cfg_idx].client_cfg_value =
                         BTA_GATT_CLT_CONFIG_NOTIFICATION;
@@ -2977,7 +2982,11 @@ static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 
 
         case BTA_GATTC_NOTIF_EVT: /* 10 */
-            p_dev_cb = bta_hh_le_find_dev_cb_by_conn_id(p_data->notify.conn_id);
+            if (NULL == (p_dev_cb = bta_hh_le_find_dev_cb_by_conn_id(p_data->notify.conn_id)))
+            {
+                APPL_TRACE_ERROR("Stray conn_id:%d ", p_data->notify.conn_id);
+                return;
+            }
            if( p_data->notify.char_id.char_id.uuid.uu.uuid16 ==  GATT_UUID_SCAN_REFRESH ) {
                BTA_HhUpdateLeScanParam(p_dev_cb->hid_handle,BTM_BLE_SCAN_SLOW_INT_1,BTM_BLE_SCAN_SLOW_WIN_1);
            }

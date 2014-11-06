@@ -1011,8 +1011,15 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 *******************************************************************************/
 void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
-    tBTA_GATTC_DATA *p_q_cmd = p_clcb->p_q_cmd;
+    tBTA_GATTC_DATA *p_q_cmd = NULL;
     UNUSED(p_data);
+
+    if( NULL == p_clcb)
+    {
+        APPL_TRACE_ERROR("Received NULL p_clcb");
+        return;
+    }
+    p_q_cmd = p_clcb->p_q_cmd;
 
     APPL_TRACE_DEBUG("bta_gattc_disc_cmpl conn_id=%d",p_clcb->bta_conn_id);
 
@@ -1020,7 +1027,8 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     if(p_clcb->transport == BTA_TRANSPORT_LE)
         L2CA_EnableUpdateBleConnParams(p_clcb->p_srcb->server_bda, TRUE);
 #endif
-    p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
+    if(p_clcb->p_srcb)
+        p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
     p_clcb->disc_active = FALSE;
 
     if (p_clcb->status != GATT_SUCCESS)
@@ -1488,7 +1496,8 @@ void  bta_gattc_op_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
             APPL_TRACE_ERROR("No pending command");
             return;
         }
-        if (p_clcb->p_q_cmd->hdr.event != bta_gattc_opcode_to_int_evt[op - GATTC_OPTYPE_READ])
+        if (((op - GATTC_OPTYPE_READ) < (UINT8)(sizeof(bta_gattc_opcode_to_int_evt)/sizeof(UINT16))) &&
+                (p_clcb->p_q_cmd->hdr.event != bta_gattc_opcode_to_int_evt[op - GATTC_OPTYPE_READ]))
         {
             mapped_op = p_clcb->p_q_cmd->hdr.event - BTA_GATTC_API_READ_EVT + GATTC_OPTYPE_READ;
             if ( mapped_op > GATTC_OPTYPE_INDICATION)   mapped_op = 0;
