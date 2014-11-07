@@ -265,7 +265,7 @@ UINT16 AVCT_CreateBrowse (UINT8 handle, UINT8 role)
     if (role == AVCT_INT)
     {
         /* the link control block must exist before this function is called as INT. */
-        if (p_ccb->p_lcb == NULL)
+        if ((p_ccb->p_lcb == NULL) || (p_ccb->p_lcb->allocated == 0))
         {
             result = AVCT_NOT_OPEN;
         }

@@ -192,7 +192,11 @@ void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, UINT16 len)
 
     if (p_cb->p_cmd_buf == NULL)
     {
-        p_cb->p_cmd_buf = (char *) GKI_getbuf(p_cb->cmd_max_len);
+        if ((p_cb->p_cmd_buf = (char *) GKI_getbuf(p_cb->cmd_max_len)) == NULL)
+        {
+            APPL_TRACE_ERROR("bta_ag_at_parse: GKI_getbuf() failed allocation");
+            return;
+        }
         p_cb->cmd_pos = 0;
     }
 

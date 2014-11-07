@@ -93,11 +93,16 @@ void bta_av_del_rc(tBTA_AV_RCB *p_rcb)
     tBTA_AV_SCB  *p_scb;
     UINT8        rc_handle;      /* connected AVRCP handle */
 
+    p_scb = NULL;
     if(p_rcb->handle != BTA_AV_RC_HANDLE_NONE)
     {
         if(p_rcb->shdl)
         {
-            p_scb = bta_av_cb.p_scb[p_rcb->shdl - 1];
+            /* Validate array index*/
+            if ((p_rcb->shdl - 1) < BTA_AV_NUM_STRS)
+            {
+                p_scb = bta_av_cb.p_scb[p_rcb->shdl - 1];
+            }
             if(p_scb)
             {
                 APPL_TRACE_DEBUG("bta_av_del_rc shdl:%d, srch:%d rc_handle:%d", p_rcb->shdl,
@@ -1234,7 +1239,7 @@ void bta_av_stream_chg(tBTA_AV_SCB *p_scb, BOOLEAN started)
 void bta_av_conn_chg(tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
-    tBTA_AV_SCB     *p_scb;
+    tBTA_AV_SCB     *p_scb = NULL;
     tBTA_AV_SCB     *p_scbi;
     UINT8   mask;
     UINT8   conn_msk;
@@ -1246,8 +1251,11 @@ void bta_av_conn_chg(tBTA_AV_DATA *p_data)
     tBTA_AV_RCB *p_rcb, *p_rcb2;
     BOOLEAN     chk_restore = FALSE;
 
-    p_scb = p_cb->p_scb[index];
-
+    /* Validate array index*/
+    if (index < BTA_AV_NUM_STRS)
+    {
+        p_scb = p_cb->p_scb[index];
+    }
     mask = BTA_AV_HNDL_TO_MSK(index);
     p_lcb = bta_av_find_lcb(p_data->conn_chg.peer_addr, BTA_AV_LCB_FIND);
     conn_msk = 1 << (index + 1);
@@ -1646,9 +1654,12 @@ static void bta_av_acp_sig_timer_cback (TIMER_LIST_ENT *p_tle)
 {
     UINT8   inx = (UINT8)p_tle->param;
     tBTA_AV_CB  *p_cb = &bta_av_cb;
-    tBTA_AV_SCB *p_scb = p_cb->p_scb[inx];
+    tBTA_AV_SCB *p_scb = NULL;
     tBTA_AV_API_OPEN  *p_buf;
-
+    if (inx < BTA_AV_NUM_STRS)
+    {
+        p_scb = p_cb->p_scb[inx];
+    }
     if (p_scb)
     {
         APPL_TRACE_DEBUG("bta_av_acp_sig_timer_cback, coll_mask = 0x%02X", p_scb->coll_mask);
@@ -1798,7 +1809,11 @@ void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
     }
     else
     {
-        p_scb = p_cb->p_scb[(p_cb->disc & BTA_AV_HNDL_MSK) - 1];
+        /* Validate array index*/
+        if (((p_cb->disc & BTA_AV_HNDL_MSK) - 1) < BTA_AV_NUM_STRS)
+        {
+            p_scb = p_cb->p_scb[(p_cb->disc & BTA_AV_HNDL_MSK) - 1];
+        }
         if (p_scb)
             rc_handle = p_scb->rc_handle;
         else
@@ -1899,6 +1914,7 @@ void bta_av_rc_closed(tBTA_AV_DATA *p_data)
     tBTA_AV_LCB *p_lcb;
 
     rc_close.rc_handle = BTA_AV_RC_HANDLE_NONE;
+    p_scb = NULL;
     APPL_TRACE_DEBUG("bta_av_rc_closed rc_handle:%d", p_msg->handle);
     for(i=0; i<BTA_AV_NUM_RCB; i++)
     {
@@ -1912,7 +1928,10 @@ void bta_av_rc_closed(tBTA_AV_DATA *p_data)
             APPL_TRACE_DEBUG("       shdl:%d, lidx:%d", p_rcb->shdl, p_rcb->lidx);
             if(p_rcb->shdl)
             {
-                p_scb = bta_av_cb.p_scb[p_rcb->shdl - 1];
+                if ((p_rcb->shdl - 1) < BTA_AV_NUM_STRS)
+                {
+                    p_scb = bta_av_cb.p_scb[p_rcb->shdl - 1];
+                }
                 if(p_scb)
                 {
                     bdcpy(rc_close.peer_addr, p_scb->peer_addr);
