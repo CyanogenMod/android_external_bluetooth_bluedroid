@@ -554,7 +554,14 @@ void bta_av_proc_stream_evt(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CT
 /* coverity[var_deref_model] */
 /* false-positive: bta_av_conn_cback only processes AVDT_CONNECT_IND_EVT and AVDT_DISCONNECT_IND_EVT event
  *                 these 2 events always have associated p_data */
-    bta_av_conn_cback(handle, bd_addr, event, p_data);
+    if (p_data)
+    {
+        bta_av_conn_cback(handle, bd_addr, event, p_data);
+    }
+    else
+    {
+        APPL_TRACE_ERROR("bta_av_proc_stream_evt: p_data is null");
+    }
 }
 
 /*******************************************************************************
