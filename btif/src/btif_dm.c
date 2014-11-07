@@ -1583,9 +1583,16 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                 num_properties++;
             }
 
+            /* check if the alias is set for the bt device  */
+            bt_bdname_t alias;
+            bt_property_t properties;
+            memset(&alias, 0, sizeof(alias));
+            BTIF_DM_GET_REMOTE_PROP(&bd_addr, BT_PROPERTY_REMOTE_FRIENDLY_NAME,
+                                   &alias, sizeof(alias), properties);
+
             /* Remote name update */
-            if (strlen((const char *) p_data->disc_res.bd_name))
-            {
+            if (alias.name[0] == '\0' && strlen((const char *) p_data->disc_res.bd_name))
+            {   // update BDNAME only if no alias and BD name is present
                 prop[1].type = BT_PROPERTY_BDNAME;
                 prop[1].val = p_data->disc_res.bd_name;
                 prop[1].len = strlen((char *)p_data->disc_res.bd_name);
