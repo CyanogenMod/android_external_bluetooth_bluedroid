@@ -918,7 +918,7 @@ void bta_av_restore_switch (void)
 static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
 {
     int         i;
-    tBTA_AV_SCB *p_scb;
+    tBTA_AV_SCB *p_scb = NULL;
     tBTA_AV_ROLE_RES  *p_buf;
     UINT8       cur_role;
     UINT8       peer_idx = 0;
@@ -962,7 +962,10 @@ static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,UINT8 id, UINT8 app
     /* we need to continue opening process for the BTA_AvOpen().                                    */
     if ((bta_av_cb.rs_idx != 0) && (bta_av_cb.rs_idx != peer_idx))
     {
-        p_scb = bta_av_cb.p_scb[bta_av_cb.rs_idx - 1];
+        if ((bta_av_cb.rs_idx -1) < BTA_AV_NUM_STRS)
+        {
+            p_scb = bta_av_cb.p_scb[bta_av_cb.rs_idx - 1];
+        }
         if (p_scb && p_scb->q_tag == BTA_AV_Q_TAG_OPEN)
         {
             APPL_TRACE_DEBUG ("bta_av_sys_rs_cback: rs_idx(%d), hndl:x%x q_tag: %d",

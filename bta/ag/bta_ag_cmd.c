@@ -879,6 +879,12 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 #if (BTM_WBS_INCLUDED == TRUE )
     tBTA_AG_PEER_CODEC  codec_type, codec_sent;
 #endif
+    if (p_arg == NULL)
+    {
+        APPL_TRACE_ERROR("bta_ag_at_hfp_cback: p_arg is null, send error and return");
+        bta_ag_send_error(p_scb, BTA_AG_ERR_INV_CHAR_IN_TSTR);
+        return;
+    }
 
     APPL_TRACE_IMP("HFP AT cmd:%d arg_type:%d arg:%d arg:%s", cmd, arg_type,
                       int_arg, p_arg);
