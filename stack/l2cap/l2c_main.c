@@ -261,6 +261,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     {
         if( p_lcb->transport == BT_TRANSPORT_LE)
         {
+            l2cble_notify_le_connection(p_lcb->remote_bd_addr);
             l2cble_process_sig_cmd (p_lcb, p, l2cap_len);
         }
         else
