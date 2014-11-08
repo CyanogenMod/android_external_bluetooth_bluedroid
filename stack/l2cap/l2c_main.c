@@ -267,7 +267,10 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
              (l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb != NULL) )
     {
         /* If no CCB for this channel, allocate one */
-        if (p_lcb && l2cu_initialize_fixed_ccb (p_lcb, rcv_cid,
+        if (p_lcb &&
+            /* discard fixed channel data when link is disconnecting */
+            (p_lcb->link_state != LST_DISCONNECTING) &&
+            l2cu_initialize_fixed_ccb (p_lcb, rcv_cid,
                 &l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].fixed_chnl_opts))
         {
 #if(defined BLE_INCLUDED && (BLE_INCLUDED == TRUE))
