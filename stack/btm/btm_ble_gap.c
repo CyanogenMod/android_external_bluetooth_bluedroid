@@ -1182,9 +1182,10 @@ UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_dst,
         {
             if (strlen(btm_cb.cfg.bd_name) > (UINT16)(len - MIN_ADV_LENGTH))
             {
-                *p++ = len - MIN_ADV_LENGTH + 1;
+                cp_len = len- MIN_ADV_LENGTH;
+                *p++ = cp_len + 1;
                 *p++ = BTM_BLE_AD_TYPE_NAME_SHORT;
-                ARRAY_TO_STREAM(p, btm_cb.cfg.bd_name, len - MIN_ADV_LENGTH);
+                ARRAY_TO_STREAM(p, btm_cb.cfg.bd_name, cp_len);
             }
             else
             {
