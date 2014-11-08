@@ -1178,16 +1178,16 @@ and USER_HW_DISABLE_API macros */
 #define L2CAP_FCR_INCLUDED TRUE
 #endif
 
-/* The maximum number of simultaneous links that L2CAP can support. */
-#ifndef MAX_ACL_CONNECTIONS
-#define MAX_L2CAP_LINKS             7
-#else
-#define MAX_L2CAP_LINKS             MAX_ACL_CONNECTIONS
-#endif
-
 /* The maximum number of simultaneous channels that L2CAP can support. */
 #ifndef MAX_L2CAP_CHANNELS
 #define MAX_L2CAP_CHANNELS          16
+#endif
+
+/* The maximum number of simultaneous links that L2CAP can support. */
+#ifndef MAX_L2CAP_CHANNELS
+#define MAX_L2CAP_LINKS             7
+#else
+#define MAX_L2CAP_LINKS             MAX_L2CAP_CHANNELS
 #endif
 
 /* The maximum number of simultaneous applications that can register with L2CAP. */
