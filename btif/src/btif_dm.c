@@ -2301,11 +2301,22 @@ void bte_dm_evt(tBTA_DM_SEC_EVT event, tBTA_DM_SEC *p_data)
 {
     bt_status_t status;
 
-    /* switch context to btif task context (copy full union size for convenience) */
-    status = btif_transfer_context(btif_dm_upstreams_evt, (uint16_t)event, (void*)p_data, sizeof(tBTA_DM_SEC), NULL);
-
-    /* catch any failed context transfers */
-    ASSERTC(status == BT_STATUS_SUCCESS, "context transfer failed", status);
+    switch (event)
+    {
+        case BTA_DM_AUTHORIZE_EVT:
+        case BTA_DM_SIG_STRENGTH_EVT:
+        case BTA_DM_SP_RMT_OOB_EVT:
+        case BTA_DM_ROLE_CHG_EVT:
+        case BTA_DM_SP_KEYPRESS_EVT:
+            break;
+        default:
+            /* switch context to btif task context (copy full union size for convenience) */
+            status = btif_transfer_context(btif_dm_upstreams_evt, (uint16_t)event,
+                                                    (void*)p_data, sizeof(tBTA_DM_SEC), NULL);
+            /* catch any failed context transfers */
+            ASSERTC(status == BT_STATUS_SUCCESS, "context transfer failed", status);
+            break;
+    }
 }
 
 /*******************************************************************************
