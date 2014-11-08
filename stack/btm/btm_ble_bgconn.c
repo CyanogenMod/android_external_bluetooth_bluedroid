@@ -192,7 +192,7 @@ BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr)
 {
     /* look up the sec device record, and find the address */
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    UINT8       wl_state = p_cb->wl_state;
+    UINT8       wl_state = BTM_BLE_WL_INIT;
 
     if ((to_add && p_cb->num_empty_filter == 0) ||
         (!to_add && p_cb->num_empty_filter == p_cb->max_filter_entries))
