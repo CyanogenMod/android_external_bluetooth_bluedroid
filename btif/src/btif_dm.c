@@ -536,7 +536,9 @@ BOOLEAN check_sdp_bl(const bt_bdaddr_t *remote_bdaddr)
     }
     manufacturer = info.manufacturer;
 
-    for (int i = 0; i < MAX_SDP_BL_ENTRIES; i++)
+    int sdp_blacklist_size =
+            sizeof(sdp_blacklist)/sizeof(sdp_blacklist[0]);
+    for (int i = 0; i < sdp_blacklist_size; i++)
     {
         if (manufacturer == sdp_blacklist[i].manufact_id)
         {
