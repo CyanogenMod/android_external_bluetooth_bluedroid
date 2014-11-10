@@ -989,6 +989,13 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     /* check for auto pair possiblity only if bond was initiated by local device */
     if (pairing_cb.is_local_initiated)
     {
+        if (bdcmp(pairing_cb.bd_addr, bd_addr.address))
+        {
+            /* Pin code from different device reject it as we dont support more than 1 pairing */
+            BTIF_TRACE_DEBUG("%s()rejecting pairing request", __FUNCTION__);
+            BTA_DmPinReply( (UINT8*)bd_addr.address, FALSE, 0, NULL);
+            return;
+        }
         if (check_cod(&bd_addr, COD_AV_HEADSETS) ||
             check_cod(&bd_addr, COD_AV_HANDSFREE) ||
             check_cod(&bd_addr, COD_AV_HEADPHONES) ||
