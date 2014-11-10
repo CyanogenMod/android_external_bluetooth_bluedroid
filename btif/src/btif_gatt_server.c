@@ -45,6 +45,7 @@
 #include "bd.h"
 #include "btif_dm.h"
 #include "btif_storage.h"
+#include "btif_config.h"
 
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
@@ -384,9 +385,12 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
             int device_type = 0;
             tBTA_GATT_TRANSPORT transport = BTA_GATT_TRANSPORT_LE;
 
-            if (btif_get_device_type(p_cb->bd_addr.address, &addr_type, &device_type) == TRUE
-                  && device_type != BT_DEVICE_TYPE_BREDR)
+            if (btif_get_address_type(p_cb->bd_addr.address, &addr_type) &&
+                btif_get_device_type(p_cb->bd_addr.address, &device_type) &&
+                device_type != BT_DEVICE_TYPE_BREDR)
+            {
                 BTA_DmAddBleDevice(p_cb->bd_addr.address, addr_type, device_type);
+            }
 
             // Mark background connections
             if (!p_cb->is_direct)
