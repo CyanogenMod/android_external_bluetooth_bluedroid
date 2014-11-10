@@ -44,13 +44,19 @@ void list_free(list_t *list) {
 // does not accept a NULL list.
 bool list_is_empty(const list_t *list) {
   assert(list != NULL);
-  return (list->length == 0);
+  if (list)
+    return (list->length == 0);
+  else
+    return true;
 }
 
 // Returns the length of the list. This function does not accept a NULL list.
 size_t list_length(const list_t *list) {
   assert(list != NULL);
-  return list->length;
+  if (list)
+    return list->length;
+  else
+    return 0;
 }
 
 // Returns the first element in the list without removing it. |list| may not
@@ -58,8 +64,9 @@ size_t list_length(const list_t *list) {
 void *list_front(const list_t *list) {
   assert(list != NULL);
   assert(!list_is_empty(list));
-
-  return list->head->data;
+  if (list && list->head)
+    return list->head->data;
+  return NULL;
 }
 
 // Returns the last element in the list without removing it. |list| may not
@@ -67,15 +74,17 @@ void *list_front(const list_t *list) {
 void *list_back(const list_t *list) {
   assert(list != NULL);
   assert(!list_is_empty(list));
-
-  return list->tail->data;
+  if (list && list->tail)
+    return list->tail->data;
+  return NULL;
 }
 
 bool list_insert_after(list_t *list, list_node_t *prev_node, void *data) {
   assert(list != NULL);
-  assert(node != NULL);
+  assert(prev_node != NULL);
   assert(data != NULL);
-
+  if (!list || !prev_node)
+    return false;
   list_node_t *node = (list_node_t *)malloc(sizeof(list_node_t));
   if (!node)
     return false;
@@ -96,7 +105,8 @@ bool list_insert_after(list_t *list, list_node_t *prev_node, void *data) {
 bool list_prepend(list_t *list, void *data) {
   assert(list != NULL);
   assert(data != NULL);
-
+  if (!list)
+    return false;
   list_node_t *node = (list_node_t *)malloc(sizeof(list_node_t));
   if (!node)
     return false;
@@ -116,7 +126,8 @@ bool list_prepend(list_t *list, void *data) {
 bool list_append(list_t *list, void *data) {
   assert(list != NULL);
   assert(data != NULL);
-
+  if (!list)
+    return false;
   list_node_t *node = (list_node_t *)malloc(sizeof(list_node_t));
   if (!node)
     return false;
@@ -142,7 +153,7 @@ bool list_remove(list_t *list, void *data) {
   assert(list != NULL);
   assert(data != NULL);
 
-  if (list_is_empty(list))
+  if (!list || list_is_empty(list))
     return false;
 
   if (list->head->data == data) {
@@ -168,8 +179,9 @@ bool list_remove(list_t *list, void *data) {
 // same state it was in after |list_new|. |list| may not be NULL.
 void list_clear(list_t *list) {
   assert(list != NULL);
-  for (list_node_t *node = list->head; node; )
-    node = list_free_node_(list, node);
+  if (list)
+    for (list_node_t *node = list->head; node; )
+      node = list_free_node_(list, node);
   list->head = NULL;
   list->tail = NULL;
   list->length = 0;
@@ -183,12 +195,12 @@ void list_clear(list_t *list) {
 void list_foreach(const list_t *list, list_iter_cb callback) {
   assert(list != NULL);
   assert(callback != NULL);
-
-  for (list_node_t *node = list->head; node; ) {
-    list_node_t *next = node->next;
-    callback(node->data);
-    node = next;
-  }
+  if (list)
+    for (list_node_t *node = list->head; node; ) {
+      list_node_t *next = node->next;
+      callback(node->data);
+      node = next;
+    }
 }
 
 // Iterates through the entire |list| and calls |callback| for each data element.
@@ -200,12 +212,12 @@ void list_foreach(const list_t *list, list_iter_cb callback) {
 void list_foreach_ext(const list_t *list, list_iter_cb_ext callback, void *cb_data) {
   assert(list != NULL);
   assert(callback != NULL);
-
-  for (list_node_t *node = list->head; node; ) {
-    list_node_t *next = node->next;
-    callback(node->data, cb_data);
-    node = next;
-  }
+  if (list)
+    for (list_node_t *node = list->head; node; ) {
+      list_node_t *next = node->next;
+      callback(node->data, cb_data);
+      node = next;
+    }
 }
 
 // Returns an iterator to the first element in |list|. |list| may not be NULL.
@@ -213,7 +225,10 @@ void list_foreach_ext(const list_t *list, list_iter_cb_ext callback, void *cb_da
 // by |list_end|.
 list_node_t *list_begin(const list_t *list) {
   assert(list != NULL);
-  return list->head;
+  if (list)
+    return list->head;
+  else
+    return NULL;
 }
 
 // Returns an iterator that points past the end of the list. In other words,
@@ -231,26 +246,34 @@ list_node_t *list_end(UNUSED_ATTR const list_t *list) {
 // purpose.
 list_node_t *list_next(const list_node_t *node) {
   assert(node != NULL);
-  return node->next;
+  if (node)
+    return node->next;
+  else
+    return NULL;
 }
 
 // Returns the value stored at the location pointed to by the iterator |node|.
 // |node| must not equal the value returned by |list_end|.
 void *list_node(const list_node_t *node) {
   assert(node != NULL);
-  return node->data;
+  if (node)
+    return node->data;
+  return false;
 }
 
 static list_node_t *list_free_node_(list_t *list, list_node_t *node) {
   assert(list != NULL);
   assert(node != NULL);
 
-  list_node_t *next = node->next;
+  list_node_t *next = node ?node->next: NULL;
 
-  if (list->free_cb)
-    list->free_cb(node->data);
-  free(node);
-  --list->length;
+  if (list)
+  {
+    if (list->free_cb)
+      list->free_cb(node->data);
+    free(node);
+    --list->length;
+  }
 
   return next;
 }
