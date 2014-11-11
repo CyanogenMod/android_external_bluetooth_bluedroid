@@ -4572,7 +4572,6 @@ void btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode)
                  (((status == HCI_ERR_AUTH_FAILURE)                      ||
                  (status == HCI_ERR_KEY_MISSING)                         ||
                  (status == HCI_ERR_HOST_REJECT_SECURITY)                ||
-                 (status == HCI_ERR_PAIRING_NOT_ALLOWED)                 ||
                  (status == HCI_ERR_UNIT_KEY_USED)                       ||
                  (status == HCI_ERR_PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED) ||
                  (status == HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE)           ||
