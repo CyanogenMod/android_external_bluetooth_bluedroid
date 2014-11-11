@@ -90,8 +90,8 @@ static void wipower_data_timer_stop()
     ts.it_value.tv_nsec = 0;
     ts.it_interval.tv_sec = 0;
     ts.it_interval.tv_nsec = 0;
-
-    status = timer_settime(wp_data_timer, 0, &ts, 0);
+    if (wp_data_timer != 0)
+         status = timer_settime(wp_data_timer, 0, &ts, 0);
     if(status == -1)
          ALOGE("%s:Failed to stop wp data timer",__FUNCTION__);
     else if(status == 0)
@@ -110,7 +110,8 @@ static void wipower_data_timer_start()
     ts.it_interval.tv_sec = 0;
     ts.it_interval.tv_nsec = 0;
 
-    status = timer_settime(wp_data_timer, 0, &ts, 0);
+    if (wp_data_timer != 0)
+        status = timer_settime(wp_data_timer, 0, &ts, 0);
     if (status == -1)
         ALOGE("%s:Failed to set wack timer",__FUNCTION__);
     if (DBG)
