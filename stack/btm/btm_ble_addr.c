@@ -499,7 +499,7 @@ void btm_ble_refresh_rra(BD_ADDR static_bda, BD_ADDR rra)
     if (p_acl != NULL /* && memcmp(p_acl->active_remote_addr, dummy_bda, BD_ADDR_LEN) == 0 */)
     {
         /* use static address, rra is empty */
-        if (rra_dummy)
+        if (rra_dummy && p_sec_rec != NULL)
         {
             p_acl->active_remote_addr_type = p_sec_rec->ble.static_addr_type;
             memcpy(p_acl->active_remote_addr, p_sec_rec->ble.static_addr, BD_ADDR_LEN);

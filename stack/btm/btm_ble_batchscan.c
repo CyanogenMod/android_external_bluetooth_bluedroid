@@ -174,7 +174,11 @@ void btm_ble_batchscan_enq_rep_data(UINT8 report_format, UINT8 num_records, UINT
         p_orig_data = ble_batchscan_cb.main_rep_q.p_data[index];
         if (NULL != p_orig_data)
         {
-            p_app_data = GKI_getbuf(len + data_len);
+            if((p_app_data = GKI_getbuf(len + data_len)) == NULL)
+            {
+                BTM_TRACE_ERROR("GKI_getbuf failed to get a new buffer");
+                return;
+            }
             memcpy(p_app_data, p_orig_data, len);
             memcpy(p_app_data+len, p_data, data_len);
             GKI_freebuf(p_orig_data);
@@ -184,7 +188,11 @@ void btm_ble_batchscan_enq_rep_data(UINT8 report_format, UINT8 num_records, UINT
         }
         else
         {
-            p_app_data = GKI_getbuf(data_len);
+            if((p_app_data = GKI_getbuf(data_len)) == NULL)
+            {
+                BTM_TRACE_ERROR("GKI_getbuf failed to get a new buffer");
+                return;
+            }
             memcpy(p_app_data, p_data, data_len);
             ble_batchscan_cb.main_rep_q.p_data[index] = p_app_data;
             ble_batchscan_cb.main_rep_q.num_records[index] = num_records;
