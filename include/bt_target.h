@@ -312,6 +312,10 @@
 #define BT_TRACE_BTIF  TRUE
 #endif
 
+#ifndef BT_TRACE_LATENCY_AUDIO
+#define BT_TRACE_LATENCY_AUDIO  TRUE
+#endif
+
 #ifndef BTTRC_INCLUDED
 #define BTTRC_INCLUDED  FALSE
 #endif
