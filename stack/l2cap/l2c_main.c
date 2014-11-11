@@ -259,14 +259,28 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
 #if (BLE_INCLUDED == TRUE)
     else if (rcv_cid == L2CAP_BLE_SIGNALLING_CID)
     {
-        l2cble_process_sig_cmd (p_lcb, p, l2cap_len);
+        if( p_lcb->transport == BT_TRANSPORT_LE)
+        {
+            l2cble_process_sig_cmd (p_lcb, p, l2cap_len);
+        }
+        else
+        {
+            L2CAP_TRACE_ERROR("Incorrect transport for L2CAP BLE signalling channel");
+        }
         GKI_freebuf (p_msg);
+        return;
     }
 #endif
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
     else if ((rcv_cid >= L2CAP_FIRST_FIXED_CHNL) && (rcv_cid <= L2CAP_LAST_FIXED_CHNL) &&
              (l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb != NULL) )
     {
+        if(p_lcb->transport != BT_TRANSPORT_LE && rcv_cid == L2CAP_SMP_CID)
+        {
+            L2CAP_TRACE_ERROR("Incorrect transport for SMP channel");
+            GKI_freebuf (p_msg);
+            return;
+        }
         /* If no CCB for this channel, allocate one */
         if (p_lcb && l2cu_initialize_fixed_ccb (p_lcb, rcv_cid,
                 &l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].fixed_chnl_opts))
