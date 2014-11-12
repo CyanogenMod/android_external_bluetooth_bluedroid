@@ -748,7 +748,7 @@ UINT8 avdt_scb_verify(tAVDT_CCB *p_ccb, UINT8 state, UINT8 *p_seid, UINT16 num_s
     }
 
     /* verify every scb */
-    for (i = 0; i < num_seid; i++)
+    for (i = 0; ((i < num_seid) && (i < AVDT_NUM_SEPS)); i++)
     {
         if ((p_scb = avdt_scb_by_hdl(p_seid[i])) == NULL)
         {
@@ -767,7 +767,7 @@ UINT8 avdt_scb_verify(tAVDT_CCB *p_ccb, UINT8 state, UINT8 *p_seid, UINT16 num_s
         }
     }
 
-    if (i != num_seid)
+    if ((i != num_seid) && (i < AVDT_NUM_SEPS))
     {
         ret = p_seid[i];
     }
