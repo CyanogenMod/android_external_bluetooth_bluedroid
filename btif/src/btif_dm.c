@@ -2930,6 +2930,33 @@ bt_status_t btif_dm_get_remote_services(bt_bdaddr_t *remote_addr)
 
 /*******************************************************************************
 **
+** Function         btif_dm_get_remote_services_transport
+**
+** Description      Start SDP to get remote services by transport
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_dm_get_remote_services_by_transport(bt_bdaddr_t *remote_addr, int transport)
+{
+    bdstr_t bdstr;
+    tBTA_SERVICE_MASK_EXT mask_ext;
+
+    BTIF_TRACE_EVENT("%s: remote_addr=%s", __FUNCTION__, bd2str(remote_addr, &bdstr));
+
+    /*set the mask extension*/
+    mask_ext.num_uuid = 0;
+    mask_ext.p_uuid = NULL;
+    mask_ext.srvc_mask = BTA_ALL_SERVICE_MASK;
+
+    BTA_DmDiscoverByTransport(remote_addr->address, &mask_ext,
+                   bte_dm_search_services_evt, TRUE, BT_TRANSPORT_LE);
+
+    return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
 ** Function         btif_dm_get_remote_service_record
 **
 ** Description      Start SDP to get remote service record
@@ -3223,7 +3250,7 @@ static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         {
             btif_dm_save_ble_bonding_keys();
             BTA_GATTC_Refresh_No_Discovery(bd_addr.address);
-            btif_dm_get_remote_services(&bd_addr);
+            btif_dm_get_remote_services_by_transport(&bd_addr, BTA_GATT_TRANSPORT_LE);
         }
     }
     else
