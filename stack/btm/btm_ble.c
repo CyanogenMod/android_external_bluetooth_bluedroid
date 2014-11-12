@@ -1167,7 +1167,7 @@ tBTM_STATUS btm_ble_set_encryption (BD_ADDR bd_addr, void *p_ref_data, UINT8 lin
                 }
                 else {
                     /* start link layer encryption using the security info stored */
-                    if (btm_ble_start_encrypt(bd_addr, FALSE, NULL))
+                    if (btm_ble_start_encrypt(bd_addr, FALSE, NULL) == BTM_CMD_STARTED)
                     {
                         p_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
                         cmd = BTM_CMD_STARTED;
