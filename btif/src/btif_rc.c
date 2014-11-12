@@ -2469,11 +2469,9 @@ static bt_status_t get_folderitem_rsp(btrc_folder_list_entries_t *rsp)
                 BTIF_TRACE_ERROR("attr count = %d", media_attr_cnt);
                 if (media_attr_cnt > 0)
                 {
-                    item[i].u.media.p_attr_list = \
+                    if ((item[i].u.media.p_attr_list = \
                     (tAVRC_ATTR_ENTRY *)GKI_getbuf((UINT16)(media_attr_cnt * \
-                                                        sizeof(tAVRC_ATTR_ENTRY)));
-                    if (GKI_get_buf_size(item[i].u.media.p_attr_list) == (UINT16)(\
-                                            media_attr_cnt * sizeof(tAVRC_ATTR_ENTRY)))
+                                                        sizeof(tAVRC_ATTR_ENTRY)))) != NULL)
                     {
                         for (xx = 0; xx < media_attr_cnt; xx++)
                         {
