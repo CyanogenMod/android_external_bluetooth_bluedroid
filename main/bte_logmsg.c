@@ -240,9 +240,9 @@ LogMsg(UINT32 trace_set_mask, const char *fmt_str, ...)
 	gettimeofday(&tv, &tz);
 	time(&t);
 	tm = localtime(&t);
-
-    sprintf(buffer, "%02d:%02d:%02d.%03d ", tm->tm_hour, tm->tm_min, tm->tm_sec,
-        tv.tv_usec / 1000);
+        if (tm)
+            sprintf(buffer, "%02d:%02d:%02d.%03d ", tm->tm_hour, tm->tm_min, tm->tm_sec,
+            tv.tv_usec / 1000);
 #endif
 	va_start(ap, fmt_str);
 	vsnprintf(&buffer[MSG_BUFFER_OFFSET], BTE_LOG_MAX_SIZE, fmt_str, ap);
@@ -294,9 +294,9 @@ ScrLog(UINT32 trace_set_mask, const char *fmt_str, ...)
 	gettimeofday(&tv, &tz);
 	time(&t);
 	tm = localtime(&t);
-
-        sprintf(buffer, "%02d:%02d:%02d.%03ld ", tm->tm_hour, tm->tm_min, tm->tm_sec,
-        tv.tv_usec / 1000);
+        if (tm)
+            sprintf(buffer, "%02d:%02d:%02d.%03ld ", tm->tm_hour, tm->tm_min, tm->tm_sec,
+            tv.tv_usec / 1000);
 
 	va_start(ap, fmt_str);
 	vsnprintf(&buffer[strlen(buffer)], BTE_LOG_MAX_SIZE, fmt_str, ap);

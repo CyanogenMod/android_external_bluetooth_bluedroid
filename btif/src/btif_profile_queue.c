@@ -56,15 +56,21 @@ static list_t *connect_queue;
 static void queue_int_add(connect_node_t *p_param) {
     connect_node_t *p_node = GKI_getbuf(sizeof(connect_node_t));
     ASSERTC(p_node != NULL, "Failed to allocate new list node", 0);
-
-    memcpy(p_node, p_param, sizeof(connect_node_t));
-
+    if (p_node)
+        memcpy(p_node, p_param, sizeof(connect_node_t));
+    else
+    {
+        BTIF_TRACE_ERROR("%s, Failed to allocate new list node");
+        return;
+    }
     if (!connect_queue) {
         connect_queue = list_new(GKI_freebuf);
         ASSERTC(connect_queue != NULL, "Failed to allocate list", 0);
     }
-
-    list_append(connect_queue, p_node);
+    if (connect_queue)
+        list_append(connect_queue, p_node);
+    else
+        BTIF_TRACE_ERROR("%s, Failed to allocate list");
 }
 
 static void queue_int_advance() {
@@ -77,7 +83,8 @@ static bt_status_t queue_int_connect_next() {
         return BT_STATUS_FAIL;
 
     connect_node_t *p_head = list_front(connect_queue);
-
+    if (!p_head)
+        return BT_STATUS_FAIL;
     // If the queue is currently busy, we return success anyway,
     // since the connection has been queued...
     if (p_head->busy)

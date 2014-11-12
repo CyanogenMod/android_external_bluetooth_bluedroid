@@ -187,6 +187,8 @@ static void work_queue_read_cb(void *context) {
 
   fixed_queue_t *queue = (fixed_queue_t *)context;
   work_item_t *item = fixed_queue_dequeue(queue);
-  item->func(item->context);
-  free(item);
+  if (item){
+      item->func(item->context);
+      free(item);
+  }
 }

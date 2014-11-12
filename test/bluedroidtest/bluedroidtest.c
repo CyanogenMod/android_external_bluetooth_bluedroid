@@ -390,12 +390,18 @@ static int create_cmdjob(char *cmd)
     char *job_cmd;
 
     job_cmd = malloc(strlen(cmd)+1); /* freed in job handler */
-    strcpy(job_cmd, cmd);
+    if (job_cmd)
+    {
+        strcpy(job_cmd, cmd);
 
-    if (pthread_create(&thread_id, NULL,
-                       (void*)cmdjob_handler, (void*)job_cmd)!=0)
-      perror("pthread_create");
-
+        if (pthread_create(&thread_id, NULL,
+                           (void*)cmdjob_handler, (void*)job_cmd)!=0)
+        perror("pthread_create");
+    }
+    else
+    {
+        perror("create_cmdjob(): Failed to allocate memory");
+    }
     return 0;
 }
 

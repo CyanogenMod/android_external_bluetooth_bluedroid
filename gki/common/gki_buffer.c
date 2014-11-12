@@ -82,7 +82,8 @@ static void gki_init_free_queue (UINT8 id, UINT16 size, UINT16 total, void *p_me
             hdr          = (BUFFER_HDR_T *)((UINT8 *)hdr + act_size);
             hdr1->p_next = hdr;
         }
-        hdr1->p_next = NULL;
+        if (hdr1)
+            hdr1->p_next = NULL;
         p_cb->freeq[id].p_last = hdr1;
     }
 // btla-specific --

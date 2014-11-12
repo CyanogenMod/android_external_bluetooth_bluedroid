@@ -557,15 +557,15 @@ static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index)
     tBTM_PM_MODE    mode = BTM_PM_STS_ACTIVE;
     tBTM_PM_PWR_MD  pwr_md;
     tBTM_STATUS     status;
-
+    UINT8* p = NULL;
     BTM_ReadPowerMode(p_peer_dev->peer_bdaddr, &mode);
 
 #if (BTM_SSR_INCLUDED == TRUE)
     APPL_TRACE_DEBUG("bta_dm_pm_sniff cur:%d, idx:%d, info:x%x", mode, index, p_peer_dev->info);
     if (mode != BTM_PM_MD_SNIFF ||
         (HCI_SNIFF_SUB_RATE_SUPPORTED(BTM_ReadLocalFeatures ()) &&
-         HCI_SNIFF_SUB_RATE_SUPPORTED(BTM_ReadRemoteFeatures (p_peer_dev->peer_bdaddr)) &&
-         !(p_peer_dev->info & BTA_DM_DI_USE_SSR)))
+         (((p = BTM_ReadRemoteFeatures(p_peer_dev->peer_bdaddr)) != NULL) &&
+           HCI_SNIFF_SUB_RATE_SUPPORTED(p)) && !(p_peer_dev->info & BTA_DM_DI_USE_SSR)))
 #else
     APPL_TRACE_DEBUG("bta_dm_pm_sniff cur:%d, idx:%d", mode, index);
     if(mode != BTM_PM_MD_SNIFF)

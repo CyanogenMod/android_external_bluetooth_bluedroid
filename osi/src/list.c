@@ -179,12 +179,13 @@ bool list_remove(list_t *list, void *data) {
 // same state it was in after |list_new|. |list| may not be NULL.
 void list_clear(list_t *list) {
   assert(list != NULL);
-  if (list)
+  if (list){
     for (list_node_t *node = list->head; node; )
       node = list_free_node_(list, node);
-  list->head = NULL;
-  list->tail = NULL;
-  list->length = 0;
+    list->head = NULL;
+    list->tail = NULL;
+    list->length = 0;
+  }
 }
 
 // Iterates through the entire |list| and calls |callback| for each data element.
@@ -267,7 +268,7 @@ static list_node_t *list_free_node_(list_t *list, list_node_t *node) {
 
   list_node_t *next = node ?node->next: NULL;
 
-  if (list)
+  if (list && node)
   {
     if (list->free_cb)
       list->free_cb(node->data);

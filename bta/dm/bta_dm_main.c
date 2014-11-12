@@ -381,7 +381,7 @@ BOOLEAN bta_dm_search_sm_execute(BT_HDR *p_msg)
     /* execute action functions */
     for (i = 0; i < BTA_DM_SEARCH_ACTIONS; i++)
     {
-        if ((action = state_table[p_msg->event & 0x00ff][i]) != BTA_DM_SEARCH_IGNORE)
+        if ((action = state_table[p_msg->event & 0x00ff][i]) < BTA_DM_SEARCH_IGNORE)
         {
             (*bta_dm_search_action[action])( (tBTA_DM_MSG*) p_msg);
         }

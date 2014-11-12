@@ -770,8 +770,12 @@ uint16_t hci_mct_receive_evt_msg(void)
                p_cb->p_rcv_msg->event = MSG_HC_TO_STACK_HCI_EVT;
                p_cb->p_rcv_msg->len = 3;
                memcpy((uint8_t *)(p_cb->p_rcv_msg + 1),&dev_ssr_event, 3);
+               msg_received = TRUE;
            }
-           msg_received = TRUE;
+           else
+           {
+               msg_received = FALSE;
+           }
            /* Next, wait for next message */
            p_cb->rcv_state = MCT_RX_NEWMSG_ST;
            continue_fetch_looping = FALSE;
