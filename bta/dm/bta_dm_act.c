@@ -2549,10 +2549,11 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
 
     bdcpy(bta_dm_search_cb.peer_bdaddr, remote_bd_addr);
 
-    APPL_TRACE_DEBUG("bta_dm_discover_device name_discover_done = %d p_btm_inq_info 0x%x state = %d",
+    APPL_TRACE_DEBUG("bta_dm_discover_device name_discover_done = %d p_btm_inq_info 0x%x state = %d, transport=%d",
                         bta_dm_search_cb.name_discover_done,
                         bta_dm_search_cb.p_btm_inq_info,
-                        bta_dm_search_cb.state
+                        bta_dm_search_cb.state,
+                        transport
                         );
     if ( bta_dm_search_cb.p_btm_inq_info ) {
 
