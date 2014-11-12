@@ -23,6 +23,7 @@
  ******************************************************************************/
 
 #include "btm_api.h"
+#include "btm_int.h"
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_sys_int.h"
@@ -421,6 +422,11 @@ void bta_sys_hw_evt_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
     {
         bta_sys_hw_btm_cback (BTM_DEV_STATUS_UP);
     }
+#elif (defined NO_HCI_RESET_FROM_BDROID)
+    /* In case of Rome, HCI reset is sent as part of platform driver initialization */
+    /* So, skip the one from Bluedroid and simply call command complete */
+    APPL_TRACE_EVENT("Skipping HCI Reset from Bdroid. Already sent it from platform driver");
+    btm_reset_complete();
 #else
 
     /* if HCI reset was not sent during stack start-up */
