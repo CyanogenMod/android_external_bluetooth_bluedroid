@@ -910,7 +910,7 @@ void del_l2c_sdp_rec(int handle, const uint8_t* uuid)
                 if( SDP_DeleteAttribute(ops_sdp_handle, ATTR_ID_BT_PROFILE_DESC_LIST))
                 {
                     if( SDP_AddProfileDescriptorList(ops_sdp_handle,
-                                UUID_SERVCLASS_OBEX_OBJECT_PUSH, 0x0101))
+                                UUID_SERVCLASS_OBEX_OBJECT_PUSH, 0x0100))
                     {
                         SDP_DeleteAttribute(ops_sdp_handle, ATTR_ID_OBX_OVR_L2CAP_PSM);
                     }
