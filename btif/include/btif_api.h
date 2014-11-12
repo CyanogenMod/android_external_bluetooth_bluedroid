@@ -326,6 +326,18 @@ bt_status_t btif_dm_get_remote_services(bt_bdaddr_t *remote_addr);
 
 /*******************************************************************************
 **
+** Function         btif_dm_get_remote_services_by_transport
+**
+** Description      Start SDP to get remote services by transport
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_dm_get_remote_services_by_transport(bt_bdaddr_t *remote_addr, int transport);
+
+
+/*******************************************************************************
+**
 ** Function         btif_dut_mode_configure
 **
 ** Description      Configure Test Mode - 'enable' to 1 puts the device in test mode and 0 exits
