@@ -555,14 +555,6 @@ static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond
     if ( (pairing_cb.state == state) && (state == BT_BOND_STATE_BONDING) )
         return;
 
-    /* Ignore the invalid state transition for othere device */
-    if ( (state == BT_BOND_STATE_NONE) && (pairing_cb.state == BT_BOND_STATE_BONDING) &&
-         bdcmp(pairing_cb.bd_addr, bd_addr->address))
-    {
-        BTIF_TRACE_ERROR("%s:Ignore invalid bond state transition of other device", __FUNCTION__);
-        return;
-    }
-
     if (pairing_cb.is_temp)
     {
        state = BT_BOND_STATE_NONE;
