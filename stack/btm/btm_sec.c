@@ -4077,8 +4077,16 @@ void btm_sec_auth_complete (UINT16 handle, UINT8 status)
          &&  (memcmp (p_dev_rec->bd_addr, btm_cb.pairing_bda, BD_ADDR_LEN) == 0) )
         are_bonding = TRUE;
 
-    btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
-
+    if ( (btm_cb.pairing_state != BTM_PAIR_STATE_IDLE)
+          &&  (memcmp (p_dev_rec->bd_addr, btm_cb.pairing_bda, BD_ADDR_LEN) == 0) )
+    {
+        btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
+        BTM_TRACE_DEBUG("btm_sec_auth_complete: pair state moved to idle for bonding addr");
+    }
+    else
+    {
+        BTM_TRACE_DEBUG("btm_sec_auth_complete: Dont move pair state to idle for non bonding addr");
+    }
     if (p_dev_rec->sec_state != BTM_SEC_STATE_AUTHENTICATING)
     {
         if ( (btm_cb.api.p_auth_complete_callback && status != HCI_SUCCESS)
