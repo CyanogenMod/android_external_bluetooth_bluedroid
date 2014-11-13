@@ -483,6 +483,8 @@ AVDT_API extern void AVDT_SINK_Activate(void);
 *******************************************************************************/
 AVDT_API extern void AVDT_SINK_Deactivate(void);
 
+AVDT_API extern UINT16 AVDT_AbortReq(UINT8 handle);
+
 /*******************************************************************************
 **
 ** Function         AVDT_CreateStream
