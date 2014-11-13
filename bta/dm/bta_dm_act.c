@@ -2633,6 +2633,9 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
                  bta_dm_search_cb.p_btm_inq_info->results.device_type == BT_DEVICE_TYPE_BLE &&
                  (bta_dm_search_cb.services_to_search & BTA_BLE_SERVICE_MASK))*/
             {
+                 // check ACL is still up before  start gatt op
+                if (!BTM_IsAclConnectionUp(bta_dm_search_cb.peer_bdaddr, BT_TRANSPORT_LE))
+                    return;
                 if (bta_dm_search_cb.services_to_search & BTA_BLE_SERVICE_MASK)
                 {
                     //set the raw data buffer here
