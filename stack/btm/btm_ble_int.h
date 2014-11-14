@@ -388,6 +388,7 @@ extern BOOLEAN btm_execute_wl_dev_operation(void);
 /* direct connection utility */
 extern BOOLEAN btm_send_pending_direct_conn(void);
 extern void btm_ble_enqueue_direct_conn_req(void *p_param);
+extern void btm_ble_dequeue_direct_conn_req(BD_ADDR rem_bda);
 
 /* BLE address management */
 extern void btm_gen_resolvable_private_addr (void *p_cmd_cplt_cback);
