@@ -737,7 +737,7 @@ void btm_ble_enqueue_direct_conn_req(void *p_param)
 *******************************************************************************/
 void btm_ble_dequeue_direct_conn_req(BD_ADDR rem_bda)
 {
-    tBTM_BLE_CONN_REQ   *p_req;
+    tBTM_BLE_CONN_REQ   *p_req = NULL;
     tL2C_LCB *p_lcb;
     if(btm_cb.ble_ctr_cb.conn_pending_q.count)
     {
@@ -746,13 +746,16 @@ void btm_ble_dequeue_direct_conn_req(BD_ADDR rem_bda)
     while(p_req != NULL)
     {
         p_lcb = (tL2C_LCB *)p_req->p_param;
-        //If BD address matches
-        if(!memcmp (rem_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN))
+        if((p_lcb != NULL) && (p_lcb->in_use))
         {
-            GKI_remove_from_queue(&btm_cb.ble_ctr_cb.conn_pending_q, p_req);
-            l2cu_release_lcb ((tL2C_LCB *)p_req->p_param);
-            GKI_freebuf((void *)p_req);
-            break;
+            //If BD address matches
+            if(!memcmp (rem_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN))
+            {
+                GKI_remove_from_queue(&btm_cb.ble_ctr_cb.conn_pending_q, p_req);
+                l2cu_release_lcb ((tL2C_LCB *)p_req->p_param);
+                GKI_freebuf((void *)p_req);
+                break;
+            }
         }
         p_req = (tBTM_BLE_CONN_REQ*)GKI_getnext(p_req);
     }
