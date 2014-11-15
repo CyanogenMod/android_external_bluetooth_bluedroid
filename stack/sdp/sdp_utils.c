@@ -667,6 +667,13 @@ BOOLEAN sdpu_compare_uuid_arrays (UINT8 *p_uuid1, UINT32 len1, UINT8 *p_uuid2, U
     UINT8       nu1[MAX_UUID_SIZE];
     UINT8       nu2[MAX_UUID_SIZE];
 
+    if( ((len1 != 2) && (len1 != 4) && (len1 != 16)) ||
+        ((len2 != 2) && (len2 != 4) && (len2 != 16)) )
+    {
+        SDP_TRACE_ERROR("sdpu_compare_uuid_arrays: invalid length");
+        return FALSE;
+    }
+
     /* If lengths match, do a straight compare */
     if (len1 == len2)
     {
@@ -694,7 +701,7 @@ BOOLEAN sdpu_compare_uuid_arrays (UINT8 *p_uuid1, UINT32 len1, UINT8 *p_uuid2, U
 
             if (len2 == 4)
                 memcpy (nu2, p_uuid2, len2);
-            else
+            else if (len2 == 2)
                 memcpy (nu2 + 2, p_uuid2, len2);
 
             return (memcmp (nu1, nu2, MAX_UUID_SIZE) == 0);
@@ -717,7 +724,7 @@ BOOLEAN sdpu_compare_uuid_arrays (UINT8 *p_uuid1, UINT32 len1, UINT8 *p_uuid2, U
 
             if (len1 == 4)
                 memcpy (nu1, p_uuid1, (size_t)len1);
-            else
+            else if (len1 == 2)
                 memcpy (nu1 + 2, p_uuid1, (size_t)len1);
 
             return (memcmp (nu1, nu2, MAX_UUID_SIZE) == 0);
