@@ -794,7 +794,7 @@ void btm_ble_multi_adv_vse_cback(UINT8 len, UINT8 *p)
             BTM_TRACE_EVENT("btm_ble_multi_adv_reenable called");
             /* Do not re-enable advertisment if the advertisement instance is for wipower */
 
-            if (!is_wipower_adv && (adv_inst == wipower_inst_id)) {
+            if (!(is_wipower_adv && (adv_inst == wipower_inst_id))) {
                 btm_ble_multi_adv_reenable(adv_inst);
             }
             if(reason == HCI_SUCCESS && p_lcb != NULL) {
