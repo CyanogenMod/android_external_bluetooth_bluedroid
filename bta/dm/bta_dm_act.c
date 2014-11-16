@@ -2541,6 +2541,8 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
         transport = bta_dm_search_cb.transport;
 #endif
 
+    bta_dm_search_cb.transport = BTA_TRANSPORT_UNKNOWN;
+
 
     APPL_TRACE_DEBUG("bta_dm_discover_device, BDA:0x%02X%02X%02X%02X%02X%02X",
                         remote_bd_addr[0],remote_bd_addr[1],
