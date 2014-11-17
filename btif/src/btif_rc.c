@@ -657,6 +657,12 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
         return;
     }
 
+    if ((p_remote_cmd->rc_id == BTA_AV_RC_STOP) && (!btif_av_stream_started_ready()))
+    {
+        APPL_TRACE_WARNING("%s: Stream suspended, ignore STOP cmd",__FUNCTION__);
+        return;
+    }
+
     if (p_remote_cmd->key_state == AVRC_STATE_RELEASE) {
         status = "released";
         pressed = 0;
