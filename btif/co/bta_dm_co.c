@@ -32,7 +32,7 @@
 tBTE_APPL_CFG bte_appl_cfg =
 {
     BTM_AUTH_SPGB_YES,  // Authentication requirements
-    BTM_LOCAL_IO_CAPS,  // I/O capabilities
+    BTM_LOCAL_IO_CAPS_BLE, // I/O capabilities
     7,                  // Initiaor key size
     7,                  // Responder key size
     16                  // Maximum key size

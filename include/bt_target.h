@@ -1065,6 +1065,10 @@ and USER_HW_DISABLE_API macros */
 #define BTM_LOCAL_IO_CAPS               BTM_IO_CAP_IO
 #endif
 
+#ifndef BTM_LOCAL_IO_CAPS_BLE
+#define BTM_LOCAL_IO_CAPS_BLE           BTM_IO_CAP_KBDISP
+#endif
+
 /* The default MITM Protection Requirement (for Simple Pairing)
  * Possible values are BTM_AUTH_SP_YES or BTM_AUTH_SP_NO */
 #ifndef BTM_DEFAULT_AUTH_REQ
