@@ -2776,12 +2776,6 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                 }
                 /* calculate nbr of frames pending for this media tick */
                 result = btif_media_cb.media_feeding_state.pcm.counter/pcm_bytes_per_frame;
-                if (result > MAX_PCM_FRAME_NUM_PER_TICK)
-                {
-                    APPL_TRACE_ERROR("%s() - Limiting frames to be sent from %d to %d"
-                        , __FUNCTION__, result, MAX_PCM_FRAME_NUM_PER_TICK);
-                    result = MAX_PCM_FRAME_NUM_PER_TICK;
-                }
                 APPL_TRACE_DEBUG("num of frames calculated as per available pcm data:  %u", result);
                 if(btif_av_is_peer_edr())
                 {
