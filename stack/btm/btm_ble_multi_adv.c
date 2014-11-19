@@ -293,6 +293,10 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
     BTM_TRACE_EVENT("set_params:Chnl Map %d,adv_fltr policy %d,ID:%d, TX Power%d",
         p_params->channel_map,p_params->adv_filter_policy,p_inst->inst_id,p_params->tx_power);
 
+    BTM_TRACE_WARNING("LEP: MA Adv instance: %d, RPA address: %02x:%02x:%02x:%02x:%02x:%02x",
+            p_inst->inst_id, p_inst->rpa[0], p_inst->rpa[1], p_inst->rpa[2], p_inst->rpa[3],
+            p_inst->rpa[4], p_inst->rpa[5]);
+
     if ((rt = BTM_VendorSpecificCommand (HCI_BLE_MULTI_ADV_OCF,
                                     BTM_BLE_MULTI_ADV_SET_PARAM_LEN,
                                     param,
