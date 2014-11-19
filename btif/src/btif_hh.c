@@ -869,6 +869,17 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             else {
                 bt_bdaddr_t *bdaddr = (bt_bdaddr_t*)p_data->conn.bda;
                 btif_dm_hh_open_failed(bdaddr);
+                p_dev = btif_hh_find_dev_by_bda(bdaddr);
+                if (p_dev != NULL) {
+                    if(p_dev->vup_timer_active)
+                        btif_hh_stop_vup_timer(&(p_dev->bd_addr));
+                    if (p_dev->fd >= 0) {
+                        BTIF_TRACE_DEBUG("Closing uhid fd = %d", p_dev->fd);
+                        bta_hh_co_destroy(p_dev->fd);
+                        p_dev->fd = -1;
+                    }
+                    p_dev->dev_status = BTHH_CONN_STATE_DISCONNECTED;
+                }
                 HAL_CBACK(bt_hh_callbacks, connection_state_cb, (bt_bdaddr_t*) &p_data->conn.bda,BTHH_CONN_STATE_DISCONNECTED);
                 btif_hh_cb.status = BTIF_HH_DEV_DISCONNECTED;
             }
@@ -883,12 +894,14 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 {
                     btif_hh_stop_vup_timer(&(p_dev->bd_addr));
                 }
+                if (p_dev->fd >= 0) {
+                    BTIF_TRACE_DEBUG("Closing uhid fd = %d", p_dev->fd);
+                    bta_hh_co_destroy(p_dev->fd);
+                    p_dev->fd = -1;
+                }
                 btif_hh_cb.status = BTIF_HH_DEV_DISCONNECTED;
                 p_dev->dev_status = BTHH_CONN_STATE_DISCONNECTED;
                 HAL_CBACK(bt_hh_callbacks, connection_state_cb,&(p_dev->bd_addr), p_dev->dev_status);
-                BTIF_TRACE_DEBUG("%s: Closing uhid fd = %d", __FUNCTION__, p_dev->fd);
-                bta_hh_co_destroy(p_dev->fd);
-                p_dev->fd = -1;
             }
             else {
                 BTIF_TRACE_WARNING("Error: cannot find device with handle %d", p_data->dev_status.handle);
@@ -1831,8 +1844,10 @@ static void  cleanup( void )
          p_dev = &btif_hh_cb.devices[i];
          if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN && p_dev->fd >= 0) {
              BTIF_TRACE_DEBUG("%s: Closing uhid fd = %d", __FUNCTION__, p_dev->fd);
-             bta_hh_co_destroy(p_dev->fd);
-             p_dev->fd = -1;
+             if (p_dev->fd >= 0) {
+                 bta_hh_co_destroy(p_dev->fd);
+                 p_dev->fd = -1;
+             }
              p_dev->hh_keep_polling = 0;
              p_dev->hh_poll_thread_id = -1;
          }
