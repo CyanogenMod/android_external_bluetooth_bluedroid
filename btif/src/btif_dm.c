@@ -1631,27 +1631,6 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
         break;
 
         case BTA_DM_DISC_CMPL_EVT:
-        {
-            int device_type;
-            bt_bdaddr_t bd_addr;
-            bdstr_t bdstr;
-            bdcpy(bd_addr.address, p_data->disc_res.bd_addr);
-            bd2str(&bd_addr, &bdstr);
-            if(!btif_config_get_int("Remote", (char const *)&bdstr,"DevType", &device_type) || device_type != BT_DEVICE_TYPE_BLE)
-            {
-                if ((pairing_cb.state == BT_BOND_STATE_BONDING) &&
-                    (pairing_cb.bd_addr[0] != '\0') &&
-                     pairing_cb.sdp_attempts > 0)
-                {
-                    pairing_cb.sdp_attempts  = 0;
-
-                    BTIF_TRACE_DEBUG("%s Remote Service SDP not done. Call "
-                            "bond_state_changed_cb BONDED", __FUNCTION__);
-                    bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDED);
-                }
-
-            }
-        }
         break;
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
@@ -2650,7 +2629,6 @@ bt_status_t btif_dm_cancel_bond(const bt_bdaddr_t *bd_addr)
             {
                 BTA_DmConfirm( (UINT8 *)bd_addr->address, FALSE);
                 BTA_DmBondCancel ((UINT8 *)bd_addr->address);
-                btif_storage_remove_bonded_device((bt_bdaddr_t *)bd_addr);
             }
         }
         else
