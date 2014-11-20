@@ -842,9 +842,31 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
                 {
                     *p_ctype = AVRC_RSP_IMPL_STBL;
                     p_rc_rsp->get_caps.count = p_bta_av_cfg->num_evt_ids;
-
-                    memcpy(p_rc_rsp->get_caps.param.event_id, p_bta_av_cfg->p_meta_evt_ids,
+                    /* DUT has blacklisted few remote dev for Avrcp Version hence
+                     * respose for event supported should not have AVRCP 1.5/1.4
+                     * version events
+                     */
+                    if (avct_get_peer_addr_by_ccb(p_msg->handle, addr) == TRUE)
+                    {
+                        is_dev_avrcpv_blacklisted = SDP_Dev_Blacklisted_For_Avrcp15(addr);
+                        BTIF_TRACE_ERROR("Blacklist for AVRCP1.5 = %d", is_dev_avrcpv_blacklisted);
+                    }
+                    BTIF_TRACE_DEBUG("Blacklist for AVRCP1.5 = %d", is_dev_avrcpv_blacklisted);
+                    if (is_dev_avrcpv_blacklisted == TRUE)
+                    {
+                        for (i = 0; i <= p_bta_av_cfg->num_evt_ids; ++i)
+                        {
+                           if (p_bta_av_cfg->p_meta_evt_ids[i] == AVRC_EVT_AVAL_PLAYERS_CHANGE)
+                              break;
+                        }
+                        p_rc_rsp->get_caps.count = i;
+                        memcpy(p_rc_rsp->get_caps.param.event_id, p_bta_av_cfg->p_meta_evt_ids, i);
+                    }
+                    else
+                    {
+                        memcpy(p_rc_rsp->get_caps.param.event_id, p_bta_av_cfg->p_meta_evt_ids,
                                p_bta_av_cfg->num_evt_ids);
+                    }
                 }
                 else
                 {

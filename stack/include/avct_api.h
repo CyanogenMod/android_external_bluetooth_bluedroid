@@ -271,6 +271,22 @@ AVCT_API extern UINT16 AVCT_GetPeerMtu (UINT8 handle);
 *******************************************************************************/
 AVCT_API extern UINT16 AVCT_MsgReq(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR *p_msg);
 
+
+/*******************************************************************************
+**
+** Function         avct_get_peer_addr_by_ccb
+**
+**
+** Description      Return peer BD address on ccb index (or handle).
+**
+**
+**
+**
+** Returns          BD Address.
+**
+*******************************************************************************/
+AVCT_API extern BOOLEAN avct_get_peer_addr_by_ccb (UINT8 idx, BD_ADDR addr);
+
 #ifdef __cplusplus
 }
 #endif
