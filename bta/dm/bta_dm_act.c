@@ -3257,6 +3257,8 @@ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
     /*case BTM_SP_KEY_REQ_EVT: */
     case BTM_SP_KEY_NOTIF_EVT:
 #endif
+
+        bta_dm_cb.num_val = sec_event.key_notif.passkey = p_data->key_notif.passkey;
         if(BTM_SP_CFM_REQ_EVT == event)
         {
           /* Due to the switch case falling through below to BTM_SP_KEY_NOTIF_EVT,
@@ -3283,7 +3285,6 @@ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
            }
         }
 
-        bta_dm_cb.num_val = sec_event.key_notif.passkey = p_data->key_notif.passkey;
         if (BTM_SP_KEY_NOTIF_EVT == event)
         {
             /* If the device name is not known, save bdaddr and devclass
