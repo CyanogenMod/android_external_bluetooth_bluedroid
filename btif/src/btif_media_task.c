@@ -26,11 +26,8 @@
  **
  ******************************************************************************/
 
-//#define BT_AUDIO_SYSTRACE_LOG
 
-#ifdef BT_AUDIO_SYSTRACE_LOG
 #define ATRACE_TAG ATRACE_TAG_ALWAYS
-#endif
 
 #include <string.h>
 #include <stdio.h>
@@ -92,10 +89,9 @@ OI_UINT32 contextData[CODEC_DATA_WORDS(2, SBC_CODEC_FAST_FILTER_BUFFERS)];
 OI_INT16 pcmData[15*SBC_MAX_SAMPLES_PER_FRAME*SBC_MAX_CHANNELS];
 #endif
 
-#ifdef BT_AUDIO_SYSTRACE_LOG
 #include <cutils/trace.h>
-#define PERF_SYSTRACE 1
-#endif
+#include <cutils/properties.h>
+#define PERF_SYSTRACE med_task_perf_systrace_enabled()
 
 /*****************************************************************************
  **  Constants
@@ -393,6 +389,11 @@ extern BOOLEAN btif_hf_is_call_idle();
 /*****************************************************************************
  **  Misc helper functions
  *****************************************************************************/
+int med_task_perf_systrace_enabled() {
+  char value[PROPERTY_VALUE_MAX] = {'\0'};
+  property_get("bt_audio_systrace_log", value, "false");
+  return (strcmp(value, "true") == 0);
+}
 
 static UINT64 time_now_us()
 {
@@ -2926,9 +2927,6 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
     INT32   fract_max;
     INT32   fract_threshold;
     UINT32  nb_byte_read;
-    #ifdef BT_AUDIO_SYSTRACE_LOG
-    char trace_buf[512];
-    #endif
 
     /* Get the SBC sampling rate */
     switch (btif_media_cb.encoder.s16SamplingFreq)
@@ -3019,11 +3017,10 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
         APPL_TRACE_WARNING("### UNDERRUN :: ONLY READ %d BYTES OUT OF %d ###",
                 nb_byte_read, read_size);
 
-        #ifdef BT_AUDIO_SYSTRACE_LOG
-        snprintf(trace_buf, 32, "A2DP UNDERRUN read %ld ", nb_byte_read);
-
         if (PERF_SYSTRACE)
         {
+            char trace_buf[512];
+            snprintf(trace_buf, 32, "A2DP UNDERRUN read %d ", nb_byte_read);
             ATRACE_BEGIN(trace_buf);
         }
 
@@ -3031,7 +3028,6 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
         {
             ATRACE_END();
         }
-        #endif
 
         if (nb_byte_read == 0)
             return FALSE;
@@ -3268,9 +3264,6 @@ static void btif_media_send_aa_frame(void)
     UINT8 nb_frame_2_send;
     UINT8 nb_iterations;
     UINT8 counter;
-    #ifdef BT_AUDIO_SYSTRACE_LOG
-    char trace_buf[1024];
-    #endif
 
     /* get the number of frame to send */
     btif_get_num_aa_frame(&nb_iterations, &nb_frame_2_send);
@@ -3283,22 +3276,19 @@ static void btif_media_send_aa_frame(void)
         }
     }
 
-    #ifdef BT_AUDIO_SYSTRACE_LOG
-    snprintf(trace_buf, 32, "btif_media_send_aa_frame:");
     if (PERF_SYSTRACE)
     {
+        char trace_buf[1024];
+        snprintf(trace_buf, 32, "btif_media_send_aa_frame:");
         ATRACE_BEGIN(trace_buf);
     }
-    #endif
 
     /* send it */
 
-    #ifdef BT_AUDIO_SYSTRACE_LOG
     if (PERF_SYSTRACE)
     {
         ATRACE_END();
     }
-    #endif
 
     VERBOSE("btif_media_send_aa_frame : send %d frames", nb_frame_2_send);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
