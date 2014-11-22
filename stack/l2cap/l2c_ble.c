@@ -49,6 +49,7 @@ static void l2cble_start_conn_update (tL2C_LCB *p_lcb);
 BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda)
 {
     tL2C_LCB *p_lcb;
+    BOOLEAN rem_lcb = TRUE;
 
     /* There can be only one BLE connection request outstanding at a time */
     if (btm_ble_get_conn_st() == BLE_CONN_IDLE)
@@ -69,8 +70,14 @@ BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda)
 
     if (btsnd_hcic_ble_create_conn_cancel())
     {
+        p_lcb = l2cu_find_lcb_by_bd_addr(rem_bda, BT_TRANSPORT_LE);
+        /*Do not remove lcb if a LE link is already up as peripheral*/
+        if(p_lcb != NULL && p_lcb->link_role == HCI_ROLE_SLAVE && BTM_ACL_IS_CONNECTED(rem_bda))
+        {
+            rem_lcb = FALSE;
+        }
 
-        if ((p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, BT_TRANSPORT_LE)) != NULL)
+        if (rem_lcb && p_lcb != NULL)
         {
             p_lcb->disc_reason = L2CAP_CONN_CANCEL;
             l2cu_release_lcb (p_lcb);
