@@ -98,7 +98,7 @@ static bool timer_created;
 // If the next wakeup time is less than this threshold, we should acquire
 // a wakelock instead of setting a wake alarm so we're not bouncing in
 // and out of suspend frequently.
-static const uint32_t TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 3000;
+static const uint32_t TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 100;
 
 /*****************************************************************************
 **  Externs
