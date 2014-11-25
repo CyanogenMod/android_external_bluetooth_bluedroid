@@ -92,8 +92,6 @@ OI_INT16 pcmData[15*SBC_MAX_SAMPLES_PER_FRAME*SBC_MAX_CHANNELS];
 
 #include <cutils/trace.h>
 #include <cutils/properties.h>
-#define PERF_SYSTRACE med_task_perf_systrace_enabled()
-
 /*****************************************************************************
  **  Constants
  *****************************************************************************/
@@ -386,6 +384,7 @@ BOOLEAN btif_media_task_start_decoding_req(void);
 BOOLEAN btif_media_task_clear_track(void);
 extern BOOLEAN btif_hf_is_call_idle();
 
+static int bt_systrace_log_enabled=0;
 
 /*****************************************************************************
  **  Misc helper functions
@@ -393,7 +392,8 @@ extern BOOLEAN btif_hf_is_call_idle();
 int med_task_perf_systrace_enabled() {
   char value[PROPERTY_VALUE_MAX] = {'\0'};
   property_get("bt_audio_systrace_log", value, "false");
-  return (strcmp(value, "true") == 0);
+  bt_systrace_log_enabled = (strcmp(value, "true") == 0);
+  return bt_systrace_log_enabled;
 }
 
 static UINT64 time_now_us()
@@ -1133,6 +1133,7 @@ BOOLEAN btif_a2dp_on_started(tBTA_AV_START *p_av, BOOLEAN pending_start)
     BOOLEAN ack = FALSE;
 
     APPL_TRACE_EVENT("## ON A2DP STARTED ##");
+    med_task_perf_systrace_enabled();
 
     if (p_av == NULL)
     {
@@ -3022,14 +3023,14 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
         APPL_TRACE_WARNING("### UNDERRUN :: ONLY READ %d BYTES OUT OF %d ###",
                 nb_byte_read, read_size);
 
-        if (PERF_SYSTRACE)
+        if (bt_systrace_log_enabled)
         {
             char trace_buf[512];
             snprintf(trace_buf, 32, "A2DP UNDERRUN read %d ", nb_byte_read);
             ATRACE_BEGIN(trace_buf);
         }
 
-        if (PERF_SYSTRACE)
+        if (bt_systrace_log_enabled)
         {
             ATRACE_END();
         }
@@ -3281,7 +3282,7 @@ static void btif_media_send_aa_frame(void)
         }
     }
 
-    if (PERF_SYSTRACE)
+    if (bt_systrace_log_enabled)
     {
         char trace_buf[1024];
         snprintf(trace_buf, 32, "btif_media_send_aa_frame:");
@@ -3290,7 +3291,7 @@ static void btif_media_send_aa_frame(void)
 
     /* send it */
 
-    if (PERF_SYSTRACE)
+    if (bt_systrace_log_enabled)
     {
         ATRACE_END();
     }
