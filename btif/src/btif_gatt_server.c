@@ -335,6 +335,12 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
             break;
 
         case BTA_GATTS_MTU_EVT:
+            HAL_CBACK(bt_gatt_callbacks, server->mtu_changed_cb
+                , p_data->req_data.conn_id
+                , p_data->req_data.p_data->mtu
+            );
+            break;
+
         case BTA_GATTS_OPEN_EVT:
         case BTA_GATTS_CANCEL_OPEN_EVT:
         case BTA_GATTS_CLOSE_EVT:
