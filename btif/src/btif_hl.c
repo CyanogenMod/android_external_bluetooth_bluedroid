@@ -3325,6 +3325,7 @@ static void btif_hl_proc_cb_evt(UINT16 event, char* p_param){
 
             break;
         case BTIF_HL_REG_APP:
+            reg_counter++;
             p_acb  = BTIF_HL_GET_APP_CB_PTR(p_data->reg.app_idx);
             app_id = (int) p_acb->app_id;
             BTIF_TRACE_DEBUG("Rcv BTIF_HL_REG_APP app_idx=%d reg_pending=%d", p_data->reg.app_idx, p_acb->reg_pending);
@@ -3347,6 +3348,7 @@ static void btif_hl_proc_cb_evt(UINT16 event, char* p_param){
             break;
 
         case BTIF_HL_UNREG_APP:
+            reg_counter --;
             BTIF_TRACE_DEBUG("Rcv BTIF_HL_UNREG_APP app_idx=%d", p_data->unreg.app_idx );
             p_acb = BTIF_HL_GET_APP_CB_PTR(p_data->unreg.app_idx);
             if (btif_hl_get_state() == BTIF_HL_STATE_ENABLED)
@@ -4180,7 +4182,6 @@ static bt_status_t unregister_application(int app_id){
     {
         evt_param.unreg.app_idx = app_idx;
         p_acb = BTIF_HL_GET_APP_CB_PTR(app_idx);
-        reg_counter --;
         len = sizeof(btif_hl_unreg_t);
         status = btif_transfer_context (btif_hl_proc_cb_evt, BTIF_HL_UNREG_APP,
                                         (char*) &evt_param, len, NULL);
@@ -4307,7 +4308,6 @@ static bt_status_t register_application(bthl_reg_param_t *p_reg_param, int *app_
         evt_param.reg.app_idx = app_idx;
         len = sizeof(btif_hl_reg_t);
         p_acb->reg_pending = TRUE;
-        reg_counter++;
         BTIF_TRACE_DEBUG("calling btif_transfer_context status=%d app_id=%d", status, *app_id);
         status = btif_transfer_context (btif_hl_proc_cb_evt, BTIF_HL_REG_APP,
                                         (char*) &evt_param, len, NULL);
