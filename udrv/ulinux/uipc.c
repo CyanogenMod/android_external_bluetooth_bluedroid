@@ -34,6 +34,7 @@
 
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/ioctl.h>
 #include <signal.h>
 #include <errno.h>
 #include <pthread.h>
@@ -373,9 +374,10 @@ static int uipc_setup_server_locked(tUIPC_CH_ID ch_id, char *name, tUIPC_RCV_CBA
 
 static void uipc_flush_ch_locked(tUIPC_CH_ID ch_id)
 {
-    char buf;
+    char *buf;
     struct pollfd pfd;
     int ret;
+    int size = 0;
 
     pfd.events = POLLIN|POLLHUP;
     pfd.fd = uipc_main.ch[ch_id].fd;
@@ -388,15 +390,33 @@ static void uipc_flush_ch_locked(tUIPC_CH_ID ch_id)
         ret = poll(&pfd, 1, 1);
         BTIF_TRACE_EVENT("uipc_flush_ch_locked polling : fd %d, rxev %x, ret %d", pfd.fd, pfd.revents, ret);
 
-        if (pfd.revents & (POLLERR|POLLHUP))
+        if (pfd.revents & (POLLERR|POLLHUP)) {
+            BTIF_TRACE_EVENT("returning because of remote hangup/error");
             return;
+        }
 
         if (ret <= 0)
         {
             BTIF_TRACE_EVENT("uipc_flush_ch_locked : error (%d)", ret);
             return;
         }
-        read(pfd.fd, &buf, 1);
+
+        ret = ioctl(uipc_main.ch[ch_id].fd, FIONREAD, &size);
+        if (ret <0) {
+            BTIF_TRACE_EVENT("uipc_flush_ch_locked: FIONREAD error: %d", ret);
+            return;
+        }
+
+        BTIF_TRACE_EVENT("uipc_flush_ch_locked: FIONREAD : %d", size);
+        buf = (char*)malloc(size);
+        if (buf == NULL) {
+            BTIF_TRACE_EVENT("uipc_flush_ch_locked: buf alloc issue %d", ret);
+            return;
+        }
+        ret = read(pfd.fd, buf, size);
+        BTIF_TRACE_EVENT("Flushed %d bytes", ret);
+        free(buf);
+        buf = NULL;
     }
 }
 
