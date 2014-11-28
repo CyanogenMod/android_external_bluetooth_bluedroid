@@ -1518,28 +1518,21 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             /* stop ring timer */
             bta_sys_stop_timer(&p_scb->act_timer);
 
-            /* if sco not opened and we need to open it, open sco first
-            ** then send indicators
+            /* if sco not opened and we need to open it, send indicators first
+            ** then  open sco.
             */
-            if (p_result->data.audio_handle == bta_ag_scb_to_idx(p_scb) &&
-                !bta_ag_sco_is_open(p_scb) && !(p_scb->features & BTA_AG_FEAT_NOSCO))
+            bta_ag_send_call_inds(p_scb, p_result->result);
+            if (!(p_scb->features & BTA_AG_FEAT_NOSCO))
             {
-                p_scb->post_sco = BTA_AG_POST_SCO_CALL_CONN;
-                bta_ag_sco_open(p_scb, (tBTA_AG_DATA *) p_result);
-            }
-            /* else if sco open and we need to close it, close sco first
-            ** then send indicators
-            */
-            else if (p_result->data.audio_handle == BTA_AG_HANDLE_NONE &&
-                     bta_ag_sco_is_open(p_scb) && !(p_scb->features & BTA_AG_FEAT_NOSCO))
-            {
-                p_scb->post_sco = BTA_AG_POST_SCO_CALL_CONN;
-                bta_ag_sco_close(p_scb, (tBTA_AG_DATA *) p_result);
-            }
-            /* else send indicators now */
-            else
-            {
-                bta_ag_send_call_inds(p_scb, p_result->result);
+                if (p_result->data.audio_handle == bta_ag_scb_to_idx(p_scb))
+                {
+                    bta_ag_sco_open(p_scb, (tBTA_AG_DATA *) p_result);
+                }
+                else if ((p_result->data.audio_handle == BTA_AG_HANDLE_NONE) &&
+                        bta_ag_sco_is_open(p_scb))
+                {
+                    bta_ag_sco_close(p_scb, (tBTA_AG_DATA *) p_result);
+                }
             }
             break;
 
