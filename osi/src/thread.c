@@ -58,6 +58,10 @@ static const size_t WORK_QUEUE_CAPACITY = 128;
 thread_t *thread_new(const char *name) {
   assert(name != NULL);
 
+  if(!name) {
+     ALOGE("%s: thread name is NULL", __func__);
+     return NULL;
+  }
   // Start is on the stack, but we use a semaphore, so it's safe
   thread_t *ret = calloc(1, sizeof(thread_t));
   if (!ret)
@@ -110,6 +114,10 @@ bool thread_post(thread_t *thread, thread_fn func, void *context) {
   assert(thread != NULL);
   assert(func != NULL);
 
+  if(!thread || !func) {
+     ALOGE("%s: thread or func is NULL", __func__);
+     return false;
+  }
   // TODO(sharvil): if the current thread == |thread| and we've run out
   // of queue space, we should abort this operation, otherwise we'll
   // deadlock.
@@ -129,21 +137,36 @@ bool thread_post(thread_t *thread, thread_fn func, void *context) {
 
 void thread_stop(thread_t *thread) {
   assert(thread != NULL);
+  if(!thread) {
+     ALOGE("%s: thread is NULL", __func__);
+     return ;
+  }
   reactor_stop(thread->reactor);
 }
 
 const char *thread_name(const thread_t *thread) {
   assert(thread != NULL);
+  if(!thread) {
+     ALOGE("%s: thread is NULL", __func__);
+     return NULL;
+  }
   return thread->name;
 }
 
 static void *run_thread(void *start_arg) {
   assert(start_arg != NULL);
-
+  if(!start_arg) {
+     ALOGE("%s: arg is NULL", __func__);
+     return NULL;
+  }
   struct start_arg *start = start_arg;
   thread_t *thread = start->thread;
 
   assert(thread != NULL);
+  if(!thread) {
+     ALOGE("%s: thread is NULL", __func__);
+     return NULL;
+  }
 
   if (prctl(PR_SET_NAME, (unsigned long)thread->name) == -1) {
     ALOGE("%s unable to set thread name: %s", __func__, strerror(errno));
@@ -184,7 +207,10 @@ static void *run_thread(void *start_arg) {
 
 static void work_queue_read_cb(void *context) {
   assert(context != NULL);
-
+  if(!context) {
+     ALOGE("%s: thread context is NULL", __func__);
+     return;
+  }
   fixed_queue_t *queue = (fixed_queue_t *)context;
   work_item_t *item = fixed_queue_dequeue(queue);
   item->func(item->context);
