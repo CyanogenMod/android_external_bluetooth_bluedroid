@@ -253,7 +253,6 @@ static void bta_av_rc_msg_cback(UINT8 handle, UINT8 label, UINT8 opcode, tAVRC_M
 {
     tBTA_AV_RC_MSG  *p_buf;
     UINT8           *p_data = NULL;
-    UINT8           **p_p_data = NULL;
     UINT16          data_len = 0;
 
 #if (defined(BTA_AV_MIN_DEBUG_TRACES) && BTA_AV_MIN_DEBUG_TRACES == TRUE)
@@ -265,20 +264,17 @@ static void bta_av_rc_msg_cback(UINT8 handle, UINT8 label, UINT8 opcode, tAVRC_M
     if (opcode == AVRC_OP_VENDOR && p_msg->vendor.p_vendor_data != NULL)
     {
         p_data = p_msg->vendor.p_vendor_data;
-        p_p_data = &p_msg->vendor.p_vendor_data;
         data_len = (UINT16) p_msg->vendor.vendor_len;
     }
     else if (opcode == AVRC_OP_PASS_THRU && p_msg->pass.p_pass_data != NULL)
     {
         p_data = p_msg->pass.p_pass_data;
-        p_p_data = &p_msg->pass.p_pass_data;
         data_len = (UINT16) p_msg->pass.pass_len;
     }
     else if (opcode == AVRC_OP_BROWSE && p_msg->browse.p_browse_data != NULL)
     {
         APPL_TRACE_EVENT("bta_av_rc_msg_cback Browse Data");
         p_data  = p_msg->browse.p_browse_data;
-        p_p_data = &p_msg->browse.p_browse_data;
         data_len = (UINT16) p_msg->browse.browse_len;
     }
     if ((p_buf = (tBTA_AV_RC_MSG *) GKI_getbuf((UINT16) (sizeof(tBTA_AV_RC_MSG) + data_len))) != NULL)
@@ -290,8 +286,23 @@ static void bta_av_rc_msg_cback(UINT8 handle, UINT8 label, UINT8 opcode, tAVRC_M
         memcpy(&p_buf->msg, p_msg, sizeof(tAVRC_MSG));
         if (p_data != NULL)
         {
+            tAVRC_MSG *p_avrc_msg = (tAVRC_MSG*)&p_buf->msg;
+
+            switch (opcode)
+            {
+                case AVRC_OP_VENDOR:
+                    p_avrc_msg->vendor.p_vendor_data = (UINT8 *)(p_buf + 1);
+                    break;
+
+                case AVRC_OP_BROWSE:
+                    p_avrc_msg->browse.p_browse_data = (UINT8 *)(p_buf + 1);
+                    break;
+
+                case AVRC_OP_PASS_THRU:
+                    p_avrc_msg->pass.p_pass_data = (UINT8 *)(p_buf + 1);
+                    break;
+            }
             memcpy((UINT8 *)(p_buf + 1), p_data, data_len);
-            *p_p_data = (UINT8 *)(p_buf + 1);
         }
         bta_sys_sendmsg(p_buf);
     }
