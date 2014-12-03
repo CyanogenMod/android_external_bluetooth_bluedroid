@@ -211,13 +211,16 @@ void alarm_service_reschedule()
     if (ticks_in_millis <= TIMER_INTERVAL_FOR_WAKELOCK_IN_MS)
     {
         // The next deadline is close, just take a wakelock and set a regular (non-wake) timer.
-        int rc = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
-        if (rc != BT_STATUS_SUCCESS)
+        if (!alarm_service.wakelock)
         {
-            ALOGE("%s unable to acquire wake lock: %d", __func__, rc);
-            return;
+            int rc = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
+            if (rc != BT_STATUS_SUCCESS)
+            {
+                ALOGE("%s unable to acquire wake lock: %d", __func__, rc);
+                return;
+            }
+            alarm_service.wakelock = true;
         }
-        alarm_service.wakelock = true;
         ALOGV("%s acquired wake lock, setting short alarm (%lldms).", __func__, ticks_in_millis);
 
         if (!set_nonwake_alarm(ticks_in_millis))
@@ -234,8 +237,12 @@ void alarm_service_reschedule()
         } else {
             ALOGV("%s set long alarm (%lldms), releasing wake lock.", __func__, ticks_in_millis);
         }
-        alarm_service.wakelock = false;
-        bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
+
+        if (alarm_service.wakelock)
+        {
+            alarm_service.wakelock = false;
+            bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
+        }
     }
 }
 
