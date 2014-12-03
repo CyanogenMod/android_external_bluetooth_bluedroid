@@ -191,6 +191,14 @@
 #define LINUX_GKI_INCLUDED  TRUE
 #endif
 
+// If the next wakeup time is less than this threshold, we should acquire
+// a wakelock instead of setting a wake alarm so we're not bouncing in
+// and out of suspend frequently.
+// in millisecond
+#ifndef GKI_TIMER_INTERVAL_FOR_WAKELOCK
+#define GKI_TIMER_INTERVAL_FOR_WAKELOCK 3000
+#endif
+
 #ifndef BTA_SYS_TIMER_PERIOD
 #define BTA_SYS_TIMER_PERIOD  100
 #endif

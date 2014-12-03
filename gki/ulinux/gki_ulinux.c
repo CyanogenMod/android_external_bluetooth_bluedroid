@@ -24,6 +24,7 @@
 **              settop projects that already use pthreads and not pth.
 **
 *****************************************************************************/
+#include "bt_target.h"
 
 #include <assert.h>
 #include <sys/times.h>
@@ -94,11 +95,6 @@ static alarm_service_t alarm_service;
 static timer_t posix_timer;
 static bool timer_created;
 
-
-// If the next wakeup time is less than this threshold, we should acquire
-// a wakelock instead of setting a wake alarm so we're not bouncing in
-// and out of suspend frequently.
-static const uint32_t TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 100;
 
 /*****************************************************************************
 **  Externs
@@ -217,7 +213,7 @@ void alarm_service_reschedule()
     }
 
     UINT64 ticks_in_millis = GKI_TICKS_TO_MS(ticks_till_next_exp);
-    if (ticks_in_millis <= TIMER_INTERVAL_FOR_WAKELOCK_IN_MS)
+    if (ticks_in_millis <= GKI_TIMER_INTERVAL_FOR_WAKELOCK)
     {
         // The next deadline is close, just take a wakelock and set a regular (non-wake) timer.
         int rc = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
