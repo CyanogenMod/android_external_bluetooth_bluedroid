@@ -63,6 +63,9 @@ static const UINT8 sdp_black_list_prefix[][3] = {{0x00, 0x1D, 0xBA},  /* JVC car
                                                  {0x00, 0x0E, 0x9F},  /* Porshe car kit */
                                                  {0x00, 0x13, 0x7B},  /* BYOM Opel*/
                                                  {0x68, 0x84, 0x70},  /* KIA MOTOR*/
+                                                 {0x00, 0x21, 0xCC},  /* FORD FIESTA*/
+                                                 {0x30, 0x14, 0x4A},  /* Mini Cooper*/
+                                                 {0x38, 0xC0, 0x96},  /* Seat Leon*/
                                                  {0x00, 0x54, 0xAF},  /* Chrysler*/
                                                  {0x04, 0x88, 0xE2},  /* BeatsStudio Wireless*/
                                                  {0xA0, 0x14, 0x3D},  /* VW Sharen*/
