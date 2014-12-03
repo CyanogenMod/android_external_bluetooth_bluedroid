@@ -154,7 +154,7 @@ void mca_dcb_event(tMCA_DCB *p_dcb, UINT8 event, tMCA_DCB_EVT *p_data)
     p_dcb->state = state_table[event][MCA_DCB_NEXT_STATE];
 
     /* execute action functions */
-    if ((action = state_table[event][MCA_DCB_ACT_COL]) != MCA_DCB_IGNORE)
+    if ((action = state_table[event][MCA_DCB_ACT_COL]) < MCA_DCB_IGNORE)
     {
         (*mca_dcb_action[action])(p_dcb, p_data);
     }

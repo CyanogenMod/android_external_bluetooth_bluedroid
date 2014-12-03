@@ -2335,8 +2335,12 @@ static void bta_jv_port_mgmt_cl_cback(UINT32 code, UINT16 port_handle)
     tBTA_JV_RFCOMM_CBACK *p_cback;  /* the callback function */
 
     APPL_TRACE_DEBUG( "bta_jv_port_mgmt_cl_cback:code:%d, port_handle%d", code, port_handle);
-    if(NULL == p_cb || NULL == p_cb->p_cback)
+    if(NULL == p_cb || NULL == p_cb->p_cback || NULL == p_pcb)
+    {
+        APPL_TRACE_ERROR( "bta_jv_port_mgmt_cl_cback, p_cb:%p, p_cb->p_cback:%p, p_pcb",
+            p_cb, p_cb ? p_cb->p_cback : NULL, p_pcb);
         return;
+    }
 
     APPL_TRACE_DEBUG( "bta_jv_port_mgmt_cl_cback code=%d port_handle:%d handle:%d",
         code, port_handle, p_cb->handle);
@@ -2386,8 +2390,12 @@ static void bta_jv_port_event_cl_cback(UINT32 code, UINT16 port_handle)
     tBTA_JV evt_data;
 
     APPL_TRACE_DEBUG( "bta_jv_port_event_cl_cback:%d", port_handle);
-    if(NULL == p_cb || NULL == p_cb->p_cback)
+    if(NULL == p_cb || NULL == p_cb->p_cback || NULL == p_pcb)
+    {
+        APPL_TRACE_ERROR( "bta_jv_port_event_cl_cback, p_cb:%p, p_cb->p_cback:%p, p_pcb",
+            p_cb, p_cb ? p_cb->p_cback : NULL, p_pcb);
         return;
+    }
 
     APPL_TRACE_DEBUG( "bta_jv_port_event_cl_cback code=x%x port_handle:%d handle:%d",
         code, port_handle, p_cb->handle);
@@ -2568,10 +2576,10 @@ static void bta_jv_port_mgmt_sr_cback(UINT32 code, UINT16 port_handle)
     UINT8  num;
     UINT32  si;
     APPL_TRACE_DEBUG("bta_jv_port_mgmt_sr_cback, code:%d, port_handle:%d", code, port_handle);
-    if(NULL == p_cb || NULL == p_cb->p_cback)
+    if(NULL == p_cb || NULL == p_cb->p_cback || NULL == p_pcb)
     {
-        APPL_TRACE_ERROR("bta_jv_port_mgmt_sr_cback, p_cb:%p, p_cb->p_cback%p",
-                p_cb, p_cb ? p_cb->p_cback : NULL);
+        APPL_TRACE_ERROR("bta_jv_port_mgmt_sr_cback, p_cb:%p, p_cb->p_cback:%p, p_pcb:%p",
+                p_cb, p_cb ? p_cb->p_cback : NULL, p_pcb);
         return;
     }
     void *user_data = p_pcb->user_data;
@@ -2636,8 +2644,12 @@ static void bta_jv_port_event_sr_cback(UINT32 code, UINT16 port_handle)
     tBTA_JV_RFC_CB  *p_cb = bta_jv_rfc_port_to_cb(port_handle);
     tBTA_JV evt_data;
 
-    if(NULL == p_cb || NULL == p_cb->p_cback)
+    if(NULL == p_cb || NULL == p_cb->p_cback || NULL == p_pcb)
+    {
+        APPL_TRACE_ERROR( "bta_jv_port_event_sr_cback, p_cb:%p, p_cb->p_cback:%p, p_pcb:%p",
+            p_cb, p_cb ? p_cb->p_cback : NULL, p_pcb);
         return;
+    }
 
     APPL_TRACE_DEBUG( "bta_jv_port_event_sr_cback code=x%x port_handle:%d handle:%d",
         code, port_handle, p_cb->handle);

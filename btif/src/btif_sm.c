@@ -75,7 +75,7 @@ typedef struct {
 
 btif_sm_handle_t btif_sm_init(const btif_sm_handler_t *p_handlers, btif_sm_state_t initial_state)
 {
-    btif_sm_cb_t *p_cb;
+    btif_sm_cb_t *p_cb = NULL;
 
     if (p_handlers == NULL)
     {
@@ -84,6 +84,11 @@ btif_sm_handle_t btif_sm_init(const btif_sm_handler_t *p_handlers, btif_sm_state
     }
 
     p_cb = (btif_sm_cb_t*) GKI_os_malloc(sizeof(btif_sm_cb_t));
+    if (!p_cb)
+    {
+        BTIF_TRACE_ERROR("%s : Failed to allocate memory", __FUNCTION__);
+        return NULL;
+    }
     p_cb->state = initial_state;
     p_cb->p_handlers = (btif_sm_handler_t*)p_handlers;
 

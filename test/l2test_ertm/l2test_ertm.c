@@ -722,7 +722,6 @@ void do_cleanup(char *p)
 int GetBdAddr(char *p, bt_bdaddr_t *pbd_addr)
 {
     char Arr[13] = {0};
-    char *pszAddr = NULL;
     UINT8 k1 = 0;
     UINT8 k2 = 0;
     int i;
@@ -738,13 +737,10 @@ int GetBdAddr(char *p, bt_bdaddr_t *pbd_addr)
     {
         Arr[i] = tolower(Arr[i]);
     }
-    pszAddr = &Arr[0];
     for(i=0; i<6; i++)
     {
-        k1 = (UINT8) ( (*pszAddr >= 'a') ? ( 10 + (UINT8)( *pszAddr - 'a' )) : (*pszAddr - '0') );
-        pszAddr++;
-        k2 = (UINT8) ( (*pszAddr >= 'a') ? ( 10 + (UINT8)( *pszAddr - 'a' )) : (*pszAddr - '0') );
-        pszAddr++;
+        k1 = (UINT8) ( (Arr[i*2] >= 'a') ? ( 10 + (UINT8)( Arr[i*2] - 'a' )) : (Arr[i*2] - '0') );
+        k2 = (UINT8) ( (Arr[i*2+1] >= 'a') ? ( 10 + (UINT8)( Arr[i*2+1] - 'a' )) : (Arr[i*2+1] - '0') );
         if ( (k1>15)||(k2>15) )
         {
             return FALSE;

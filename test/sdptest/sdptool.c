@@ -333,7 +333,8 @@ static int create_cmdjob(char *cmd)
                        (void*)cmdjob_handler, (void*)job_cmd)!=0)
             perror("pthread_create");
     }
-
+    else
+        perror("SDP: create_cmdjob(), failed to allocate memory");
     return 0;
 }
 

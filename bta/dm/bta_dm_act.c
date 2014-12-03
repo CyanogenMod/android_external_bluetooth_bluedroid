@@ -2202,7 +2202,11 @@ void bta_dm_queue_search (tBTA_DM_MSG *p_data)
         GKI_freebuf(bta_dm_search_cb.p_search_queue);
     }
 
-    bta_dm_search_cb.p_search_queue = (tBTA_DM_MSG *)GKI_getbuf(sizeof(tBTA_DM_API_SEARCH));
+    if((bta_dm_search_cb.p_search_queue = (tBTA_DM_MSG *)GKI_getbuf(sizeof(tBTA_DM_API_SEARCH))) == NULL)
+    {
+        APPL_TRACE_ERROR("%s :GKI_getbuf failed to get a new buffer", __FUNCTION__);
+        return;
+    }
     memcpy(bta_dm_search_cb.p_search_queue, p_data, sizeof(tBTA_DM_API_SEARCH));
 
 }
@@ -2223,7 +2227,11 @@ void bta_dm_queue_disc (tBTA_DM_MSG *p_data)
         GKI_freebuf(bta_dm_search_cb.p_search_queue);
     }
 
-    bta_dm_search_cb.p_search_queue = (tBTA_DM_MSG *)GKI_getbuf(sizeof(tBTA_DM_API_DISCOVER));
+    if((bta_dm_search_cb.p_search_queue = (tBTA_DM_MSG *)GKI_getbuf(sizeof(tBTA_DM_API_DISCOVER))) == NULL)
+    {
+        APPL_TRACE_ERROR("%s :GKI_getbuf failed to get a new buffer", __FUNCTION__);
+        return;
+    }
     memcpy(bta_dm_search_cb.p_search_queue, p_data, sizeof(tBTA_DM_API_DISCOVER));
 
 }

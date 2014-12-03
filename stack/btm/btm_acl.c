@@ -2582,7 +2582,7 @@ BOOLEAN BTM_TryAllocateSCN(UINT8 scn)
 BOOLEAN BTM_FreeSCN(UINT8 scn)
 {
     BTM_TRACE_DEBUG ("BTM_FreeSCN ");
-    if (scn <= BTM_MAX_SCN)
+    if (scn <= BTM_MAX_SCN && scn>0)
     {
         btm_cb.btm_scn[scn-1] = FALSE;
         return(TRUE);

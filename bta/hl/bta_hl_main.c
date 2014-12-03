@@ -441,7 +441,7 @@ void bta_hl_cch_sm_execute(UINT8 app_idx, UINT8 mcl_idx,
 
     for (i = 0; i < BTA_HL_CCH_ACTIONS; i++)
     {
-        if ((action = state_table[event][i]) != BTA_HL_CCH_IGNORE)
+        if ((action = state_table[event][i]) < BTA_HL_CCH_IGNORE)
         {
             (*bta_hl_cch_action[action])(app_idx, mcl_idx, p_data);
         }
@@ -498,7 +498,7 @@ void bta_hl_dch_sm_execute(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
 
     for (i = 0; i < BTA_HL_DCH_ACTIONS; i++)
     {
-        if ((action = state_table[event][i]) != BTA_HL_DCH_IGNORE)
+        if ((action = state_table[event][i]) < BTA_HL_DCH_IGNORE)
         {
             (*bta_hl_dch_action[action])(app_idx, mcl_idx, mdl_idx, p_data);
         }

@@ -780,7 +780,7 @@ tBTA_FS_CO_STATUS bta_fs_co_unlink(const char *p_path, UINT8 app_id)
     BTIF_TRACE_DEBUG("bta_fs_co_unlink");
     int err;
     tBTA_FS_CO_STATUS status = BTA_FS_CO_OK;
-    char *dirName, *tmp=NULL;
+    char *dirName=NULL, *tmp=NULL;
     struct stat buffer;
     UNUSED(app_id);
 
@@ -793,8 +793,13 @@ tBTA_FS_CO_STATUS bta_fs_co_unlink(const char *p_path, UINT8 app_id)
 #else
     dirName= (char*) calloc(1, strlen(p_path) + 1);
 #endif
-
-    strncpy(dirName, p_path, strlen(p_path));
+    if(dirName)
+        strncpy(dirName, p_path, strlen(p_path));
+    else
+    {
+        BTIF_TRACE_DEBUG("%s(): failed to allocate memory", __FUNCTION__);
+        return BTA_FS_CO_FAIL;
+    }
     if((tmp=strrchr(dirName, '/')))
     {
 	    *tmp='\0';
@@ -938,7 +943,7 @@ void bta_fs_co_getdirentry(const char *p_path, BOOLEAN first_item,
             p_tm = localtime((const time_t*)&buf.st_mtime);
             if (p_tm != NULL)
             {
-                sprintf(p_entry->crtime, "%04d%02d%02dT%02d%02d%02dZ",
+                snprintf(p_entry->crtime, sizeof(p_entry->crtime), "%04d%02d%02dT%02d%02d%02dZ",
                         p_tm->tm_year + 1900,   /* Base Year ISO 6201 */
                         p_tm->tm_mon + 1,       /* month starts at 0 */
                         p_tm->tm_mday,

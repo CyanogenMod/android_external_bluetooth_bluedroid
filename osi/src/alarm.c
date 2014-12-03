@@ -246,6 +246,10 @@ static void reschedule(void) {
   }
 
   alarm_t *next = list_front(alarms);
+  if (!next) {
+    bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
+    return;
+  }
   int64_t next_exp = next->deadline - now();
   if (next_exp < TIMER_INTERVAL_FOR_WAKELOCK_IN_MS) {
     int status = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
