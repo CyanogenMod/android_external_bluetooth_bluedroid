@@ -2718,7 +2718,13 @@ void btif_dm_hh_open_failed(bt_bdaddr_t *bdaddr)
     if (pairing_cb.state == BT_BOND_STATE_BONDING &&
             bdcmp(bdaddr->address, pairing_cb.bd_addr) == 0)
     {
+        BTIF_TRACE_EVENT("%s: hid connection failed", __FUNCTION__);
         bond_state_changed(BT_STATUS_FAIL, bdaddr, BT_BOND_STATE_NONE);
+        /* remove the device from database as only hid device */
+        if (check_cod(bdaddr, COD_HID_POINTING)) {
+            btif_storage_remove_bonded_device(bdaddr);
+            BTA_DmRemoveDevice((UINT8 *)bdaddr->address);
+        }
     }
 }
 
