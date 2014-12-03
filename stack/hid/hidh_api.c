@@ -244,6 +244,9 @@ static void hidh_search_callback (UINT16 sdp_result)
 void HID_HostInit (void)
 {
     UINT8 log_level = hh_cb.trace_level;
+
+    HIDH_TRACE_EVENT("HID_HostAddDev");
+
     memset(&hh_cb, 0, sizeof(tHID_HOST_CTB));
 
     hh_cb.trace_level = log_level;
@@ -261,6 +264,8 @@ void HID_HostInit (void)
 *******************************************************************************/
 UINT8 HID_HostSetTraceLevel (UINT8 new_level)
 {
+    HIDH_TRACE_EVENT("HID_HostSetTraceLevel");
+
     if (new_level != 0xFF)
         hh_cb.trace_level = new_level;
 
@@ -279,6 +284,8 @@ UINT8 HID_HostSetTraceLevel (UINT8 new_level)
 tHID_STATUS HID_HostRegister (tHID_HOST_DEV_CALLBACK *dev_cback)
 {
     tHID_STATUS st;
+
+    HIDH_TRACE_EVENT("HID_HostRegister");
 
     if( hh_cb.reg_flag )
         return HID_ERR_ALREADY_REGISTERED;
@@ -311,6 +318,8 @@ tHID_STATUS HID_HostDeregister(void)
 {
     UINT8 i;
 
+    HIDH_TRACE_EVENT("HID_HostDeregister");
+
     if( !hh_cb.reg_flag )
         return (HID_ERR_NOT_REGISTERED);
 
@@ -337,6 +346,9 @@ tHID_STATUS HID_HostDeregister(void)
 tHID_STATUS HID_HostAddDev ( BD_ADDR addr, UINT16 attr_mask, UINT8 *handle )
 {
     int i;
+
+    HIDH_TRACE_EVENT("HID_HostAddDev");
+
     /* Find an entry for this device in hh_cb.devices array */
     if( !hh_cb.reg_flag )
         return (HID_ERR_NOT_REGISTERED);
@@ -388,17 +400,39 @@ tHID_STATUS HID_HostAddDev ( BD_ADDR addr, UINT16 attr_mask, UINT8 *handle )
 *******************************************************************************/
 tHID_STATUS HID_HostRemoveDev ( UINT8 dev_handle )
 {
+    HIDH_TRACE_EVENT("%s: handle = %d", __FUNCTION__, dev_handle);
+
     if( !hh_cb.reg_flag )
+    {
+        HIDH_TRACE_DEBUG("%s: returning HID_ERR_NOT_REGISTERED", __FUNCTION__);
         return (HID_ERR_NOT_REGISTERED);
+    }
 
     if( (dev_handle >= HID_HOST_MAX_DEVICES) || (!hh_cb.devices[dev_handle].in_use) )
+    {
+        HIDH_TRACE_DEBUG("%s: returning HID_ERR_NOT_REGISTERED", __FUNCTION__);
         return HID_ERR_INVALID_PARAM;
+    }
 
-    HID_HostCloseDev( dev_handle ) ;
-    hh_cb.devices[dev_handle].in_use = FALSE;
-    hh_cb.devices[dev_handle].conn.conn_state = HID_CONN_STATE_UNUSED;
-    hh_cb.devices[dev_handle].conn.ctrl_cid = hh_cb.devices[dev_handle].conn.intr_cid = 0;
+    if (!HID_HostCloseDev( dev_handle ))
+    {
+        /* Update state as removing, once hid interrupt and control channels
+         * l2cap channels are disconencted, state would be udpated to unused
+         * and in_use flag would be set to false */
+        HIDH_TRACE_DEBUG("%s: changing state to HID_CONN_STATE_REMOVING", __FUNCTION__);
+        hh_cb.devices[dev_handle].conn.conn_state = HID_CONN_STATE_REMOVING;
+    }
+    else
+    {
+        /* HID Host is already closed, update flags now */
+        hh_cb.devices[dev_handle].in_use = FALSE;
+        hh_cb.devices[dev_handle].conn.conn_state = HID_CONN_STATE_UNUSED;
+        hh_cb.devices[dev_handle].conn.ctrl_cid = 0;
+        hh_cb.devices[dev_handle].conn.intr_cid = 0;
+        hh_cb.devices[dev_handle].attr_mask = 0;
+    }
 
+    HIDH_TRACE_DEBUG("%s: returning HID_SUCCESS", __FUNCTION__);
     return HID_SUCCESS;
 }
 
@@ -414,16 +448,28 @@ tHID_STATUS HID_HostRemoveDev ( UINT8 dev_handle )
 *******************************************************************************/
 tHID_STATUS HID_HostOpenDev ( UINT8 dev_handle )
 {
+    HIDH_TRACE_EVENT("%s: handle = %d", __FUNCTION__, dev_handle);
+
     if( !hh_cb.reg_flag )
+    {
+        HIDH_TRACE_DEBUG("%s: returning HID_ERR_NOT_REGISTERED", __FUNCTION__);
         return (HID_ERR_NOT_REGISTERED);
+    }
 
     if( (dev_handle >= HID_HOST_MAX_DEVICES) || (!hh_cb.devices[dev_handle].in_use) )
+    {
+        HIDH_TRACE_DEBUG("%s: returning HID_ERR_INVALID_PARAM", __FUNCTION__);
         return HID_ERR_INVALID_PARAM;
+    }
 
     if( hh_cb.devices[dev_handle].state != HID_DEV_NO_CONN )
+    {
+        HIDH_TRACE_DEBUG("%s: returning HID_ERR_ALREADY_CONN", __FUNCTION__);
         return HID_ERR_ALREADY_CONN;
+    }
 
     hh_cb.devices[dev_handle].conn_tries = 1;
+    HIDH_TRACE_DEBUG("%s: calling hidh_conn_initiate", __FUNCTION__);
     return hidh_conn_initiate( dev_handle );
 }
 
@@ -484,19 +530,31 @@ tHID_STATUS HID_HostWriteDev( UINT8 dev_handle, UINT8 t_type,
 *******************************************************************************/
 tHID_STATUS HID_HostCloseDev( UINT8 dev_handle )
 {
+    HIDH_TRACE_EVENT("%s: handle = %d", __FUNCTION__, dev_handle);
+
     if( !hh_cb.reg_flag )
+    {
+        HIDH_TRACE_DEBUG("%s: returning HID_ERR_NOT_REGISTERED", __FUNCTION__);
         return (HID_ERR_NOT_REGISTERED);
+    }
 
     if( (dev_handle >= HID_HOST_MAX_DEVICES) || (!hh_cb.devices[dev_handle].in_use) )
+    {
+        HIDH_TRACE_DEBUG("returning HID_ERR_INVALID_PARAM", __FUNCTION__);
         return HID_ERR_INVALID_PARAM;
+    }
 
     hh_cb.devices[dev_handle].conn_tries = HID_HOST_MAX_CONN_RETRY+1;
     btu_stop_timer( &(hh_cb.devices[dev_handle].conn.timer_entry) ) ;
 
     if( hh_cb.devices[dev_handle].state != HID_DEV_CONNECTED )
+    {
+        HIDH_TRACE_DEBUG("returning HID_ERR_NO_CONNECTION", __FUNCTION__);
         return HID_ERR_NO_CONNECTION;
+    }
 
     hh_cb.devices[dev_handle].conn_tries = HID_HOST_MAX_CONN_RETRY+1;
+    HIDH_TRACE_DEBUG("%s: calling hidh_conn_disconnect", __FUNCTION__);
     return hidh_conn_disconnect( dev_handle );
 }
 
