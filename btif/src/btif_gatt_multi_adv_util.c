@@ -52,13 +52,7 @@ btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
         max_adv_inst = 1;
 
     BTIF_TRACE_DEBUG("%s, Count:%d", __FUNCTION__, max_adv_inst);
-    if(0 == BTM_BleMaxMultiAdvInstanceCount())
-    {
-        BTIF_TRACE_WARNING("BTM_BleMaxMultiAdvInstanceCount - No instances found");
-        return NULL;
-    }
 
-    BTIF_TRACE_DEBUG("BTM_BleMaxMultiAdvInstanceCount count:%d", BTM_BleMaxMultiAdvInstanceCount());
     if (NULL == p_multi_adv_com_data_cb)
     {
         p_multi_adv_com_data_cb = GKI_getbuf(sizeof(btgatt_multi_adv_common_data));
