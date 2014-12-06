@@ -4937,8 +4937,8 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
             else
             {
                 sec_event.auth_cmpl.success = TRUE;
+                GATT_ConfigServiceChangeCCC(bda, TRUE, BT_TRANSPORT_LE);
             }
-            sec_event.auth_cmpl.privacy_enabled = p_data->complt.privacy_supported;
             if (bta_dm_cb.p_sec_cback)
             {
                 //bta_dm_cb.p_sec_cback(BTA_DM_AUTH_CMPL_EVT, &sec_event);
