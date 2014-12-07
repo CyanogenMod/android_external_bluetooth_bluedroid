@@ -1246,7 +1246,7 @@ and USER_HW_DISABLE_API macros */
 
 /* Whether link wants to be the master or the slave. */
 #ifndef L2CAP_DESIRED_LINK_ROLE
-#define L2CAP_DESIRED_LINK_ROLE     HCI_ROLE_SLAVE
+#define L2CAP_DESIRED_LINK_ROLE     HCI_ROLE_MASTER
 #endif
 
 /* Include Non-Flushable Packet Boundary Flag feature of Lisbon */
