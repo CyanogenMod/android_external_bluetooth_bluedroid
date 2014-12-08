@@ -152,7 +152,7 @@ static void event_tx(UNUSED_ATTR void *context) {
 
     HC_BT_HDR *p_msg = p_next_msg;
     p_next_msg = utils_getnext(p_msg);
-    utils_remove_from_queue(&tx_q, p_msg);
+    utils_remove_from_queue_unlocked(&tx_q, p_msg);
     sending_msg_que[sending_msg_count++] = p_msg;
   }
   utils_unlock();
