@@ -1457,7 +1457,7 @@ and USER_HW_DISABLE_API macros */
 #endif
 
 #ifndef SMP_DEBUG
-#define SMP_DEBUG            TRUE
+#define SMP_DEBUG            FALSE
 #endif
 
 #ifndef SMP_DEFAULT_AUTH_REQ
