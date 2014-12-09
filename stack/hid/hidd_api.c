@@ -347,6 +347,21 @@ tHID_STATUS HID_DevAddRecord(UINT32 handle, char *p_name, char *p_description, c
             GKI_freebuf(p_buf);
         }
 
+        {
+            UINT8 lang_buf[8];
+            p = lang_buf;
+            UINT8 seq_len = 6;
+            UINT16 lang_english = 0x0409;
+            UINT8_TO_BE_STREAM(p, (DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
+            UINT8_TO_BE_STREAM(p, seq_len);
+            UINT8_TO_BE_STREAM(p, (UINT_DESC_TYPE << 3) | SIZE_TWO_BYTES);
+            UINT16_TO_BE_STREAM(p, lang_english);
+            UINT8_TO_BE_STREAM(p, (UINT_DESC_TYPE << 3) | SIZE_TWO_BYTES);
+            UINT16_TO_BE_STREAM(p, LANGUAGE_BASE_ID);
+            result &= SDP_AddAttribute(handle, ATTR_ID_HID_LANGUAGE_ID_BASE, DATA_ELE_SEQ_DESC_TYPE,
+                p - lang_buf, lang_buf);
+        }
+
         result &= SDP_AddAttribute(handle, ATTR_ID_HID_BATTERY_POWER, BOOLEAN_DESC_TYPE, 1,
             (UINT8*) &bool_true);
 
