@@ -37,6 +37,7 @@ typedef struct hid_conn
 #define HID_CONN_STATE_CONNECTED        (4)
 #define HID_CONN_STATE_DISCONNECTING    (5)
 #define HID_CONN_STATE_SECURITY         (6)
+#define HID_CONN_STATE_REMOVING         (7)
 
     UINT8             conn_state;
 

@@ -491,6 +491,8 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
             APPL_TRACE_DEBUG ("bta_hh_sdp_cmpl:SDP failed for  incoming conn :hndl %d",
                                 p_cb->incoming_hid_handle);
             HID_HostRemoveDev( p_cb->incoming_hid_handle);
+            p_cb->incoming_conn = FALSE;
+            p_cb->incoming_hid_handle = BTA_HH_INVALID_HANDLE;
         }
         conn_dat.status = status;
         (* bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn_dat);
@@ -560,6 +562,10 @@ void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     tBTA_HH_CONN        conn ;
     UINT8   dev_handle = p_data ? (UINT8)p_data->hid_cback.hdr.layer_specific : \
                         p_cb->hid_handle;
+
+#if BTA_HH_DEBUG
+        APPL_TRACE_EVENT ("bta_hh_open_cmpl_act:  Device[%d] connected", dev_handle);
+#endif
 
     memset((void *)&conn, 0, sizeof (tBTA_HH_CONN));
     conn.handle = dev_handle;
