@@ -41,6 +41,133 @@ const char *dev_path = "/dev/uhid";
 static tBTA_HH_RPT_CACHE_ENTRY sReportCache[BTA_HH_NV_LOAD_MAX];
 #endif
 
+
+#define REPORT_DESC_REPORT_ID           0x05
+#define REPORT_DESC_DIGITIZER_PAGE      0x0D
+#define REPORT_DESC_START_COLLECTION    0xA1
+#define REPORT_DESC_END_COLLECTION      0xC0
+
+/*********************************************************
+**  Local type definitions
+*********************************************************/
+
+typedef struct hid_kb_bllist
+{
+    UINT16 product_id;
+    UINT16 version_id;
+    char*  kb_name;
+} tHID_KB_BLLIST;
+
+
+static tHID_KB_BLLIST hid_multitouch_bl[] =
+{
+    {0x22b8, 0x093d, "Motorola Keyboard KZ500 v122"}
+};
+
+static bool check_if_dig_desc_to_be_removed(UINT16 product_id,
+            UINT16 version_id, char*  kb_name)
+{
+    int len, i;
+    len= sizeof(hid_multitouch_bl) / sizeof(tHID_KB_BLLIST);
+    for(i = 0; i< len; i++)
+    {
+        if ((hid_multitouch_bl[i].product_id == product_id) &&
+            (hid_multitouch_bl[i].version_id == version_id) &&
+            !strncmp(hid_multitouch_bl[i].kb_name, kb_name,
+                strlen(hid_multitouch_bl[i].kb_name))) {
+            BTIF_TRACE_DEBUG("%s: %s is in multitouch blacklist",
+                __FUNCTION__, kb_name);
+            return TRUE;
+        }
+    }
+    BTIF_TRACE_DEBUG("%s: %s is not in multitouch blacklist",
+        __FUNCTION__, kb_name);
+    return FALSE;
+}
+
+static void remove_digitizer_descriptor(UINT8 **data, UINT16 *length)
+{
+    UINT8 *startDescPtr = *data;
+    UINT8 *desc = *data;
+
+    /* Parse until complete report descriptor is parsed */
+    while (startDescPtr < *data + *length)
+    {
+        UINT8 item = *startDescPtr++;
+        UINT8 usage_page;
+
+        switch (item) {
+            case REPORT_DESC_REPORT_ID: // Report ID
+                usage_page = *startDescPtr;
+                if (usage_page == REPORT_DESC_DIGITIZER_PAGE)
+                {
+                    // digitizer usage page
+                    UINT8 *traversePtr = startDescPtr;
+                    UINT8 num_of_collections = 0;
+                    UINT8 num_of_end_collections = 0;
+                    UINT16 remainingBytesToBeCopied = 0;
+                    /* increment pointer until digitizer descriptor is parsed
+                     * completely or start collection matches end collection */
+                    while ((num_of_collections == 0 || (num_of_collections !=
+                        num_of_end_collections)) && (traversePtr <
+                        *data + *length))
+                    {
+                        if (*traversePtr == REPORT_DESC_START_COLLECTION) {
+                            /* Increment number of collections for
+                             * digitizer descriptor */
+                            num_of_collections++;
+                        }
+                        if (*traversePtr == REPORT_DESC_END_COLLECTION) {
+                            /* Increment number of end collections for
+                             * digitizer descriptor */
+                            num_of_end_collections++;
+                        }
+                        /* increment the pointer to continue parsing
+                         * the digitizer descriptor */
+                        *traversePtr++;
+                    }
+                    remainingBytesToBeCopied = *length - (traversePtr - *data);
+                    BTIF_TRACE_DEBUG("starting point of digitizer desc = %d\n",
+                        (startDescPtr - *data) - 1);
+                    BTIF_TRACE_DEBUG("start collection = %d, end collection = "
+                        " %d\n", num_of_collections, num_of_end_collections);
+                    BTIF_TRACE_DEBUG("end point of digitizer desc = %d\n",
+                        (traversePtr - *data));
+                    BTIF_TRACE_DEBUG("length of digitizer desc = %d\n",
+                        traversePtr - startDescPtr + 2);
+                    BTIF_TRACE_DEBUG("bytes remaining to be copied = %d\n",
+                        remainingBytesToBeCopied);
+                    if (remainingBytesToBeCopied)
+                    {
+                        UINT32 i;
+                        UINT8 *newDescPtr = traversePtr;
+                        UINT32 digDescStartPoint = (startDescPtr - *data) - 1;
+                        UINT32 digDescEndPoint = *length -
+                            (traversePtr - startDescPtr) - 1;
+                        /* copy the remaining bytes in descriptor to the
+                         * existing place of digitizer descriptor */
+                        for (i = digDescStartPoint; i < digDescEndPoint; i ++) {
+                            desc[i] = *newDescPtr++;
+                        }
+                    }
+                    /* update the length as digitizer descriptor is removed */
+                    *length = *length - (traversePtr - startDescPtr) - 1;
+                    BTIF_TRACE_DEBUG("new length of report desc = %d\n",
+                        *length);
+                    /* Update the start descriptor again to continue parsing
+                     * for digitizer records assuming more than 1 digitizer
+                     * record exists in report descriptor */
+                    startDescPtr --;
+                }
+                break;
+
+            default:
+                startDescPtr += (item & 0x03);
+                break;
+        }
+    }
+}
+
 /*Internal function to perform UHID write and error checking*/
 static int uhid_write(int fd, const struct uhid_event *ev)
 {
@@ -420,6 +547,9 @@ void bta_hh_co_send_hid_info(btif_hh_device_t *p_dev, char *dev_name, UINT16 ven
                                                                     "ctry_code=0x%02x",__FUNCTION__,
                                                                     vendor_id, product_id,
                                                                     version, ctry_code);
+
+    if (check_if_dig_desc_to_be_removed(vendor_id, product_id, dev_name))
+        remove_digitizer_descriptor(&p_dscp, (UINT16 *)&dscp_len);
 
 //Create and send hid descriptor to kernel
     memset(&ev, 0, sizeof(ev));
