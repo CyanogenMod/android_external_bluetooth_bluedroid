@@ -2809,13 +2809,11 @@ static void bta_dm_rem_name_cback (BD_ADDR bd_addr, DEV_CLASS dc, BD_NAME bd_nam
 
     APPL_TRACE_DEBUG("bta_dm_rem_name_cback name=<%s>", bd_name);
 
-    if (strlen((char*)bd_name) > (BD_NAME_LEN))
-    {
-        sec_event.rem_name_evt.bd_name[(BD_NAME_LEN)] = 0;
-    }
     bdcpy(sec_event.rem_name_evt.bd_addr, bd_addr);
     BCM_STRNCPY_S((char*)sec_event.rem_name_evt.bd_name, sizeof(BD_NAME), (char*)bd_name,
         (BD_NAME_LEN));
+
+    sec_event.rem_name_evt.bd_name[(BD_NAME_LEN)] = 0;
     if( bta_dm_cb.p_sec_cback )
     {
         bta_dm_cb.p_sec_cback(BTA_DM_REM_NAME_EVT, &sec_event);
