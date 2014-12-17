@@ -1127,7 +1127,8 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                 // Check if RPA offloading is supported, otherwise, do not start
                 // background connection, since it will not connect after address
                 // changes
-                if (BTM_BLE_IS_RESOLVE_BDA(p_cb->bd_addr.address))
+                if ((p_cb->addr_type == BLE_ADDR_RANDOM)
+                        && BTM_BLE_IS_RESOLVE_BDA(p_cb->bd_addr.address))
                 {
                     tBTM_BLE_VSC_CB vnd_capabilities;
                     BTM_BleGetVendorCapabilities(&vnd_capabilities);
