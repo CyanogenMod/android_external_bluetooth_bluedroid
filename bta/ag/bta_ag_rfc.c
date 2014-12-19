@@ -382,7 +382,7 @@ void bta_ag_rfc_do_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
             bta_ag_mgmt_cback_tbl[bta_ag_scb_to_idx(p_scb) - 1]) == PORT_SUCCESS)
     {
         bta_ag_setup_port(p_scb, p_scb->conn_handle);
-        APPL_TRACE_DEBUG("bta_ag_rfc_do_open : conn_handle = %d", p_scb->conn_handle);
+        APPL_TRACE_IMP("bta_ag_rfc_do_open : conn_handle = %d", p_scb->conn_handle);
     }
     /* RFCOMM create connection failed; send ourselves RFCOMM close event */
     else

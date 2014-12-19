@@ -416,11 +416,13 @@ static int create_cmdjob(char *cmd)
     char *job_cmd;
 
     job_cmd = malloc(strlen(cmd)+1); /* freed in job handler */
-    strlcpy(job_cmd, cmd, sizeof(job_cmd));
+    if (job_cmd) {
+        strlcpy(job_cmd, cmd, sizeof(job_cmd));
 
-    if (pthread_create(&thread_id, NULL,
+        if (pthread_create(&thread_id, NULL,
                        (void*)cmdjob_handler, (void*)job_cmd)!=0)
-      perror("pthread_create");
+            perror("pthread_create");
+    }
 
     return 0;
 }
@@ -720,7 +722,6 @@ void do_cleanup(char *p)
 int GetBdAddr(char *p, bt_bdaddr_t *pbd_addr)
 {
     char Arr[13] = {0};
-    char *pszAddr = NULL;
     UINT8 k1 = 0;
     UINT8 k2 = 0;
     int i;
@@ -736,13 +737,10 @@ int GetBdAddr(char *p, bt_bdaddr_t *pbd_addr)
     {
         Arr[i] = tolower(Arr[i]);
     }
-    pszAddr = &Arr[0];
     for(i=0; i<6; i++)
     {
-        k1 = (UINT8) ( (*pszAddr >= 'a') ? ( 10 + (UINT8)( *pszAddr - 'a' )) : (*pszAddr - '0') );
-        pszAddr++;
-        k2 = (UINT8) ( (*pszAddr >= 'a') ? ( 10 + (UINT8)( *pszAddr - 'a' )) : (*pszAddr - '0') );
-        pszAddr++;
+        k1 = (UINT8) ( (Arr[i*2] >= 'a') ? ( 10 + (UINT8)( Arr[i*2] - 'a' )) : (Arr[i*2] - '0') );
+        k2 = (UINT8) ( (Arr[i*2+1] >= 'a') ? ( 10 + (UINT8)( Arr[i*2+1] - 'a' )) : (Arr[i*2+1] - '0') );
         if ( (k1>15)||(k2>15) )
         {
             return FALSE;
@@ -790,7 +788,8 @@ void do_l2cap_init(char *p)
     {
         sL2capInterface = get_l2cap_interface();
     }
-    sL2capInterface->Init(&l2test_l2c_appl);
+    if (sL2capInterface)
+        sL2capInterface->Init(&l2test_l2c_appl);
 }
 
 void do_l2cap_deregister(char *p)

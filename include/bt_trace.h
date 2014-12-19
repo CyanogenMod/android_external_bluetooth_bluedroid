@@ -133,7 +133,8 @@
 
 /* LayerIDs for BT APP */
 #define BTTRC_ID_BTAPP                     87
-#define BTTRC_ID_BT_PROTOCOL               88         /* this is a temporary solution to allow dynamic
+#define BTTRC_ID_LATENCY_AUDIO             88
+#define BTTRC_ID_BT_PROTOCOL               89         /* this is a temporary solution to allow dynamic
                                                          enable/disable of BT_PROTOCOL_TRACE */
 #define BTTRC_ID_MAX_ID                    BTTRC_ID_BT_PROTOCOL
 // btla-specific --
@@ -823,8 +824,10 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
 #if (BT_TRACE_BTIF == TRUE)
 
 extern UINT8 btif_trace_level;
+extern UINT8 audio_latency_trace_level;
 
 /* define traces for application */
+#define BTIF_TRACE_IMP(...)                      {LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 #define BTIF_TRACE_ERROR(...)                    {if (btif_trace_level >= BT_TRACE_LEVEL_ERROR) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_ERROR, ##__VA_ARGS__);}
 #define BTIF_TRACE_WARNING(...)                  {if (btif_trace_level >= BT_TRACE_LEVEL_WARNING) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_WARNING, ##__VA_ARGS__);}
 #define BTIF_TRACE_API(...)                      {if (btif_trace_level >= BT_TRACE_LEVEL_API) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_API, ##__VA_ARGS__);}
@@ -835,6 +838,7 @@ extern UINT8 btif_trace_level;
 #else
 /* define traces for Application */
 
+#define BTIF_TRACE_IMP(...)
 #define BTIF_TRACE_ERROR(...)
 #define BTIF_TRACE_WARNING(...)
 #define BTIF_TRACE_API(...)
@@ -848,22 +852,26 @@ extern UINT8 btif_trace_level;
 #if (BT_USE_TRACES == TRUE || BT_TRACE_APPL == TRUE)
 
 /* define traces for application */
+#define APPL_TRACE_IMP(...)                      {LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 #define APPL_TRACE_ERROR(...)                    {if (appl_trace_level >= BT_TRACE_LEVEL_ERROR) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_ERROR, ##__VA_ARGS__);}
 #define APPL_TRACE_WARNING(...)                  {if (appl_trace_level >= BT_TRACE_LEVEL_WARNING) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_WARNING, ##__VA_ARGS__);}
 #define APPL_TRACE_API(...)                      {if (appl_trace_level >= BT_TRACE_LEVEL_API) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_API, ##__VA_ARGS__);}
 #define APPL_TRACE_EVENT(...)                    {if (appl_trace_level >= BT_TRACE_LEVEL_EVENT) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_EVENT, ##__VA_ARGS__);}
 #define APPL_TRACE_DEBUG(...)                    {if (appl_trace_level >= BT_TRACE_LEVEL_DEBUG) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 #define APPL_TRACE_VERBOSE(...)                  {if (appl_trace_level >= BT_TRACE_LEVEL_VERBOSE) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
+#define APPL_TRACE_LATENCY_AUDIO(...)            {if (audio_latency_trace_level >= BT_TRACE_LEVEL_VERBOSE) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 
 #else
 /* define traces for Application */
 
+#define APPL_TRACE_IMP(...)
 #define APPL_TRACE_ERROR(...)
 #define APPL_TRACE_WARNING(...)
 #define APPL_TRACE_API(...)
 #define APPL_TRACE_EVENT(...)
 #define APPL_TRACE_DEBUG(...)
 #define APPL_TRACE_VERBOSE(...)
+#define APPL_TRACE_LATENCY_AUDIO(...)
 
 #endif
 

@@ -265,8 +265,11 @@ void mca_set_cfg_by_tbl(tL2CAP_CFG_INFO *p_cfg, tMCA_TC_TBL *p_tbl)
     else
     {
         p_dcb = mca_dcb_by_hdl(p_tbl->cb_idx);
-        p_opt = &p_dcb->p_chnl_cfg->fcr_opt;
-        fcs   = p_dcb->p_chnl_cfg->fcs;
+        if (p_dcb != NULL)
+        {
+            p_opt = &p_dcb->p_chnl_cfg->fcr_opt;
+            fcs   = p_dcb->p_chnl_cfg->fcs;
+        }
     }
     memset(p_cfg, 0, sizeof(tL2CAP_CFG_INFO));
     p_cfg->mtu_present = TRUE;
@@ -320,7 +323,10 @@ void mca_tc_close_ind(tMCA_TC_TBL *p_tbl, UINT16 reason)
     if (p_tbl->tcid == MCA_CTRL_TCID)
     {
         p_ccb = mca_ccb_by_hdl((tMCA_CL)p_tbl->cb_idx);
-        mca_ccb_event(p_ccb, MCA_CCB_LL_CLOSE_EVT, (tMCA_CCB_EVT *)&close);
+        if(p_ccb != NULL)
+        {
+            mca_ccb_event(p_ccb, MCA_CCB_LL_CLOSE_EVT, (tMCA_CCB_EVT *)&close);
+        }
     }
     /* notify dcb that channel close */
     else
@@ -369,8 +375,10 @@ void mca_tc_open_ind(tMCA_TC_TBL *p_tbl)
     if (p_tbl->tcid == MCA_CTRL_TCID)
     {
         p_ccb = mca_ccb_by_hdl((tMCA_CL)p_tbl->cb_idx);
-
-        mca_ccb_event(p_ccb, MCA_CCB_LL_OPEN_EVT, (tMCA_CCB_EVT *)&open);
+        if (p_ccb != NULL)
+        {
+            mca_ccb_event(p_ccb, MCA_CCB_LL_OPEN_EVT, (tMCA_CCB_EVT *)&open);
+        }
     }
     /* must be data channel, notify dcb that channel open */
     else
@@ -411,7 +419,10 @@ void mca_tc_cong_ind(tMCA_TC_TBL *p_tbl, BOOLEAN is_congested)
     if (p_tbl->tcid == MCA_CTRL_TCID)
     {
         p_ccb = mca_ccb_by_hdl((tMCA_CL)p_tbl->cb_idx);
-        mca_ccb_event(p_ccb, MCA_CCB_LL_CONG_EVT, (tMCA_CCB_EVT *) &is_congested);
+        if (p_ccb != NULL)
+        {
+            mca_ccb_event(p_ccb, MCA_CCB_LL_CONG_EVT, (tMCA_CCB_EVT *) &is_congested);
+        }
     }
     /* notify dcb that channel open */
     else

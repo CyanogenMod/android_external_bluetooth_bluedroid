@@ -300,6 +300,10 @@
 #define BTA_SKIP_BLE_START_ENCRYPTION FALSE
 #endif
 
+#ifndef BTA_DMT_SPT_FLAG_DISABLE
+#define BTA_DMT_SPT_FLAG_DISABLE  TRUE
+#endif
+
 #ifndef BT_TRACE_PROTOCOL
 #define BT_TRACE_PROTOCOL  TRUE
 #endif
@@ -310,6 +314,10 @@
 
 #ifndef BT_TRACE_BTIF
 #define BT_TRACE_BTIF  TRUE
+#endif
+
+#ifndef BT_TRACE_LATENCY_AUDIO
+#define BT_TRACE_LATENCY_AUDIO  TRUE
 #endif
 
 #ifndef BTTRC_INCLUDED
@@ -1178,16 +1186,16 @@ and USER_HW_DISABLE_API macros */
 #define L2CAP_FCR_INCLUDED TRUE
 #endif
 
-/* The maximum number of simultaneous links that L2CAP can support. */
-#ifndef MAX_ACL_CONNECTIONS
-#define MAX_L2CAP_LINKS             7
-#else
-#define MAX_L2CAP_LINKS             MAX_ACL_CONNECTIONS
-#endif
-
 /* The maximum number of simultaneous channels that L2CAP can support. */
 #ifndef MAX_L2CAP_CHANNELS
 #define MAX_L2CAP_CHANNELS          16
+#endif
+
+/* The maximum number of simultaneous links that L2CAP can support. */
+#ifndef MAX_L2CAP_CHANNELS
+#define MAX_L2CAP_LINKS             7
+#else
+#define MAX_L2CAP_LINKS             MAX_L2CAP_CHANNELS
 #endif
 
 /* The maximum number of simultaneous applications that can register with L2CAP. */

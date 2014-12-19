@@ -23,6 +23,7 @@
  ******************************************************************************/
 
 #include "btm_api.h"
+#include "btm_int.h"
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_sys_int.h"
@@ -60,6 +61,7 @@ tBTA_SYS_CB bta_sys_cb;
 /* TODO Bluedroid - Hard-coded trace levels -  Needs to be configurable */
 UINT8 appl_trace_level = BT_TRACE_LEVEL_WARNING; //APPL_INITIAL_TRACE_LEVEL;
 UINT8 btif_trace_level = BT_TRACE_LEVEL_WARNING;
+UINT8 audio_latency_trace_level = BT_TRACE_LEVEL_WARNING;
 
 static const tBTA_SYS_REG bta_sys_hw_reg =
 {
@@ -215,7 +217,7 @@ BOOLEAN bta_sys_sm_execute(BT_HDR *p_msg)
     /* execute action functions */
     for (i = 0; i < BTA_SYS_ACTIONS; i++)
     {
-        if ((action = state_table[p_msg->event & 0x00ff][i]) != BTA_SYS_IGNORE)
+        if ((action = state_table[p_msg->event & 0x00ff][i]) < BTA_SYS_IGNORE)
         {
             (*bta_sys_action[action])( (tBTA_SYS_HW_MSG*) p_msg);
         }
@@ -420,6 +422,11 @@ void bta_sys_hw_evt_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
     {
         bta_sys_hw_btm_cback (BTM_DEV_STATUS_UP);
     }
+#elif (defined NO_HCI_RESET_FROM_BDROID)
+    /* In case of Rome, HCI reset is sent as part of platform driver initialization */
+    /* So, skip the one from Bluedroid and simply call command complete */
+    APPL_TRACE_EVENT("Skipping HCI Reset from Bdroid. Already sent it from platform driver");
+    btm_reset_complete();
 #else
 
     /* if HCI reset was not sent during stack start-up */

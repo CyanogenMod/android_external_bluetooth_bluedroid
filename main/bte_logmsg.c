@@ -240,9 +240,9 @@ LogMsg(UINT32 trace_set_mask, const char *fmt_str, ...)
 	gettimeofday(&tv, &tz);
 	time(&t);
 	tm = localtime(&t);
-
-    sprintf(buffer, "%02d:%02d:%02d.%03d ", tm->tm_hour, tm->tm_min, tm->tm_sec,
-        tv.tv_usec / 1000);
+        if (tm)
+            sprintf(buffer, "%02d:%02d:%02d.%03d ", tm->tm_hour, tm->tm_min, tm->tm_sec,
+            tv.tv_usec / 1000);
 #endif
 	va_start(ap, fmt_str);
 	vsnprintf(&buffer[MSG_BUFFER_OFFSET], BTE_LOG_MAX_SIZE, fmt_str, ap);
@@ -294,9 +294,9 @@ ScrLog(UINT32 trace_set_mask, const char *fmt_str, ...)
 	gettimeofday(&tv, &tz);
 	time(&t);
 	tm = localtime(&t);
-
-        sprintf(buffer, "%02d:%02d:%02d.%03ld ", tm->tm_hour, tm->tm_min, tm->tm_sec,
-        tv.tv_usec / 1000);
+        if (tm)
+            sprintf(buffer, "%02d:%02d:%02d.%03ld ", tm->tm_hour, tm->tm_min, tm->tm_sec,
+            tv.tv_usec / 1000);
 
 	va_start(ap, fmt_str);
 	vsnprintf(&buffer[strlen(buffer)], BTE_LOG_MAX_SIZE, fmt_str, ap);
@@ -325,6 +325,14 @@ BT_API UINT8 BTIF_SetTraceLevel( UINT8 new_level )
         btif_trace_level = new_level;
 
     return (btif_trace_level);
+}
+
+BT_API UINT8 AUDIO_Latency_SetTraceLevel( UINT8 new_level )
+{
+    if (new_level != 0xFF)
+    audio_latency_trace_level = new_level;
+
+    return (audio_latency_trace_level);
 }
 
 BTU_API UINT8 BTU_SetTraceLevel( UINT8 new_level )
@@ -500,6 +508,10 @@ tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
 
 #if (BT_TRACE_BTIF == TRUE)
     {BTTRC_ID_BTA_ACC, BTTRC_ID_BTAPP, BTIF_SetTraceLevel, "TRC_BTIF", DEFAULT_CONF_TRACE_LEVEL},
+#endif
+
+#if (BT_TRACE_LATENCY_AUDIO == TRUE)
+    {BTTRC_ID_LATENCY_AUDIO, BTTRC_ID_LATENCY_AUDIO, AUDIO_Latency_SetTraceLevel, "TRC_LATENCY_AUDIO", DEFAULT_CONF_TRACE_LEVEL},
 #endif
 
     {0, 0, NULL, NULL, DEFAULT_CONF_TRACE_LEVEL}

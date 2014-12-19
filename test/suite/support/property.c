@@ -37,7 +37,11 @@ bt_property_t *property_copy_array(const bt_property_t *properties, size_t count
 bt_property_t *property_new_name(const char *name) {
   bt_bdname_t *bdname = calloc(sizeof(bt_bdname_t), 1);
   bt_property_t *property = calloc(sizeof(bt_property_t), 1);
-
+  if (!property || !bdname)
+  {
+    perror("property_new_name(): Failed to allocate memory");
+    return NULL;
+  }
   property->type = BT_PROPERTY_BDNAME;
   property->val = bdname;
   property->len = sizeof(bt_bdname_t);
@@ -50,7 +54,11 @@ bt_property_t *property_new_name(const char *name) {
 bt_property_t *property_new_discovery_timeout(uint32_t timeout) {
   uint32_t *val = malloc(sizeof(uint32_t));
   bt_property_t *property = malloc(sizeof(bt_property_t));
-
+  if(!val || !property)
+  {
+    perror("property_new_discovery(): Failed to allocate memory");
+    return NULL;
+  }
   property->type = BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT;
   property->val = val;
   property->len = sizeof(uint32_t);

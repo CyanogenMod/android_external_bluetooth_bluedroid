@@ -791,12 +791,19 @@ static int open_bluetooth_stack (const struct hw_module_t* module, char const* n
     UNUSED(name);
 
     bluetooth_device_t *stack = malloc(sizeof(bluetooth_device_t) );
-    memset(stack, 0, sizeof(bluetooth_device_t) );
-    stack->common.tag = HARDWARE_DEVICE_TAG;
-    stack->common.version = 0;
-    stack->common.module = (struct hw_module_t*)module;
-    stack->common.close = close_bluetooth_stack;
-    stack->get_bluetooth_interface = bluetooth__get_bluetooth_interface;
+    if (stack)
+    {
+        memset(stack, 0, sizeof(bluetooth_device_t) );
+        stack->common.tag = HARDWARE_DEVICE_TAG;
+        stack->common.version = 0;
+        stack->common.module = (struct hw_module_t*)module;
+        stack->common.close = close_bluetooth_stack;
+        stack->get_bluetooth_interface = bluetooth__get_bluetooth_interface;
+    }
+    else
+    {
+        ALOGE("%s: malloc() returned NULL", __FUNCTION__);
+    }
     *abstraction = (struct hw_device_t*)stack;
     return 0;
 }

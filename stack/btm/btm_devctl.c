@@ -35,6 +35,10 @@
 #include "btm_int.h"
 #include "l2c_int.h"
 
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+#include <cutils/properties.h>
+#endif
+
 #if BLE_INCLUDED == TRUE
 #include "gatt_int.h"
 
@@ -171,6 +175,7 @@ void btm_dev_init (void)
 
 #if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
     btm_cb.btm_sec_conn_supported = FALSE;
+    btm_cb.btm_sec_conn_only_mode = FALSE;
 #endif
 
     btm_cb.first_disabled_channel = 0xff; /* To allow disabling 0th channel alone */
@@ -1243,6 +1248,13 @@ void btm_reset_ctrlr_complete ()
         (HCI_SECURE_CONN_HOST_SUPPORTED(p_devcb->local_lmp_features[HCI_EXT_FEATURES_PAGE_1])))
     {
         btm_cb.btm_sec_conn_supported = TRUE;
+        char value[PROPERTY_VALUE_MAX];
+        if( (property_get("bluetooth.sec_conn_only_mode", value, "false")) &&
+                !strcmp(value, "true"))
+        {
+            BTM_TRACE_WARNING ("Bluetooth: Secure connection only mode Enabled");
+            btm_cb.btm_sec_conn_only_mode = TRUE;
+        }
     }
 #endif
 
@@ -2080,6 +2092,46 @@ tBTM_DEV_STATUS_CB *BTM_RegisterForDeviceStatusNotif (tBTM_DEV_STATUS_CB *p_cb)
 
     btm_cb.devcb.p_dev_status_cb = p_cb;
     return (p_prev);
+}
+
+
+/*******************************************************************************
+**
+** Function         BTM_Hci_Raw_Command
+**
+** Description      Send  HCI raw command to the controller.
+**
+** Returns
+**      BTM_SUCCESS         Command sent. Does not expect command complete
+**                              event. (command cmpl callback param is NULL)
+**      BTM_CMD_STARTED     Command sent. Waiting for command cmpl event.
+**
+**
+*******************************************************************************/
+tBTM_STATUS BTM_Hci_Raw_Command(UINT16 opcode, UINT8 param_len,
+                              UINT8 *p_param_buf, tBTM_RAW_CMPL_CB *p_cb)
+{
+    void *p_buf;
+
+    BTM_TRACE_EVENT ("BTM: BTM_Hci_Raw_Command: Opcode: 0x%04X, ParamLen: %i.",
+                      opcode, param_len);
+
+    /* Allocate a buffer to hold HCI command plus the callback function */
+    p_buf = GKI_getbuf((UINT16)(sizeof(BT_HDR) + sizeof (tBTM_CMPL_CB *) +
+                            param_len + HCIC_PREAMBLE_SIZE));
+    if (p_buf != NULL)
+    {
+        btsnd_hcic_raw_cmd (p_buf, opcode, param_len, p_param_buf, (void *)p_cb);
+
+        /* Return value */
+        if (p_cb != NULL)
+            return BTM_CMD_STARTED;
+        else
+            return BTM_SUCCESS;
+    }
+    else
+        return BTM_NO_RESOURCES;
+
 }
 
 /*******************************************************************************

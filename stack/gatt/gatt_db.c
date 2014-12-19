@@ -1003,14 +1003,20 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PER
     }
     else if (p_attr16->uuid_type == GATT_ATTR_UUID_TYPE_32)
     {
-        GATT_TRACE_DEBUG("=====> handle = [0x%04x] uuid32 = [0x%08x] perm=0x%02x ",
+        if(NULL != p_attr32)
+        {
+            GATT_TRACE_DEBUG("=====> handle = [0x%04x] uuid32 = [0x%08x] perm=0x%02x ",
                           p_attr32->handle, p_attr32->uuid, p_attr32->permission);
+        }
     }
     else
     {
-        GATT_TRACE_DEBUG("=====> handle = [0x%04x] uuid128 = [0x%02x:0x%02x] perm=0x%02x ",
+        if(NULL != p_attr128)
+        {
+            GATT_TRACE_DEBUG("=====> handle = [0x%04x] uuid128 = [0x%02x:0x%02x] perm=0x%02x ",
                           p_attr128->handle, p_attr128->uuid[0],p_attr128->uuid[1],
                           p_attr128->permission);
+        }
     }
     return(void *)p_attr16;
 }

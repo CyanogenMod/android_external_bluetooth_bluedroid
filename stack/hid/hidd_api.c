@@ -274,7 +274,7 @@ tHID_STATUS HID_DevAddRecord(UINT32 handle, char *p_name, char *p_description, c
     if (result)
     {
         const UINT16 profile_uuid = UUID_SERVCLASS_HUMAN_INTERFACE;
-        const UINT16 version = 0x0101;
+        const UINT16 version = 0x0100;
 
         result &= SDP_AddProfileDescriptorList(handle, profile_uuid, version);
     }
@@ -283,17 +283,22 @@ tHID_STATUS HID_DevAddRecord(UINT32 handle, char *p_name, char *p_description, c
     if (result)
     {
         UINT8 *p;
-        const UINT16 version = 0x0111;
+        const UINT16 rel_num = 0x0100;
+        const UINT16 parser_version = 0x0111;
+        const UINT16 prof_ver = 0x0100;
         const UINT8 dev_subclass = subclass;
         const UINT8 country_code = 0x21;
         const UINT8 bool_false = 0x00;
         const UINT8 bool_true = 0x01;
-        const UINT16 ssr_max_lat = 360;
-        const UINT16 ssr_min_tmo = 160;
         UINT16 temp;
 
         p = (UINT8*) &temp;
-        UINT16_TO_BE_STREAM(p, version);
+        UINT16_TO_BE_STREAM(p, rel_num);
+        result &= SDP_AddAttribute(handle, ATTR_ID_HID_DEVICE_RELNUM, UINT_DESC_TYPE, 2,
+            (UINT8*) &temp);
+
+        p = (UINT8*) &temp;
+        UINT16_TO_BE_STREAM(p, parser_version);
         result &= SDP_AddAttribute(handle, ATTR_ID_HID_PARSER_VERSION, UINT_DESC_TYPE, 2,
             (UINT8*) &temp);
 
@@ -355,13 +360,8 @@ tHID_STATUS HID_DevAddRecord(UINT32 handle, char *p_name, char *p_description, c
             (UINT8*) &bool_true);
 
         p = (UINT8*) &temp;
-        UINT16_TO_BE_STREAM(p, ssr_max_lat);
-        result &= SDP_AddAttribute(handle, ATTR_ID_HID_SSR_HOST_MAX_LAT, UINT_DESC_TYPE, 2,
-            (UINT8*) &temp);
-
-        p = (UINT8*) &temp;
-        UINT16_TO_BE_STREAM(p, ssr_min_tmo);
-        result &= SDP_AddAttribute(handle, ATTR_ID_HID_SSR_HOST_MIN_TOUT, UINT_DESC_TYPE, 2,
+        UINT16_TO_BE_STREAM(p, prof_ver);
+        result &= SDP_AddAttribute(handle, ATTR_ID_HID_PROFILE_VERSION, UINT_DESC_TYPE, 2,
             (UINT8*) &temp);
     }
 

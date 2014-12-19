@@ -921,9 +921,8 @@ UINT16 AVRC_Open(UINT8 *p_handle, tAVRC_CONN_CB *p_ccb, BD_ADDR_PTR peer_addr)
         memset(&avrc_cb.rcb[*p_handle], 0, sizeof(tAVRC_RASM_CB));
 #endif
     }
-    AVRC_TRACE_DEBUG("AVRC_Open role: %d, control:%d status:%d, handle:%d", cc.role, cc.control,
-        status, *p_handle);
-
+    BTIF_TRACE_IMP(" %s AVRC_Open role: %d, control:%d status:%d, handle:%d",
+               __FUNCTION__, cc.role, cc.control, status, *p_handle);
     return status;
 }
 
@@ -1032,7 +1031,7 @@ UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt)
             AVRC_TRACE_DEBUG("p_pkt->len(%d) > AVRC_MAX_CTRL_DATA_LEN", p_pkt->len );
             p_pkt_new = (BT_HDR *)GKI_getbuf((UINT16)(AVRC_PACKET_LEN + AVCT_MSG_OFFSET
                 + BT_HDR_SIZE));
-            if (p_pkt_new)
+            if ((p_pkt_new) && (p_start != NULL))
             {
                 p_fcb->frag_enabled = TRUE;
                 p_fcb->p_fmsg       = p_pkt;

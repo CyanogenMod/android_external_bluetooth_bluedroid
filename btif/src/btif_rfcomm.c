@@ -51,6 +51,7 @@
 **  Externs
 ************************************************************************************/
 static void bt_rfc_mmt_cback (UINT32 code, UINT16 handle); //rfc
+static void bt_rfc_mmt_cback_msc_data (UINT32 code, UINT16 handle);
 static void bt_rfc_mmt_server_cback (UINT32 code, UINT16 handle);//rfc
 static int bt_rfc_data_cback (UINT16 port_handle, void *data, UINT16 len);//rfc
 static void bt_rfc_port_cback (UINT32 code, UINT16 handle);//rfc
@@ -93,6 +94,20 @@ static void bt_rfc_mmt_cback (UINT32 code, UINT16 handle)
     }
 }
 
+static void bt_rfc_mmt_cback_msc_data (UINT32 code, UINT16 handle)
+{
+    ALOGI("dut_rfc_mmt_cback_msc_data %d, %x", code, handle);
+}
+
+static void bt_rfc_send_data ( UINT16 handle)
+{
+    UINT16   length = 0;
+    int ret = 0;
+
+    ALOGI("bt_rfc_send_data %d", handle);
+    memset(buffer , 0x01 ,10000); //RFC data
+    ret = PORT_WriteData (handle, buffer, 10000, &length);
+}
 
 static void bt_rfc_mmt_server_cback (UINT32 code, UINT16 handle)
 {
@@ -170,22 +185,34 @@ void rdut_rfcomm_test_interface (tRFC *input)
         case RFC_TEST_CLIENT:
         {
             bdcpy (remote_bd, input->data.conn.bdadd.address);
-            BTM_SetSecurityLevel (TRUE, "", 0, 0, 0x03, 3/*BTM_SEC_PROTO_RFCOMM */, input->data.conn.scn);
-            status = RFCOMM_CreateConnection(0x0020, input->data.conn.scn, FALSE, 256, (UINT8 *)remote_bd,
-                                                  &handle, bt_rfc_mmt_cback);
+            BTM_SetSecurityLevel (TRUE, "", 0, 0, 0x03, 3/*BTM_SEC_PROTO_RFCOMM */,
+                                                                   input->data.conn.scn);
+            status = RFCOMM_CreateConnection(0x0020, input->data.conn.scn, FALSE, 256,
+                                                 (UINT8 *)remote_bd,&handle, bt_rfc_mmt_cback);
+            rfc_handle = handle;
+        }
+        break;
+        case RFC_TEST_CLIENT_TEST_MSC_DATA:
+        {
+            bdcpy (remote_bd, input->data.conn.bdadd.address);
+            BTM_SetSecurityLevel (TRUE, "", 0, 0, 0x03, 3/*BTM_SEC_PROTO_RFCOMM */,
+                                                                input->data.conn.scn);
+            status = RFCOMM_CreateConnection(0x0020, input->data.conn.scn, FALSE, 256,
+                                       (UINT8 *)remote_bd, &handle, bt_rfc_mmt_cback_msc_data);
             rfc_handle = handle;
         }
         break;
         case RFC_TEST_FRAME_ERROR:
         {
-             /* Framin Error */
+             /* Framing Error */
              PORT_SendError (rfc_handle, 0x08);
         }
         break;
         case RFC_TEST_ROLE_SWITCH:
         {
             /* Role Switch */
-            BTM_SwitchRole(input->data.role_switch.bdadd.address, input->data.role_switch.role, NULL);
+            BTM_SwitchRole(input->data.role_switch.bdadd.address, input->data.role_switch.role,
+                                                                                         NULL);
         }
         break;
         case RFC_TEST_SERVER:
@@ -205,6 +232,8 @@ void rdut_rfcomm_test_interface (tRFC *input)
         break;
         case RFC_TEST_WRITE_DATA:
         {
+            ALOGI("dut RFC_TEST_WRITE_DATA");
+            bt_rfc_send_data(rfc_handle);
         }
         break;
         default :
@@ -218,3 +247,4 @@ void rdut_rfcomm_test_interface (tRFC *input)
         PORT_SetEventCallback(handle, bt_rfc_port_cback);
     }
 }
+

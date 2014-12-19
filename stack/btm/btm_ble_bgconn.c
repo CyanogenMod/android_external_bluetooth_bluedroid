@@ -192,7 +192,7 @@ BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr)
 {
     /* look up the sec device record, and find the address */
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    UINT8       wl_state = p_cb->wl_state;
+    UINT8       wl_state = BTM_BLE_WL_INIT;
 
     if ((to_add && p_cb->num_empty_filter == 0) ||
         (!to_add && p_cb->num_empty_filter == p_cb->max_filter_entries))
@@ -718,9 +718,47 @@ void btm_ble_enqueue_direct_conn_req(void *p_param)
 {
     tBTM_BLE_CONN_REQ   *p = (tBTM_BLE_CONN_REQ *)GKI_getbuf(sizeof(tBTM_BLE_CONN_REQ));
 
-    p->p_param = p_param;
-
-    GKI_enqueue (&btm_cb.ble_ctr_cb.conn_pending_q, p);
+    if (NULL != p)
+    {
+        p->p_param = p_param;
+        GKI_enqueue (&btm_cb.ble_ctr_cb.conn_pending_q, p);
+    } else {
+        BTM_TRACE_ERROR ("%s: Failed to get memory", __FUNCTION__);
+    }
+}
+/*******************************************************************************
+**
+** Function         btm_ble_dequeue_direct_conn_req
+**
+** Description      This function dequeues the direct connection request
+**
+** Returns          None.
+**
+*******************************************************************************/
+void btm_ble_dequeue_direct_conn_req(BD_ADDR rem_bda)
+{
+    tBTM_BLE_CONN_REQ   *p_req = NULL;
+    tL2C_LCB *p_lcb;
+    if(btm_cb.ble_ctr_cb.conn_pending_q.count)
+    {
+        p_req = (tBTM_BLE_CONN_REQ*)GKI_getfirst(&btm_cb.ble_ctr_cb.conn_pending_q);
+    }
+    while(p_req != NULL)
+    {
+        p_lcb = (tL2C_LCB *)p_req->p_param;
+        if((p_lcb != NULL) && (p_lcb->in_use))
+        {
+            //If BD address matches
+            if(!memcmp (rem_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN))
+            {
+                GKI_remove_from_queue(&btm_cb.ble_ctr_cb.conn_pending_q, p_req);
+                l2cu_release_lcb ((tL2C_LCB *)p_req->p_param);
+                GKI_freebuf((void *)p_req);
+                break;
+            }
+        }
+        p_req = (tBTM_BLE_CONN_REQ*)GKI_getnext(p_req);
+    }
 }
 /*******************************************************************************
 **
@@ -738,11 +776,13 @@ BOOLEAN btm_send_pending_direct_conn(void )
 
     if ( btm_cb.ble_ctr_cb.conn_pending_q.count )
     {
-        p_req = (tBTM_BLE_CONN_REQ*)GKI_dequeue (&btm_cb.ble_ctr_cb.conn_pending_q);
-
-        rt = l2cble_init_direct_conn((tL2C_LCB *)(p_req->p_param));
-
-        GKI_freebuf((void *)p_req);
+        if (NULL != (p_req = (tBTM_BLE_CONN_REQ*)GKI_dequeue (&btm_cb.ble_ctr_cb.conn_pending_q)))
+        {
+            rt = l2cble_init_direct_conn((tL2C_LCB *)(p_req->p_param));
+            GKI_freebuf((void *)p_req);
+        } else {
+            BTM_TRACE_ERROR ("%s: Failed to get pending connection", __FUNCTION__);
+        }
     }
 
     return rt;

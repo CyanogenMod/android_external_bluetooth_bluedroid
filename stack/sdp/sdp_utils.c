@@ -231,6 +231,8 @@ UINT8 *sdpu_build_attrib_seq (UINT8 *p_out, UINT16 *p_attr, UINT16 num_attrs)
 *******************************************************************************/
 UINT8 *sdpu_build_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr)
 {
+    if (!p_out)
+        return p_out;
     /* First, store the attribute ID. Goes as a UINT */
     UINT8_TO_BE_STREAM  (p_out, (UINT_DESC_TYPE << 3) | SIZE_TWO_BYTES);
     UINT16_TO_BE_STREAM (p_out, p_attr->id);
@@ -665,6 +667,13 @@ BOOLEAN sdpu_compare_uuid_arrays (UINT8 *p_uuid1, UINT32 len1, UINT8 *p_uuid2, U
     UINT8       nu1[MAX_UUID_SIZE];
     UINT8       nu2[MAX_UUID_SIZE];
 
+    if( ((len1 != 2) && (len1 != 4) && (len1 != 16)) ||
+        ((len2 != 2) && (len2 != 4) && (len2 != 16)) )
+    {
+        SDP_TRACE_ERROR("sdpu_compare_uuid_arrays: invalid length");
+        return FALSE;
+    }
+
     /* If lengths match, do a straight compare */
     if (len1 == len2)
     {
@@ -692,7 +701,7 @@ BOOLEAN sdpu_compare_uuid_arrays (UINT8 *p_uuid1, UINT32 len1, UINT8 *p_uuid2, U
 
             if (len2 == 4)
                 memcpy (nu2, p_uuid2, len2);
-            else
+            else if (len2 == 2)
                 memcpy (nu2 + 2, p_uuid2, len2);
 
             return (memcmp (nu1, nu2, MAX_UUID_SIZE) == 0);
@@ -715,7 +724,7 @@ BOOLEAN sdpu_compare_uuid_arrays (UINT8 *p_uuid1, UINT32 len1, UINT8 *p_uuid2, U
 
             if (len1 == 4)
                 memcpy (nu1, p_uuid1, (size_t)len1);
-            else
+            else if (len1 == 2)
                 memcpy (nu1 + 2, p_uuid1, (size_t)len1);
 
             return (memcmp (nu1, nu2, MAX_UUID_SIZE) == 0);
@@ -1016,10 +1025,12 @@ UINT8 *sdpu_build_partial_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr, UI
 
     len_to_copy = ((attr_len - *offset) < len) ? (attr_len - *offset): len;
 
-    memcpy(p_out, &p_attr_buff[*offset], len_to_copy);
-
-    p_out = &p_out[len_to_copy];
-    *offset += len_to_copy;
+    if (p_out)
+    {
+        memcpy(p_out, &p_attr_buff[*offset], len_to_copy);
+        p_out = &p_out[len_to_copy];
+        *offset += len_to_copy;
+    }
 
     GKI_freebuf(p_attr_buff);
     return p_out;

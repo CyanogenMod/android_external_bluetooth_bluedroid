@@ -63,13 +63,22 @@ btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
             memset(p_multi_adv_com_data_cb, 0, sizeof(btgatt_multi_adv_common_data));
 
             /* Storing both client_if and inst_id details */
-            p_multi_adv_com_data_cb->clntif_map =
-                  GKI_getbuf(( BTM_BleMaxMultiAdvInstanceCount() * INST_ID_IDX_MAX)* sizeof(INT8));
+            if (NULL == (p_multi_adv_com_data_cb->clntif_map =
+                  GKI_getbuf(( BTM_BleMaxMultiAdvInstanceCount() * INST_ID_IDX_MAX)* sizeof(INT8)))) {
+                GKI_freebuf(p_multi_adv_com_data_cb);
+                BTIF_TRACE_ERROR("%s: Line No:%d, Failed to get memory.", __FUNCTION__, __LINE__);
+                return NULL;
+            }
             memset(p_multi_adv_com_data_cb->clntif_map, 0 ,
                   ( BTM_BleMaxMultiAdvInstanceCount() * INST_ID_IDX_MAX)* sizeof(INT8));
 
-            p_multi_adv_com_data_cb->inst_cb = GKI_getbuf(( BTM_BleMaxMultiAdvInstanceCount() + 1 )
-                                              * sizeof(btgatt_multi_adv_inst_cb));
+            if (NULL == (p_multi_adv_com_data_cb->inst_cb = GKI_getbuf(( BTM_BleMaxMultiAdvInstanceCount() + 1 )
+                                              * sizeof(btgatt_multi_adv_inst_cb)))) {
+                GKI_freebuf(p_multi_adv_com_data_cb);
+                GKI_freebuf(p_multi_adv_com_data_cb->clntif_map);
+                BTIF_TRACE_ERROR("%s: Line No:%d, Failed to get memory.", __FUNCTION__, __LINE__);
+                return NULL;
+            }
             memset(p_multi_adv_com_data_cb->inst_cb, 0 ,
                  ( BTM_BleMaxMultiAdvInstanceCount() + 1) * sizeof(btgatt_multi_adv_inst_cb));
 
@@ -239,22 +248,34 @@ void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
 
     if (manufacturer_len > 0)
     {
-        p_multi_adv_inst->p_manufacturer_data = GKI_getbuf(manufacturer_len);
-        memcpy(p_multi_adv_inst->p_manufacturer_data, manufacturer_data, manufacturer_len);
+        if (NULL != (p_multi_adv_inst->p_manufacturer_data = GKI_getbuf(manufacturer_len)))
+        {
+            memcpy(p_multi_adv_inst->p_manufacturer_data, manufacturer_data, manufacturer_len);
+        } else {
+            BTIF_TRACE_ERROR("%s: Line No:%d, Failed to get memory.", __FUNCTION__, __LINE__);
+        }
     }
 
     p_multi_adv_inst->service_data_len = service_data_len;
     if (service_data_len > 0)
     {
-        p_multi_adv_inst->p_service_data = GKI_getbuf(service_data_len);
-        memcpy(p_multi_adv_inst->p_service_data, service_data, service_data_len);
+        if (NULL != (p_multi_adv_inst->p_service_data = GKI_getbuf(service_data_len)))
+        {
+            memcpy(p_multi_adv_inst->p_service_data, service_data, service_data_len);
+        } else {
+            BTIF_TRACE_ERROR("%s: Line No:%d, Failed to get memory.", __FUNCTION__, __LINE__);
+        }
     }
 
     p_multi_adv_inst->service_uuid_len = service_uuid_len;
     if (service_uuid_len > 0)
     {
-        p_multi_adv_inst->p_service_uuid = GKI_getbuf(service_uuid_len);
-        memcpy(p_multi_adv_inst->p_service_uuid, service_uuid, service_uuid_len);
+        if (NULL != (p_multi_adv_inst->p_service_uuid = GKI_getbuf(service_uuid_len)))
+        {
+            memcpy(p_multi_adv_inst->p_service_uuid, service_uuid, service_uuid_len);
+        } else {
+            BTIF_TRACE_ERROR("%s: Line No:%d, Failed to get memory.", __FUNCTION__, __LINE__);
+        }
     }
 }
 
@@ -273,12 +294,9 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
     if (!p_adv_data->set_scan_rsp)
     {
          p_multi_adv_data_cb->inst_cb[cbindex].mask = BTM_BLE_AD_BIT_FLAGS;
-         p_multi_adv_data_cb->inst_cb[cbindex].data.flag = (ADV_FLAGS_GENERAL | BTM_BLE_DMT_CONTROLLER_SPT | BTM_BLE_DMT_HOST_SPT);
+         p_multi_adv_data_cb->inst_cb[cbindex].data.flag = ADV_FLAGS_GENERAL;
          if (p_multi_adv_data_cb->inst_cb[cbindex].timeout_s)
-             p_multi_adv_data_cb->inst_cb[cbindex].data.flag = (ADV_FLAGS_LIMITED | BTM_BLE_DMT_CONTROLLER_SPT | BTM_BLE_DMT_HOST_SPT);
-         if (p_multi_adv_data_cb->inst_cb[cbindex].param.adv_type == BTA_BLE_NON_CONNECT_EVT)
-             p_multi_adv_data_cb->inst_cb[cbindex].data.flag &=
-                    ~(BTA_DM_LIMITED_DISC | BTA_DM_GENERAL_DISC);
+             p_multi_adv_data_cb->inst_cb[cbindex].data.flag = ADV_FLAGS_LIMITED;
          if (p_multi_adv_data_cb->inst_cb[cbindex].data.flag == 0)
             p_multi_adv_data_cb->inst_cb[cbindex].mask = 0;
     }
@@ -418,7 +436,12 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
                      BTIF_TRACE_DEBUG("%s - In 16-UUID_data", __FUNCTION__);
                      p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_SERVICE;
                      ++p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->num_service;
-                     *p_uuid_out16++ = bt_uuid.uu.uuid16;
+                     if (NULL != p_uuid_out16)
+                     {
+                         *p_uuid_out16++ = bt_uuid.uu.uuid16;
+                     } else {
+                         BTIF_TRACE_ERROR("%s: Line No:%d, p_uuid_out16 (NULL)", __FUNCTION__, __LINE__);
+                     }
                   }
                   break;
                 }
@@ -441,7 +464,12 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
                       BTIF_TRACE_DEBUG("%s - In 32-UUID_data", __FUNCTION__);
                       p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_SERVICE_32;
                       ++p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->num_service;
-                      *p_uuid_out32++ = bt_uuid.uu.uuid32;
+                      if (NULL != p_uuid_out32)
+                      {
+                          *p_uuid_out32++ = bt_uuid.uu.uuid32;
+                      } else {
+                          BTIF_TRACE_ERROR("%s: Line No:%d, p_uuid_out32 (NULL)", __FUNCTION__, __LINE__);
+                      }
                    }
                    break;
                 }

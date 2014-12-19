@@ -173,10 +173,12 @@ static BOOLEAN btm_dev_authorized (tBTM_SEC_DEV_REC *p_dev_rec)
 *******************************************************************************/
 static BOOLEAN btm_serv_trusted(tBTM_SEC_DEV_REC *p_dev_rec, tBTM_SEC_SERV_REC *p_serv_rec)
 {
-    if(BTM_SEC_IS_SERVICE_TRUSTED(p_dev_rec->trusted_mask, p_serv_rec->service_id))
+    if(p_serv_rec->service_id <= BTM_SEC_MAX_SERVICES && BTM_SEC_IS_SERVICE_TRUSTED(p_dev_rec->trusted_mask, p_serv_rec->service_id))
     {
         return(TRUE);
     }
+    else
+        BTM_TRACE_ERROR("BTM_Sec: Service Id: %d not found", p_serv_rec->service_id);
     return(FALSE);
 }
 
@@ -713,7 +715,11 @@ static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_na
         {
             p_srec->security_flags &=
             ~(BTM_SEC_OUT_AUTHORIZE | BTM_SEC_OUT_ENCRYPT    | BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_MITM |
-              BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER | BTM_SEC_FORCE_SLAVE | BTM_SEC_ATTEMPT_SLAVE);
+              BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER | BTM_SEC_FORCE_SLAVE | BTM_SEC_ATTEMPT_SLAVE
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+             | BTM_SEC_SECURE_CONN
+#endif
+            );
         }
 
         /* Parameter validation.  Originator should not set requirements for incoming connections */
@@ -758,7 +764,11 @@ static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_na
         {
             p_srec->security_flags &=
             ~(BTM_SEC_IN_AUTHORIZE | BTM_SEC_IN_ENCRYPT     | BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_MITM |
-              BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER | BTM_SEC_FORCE_SLAVE | BTM_SEC_ATTEMPT_SLAVE);
+              BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER | BTM_SEC_FORCE_SLAVE | BTM_SEC_ATTEMPT_SLAVE
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+             | BTM_SEC_SECURE_CONN
+#endif
+            );
         }
 
         /* Parameter validation.  Acceptor should not set requirements for outgoing connections */
@@ -1622,7 +1632,7 @@ tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBT_TRANSPORT transport, tBTM_SE
                     p_dev_rec->security_required);
 
 #if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
-    if (transport == BT_TRANSPORT_LE)
+    if (p && transport == BT_TRANSPORT_LE)
     {
         rc = btm_ble_set_encryption(bd_addr, p_ref_data, p->link_role);
     }
@@ -4067,8 +4077,16 @@ void btm_sec_auth_complete (UINT16 handle, UINT8 status)
          &&  (memcmp (p_dev_rec->bd_addr, btm_cb.pairing_bda, BD_ADDR_LEN) == 0) )
         are_bonding = TRUE;
 
-    btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
-
+    if ( (btm_cb.pairing_state != BTM_PAIR_STATE_IDLE)
+          &&  (memcmp (p_dev_rec->bd_addr, btm_cb.pairing_bda, BD_ADDR_LEN) == 0) )
+    {
+        btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
+        BTM_TRACE_DEBUG("btm_sec_auth_complete: pair state moved to idle for bonding addr");
+    }
+    else
+    {
+        BTM_TRACE_DEBUG("btm_sec_auth_complete: Dont move pair state to idle for non bonding addr");
+    }
     if (p_dev_rec->sec_state != BTM_SEC_STATE_AUTHENTICATING)
     {
         if ( (btm_cb.api.p_auth_complete_callback && status != HCI_SUCCESS)
@@ -4564,7 +4582,6 @@ void btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode)
                  (((status == HCI_ERR_AUTH_FAILURE)                      ||
                  (status == HCI_ERR_KEY_MISSING)                         ||
                  (status == HCI_ERR_HOST_REJECT_SECURITY)                ||
-                 (status == HCI_ERR_PAIRING_NOT_ALLOWED)                 ||
                  (status == HCI_ERR_UNIT_KEY_USED)                       ||
                  (status == HCI_ERR_PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED) ||
                  (status == HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE)           ||
@@ -4863,6 +4880,8 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
             (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_PEER_DISCONN);
         else if(reason == HCI_ERR_LMP_RESPONSE_TIMEOUT)
             (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_LMP_TIMEOUT);
+        else if(reason == HCI_ERR_KEY_MISSING)
+            (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_ERR_KEY_MISSING);
         else
             (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_ERR_PROCESSING);
     }
@@ -5460,6 +5479,42 @@ extern tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec)
         return(BTM_CMD_STARTED);
     }
 
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+    /* check for local and remote device Secure conneciton feature bits
+       and if both are set go ahead with next checks */
+    if((btm_cb.btm_sec_conn_only_mode == TRUE) && (p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED) )
+    {
+        if(!(p_dev_rec->sec_conn_supported == TRUE) || !(btm_cb.btm_sec_conn_supported == TRUE))
+        {
+            BTM_TRACE_WARNING ("%s:SC OnlyMode failed due to device doesn't support SC",__FUNCTION__);
+            return BTM_FAILED_ON_SECURITY;
+        }
+        else if( (p_dev_rec->security_required & (BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_IN_AUTHENTICATE)) &&
+                 (p_dev_rec->link_key_type != HCI_LKEY_TYPE_AUTH_COMB_P256) )
+        {
+            BTM_TRACE_WARNING ("%s:SC OnlyMode failed due to insufficient security level",__FUNCTION__);
+            return BTM_FAILED_ON_SECURITY;
+        }
+        else
+        {
+            BTM_TRACE_WARNING ("%s:SC OnlyMode Succeeded",__FUNCTION__);
+        }
+    }
+
+    /* implement the level 4 support of Security mode 4 */
+    if((p_dev_rec->security_required & BTM_SEC_SECURE_CONN) &&
+       (p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED) )
+    {
+        if( p_dev_rec->link_key_type != HCI_LKEY_TYPE_AUTH_COMB_P256)
+        {
+            BTM_TRACE_WARNING ("%s:Service requires Level 4 and failed security check",__FUNCTION__);
+            return BTM_FAILED_ON_SECURITY;
+        }
+    }
+
+#endif
+
+
     /* If connection is not encrypted and encryption is required */
     /* start encryption and return PENDING to the caller */
     if (!(p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED)
@@ -5490,8 +5545,7 @@ extern tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec)
     {
         BTM_TRACE_EVENT ("service id:%d, is trusted:%d",
                           p_dev_rec->p_cur_service->service_id,
-                          (BTM_SEC_IS_SERVICE_TRUSTED(p_dev_rec->trusted_mask,
-                                                      p_dev_rec->p_cur_service->service_id)));
+                          btm_serv_trusted(p_dev_rec,p_dev_rec->p_cur_service));
         if ((btm_sec_are_all_trusted(p_dev_rec->trusted_mask) == FALSE) &&
             (p_dev_rec->p_cur_service->service_id < BTM_SEC_MAX_SERVICES) &&
             (BTM_SEC_IS_SERVICE_TRUSTED(p_dev_rec->trusted_mask,

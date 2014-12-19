@@ -186,7 +186,8 @@ int btif_config_get(const char* section, const char* key, const char* name, char
 {
     int ret = FALSE;
     bdla(section && *section && key && *key && name && *name && bytes && type);
-    bdld("section:%s, key:%s, name:%s, value:%p, bytes:%d, type:%d",
+    if (bytes && type)
+        bdld("section:%s, key:%s, name:%s, value:%p, bytes:%d, type:%d",
                 section, key, name, value, *bytes, *type);
     if(section && *section && key && *key && name && *name && bytes && type)
     {
@@ -547,6 +548,11 @@ static short find_next_node(const cfg_node* p, short start, char* name, int* byt
 }
 static void free_child(cfg_node* p, int ichild, int count)
 {
+    if (!p)
+    {
+        bdle("free_child: Node doesn't exist");
+        return;
+    }
     int child_count = GET_CHILD_COUNT(p);
     bdla(p && ichild + count <= child_count && count > 0);
     int icount = ichild + count;

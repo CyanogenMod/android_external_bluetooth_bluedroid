@@ -627,7 +627,23 @@ void bta_dm_set_afhchannels (tBTA_DM_MSG *p_data)
     BTM_SetAfhChannels(p_data->set_afhchannels.first,p_data->set_afhchannels.last);
 
 }
+/*******************************************************************************
+**
+** Function         bta_dm_hci_raw_command
+**
+** Description      Send a HCI RAW command to the controller
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_dm_hci_raw_command (tBTA_DM_MSG *p_data)
+{
+    tBTM_STATUS status;
+    APPL_TRACE_API("bta_dm_hci_raw_command");
+    status = BTM_Hci_Raw_Command(p_data->btc_command.opcode,p_data->btc_command.param_len,p_data->btc_command.p_param_buf, p_data->btc_command.p_cback);
 
+}
 
 /*******************************************************************************
 **
@@ -2186,7 +2202,11 @@ void bta_dm_queue_search (tBTA_DM_MSG *p_data)
         GKI_freebuf(bta_dm_search_cb.p_search_queue);
     }
 
-    bta_dm_search_cb.p_search_queue = (tBTA_DM_MSG *)GKI_getbuf(sizeof(tBTA_DM_API_SEARCH));
+    if((bta_dm_search_cb.p_search_queue = (tBTA_DM_MSG *)GKI_getbuf(sizeof(tBTA_DM_API_SEARCH))) == NULL)
+    {
+        APPL_TRACE_ERROR("%s :GKI_getbuf failed to get a new buffer", __FUNCTION__);
+        return;
+    }
     memcpy(bta_dm_search_cb.p_search_queue, p_data, sizeof(tBTA_DM_API_SEARCH));
 
 }
@@ -2207,7 +2227,11 @@ void bta_dm_queue_disc (tBTA_DM_MSG *p_data)
         GKI_freebuf(bta_dm_search_cb.p_search_queue);
     }
 
-    bta_dm_search_cb.p_search_queue = (tBTA_DM_MSG *)GKI_getbuf(sizeof(tBTA_DM_API_DISCOVER));
+    if((bta_dm_search_cb.p_search_queue = (tBTA_DM_MSG *)GKI_getbuf(sizeof(tBTA_DM_API_DISCOVER))) == NULL)
+    {
+        APPL_TRACE_ERROR("%s :GKI_getbuf failed to get a new buffer", __FUNCTION__);
+        return;
+    }
     memcpy(bta_dm_search_cb.p_search_queue, p_data, sizeof(tBTA_DM_API_DISCOVER));
 
 }
@@ -2525,6 +2549,8 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
         transport = bta_dm_search_cb.transport;
 #endif
 
+    bta_dm_search_cb.transport = BTA_TRANSPORT_UNKNOWN;
+
 
     APPL_TRACE_DEBUG("bta_dm_discover_device, BDA:0x%02X%02X%02X%02X%02X%02X",
                         remote_bd_addr[0],remote_bd_addr[1],
@@ -2533,10 +2559,11 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
 
     bdcpy(bta_dm_search_cb.peer_bdaddr, remote_bd_addr);
 
-    APPL_TRACE_DEBUG("bta_dm_discover_device name_discover_done = %d p_btm_inq_info 0x%x state = %d",
+    APPL_TRACE_DEBUG("bta_dm_discover_device name_discover_done = %d p_btm_inq_info 0x%x state = %d, transport=%d",
                         bta_dm_search_cb.name_discover_done,
                         bta_dm_search_cb.p_btm_inq_info,
-                        bta_dm_search_cb.state
+                        bta_dm_search_cb.state,
+                        transport
                         );
     if ( bta_dm_search_cb.p_btm_inq_info ) {
 
@@ -2616,6 +2643,9 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
                  bta_dm_search_cb.p_btm_inq_info->results.device_type == BT_DEVICE_TYPE_BLE &&
                  (bta_dm_search_cb.services_to_search & BTA_BLE_SERVICE_MASK))*/
             {
+                 // check ACL is still up before  start gatt op
+                if (!BTM_IsAclConnectionUp(bta_dm_search_cb.peer_bdaddr, BT_TRANSPORT_LE))
+                    return;
                 if (bta_dm_search_cb.services_to_search & BTA_BLE_SERVICE_MASK)
                 {
                     //set the raw data buffer here
@@ -3235,6 +3265,8 @@ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
     /*case BTM_SP_KEY_REQ_EVT: */
     case BTM_SP_KEY_NOTIF_EVT:
 #endif
+
+        bta_dm_cb.num_val = sec_event.key_notif.passkey = p_data->key_notif.passkey;
         if(BTM_SP_CFM_REQ_EVT == event)
         {
           /* Due to the switch case falling through below to BTM_SP_KEY_NOTIF_EVT,
@@ -3261,7 +3293,6 @@ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
            }
         }
 
-        bta_dm_cb.num_val = sec_event.key_notif.passkey = p_data->key_notif.passkey;
         if (BTM_SP_KEY_NOTIF_EVT == event)
         {
             /* If the device name is not known, save bdaddr and devclass
@@ -4852,6 +4883,9 @@ void bta_dm_encrypt_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_
         case BTM_LMP_TIMEOUT:
             bta_status = BTA_LMP_TIMEOUT;
             break;
+        case BTM_ERR_KEY_MISSING:
+            bta_status = BTA_ERR_KEY_MISSING;
+            break;
         default:
             bta_status = BTA_FAILURE;
             break;
@@ -6106,6 +6140,26 @@ static void bta_dm_gatt_disc_result(tBTA_GATT_ID service_id)
         memcpy(&result.disc_ble_res.service, &service_id.uuid, sizeof(tBT_UUID));
 
         bta_dm_search_cb.p_search_cback(BTA_DM_DISC_BLE_RES_EVT, &result);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_gattc_service_search_close
+**
+** Description      This function stops gatt close timer if it is in use.
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_gattc_service_search_close(UINT16 event)
+{
+    if (bta_dm_search_cb.gatt_close_timer.in_use) {
+        bta_sys_stop_timer(&bta_dm_search_cb.gatt_close_timer);
+        bta_dm_close_gatt_conn(NULL);
+        if (event == BTA_DM_API_SEARCH_EVT) {
+            bdsetany(bta_dm_search_cb.peer_bdaddr);
+        }
     }
 }
 

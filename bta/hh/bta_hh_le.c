@@ -30,6 +30,7 @@
 #include "srvc_api.h"
 #include "btm_int.h"
 #include "utl.h"
+#include "bta_dm_int.h"
 
 #ifndef BTA_HH_LE_RECONN
 #define BTA_HH_LE_RECONN    TRUE
@@ -50,6 +51,8 @@
 #define BTA_HH_SCPP_INST_DEF            0
 
 #define BTA_HH_LE_DISC_CHAR_NUM     8
+
+#define BTA_DM_DISC_CLOSE_HH_TIMER 1000
 static const UINT16 bta_hh_le_disc_char_uuid[BTA_HH_LE_DISC_CHAR_NUM] =
 {
     GATT_UUID_HID_INFORMATION,
@@ -899,6 +902,14 @@ void bta_hh_le_open_cmpl(tBTA_HH_DEV_CB *p_cb)
             bta_hh_le_add_dev_bg_conn(p_cb, TRUE);
         }
 #endif
+    }
+    /* After the completion of service discovery,
+       stop the timer and proceed with the timeout procedure */
+    if(bta_dm_search_cb.gatt_close_timer.in_use)
+    {
+        bta_sys_stop_timer(&bta_dm_search_cb.gatt_close_timer);
+        bta_sys_start_timer(&bta_dm_search_cb.gatt_close_timer, BTA_DM_DISC_CLOSE_TOUT_EVT,
+                             BTA_DM_DISC_CLOSE_HH_TIMER);
     }
 }
 
@@ -2312,6 +2323,11 @@ void bta_hh_le_write_char_descr_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_b
         case GATT_UUID_HID_BT_KB_INPUT:
         case GATT_UUID_HID_BT_MOUSE_INPUT:
         case GATT_UUID_HID_REPORT:
+            if (hid_inst_id >= BTA_HH_LE_HID_SRVC_MAX)
+            {
+                APPL_TRACE_ERROR("Got Incorrect Service Instance ID");
+                return;
+            }
             if (p_data->status == BTA_GATT_OK)
                 p_dev_cb->hid_srvc[hid_inst_id].report[p_dev_cb->clt_cfg_idx].client_cfg_value =
                         BTA_GATT_CLT_CONFIG_NOTIFICATION;
@@ -2503,9 +2519,6 @@ void bta_hh_le_api_disc_act(tBTA_HH_DEV_CB *p_cb)
     if (p_cb->conn_id != BTA_GATT_INVALID_CONN_ID)
     {
         BTA_GATTC_Close(p_cb->conn_id);
-        /* remove device from background connection if intended to disconnect,
-           do not allow reconnection */
-        bta_hh_le_remove_dev_bg_conn(p_cb);
     }
 }
 
@@ -2982,7 +2995,11 @@ static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 
 
         case BTA_GATTC_NOTIF_EVT: /* 10 */
-            p_dev_cb = bta_hh_le_find_dev_cb_by_conn_id(p_data->notify.conn_id);
+            if (NULL == (p_dev_cb = bta_hh_le_find_dev_cb_by_conn_id(p_data->notify.conn_id)))
+            {
+                APPL_TRACE_ERROR("Stray conn_id:%d ", p_data->notify.conn_id);
+                return;
+            }
            if( p_data->notify.char_id.char_id.uuid.uu.uuid16 ==  GATT_UUID_SCAN_REFRESH ) {
                BTA_HhUpdateLeScanParam(p_dev_cb->hid_handle,BTM_BLE_SCAN_SLOW_INT_1,BTM_BLE_SCAN_SLOW_WIN_1);
            }

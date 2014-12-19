@@ -606,7 +606,7 @@ UINT32 GKI_get_remaining_ticks (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_
         }
 
         /* if found target entry */
-        if (p_tle == p_target_tle)
+        if (p_tle && p_tle == p_target_tle)
         {
             rem_ticks += p_tle->ticks;
         }
@@ -637,9 +637,6 @@ UINT32 GKI_get_remaining_ticks (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_
 *******************************************************************************/
 void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
 {
-    /* Only process valid tick values. */
-    if (p_tle->ticks < 0)
-        return;
 
     /* block others to edit the timer_queue list while it is getting modified */
     GKI_disable();
@@ -647,8 +644,13 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
     if (p_timer_listq == NULL || p_tle == NULL)
     {
        BT_ERROR_TRACE(TRACE_LAYER_GKI, "ERROR :GKI_add_to_timer_list:either node or List is NULL");
+       GKI_enable();
        return;
     }
+
+    /* Only process valid tick values. */
+    if (p_tle->ticks < 0)
+        return;
 
     p_tle->p_prev = NULL;
     p_tle->p_next = NULL;
@@ -659,7 +661,7 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
     {
         p_timer_listq->p_first = p_tle;
         p_timer_listq->p_last = p_tle;
-	GKI_enable();
+        GKI_enable();
         return;
     }
 
@@ -677,7 +679,7 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
         p_timer_listq->p_last->p_next = p_tle;
         p_tle->p_prev = p_timer_listq->p_last;
         p_timer_listq->p_last = p_tle;
-	GKI_enable();
+        GKI_enable();
         return;
     }
 

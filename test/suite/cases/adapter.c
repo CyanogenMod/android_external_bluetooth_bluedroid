@@ -52,10 +52,14 @@ bool adapter_set_name() {
   TASSERT(error == BT_STATUS_SUCCESS, "Error setting device name.");
   TASSERT(adapter_get_property_count() == 1, "Expected 1 adapter property change, found %d instead.", adapter_get_property_count());
   TASSERT(adapter_get_property(BT_PROPERTY_BDNAME), "The Bluetooth name property did not change.");
-  TASSERT(property_equals(adapter_get_property(BT_PROPERTY_BDNAME), name), "Bluetooth name '%s' does not match test value", property_extract_name(adapter_get_property(BT_PROPERTY_BDNAME)));
-
-  property_free(name);
-
+  const char *name_prop = property_extract_name(adapter_get_property(BT_PROPERTY_BDNAME));
+  if (name_prop) {
+      TASSERT(property_equals(adapter_get_property(BT_PROPERTY_BDNAME), name), "Bluetooth name '%s' does not match test value", name_prop);
+  } else {
+      TASSERT(name_prop != NULL, "Extracting Bluetooth Name property failed.");
+  }
+  if (name)
+      property_free(name);
   return true;
 }
 
@@ -68,9 +72,14 @@ bool adapter_get_name() {
   TASSERT(error == BT_STATUS_SUCCESS, "Error getting device name.");
   TASSERT(adapter_get_property_count() == 1, "Expected 1 adapter property change, found %d instead.", adapter_get_property_count());
   TASSERT(adapter_get_property(BT_PROPERTY_BDNAME), "The Bluetooth name property did not change.");
-  TASSERT(property_equals(adapter_get_property(BT_PROPERTY_BDNAME), name), "Bluetooth name '%s' does not match test value", property_extract_name(adapter_get_property(BT_PROPERTY_BDNAME)));
-
-  property_free(name);
+  const char *name_prop = property_extract_name(adapter_get_property(BT_PROPERTY_BDNAME));
+  if (name_prop) {
+      TASSERT(property_equals(adapter_get_property(BT_PROPERTY_BDNAME), name), "Bluetooth name '%s' does not match test value", name_prop);
+  } else {
+      TASSERT(name_prop != NULL, "Extracting Bluetooth Name property failed.");
+  }
+  if (name)
+      property_free(name);
   return true;
 }
 

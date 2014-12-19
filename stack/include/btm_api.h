@@ -115,6 +115,14 @@ typedef struct
     UINT8   *p_param_buf;
 } tBTM_VSC_CMPL;
 
+/* Structure returned with HCI Raw Command complete callback */
+typedef struct
+{
+    UINT16  opcode;
+    UINT16  param_len;
+    UINT8   *p_param_buf;
+} tBTM_RAW_CMPL;
+
 #define  BTM_VSC_CMPL_DATA_SIZE  (BTM_MAX_VENDOR_SPECIFIC_LEN + sizeof(tBTM_VSC_CMPL))
 /**************************************************
 **  Device Control and General Callback Functions
@@ -153,6 +161,11 @@ typedef void (tBTM_CMPL_CB) (void *p1);
 ** BTM function is complete. The pointer contains the address of any returned data.
 */
 typedef void (tBTM_VSC_CMPL_CB) (tBTM_VSC_CMPL *p1);
+
+/* HCI RAW CMD callback function for notifying an application that a synchronous
+** BTM function is complete. The pointer contains the address of any returned data.
+*/
+typedef void (tBTM_RAW_CMPL_CB) (tBTM_RAW_CMPL *p1);
 
 /* Callback for apps to check connection and inquiry filters.
 ** Parameters are the BD Address of remote and the Dev Class of remote.
@@ -1171,6 +1184,9 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_SEC_IN_MITM            0x1000 /* inbound Do man in the middle protection */
 #define BTM_SEC_OUT_MITM           0x2000 /* outbound Do man in the middle protection */
 #define BTM_SEC_IN_AUTH_HIGH       0x4000 /* Inbound call requires high authentication 16 digits */
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+#define BTM_SEC_SECURE_CONN        0x8000 /* Inbound/Outbould call requires secure connection */
+#endif
 
 /* Security Flags [bit mask] (BTM_GetSecurityFlags)
 */
@@ -2281,6 +2297,18 @@ extern "C" {
 *******************************************************************************/
     BTM_API extern void BTM_ContinueReset (void);
 
+
+/*******************************************************************************
+**
+** Function         BTM_Hci_Raw_Command
+**
+** Description      Send a HCI RAW started testingcommand to the controller.
+**
+*******************************************************************************/
+    BTM_API extern tBTM_STATUS BTM_Hci_Raw_Command(UINT16 opcode,
+                                                         UINT8 param_len,
+                                                         UINT8 *p_param_buf,
+                                                         tBTM_RAW_CMPL_CB *p_cb);
 
 /*******************************************************************************
 **

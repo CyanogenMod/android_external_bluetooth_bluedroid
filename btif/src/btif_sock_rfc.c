@@ -509,6 +509,11 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t* servic
     if(!is_init_done())
         return BT_STATUS_NOT_READY;
     int status = BT_STATUS_FAIL;
+    if(!service_uuid)
+    {
+        APPL_TRACE_ERROR("Service uuid is NULL");
+        return status;
+    }
     lock_slot(&slot_lock);
     rfc_slot_t* rs = alloc_rfc_slot(bd_addr, NULL, service_uuid, channel, flags, FALSE);
     if(rs)
@@ -1003,20 +1008,23 @@ static BOOLEAN flush_incoming_que_on_wr_signal(rfc_slot_t* rs)
     while(!list_is_empty(rs->incoming_queue))
     {
         BT_HDR *p_buf = list_front(rs->incoming_queue);
-        int sent = send_data_to_app(rs->fd, p_buf);
-        switch(sent)
+        if (p_buf)
         {
-            case SENT_NONE:
-            case SENT_PARTIAL:
-                //monitor the fd to get callback when app is ready to receive data
-                btsock_thread_add_fd(pth, rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_WR, rs->id);
-                return TRUE;
-            case SENT_ALL:
-                list_remove(rs->incoming_queue, p_buf);
-                break;
-            case SENT_FAILED:
-                list_remove(rs->incoming_queue, p_buf);
-                return FALSE;
+            int sent = send_data_to_app(rs->fd, p_buf);
+            switch(sent)
+            {
+                case SENT_NONE:
+                case SENT_PARTIAL:
+                    //monitor the fd to get callback when app is ready to receive data
+                    btsock_thread_add_fd(pth, rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_WR, rs->id);
+                    return TRUE;
+                case SENT_ALL:
+                    list_remove(rs->incoming_queue, p_buf);
+                    break;
+                case SENT_FAILED:
+                    list_remove(rs->incoming_queue, p_buf);
+                    return FALSE;
+            }
         }
     }
 

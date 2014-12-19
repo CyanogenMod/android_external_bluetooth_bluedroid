@@ -131,7 +131,8 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_enable_test_mode,    /*  BTA_DM_API_ENABLE_TEST_MODE_EVT     */
     bta_dm_disable_test_mode,   /*  BTA_DM_API_DISABLE_TEST_MODE_EVT    */
     bta_dm_execute_callback,     /*  BTA_DM_API_EXECUTE_CBACK_EVT        */
-    bta_dm_set_afh_channel_assesment      /* BTA_DM_API_SET_AFH_CHANNEL_ASSESMENT_EVT */
+    bta_dm_set_afh_channel_assesment,     /* BTA_DM_API_SET_AFH_CHANNEL_ASSESMENT_EVT */
+    bta_dm_hci_raw_command    /* BTA_DM_API_HCI_RAW_COMMAND_EVT */
 };
 
 
@@ -366,6 +367,11 @@ BOOLEAN bta_dm_search_sm_execute(BT_HDR *p_msg)
     APPL_TRACE_EVENT("bta_dm_search_sm_execute state:%d, event:0x%x",
         bta_dm_search_cb.state, p_msg->event);
 
+    if ((bta_dm_search_cb.state == BTA_DM_SEARCH_IDLE) &&
+           ((p_msg->event == BTA_DM_API_SEARCH_EVT) || (p_msg->event == BTA_DM_API_DISCOVER_EVT)))
+    {
+        bta_dm_gattc_service_search_close(p_msg->event);
+    }
     /* look up the state table for the current state */
     state_table = bta_dm_search_st_tbl[bta_dm_search_cb.state];
 
@@ -375,7 +381,7 @@ BOOLEAN bta_dm_search_sm_execute(BT_HDR *p_msg)
     /* execute action functions */
     for (i = 0; i < BTA_DM_SEARCH_ACTIONS; i++)
     {
-        if ((action = state_table[p_msg->event & 0x00ff][i]) != BTA_DM_SEARCH_IGNORE)
+        if ((action = state_table[p_msg->event & 0x00ff][i]) < BTA_DM_SEARCH_IGNORE)
         {
             (*bta_dm_search_action[action])( (tBTA_DM_MSG*) p_msg);
         }

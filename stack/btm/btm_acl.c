@@ -48,6 +48,37 @@ static void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read
 
 #define BTM_DEV_REPLY_TIMEOUT   3       /* 3 second timeout waiting for responses */
 
+/* Black listed car kits/headsets for role switch */
+static const UINT8 btm_role_switch_black_list_prefix[][3] = {{0x00, 0x0d, 0xfd}, /* MOT EQ5 */
+                                                             {0x00, 0x1b, 0xdc}  /* BSHSBE20 */
+                                                            };
+
+/*******************************************************************************
+**
+** Function         btm_blacklistted_for_role_switch
+**
+** Description      This function is called to find the blacklisted carkits
+**                  for role switch.
+**
+** Returns          TRUE, if black listed
+**
+*******************************************************************************/
+BOOLEAN btm_blacklistted_for_role_switch (BD_ADDR addr)
+{
+    int blacklistsize = 0;
+    int i =0;
+
+    blacklistsize = sizeof(btm_role_switch_black_list_prefix)/sizeof(btm_role_switch_black_list_prefix[0]);
+    for (i=0; i < blacklistsize; i++)
+    {
+        if (0 == memcmp(btm_role_switch_black_list_prefix[i], addr, 3))
+        {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 /*******************************************************************************
 **
 ** Function         btm_acl_init
@@ -1101,6 +1132,11 @@ tBTM_STATUS BTM_SetLinkPolicy (BD_ADDR remote_bda, UINT16 *settings)
             *settings &= (~HCI_ENABLE_MASTER_SLAVE_SWITCH);
             BTM_TRACE_API ("BTM_SetLinkPolicy switch not supported (settings: 0x%04x)", *settings );
         }
+        if ( (*settings & HCI_ENABLE_MASTER_SLAVE_SWITCH) && (btm_blacklistted_for_role_switch(remote_bda)) )
+        {
+            *settings &= (~HCI_ENABLE_MASTER_SLAVE_SWITCH);
+            BTM_TRACE_API ("BTM_SetLinkPolicy switch not supported (settings: 0x%04x)", *settings );
+        }
         if ( (*settings & HCI_ENABLE_HOLD_MODE) && (!HCI_HOLD_MODE_SUPPORTED(localFeatures)) )
         {
             *settings &= (~HCI_ENABLE_HOLD_MODE);
@@ -1346,12 +1382,25 @@ void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read_pages)
         btm_process_remote_ext_features_page (p_acl_cb, p_dev_rec, page_idx);
     }
 
-    // Retrieve remote name only if not already in progress by security module
-    if (!(p_dev_rec->sec_state & BTM_SEC_STATE_GETTING_NAME))
+#if (defined(BTM_SECURE_CONN_HOST_INCLUDED) && BTM_SECURE_CONN_HOST_INCLUDED == TRUE)
+    if( (num_read_pages == HCI_EXT_FEATURES_PAGE_2 + 1) &&
+        (HCI_SECURE_CONN_CTRL_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_2])) &&
+        (HCI_SECURE_CONN_HOST_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_1])))
     {
-        btsnd_hcic_rmt_name_req (p_acl_cb->remote_addr, HCI_PAGE_SCAN_REP_MODE_R1,
-            HCI_MANDATARY_PAGE_SCAN_MODE, 0);
+        BTM_TRACE_WARNING ("btm_process_remote_ext_features: Remote supports Secure connection");
+        p_dev_rec->sec_conn_supported = TRUE;
     }
+#endif
+
+    if (p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN)
+    {
+        /* Name is know, unset it so that name is retrieved again
+         * from security procedure. This will ensure, that if remote device
+         * has updated its name since last connection, we will have
+         * update name of remote device. */
+        p_dev_rec->sec_flags &= ~BTM_SEC_NAME_KNOWN;
+    }
+
     if (!(p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN) || p_dev_rec->is_originator)
     {
         BTM_TRACE_DEBUG ("Calling Next Security Procedure");
@@ -2508,7 +2557,7 @@ BOOLEAN BTM_TryAllocateSCN(UINT8 scn)
     /* Make sure we don't exceed max port range.
      * Stack reserves scn 1 for HFP, HSP we still do the correct way.
      */
-    if ( (scn>=BTM_MAX_SCN) || (scn == 1) )
+    if ( (scn>=BTM_MAX_SCN) || (scn <= 1) )
         return FALSE;
 
     /* check if this port is available */
@@ -2533,7 +2582,7 @@ BOOLEAN BTM_TryAllocateSCN(UINT8 scn)
 BOOLEAN BTM_FreeSCN(UINT8 scn)
 {
     BTM_TRACE_DEBUG ("BTM_FreeSCN ");
-    if (scn <= BTM_MAX_SCN)
+    if (scn <= BTM_MAX_SCN && scn>0)
     {
         btm_cb.btm_scn[scn-1] = FALSE;
         return(TRUE);

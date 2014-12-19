@@ -154,7 +154,7 @@ void mca_dcb_event(tMCA_DCB *p_dcb, UINT8 event, tMCA_DCB_EVT *p_data)
     p_dcb->state = state_table[event][MCA_DCB_NEXT_STATE];
 
     /* execute action functions */
-    if ((action = state_table[event][MCA_DCB_ACT_COL]) != MCA_DCB_IGNORE)
+    if ((action = state_table[event][MCA_DCB_ACT_COL]) < MCA_DCB_IGNORE)
     {
         (*mca_dcb_action[action])(p_dcb, p_data);
     }
@@ -175,13 +175,21 @@ tMCA_DCB *mca_dcb_alloc(tMCA_CCB*p_ccb, tMCA_DEP dep)
     tMCA_DCB *p_dcb = NULL, *p_dcb_tmp;
     tMCA_RCB *p_rcb = p_ccb->p_rcb;
     tMCA_CS  *p_cs;
-    int       i, max;
+    unsigned int i, max;
 
     if (dep < MCA_NUM_DEPS)
     {
         p_cs = &p_rcb->dep[dep];
         i = mca_ccb_to_hdl(p_ccb)-1;
-        p_dcb_tmp = &mca_cb.dcb[i*MCA_NUM_MDLS];
+        if( i*MCA_NUM_MDLS < MCA_NUM_DCBS)
+        {
+            p_dcb_tmp = &mca_cb.dcb[i*MCA_NUM_MDLS];
+        }
+        else
+        {
+            MCA_TRACE_WARNING("dcb index out of range");
+            return p_dcb;
+        }
         /* make sure p_cs->max_mdl is smaller than MCA_NUM_MDLS at MCA_CreateDep */
         max = p_cs->max_mdl;
         for (i=0; i<max; i++, p_dcb_tmp++)
@@ -215,7 +223,7 @@ UINT8 mca_dep_free_mdl(tMCA_CCB *p_ccb, tMCA_DEP dep)
     tMCA_DCB *p_dcb;
     tMCA_RCB *p_rcb = p_ccb->p_rcb;
     tMCA_CS  *p_cs;
-    int       i, max;
+    unsigned int i, max;
     UINT8   count = 0;
     UINT8   left;
 
@@ -223,7 +231,15 @@ UINT8 mca_dep_free_mdl(tMCA_CCB *p_ccb, tMCA_DEP dep)
     {
         p_cs = &p_rcb->dep[dep];
         i = mca_ccb_to_hdl(p_ccb)-1;
-        p_dcb = &mca_cb.dcb[i * MCA_NUM_MDLS];
+        if( i*MCA_NUM_MDLS < MCA_NUM_DCBS )
+        {
+            p_dcb = &mca_cb.dcb[i * MCA_NUM_MDLS];
+        }
+        else
+        {
+            MCA_TRACE_WARNING("dcb index out of range");
+            return 0;
+        }
         /* make sure p_cs->max_mdl is smaller than MCA_NUM_MDLS at MCA_CreateDep */
         max = p_cs->max_mdl;
         for (i=0; i<max; i++, p_dcb++)
@@ -323,11 +339,17 @@ tMCA_DCB *mca_dcb_by_hdl(tMCA_DL hdl)
 void mca_dcb_close_by_mdl_id(tMCA_CCB*p_ccb, UINT16 mdl_id)
 {
     tMCA_DCB *p_dcb;
-    int       i;
+    unsigned int i;
 
     MCA_TRACE_DEBUG("mca_dcb_close_by_mdl_id mdl_id=%d", mdl_id);
     i = mca_ccb_to_hdl(p_ccb)-1;
-    p_dcb = &mca_cb.dcb[i*MCA_NUM_MDLS];
+    if( i*MCA_NUM_MDLS < MCA_NUM_DCBS)
+        p_dcb = &mca_cb.dcb[i*MCA_NUM_MDLS];
+    else
+    {
+        MCA_TRACE_WARNING("dcb index out of range");
+        return;
+    }
     for (i=0; i<MCA_NUM_MDLS; i++, p_dcb++)
     {
         if (p_dcb->state)

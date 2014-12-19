@@ -201,6 +201,11 @@ BOOLEAN gatt_disconnect (tGATT_TCB *p_tcb)
                 {
                     gatt_set_ch_state(p_tcb, GATT_CH_CLOSING);
                     ret = L2CA_CancelBleConnectReq (p_tcb->peer_bda);
+
+                    if(!ret)
+                    {
+                        gatt_set_ch_state(p_tcb, GATT_CH_CLOSE);
+                    }
                 }
             }
             else
@@ -479,7 +484,7 @@ static void gatt_channel_congestion(tGATT_TCB *p_tcb, BOOLEAN congested)
     {
         if (p_reg->in_use)
         {
-            if (p_reg->app_cb.p_congestion_cb)
+            if (p_reg->app_cb.p_congestion_cb && p_tcb)
             {
                 conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_reg->gatt_if);
                 (*p_reg->app_cb.p_congestion_cb)(conn_id, congested);

@@ -212,7 +212,10 @@ static const UINT8 rc_white_addr_prefix[][3] = {
     {0x00, 0x15, 0x83}, // BlueSoleil dongle
     {0x00, 0x80, 0x98}, // PTS dongle
     {0x48, 0xC1, 0xAC}, // Plantronics Backbeat Go
-    {0x00, 0x1B, 0xDC}  // PTS dongle 2
+    {0x00, 0x1B, 0xDC}, // PTS dongle 2
+    {0x00, 0x19, 0x8E}, // Demant
+    {0x04, 0x88, 0xE2}, // Apple
+    {0x00, 0x0C, 0x8A}  // Bose
 };
 
 static const char* rc_white_name[] = {
@@ -290,7 +293,7 @@ void send_key (int fd, uint16_t key, int pressed)
         return;
     }
 
-    BTIF_TRACE_DEBUG("AVRCP: Send key %d (%d) fd=%d", key, pressed, fd);
+    BTIF_TRACE_IMP("AVRCP: Send key %d (%d) fd=%d", key, pressed, fd);
     send_event(fd, EV_KEY, key, pressed);
     send_event(fd, EV_SYN, SYN_REPORT, 0);
 }
@@ -423,7 +426,7 @@ void handle_rc_features()
         {
             rc_features |= BTRC_FEAT_METADATA;
         }
-        BTIF_TRACE_DEBUG("%s: rc_features=0x%x", __FUNCTION__, rc_features);
+        BTIF_TRACE_IMP("%s: rc_features=0x%x", __FUNCTION__, rc_features);
 
         HAL_CBACK(bt_rc_callbacks, remote_features_cb, &rc_addr, rc_features)
 
@@ -468,9 +471,8 @@ void handle_rc_features()
     /*Disable all TG related bits if AVRCP TG feature is not enabled*/
         BTIF_TRACE_WARNING("Avrcp TG role not enabled, disabling TG specific featuremask");
         btif_rc_cb.rc_features &= ~BTA_AV_FEAT_ADV_CTRL;
-        btif_rc_cb.rc_features &= ~BTRC_FEAT_BROWSE;
-        btif_rc_cb.rc_features &= ~BTRC_FEAT_ABSOLUTE_VOLUME;
-        btif_rc_cb.rc_features &= ~BTRC_FEAT_METADATA;
+        btif_rc_cb.rc_features &= ~BTA_AV_FEAT_BROWSE;
+        btif_rc_cb.rc_features &= ~BTA_AV_FEAT_METADATA;
     }
 }
 
@@ -485,7 +487,7 @@ void handle_rc_features()
  ***************************************************************************/
 void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
 {
-    BTIF_TRACE_DEBUG("%s: rc_handle: %d", __FUNCTION__, p_rc_open->rc_handle);
+    BTIF_TRACE_IMP("%s: rc_handle: %d", __FUNCTION__, p_rc_open->rc_handle);
     bt_status_t result = BT_STATUS_SUCCESS;
     int i;
     char bd_str[18];
@@ -568,14 +570,13 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
     bt_bdaddr_t rc_addr;
     tBTA_AV_FEAT features;
 #endif
-    BTIF_TRACE_DEBUG("%s: rc_handle: %d", __FUNCTION__, p_rc_close->rc_handle);
+    BTIF_TRACE_IMP("%s: rc_handle: %d", __FUNCTION__, p_rc_close->rc_handle);
     if ((p_rc_close->rc_handle != btif_rc_cb.rc_handle)
         && (bdcmp(btif_rc_cb.rc_addr, p_rc_close->peer_addr)))
     {
         BTIF_TRACE_ERROR("Got disconnect of unknown device");
         return;
     }
-
     btif_rc_cb.rc_handle = 0;
     btif_rc_cb.rc_connected = FALSE;
     memset(btif_rc_cb.rc_addr, 0, sizeof(BD_ADDR));
@@ -653,6 +654,12 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
     {
         APPL_TRACE_WARNING("%s: AVDT not open, discarding pass-through command: %d",
                                                         __FUNCTION__, p_remote_cmd->rc_id);
+        return;
+    }
+
+    if ((p_remote_cmd->rc_id == BTA_AV_RC_STOP) && (!btif_av_stream_started_ready()))
+    {
+        APPL_TRACE_WARNING("%s: Stream suspended, ignore STOP cmd",__FUNCTION__);
         return;
     }
 
@@ -1139,7 +1146,7 @@ void handle_rc_browsemsg_cmd (tBTA_AV_BROWSE_MSG *pbrowse_msg)
  ***************************************************************************/
 void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
 {
-    BTIF_TRACE_DEBUG ("%s event:%s", __FUNCTION__, dump_rc_event(event));
+    BTIF_TRACE_IMP ("%s event:%s", __FUNCTION__, dump_rc_event(event));
     switch (event)
     {
         case BTA_AV_RC_OPEN_EVT:
@@ -1535,7 +1542,7 @@ int app_sendbrowsemsg(UINT8 index ,tAVRC_RESPONSE *avrc_rsp)
 *******************************************************************************/
 static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 ctype, UINT8 label)
 {
-    BTIF_TRACE_EVENT("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
+    BTIF_TRACE_IMP("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
         dump_rc_pdu(pavrc_cmd->pdu), btif_rc_cb.rc_handle, ctype, label);
 
     switch (event)
@@ -1911,7 +1918,7 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
 *******************************************************************************/
 static void btif_rc_upstreams_rsp_evt(UINT16 event, tAVRC_RESPONSE *pavrc_resp, UINT8 ctype, UINT8 label)
 {
-    BTIF_TRACE_EVENT("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
+    BTIF_TRACE_IMP("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
         dump_rc_pdu(pavrc_resp->pdu), btif_rc_cb.rc_handle, ctype, label);
 
 #if (AVRC_ADV_CTRL_INCLUDED == TRUE)
@@ -2316,7 +2323,7 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
 {
     tAVRC_RESPONSE avrc_rsp;
     CHECK_RC_CONNECTED
-    BTIF_TRACE_EVENT("## %s ## event_id:%s", __FUNCTION__, dump_rc_notification_event_id(event_id));
+    BTIF_TRACE_IMP("## %s ## event_id:%s", __FUNCTION__, dump_rc_notification_event_id(event_id));
     if (btif_rc_cb.rc_notif[event_id-1].bNotify == FALSE)
     {
         BTIF_TRACE_ERROR("Avrcp Event id not registered: event_id = %x", event_id);
@@ -2471,11 +2478,9 @@ static bt_status_t get_folderitem_rsp(btrc_folder_list_entries_t *rsp)
                 BTIF_TRACE_ERROR("attr count = %d", media_attr_cnt);
                 if (media_attr_cnt > 0)
                 {
-                    item[i].u.media.p_attr_list = \
+                    if ((item[i].u.media.p_attr_list = \
                     (tAVRC_ATTR_ENTRY *)GKI_getbuf((UINT16)(media_attr_cnt * \
-                                                        sizeof(tAVRC_ATTR_ENTRY)));
-                    if (GKI_get_buf_size(item[i].u.media.p_attr_list) == (UINT16)(\
-                                            media_attr_cnt * sizeof(tAVRC_ATTR_ENTRY)))
+                                                        sizeof(tAVRC_ATTR_ENTRY)))) != NULL)
                     {
                         for (xx = 0; xx < media_attr_cnt; xx++)
                         {
