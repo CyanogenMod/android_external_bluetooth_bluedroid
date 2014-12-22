@@ -190,10 +190,17 @@ enum {
 #define A2DP_MEDIA_TASK_STACK_SIZE       0x2000         /* In bytes */
 #endif
 
+#if (BTA_AV_CO_CP_SCMS_T == TRUE)
+/* A2DP header will contain a CP header of size 1 */
+#define A2DP_HDR_SIZE               2
+#else
 #define A2DP_HDR_SIZE               1
+#endif
 #define MAX_SBC_HQ_FRAME_SIZE_44_1  119
 #define MAX_SBC_HQ_FRAME_SIZE_48    115
-#define MAX_2MBPS_AVDTP_MTU         675
+
+/* 2DH5 payload size (679 bytes) - (4 bytes L2CAP Header + 12 bytes AVDTP Header) */
+#define MAX_2MBPS_AVDTP_MTU         663
 
 #define A2DP_MEDIA_TASK_TASK_STR        ((INT8 *) "A2DP-MEDIA")
 static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
@@ -2665,14 +2672,15 @@ static UINT32 get_frame_length()
 {
     UINT32 frame_len = 0;
     APPL_TRACE_DEBUG("channel mode: %d, sub-band: %d, number of block: %d, \
-            bitpool: %d, sampling frequency: %d",
+            bitpool: %d, sampling frequency: %d, num channels: %d",
             btif_media_cb.encoder.s16ChannelMode,
             btif_media_cb.encoder.s16NumOfSubBands,
             btif_media_cb.encoder.s16NumOfBlocks,
             btif_media_cb.encoder.s16BitPool,
-            btif_media_cb.encoder.s16SamplingFreq);
+            btif_media_cb.encoder.s16SamplingFreq,
+            btif_media_cb.encoder.s16NumOfChannels);
 
-    switch(btif_media_cb.encoder.s16NumOfChannels)
+    switch(btif_media_cb.encoder.s16ChannelMode)
     {
         case SBC_MONO:
         case SBC_DUAL:
@@ -2698,6 +2706,7 @@ static UINT32 get_frame_length()
         default:
             APPL_TRACE_DEBUG("Invalid channel number");
     }
+    APPL_TRACE_DEBUG("calculated frame length: %d", frame_len);
     return frame_len;
 }
 
