@@ -1983,6 +1983,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
                 {
                     btif_update_remote_device_type(p_data->link_up.bd_addr, BT_TRANSPORT_LE);
                 }
+                BTIF_TRACE_DEBUG("Remote device addr type=%d", p_data->link_up.remote_addr_type);
                 btif_storage_set_remote_addr_type(&bd_addr, p_data->link_up.remote_addr_type);
             }
             btif_update_remote_version_property(&bd_addr);
