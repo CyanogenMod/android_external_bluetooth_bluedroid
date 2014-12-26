@@ -59,6 +59,14 @@
 #define BTA_AV_RECONFIG_RETRY       6
 #endif
 
+#ifndef BTA_AV_CO_SBC_MAX_BITPOOL_OFF
+#define BTA_AV_CO_SBC_MAX_BITPOOL_OFF  6
+#endif
+
+#ifndef BTA_AV_CO_SBC_MAX_BITPOOL
+#define BTA_AV_CO_SBC_MAX_BITPOOL  53
+#endif
+
 /* state machine states */
 enum
 {
@@ -1922,6 +1930,13 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         }
 
         /* open the stream */
+        if ((uuid_int == UUID_SERVCLASS_AUDIO_SOURCE) &&
+            (cfg.codec_info[BTA_AV_CO_SBC_MAX_BITPOOL_OFF] > BTA_AV_CO_SBC_MAX_BITPOOL))
+        {
+            APPL_TRACE_WARNING("SetConfigReq: Change Max bitpool from %d to %d",
+                cfg.codec_info[BTA_AV_CO_SBC_MAX_BITPOOL_OFF], BTA_AV_CO_SBC_MAX_BITPOOL);
+            cfg.codec_info[BTA_AV_CO_SBC_MAX_BITPOOL_OFF] = BTA_AV_CO_SBC_MAX_BITPOOL;
+        }
         AVDT_OpenReq(p_scb->seps[p_scb->sep_idx].av_handle, p_scb->peer_addr,
                      p_scb->sep_info[p_scb->sep_info_idx].seid, &cfg);
 
