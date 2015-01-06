@@ -267,6 +267,7 @@ typedef struct
 
     UINT8               disc_active;
     tBTA_HH_STATUS      status;
+    tBTA_GATT_REASON    reason;
     BOOLEAN             is_le_device;
     tBTA_HH_LE_HID_SRVC hid_srvc[BTA_HH_LE_HID_SRVC_MAX];
     UINT16              conn_id;
