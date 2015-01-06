@@ -528,6 +528,19 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     /* Check if this is a continuation request */
     if (*p_req)
     {
+        /* Free and reallocate buffer */
+        if (p_ccb->rsp_list)
+        {
+            GKI_freebuf (p_ccb->rsp_list);
+        }
+
+        p_ccb->rsp_list = (UINT8 *)GKI_getbuf (max_list_len);
+        if (p_ccb->rsp_list == NULL)
+        {
+            SDP_TRACE_ERROR ("SDP - no scratch buf for attr rsp");
+            return;
+        }
+
         if (*p_req++ != SDP_CONTINUATION_LEN)
         {
             sdpu_build_n_send_error (p_ccb, trans_num, SDP_INVALID_CONT_STATE, SDP_TEXT_BAD_CONT_LEN);
@@ -825,6 +838,19 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     /* Check if this is a continuation request */
     if (*p_req)
     {
+        /* Free and reallocate buffer */
+        if (p_ccb->rsp_list)
+        {
+            GKI_freebuf (p_ccb->rsp_list);
+        }
+
+        p_ccb->rsp_list = (UINT8 *)GKI_getbuf (max_list_len);
+        if (p_ccb->rsp_list == NULL)
+        {
+            SDP_TRACE_ERROR ("SDP - no scratch buf for search rsp");
+            return;
+        }
+
         if (*p_req++ != SDP_CONTINUATION_LEN)
         {
             sdpu_build_n_send_error (p_ccb, trans_num, SDP_INVALID_CONT_STATE, SDP_TEXT_BAD_CONT_LEN);
