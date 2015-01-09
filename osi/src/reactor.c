@@ -74,12 +74,22 @@ void reactor_free(reactor_t *reactor) {
 
 reactor_status_t reactor_start(reactor_t *reactor) {
   assert(reactor != NULL);
-  return run_reactor(reactor, 0, NULL);
+  if(reactor)
+     return run_reactor(reactor, 0, NULL);
+  else {
+     ALOGE("%s :reactor is NULL",__func__);
+     return REACTOR_STATUS_ERROR;
+  }
 }
 
 reactor_status_t reactor_run_once(reactor_t *reactor) {
   assert(reactor != NULL);
-  return run_reactor(reactor, 1, NULL);
+  if(reactor)
+     return run_reactor(reactor, 1, NULL);
+  else {
+     ALOGE("%s :reactor is NULL",__func__);
+     return REACTOR_STATUS_ERROR;
+  }
 }
 
 reactor_status_t reactor_run_once_timeout(reactor_t *reactor, timeout_t timeout_ms) {
@@ -88,26 +98,36 @@ reactor_status_t reactor_run_once_timeout(reactor_t *reactor, timeout_t timeout_
   struct timeval tv;
   tv.tv_sec = timeout_ms / 1000;
   tv.tv_usec = (timeout_ms % 1000) * 1000;
-  return run_reactor(reactor, 1, &tv);
+  if(reactor)
+     return run_reactor(reactor, 1, &tv);
+  else {
+     ALOGE("%s :reactor is NULL",__func__);
+     return REACTOR_STATUS_ERROR;
+  }
 }
 
 void reactor_stop(reactor_t *reactor) {
   assert(reactor != NULL);
-
-  eventfd_write(reactor->event_fd, 1);
+  if(reactor)
+     eventfd_write(reactor->event_fd, 1);
 }
 
 void reactor_register(reactor_t *reactor, reactor_object_t *obj) {
   assert(reactor != NULL);
   assert(obj != NULL);
-
-  list_append(reactor->objects, obj);
+  if(reactor && obj)
+     list_append(reactor->objects, obj);
+  else
+     ALOGE("%s :reactor or reactor obj is NULL",__func__);
 }
 
 void reactor_unregister(reactor_t *reactor, reactor_object_t *obj) {
   assert(reactor != NULL);
   assert(obj != NULL);
-
+  if(!reactor || !obj) {
+     ALOGE("%s :reactor or obj is NULL",__func__);
+     return;
+  }
   list_remove(reactor->objects, obj);
 }
 
@@ -117,7 +137,10 @@ void reactor_unregister(reactor_t *reactor, reactor_object_t *obj) {
 // |reactor| may not be NULL.
 static reactor_status_t run_reactor(reactor_t *reactor, int iterations, struct timeval *tv) {
   assert(reactor != NULL);
-
+  if(!reactor) {
+     ALOGE("%s :reactor is NULL",__func__);
+     return REACTOR_STATUS_ERROR;
+  }
   for (int i = 0; iterations == 0 || i < iterations; ++i) {
     fd_set read_set;
     fd_set write_set;
