@@ -4687,15 +4687,7 @@ void btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode)
 
     p_dev_rec->link_key_changed = FALSE;
 
-    /* After connection is established we perform security if we do not know */
-    /* the name, or if we are originator because some procedure can have */
-    /* been scheduled while connection was down */
     BTM_TRACE_DEBUG ("is_originator:%d ", p_dev_rec->is_originator);
-    if (!(p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN) || p_dev_rec->is_originator)
-    {
-        if ((res = btm_sec_execute_procedure (p_dev_rec)) != BTM_CMD_STARTED)
-            btm_sec_dev_rec_cback_event (p_dev_rec, res, FALSE);
-    }
     return;
 }
 
