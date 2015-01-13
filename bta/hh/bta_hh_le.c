@@ -1290,6 +1290,7 @@ void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, tBTA_GATT_TRANSPORT transport,
         return;
     }
     p_dev_cb->status = (result == BTM_SUCCESS) ? BTA_HH_OK : BTA_HH_ERR_SEC;
+    p_dev_cb->reason = result;
 
     bta_hh_sm_execute(p_dev_cb, BTA_HH_ENC_CMPL_EVT, NULL);
 }
@@ -1339,8 +1340,12 @@ void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
         }
     }
     else
-        bta_hh_le_api_disc_act(p_cb);
-
+    {
+        APPL_TRACE_ERROR("%s() - encryption failed; status=0x%04x, reason=0x%04x",
+                __FUNCTION__, p_cb->status, p_cb->reason);
+        if (!(p_cb->status == BTA_HH_ERR_SEC && p_cb->reason == BTM_ERR_PROCESSING))
+            bta_hh_le_api_disc_act(p_cb);
+    }
 }
 
 /*******************************************************************************

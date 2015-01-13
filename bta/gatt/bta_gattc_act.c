@@ -1803,8 +1803,11 @@ static void bta_gattc_conn_cback(tGATT_IF gattc_if, BD_ADDR bda, UINT16 conn_id,
 {
     tBTA_GATTC_DATA *p_buf;
 
-    APPL_TRACE_DEBUG("bta_gattc_conn_cback: cif = %d connected = %d conn_id = %d reaosn = 0x%04x",
-                      gattc_if, connected, conn_id, reason);
+    if (reason != 0)
+    {
+        APPL_TRACE_WARNING("%s() - cif=%d connected=%d conn_id=%d reason=0x%04x",
+                      __FUNCTION__, gattc_if, connected, conn_id, reason);
+    }
 
     if ((p_buf = (tBTA_GATTC_DATA *) GKI_getbuf(sizeof(tBTA_GATTC_DATA))) != NULL)
     {
