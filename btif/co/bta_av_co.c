@@ -93,7 +93,11 @@ const tA2D_SBC_CIE bta_av_co_sbc_sink_caps =
 };
 
 #if !defined(BTIF_AV_SBC_DEFAULT_SAMP_FREQ)
+#ifdef SAMPLE_RATE_48K
+#define BTIF_AV_SBC_DEFAULT_SAMP_FREQ A2D_SBC_IE_SAMP_FREQ_48
+#else
 #define BTIF_AV_SBC_DEFAULT_SAMP_FREQ A2D_SBC_IE_SAMP_FREQ_44
+#endif
 #endif
 
 /* Default SBC codec configuration */
