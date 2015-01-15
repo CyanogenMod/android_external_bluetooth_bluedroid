@@ -138,9 +138,9 @@ tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_CFG bta_dm_pm_cfg[BTA_DM_NUM_PM_ENTRY + 1] 
   {BTA_ID_JV,  BTA_JV_PM_ID_1,      6},  /* app BTA_JV_PM_ID_1, reuse ftc spec table */
   {BTA_ID_JV,  BTA_ALL_APP_ID,      7},  /* reuse fts spec table */
   {BTA_ID_HL,  BTA_ALL_APP_ID,      8},  /* reuse fts spec table */
-  {BTA_ID_HS,  BTA_ALL_APP_ID,      9},  /* HS spec table */
-  {BTA_ID_PAN, BTUI_PAN_ID_PANU,   10},  /* PANU spec table */
-  {BTA_ID_PAN, BTUI_PAN_ID_NAP,    11}   /* NAP spec table */
+  {BTA_ID_PAN, BTUI_PAN_ID_PANU,    9},  /* PANU spec table */
+  {BTA_ID_PAN, BTUI_PAN_ID_NAP,    10},  /* NAP spec table */
+  {BTA_ID_HS,  BTA_ALL_APP_ID,     11}   /* HS spec table */
 #if BLE_INCLUDED == TRUE
   ,{BTA_ID_GATTC,  BTA_ALL_APP_ID,  12}   /* gattc spec table */
   ,{BTA_ID_GATTS,  BTA_ALL_APP_ID,  13}  /* gatts spec table */
