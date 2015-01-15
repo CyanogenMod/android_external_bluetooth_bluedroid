@@ -208,7 +208,10 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 
 /* 18 frames is equivalent to 6.89*18*2.9 ~= 360 ms @ 44.1 khz, 20 ms mediatick */
 #define MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ 18
-#define MAX_PCM_FRAME_NUM_PER_TICK     10
+
+#ifndef MAX_PCM_FRAME_NUM_PER_TICK
+#define MAX_PCM_FRAME_NUM_PER_TICK     14
+#endif
 
 //#define BTIF_MEDIA_VERBOSE_ENABLED
 /* In case of A2DP SINK, we will delay start by 5 AVDTP Packets*/
