@@ -1788,11 +1788,19 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
             case SMP_COMPLT_EVT:
                 if(event == SMP_COMPLT_EVT)
                 {
-                    BTM_TRACE_DEBUG("btm_proc_smp_cback: role:%d, sec_state:%d, sec_flags:0x%x, reason=%d", p_dev_rec->role_master, p_dev_rec->sec_state, p_dev_rec->sec_flags, p_data->cmplt.reason);
+                    BTM_TRACE_DEBUG("btm_proc_smp_cback: role:%d, sec_state:%d, sec_flags:0x%x, reason=%d, sec_level=0x%02x",
+                                     p_dev_rec->role_master, p_dev_rec->sec_state, p_dev_rec->sec_flags, p_data->cmplt.reason, p_data->cmplt.sec_level);
                     if(p_dev_rec->sec_state == BTM_SEC_STATE_ENCRYPTING && p_dev_rec->role_master &&
                        p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN && p_data->cmplt.reason != SMP_SUCCESS && p_data->cmplt.reason != BTM_ERR_KEY_MISSING)
                     {
                         BTM_TRACE_DEBUG("btm_proc_smp_cback:skip bta_dm_ble_smp_cback() at SMP CMPL");
+                        skip_cmpl_cback = TRUE;
+                    }
+
+                    /*Avoid callback in case Slave completed encryption due to successful security request*/
+                    if(p_data->cmplt.sec_level == 0 && p_data->cmplt.reason == SMP_SUCCESS && !(p_dev_rec->role_master))
+                    {
+                        BTM_TRACE_DEBUG("btm_proc_smp_cback:bta_dm_ble_smp_cback() at SMP CMPL for slave");
                         skip_cmpl_cback = TRUE;
                     }
                 }
