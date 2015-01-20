@@ -402,6 +402,7 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
         }
         rem_handles = num_rsp_handles;
         cont_offset = 0;
+        p_ccb->cont_offset = 0;
     }
 
     /* Calculate how many handles will fit in one PDU */
