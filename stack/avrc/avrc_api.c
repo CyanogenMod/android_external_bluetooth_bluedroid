@@ -791,8 +791,9 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
         else
         {
             AVRC_TRACE_ERROR("Drop invalid Avrcp Browse message");
-            GKI_freebuf(p_pkt);
         }
+        /*Free the packet as the same already got copied in BTA*/
+        GKI_freebuf(p_pkt);
     }
 
 }
