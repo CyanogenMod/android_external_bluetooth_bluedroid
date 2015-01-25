@@ -236,7 +236,7 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 #define RESET_RATE_COUNTER_THRESHOLD_MS    2000
 #define MAX_PCM_ITER_NUM_PER_TICK     2
 
-#define BTIF_MEDIA_VERBOSE_ENABLED
+//#define BTIF_MEDIA_VERBOSE_ENABLED
 /* In case of A2DP SINK, we will delay start by 5 AVDTP Packets*/
 #define MAX_A2DP_DELAYED_START_FRAME_COUNT 1
 #define PACKET_PLAYED_PER_TICK_48 8
@@ -2851,7 +2851,7 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                             {
                                 APPL_TRACE_ERROR("## Audio Congestion (iterations:%d > max (%d))",
                                      noi, MAX_PCM_ITER_NUM_PER_TICK);
-                                noi = 1;
+                                noi = MAX_PCM_ITER_NUM_PER_TICK;
                                 btif_media_cb.media_feeding_state.pcm.counter
                                     =noi * nof * pcm_bytes_per_frame;
                             }
