@@ -234,7 +234,7 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 #define A2DP_PACKET_COUNT_LOW_WATERMARK 5
 #define MAX_PCM_FRAME_NUM_PER_TICK     10
 #define RESET_RATE_COUNTER_THRESHOLD_MS    2000
-#define MAX_PCM_ITER_NUM_PER_TICK     2
+#define MAX_PCM_ITER_NUM_PER_TICK     20
 
 //#define BTIF_MEDIA_VERBOSE_ENABLED
 /* In case of A2DP SINK, we will delay start by 5 AVDTP Packets*/
@@ -1435,7 +1435,7 @@ static void btif_media_task_aa_handle_timer(void)
     APPL_TRACE_DEBUG("btif_media_task_aa_handle_timer: %d", Debug++);
 #endif
 
-    log_tstamps_us("media task tx timer");
+    //log_tstamps_us("media task tx timer");
 
 #if (BTA_AV_INCLUDED == TRUE)
     if(btif_media_cb.is_tx_timer == TRUE)
