@@ -1710,10 +1710,13 @@ void btm_read_remote_ext_features_failed (UINT8 status, UINT16 handle)
 *******************************************************************************/
 void btm_establish_continue (tACL_CONN *p_acl_cb)
 {
+    tBTM_SEC_DEV_REC *p_dev_rec = NULL;
+
 #if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
         tBTM_BL_EVENT_DATA  evt_data;
 #endif
-        BTM_TRACE_DEBUG ("btm_establish_continue");
+    BTM_TRACE_DEBUG ("btm_establish_continue");
+    p_dev_rec = btm_find_dev(p_acl_cb->remote_addr);
 #if (!defined(BTM_BYPASS_EXTRA_ACL_SETUP) || BTM_BYPASS_EXTRA_ACL_SETUP == FALSE)
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
         if (p_acl_cb->transport == BT_TRANSPORT_BR_EDR)
@@ -1744,7 +1747,11 @@ void btm_establish_continue (tACL_CONN *p_acl_cb)
 #if BLE_INCLUDED == TRUE
             evt_data.conn.handle = p_acl_cb->hci_handle;
             evt_data.conn.transport = p_acl_cb->transport;
-            evt_data.conn.remote_addr_type = p_acl_cb->active_remote_addr_type;
+            if(p_dev_rec != NULL)
+            {
+               BTM_TRACE_DEBUG ("Remote dev Addr type:: %d", p_dev_rec->ble.ble_addr_type);
+               evt_data.conn.remote_addr_type = p_dev_rec->ble.ble_addr_type;
+            }
 #endif
 
             (*btm_cb.p_bl_changed_cb)(&evt_data);
