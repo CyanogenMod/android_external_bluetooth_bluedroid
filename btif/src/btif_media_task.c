@@ -235,7 +235,7 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 #define RESET_RATE_COUNTER_THRESHOLD_MS    2000
 #define MAX_PCM_ITER_NUM_PER_TICK     2
 
-#define BTIF_MEDIA_VERBOSE_ENABLED
+//#define BTIF_MEDIA_VERBOSE_ENABLED
 /* In case of A2DP SINK, we will delay start by 5 AVDTP Packets*/
 #define MAX_A2DP_DELAYED_START_FRAME_COUNT 1
 #define PACKET_PLAYED_PER_TICK_48 8
