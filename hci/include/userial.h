@@ -65,6 +65,11 @@ void userial_close_reader(void);
 // less than |len|. This function will not block.
 uint16_t userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len);
 
+// Writes a maximum of |len| bytes from |p_data| to the serial port.
+// This function returns the number of bytes actually written, which may be
+// less than |len|. This function may block.
+uint16_t userial_write(uint16_t msg_id, const uint8_t *p_data, uint16_t len);
+
 #ifdef QCOM_WCN_SSR
 uint8_t userial_dev_inreset();
 #endif
