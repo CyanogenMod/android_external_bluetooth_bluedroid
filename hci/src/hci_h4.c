@@ -28,6 +28,7 @@
 
 #include <utils/Log.h>
 #include <stdlib.h>
+#include <string.h>
 #include <fcntl.h>
 
 #include "bt_hci_bdroid.h"
