@@ -1028,7 +1028,11 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
 
             btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
             break;
-
+#if (AVRC_CTLR_INCLUDED == TRUE)
+        case BTA_AV_REMOTE_RSP_EVT:
+            btif_rc_handler(event, (tBTA_AV*)p_data);
+            break;
+#endif
         CHECK_RC_EVENT(event, p_data);
 
         default:
