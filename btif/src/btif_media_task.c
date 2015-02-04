@@ -179,11 +179,20 @@ enum {
 #define BTIF_MEDIA_BITRATE_STEP 5
 #endif
 
+#ifdef SAMPLE_RATE_48K
+/* Middle quality quality setting @ 48 khz */
+#define DEFAULT_SBC_BITRATE 345
+
+#ifndef BTIF_A2DP_NON_EDR_MAX_RATE
+#define BTIF_A2DP_NON_EDR_MAX_RATE 237
+#endif
+#else
 /* Middle quality quality setting @ 44.1 khz */
 #define DEFAULT_SBC_BITRATE 328
 
 #ifndef BTIF_A2DP_NON_EDR_MAX_RATE
 #define BTIF_A2DP_NON_EDR_MAX_RATE 229
+#endif
 #endif
 
 #ifndef A2DP_MEDIA_TASK_STACK_SIZE
