@@ -51,7 +51,8 @@ static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf);
 static const UINT8 hci_role_switch_black_list_prefix[][3] = {{0x00, 0x26, 0xb4}, /* NAC FORD,2013 Lincoln */
                                                              {0x00, 0x26, 0xe8}, /* Nissan Murano */
                                                              {0x00, 0x37, 0x6d}, /* Lexus ES300h */
-                                                             {0x9c, 0x3a, 0xaf}  /* SAMSUNG HM1900 */
+                                                             {0x9c, 0x3a, 0xaf}, /* SAMSUNG HM1900 */
+                                                             {0x00, 0x1b, 0xdc}  /* BSHSBE20 */
                                                             };
 
 /*******************************************************************************
