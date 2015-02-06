@@ -177,8 +177,7 @@ static bt_status_t btsock_get_sockopt(btsock_type_t type, int channel, btsock_op
             status = btsock_rfc_get_sockopt(channel, option_name, option_value, option_len);
             break;
         case BTSOCK_L2CAP:
-            BTIF_TRACE_ERROR("bt l2cap socket type not supported, type:%d", type);
-            status = BT_STATUS_UNSUPPORTED;
+            status = btsock_l2c_get_sockopt(channel, option_name, option_value, option_len);
             break;
         case BTSOCK_SCO:
             BTIF_TRACE_ERROR("bt sco socket not supported, type:%d", type);
