@@ -366,6 +366,10 @@
 #define BTA_FTS_OPS_IDLE_TO_SNIFF_DELAY_MS 7000
 #endif
 
+#ifndef BTIF_MAX_PCM_ITER_NUM_PER_TICK
+#define BTIF_MAX_PCM_ITER_NUM_PER_TICK     2
+#endif
+
 //------------------End added from bdroid_buildcfg.h---------------------
 
 
