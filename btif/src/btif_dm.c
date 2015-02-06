@@ -113,6 +113,9 @@ BOOLEAN blacklistPairingRetries(BD_ADDR bd_addr)
 #define BOND_TYPE_PERSISTENT  1
 #define BOND_TYPE_TEMPORARY   2
 
+#define ENCRYPTED_BREDR       2
+#define ENCRYPTED_LE          4
+
 typedef struct
 {
     bt_bond_state_t state;
@@ -701,13 +704,33 @@ void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr)
 ** Function         btif_dm_get_connection_state
 **
 ** Description      Returns whether the remote device is currently connected
+**                  and whether encryption is active for the connection
 **
-** Returns          0 if not connected
+** Returns          0 if not connected; 1 if connected and > 1 if connection is
+**                  encrypted
 **
 *******************************************************************************/
 uint16_t btif_dm_get_connection_state(const bt_bdaddr_t *bd_addr)
 {
-    return BTA_DmGetConnectionState((UINT8 *)bd_addr->address);
+    uint8_t *bda = (uint8_t*)bd_addr->address;
+    uint16_t rc = BTA_DmGetConnectionState(bda);
+
+    if (rc != 0)
+    {
+        uint8_t flags = 0;
+
+        BTM_GetSecurityFlagsByTransport(bda, &flags, BT_TRANSPORT_BR_EDR);
+        BTIF_TRACE_DEBUG("%s: security flags (BR/EDR)=0x%02x", __FUNCTION__, flags);
+        if (flags & BTM_SEC_FLAG_ENCRYPTED)
+            rc |= ENCRYPTED_BREDR;
+
+        BTM_GetSecurityFlagsByTransport(bda, &flags, BT_TRANSPORT_LE);
+        BTIF_TRACE_DEBUG("%s: security flags (LE)=0x%02x", __FUNCTION__, flags);
+        if (flags & BTM_SEC_FLAG_ENCRYPTED)
+            rc |= ENCRYPTED_LE;
+    }
+
+    return rc;
 }
 
 /*******************************************************************************
