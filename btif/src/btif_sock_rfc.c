@@ -425,6 +425,20 @@ bt_status_t btsock_rfc_get_sockopt(int channel, btsock_option_type_t option_name
             status = BT_STATUS_SUCCESS;
         }
     }
+    else if((rs) && ((option_name == BTSOCK_OPT_GET_CONG_STATUS)))
+    {
+        if(rs->f.outgoing_congest)
+        {
+            *((UINT8 *)option_value) = 1;
+        }
+        else
+        {
+            *((UINT8 *)option_value) = 0;
+        }
+        *option_len = sizeof(UINT8);
+
+        status = BT_STATUS_SUCCESS;
+    }
     return status;
 }
 
