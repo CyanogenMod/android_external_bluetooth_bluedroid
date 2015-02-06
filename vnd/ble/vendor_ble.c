@@ -701,6 +701,8 @@ UINT8 btm_ble_vendor_get_irk_list_size(void)
 {
 #if BLE_PRIVACY_SPT == TRUE
     return btm_ble_vendor_cb.irk_list_size;
+#else
+    return 0;
 #endif
 }
 
