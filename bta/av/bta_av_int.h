@@ -516,6 +516,7 @@ typedef struct
     UINT8               q_tag;          /* identify the associated q_info union member */
     BOOLEAN             no_rtp_hdr;     /* TRUE if add no RTP header*/
     UINT16              uuid_int;       /*intended UUID of Initiator to connect to */
+    BOOLEAN             skip_sdp;       /* Decides if sdp to be done prior to profile connection */
 } tBTA_AV_SCB;
 
 #define BTA_AV_RC_ROLE_MASK     0x10
