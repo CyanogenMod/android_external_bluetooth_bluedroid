@@ -807,7 +807,7 @@ static uint32_t out_get_channels(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    INFO("channels 0x%" PRIx32, out->cfg.channel_flags);
+    DEBUG("channels 0x%" PRIx32, out->cfg.channel_flags);
 
     return out->cfg.channel_flags;
 }
@@ -815,7 +815,7 @@ static uint32_t out_get_channels(const struct audio_stream *stream)
 static audio_format_t out_get_format(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-    INFO("format 0x%x", out->cfg.format);
+    DEBUG("format 0x%x", out->cfg.format);
     return out->cfg.format;
 }
 
