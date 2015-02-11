@@ -478,6 +478,7 @@ static int a2dp_read_audio_config(struct a2dp_stream_common *common)
     return 0;
 }
 
+#ifdef DYN_SAMPLERATE
 static int a2dp_set_audio_config(struct a2dp_stream_out *out)
 {
     uint32_t sample_rate = out->cfg.rate;
@@ -499,6 +500,7 @@ static int a2dp_set_audio_config(struct a2dp_stream_out *out)
 
     return 0;
 }
+#endif
 
 static void a2dp_open_ctrl_path(struct a2dp_stream_common *common)
 {
@@ -700,12 +702,14 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
     if ((out->common.state == AUDIO_A2DP_STATE_STOPPED) ||
         (out->common.state == AUDIO_A2DP_STATE_STANDBY))
     {
+#ifdef DYN_SAMPLERATE
         if (a2dp_set_audio_config(out) < 0)
         {
             ERROR("failed to set stream config");
             pthread_mutex_unlock(&out->common.lock);
             return -1;
         }
+#endif
 
         if (start_audio_datapath(&out->common) < 0)
         {
