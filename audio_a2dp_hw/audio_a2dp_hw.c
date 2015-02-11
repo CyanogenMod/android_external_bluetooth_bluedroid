@@ -480,6 +480,7 @@ static int a2dp_read_audio_config(struct a2dp_stream_common *common)
 
 static int a2dp_set_audio_config(struct a2dp_stream_out *out)
 {
+#ifdef DYN_SAMPLERATE
     uint32_t sample_rate = out->cfg.rate;
     uint8_t channel_count = audio_channel_count_from_out_mask(out->cfg.channel_flags);
     uint8_t bit_per_sample = audio_bytes_per_sample(out->cfg.format) * 8;
@@ -496,6 +497,7 @@ static int a2dp_set_audio_config(struct a2dp_stream_out *out)
         ERROR("a2dp set audio config failed");
         return -1;
     }
+#endif
 
     return 0;
 }
