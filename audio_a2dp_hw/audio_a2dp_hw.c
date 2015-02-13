@@ -756,7 +756,11 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
 
     if (sent == -1)
     {
+        pthread_mutex_lock(&out->common.lock);
+
         stop_audio_datapath(&out->common, true);
+
+        pthread_mutex_unlock(&out->common.lock);
     }
 
     DEBUG("wrote %d bytes out of %zu bytes", sent, bytes);
