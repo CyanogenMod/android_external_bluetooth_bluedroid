@@ -738,7 +738,6 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
 #if 0
     ts_error_log("a2dp_out_write", bytes, out->common.buffer_sz, out->common.cfg);
 #endif
-    pthread_mutex_unlock(&out->common.lock);
 
     if (perf_systrace_log_enabled)
     {
@@ -758,6 +757,8 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
     {
         stop_audio_datapath(&out->common, true);
     }
+
+    pthread_mutex_unlock(&out->common.lock);
 
     DEBUG("wrote %d bytes out of %zu bytes", sent, bytes);
     return sent;
