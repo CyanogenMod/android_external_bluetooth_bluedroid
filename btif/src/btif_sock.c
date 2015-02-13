@@ -39,6 +39,7 @@
 #include "btif_sock_thread.h"
 #include "btif_sock_rfc.h"
 #if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+#include "btif_sock.h"
 #include "btif_sock_l2cap.h"
 #endif
 
@@ -72,6 +73,25 @@ btsock_interface_t *btif_sock_get_interface()
 {
     return &sock_if;
 }
+
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+btsock_type_t bta_co_get_sock_type_by_id(uint32_t slot_id)
+{
+    if(slot_id >= BASE_RFCOMM_SLOT_ID && slot_id <= MAX_RFCOMM_SLOT_ID)
+    {
+        return  BTSOCK_RFCOMM;
+    }
+    else if(slot_id >= BASE_L2C_SLOT_ID && slot_id <= MAX_L2C_SLOT_ID)
+    {
+        return BTSOCK_L2CAP;
+    }
+    else
+    {
+        return 0xFFFF;
+    }
+}
+#endif
+
 bt_status_t btif_sock_init()
 {
     static volatile int binit;

@@ -39,6 +39,7 @@
 
 #include "bta_api.h"
 #include "btif_sock_thread.h"
+#include "btif_sock.h"
 #include "btif_sock_sdp.h"
 #include "btif_sock_util.h"
 
@@ -77,7 +78,6 @@ static inline void logu(const char* title, const uint8_t * p_uuid)
 
 
 
-#define MAX_RFC_CHANNEL 30
 #define MAX_RFC_SESSION BTA_JV_MAX_RFC_SR_SESSION //3 by default
 typedef struct {
     int outgoing_congest : 1;
@@ -91,6 +91,7 @@ typedef struct {
 typedef struct {
   flags_t f;
   uint32_t id;
+  BOOLEAN in_use;
   int security;
   int scn;
   bt_bdaddr_t addr;
@@ -107,7 +108,6 @@ typedef struct {
 } rfc_slot_t;
 
 static rfc_slot_t rfc_slots[MAX_RFC_CHANNEL];
-static uint32_t rfc_slot_id;
 static volatile int pth = -1; //poll thread handle
 static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data);
 static void cleanup_rfc_slot(rfc_slot_t* rs);
@@ -139,6 +139,7 @@ static void init_rfc_slots()
         rfc_slots[i].scn = -1;
         rfc_slots[i].sdp_handle = 0;
         rfc_slots[i].fd = rfc_slots[i].app_fd = -1;
+        rfc_slots[i].id = BASE_RFCOMM_SLOT_ID + i;
         rfc_slots[i].incoming_queue = list_new(GKI_freebuf);
         assert(rfc_slots[i].incoming_queue != NULL);
     }
@@ -162,7 +163,7 @@ void btsock_rfc_cleanup()
     int i;
     for(i = 0; i < MAX_RFC_CHANNEL; i++)
     {
-        if(rfc_slots[i].id) {
+        if(rfc_slots[i].in_use) {
             cleanup_rfc_slot(&rfc_slots[i]);
             list_free(rfc_slots[i].incoming_queue);
         }
@@ -188,7 +189,7 @@ static inline rfc_slot_t* find_rfc_slot_by_id(uint32_t id)
     {
         for(i = 0; i < MAX_RFC_CHANNEL; i++)
         {
-            if(rfc_slots[i].id == id)
+            if(rfc_slots[i].in_use && (rfc_slots[i].id == id))
             {
                 return &rfc_slots[i];
             }
@@ -204,7 +205,7 @@ static inline rfc_slot_t* find_rfc_slot_by_pending_sdp()
     int i;
     for(i = 0; i < MAX_RFC_CHANNEL; i++)
     {
-        if(rfc_slots[i].id && rfc_slots[i].f.pending_sdp_request)
+        if(rfc_slots[i].in_use && rfc_slots[i].f.pending_sdp_request)
         {
             if(rfc_slots[i].id < min_id)
             {
@@ -222,7 +223,7 @@ static inline rfc_slot_t* find_rfc_slot_requesting_sdp()
     int i;
     for(i = 0; i < MAX_RFC_CHANNEL; i++)
     {
-        if(rfc_slots[i].id && rfc_slots[i].f.doing_sdp_request)
+        if(rfc_slots[i].in_use && rfc_slots[i].f.doing_sdp_request)
                 return &rfc_slots[i];
     }
     APPL_TRACE_DEBUG("can not find any slot is requesting sdp");
@@ -238,7 +239,7 @@ static inline rfc_slot_t* find_rfc_slot_by_fd(int fd)
         {
             if(rfc_slots[i].fd == fd)
             {
-                if(rfc_slots[i].id)
+                if(rfc_slots[i].in_use)
                     return &rfc_slots[i];
                 else
                 {
@@ -264,7 +265,7 @@ static inline rfc_slot_t* find_rfc_slot_by_scn(int scn)
         {
             if(rfc_slots[i].scn == scn)
             {
-                if(rfc_slots[i].id)
+                if(rfc_slots[i].in_use)
                     return &rfc_slots[i];
             }
         }
@@ -306,10 +307,7 @@ static rfc_slot_t* alloc_rfc_slot(const bt_bdaddr_t *addr, const char* name, con
             strncpy(rs->service_name, name, sizeof(rs->service_name) -1);
         if(addr)
             rs->addr = *addr;
-        ++rfc_slot_id;
-        if(rfc_slot_id == 0)
-            rfc_slot_id = 1; //skip 0 when wrapped
-        rs->id = rfc_slot_id;
+        rs->in_use = TRUE;
         rs->f.server = server;
     }
     return rs;
@@ -671,7 +669,7 @@ static void cleanup_rfc_slot(rfc_slot_t* rs)
     rs->rfc_port_handle = 0;
     //cleanup the flag
     memset(&rs->f, 0, sizeof(rs->f));
-    rs->id = 0;
+    rs->in_use = FALSE;
 }
 static inline BOOLEAN send_app_scn(rfc_slot_t* rs)
 {
