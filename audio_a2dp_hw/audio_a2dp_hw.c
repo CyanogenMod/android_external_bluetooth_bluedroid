@@ -606,7 +606,7 @@ static int start_audio_datapath(struct a2dp_stream_common *common)
 }
 
 
-static int stop_audio_datapath(struct a2dp_stream_common *common)
+static int stop_audio_datapath(struct a2dp_stream_common *common, bool stay_suspended)
 {
     int oldstate = common->state;
 
@@ -626,7 +626,8 @@ static int stop_audio_datapath(struct a2dp_stream_common *common)
         return -1;
     }
 
-    common->state = AUDIO_A2DP_STATE_STOPPED;
+    if (!stay_suspended || common->state != AUDIO_A2DP_STATE_SUSPENDED)
+        common->state = AUDIO_A2DP_STATE_STOPPED;
 
     /* disconnect audio path */
     skt_disconnect(common->audio_fd);
@@ -755,12 +756,11 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
 
     if (sent == -1)
     {
-        skt_disconnect(out->common.audio_fd);
-        out->common.audio_fd = AUDIO_SKT_DISCONNECTED;
-        if (out->common.state != AUDIO_A2DP_STATE_SUSPENDED)
-            out->common.state = AUDIO_A2DP_STATE_STOPPED;
-        else
-            ERROR("write failed : stream suspended, avoid resetting state");
+        pthread_mutex_lock(&out->common.lock);
+
+        stop_audio_datapath(&out->common, true);
+
+        pthread_mutex_unlock(&out->common.lock);
     }
 
     DEBUG("wrote %d bytes out of %zu bytes", sent, bytes);
@@ -1297,7 +1297,7 @@ static void adev_close_output_stream(struct audio_hw_device *dev,
 
     pthread_mutex_lock(&out->common.lock);
     if ((out->common.state == AUDIO_A2DP_STATE_STARTED) || (out->common.state == AUDIO_A2DP_STATE_STOPPING))
-        stop_audio_datapath(&out->common);
+        stop_audio_datapath(&out->common, false);
 
     if (audio_sample_log_enabled) {
         ALOGV("close file output");
@@ -1495,7 +1495,7 @@ static void adev_close_input_stream(struct audio_hw_device *dev,
     INFO("closing input (state %d)", state);
 
     if ((state == AUDIO_A2DP_STATE_STARTED) || (state == AUDIO_A2DP_STATE_STOPPING))
-        stop_audio_datapath(&in->common);
+        stop_audio_datapath(&in->common, false);
 
     skt_disconnect(in->common.ctrl_fd);
     free(stream);
