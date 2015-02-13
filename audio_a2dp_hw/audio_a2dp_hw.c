@@ -756,12 +756,16 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
 
     if (sent == -1)
     {
+        pthread_mutex_lock(&out->common.lock);
+
         skt_disconnect(out->common.audio_fd);
         out->common.audio_fd = AUDIO_SKT_DISCONNECTED;
         if (out->common.state != AUDIO_A2DP_STATE_SUSPENDED)
             out->common.state = AUDIO_A2DP_STATE_STOPPED;
         else
             ERROR("write failed : stream suspended, avoid resetting state");
+
+        pthread_mutex_unlock(&out->common.lock);
     }
 
     DEBUG("wrote %d bytes out of %zu bytes", sent, bytes);
@@ -1145,9 +1149,13 @@ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
 
     if (read == -1)
     {
+        pthread_mutex_lock(&in->common.lock);
+
         skt_disconnect(in->common.audio_fd);
         in->common.audio_fd = AUDIO_SKT_DISCONNECTED;
         in->common.state = AUDIO_A2DP_STATE_STOPPED;
+
+        pthread_mutex_unlock(&in->common.lock);
     } else if (read == 0) {
         DEBUG("read time out - return zeros");
         memset(buffer, 0, bytes);
