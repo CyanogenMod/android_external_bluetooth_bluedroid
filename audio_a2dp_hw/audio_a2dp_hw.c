@@ -584,8 +584,9 @@ static int start_audio_datapath(struct a2dp_stream_common *common)
     }
     else if (a2dp_status == A2DP_CTRL_ACK_INCALL_FAILURE)
     {
-        ERROR("audiopath start failed- In call a2dp, move to suspended");
-        common->state = AUDIO_A2DP_STATE_SUSPENDED;
+        ERROR("audiopath start failed- In call a2dp, stay in state %s",
+            dump_a2dp_hal_state(oldstate));
+        common->state = oldstate;
         return -1;
     }
 
