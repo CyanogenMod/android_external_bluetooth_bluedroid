@@ -1240,9 +1240,9 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     /* initialize a2dp specifics */
     a2dp_stream_common_init(&out->common);
 
-    out->common.cfg.channel_flags = AUDIO_STREAM_DEFAULT_CHANNEL_FLAG;
-    out->common.cfg.format = AUDIO_STREAM_DEFAULT_FORMAT;
-    out->common.cfg.rate = AUDIO_STREAM_DEFAULT_RATE;
+    out->cfg.channel_flags = out->common.cfg.channel_flags = AUDIO_STREAM_DEFAULT_CHANNEL_FLAG;
+    out->cfg.format = out->common.cfg.format = AUDIO_STREAM_DEFAULT_FORMAT;
+    out->cfg.rate = out->common.cfg.rate = AUDIO_STREAM_DEFAULT_RATE;
 
     /* set output config values */
     if (config)
