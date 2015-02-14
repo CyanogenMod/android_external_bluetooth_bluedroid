@@ -2769,18 +2769,14 @@ static UINT8 check_for_max_number_of_frames_per_packet()
  **
  ** Function         btif_get_num_aa_frame
  **
- ** Description      returns number of frames to send and number of iterations
- **                  to be used. num_of_ietrations and num_of_frames parameters
- **                  are used as output param for returning the respective values
+ ** Description
  **
- ** Returns          void
+ ** Returns          The number of media frames in this time slice
  **
  *******************************************************************************/
-static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames)
+static UINT8 btif_get_num_aa_frame(void)
 {
     UINT8 result=0;
-    UINT8 nof = 0;
-    UINT8 noi = 1;
 
     switch (btif_media_cb.TxTranscoding)
     {
@@ -2790,7 +2786,6 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                              btif_media_cb.encoder.s16NumOfBlocks *
                              btif_media_cb.media_feeding.cfg.pcm.num_channel *
                              btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
-            APPL_TRACE_DEBUG("pcm_bytes_per_frame %u", pcm_bytes_per_frame);
 
             UINT32 us_this_tick = BTIF_MEDIA_TIME_TICK * 1000;
             UINT64 now_us = GKI_now_us();
@@ -2804,60 +2799,13 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
 
             /* calculate nbr of frames pending for this media tick */
             result = btif_media_cb.media_feeding_state.pcm.counter/pcm_bytes_per_frame;
-            APPL_TRACE_DEBUG("num of frames calculated as per available pcm data:  %u", result);
-            if(btif_av_is_peer_edr())
+            if (result > MAX_PCM_FRAME_NUM_PER_TICK)
             {
-                if (!btif_media_cb.TxNumSBCFrames)
-                {
-                    APPL_TRACE_ERROR("Error: TxNumSBCFrames not updated, update from here");
-                    btif_media_cb.TxNumSBCFrames = check_for_max_number_of_frames_per_packet();
-                }
-                nof = btif_media_cb.TxNumSBCFrames;
-                if(!nof) {
-                    APPL_TRACE_ERROR("Error: Num frames not updated, set calculated values");
-                    nof = result;
-                    noi = 1;
-                }
-                else
-                {
-                    if (nof < result)
-                    {
-                        noi = result / nof; // number of iterations would vary
-                        if (noi > MAX_PCM_ITER_NUM_PER_TICK)
-                        {
-                            APPL_TRACE_ERROR("## Audio Congestion (iterations:%d > max (%d))",
-                                 noi, MAX_PCM_ITER_NUM_PER_TICK);
-                            noi = MAX_PCM_ITER_NUM_PER_TICK;
-                            btif_media_cb.media_feeding_state.pcm.counter
-                                =noi * nof * pcm_bytes_per_frame;
-                        }
-                        result = nof;
-                    }
-                    else
-                    {
-                        noi = 1; // number of iterations is 1
-                        APPL_TRACE_DEBUG("reducing number of frames as per available pcm data");
-                        nof = result;
-                    }
-                }
+                APPL_TRACE_WARNING("%s() - Limiting frames to be sent from %d to %d"
+                    , __FUNCTION__, result, MAX_PCM_FRAME_NUM_PER_TICK);
+                result = MAX_PCM_FRAME_NUM_PER_TICK;
             }
-            else
-            {
-                // For BR cases nof will be same as the value retrieved at result
-                APPL_TRACE_DEBUG("headset is of type BR %u", nof);
-                if (result > MAX_PCM_FRAME_NUM_PER_TICK)
-                {
-                    APPL_TRACE_ERROR("## Audio Congestion (frames: %d > max (%d))"
-                        ,result, MAX_PCM_FRAME_NUM_PER_TICK);
-                    result = MAX_PCM_FRAME_NUM_PER_TICK;
-                    btif_media_cb.media_feeding_state.pcm.counter
-                        = noi * result * pcm_bytes_per_frame;
-                }
-                nof = result;
-            }
-            btif_media_cb.media_feeding_state.pcm.counter -= noi * nof * pcm_bytes_per_frame;
-            APPL_TRACE_DEBUG("effective num of frames %u", nof);
-            APPL_TRACE_DEBUG("num of iterations %u", noi);
+            btif_media_cb.media_feeding_state.pcm.counter -= result*pcm_bytes_per_frame;
 
             VERBOSE("WRITE %d FRAMES", result);
         }
@@ -2866,18 +2814,15 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
         default:
             APPL_TRACE_ERROR("ERROR btif_get_num_aa_frame Unsupported transcoding format 0x%x",
                     btif_media_cb.TxTranscoding);
-            result = nof = 0;
-            noi = 0;
+            result = 0;
             break;
-
     }
 
 #if (defined(DEBUG_MEDIA_AV_FLOW) && (DEBUG_MEDIA_AV_FLOW == TRUE))
     APPL_TRACE_DEBUG("btif_get_num_aa_frame returns %d", result);
 #endif
 
-    *num_of_frames = nof;
-    *num_of_iterations = noi;
+    return (UINT8)result;
 }
 
 /*******************************************************************************
@@ -3285,19 +3230,13 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame)
 static void btif_media_send_aa_frame(void)
 {
     UINT8 nb_frame_2_send;
-    UINT8 nb_iterations;
-    UINT8 counter;
 
     /* get the number of frame to send */
-    btif_get_num_aa_frame(&nb_iterations, &nb_frame_2_send);
+    nb_frame_2_send = btif_get_num_aa_frame();
 
-    for (counter = 0; counter < nb_iterations; counter++)
+    if (nb_frame_2_send != 0)
     {
-        /* format and Q buffer to send */
-        if (nb_frame_2_send != 0)
-        {
-            btif_media_aa_prep_2_send(nb_frame_2_send);
-        }
+        btif_media_aa_prep_2_send(nb_frame_2_send);
     }
 
     if (bt_systrace_log_enabled)
