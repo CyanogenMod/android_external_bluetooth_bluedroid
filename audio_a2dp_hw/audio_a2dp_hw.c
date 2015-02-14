@@ -121,7 +121,6 @@ struct a2dp_stream_common {
 struct a2dp_stream_out {
     struct audio_stream_out stream;
     struct a2dp_stream_common common;
-    struct a2dp_config cfg;
 };
 
 struct a2dp_stream_in {
@@ -176,8 +175,6 @@ static const char* dump_a2dp_ctrl_event(char event)
         CASE_RETURN_STR(A2DP_CTRL_CMD_STOP)
         CASE_RETURN_STR(A2DP_CTRL_CMD_SUSPEND)
         CASE_RETURN_STR(A2DP_CTRL_CMD_CHECK_STREAM_STARTED)
-        CASE_RETURN_STR(A2DP_CTRL_GET_AUDIO_CONFIG)
-        CASE_RETURN_STR(A2DP_CTRL_SET_AUDIO_CONFIG)
         default:
             return "UNKNOWN MSG ID";
     }
@@ -394,8 +391,7 @@ static int a2dp_ctrl_receive(struct a2dp_stream_common *common, void* buffer, in
     return ret;
 }
 
-static int a2dp_command_data(struct a2dp_stream_common *common, char cmd,
-        uint8_t* buf, size_t len)
+static int a2dp_command(struct a2dp_stream_common *common, char cmd)
 {
     char ack;
 
@@ -403,15 +399,6 @@ static int a2dp_command_data(struct a2dp_stream_common *common, char cmd,
 
     /* send command */
     if (send(common->ctrl_fd, &cmd, 1, MSG_NOSIGNAL) == -1)
-    {
-        ERROR("cmd failed (%s)", strerror(errno));
-        skt_disconnect(common->ctrl_fd);
-        common->ctrl_fd = AUDIO_SKT_DISCONNECTED;
-        return -1;
-    }
-
-    /* send data */
-    if (len > 0 && send(common->ctrl_fd, buf, len, MSG_NOSIGNAL) == -1)
     {
         ERROR("cmd failed (%s)", strerror(errno));
         skt_disconnect(common->ctrl_fd);
@@ -433,11 +420,6 @@ static int a2dp_command_data(struct a2dp_stream_common *common, char cmd,
         return -1;
 
     return 0;
-}
-
-static int a2dp_command(struct a2dp_stream_common *common, char cmd)
-{
-    return a2dp_command_data(common, cmd, NULL, 0);
 }
 
 static int check_a2dp_ready(struct a2dp_stream_common *common)
@@ -474,28 +456,6 @@ static int a2dp_read_audio_config(struct a2dp_stream_common *common)
     common->cfg.rate = sample_rate;
 
     INFO("got config %d %d", common->cfg.format, common->cfg.rate);
-
-    return 0;
-}
-
-static int a2dp_set_audio_config(struct a2dp_stream_out *out)
-{
-    uint32_t sample_rate = out->cfg.rate;
-    uint8_t channel_count = audio_channel_count_from_out_mask(out->cfg.channel_flags);
-    uint8_t bit_per_sample = audio_bytes_per_sample(out->cfg.format) * 8;
-
-    char cmd = A2DP_CTRL_SET_AUDIO_CONFIG;
-    uint8_t buf[6];
-
-    memcpy(buf, &sample_rate, 4);
-    buf[4] = channel_count;
-    buf[5] = bit_per_sample;
-
-    if (a2dp_command_data(&out->common, A2DP_CTRL_SET_AUDIO_CONFIG, buf, 6) < 0)
-    {
-        ERROR("a2dp set audio config failed");
-        return -1;
-    }
 
     return 0;
 }
@@ -700,19 +660,13 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
     if ((out->common.state == AUDIO_A2DP_STATE_STOPPED) ||
         (out->common.state == AUDIO_A2DP_STATE_STANDBY))
     {
-        if (a2dp_set_audio_config(out) < 0)
-        {
-            ERROR("failed to set stream config");
-            pthread_mutex_unlock(&out->common.lock);
-            return -1;
-        }
 
         if (start_audio_datapath(&out->common) < 0)
         {
             /* emulate time this write represents to avoid very fast write
                failures during transition periods or remote suspend */
 
-            int us_delay = calc_audiotime(out->cfg, bytes);
+            int us_delay = calc_audiotime(out->common.cfg, bytes);
 
             ERROR("emulate a2dp write delay (%d us)", us_delay);
 
@@ -768,13 +722,14 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
     return sent;
 }
 
+
 static uint32_t out_get_sample_rate(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    INFO("out_get_sample_rate %" PRIu32,out->cfg.rate);
+    INFO("rate %" PRIu32,out->common.cfg.rate);
 
-    return out->cfg.rate;
+    return out->common.cfg.rate;
 }
 
 static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate)
@@ -783,13 +738,13 @@ static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate)
 
     INFO("out_set_sample_rate : %" PRIu32, rate);
 
-    if (!is_supported_sample_rate(rate))
+    if (rate != AUDIO_STREAM_DEFAULT_RATE)
     {
-        ERROR("sample rate %d not supported", rate);
+        ERROR("only rate %d supported", AUDIO_STREAM_DEFAULT_RATE);
         return -1;
     }
 
-    out->cfg.rate = rate;
+    out->common.cfg.rate = rate;
 
     return 0;
 }
@@ -807,16 +762,16 @@ static uint32_t out_get_channels(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    INFO("channels 0x%" PRIx32, out->cfg.channel_flags);
+    INFO("channels 0x%" PRIx32, out->common.cfg.channel_flags);
 
-    return out->cfg.channel_flags;
+    return out->common.cfg.channel_flags;
 }
 
 static audio_format_t out_get_format(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-    INFO("format 0x%x", out->cfg.format);
-    return out->cfg.format;
+    INFO("format 0x%x", out->common.cfg.format);
+    return out->common.cfg.format;
 }
 
 static int out_set_format(struct audio_stream *stream, audio_format_t format)
@@ -863,7 +818,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     char keyval[16];
     int retval = 0;
 
-    INFO("a2dp_out_set_parameters state %d", out->common.state);
+    INFO("state %d", out->common.state);
 
     parms = str_parms_create_str(kvpairs);
 
@@ -944,7 +899,7 @@ static uint32_t out_get_latency(const struct audio_stream_out *stream)
 
     latency_us = ((out->common.buffer_sz * 1000 ) /
                     audio_stream_out_frame_size(&out->stream) /
-                    out->cfg.rate) * 1000;
+                    out->common.cfg.rate) * 1000;
 
 
     return (latency_us / 1000) + 200;
@@ -1213,10 +1168,6 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     if (!out)
         return -ENOMEM;
 
-    ALOGD("%s: enter: sample_rate(%d) channel_mask(%#x) devices(%#x) flags(%#x)\
-        stream_handle(%p)",__func__, config->sample_rate, config->channel_mask,
-        devices, flags, &out->stream);
-
     if (audio_sample_log_enabled) {
         strncpy(local_filename, btoutputfilename, sizeof(btoutputfilename));
         snprintf(local_filename, sizeof(local_filename), "%s%d%s", local_filename, number,".pcm");
@@ -1248,16 +1199,9 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     out->common.cfg.format = AUDIO_STREAM_DEFAULT_FORMAT;
     out->common.cfg.rate = AUDIO_STREAM_DEFAULT_RATE;
 
-    /* set output config values */
-    if (config)
-    {
-        if (is_supported_sample_rate(config->sample_rate))
-            out->cfg.rate = config->sample_rate;
-        if (is_supported_channel_count(audio_channel_count_from_out_mask(config->channel_mask)))
-            out->cfg.channel_flags = config->channel_mask;
-        if (is_supported_bit_depth(audio_bytes_per_sample(config->format) * 8))
-            out->cfg.format = config->format;
-
+   /* set output config values */
+   if (config)
+   {
       config->format = out_get_format((const struct audio_stream *)&out->stream);
       config->sample_rate = out_get_sample_rate((const struct audio_stream *)&out->stream);
       config->channel_mask = out_get_channels((const struct audio_stream *)&out->stream);

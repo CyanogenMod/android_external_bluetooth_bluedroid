@@ -6,6 +6,10 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+	LOCAL_CFLAGS += -DSAMPLE_RATE_48K
+endif
+
 # HAL layer
 LOCAL_SRC_FILES:= \
 	../btif/src/bluetooth.c
@@ -146,14 +150,6 @@ LOCAL_STATIC_LIBRARIES := \
 	libosi \
 	libtinyxml2 \
 	libbt-qcom_sbc_decoder
-
-ifeq ($(TARGET_HAVE_DYN_A2DP_SAMPLERATE),true)
-LOCAL_CFLAGS += -DDYN_SAMPLERATE
-else
-ifeq ($(BOARD_USES_LEGACY_ALSA_AUDIO),true)
-LOCAL_CFLAGS += -DSAMPLE_RATE_48K
-endif
-endif
 
 LOCAL_MODULE := bluetooth.default
 LOCAL_MODULE_RELATIVE_PATH := hw
