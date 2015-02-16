@@ -26,6 +26,7 @@
 #include "gki.h"
 #include "ptim.h"
 #include "bta_sys.h"
+#include "gki_int.h"
 
 /*******************************************************************************
 **
@@ -126,7 +127,7 @@ void ptim_timer_update(tPTIM_CB *p_cb)
 *******************************************************************************/
 void ptim_start_timer(tPTIM_CB *p_cb, TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout)
 {
-    GKI_disable();
+    pthread_mutex_lock(&gki_cb.os.gki_timerupdate_mutex);
     /* if timer list is currently empty, start periodic GKI timer */
     if (p_cb->timer_queue.p_first == NULL)
     {
@@ -141,7 +142,7 @@ void ptim_start_timer(tPTIM_CB *p_cb, TIMER_LIST_ENT *p_tle, UINT16 type, INT32 
     p_tle->ticks_initial = timeout;
 
     GKI_add_to_timer_list(&p_cb->timer_queue, p_tle);
-    GKI_enable();
+    pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
 }
 
 /*******************************************************************************

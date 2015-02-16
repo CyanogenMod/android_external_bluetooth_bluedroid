@@ -201,8 +201,7 @@ void GKI_start_timer (UINT8 tnum, INT32 ticks, BOOLEAN is_continuous)
     else
         reload = 0;
 
-    GKI_disable();
-
+    pthread_mutex_lock(&gki_cb.os.gki_timerupdate_mutex);
     /* Add the time since the last task timer update.
     ** Note that this works when no timers are active since
     ** both OSNumOrigTicks and OSTicksTilExp are 0.
@@ -254,8 +253,7 @@ void GKI_start_timer (UINT8 tnum, INT32 ticks, BOOLEAN is_continuous)
         gki_adjust_timer_count (orig_ticks);
     }
 
-    GKI_enable();
-
+    pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
 }
 
 /*******************************************************************************
@@ -274,7 +272,7 @@ void GKI_start_timer (UINT8 tnum, INT32 ticks, BOOLEAN is_continuous)
 void GKI_stop_timer (UINT8 tnum)
 {
     UINT8  task_id = GKI_get_taskid();
-
+    pthread_mutex_lock(&gki_cb.os.gki_timerupdate_mutex);
     switch (tnum)
     {
 #if (GKI_NUM_TIMERS > 0)
@@ -305,6 +303,7 @@ void GKI_stop_timer (UINT8 tnum)
             break;
 #endif
     }
+        pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
 }
 
 
@@ -369,8 +368,7 @@ void GKI_timer_update (INT32 ticks_since_last_update)
      *   - gki_cb.com.OSTaskTmr0[task_id] = gki_cb.com.OSTaskTmr0R[task_id];
      * then the timer may appear stopped while it is about to be reloaded.
      */
-    GKI_disable();
-
+    pthread_mutex_lock(&gki_cb.os.gki_timerupdate_mutex);
     /* Check for OS Task Timers */
     for (task_id = 0; task_id < GKI_MAX_TASKS; task_id++)
     {
@@ -474,8 +472,7 @@ void GKI_timer_update (INT32 ticks_since_last_update)
     // Set alarm service for next alarm.
     alarm_service_reschedule();
 
-    GKI_enable();
-
+    pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
     gki_cb.com.timer_nesting = 0;
 
     return;
@@ -639,12 +636,11 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
 {
 
     /* block others to edit the timer_queue list while it is getting modified */
-    GKI_disable();
-
+    pthread_mutex_lock(&gki_cb.os.gki_timerupdate_mutex);
     if (p_timer_listq == NULL || p_tle == NULL)
     {
        BT_ERROR_TRACE(TRACE_LAYER_GKI, "ERROR :GKI_add_to_timer_list:either node or List is NULL");
-       GKI_enable();
+       pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
        return;
     }
 
@@ -661,7 +657,7 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
     {
         p_timer_listq->p_first = p_tle;
         p_timer_listq->p_last = p_tle;
-        GKI_enable();
+        pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
         return;
     }
 
@@ -679,7 +675,7 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
         p_timer_listq->p_last->p_next = p_tle;
         p_tle->p_prev = p_timer_listq->p_last;
         p_timer_listq->p_last = p_tle;
-        GKI_enable();
+        pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
         return;
     }
 
@@ -692,7 +688,7 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
 
     if (p_timer_listq->p_first == i)
         p_timer_listq->p_first = p_tle;
-    GKI_enable();
+    pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
 }
 
 
@@ -720,8 +716,7 @@ BOOLEAN GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT 
     }
 
     /* block others to edit the timer_queue list while it is getting modified */
-    GKI_disable();
-
+    pthread_mutex_lock(&gki_cb.os.gki_timerupdate_mutex);
     /* Add the ticks remaining in this timer (if any) to the next guy in the list.
     ** Note: Expired timers have a tick value of '0'.
     */
@@ -761,7 +756,7 @@ BOOLEAN GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT 
             else
             {
                 /* Error case - chain messed up ?? */
-                GKI_enable();
+                pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
                 return FALSE;
             }
 
@@ -770,7 +765,7 @@ BOOLEAN GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT 
             else
             {
                 /* Error case - chain messed up ?? */
-                GKI_enable();
+                pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
                 return FALSE;
             }
         }
@@ -778,7 +773,7 @@ BOOLEAN GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT 
 
     p_tle->p_next = p_tle->p_prev = NULL;
 
-    GKI_enable();
+    pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
     return TRUE;
 }
 

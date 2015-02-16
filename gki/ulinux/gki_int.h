@@ -55,7 +55,7 @@
 
 typedef struct
 {
-    pthread_mutex_t     GKI_mutex;
+    pthread_mutex_t     GKI_mutex;  /* For buffer */
     pthread_t           thread_id[GKI_MAX_TASKS];
     pthread_mutex_t     thread_evt_mutex[GKI_MAX_TASKS];
     pthread_cond_t      thread_evt_cond[GKI_MAX_TASKS];
@@ -64,6 +64,8 @@ typedef struct
 #if (GKI_DEBUG == TRUE)
     pthread_mutex_t     GKI_trace_mutex;
 #endif
+    pthread_mutex_t     gki_timerupdate_mutex; /* For timer update*/
+
 } tGKI_OS;
 
 extern void gki_system_tick_start_stop_cback(BOOLEAN start);

@@ -512,7 +512,10 @@ void *GKI_getpoolbuf (UINT8 pool_id)
 // btla-specific ++
 #ifdef GKI_USE_DEFERED_ALLOC_BUF_POOLS
         if(Q->p_first == 0 && gki_alloc_free_queue(pool_id) != TRUE)
+        {
+            GKI_enable();
             return NULL;
+        }
 #endif
 // btla-specific --
         p_hdr = Q->p_first;
