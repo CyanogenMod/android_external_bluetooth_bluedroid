@@ -34,6 +34,7 @@
 
 #include "bt_target.h"
 #include "gki.h"
+#include "gki_int.h"
 #include "bt_types.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
@@ -648,7 +649,7 @@ BTU_API UINT32 btu_task (UINT32 param)
 void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
 {
     BT_HDR *p_msg;
-    GKI_disable();
+    pthread_mutex_lock(&gki_cb.os.gki_timerupdate_mutex);
     /* if timer list is currently empty, start periodic GKI timer */
     if (btu_cb.timer_queue.p_first == NULL)
     {
@@ -676,7 +677,7 @@ void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
     p_tle->ticks_initial = timeout;
 
     GKI_add_to_timer_list (&btu_cb.timer_queue, p_tle);
-    GKI_enable();
+    pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
 }
 
 /*******************************************************************************
@@ -705,7 +706,7 @@ UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle)
 void btu_stop_timer (TIMER_LIST_ENT *p_tle)
 {
     BT_HDR *p_msg;
-    GKI_disable();
+    pthread_mutex_lock(&gki_cb.os.gki_timerupdate_mutex);
     GKI_remove_from_timer_list (&btu_cb.timer_queue, p_tle);
 
     /* if timer is stopped on other than BTU task */
@@ -726,7 +727,7 @@ void btu_stop_timer (TIMER_LIST_ENT *p_tle)
             GKI_stop_timer(TIMER_0);
         }
     }
-    GKI_enable();
+    pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
 }
 
 #if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
@@ -747,7 +748,7 @@ void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
 {
     BT_HDR *p_msg;
 
-    GKI_disable();
+    pthread_mutex_lock(&gki_cb.os.gki_timerupdate_mutex);
     /* if timer list is currently empty, start periodic GKI timer */
     if (btu_cb.quick_timer_queue.p_first == NULL)
     {
@@ -772,7 +773,7 @@ void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
     p_tle->ticks_initial = timeout;
 
     GKI_add_to_timer_list (&btu_cb.quick_timer_queue, p_tle);
-    GKI_enable();
+    pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
 }
 
 
@@ -787,7 +788,7 @@ void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
 *******************************************************************************/
 void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle)
 {
-    GKI_disable();
+    pthread_mutex_lock(&gki_cb.os.gki_timerupdate_mutex);
     GKI_remove_from_timer_list (&btu_cb.quick_timer_queue, p_tle);
 
     /* if timer list is empty stop periodic GKI timer */
@@ -795,7 +796,7 @@ void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle)
     {
         GKI_stop_timer(TIMER_2);
     }
-    GKI_enable();
+    pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
 }
 
 /*******************************************************************************
@@ -858,7 +859,8 @@ void process_quick_timer_evt(TIMER_LIST_Q *p_tlq)
 void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_in_secs) {
     INT32 timeout_in_ticks = GKI_SECS_TO_TICKS(timeout_in_secs);
     BTM_TRACE_DEBUG("Starting oneshot timer type:%d timeout:%ds", type, timeout_in_secs);
-    GKI_disable();
+    pthread_mutex_lock(&gki_cb.os.gki_timerupdate_mutex);
+
     if (GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
     }
 
@@ -882,11 +884,12 @@ void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_
         TIMER_LIST_ENT *tle = GKI_timer_getfirst(&btu_cb.timer_queue_oneshot);
         GKI_start_timer(TIMER_3, tle->ticks, FALSE);
     }
-    GKI_enable();
+    pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
 }
 
 void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle) {
-    GKI_disable();
+
+    pthread_mutex_lock(&gki_cb.os.gki_timerupdate_mutex);
     GKI_remove_from_timer_list(&btu_cb.timer_queue_oneshot, p_tle);
 
     if (GKI_get_taskid() != BTU_TASK) {
@@ -904,7 +907,7 @@ void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle) {
             BTM_TRACE_WARNING("Request to stop oneshot timer with non empty queue");
         }
     }
-    GKI_enable();
+    pthread_mutex_unlock(&gki_cb.os.gki_timerupdate_mutex);
 }
 
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
