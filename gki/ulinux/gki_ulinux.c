@@ -181,12 +181,17 @@ static bool set_nonwake_alarm(UINT64 delay_millis)
 /** Callback from Java thread after alarm from AlarmService fires. */
 static void bt_alarm_cb(void *data)
 {
+    GKI_disable();
+
     alarm_service.timer_last_expired_us = now_us();
     UINT32 ticks_taken = GKI_MS_TO_TICKS((alarm_service.timer_last_expired_us
                                         - alarm_service.timer_started_us) / 1000);
+    UINT32 ticks_scheduled = alarm_service.ticks_scheduled;
 
-    GKI_timer_update(ticks_taken > alarm_service.ticks_scheduled
-                   ? ticks_taken : alarm_service.ticks_scheduled);
+    GKI_enable();
+
+    GKI_timer_update(ticks_taken > ticks_scheduled
+                   ? ticks_taken : ticks_scheduled);
 }
 
 /** NOTE: This is only called on init and may be called without the GKI_disable()
