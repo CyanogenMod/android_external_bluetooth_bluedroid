@@ -773,7 +773,7 @@ static uint32_t out_get_sample_rate(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    INFO("rate %" PRIu32,out->common.cfg.rate);
+    DEBUG("rate %" PRIu32,out->common.cfg.rate);
 
     return out->common.cfg.rate;
 }
@@ -782,7 +782,7 @@ static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    INFO("out_set_sample_rate : %" PRIu32, rate);
+    DEBUG("out_set_sample_rate : %" PRIu32, rate);
 
     if (!is_supported_sample_rate(rate))
     {
@@ -808,7 +808,7 @@ static uint32_t out_get_channels(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    INFO("channels 0x%" PRIx32, out->common.cfg.channel_flags);
+    DEBUG("channels 0x%" PRIx32, out->common.cfg.channel_flags);
 
     return out->common.cfg.channel_flags;
 }
@@ -816,7 +816,7 @@ static uint32_t out_get_channels(const struct audio_stream *stream)
 static audio_format_t out_get_format(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-    INFO("format 0x%x", out->common.cfg.format);
+    DEBUG("format 0x%x", out->common.cfg.format);
     return out->common.cfg.format;
 }
 
@@ -824,7 +824,7 @@ static int out_set_format(struct audio_stream *stream, audio_format_t format)
 {
     UNUSED(format);
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-    INFO("setting format not yet supported (0x%x)", format);
+    DEBUG("setting format not yet supported (0x%x)", format);
     return -ENOSYS;
 }
 
@@ -864,7 +864,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     char keyval[16];
     int retval = 0;
 
-    INFO("state %d", out->common.state);
+    DEBUG("state %d", out->common.state);
 
     parms = str_parms_create_str(kvpairs);
 
