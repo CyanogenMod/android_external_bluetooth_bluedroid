@@ -871,9 +871,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     /* dump params */
     str_parms_dump(parms);
 
-    retval = str_parms_get_str(parms, "closing", keyval, sizeof(keyval));
-
-    if (retval >= 0)
+    if (str_parms_get_str(parms, "closing", keyval, sizeof(keyval)) >= 0)
     {
         if (strcmp(keyval, "true") == 0)
         {
@@ -884,9 +882,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
         }
     }
 
-    retval = str_parms_get_str(parms, "A2dpSuspended", keyval, sizeof(keyval));
-
-    if (retval >= 0)
+    if (str_parms_get_str(parms, "A2dpSuspended", keyval, sizeof(keyval)) >= 0)
     {
         pthread_mutex_lock(&out->common.lock);
         if (strcmp(keyval, "true") == 0)
