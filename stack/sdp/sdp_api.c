@@ -526,10 +526,10 @@ tSDP_DISC_REC *SDP_FindServiceInDb (tSDP_DISCOVERY_DB *p_db, UINT16 service_uuid
 
                     }
 
-                    if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE)
-                        && (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == 2)
+                    if (SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE && (service_uuid == 0
+                        || (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == 2
+                            && p_sattr->attr_value.v.u16 == service_uuid)))
                         /* for a specific uuid, or any one */
-                        && ((p_sattr->attr_value.v.u16 == service_uuid) || service_uuid == 0))
                     {
                         return(p_rec);
                     }
