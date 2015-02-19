@@ -739,7 +739,6 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
 #if 0
     ts_error_log("a2dp_out_write", bytes, out->common.buffer_sz, out->common.cfg);
 #endif
-    pthread_mutex_unlock(&out->common.lock);
 
     if (perf_systrace_log_enabled)
     {
@@ -757,12 +756,10 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
 
     if (sent == -1)
     {
-        pthread_mutex_lock(&out->common.lock);
-
         stop_audio_datapath(&out->common, true);
-
-        pthread_mutex_unlock(&out->common.lock);
     }
+
+    pthread_mutex_unlock(&out->common.lock);
 
     DEBUG("wrote %d bytes out of %zu bytes", sent, bytes);
     return sent;
@@ -864,27 +861,26 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     char keyval[16];
     int retval = 0;
 
-    DEBUG("state %d", out->common.state);
-
     parms = str_parms_create_str(kvpairs);
 
     /* dump params */
     str_parms_dump(parms);
+
+    pthread_mutex_lock(&out->common.lock);
+
+    DEBUG("state %d", out->common.state);
 
     if (str_parms_get_str(parms, "closing", keyval, sizeof(keyval)) >= 0)
     {
         if (strcmp(keyval, "true") == 0)
         {
             DEBUG("stream closing, disallow any writes");
-            pthread_mutex_lock(&out->common.lock);
             out->common.state = AUDIO_A2DP_STATE_STOPPING;
-            pthread_mutex_unlock(&out->common.lock);
         }
     }
 
     if (str_parms_get_str(parms, "A2dpSuspended", keyval, sizeof(keyval)) >= 0)
     {
-        pthread_mutex_lock(&out->common.lock);
         if (strcmp(keyval, "true") == 0)
         {
             if (out->common.state == AUDIO_A2DP_STATE_STARTED)
@@ -911,8 +907,9 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
                 out->common.state = AUDIO_A2DP_STATE_STANDBY;
             /* Irrespective of the state, return 0 */
         }
-        pthread_mutex_unlock(&out->common.lock);
     }
+
+    pthread_mutex_unlock(&out->common.lock);
 
     str_parms_destroy(parms);
 
@@ -1104,9 +1101,11 @@ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
 
     DEBUG("read %zu bytes, state: %d", bytes, in->common.state);
 
+    pthread_mutex_lock(&in->common.lock);
     if (in->common.state == AUDIO_A2DP_STATE_SUSPENDED)
     {
         DEBUG("stream suspended");
+        pthread_mutex_unlock(&in->common.lock);
         return -1;
     }
 
@@ -1114,7 +1113,6 @@ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
     if ((in->common.state == AUDIO_A2DP_STATE_STOPPED) ||
         (in->common.state == AUDIO_A2DP_STATE_STANDBY))
     {
-        pthread_mutex_lock(&in->common.lock);
 
         if (start_audio_datapath(&in->common) < 0)
         {
@@ -1130,11 +1128,11 @@ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
             return -1;
         }
 
-        pthread_mutex_unlock(&in->common.lock);
     }
     else if (in->common.state != AUDIO_A2DP_STATE_STARTED)
     {
         ERROR("stream not in stopped or standby");
+        pthread_mutex_unlock(&in->common.lock);
         return -1;
     }
 
@@ -1150,6 +1148,7 @@ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
         memset(buffer, 0, bytes);
         read = bytes;
     }
+    pthread_mutex_unlock(&in->common.lock);
 
     DEBUG("read %d bytes out of %zu bytes", read, bytes);
     return read;
@@ -1290,6 +1289,8 @@ static void adev_close_output_stream(struct audio_hw_device *dev,
     struct a2dp_audio_device *a2dp_dev = (struct a2dp_audio_device *)dev;
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
+    pthread_mutex_lock(&out->common.lock);
+
     INFO("closing output (state %d)", out->common.state);
 
     if ((out->common.state == AUDIO_A2DP_STATE_STARTED) || (out->common.state == AUDIO_A2DP_STATE_STOPPING))
@@ -1301,6 +1302,7 @@ static void adev_close_output_stream(struct audio_hw_device *dev,
     }
 
     skt_disconnect(out->common.ctrl_fd);
+    pthread_mutex_unlock(&out->common.lock);
     free(stream);
     a2dp_dev->output = NULL;
 
@@ -1485,7 +1487,11 @@ static void adev_close_input_stream(struct audio_hw_device *dev,
 {
     struct a2dp_audio_device *a2dp_dev = (struct a2dp_audio_device *)dev;
     struct a2dp_stream_in* in = (struct a2dp_stream_in *)stream;
-    a2dp_state_t state = in->common.state;
+    a2dp_state_t state;
+
+    pthread_mutex_lock(&in->common.lock);
+
+    state = in->common.state;
 
     INFO("closing input (state %d)", state);
 
@@ -1493,6 +1499,7 @@ static void adev_close_input_stream(struct audio_hw_device *dev,
         stop_audio_datapath(&in->common, false);
 
     skt_disconnect(in->common.ctrl_fd);
+    pthread_mutex_unlock(&in->common.lock);
     free(stream);
     a2dp_dev->input = NULL;
 
