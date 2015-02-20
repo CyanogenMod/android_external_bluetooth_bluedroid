@@ -101,8 +101,6 @@ typedef enum {
     BTIF_CORE_STATE_DISABLING
 } btif_core_state_t;
 
-extern void btif_gattc_destroy_multi_adv_cb(int client_if);
-
 /************************************************************************************
 **  Static variables
 ************************************************************************************/
@@ -700,9 +698,6 @@ bt_status_t btif_disable_bluetooth(void)
     status = BTA_DisableBluetooth();
 
     btif_config_flush();
-
-    /* clear the adv instances on bt turn off */
-    btif_gattc_destroy_multi_adv_cb(INVALID_CLIENT_IF);
 
     if (status != BTA_SUCCESS)
     {

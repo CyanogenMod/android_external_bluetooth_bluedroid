@@ -33,6 +33,7 @@
 #include "btif_config.h"
 
 #include "btif_common.h"
+#include "btif_api.h"
 #include "btif_dm.h"
 #include "btif_util.h"
 #include "btif_gatt.h"

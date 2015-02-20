@@ -228,11 +228,13 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
    but due to link flow control or thread preemption in lower
    layers we might need to temporarily buffer up data */
 
-/* 24 frames is equivalent to 6.89*24*2.9 ~= 480 ms @ 44.1 khz, 20 ms mediatick */
-#define MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ 24
-#define A2DP_PACKET_COUNT_LOW_WATERMARK 5
-#define MAX_PCM_FRAME_NUM_PER_TICK     10
-#define RESET_RATE_COUNTER_THRESHOLD_MS    2000
+/* 18 frames is equivalent to 6.89*24*2.9 ~= 360 ms @ 44.1 khz, 20 ms mediatick */
+#define MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ 18
+
+#ifndef MAX_PCM_FRAME_NUM_PER_TICK
+#define MAX_PCM_FRAME_NUM_PER_TICK 14
+#endif
+
 #define MAX_PCM_ITER_NUM_PER_TICK     2
 
 //#define BTIF_MEDIA_VERBOSE_ENABLED
@@ -2743,7 +2745,7 @@ static UINT8 check_for_max_number_of_frames_per_packet()
  *******************************************************************************/
 static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames)
 {
-    UINT32 result=0;
+    UINT8 result=0;
     UINT8 nof = 0;
     UINT8 noi = 1;
 
@@ -2766,77 +2768,63 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
             btif_media_cb.media_feeding_state.pcm.counter +=
                                 btif_media_cb.media_feeding_state.pcm.bytes_per_tick *
                                 us_this_tick / (BTIF_MEDIA_TIME_TICK * 1000);
-            if ((!btif_media_cb.media_feeding_state.pcm.overflow) ||
-                (btif_media_cb.TxAaQ.count < A2DP_PACKET_COUNT_LOW_WATERMARK)) {
-                if (btif_media_cb.media_feeding_state.pcm.overflow) {
-                    btif_media_cb.media_feeding_state.pcm.overflow = FALSE;
 
-                    if (btif_media_cb.media_feeding_state.pcm.counter >
-                        btif_media_cb.media_feeding_state.pcm.max_counter_exit) {
-                        btif_media_cb.media_feeding_state.pcm.max_counter_exit =
-                            btif_media_cb.media_feeding_state.pcm.counter;
-                    }
-                }
-                /* calculate nbr of frames pending for this media tick */
-                result = btif_media_cb.media_feeding_state.pcm.counter/pcm_bytes_per_frame;
-                APPL_TRACE_DEBUG("num of frames calculated as per available pcm data:  %u", result);
-                if(btif_av_is_peer_edr())
+            /* calculate nbr of frames pending for this media tick */
+            result = btif_media_cb.media_feeding_state.pcm.counter/pcm_bytes_per_frame;
+            APPL_TRACE_DEBUG("num of frames calculated as per available pcm data:  %u", result);
+            if(btif_av_is_peer_edr())
+            {
+                if (!btif_media_cb.TxNumSBCFrames)
                 {
-                    if (!btif_media_cb.TxNumSBCFrames)
-                    {
-                        APPL_TRACE_ERROR("Error: TxNumSBCFrames not updated, update from here");
-                        btif_media_cb.TxNumSBCFrames = check_for_max_number_of_frames_per_packet();
-                    }
-                    nof = btif_media_cb.TxNumSBCFrames;
-                    if(!nof) {
-                        APPL_TRACE_ERROR("Error: Num frames not updated, set calculated values");
-                        nof = result;
-                        noi = 1;
-                    }
-                    else
-                    {
-                        if (nof < result)
-                        {
-                            noi = result / nof; // number of iterations would vary
-                            if (noi > MAX_PCM_ITER_NUM_PER_TICK)
-                            {
-                                APPL_TRACE_ERROR("## Audio Congestion (iterations:%d > max (%d))",
-                                     noi, MAX_PCM_ITER_NUM_PER_TICK);
-                                noi = 1;
-                                btif_media_cb.media_feeding_state.pcm.counter
-                                    =noi * nof * pcm_bytes_per_frame;
-                            }
-                            result = nof;
-                        }
-                        else
-                        {
-                            noi = 1; // number of iterations is 1
-                            APPL_TRACE_DEBUG("reducing number of frames as per available pcm data");
-                            nof = result;
-                        }
-                    }
+                    APPL_TRACE_ERROR("Error: TxNumSBCFrames not updated, update from here");
+                    btif_media_cb.TxNumSBCFrames = check_for_max_number_of_frames_per_packet();
+                }
+                nof = btif_media_cb.TxNumSBCFrames;
+                if(!nof) {
+                    APPL_TRACE_ERROR("Error: Num frames not updated, set calculated values");
+                    nof = result;
+                    noi = 1;
                 }
                 else
                 {
-                    // For BR cases nof will be same as the value retrieved at result
-                    APPL_TRACE_DEBUG("headset is of type BR %u", nof);
-                    if (result > MAX_PCM_FRAME_NUM_PER_TICK)
+                    if (nof < result)
                     {
-                        APPL_TRACE_ERROR("## Audio Congestion (frames: %d > max (%d))"
-                            ,result, MAX_PCM_FRAME_NUM_PER_TICK);
-                        result = MAX_PCM_FRAME_NUM_PER_TICK;
-                        btif_media_cb.media_feeding_state.pcm.counter
-                            = noi * result * pcm_bytes_per_frame;
+                        noi = result / nof; // number of iterations would vary
+                        if (noi > MAX_PCM_ITER_NUM_PER_TICK)
+                        {
+                            APPL_TRACE_ERROR("## Audio Congestion (iterations:%d > max (%d))",
+                                 noi, MAX_PCM_ITER_NUM_PER_TICK);
+                            noi = 1;
+                            btif_media_cb.media_feeding_state.pcm.counter
+                                =noi * nof * pcm_bytes_per_frame;
+                        }
+                        result = nof;
                     }
-                    nof = result;
+                    else
+                    {
+                        noi = 1; // number of iterations is 1
+                        APPL_TRACE_DEBUG("reducing number of frames as per available pcm data");
+                        nof = result;
+                    }
                 }
-                btif_media_cb.media_feeding_state.pcm.counter -= noi * nof * pcm_bytes_per_frame;
-                APPL_TRACE_DEBUG("effective num of frames %u", nof);
-                APPL_TRACE_DEBUG("num of iterations %u", noi);
-            } else {
-                result = 0;
-        }
-            btif_media_cb.media_feeding_state.pcm.counter -= result*pcm_bytes_per_frame;
+            }
+            else
+            {
+                // For BR cases nof will be same as the value retrieved at result
+                APPL_TRACE_DEBUG("headset is of type BR %u", nof);
+                if (result > MAX_PCM_FRAME_NUM_PER_TICK)
+                {
+                    APPL_TRACE_ERROR("## Audio Congestion (frames: %d > max (%d))"
+                        ,result, MAX_PCM_FRAME_NUM_PER_TICK);
+                    result = MAX_PCM_FRAME_NUM_PER_TICK;
+                    btif_media_cb.media_feeding_state.pcm.counter
+                        = noi * result * pcm_bytes_per_frame;
+                }
+                nof = result;
+            }
+            btif_media_cb.media_feeding_state.pcm.counter -= noi * nof * pcm_bytes_per_frame;
+            APPL_TRACE_DEBUG("effective num of frames %u", nof);
+            APPL_TRACE_DEBUG("num of iterations %u", noi);
 
             VERBOSE("WRITE %d FRAMES", result);
         }
@@ -3227,7 +3215,8 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
 
 static void btif_media_aa_prep_2_send(UINT8 nb_frame)
 {
-    VERBOSE("%s() - frames=%d (queue=%d)", __FUNCTION__, nb_frame, btif_media_cb.TxAaQ.count);
+    VERBOSE("%s() - frames=%d (queue=%d)", __FUNCTION__, nb_frame,
+                                        btif_media_cb.TxAaQ.count)
 
     while (btif_media_cb.TxAaQ.count >= (MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ-nb_frame))
     {
@@ -3272,7 +3261,8 @@ static void btif_media_send_aa_frame(void)
     for (counter = 0; counter < nb_iterations; counter++)
     {
         /* format and Q buffer to send */
-        if (nb_frame_2_send != 0) {
+        if (nb_frame_2_send != 0)
+        {
             btif_media_aa_prep_2_send(nb_frame_2_send);
         }
     }

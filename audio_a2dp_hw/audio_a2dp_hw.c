@@ -1264,7 +1264,6 @@ static int adev_set_parameters(struct audio_hw_device *dev, const char *kvpairs)
 
     if (out == NULL)
         return retval;
-    }
 
     INFO("state %d", out->common.state);
 
