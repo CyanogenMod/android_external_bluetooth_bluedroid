@@ -621,6 +621,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
 
         p_scb->suspend_sup  = TRUE;
         p_scb->recfg_sup    = TRUE;
+        p_scb->skip_sdp     = FALSE;
 
         cs.p_ctrl_cback  = bta_av_dt_cback[p_scb->hdi];
         if(registr.chnl == BTA_AV_CHNL_AUDIO)
