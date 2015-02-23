@@ -407,18 +407,11 @@ int med_task_perf_systrace_enabled() {
   return bt_systrace_log_enabled;
 }
 
-static UINT64 time_now_us()
-{
-    struct timespec ts_now;
-    clock_gettime(CLOCK_BOOTTIME, &ts_now);
-    return ((UINT64)ts_now.tv_sec * USEC_PER_SEC) + ((UINT64)ts_now.tv_nsec / 1000);
-}
-
 static void log_tstamps_us(char *comment)
 {
     #define USEC_PER_MSEC 1000L
     static UINT64 prev_us = 0;
-    const UINT64 now_us = time_now_us();
+    const UINT64 now_us = GKI_now_us();
     static UINT64 diff_us = 0;
 
     diff_us = now_us - prev_us;
@@ -2807,7 +2800,7 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
             APPL_TRACE_DEBUG("pcm_bytes_per_frame %u", pcm_bytes_per_frame);
 
             UINT32 us_this_tick = BTIF_MEDIA_TIME_TICK * 1000;
-            UINT64 now_us = time_now_us();
+            UINT64 now_us = GKI_now_us();
             if (last_frame_us != 0)
                 us_this_tick = (now_us - last_frame_us);
             last_frame_us = now_us;

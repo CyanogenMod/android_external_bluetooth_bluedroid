@@ -118,7 +118,7 @@ extern bt_os_callouts_t *bt_os_callouts;
 **  Functions
 ******************************************************************************/
 
-static UINT64 now_us()
+UINT64 GKI_now_us()
 {
     struct timespec ts_now;
 
@@ -153,7 +153,7 @@ static bool set_nonwake_alarm(UINT64 delay_millis)
         return false;
     }
 
-    const UINT64 now = now_us();
+    const UINT64 now = GKI_now_us();
     alarm_service.timer_started_us = now;
 
     UINT64 prev_timer_delay = 0;
@@ -183,7 +183,7 @@ static void bt_alarm_cb(void *data)
 {
     GKI_disable();
 
-    alarm_service.timer_last_expired_us = now_us();
+    alarm_service.timer_last_expired_us = GKI_now_us();
     UINT32 ticks_taken = GKI_MS_TO_TICKS((alarm_service.timer_last_expired_us
                                         - alarm_service.timer_started_us) / 1000);
     UINT32 ticks_scheduled = alarm_service.ticks_scheduled;
@@ -259,7 +259,7 @@ void alarm_service_reschedule()
         }
     } else {
         // The deadline is far away, set a wake alarm and release wakelock if we're holding it.
-        alarm_service.timer_started_us = now_us();
+        alarm_service.timer_started_us = GKI_now_us();
         alarm_service.timer_last_expired_us = 0;
         if (!bt_os_callouts->set_wake_alarm(ticks_in_millis, true, bt_alarm_cb, &alarm_service))
         {
