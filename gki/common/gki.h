@@ -228,6 +228,8 @@ GKI_API extern BOOLEAN GKI_timer_queue_is_empty(const TIMER_LIST_Q *timer_q);
 GKI_API extern TIMER_LIST_ENT *GKI_timer_getfirst(const TIMER_LIST_Q *timer_q);
 GKI_API extern INT32 GKI_timer_ticks_getinitial(const TIMER_LIST_ENT *tle);
 
+GKI_API extern UINT64 GKI_now_us(void);
+
 /* Disable Interrupts, Enable Interrupts
 */
 GKI_API extern void    GKI_enable(void);
