@@ -296,6 +296,7 @@ typedef struct
     tBTIF_AV_FEEDING_MODE feeding_mode;
     tBTIF_AV_MEDIA_FEEDINGS media_feeding;
     tBTIF_AV_MEDIA_FEEDINGS_STATE media_feeding_state;
+    UINT32 accrued_tick_us;
     SBC_ENC_PARAMS encoder;
     UINT8 busy_level;
     void* av_sm_hdl;
@@ -1967,6 +1968,7 @@ static void btif_media_task_aa_tx_flush(BT_HDR *p_msg)
 
     btif_media_cb.media_feeding_state.pcm.counter = 0;
     btif_media_cb.media_feeding_state.pcm.aa_feed_residue = 0;
+    btif_media_cb.accrued_tick_us = 0;
 
     btif_media_flush_q(&(btif_media_cb.TxAaQ));
 
@@ -2799,15 +2801,19 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                              btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
             APPL_TRACE_DEBUG("pcm_bytes_per_frame %u", pcm_bytes_per_frame);
 
-            UINT32 us_this_tick = BTIF_MEDIA_TIME_TICK * 1000;
+            const UINT32 us_per_tick = BTIF_MEDIA_TIME_TICK * 1000;
+            UINT32 us_this_tick = us_per_tick;
             UINT64 now_us = GKI_now_us();
             if (last_frame_us != 0)
                 us_this_tick = (now_us - last_frame_us);
             last_frame_us = now_us;
 
+            us_this_tick += btif_media_cb.accrued_tick_us;
+            btif_media_cb.accrued_tick_us = us_this_tick % us_per_tick;
+
             btif_media_cb.media_feeding_state.pcm.counter +=
                                 btif_media_cb.media_feeding_state.pcm.bytes_per_tick *
-                                us_this_tick / (BTIF_MEDIA_TIME_TICK * 1000);
+                                us_this_tick / us_per_tick;
             if ((!btif_media_cb.media_feeding_state.pcm.overflow) ||
                 (btif_media_cb.TxAaQ.count < A2DP_PACKET_COUNT_LOW_WATERMARK)) {
                 if (btif_media_cb.media_feeding_state.pcm.overflow) {
@@ -2840,12 +2846,9 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                         if (nof < result)
                         {
                             noi = result / nof; // number of iterations would vary
+
                             if (noi > MAX_PCM_ITER_NUM_PER_TICK)
-                            {
-                                APPL_TRACE_ERROR("## Audio Congestion (iterations:%d > max (%d))",
-                                     noi, MAX_PCM_ITER_NUM_PER_TICK);
                                 noi = MAX_PCM_ITER_NUM_PER_TICK;
-                            }
                             result = nof;
                         }
                         else
@@ -2861,11 +2864,7 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                     // For BR cases nof will be same as the value retrieved at result
                     APPL_TRACE_DEBUG("headset is of type BR %u", nof);
                     if (result > MAX_PCM_FRAME_NUM_PER_TICK)
-                    {
-                        APPL_TRACE_ERROR("## Audio Congestion (frames: %d > max (%d))"
-                            ,result, MAX_PCM_FRAME_NUM_PER_TICK);
                         result = MAX_PCM_FRAME_NUM_PER_TICK;
-                    }
                     nof = result;
                 }
                 btif_media_cb.media_feeding_state.pcm.counter -= noi * nof * pcm_bytes_per_frame;
