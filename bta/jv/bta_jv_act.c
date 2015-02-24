@@ -1193,6 +1193,7 @@ static void bta_jv_start_discovery_cback(UINT16 result, void * user_data)
             dcomp.scn = 0;
             status = BTA_JV_FAILURE;
 #if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+            btsock_type_t sock_type = bta_co_get_sock_type_by_id((uint32_t)user_data);
             dcomp.psm = 0;
             if (result == SDP_SUCCESS || result == SDP_DB_FULL)
             {
@@ -1205,7 +1206,7 @@ static void bta_jv_start_discovery_cback(UINT16 result, void * user_data)
 
                 APPL_TRACE_DEBUG("p_sdp_rec:%p", p_sdp_rec);
                 /* get the l2cap PSM only for the L2cap socket */
-                if( ((uint32_t)user_data & L2CAP_MASK) && p_sdp_rec)
+                if( (sock_type == BTSOCK_L2CAP) && p_sdp_rec)
                 {
                     if(SDP_FindL2CapPsmInRec (p_sdp_rec, &dcomp.psm))
                     {
@@ -1222,7 +1223,7 @@ static void bta_jv_start_discovery_cback(UINT16 result, void * user_data)
             }
 
             dcomp.status = status;
-            if(((uint32_t)user_data & L2CAP_MASK) && bta_jv_cb.p_l2c_cback)
+            if((sock_type == BTSOCK_L2CAP) && bta_jv_cb.p_l2c_cback)
             {
                 bta_jv_cb.p_l2c_cback(BTA_JV_DISCOVERY_COMP_EVT, (tBTA_JV *)&dcomp, user_data);
             }
@@ -1296,9 +1297,10 @@ void bta_jv_start_discovery(tBTA_JV_MSG *p_data)
         return;
     }
 #if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+    btsock_type_t sock_type = bta_co_get_sock_type_by_id((uint32_t)p_data->start_discovery.user_data);
     /* check if SDP is already done for the same device */
     if( (bdcmp(bta_jv_cb.sdp_bd_addr, p_data->start_discovery.bd_addr) == 0) &&
-        (bta_jv_cb.sdp_sucessful == TRUE) && !(((uint32_t)p_data->start_discovery.user_data) & L2CAP_MASK))
+        (bta_jv_cb.sdp_sucessful == TRUE) && (sock_type == BTSOCK_RFCOMM))
     {
         /* compare the current UUID with exising UUID, if they are same then respond with
            previous SDP result as both UUIDs are same */
@@ -1520,7 +1522,8 @@ void bta_jv_create_record(tBTA_JV_MSG *p_data)
     tBTA_JV_CREATE_RECORD   evt_data;
     evt_data.status = BTA_JV_SUCCESS;
 #if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
-    if( (((uint32_t)cr->user_data) & L2CAP_MASK) && bta_jv_cb.p_l2c_cback)
+    btsock_type_t sock_type = bta_co_get_sock_type_by_id((uint32_t)cr->user_data);
+    if((sock_type == BTSOCK_L2CAP) && bta_jv_cb.p_l2c_cback)
     {
         bta_jv_cb.p_l2c_cback(BTA_JV_CREATE_RECORD_EVT, (tBTA_JV *)&evt_data, cr->user_data);
     }
