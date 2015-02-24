@@ -2630,6 +2630,7 @@ void bta_hh_le_write_rpt(tBTA_HH_DEV_CB *p_cb, UINT8 srvc_inst,
     if (p_rpt == NULL)
     {
         APPL_TRACE_ERROR("bta_hh_le_write_rpt: no matching report");
+        GKI_freebuf(p_buf);
         return;
     }
 
