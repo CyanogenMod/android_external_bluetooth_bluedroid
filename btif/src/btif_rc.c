@@ -973,7 +973,7 @@ UINT8 handle_get_folder_item_filesystem_cmd (tBTA_AV_BROWSE_MSG *pbrowse_msg, tA
     {
         BTIF_TRACE_DEBUG("No attribute requested");
     }
-    else
+    else if (attr_count <= AVRC_MAX_ELEM_ATTR_SIZE)
     {
         p_data = &pbrowse_msg->p_msg->browse.p_browse_data[13];
         for (xx = 0; xx < attr_count; xx++)
@@ -2128,7 +2128,7 @@ static bt_status_t get_player_app_value_rsp(btrc_player_settings_t *p_vals)
     {
         avrc_rsp.get_cur_app_val.status = AVRC_STS_BAD_PARAM;
     }
-    else
+    else if (p_vals->num_attr <= BTRC_MAX_APP_SETTINGS)
     {
         memset(app_sett, 0, sizeof(tAVRC_APP_SETTING)*p_vals->num_attr );
         //update num_val
