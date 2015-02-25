@@ -159,6 +159,7 @@ enum {
    (1000/TICKS_PER_SEC) (10) */
 
 #define BTIF_MEDIA_TIME_TICK                     (20 * BTIF_MEDIA_NUM_TICK)
+#define BTIF_MEDIA_TIME_TICK_US                  (BTIF_MEDIA_TIME_TICK * 1000)
 #define A2DP_DATA_READ_POLL_MS    (BTIF_MEDIA_TIME_TICK / 2)
 #define BTIF_SINK_MEDIA_TIME_TICK                (20 * BTIF_MEDIA_NUM_TICK)
 
@@ -329,6 +330,7 @@ typedef struct {
 static tBTIF_MEDIA_CB btif_media_cb;
 static int media_task_running = MEDIA_TASK_STATE_OFF;
 static UINT64 last_frame_us = 0;
+static UINT32 last_frame_partial_us, last_frame_partial_bytes;
 
 static UINT32 pcm_sample_rate = AUDIO_STREAM_DEFAULT_RATE;
 static UINT8 pcm_channel_count = 2;
@@ -2770,6 +2772,38 @@ static UINT8 check_for_max_number_of_frames_per_packet()
     return result;
 }
 
+static void
+update_pcm_feedings_state(void)
+{
+    tBTIF_AV_MEDIA_FEEDINGS_PCM_STATE *pcm = &btif_media_cb.media_feeding_state.pcm;
+
+    UINT64 now_us = GKI_now_us();
+
+    if (last_frame_us != 0) {
+        UINT32 us_this_tick = (now_us - last_frame_us);
+
+        if (us_this_tick + last_frame_partial_us >= BTIF_MEDIA_TIME_TICK_US) {
+            pcm->counter += pcm->bytes_per_tick - last_frame_partial_bytes;
+            us_this_tick -= (BTIF_MEDIA_TIME_TICK_US - last_frame_partial_us);
+            last_frame_partial_us = last_frame_partial_bytes = 0;
+        }
+
+        UINT32 full_ticks = us_this_tick / BTIF_MEDIA_TIME_TICK_US;
+        UINT32 partial_us = us_this_tick % BTIF_MEDIA_TIME_TICK_US;
+        UINT32 partial_bytes = pcm->bytes_per_tick * partial_us / BTIF_MEDIA_TIME_TICK_US;
+
+        last_frame_partial_us += partial_us;
+        last_frame_partial_bytes += partial_bytes;
+
+        pcm->counter += pcm->bytes_per_tick * full_ticks + partial_bytes;
+    } else {
+        pcm->counter += pcm->bytes_per_tick;
+        last_frame_partial_us = last_frame_partial_bytes = 0;
+    }
+
+    last_frame_us = now_us;
+}
+
 /*******************************************************************************
  **
  ** Function         btif_get_num_aa_frame
@@ -2797,12 +2831,6 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                              btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
             APPL_TRACE_DEBUG("pcm_bytes_per_frame %u", pcm_bytes_per_frame);
 
-            UINT32 us_this_tick = BTIF_MEDIA_TIME_TICK * 1000;
-            UINT64 now_us = GKI_now_us();
-            if (last_frame_us != 0)
-                us_this_tick = (now_us - last_frame_us);
-            last_frame_us = now_us;
-
             if ((!btif_media_cb.media_feeding_state.pcm.overflow) ||
                 (btif_media_cb.TxAaQ.count < A2DP_PACKET_COUNT_LOW_WATERMARK)) {
                 if (btif_media_cb.media_feeding_state.pcm.overflow) {
@@ -2815,9 +2843,8 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                     }
                 }
 
-                btif_media_cb.media_feeding_state.pcm.counter +=
-                                btif_media_cb.media_feeding_state.pcm.bytes_per_tick *
-                                us_this_tick / (BTIF_MEDIA_TIME_TICK * 1000);
+                update_pcm_feedings_state();
+
                 /* calculate nbr of frames pending for this media tick */
                 result = btif_media_cb.media_feeding_state.pcm.counter/pcm_bytes_per_frame;
                 APPL_TRACE_DEBUG("num of frames calculated as per available pcm data:  %u", result);
