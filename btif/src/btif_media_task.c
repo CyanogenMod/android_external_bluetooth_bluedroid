@@ -2805,9 +2805,6 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                 us_this_tick = (now_us - last_frame_us);
             last_frame_us = now_us;
 
-            btif_media_cb.media_feeding_state.pcm.counter +=
-                                btif_media_cb.media_feeding_state.pcm.bytes_per_tick *
-                                us_this_tick / (BTIF_MEDIA_TIME_TICK * 1000);
             if ((!btif_media_cb.media_feeding_state.pcm.overflow) ||
                 (btif_media_cb.TxAaQ.count < A2DP_PACKET_COUNT_LOW_WATERMARK)) {
                 if (btif_media_cb.media_feeding_state.pcm.overflow) {
@@ -2819,6 +2816,10 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                             btif_media_cb.media_feeding_state.pcm.counter;
                     }
                 }
+
+                btif_media_cb.media_feeding_state.pcm.counter +=
+                                btif_media_cb.media_feeding_state.pcm.bytes_per_tick *
+                                us_this_tick / (BTIF_MEDIA_TIME_TICK * 1000);
                 /* calculate nbr of frames pending for this media tick */
                 result = btif_media_cb.media_feeding_state.pcm.counter/pcm_bytes_per_frame;
                 APPL_TRACE_DEBUG("num of frames calculated as per available pcm data:  %u", result);
