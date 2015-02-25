@@ -232,9 +232,7 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 /* 24 frames is equivalent to 6.89*24*2.9 ~= 480 ms @ 44.1 khz, 20 ms mediatick */
 #define MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ 24
 #define A2DP_PACKET_COUNT_LOW_WATERMARK 5
-#define MAX_PCM_FRAME_NUM_PER_TICK     10
 #define RESET_RATE_COUNTER_THRESHOLD_MS    2000
-#define MAX_PCM_ITER_NUM_PER_TICK     2
 
 //#define BTIF_MEDIA_VERBOSE_ENABLED
 /* In case of A2DP SINK, we will delay start by 5 AVDTP Packets*/
@@ -2841,12 +2839,6 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                         if (nof < result)
                         {
                             noi = result / nof; // number of iterations would vary
-                            if (noi > MAX_PCM_ITER_NUM_PER_TICK)
-                            {
-                                APPL_TRACE_ERROR("## Audio Congestion (iterations:%d > max (%d))",
-                                     noi, MAX_PCM_ITER_NUM_PER_TICK);
-                                noi = MAX_PCM_ITER_NUM_PER_TICK;
-                            }
                             result = nof;
                         }
                         else
@@ -2859,14 +2851,6 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                 }
                 else
                 {
-                    // For BR cases nof will be same as the value retrieved at result
-                    APPL_TRACE_DEBUG("headset is of type BR %u", nof);
-                    if (result > MAX_PCM_FRAME_NUM_PER_TICK)
-                    {
-                        APPL_TRACE_ERROR("## Audio Congestion (frames: %d > max (%d))"
-                            ,result, MAX_PCM_FRAME_NUM_PER_TICK);
-                        result = MAX_PCM_FRAME_NUM_PER_TICK;
-                    }
                     nof = result;
                 }
                 btif_media_cb.media_feeding_state.pcm.counter -= noi * nof * pcm_bytes_per_frame;
