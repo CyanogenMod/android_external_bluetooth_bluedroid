@@ -507,6 +507,18 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
      return true;
 }
 
+void btif_gatt_adv_inst_cleanup( void )
+{
+    if (NULL == p_multi_adv_com_data_cb) {
+        return;
+    }
+
+    while(user_app_count> 0)  {
+        BTIF_TRACE_DEBUG("%s: user_app_count: %d", __FUNCTION__, user_app_count);
+        btif_gattc_decr_app_count();
+    }
+}
+
 void btif_gattc_clear_clientif(int client_if, BOOLEAN stop_timer)
 {
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();

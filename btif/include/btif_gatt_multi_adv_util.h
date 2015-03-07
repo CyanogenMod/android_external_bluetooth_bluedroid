@@ -93,6 +93,7 @@ extern void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
                 int service_data_len, char* service_data, int service_uuid_len,
                 char* service_uuid, btif_adv_data_t *p_multi_adv_inst);
 void btif_multi_adv_timer_ctrl(int client_if, TIMER_CBACK cb);
+void btif_gatt_adv_inst_cleanup(void);
 #endif
 
 
