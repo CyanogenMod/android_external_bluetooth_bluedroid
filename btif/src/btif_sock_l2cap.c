@@ -904,7 +904,7 @@ void btsock_l2c_signaled(int fd, int flags, uint32_t user_id)
                         {
                             if(size >= ls->put_size)
                             {
-                                APPL_TRACE_DEBUG(" available size matched with ls->put_size");
+                                APPL_TRACE_DEBUG(" available size matched with ls->put_size %d size %d", ls->put_size, size);
                                 BTA_JvL2capWrite(ls->l2c_handle, (UINT32)ls->id);
                                 ls->put_size_set = FALSE;
                             }
@@ -1093,4 +1093,36 @@ bt_status_t btsock_l2c_set_sockopt(int psm, btsock_option_type_t option_name,
     return status;
 }
 
+
+bt_status_t btsock_l2c_get_sockopt(int psm, btsock_option_type_t option_name,
+                                            void *option_value, int *option_len)
+{
+    int status = BT_STATUS_FAIL;
+
+    APPL_TRACE_ERROR("btsock_l2c_get_sockopt channel is %d ", psm);
+    if((psm < 1) || (option_value == NULL) || (option_len == NULL))
+    {
+        APPL_TRACE_ERROR("invalid l2c channel:%d or option_value:%p, option_len:%d",
+                                        psm, option_value, option_len);
+        return BT_STATUS_PARM_INVALID;
+    }
+
+    l2c_slot_t* ls = find_client_l2c_slot_by_psm(psm);
+
+    if((ls) && ((option_name == BTSOCK_OPT_GET_CONG_STATUS)))
+    {
+        if(ls->put_size_set || ls->f.outgoing_congest)
+        {
+            *((UINT8 *)option_value) = 1;
+        }
+        else
+        {
+            *((UINT8 *)option_value) = 0;
+        }
+        *option_len = sizeof(UINT8);
+
+        status = BT_STATUS_SUCCESS;
+    }
+    return status;
+}
 #endif
