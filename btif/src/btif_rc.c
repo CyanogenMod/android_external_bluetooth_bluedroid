@@ -978,7 +978,10 @@ UINT8 handle_get_folder_item_filesystem_cmd (tBTA_AV_BROWSE_MSG *pbrowse_msg, tA
     {
         p_data = &pbrowse_msg->p_msg->browse.p_browse_data[13];
         for (xx = 0; xx < attr_count; xx++)
-            BE_STREAM_TO_UINT32(cmd->get_items.attrs[xx], p_data)
+        {
+            if (xx < AVRC_MAX_ELEM_ATTR_SIZE)
+                BE_STREAM_TO_UINT32(cmd->get_items.attrs[xx], p_data)
+        }
     }
     //Update OPCODE
     cmd->get_items.opcode  = AVRC_OP_BROWSE;
@@ -2125,7 +2128,7 @@ static bt_status_t get_player_app_value_rsp(btrc_player_settings_t *p_vals)
     memset(&(avrc_rsp.get_cur_app_val) ,0 , sizeof(tAVRC_GET_CUR_APP_VALUE_RSP));
     avrc_rsp.get_cur_app_val.p_vals   = app_sett ;
     //Check for Error Condition
-    if ((p_vals == NULL) || (p_vals->num_attr== 0) || (p_vals->num_attr > AVRC_MAX_APP_ATTR_SIZE))
+    if ((p_vals == NULL) || (p_vals->num_attr== 0) || (p_vals->num_attr > BTRC_MAX_ELEM_ATTR_SIZE))
     {
         avrc_rsp.get_cur_app_val.status = AVRC_STS_BAD_PARAM;
     }
