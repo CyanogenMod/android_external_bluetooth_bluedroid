@@ -1289,7 +1289,7 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
     else
         idx = btif_hf_latest_connected_idx();
 
-    BTIF_TRACE_DEBUG("phone_state_change: idx = %d", idx);
+    BTIF_TRACE_IMP("phone_state_change: idx = %d", idx);
 
     /* Check if SLC is connected */
     if (btif_hf_check_if_slc_connected() != BT_STATUS_SUCCESS)
@@ -1337,12 +1337,20 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
     if ( ((num_active + num_held) > 0) && (btif_hf_cb[idx].num_active == 0) && (btif_hf_cb[idx].num_held == 0)
          && (btif_hf_cb[idx].call_setup_state == BTHF_CALL_STATE_IDLE) )
     {
-        BTIF_TRACE_DEBUG("%s: Active/Held call notification received without call setup update",
+        BTIF_TRACE_IMP("%s: Active/Held call notification received without call setup update",
                           __FUNCTION__);
 
         memset(&ag_res, 0, sizeof(tBTA_AG_RES_DATA));
         ag_res.audio_handle = btif_hf_cb[idx].handle;
-        res = BTA_AG_OUT_CALL_CONN_RES;
+        /* Addition call setup with the Active call
+        ** CIND response should have been updated.
+        ** just open SCO conenction.
+        */
+        if (call_setup_state != BTHF_CALL_STATE_IDLE)
+            res = BTA_AG_MULTI_CALL_RES;
+        else
+            res = BTA_AG_OUT_CALL_CONN_RES;
+
         BTA_AgResult(BTA_AG_HANDLE_ALL, res, &ag_res);
         activeCallUpdated = TRUE;
     }
