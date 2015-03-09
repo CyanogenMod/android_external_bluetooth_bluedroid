@@ -73,6 +73,7 @@
 ************************************************************************************/
 
 static BOOLEAN bt_disabled = FALSE;
+static BOOLEAN ssr_triggered = FALSE;
 pthread_mutex_t mutex_bt_disable;
 
 /* These type definitions are used when passing data from the HAL to BTIF context
@@ -558,6 +559,7 @@ bt_status_t btif_enable_bluetooth(void)
     btif_core_state = BTIF_CORE_STATE_ENABLING;
 
     bt_disabled = FALSE;
+    ssr_triggered = FALSE;
 
     init_slot_lock(&mutex_bt_disable);
     /* Create the GKI tasks and run them */
@@ -731,7 +733,11 @@ bt_status_t btif_disable_bluetooth(void)
 void btif_disable_bluetooth_evt(void)
 {
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
-
+    if (ssr_triggered == TRUE)
+    {
+        BTIF_TRACE_DEBUG("%s SSR triggered,Ignore EVT",__FUNCTION__);
+        return;
+    }
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
     bte_main_enable_lpm(FALSE);
 #endif
@@ -839,6 +845,7 @@ Description   Trigger SSR when Disable timeout occured
 *******************************************************************************/
 void btif_ssr_cleanup(void)
 {
+  ssr_triggered = TRUE;
   bte_ssr_cleanup();
 }
 
