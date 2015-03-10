@@ -49,8 +49,6 @@
 #include "btif_common.h"
 #include "btif_util.h"
 
-#include "bd.h"
-
 #include "bta_api.h"
 #include "btif_sock_thread.h"
 #include "btif_sock_sdp.h"

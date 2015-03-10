@@ -727,10 +727,14 @@ static void btu_exec_tap_fd_read(void *p_param) {
                 case -1:
                     BTIF_TRACE_ERROR("%s unable to read from driver: %s", __func__, strerror(errno));
                     GKI_freebuf(buffer);
+                    //add fd back to monitor thread to try it again later
+                    btsock_thread_add_fd(pan_pth, fd, 0, SOCK_THREAD_FD_RD, 0);
                     return;
                 case 0:
                     BTIF_TRACE_WARNING("%s end of file reached.", __func__);
                     GKI_freebuf(buffer);
+                    //add fd back to monitor thread to process the exception
+                    btsock_thread_add_fd(pan_pth, fd, 0, SOCK_THREAD_FD_RD, 0);
                     return;
                 default:
                     btpan_cb.congest_packet_size = ret;
@@ -762,11 +766,11 @@ static void btu_exec_tap_fd_read(void *p_param) {
         ufd.fd = fd;
         ufd.events = POLLIN;
         ufd.revents = 0;
-        if(poll(&ufd, 1, 0) <= 0 || IS_EXCEPTION(ufd.revents)) {
-            btsock_thread_add_fd(pan_pth, fd, 0, SOCK_THREAD_FD_RD, 0);
-            return;
-        }
+        if(poll(&ufd, 1, 0) <= 0 || IS_EXCEPTION(ufd.revents))
+            break;
     }
+    //add fd back to monitor thread
+    btsock_thread_add_fd(pan_pth, fd, 0, SOCK_THREAD_FD_RD, 0);
 }
 
 static void btif_pan_close_all_conns() {

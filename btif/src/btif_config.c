@@ -44,6 +44,8 @@
 #define LOG_TAG "btif_config"
 
 #include <hardware/bluetooth.h>
+#include "data_types.h"
+#include "bd.h"
 #include "btif_api.h"
 #include "btif_config.h"
 #include "btif_config_util.h"
@@ -363,6 +365,46 @@ void btif_config_flush()
         save_cfg();
     unlock_slot(&slot_lock);
 }
+
+/*******************************************************************************
+ * Device information
+ *******************************************************************************/
+BOOLEAN btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type)
+{
+    if (p_device_type == NULL)
+        return FALSE;
+
+    bt_bdaddr_t bda;
+    bdcpy(bda.address, bd_addr);
+
+    char bd_addr_str[18] = {0};
+    bd2str(&bda, &bd_addr_str);
+
+    if (!btif_config_get_int("Remote", bd_addr_str, "DevType", p_device_type))
+        return FALSE;
+
+    ALOGD("%s: Device [%s] type %d", __FUNCTION__, bd_addr_str, *p_device_type);
+    return TRUE;
+}
+
+BOOLEAN btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type)
+{
+    if (p_addr_type == NULL)
+        return FALSE;
+
+    bt_bdaddr_t bda;
+    bdcpy(bda.address, bd_addr);
+
+    char bd_addr_str[18] = {0};
+    bd2str(&bda, &bd_addr_str);
+
+    if (!btif_config_get_int("Remote", bd_addr_str, "AddrType", p_addr_type))
+        return FALSE;
+
+    ALOGD("%s: Device [%s] address type %d", __FUNCTION__, bd_addr_str, *p_addr_type);
+    return TRUE;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 static inline short alloc_node(cfg_node* p, short grow)
 {
@@ -950,4 +992,6 @@ static void cfg_test_read()
     // debug("after removed, btif_config_get ret:%d, Remote devices, 00:22:5F:97:56:04 Class Delete:%s", ret, class);
     // debug("out");
 }
+
+
 #endif

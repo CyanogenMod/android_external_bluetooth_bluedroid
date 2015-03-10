@@ -270,10 +270,6 @@ typedef struct
     INT32  aa_feed_residue;
     UINT32 counter;
     UINT32 bytes_per_tick;  /* pcm bytes read each media task tick */
-    UINT32 max_counter_exit;
-    UINT32 max_counter_enter;
-    UINT32 overflow_count;
-    BOOLEAN overflow;
 } tBTIF_AV_MEDIA_FEEDINGS_PCM_STATE;
 
 
@@ -2535,11 +2531,6 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
  *******************************************************************************/
 static void btif_media_task_feeding_state_reset(void)
 {
-    APPL_TRACE_WARNING("overflow %d, enter %d, exit %d",
-        btif_media_cb.media_feeding_state.pcm.overflow_count,
-        btif_media_cb.media_feeding_state.pcm.max_counter_enter,
-        btif_media_cb.media_feeding_state.pcm.max_counter_exit);
-
     /* By default, just clear the entire state */
     memset(&btif_media_cb.media_feeding_state, 0, sizeof(btif_media_cb.media_feeding_state));
 
@@ -2844,7 +2835,8 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                 APPL_TRACE_DEBUG("num of iterations %u", noi);
             } else {
                 result = 0;
-            }
+        }
+            btif_media_cb.media_feeding_state.pcm.counter -= result*pcm_bytes_per_frame;
 
             VERBOSE("WRITE %d FRAMES", result);
         }
@@ -3219,32 +3211,6 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
         {
             GKI_freebuf(p_buf);
         }
-
-        if (btif_media_cb.TxAaQ.count >= MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ) {
-            UINT32 reset_rate_bytes = btif_media_cb.media_feeding_state.pcm.bytes_per_tick *
-                                (RESET_RATE_COUNTER_THRESHOLD_MS / BTIF_MEDIA_TIME_TICK);
-            btif_media_cb.media_feeding_state.pcm.overflow = TRUE;
-            btif_media_cb.media_feeding_state.pcm.counter += nb_frame *
-                     btif_media_cb.encoder.s16NumOfSubBands *
-                     btif_media_cb.encoder.s16NumOfBlocks *
-                     btif_media_cb.media_feeding.cfg.pcm.num_channel *
-                     btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
-
-            btif_media_cb.media_feeding_state.pcm.overflow_count++;
-            if (btif_media_cb.media_feeding_state.pcm.counter >
-                btif_media_cb.media_feeding_state.pcm.max_counter_enter) {
-                btif_media_cb.media_feeding_state.pcm.max_counter_enter =
-                    btif_media_cb.media_feeding_state.pcm.counter;
-            }
-
-            if (btif_media_cb.media_feeding_state.pcm.counter > reset_rate_bytes) {
-                btif_media_cb.media_feeding_state.pcm.counter = 0;
-                APPL_TRACE_WARNING("btif_media_aa_prep_sbc_2_send:reset rate counter");
-            }
-
-            /* no more pcm to read */
-            nb_frame = 0;
-        }
     }
 }
 
@@ -3261,8 +3227,16 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
 
 static void btif_media_aa_prep_2_send(UINT8 nb_frame)
 {
-    VERBOSE("btif_media_aa_prep_2_send : %d frames (queue %d)", nb_frame,
-                       btif_media_cb.TxAaQ.count);
+    VERBOSE("%s() - frames=%d (queue=%d)", __FUNCTION__, nb_frame, btif_media_cb.TxAaQ.count);
+
+    while (btif_media_cb.TxAaQ.count >= (MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ-nb_frame))
+    {
+        APPL_TRACE_WARNING("%s() - TX queue buffer count %d",
+            __FUNCTION__, btif_media_cb.TxAaQ.count);
+        GKI_freebuf(GKI_dequeue(&(btif_media_cb.TxAaQ)));
+    }
+
+    if (btif_media_cb.TxAaQ.count) --nb_frame;
 
     switch (btif_media_cb.TxTranscoding)
     {

@@ -1169,7 +1169,18 @@ extern "C"
 *******************************************************************************/
     GATT_API extern BOOLEAN GATT_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr);
 
-
+/*******************************************************************************
+**
+** Function         GATT_ConfigServiceChangeCCC
+**
+** Description      Configure service change indication on remote device
+**
+** Returns          None.
+**
+*******************************************************************************/
+    GATT_API extern void GATT_ConfigServiceChangeCCC (BD_ADDR remote_bda, BOOLEAN enable,
+                                                    tBT_TRANSPORT transport);
+ 
 #ifdef __cplusplus
 
 }

@@ -662,6 +662,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         case BTA_GATTC_MULT_ADV_DATA_EVT:
          {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
+            btif_gattc_clear_clientif(p_btif_cb->client_if, FALSE);
             HAL_CBACK(bt_gatt_callbacks, client->multi_adv_data_cb
                 , p_btif_cb->client_if
                 , p_btif_cb->status
@@ -672,7 +673,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         case BTA_GATTC_MULT_ADV_DIS_EVT:
         {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
-            btif_gattc_clear_clientif(p_btif_cb->client_if);
+            btif_gattc_clear_clientif(p_btif_cb->client_if, TRUE);
             HAL_CBACK(bt_gatt_callbacks, client->multi_adv_disable_cb
                 , p_btif_cb->client_if
                 , p_btif_cb->status
@@ -682,7 +683,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_ADV_DATA_EVT:
         {
-            btif_gattc_cleanup_inst_cb(STD_ADV_INSTID);
+            btif_gattc_cleanup_inst_cb(STD_ADV_INSTID, FALSE);
             /* No HAL callback available */
             break;
         }
@@ -1089,13 +1090,13 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
     {
         case BTIF_GATTC_REGISTER_APP:
             btif_to_bta_uuid(&uuid, &p_cb->uuid);
-            btif_gattc_init_multi_adv_cb();
+            btif_gattc_incr_app_count();
             BTA_GATTC_AppRegister(&uuid, bta_gattc_cback);
             break;
 
         case BTIF_GATTC_UNREGISTER_APP:
-            btif_gattc_clear_clientif(p_cb->client_if);
-            btif_gattc_destroy_multi_adv_cb();
+            btif_gattc_clear_clientif(p_cb->client_if, TRUE);
+            btif_gattc_decr_app_count();
             BTA_GATTC_AppDeregister(p_cb->client_if);
             break;
 
@@ -1115,9 +1116,12 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             int device_type = 0;
             tBTA_GATT_TRANSPORT transport = BTA_GATT_TRANSPORT_LE;
 
-            if (btif_get_device_type(p_cb->bd_addr.address, &addr_type, &device_type) == TRUE
-                  && device_type != BT_DEVICE_TYPE_BREDR)
+            if (btif_get_address_type(p_cb->bd_addr.address, &addr_type) &&
+                btif_get_device_type(p_cb->bd_addr.address, &device_type) &&
+                device_type != BT_DEVICE_TYPE_BREDR)
+            {
                 BTA_DmAddBleDevice(p_cb->bd_addr.address, addr_type, device_type);
+            }
 
             // Mark background connections
             if (!p_cb->is_direct)
@@ -1125,7 +1129,8 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                 // Check if RPA offloading is supported, otherwise, do not start
                 // background connection, since it will not connect after address
                 // changes
-                if (BTM_BLE_IS_RESOLVE_BDA(p_cb->bd_addr.address))
+                if ((p_cb->addr_type == BLE_ADDR_RANDOM)
+                        && BTM_BLE_IS_RESOLVE_BDA(p_cb->bd_addr.address))
                 {
                     tBTM_BLE_VSC_CB vnd_capabilities;
                     BTM_BleGetVendorCapabilities(&vnd_capabilities);
