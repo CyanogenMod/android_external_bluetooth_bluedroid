@@ -174,7 +174,6 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     }
 
 #if (BLE_INCLUDED == TRUE)
-    l2cb.is_ble_connecting = FALSE;
     /*reset ble connecting flag only if the addr matches*/
     if(!memcmp(l2cb.ble_connecting_bda,p_lcb->remote_bd_addr, BD_ADDR_LEN))
     {
