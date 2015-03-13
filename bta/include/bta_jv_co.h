@@ -25,6 +25,9 @@
 #define BTA_JV_CO_H
 
 #include "bta_jv_api.h"
+#if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+#include <hardware/bt_sock.h>
+#endif
 
 /*****************************************************************************
 **  Function Declarations
@@ -47,6 +50,7 @@ BTA_API extern int bta_co_rfc_data_outgoing_size(void *user_data, int *size);
 BTA_API extern int bta_co_rfc_data_outgoing(void *user_data, UINT8* buf, UINT16 size);
 
 #if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
+BTA_API extern btsock_type_t bta_co_get_sock_type_by_id(uint32_t slot_id);
 BTA_API extern int bta_co_l2c_data_incoming(void *user_data, BT_HDR *p_buf);
 BTA_API extern int bta_co_l2c_data_outgoing_size(void *user_data, int *size);
 BTA_API extern int bta_co_l2c_data_outgoing(void *user_data, UINT8* buf, UINT16 size);
