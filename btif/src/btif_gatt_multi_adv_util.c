@@ -42,21 +42,19 @@
 /*******************************************************************************
 **  Static variables
 ********************************************************************************/
-static int multi_adv_enable_count = 0;
+static int user_app_count = 0;
 static btgatt_multi_adv_common_data *p_multi_adv_com_data_cb = NULL;
 
 btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
 {
-    if(0 == BTM_BleMaxMultiAdvInstanceCount())
-    {
-        BTIF_TRACE_WARNING("%s - No instances found", __FUNCTION__);
-        return NULL;
-    }
+    int max_adv_inst = BTM_BleMaxMultiAdvInstanceCount();
+    if (0 == max_adv_inst)
+        max_adv_inst = 1;
 
-    BTIF_TRACE_DEBUG("%s, Count:%d", __FUNCTION__, BTM_BleMaxMultiAdvInstanceCount());
+    BTIF_TRACE_DEBUG("%s, Count:%d", __FUNCTION__, max_adv_inst);
+
     if (NULL == p_multi_adv_com_data_cb)
     {
-        BTIF_TRACE_DEBUG("Initializing in %s", __FUNCTION__);
         p_multi_adv_com_data_cb = GKI_getbuf(sizeof(btgatt_multi_adv_common_data));
         if (NULL != p_multi_adv_com_data_cb)
         {
@@ -70,7 +68,7 @@ btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
                 return NULL;
             }
             memset(p_multi_adv_com_data_cb->clntif_map, 0 ,
-                  ( BTM_BleMaxMultiAdvInstanceCount() * INST_ID_IDX_MAX)* sizeof(INT8));
+                  ( max_adv_inst * INST_ID_IDX_MAX)* sizeof(INT8));
 
             if (NULL == (p_multi_adv_com_data_cb->inst_cb = GKI_getbuf(( BTM_BleMaxMultiAdvInstanceCount() + 1 )
                                               * sizeof(btgatt_multi_adv_inst_cb)))) {
@@ -80,9 +78,9 @@ btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
                 return NULL;
             }
             memset(p_multi_adv_com_data_cb->inst_cb, 0 ,
-                 ( BTM_BleMaxMultiAdvInstanceCount() + 1) * sizeof(btgatt_multi_adv_inst_cb));
+                 ( max_adv_inst + 1) * sizeof(btgatt_multi_adv_inst_cb));
 
-            for (int i=0; i < BTM_BleMaxMultiAdvInstanceCount()*2; i += 2)
+            for (int i=0; i < max_adv_inst * 2; i += 2)
             {
                 p_multi_adv_com_data_cb->clntif_map[i] = INVALID_ADV_INST;
                 p_multi_adv_com_data_cb->clntif_map[i+1] = INVALID_ADV_INST;
@@ -93,29 +91,24 @@ btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
     return p_multi_adv_com_data_cb;
 }
 
-void btif_gattc_init_multi_adv_cb(void)
+void btif_gattc_incr_app_count(void)
 {
     // TODO: Instead of using a fragile reference counter here, one could
     //       simply track the client_if instances that are in the map.
-    ++multi_adv_enable_count;
+    ++user_app_count;
 }
 
-void btif_gattc_destroy_multi_adv_cb(int client_if)
+void btif_gattc_decr_app_count(void)
 {
-    if (multi_adv_enable_count > 0)
-        multi_adv_enable_count --;
-    if (client_if == INVALID_CLIENT_IF) {
-        multi_adv_enable_count = 0;
-    }
-    if(multi_adv_enable_count == 0 && p_multi_adv_com_data_cb != 0)
+    if (user_app_count > 0)
+        user_app_count --;
+
+    if(user_app_count == 0 && NULL != p_multi_adv_com_data_cb)
     {
-        if (NULL != p_multi_adv_com_data_cb)
-        {
-            GKI_freebuf (p_multi_adv_com_data_cb->clntif_map);
-            GKI_freebuf (p_multi_adv_com_data_cb->inst_cb);
-            GKI_freebuf(p_multi_adv_com_data_cb);
-            p_multi_adv_com_data_cb = NULL;
-        }
+       GKI_freebuf (p_multi_adv_com_data_cb->clntif_map);
+       GKI_freebuf (p_multi_adv_com_data_cb->inst_cb);
+       GKI_freebuf(p_multi_adv_com_data_cb);
+       p_multi_adv_com_data_cb = NULL;
     }
 }
 
@@ -514,7 +507,19 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
      return true;
 }
 
-void btif_gattc_clear_clientif(int client_if)
+void btif_gatt_adv_inst_cleanup( void )
+{
+    if (NULL == p_multi_adv_com_data_cb) {
+        return;
+    }
+
+    while(user_app_count> 0)  {
+        BTIF_TRACE_DEBUG("%s: user_app_count: %d", __FUNCTION__, user_app_count);
+        btif_gattc_decr_app_count();
+    }
+}
+
+void btif_gattc_clear_clientif(int client_if, BOOLEAN stop_timer)
 {
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
     if (NULL == p_multi_adv_data_cb)
@@ -525,18 +530,20 @@ void btif_gattc_clear_clientif(int client_if)
     {
         if (client_if == p_multi_adv_data_cb->clntif_map[i])
         {
-            btif_gattc_cleanup_inst_cb(p_multi_adv_data_cb->clntif_map[i+1]);
-            p_multi_adv_data_cb->clntif_map[i] = INVALID_ADV_INST;
-            p_multi_adv_data_cb->clntif_map[i+1] = INVALID_ADV_INST;
-            BTIF_TRACE_DEBUG("Cleaning up index %d for clnt_if :%d,", i/2, client_if);
+            btif_gattc_cleanup_inst_cb(p_multi_adv_data_cb->clntif_map[i+1], stop_timer);
+            if (stop_timer)
+            {
+                p_multi_adv_data_cb->clntif_map[i] = INVALID_ADV_INST;
+                p_multi_adv_data_cb->clntif_map[i+1] = INVALID_ADV_INST;
+                BTIF_TRACE_DEBUG("Cleaning up index %d for clnt_if :%d,", i/2, client_if);
+            }
             break;
         }
     }
 }
 
-void btif_gattc_cleanup_inst_cb(int inst_id)
+void btif_gattc_cleanup_inst_cb(int inst_id, BOOLEAN stop_timer)
 {
-    int cbindex = 0;
     // Check for invalid instance id
     if (inst_id < 0 || inst_id >= BTM_BleMaxMultiAdvInstanceCount())
         return;
@@ -545,39 +552,33 @@ void btif_gattc_cleanup_inst_cb(int inst_id)
     if (NULL == p_multi_adv_data_cb)
         return;
 
-    if (inst_id > 0)
-    {
-        cbindex = btif_gattc_obtain_idx_for_datacb(inst_id, INST_ID_IDX);
-        if (cbindex < 0)
-            return;
-    } else {
-        if (STD_ADV_INSTID == inst_id)
-          cbindex = STD_ADV_INSTID;
-    }
+    int cbindex = (STD_ADV_INSTID == inst_id) ?
+        STD_ADV_INSTID : btif_gattc_obtain_idx_for_datacb(inst_id, INST_ID_IDX);
+    if (cbindex < 0) return;
 
-    if (inst_id != INVALID_ADV_INST)
-    {
-        BTIF_TRACE_DEBUG("Cleaning up multi_inst_cb for inst_id %d, cbindex %d", inst_id, cbindex);
-        btif_gattc_cleanup_multi_inst_cb(&p_multi_adv_data_cb->inst_cb[cbindex]);
-        p_multi_adv_data_cb->inst_cb[cbindex].inst_id = INVALID_ADV_INST;
-    }
+    BTIF_TRACE_DEBUG("Cleaning up multi_inst_cb for inst_id %d, cbindex %d", inst_id, cbindex);
+    btif_gattc_cleanup_multi_inst_cb(&p_multi_adv_data_cb->inst_cb[cbindex], stop_timer);
 }
 
-void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb)
+void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb,
+                                             BOOLEAN stop_timer)
 {
     if (p_multi_inst_cb == NULL)
         return;
 
     // Discoverability timer cleanup
-    if (p_multi_inst_cb->tle_limited_timer.in_use)
-        btu_stop_timer_oneshot(&p_multi_inst_cb->tle_limited_timer);
+    if (stop_timer)
+    {
+        if (p_multi_inst_cb->tle_limited_timer.in_use)
+            btu_stop_timer_oneshot(&p_multi_inst_cb->tle_limited_timer);
+        p_multi_inst_cb->tle_limited_timer.in_use = 0;
+    }
 
     // Manufacturer data cleanup
     if (p_multi_inst_cb->data.p_manu != NULL)
     {
-        if (p_multi_inst_cb->data.p_manu->p_val != NULL)
-           GKI_freebuf(p_multi_inst_cb->data.p_manu->p_val);
-        GKI_freebuf(p_multi_inst_cb->data.p_manu);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_manu->p_val);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_manu);
     }
 
     // Proprietary data cleanup
@@ -588,58 +589,56 @@ void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb)
         while (i++ != p_multi_inst_cb->data.p_proprietary->num_elem
             && p_elem)
         {
-            if (p_elem->p_val != NULL)
-                GKI_freebuf(p_elem->p_val);
+            btif_gattc_cleanup((void**) &p_elem->p_val);
             ++p_elem;
         }
 
-        if (p_multi_inst_cb->data.p_proprietary->p_elem != NULL)
-            GKI_freebuf(p_multi_inst_cb->data.p_proprietary->p_elem);
-        GKI_freebuf(p_multi_inst_cb->data.p_proprietary);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_proprietary->p_elem);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_proprietary);
     }
 
     // Service list cleanup
     if (p_multi_inst_cb->data.p_services != NULL)
     {
-        if (p_multi_inst_cb->data.p_services->p_uuid != NULL)
-           GKI_freebuf(p_multi_inst_cb->data.p_services->p_uuid);
-        GKI_freebuf(p_multi_inst_cb->data.p_services);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_services->p_uuid);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_services);
     }
 
     // Service data cleanup
     if (p_multi_inst_cb->data.p_service_data != NULL)
     {
-        if (p_multi_inst_cb->data.p_service_data->p_val != NULL)
-           GKI_freebuf(p_multi_inst_cb->data.p_service_data->p_val);
-        GKI_freebuf(p_multi_inst_cb->data.p_service_data);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_service_data->p_val);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_service_data);
     }
 
-    if (p_multi_inst_cb->data.p_services_128b != NULL)
-        GKI_freebuf(p_multi_inst_cb->data.p_services_128b);
+    btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_services_128b);
 
     if (p_multi_inst_cb->data.p_service_32b != NULL)
     {
-        if (p_multi_inst_cb->data.p_service_32b->p_uuid != NULL)
-           GKI_freebuf(p_multi_inst_cb->data.p_service_32b->p_uuid);
-        GKI_freebuf(p_multi_inst_cb->data.p_service_32b);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_service_32b->p_uuid);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_service_32b);
     }
 
     if (p_multi_inst_cb->data.p_sol_services != NULL)
     {
-        if (p_multi_inst_cb->data.p_sol_services->p_uuid != NULL)
-           GKI_freebuf(p_multi_inst_cb->data.p_sol_services->p_uuid);
-        GKI_freebuf(p_multi_inst_cb->data.p_sol_services);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_sol_services->p_uuid);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_sol_services);
     }
 
     if (p_multi_inst_cb->data.p_sol_service_32b != NULL)
     {
-        if (p_multi_inst_cb->data.p_sol_service_32b->p_uuid != NULL)
-           GKI_freebuf(p_multi_inst_cb->data.p_sol_service_32b->p_uuid);
-        GKI_freebuf(p_multi_inst_cb->data.p_sol_service_32b);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_sol_service_32b->p_uuid);
+        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_sol_service_32b);
     }
 
-    if (p_multi_inst_cb->data.p_sol_service_128b != NULL)
-        GKI_freebuf(p_multi_inst_cb->data.p_sol_service_128b);
+    btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_sol_service_128b);
+}
+
+void btif_gattc_cleanup(void** buf)
+{
+   if (NULL == *buf) return;
+   GKI_freebuf(*buf);
+   *buf = NULL;
 }
 
 void btif_multi_adv_timer_ctrl(int client_if, TIMER_CBACK cb)

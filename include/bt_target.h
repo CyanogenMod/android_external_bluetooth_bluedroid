@@ -214,6 +214,14 @@
 #define LINUX_GKI_INCLUDED  TRUE
 #endif
 
+// If the next wakeup time is less than this threshold, we should acquire
+// a wakelock instead of setting a wake alarm so we're not bouncing in
+// and out of suspend frequently.
+// in millisecond
+#ifndef GKI_TIMER_INTERVAL_FOR_WAKELOCK
+#define GKI_TIMER_INTERVAL_FOR_WAKELOCK 3000
+#endif
+
 #ifndef BTA_SYS_TIMER_PERIOD
 #define BTA_SYS_TIMER_PERIOD  100
 #endif
@@ -1116,6 +1124,10 @@ and USER_HW_DISABLE_API macros */
 #define BTM_LOCAL_IO_CAPS               BTM_IO_CAP_IO
 #endif
 
+#ifndef BTM_LOCAL_IO_CAPS_BLE
+#define BTM_LOCAL_IO_CAPS_BLE           BTM_IO_CAP_KBDISP
+#endif
+
 /* The default MITM Protection Requirement (for Simple Pairing)
  * Possible values are BTM_AUTH_SP_YES or BTM_AUTH_SP_NO */
 #ifndef BTM_DEFAULT_AUTH_REQ
@@ -1375,10 +1387,25 @@ and USER_HW_DISABLE_API macros */
 #define LOCAL_BLE_CONTROLLER_ID         (1)
 #endif
 
+/*
+ * Toggles support for general LE privacy features such as remote address
+ * resolution, local address rotation etc.
+ */
 #ifndef BLE_PRIVACY_SPT
 #define BLE_PRIVACY_SPT         TRUE
 #endif
 
+/*
+ * Enables or disables support for local privacy (ex. address rotation)
+ */
+#ifndef BLE_LOCAL_PRIVACY_ENABLED
+#define BLE_LOCAL_PRIVACY_ENABLED         TRUE
+#endif
+
+/*
+ * Toggles support for vendor specific extensions such as RPA offloading,
+ * feature discovery, multi-adv etc.
+ */
 #ifndef BLE_VND_INCLUDED
 #define BLE_VND_INCLUDED        FALSE
 #endif
@@ -1502,7 +1529,7 @@ and USER_HW_DISABLE_API macros */
 #endif
 
 #ifndef SMP_DEBUG
-#define SMP_DEBUG            TRUE
+#define SMP_DEBUG            FALSE
 #endif
 
 #ifndef SMP_DEFAULT_AUTH_REQ

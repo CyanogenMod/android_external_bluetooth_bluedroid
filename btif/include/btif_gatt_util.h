@@ -37,7 +37,5 @@ uint16_t get_uuid16(tBT_UUID *p_uuid);
 
 void btif_gatt_check_encrypted_link(BD_ADDR bd_addr);
 
-BOOLEAN btif_get_device_type(BD_ADDR bd_addr, int *addr_type, int *device_type);
-
 #endif
 

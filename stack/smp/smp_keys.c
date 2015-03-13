@@ -81,7 +81,7 @@ static void smp_debug_print_nbyte_little_endian (UINT8 *p, const UINT8 *key_name
     {
         x += sprintf ((char *)&p_buf[x], "%02x ", p[i]);
     }
-    SMP_TRACE_WARNING("%s(LSB ~ MSB) = %s", key_name, p_buf);
+    SMP_TRACE_DEBUG("%s(LSB ~ MSB) = %s", key_name, p_buf);
 }
     #else
         #define smp_debug_print_nbyte_little_endian(p, key_name, len)
@@ -194,7 +194,6 @@ void smp_proc_passkey(tSMP_CB *p_cb , tBTM_RAND_ENC *p)
     /* truncate by maximum value */
     while (passkey > BTM_MAX_PASSKEY_VAL)
         passkey >>= 1;
-    SMP_TRACE_ERROR("Passkey generated = %d", passkey);
 
     /* save the TK */
     memset(p_cb->tk, 0, BT_OCTET16_LEN);

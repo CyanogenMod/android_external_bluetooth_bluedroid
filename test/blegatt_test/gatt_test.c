@@ -325,6 +325,7 @@ static btgatt_server_callbacks_t     sGattServer_cb =
     NULL, //request_exec_write_callback     request_exec_write_cb;
     NULL, //response_confirmation_callback  response_confirmation_cb;
     NULL,
+    NULL,
     NULL
 };
 

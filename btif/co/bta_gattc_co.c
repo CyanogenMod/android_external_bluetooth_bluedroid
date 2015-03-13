@@ -21,6 +21,7 @@
 #include "bta_gattc_co.h"
 #include "bta_gattc_ci.h"
 #include "btif_util.h"
+#include "btm_int.h"
 
 #if( defined BLE_INCLUDED ) && (BLE_INCLUDED == TRUE)
 #if( defined BTA_GATT_INCLUDED ) && (BTA_GATT_INCLUDED == TRUE)
@@ -86,7 +87,7 @@ void bta_gattc_co_cache_open(BD_ADDR server_bda, UINT16 evt, UINT16 conn_id, BOO
 {
     /* open NV cache and send call in */
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
-    if (!cacheOpen(server_bda, to_save))
+    if (!btm_sec_is_a_bonded_dev(server_bda) || !cacheOpen(server_bda, to_save))
         status = BTA_GATT_ERROR;
 
     BTIF_TRACE_DEBUG("%s() - status=%d", __FUNCTION__, status);

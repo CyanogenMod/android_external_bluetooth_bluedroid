@@ -462,6 +462,11 @@ typedef struct
     BOOLEAN         in_use;
 }tGATT_BG_CONN_DEV;
 
+#define GATT_SVC_CHANGED_CONNECTING        1   /* wait for connection */
+#define GATT_SVC_CHANGED_SERVICE           2   /* GATT service discovery */
+#define GATT_SVC_CHANGED_CHARACTERISTIC    3   /* service change char discovery */
+#define GATT_SVC_CHANGED_DESCRIPTOR        4   /* service change CCC discoery */
+#define GATT_SVC_CHANGED_CONFIGURE_CCCD    5   /* config CCC */
 
 typedef struct
 {
@@ -470,6 +475,12 @@ typedef struct
     BOOLEAN connected;
     BD_ADDR bda;
     tBT_TRANSPORT   transport;
+
+    /* GATT service change CCC related variables */
+    UINT8       ccc_stage;
+    UINT8       ccc_result;
+    UINT16      s_handle;
+    UINT16      e_handle;
 }tGATT_PROFILE_CLCB;
 
 typedef struct
@@ -557,8 +568,6 @@ extern void gatt_add_a_bonded_dev_for_srv_chg (BD_ADDR bda);
 
 /* from gatt_attr.c */
 extern UINT16 gatt_profile_find_conn_id_by_bd_addr(BD_ADDR bda);
-extern BOOLEAN gatt_profile_clcb_dealloc (UINT16 conn_id);
-extern tGATT_PROFILE_CLCB *gatt_profile_clcb_alloc (UINT16 conn_id, BD_ADDR bda, tBT_TRANSPORT transport);
 
 
 /* Functions provided by att_protocol.c */
