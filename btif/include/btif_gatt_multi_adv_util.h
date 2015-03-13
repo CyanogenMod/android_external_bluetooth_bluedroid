@@ -54,7 +54,6 @@ typedef struct
 
 typedef struct
 {
-    UINT8 inst_id;
     BOOLEAN is_scan_rsp;
     UINT8 client_if;
     UINT16 service_uuid_len;
@@ -74,15 +73,18 @@ typedef struct
 } btgatt_multi_adv_common_data;
 
 extern btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb();
-extern void btif_gattc_init_multi_adv_cb(void);
-extern void btif_gattc_destroy_multi_adv_cb();
+extern void btif_gattc_incr_app_count(void);
+extern void btif_gattc_decr_app_count(void);
 extern int btif_multi_adv_add_instid_map(int client_if, int inst_id,
         BOOLEAN gen_temp_instid);
 extern int btif_multi_adv_instid_for_clientif(int client_if);
 extern int btif_gattc_obtain_idx_for_datacb(int value, int clnt_inst_index);
-extern void btif_gattc_clear_clientif(int client_if);
-extern void btif_gattc_cleanup_inst_cb(int inst_id);
-extern void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_inst_cb);
+extern void btif_gattc_clear_clientif(int client_if, BOOLEAN stop_timer);
+extern void btif_gattc_cleanup_inst_cb(int inst_id, BOOLEAN stop_timer);
+extern void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_inst_cb,
+                                                    BOOLEAN stop_timer);
+// Free a buffer and reset *buf to NULL.
+extern void btif_gattc_cleanup(void** buf);
 extern BOOLEAN btif_gattc_copy_datacb(int arrindex, btif_adv_data_t *p_adv_data,
                                             BOOLEAN bInstData);
 extern void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,

@@ -773,9 +773,6 @@ typedef struct
     LINK_KEY        key;                /* Link key associated with peer device. */
     UINT8           key_type;           /* The type of Link Key */
     BOOLEAN         success;            /* TRUE of authentication succeeded, FALSE if failed. */
-#if BLE_INCLUDED == TRUE
-    BOOLEAN         privacy_enabled;    /* used for BLE device only */
-#endif
     UINT8           fail_reason;        /* The HCI reason/error code for when success=FALSE */
 
 } tBTA_DM_AUTH_CMPL;

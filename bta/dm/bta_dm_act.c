@@ -1302,14 +1302,29 @@ void bta_dm_search_cancel (tBTA_DM_MSG *p_data)
             p_msg->hdr.event = BTA_DM_SEARCH_CMPL_EVT;
             p_msg->hdr.layer_specific = BTA_DM_API_DISCOVER_EVT;
             bta_sys_sendmsg(p_msg);
-
         }
     }
     /* If no Service Search going on then issue cancel remote name in case it is active */
     else if (!bta_dm_search_cb.name_discover_done)
     {
         BTM_CancelRemoteDeviceName();
+
+        if ((p_msg = (tBTA_DM_MSG *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+        {
+            p_msg->hdr.event = BTA_DM_REMT_NAME_EVT;
+            p_msg->hdr.layer_specific = BTA_DM_API_DISCOVER_EVT;
+            bta_sys_sendmsg(p_msg);
+        }
     }
+    else {
+        if ((p_msg = (tBTA_DM_MSG *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+        {
+            p_msg->hdr.event = BTA_DM_INQUIRY_CMPL_EVT;
+            p_msg->hdr.layer_specific = BTA_DM_API_DISCOVER_EVT;
+            bta_sys_sendmsg(p_msg);
+        }
+    }
+
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
     if (bta_dm_search_cb.gatt_disc_active)
     {
@@ -5200,8 +5215,8 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
             else
             {
                 sec_event.auth_cmpl.success = TRUE;
+                GATT_ConfigServiceChangeCCC(bda, TRUE, BT_TRANSPORT_LE);
             }
-            sec_event.auth_cmpl.privacy_enabled = p_data->complt.privacy_supported;
             if (bta_dm_cb.p_sec_cback)
             {
                 //bta_dm_cb.p_sec_cback(BTA_DM_AUTH_CMPL_EVT, &sec_event);
