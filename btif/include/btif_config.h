@@ -27,6 +27,9 @@
 #ifndef BTIF_CONFIG_H
 #define BTIF_CONFIG_H
 
+#include "data_types.h"
+#include "bt_types.h"
+
 #ifdef __cplusplus
 #include <stdint.h>
 extern "C" {
@@ -70,6 +73,9 @@ int btif_config_enum(btif_config_enum_callback cb, void* user_data);
 
 int btif_config_save();
 void btif_config_flush();
+
+BOOLEAN btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type);
+BOOLEAN btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type);
 
 #ifdef __cplusplus
 }

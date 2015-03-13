@@ -280,7 +280,7 @@ void gatt_act_write (tGATT_CLCB *p_clcb, UINT8 sec_act)
     {
         if (rt != GATT_SUCCESS)
         {
-            GATT_TRACE_ERROR("gatt_act_write() failed op_code=0x%x", op_code);
+            GATT_TRACE_ERROR("gatt_act_write() failed op_code=0x%x rt=%d", op_code, rt);
         }
         gatt_end_operation(p_clcb, rt, NULL);
     }
