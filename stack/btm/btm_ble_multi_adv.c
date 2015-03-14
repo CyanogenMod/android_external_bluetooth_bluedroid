@@ -348,7 +348,7 @@ tBTM_STATUS btm_ble_multi_adv_write_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst, BD_ADD
                                     btm_ble_multi_adv_vsc_cmpl_cback)) == BTM_CMD_STARTED)
     {
         /* start a periodical timer to refresh random addr */
-        btu_stop_timer(&p_inst->raddr_timer_ent);
+        btu_stop_timer_oneshot(&p_inst->raddr_timer_ent);
         p_inst->raddr_timer_ent.param = (TIMER_PARAM_TYPE) p_inst;
         btu_start_timer_oneshot(&p_inst->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
                          BTM_BLE_PRIVATE_ADDR_INT);
@@ -729,7 +729,7 @@ tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id)
             == BTM_CMD_STARTED)
          {
             btm_ble_multi_adv_configure_rpa(&btm_multi_adv_cb.p_adv_inst[inst_id-1]);
-            btu_stop_timer(&btm_multi_adv_cb.p_adv_inst[inst_id-1].raddr_timer_ent);
+            btu_stop_timer_oneshot(&btm_multi_adv_cb.p_adv_inst[inst_id-1].raddr_timer_ent);
             btm_multi_adv_cb.p_adv_inst[inst_id-1].inst_id = 0;
          }
      }
