@@ -3225,8 +3225,6 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame)
         GKI_freebuf(GKI_dequeue(&(btif_media_cb.TxAaQ)));
     }
 
-    if (btif_media_cb.TxAaQ.count) --nb_frame;
-
     switch (btif_media_cb.TxTranscoding)
     {
     case BTIF_MEDIA_TRSCD_PCM_2_SBC:
