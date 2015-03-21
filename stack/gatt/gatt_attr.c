@@ -375,6 +375,8 @@ static void gatt_disc_cmpl_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGA
         gatt_cl_start_config_ccc(p_clcb);
     } else {
         GATT_TRACE_ERROR("%s() - Register for service changed indication failure", __FUNCTION__);
+        /* free the connection */
+        gatt_config_ccc_complete (p_clcb);
     }
 }
 
