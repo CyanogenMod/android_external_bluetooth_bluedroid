@@ -2827,7 +2827,7 @@ static void btif_get_num_aa_frame(UINT8 *num_of_iterations, UINT8 *num_of_frames
                         {
                             APPL_TRACE_ERROR("## Audio Congestion (iterations:%d > max (%d))",
                                  noi, MAX_PCM_ITER_NUM_PER_TICK);
-                            noi = 1;
+                            noi = MAX_PCM_ITER_NUM_PER_TICK;
                             btif_media_cb.media_feeding_state.pcm.counter
                                 =noi * nof * pcm_bytes_per_frame;
                         }
