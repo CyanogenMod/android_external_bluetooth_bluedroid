@@ -63,6 +63,7 @@
 #include "bta_jv_api.h"
 #include "bta_jv_co.h"
 #include "port_api.h"
+#include "btif_sock.h"
 
 #include <cutils/log.h>
 #include <hardware/bluetooth.h>
@@ -76,7 +77,6 @@ static inline void logu(const char* title, const uint8_t * p_uuid)
     ALOGD("%s: %s", title, uuids);
 }
 
-#define MAX_L2C_SOCK_CHANNEL 8 // max number of conn + 1
 #define MAX_L2C_SESSION BTA_JV_MAX_L2C_SR_SESSION //3 by default
 #define INVALID_L2C_HANDLE -1
 typedef struct {
@@ -92,6 +92,7 @@ typedef struct {
 typedef struct {
   flags_t f;
   uint32_t id;
+  BOOLEAN in_use;
   int security;
   int psm;
   bt_bdaddr_t addr;
@@ -108,7 +109,6 @@ typedef struct {
 } l2c_slot_t;
 
 static l2c_slot_t l2c_slots[MAX_L2C_SOCK_CHANNEL];
-static uint32_t l2c_slot_id;
 static volatile int pth = -1; //poll thread handle
 static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data);
 static void cleanup_l2c_slot(l2c_slot_t* ls);
@@ -151,6 +151,7 @@ static void init_l2c_slots()
         l2c_slots[i].sdp_handle = 0;
         l2c_slots[i].l2c_handle = INVALID_L2C_HANDLE;
         l2c_slots[i].fd = l2c_slots[i].app_fd = -1;
+        l2c_slots[i].id = BASE_L2C_SLOT_ID + i;
         GKI_init_q(&l2c_slots[i].incoming_que);
     }
     BTA_JvRegisterL2cCback(jv_dm_cback);
@@ -171,7 +172,7 @@ void btsock_l2c_cleanup()
     int i;
     for(i = 0; i < MAX_L2C_SOCK_CHANNEL; i++)
     {
-        if(l2c_slots[i].id)
+        if(l2c_slots[i].in_use)
             cleanup_l2c_slot(&l2c_slots[i]);
     }
     unlock_slot(&slot_lock);
@@ -195,7 +196,7 @@ static inline l2c_slot_t* find_l2c_slot_by_id(uint32_t id)
     {
         for(i = 0; i < MAX_L2C_SOCK_CHANNEL; i++)
         {
-            if(l2c_slots[i].id == id)
+            if(l2c_slots[i].in_use && (l2c_slots[i].id == id))
             {
                 return &l2c_slots[i];
             }
@@ -211,7 +212,7 @@ static inline l2c_slot_t* find_l2c_slot_by_pending_sdp()
     int i;
     for(i = 0; i < MAX_L2C_SOCK_CHANNEL; i++)
     {
-        if(l2c_slots[i].id && l2c_slots[i].f.pending_sdp_request)
+        if(l2c_slots[i].in_use && l2c_slots[i].f.pending_sdp_request)
         {
             if(l2c_slots[i].id < min_id)
             {
@@ -229,7 +230,7 @@ static inline l2c_slot_t* find_l2c_slot_requesting_sdp()
     int i;
     for(i = 0; i < MAX_L2C_SOCK_CHANNEL; i++)
     {
-        if(l2c_slots[i].id && l2c_slots[i].f.doing_sdp_request)
+        if(l2c_slots[i].in_use && l2c_slots[i].f.doing_sdp_request)
                 return &l2c_slots[i];
     }
     APPL_TRACE_DEBUG("can not find any slot is requesting sdp");
@@ -245,7 +246,7 @@ static inline l2c_slot_t* find_l2c_slot_by_fd(int fd)
         {
             if(l2c_slots[i].fd == fd)
             {
-                if(l2c_slots[i].id)
+                if(l2c_slots[i].in_use)
                     return &l2c_slots[i];
                 else
                 {
@@ -289,10 +290,7 @@ static l2c_slot_t* alloc_l2c_slot(const bt_bdaddr_t *addr, const char* name, con
             strlcpy(ls->service_name, name, sizeof(ls->service_name) -1);
         if(addr)
             ls->addr = *addr;
-        ++l2c_slot_id;
-        if(l2c_slot_id == 0)
-            l2c_slot_id = 1; //skip 0 when wrapped
-        ls->id = l2c_slot_id;
+        ls->in_use = TRUE;
         ls->f.server = server;
     }
     return ls;
@@ -360,7 +358,7 @@ bt_status_t btsock_l2c_listen(const char* service_name, const uint8_t* service_u
     if(ls)
     {
         APPL_TRACE_DEBUG("BTA_JvCreateRecordByUser:%s", service_name);
-        BTA_JvCreateRecordByUser((void *)(ls->id | L2CAP_MASK));
+        BTA_JvCreateRecordByUser((void *)(ls->id));
         APPL_TRACE_DEBUG("BTA_JvCreateRecordByUser userdata :%d", service_name);
         *sock_fd = ls->app_fd;
         ls->app_fd = -1; //the fd ownelship is transferred to app
@@ -419,7 +417,7 @@ bt_status_t btsock_l2c_connect(const bt_bdaddr_t *bd_addr, const uint8_t* servic
             l2c_slot_t* ls_doing_sdp = find_l2c_slot_requesting_sdp();
             if(ls_doing_sdp == NULL)
             {
-                BTA_JvStartDiscovery((UINT8*)bd_addr->address, 1, &sdp_uuid, (void*)(ls->id | L2CAP_MASK));
+                BTA_JvStartDiscovery((UINT8*)bd_addr->address, 1, &sdp_uuid, (void*)(ls->id));
                 ls->f.pending_sdp_request = FALSE;
                 ls->f.doing_sdp_request = TRUE;
             }
@@ -520,7 +518,7 @@ static void cleanup_l2c_slot(l2c_slot_t* ls)
 
     //cleanup the flag
     memset(&ls->f, 0, sizeof(ls->f));
-    ls->id = 0;
+    ls->in_use = FALSE;
 }
 static inline BOOLEAN send_app_psm(l2c_slot_t* ls)
 {
@@ -741,8 +739,6 @@ static void *l2cap_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
 static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
 {
     uint32_t id = (uint32_t)user_data;
-    /* remove the mask */
-    id &= ~L2CAP_MASK;
     APPL_TRACE_DEBUG("jv_dm_cback: event:%d, slot id:%d", event, id);
     switch(event)
     {
@@ -809,7 +805,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
                     tSDP_UUID sdp_uuid;
                     sdp_uuid.len = 16;
                     memcpy(sdp_uuid.uu.uuid128, ls->service_uuid, sizeof(sdp_uuid.uu.uuid128));
-                    BTA_JvStartDiscovery((UINT8*)ls->addr.address, 1, &sdp_uuid, (void*)(ls->id | L2CAP_MASK));
+                    BTA_JvStartDiscovery((UINT8*)ls->addr.address, 1, &sdp_uuid, (void*)(ls->id));
                     ls->f.pending_sdp_request = FALSE;
                     ls->f.doing_sdp_request = TRUE;
                 }
@@ -908,7 +904,7 @@ void btsock_l2c_signaled(int fd, int flags, uint32_t user_id)
                         {
                             if(size >= ls->put_size)
                             {
-                                APPL_TRACE_DEBUG(" available size matched with ls->put_size");
+                                APPL_TRACE_DEBUG(" available size matched with ls->put_size %d size %d", ls->put_size, size);
                                 BTA_JvL2capWrite(ls->l2c_handle, (UINT32)ls->id);
                                 ls->put_size_set = FALSE;
                             }
@@ -1057,7 +1053,7 @@ static inline l2c_slot_t* find_client_l2c_slot_by_psm(int psm)
         {
             if((l2c_slots[i].f.client) && (l2c_slots[i].psm == psm))
             {
-                if(l2c_slots[i].id)
+                if(l2c_slots[i].in_use)
                     return &l2c_slots[i];
             }
         }
@@ -1097,4 +1093,36 @@ bt_status_t btsock_l2c_set_sockopt(int psm, btsock_option_type_t option_name,
     return status;
 }
 
+
+bt_status_t btsock_l2c_get_sockopt(int psm, btsock_option_type_t option_name,
+                                            void *option_value, int *option_len)
+{
+    int status = BT_STATUS_FAIL;
+
+    APPL_TRACE_ERROR("btsock_l2c_get_sockopt channel is %d ", psm);
+    if((psm < 1) || (option_value == NULL) || (option_len == NULL))
+    {
+        APPL_TRACE_ERROR("invalid l2c channel:%d or option_value:%p, option_len:%d",
+                                        psm, option_value, option_len);
+        return BT_STATUS_PARM_INVALID;
+    }
+
+    l2c_slot_t* ls = find_client_l2c_slot_by_psm(psm);
+
+    if((ls) && ((option_name == BTSOCK_OPT_GET_CONG_STATUS)))
+    {
+        if(ls->put_size_set || ls->f.outgoing_congest)
+        {
+            *((UINT8 *)option_value) = 1;
+        }
+        else
+        {
+            *((UINT8 *)option_value) = 0;
+        }
+        *option_len = sizeof(UINT8);
+
+        status = BT_STATUS_SUCCESS;
+    }
+    return status;
+}
 #endif

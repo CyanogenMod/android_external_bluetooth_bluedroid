@@ -40,12 +40,10 @@ tBTM_BLE_MULTI_ADV_INST_IDX_Q btm_multi_adv_idx_q;
 #define BTM_BLE_MULTI_ADV_CB_EVT_MASK   0xF0
 #define BTM_BLE_MULTI_ADV_SUBCODE_MASK  0x0F
 
-static tBTM_BLE_ADV_PARAMS local_copy = {0, 0, 0, 0, 0, 0};
-#define BTM_BLE_MIN_ADV_INT 0x14 // 20ms advertisment interval min as per spec.
 #define WIPOWER_16_UUID_LSB 0xFE
 #define WIPOWER_16_UUID_MSB 0xFF
 static bool is_wipower_adv = false;
-static UINT8 wipower_inst_id = BTM_BLE_MULTI_ADV_DEFAULT_STD;
+UINT8 wipower_inst_id = BTM_BLE_MULTI_ADV_DEFAULT_STD;
 
 /*******************************************************************************
 **
@@ -293,6 +291,10 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
     BTM_TRACE_EVENT("set_params:Chnl Map %d,adv_fltr policy %d,ID:%d, TX Power%d",
         p_params->channel_map,p_params->adv_filter_policy,p_inst->inst_id,p_params->tx_power);
 
+    BTM_TRACE_WARNING("LEP: MA Adv instance: %d, RPA address: %02x:%02x:%02x:%02x:%02x:%02x",
+            p_inst->inst_id, p_inst->rpa[0], p_inst->rpa[1], p_inst->rpa[2], p_inst->rpa[3],
+            p_inst->rpa[4], p_inst->rpa[5]);
+
     if ((rt = BTM_VendorSpecificCommand (HCI_BLE_MULTI_ADV_OCF,
                                     BTM_BLE_MULTI_ADV_SET_PARAM_LEN,
                                     param,
@@ -346,7 +348,7 @@ tBTM_STATUS btm_ble_multi_adv_write_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst, BD_ADD
                                     btm_ble_multi_adv_vsc_cmpl_cback)) == BTM_CMD_STARTED)
     {
         /* start a periodical timer to refresh random addr */
-        btu_stop_timer(&p_inst->raddr_timer_ent);
+        btu_stop_timer_oneshot(&p_inst->raddr_timer_ent);
         p_inst->raddr_timer_ent.param = (TIMER_PARAM_TYPE) p_inst;
         btu_start_timer_oneshot(&p_inst->raddr_timer_ent, BTU_TTYPE_BLE_RANDOM_ADDR,
                          BTM_BLE_PRIVATE_ADDR_INT);
@@ -549,15 +551,6 @@ tBTM_STATUS BTM_BleEnableAdvInstance (tBTM_BLE_ADV_PARAMS *p_params,
         BTM_TRACE_ERROR("Invalid instance in BTM_BleEnableAdvInstance");
         return BTM_ERR_PROCESSING;
     }
-
-    /*
-    ** Maintain a local copy of adv params to update the time intervals to 20ms
-    ** if wipower profile uuid is part of the service data
-    */
-    if (p_params != NULL) {
-        memcpy(&local_copy, p_params, sizeof(tBTM_BLE_ADV_PARAMS));
-    }
-
     for (i = 0; i <  BTM_BleMaxMultiAdvInstanceCount() - 1; i ++, p_inst++)
     {
         if (p_inst->inst_id == 0)
@@ -686,16 +679,10 @@ tBTM_STATUS BTM_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
     *p_len = (UINT8)(pp - param - 2);
     UINT8_TO_STREAM(pp_temp, inst_id);
     /* Validate if wipower UUID is been passed*/
-    if (param[17] == WIPOWER_16_UUID_LSB && param[18] == WIPOWER_16_UUID_MSB)
+    if (param[7] == WIPOWER_16_UUID_LSB && param[8] == WIPOWER_16_UUID_MSB)
     {
-        local_copy.adv_int_min = BTM_BLE_MIN_ADV_INT;
-        local_copy.adv_int_max = BTM_BLE_MIN_ADV_INT;
         is_wipower_adv = true;
         wipower_inst_id = inst_id;
-
-        /* Setting Advertisement Parameter happens prior to Setting Advertisement Data,
-        ** so the local_copy is guaranteed to have valid contents.*/
-        BTM_BleUpdateAdvInstParam (inst_id, &local_copy);
     }
 
     if ((rt = BTM_VendorSpecificCommand (HCI_BLE_MULTI_ADV_OCF,
@@ -742,7 +729,7 @@ tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id)
             == BTM_CMD_STARTED)
          {
             btm_ble_multi_adv_configure_rpa(&btm_multi_adv_cb.p_adv_inst[inst_id-1]);
-            btu_stop_timer(&btm_multi_adv_cb.p_adv_inst[inst_id-1].raddr_timer_ent);
+            btu_stop_timer_oneshot(&btm_multi_adv_cb.p_adv_inst[inst_id-1].raddr_timer_ent);
             btm_multi_adv_cb.p_adv_inst[inst_id-1].inst_id = 0;
          }
      }
@@ -809,10 +796,7 @@ void btm_ble_multi_adv_vse_cback(UINT8 len, UINT8 *p)
                 btm_ble_set_connectability ( btm_cb.ble_ctr_cb.inq_var.connectable_mode );
             }
         }
-        if (adv_inst == wipower_inst_id) {
-           is_wipower_adv = false;
-           wipower_inst_id = BTM_BLE_MULTI_ADV_DEFAULT_STD;
-        }
+
     }
 }
 /*******************************************************************************

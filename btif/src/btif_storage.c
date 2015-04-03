@@ -218,7 +218,7 @@ bt_status_t btif_storage_get_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
 static void btif_in_split_uuids_string_to_list(char *str, bt_uuid_t *p_uuid,
                                                uint32_t *p_num_uuid)
 {
-    char buf[64];
+    char buf[64+1];
     char *p_start = str;
     char *p_needle;
     uint32_t num = 0;
@@ -226,9 +226,10 @@ static void btif_in_split_uuids_string_to_list(char *str, bt_uuid_t *p_uuid,
     {
         //p_needle = strchr(p_start, ';');
         p_needle = strchr(p_start, ' ');
-        if (p_needle < p_start) break;
+        if ((p_needle < p_start)||((p_needle-p_start) > 64)) break;
         memset(buf, 0, sizeof(buf));
         strncpy(buf, p_start, (p_needle-p_start));
+        buf[p_needle-p_start] = 0;
         string_to_uuid(buf, p_uuid + num);
         num++;
         p_start = ++p_needle;

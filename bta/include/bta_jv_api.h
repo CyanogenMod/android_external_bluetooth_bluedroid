@@ -83,7 +83,6 @@ typedef UINT16 tBTA_JV_DISC;
 
 #if (defined(OBX_OVER_L2CAP_INCLUDED) && OBX_OVER_L2CAP_INCLUDED == TRUE)
 #define RFCOMM_MASK (0x0100)
-#define L2CAP_MASK  (0x0200)
 #endif
 
 /* Security Mode (BTA_JvGetSecurityMode) */

@@ -98,7 +98,7 @@ static tGATT_PROFILE_CLCB *gatt_profile_find_clcb_by_conn_id(UINT16 conn_id)
             return p_clcb;
     }
 
-    return p_clcb;
+    return NULL;
 }
 
 /*******************************************************************************
@@ -122,7 +122,7 @@ static tGATT_PROFILE_CLCB *gatt_profile_find_clcb_by_bd_addr(BD_ADDR bda, tBT_TR
             return p_clcb;
     }
 
-    return p_clcb;
+    return NULL;
 }
 
 /*******************************************************************************
@@ -151,7 +151,10 @@ tGATT_PROFILE_CLCB *gatt_profile_clcb_alloc (UINT16 conn_id, BD_ADDR bda, tBT_TR
             break;
         }
     }
-    return p_clcb;
+    if(i_clcb < GATT_MAX_APPS)
+        return p_clcb;
+    else /*no available clcb*/
+        return NULL;
 }
 
 /*******************************************************************************
@@ -372,6 +375,8 @@ static void gatt_disc_cmpl_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGA
         gatt_cl_start_config_ccc(p_clcb);
     } else {
         GATT_TRACE_ERROR("%s() - Register for service changed indication failure", __FUNCTION__);
+        /* free the connection */
+        gatt_config_ccc_complete (p_clcb);
     }
 }
 

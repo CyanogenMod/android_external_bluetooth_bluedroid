@@ -48,6 +48,8 @@ bt_status_t btsock_l2c_connect(const bt_bdaddr_t *bd_addr, const uint8_t* uuid,
 void btsock_l2c_signaled(int fd, int flags, uint32_t user_id);
 bt_status_t btsock_l2c_set_sockopt(int psm, btsock_option_type_t option_name,
                                             void *option_value, int option_len);
+bt_status_t btsock_l2c_get_sockopt(int channel, btsock_option_type_t option_name,
+                                            void *option_value, int *option_len);
 
 #endif
 
