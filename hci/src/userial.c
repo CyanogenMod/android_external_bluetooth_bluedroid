@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <memory.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <sys/eventfd.h>
