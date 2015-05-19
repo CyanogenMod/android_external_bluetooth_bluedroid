@@ -330,9 +330,6 @@ static tBTIF_MEDIA_CB btif_media_cb;
 static int media_task_running = MEDIA_TASK_STATE_OFF;
 static UINT64 last_frame_us = 0;
 
-static UINT32 pcm_sample_rate = AUDIO_STREAM_DEFAULT_RATE;
-static UINT8 pcm_channel_count = 2;
-static UINT8 pcm_bit_per_sample = 16;
 
 /*****************************************************************************
  **  Local functions
@@ -632,43 +629,6 @@ static void btif_recv_ctrl_data(void)
             break;
         }
 
-        case A2DP_CTRL_SET_AUDIO_CONFIG:
-        {
-            uint32_t sample_rate = 0;
-            uint8_t channel_count = 0;
-            uint8_t bit_per_sample = 0;
-
-            UIPC_Read(UIPC_CH_ID_AV_CTRL, 0, (UINT8*)&sample_rate, 4);
-            UIPC_Read(UIPC_CH_ID_AV_CTRL, 0, &channel_count, 1);
-            UIPC_Read(UIPC_CH_ID_AV_CTRL, 0, &bit_per_sample, 1);
-
-            if (!is_supported_sample_rate(sample_rate)) {
-                APPL_TRACE_ERROR("Unsupported sample rate %d", sample_rate);
-                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
-                break;
-            }
-
-            if (!is_supported_channel_count(channel_count)) {
-                APPL_TRACE_ERROR("Unsupported channel count %d", channel_count);
-                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
-                break;
-            }
-
-            if (!is_supported_bit_depth(bit_per_sample)) {
-                APPL_TRACE_ERROR("Unsupported bit depth %d", bit_per_sample);
-                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
-                break;
-            }
-
-            pcm_sample_rate = sample_rate;
-            pcm_channel_count = channel_count;
-            pcm_bit_per_sample = bit_per_sample;
-
-            a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
-
-            APPL_TRACE_DEBUG("a2dp_set_config success, sr=%d chan=%d bits=%d", pcm_sample_rate, pcm_channel_count, pcm_bit_per_sample);
-            break;
-        }
         default:
             APPL_TRACE_ERROR("UNSUPPORTED CMD (%d)", cmd);
             a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
@@ -942,9 +902,14 @@ tBTIF_STATUS btif_a2dp_setup_codec(void)
 
     GKI_disable();
 
-    media_feeding.cfg.pcm.sampling_freq = pcm_sample_rate;
-    media_feeding.cfg.pcm.bit_per_sample = pcm_bit_per_sample;
-    media_feeding.cfg.pcm.num_channel = pcm_channel_count;
+    /* for now hardcode 44/48 khz 16 bit stereo */
+#ifdef SAMPLE_RATE_48K
+    media_feeding.cfg.pcm.sampling_freq = 48000;
+#else
+    media_feeding.cfg.pcm.sampling_freq = 44100;
+#endif
+    media_feeding.cfg.pcm.bit_per_sample = 16;
+    media_feeding.cfg.pcm.num_channel = 2;
     media_feeding.format = BTIF_AV_CODEC_PCM;
 
     if (bta_av_co_audio_set_codec(&media_feeding, &status))
