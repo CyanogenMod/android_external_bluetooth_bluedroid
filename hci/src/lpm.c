@@ -28,6 +28,7 @@
 
 #include <utils/Log.h>
 #include <signal.h>
+#include <string.h>
 #include <time.h>
 #include "bt_hci_bdroid.h"
 #include "bt_vendor_lib.h"
