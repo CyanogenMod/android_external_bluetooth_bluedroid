@@ -235,6 +235,9 @@ static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
 /* Allow up to 360ms of buffered A2DP data */
 #define MAX_OUTPUT_A2DP_QUEUE_MS 360
 
+/* Allow up to 50ms of initial buffering of A2DP data */
+#define A2DP_INITIAL_QUEUE_MS 50
+
 #ifndef MAX_PCM_FRAME_NUM_PER_TICK
 #define MAX_PCM_FRAME_NUM_PER_TICK 14
 #endif
@@ -461,6 +464,19 @@ static inline UINT32 compute_pcm_bytes_per_frame(void)
            btif_media_cb.encoder.s16NumOfBlocks *
            btif_media_cb.media_feeding.cfg.pcm.num_channel *
            btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
+}
+
+static inline UINT32 pcm_bytes_allowed(UINT32 usecs)
+{
+    return btif_media_cb.media_feeding_state.pcm.bytes_per_tick *
+           usecs / (BTIF_MEDIA_TIME_TICK * 1000);
+}
+
+static void initialize_pcm_counter(void)
+{
+    /* Give us enough quota to fill the queue half full as we ramp up*/
+    btif_media_cb.media_feeding_state.pcm.counter =
+                pcm_bytes_allowed(A2DP_INITIAL_QUEUE_MS*1000);
 }
 
 /*****************************************************************************
@@ -1957,7 +1973,6 @@ static void btif_media_task_aa_rx_flush(void)
     btif_media_flush_q(&(btif_media_cb.RxSbcQ));
 }
 
-
 /*******************************************************************************
  **
  ** Function         btif_media_task_aa_tx_flush
@@ -1974,7 +1989,7 @@ static void btif_media_task_aa_tx_flush(BT_HDR *p_msg)
     /* Flush all enqueued GKI music buffers (encoded) */
     APPL_TRACE_DEBUG("btif_media_task_aa_tx_flush");
 
-    btif_media_cb.media_feeding_state.pcm.counter = 0;
+    initialize_pcm_counter();
     btif_media_cb.media_feeding_state.pcm.aa_feed_residue = 0;
 
     btif_media_flush_q(&(btif_media_cb.TxAaQ));
@@ -2588,8 +2603,11 @@ static void btif_media_task_feeding_state_reset(void)
                  btif_media_cb.media_feeding.cfg.pcm.num_channel *
                  BTIF_MEDIA_TIME_TICK)/1000;
 
-        APPL_TRACE_WARNING("pcm bytes per tick %d",
-                            (int)btif_media_cb.media_feeding_state.pcm.bytes_per_tick);
+        initialize_pcm_counter();
+
+        APPL_TRACE_WARNING("pcm bytes per tick %d initial pcm.counter %d",
+                            (int)btif_media_cb.media_feeding_state.pcm.bytes_per_tick,
+                            (int)btif_media_cb.media_feeding_state.pcm.counter);
     }
 }
 /*******************************************************************************
@@ -2800,9 +2818,7 @@ static UINT8 btif_get_num_aa_frame(void)
                 us_this_tick = (now_us - last_frame_us);
             last_frame_us = now_us;
 
-            btif_media_cb.media_feeding_state.pcm.counter +=
-                                btif_media_cb.media_feeding_state.pcm.bytes_per_tick *
-                                us_this_tick / (BTIF_MEDIA_TIME_TICK * 1000);
+            btif_media_cb.media_feeding_state.pcm.counter += pcm_bytes_allowed(us_this_tick);
 
             /* calculate nbr of frames pending for this media tick */
             result = btif_media_cb.media_feeding_state.pcm.counter/pcm_bytes_per_frame;
