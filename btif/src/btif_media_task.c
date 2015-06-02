@@ -2748,13 +2748,23 @@ static UINT8 check_for_max_number_of_frames_per_packet()
     return result;
 }
 
+static inline UINT64 now_us_rounded_to_nearest_tick(void)
+{
+    UINT32 tick_us = BTIF_MEDIA_TIME_TICK * 1000;
+    return (GKI_now_us() + tick_us/2) / tick_us * tick_us;
+}
+
 /*******************************************************************************
  **
  ** Function         btif_get_num_aa_frame
  **
  ** Description
  **
- ** Returns          The number of media frames in this time slice
+ ** Returns          The number of media frames in this time slice.  When a
+ **                  partial time slice has occurred, we round to the nearest
+ **                  total number of time slices.  This avoids all rounding errors
+ **                  that could occur in computing the amount of data that should
+ **                  be sent.
  **
  *******************************************************************************/
 static UINT8 btif_get_num_aa_frame(void)
@@ -2767,7 +2777,7 @@ static UINT8 btif_get_num_aa_frame(void)
         {
             UINT32 pcm_bytes_per_frame = compute_pcm_bytes_per_frame();
             UINT32 us_this_tick = BTIF_MEDIA_TIME_TICK * 1000;
-            UINT64 now_us = GKI_now_us();
+            UINT64 now_us = now_us_rounded_to_nearest_tick();
             if (last_frame_us != 0)
                 us_this_tick = (now_us - last_frame_us);
             last_frame_us = now_us;
