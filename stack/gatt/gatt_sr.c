@@ -123,7 +123,7 @@ void gatt_dequeue_sr_cmd (tGATT_TCB *p_tcb)
 static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
                                        tGATTS_RSP *p_msg, UINT16 mtu)
 {
-    tGATTS_RSP       *p_rsp;
+    tGATTS_RSP       *p_rsp = NULL;
     UINT16          ii, total_len, len;
     BT_HDR          *p_buf = (BT_HDR *)GKI_getbuf((UINT16)sizeof(tGATTS_RSP));
     UINT8           *p;
