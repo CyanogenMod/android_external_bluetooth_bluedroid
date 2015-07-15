@@ -371,8 +371,8 @@ BOOLEAN bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
                 /* There might be race condition between SDP and BRSF.  */
                 /* Do not update if we already received BRSF.           */
 
-                APPL_TRACE_DEBUG1("bta_ag_sdp_find_attr: peer_attr 0x%x", p_attr->attr_value.v.u16);
-                APPL_TRACE_WARNING0("bta_ag_sdp_find_attr not using value as p_scb->peer_features");
+                //APPL_TRACE_DEBUG1("bta_ag_sdp_find_attr: peer_attr 0x%x", p_attr->attr_value.v.u16);
+                //APPL_TRACE_WARNING0("bta_ag_sdp_find_attr not using value as p_scb->peer_features");
 
                 /* Do not use the value as peer_features.
                 **
