@@ -160,11 +160,6 @@ void rdut_rfcomm (BOOLEAN server)
                                        &handle, bt_rfc_mmt_server_cback);
         rfc_handle = handle;
     }
-    else if (server == 3)
-    {
-        ALOGI("dut RFCOMM RemoveConnection");
-        RFCOMM_RemoveConnection(rfc_handle);
-    }
     if (status == PORT_SUCCESS)
     {
         ALOGI("dut_setdata_callback");
