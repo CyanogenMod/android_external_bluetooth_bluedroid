@@ -2586,7 +2586,7 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
                             bta_dm_search_cb.p_btm_inq_info->appl_knows_rem_name
                             );
     }
-
+#if BTA_GATT_INCLUDED == TRUE
     if((bta_dm_search_cb.p_btm_inq_info)
        && (bta_dm_search_cb.p_btm_inq_info->results.device_type == BT_DEVICE_TYPE_BLE)
        && (bta_dm_search_cb.state == BTA_DM_SEARCH_ACTIVE))
@@ -2594,7 +2594,7 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
         /* Do not perform RNR for LE devices at inquiry complete*/
         bta_dm_search_cb.name_discover_done = TRUE;
     }
-
+#endif
     /* if name discovery is not done and application needs remote name */
     if ((!bta_dm_search_cb.name_discover_done)
        && (( bta_dm_search_cb.p_btm_inq_info == NULL )

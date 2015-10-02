@@ -161,6 +161,7 @@ typedef struct
 
 }btgatt_test_interface_t;
 
+#if SMP_INCLUDED == TRUE
 typedef struct
 {
     size_t    size;
@@ -172,6 +173,7 @@ typedef struct
     void (*PasskeyReply) (BD_ADDR bd_addr, UINT8 res, UINT32 passkey);
     BOOLEAN (*Encrypt) (UINT8 *key, UINT8 key_len, UINT8 *plain_text, UINT8 pt_len, tSMP_ENC *p_out);
 }btsmp_interface_t;
+#endif
 typedef struct
 {
     size_t    size;

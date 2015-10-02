@@ -3093,11 +3093,14 @@ static void rssi_monitor_hci_cmd_complete(void *p_data)
 
         switch(subcmd)
         {
+
+#if BLE_INCLUDED == TRUE
         case WRITE_RSSI_MONITOR_THRESHOLD:
             BTM_TRACE_EVENT("%s, event WRITE_RSSI_MONITOR_THRESHOLD command complete", __FUNCTION__);
 
             if(btm_cb.devcb.p_rssi_monitor_cmd_cpl_cb)
                 btm_cb.devcb.p_rssi_monitor_cmd_cpl_cb(remote_bda, &param);
+
             break;
         case READ_RSSI_MONITOR_THRESHOLD:
             BTM_TRACE_EVENT("%s, event READ_RSSI_MONITOR_THRESHOLD command complete", __FUNCTION__);
@@ -3134,6 +3137,7 @@ static void rssi_monitor_hci_cmd_complete(void *p_data)
             if(btm_cb.devcb.p_rssi_monitor_cmd_cpl_cb)
                 btm_cb.devcb.p_rssi_monitor_cmd_cpl_cb(remote_bda, &param);
             break;
+#endif
         default:
             BTM_TRACE_EVENT("Rssi Monitor invalid command");
             break;
@@ -3142,6 +3146,7 @@ static void rssi_monitor_hci_cmd_complete(void *p_data)
     BTM_TRACE_EVENT("%s exit", __FUNCTION__);
 }
 
+#if BLE_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         BTM_Write_Rssi_Monitor_Threshold
@@ -3300,6 +3305,7 @@ tBTM_STATUS BTM_Enable_Rssi_Monitor(BD_ADDR remote_bda, int enable)
     BTM_TRACE_API("%s exit", __FUNCTION__);
     return (BTM_CMD_STARTED);
 }
+#endif
 
 /*******************************************************************************
 **
@@ -3337,10 +3343,12 @@ void btm_handle_rssi_monitor_event(UINT8 *p, UINT8 evt_len)
         if (acl_index < MAX_L2CAP_LINKS)
         {
             memcpy(remote_bda, btm_cb.acl_db[acl_index].remote_addr, sizeof(BD_ADDR));
+#if BLE_INCLUDED == TRUE
             if (btm_cb.devcb.p_rssi_monitor_event_cb)
             {
                 btm_cb.devcb.p_rssi_monitor_event_cb(remote_bda, &param);
             }
+#endif
         }
         else
         {
@@ -3367,8 +3375,10 @@ void btm_handle_rssi_monitor_event(UINT8 *p, UINT8 evt_len)
 void btm_setup_rssi_threshold_callback(tBTM_RSSI_MONITOR_CMD_CPL_CB cmd_cpl_callback,
                                          tBTM_RSSI_MONITOR_EVENT_CB evt_callback)
 {
+#if BLE_INCLUDED == TRUE
     btm_cb.devcb.p_rssi_monitor_cmd_cpl_cb = cmd_cpl_callback;
     btm_cb.devcb.p_rssi_monitor_event_cb = evt_callback;
+#endif
 }
 
 /*******************************************************************************

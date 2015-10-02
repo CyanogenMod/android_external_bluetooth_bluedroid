@@ -50,7 +50,9 @@ UINT16    g_conn_id = 0;
 tGATT_IF Gatt_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info)
 {
     tGATT_IF    Gatt_if = 0;
+#if BTA_GATT_INCLUDED == TRUE
     Gatt_if = GATT_Register (p_app_uuid128, p_cb_info);
+#endif
     printf("%s:: Gatt_if=%d\n", __FUNCTION__, Gatt_if);
     if (!BTM_SetSecurityLevel (TRUE, "gatt_tool", /*BTM_SEC_SERVICE_SDP_SERVER*/ BTM_SEC_PROTO_L2CAP,
                     0, 0x1f, 0, 0))
@@ -64,27 +66,35 @@ tGATT_IF Gatt_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info)
 void Gatt_Deregister (tGATT_IF gatt_if)
 {
     tGATT_IF    Ret = 0;
+#if BTA_GATT_INCLUDED == TRUE
     GATT_Deregister (gatt_if);
+#endif
     printf("%s:: \n", __FUNCTION__);
 }
 
 void Gatt_StartIf(tGATT_IF gatt_if)
 {
+#if BTA_GATT_INCLUDED == TRUE
     GATT_StartIf (gatt_if);
+#endif
     printf("%s::\n", __FUNCTION__);
 }
 
 BOOLEAN Gatt_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct,tBT_TRANSPORT transport)
 {
     BOOLEAN     Ret = 0;
+#if BTA_GATT_INCLUDED == TRUE
     Ret = GATT_Connect(gatt_if, bd_addr, is_direct,BT_TRANSPORT_LE);
+#endif
     printf("%s::Ret=%d,gatt_if=%d, is_direct=%d \n", __FUNCTION__, Ret, gatt_if, is_direct);
     return Ret;
 }
 tGATT_STATUS Gatt_Disconnect (UINT16 conn_id)
 {
     tGATT_STATUS Ret = 0;
+#if BTA_GATT_INCLUDED == TRUE
     Ret = GATT_Disconnect(conn_id);
+#endif
     printf("%s::Ret=%d,conn_id=%d\n", __FUNCTION__, Ret, conn_id);
     return Ret;
 }
@@ -92,7 +102,9 @@ tGATT_STATUS Gatt_Disconnect (UINT16 conn_id)
 BOOLEAN Gatt_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr)
 {
     BOOLEAN Ret = 0;
+#if BTA_GATT_INCLUDED == TRUE
     Ret = GATT_Listen(gatt_if, start, bd_addr);
+#endif
     printf("%s::Ret=%d, gatt_if=%d, start=%d \n", __FUNCTION__, Ret, gatt_if, start);
     return Ret;
 }
@@ -100,7 +112,9 @@ BOOLEAN Gatt_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr)
     tGATT_STATUS Gatt_ConfigureMTU (UINT16 conn_id, UINT16  mtu)
     {
         tGATT_STATUS Ret =0;
+#if BTA_GATT_INCLUDED == TRUE
         Ret = GATTC_ConfigureMTU(conn_id, mtu);
+#endif
         printf("%s::Ret=%d, conn_id=%d, mtu=%d \n", __FUNCTION__, Ret, conn_id, mtu);
         return Ret;
     }
@@ -108,7 +122,9 @@ BOOLEAN Gatt_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr)
     tGATT_STATUS Gatt_Discover (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT_DISC_PARAM *p_param )
     {
         tGATT_STATUS Ret = 0;
+#if BTA_GATT_INCLUDED == TRUE
         Ret = GATTC_Discover(conn_id, disc_type, p_param);
+#endif
         printf("%s::Ret=%d, conn_id=%d, disc_type=%d \n", __FUNCTION__, Ret, conn_id, disc_type);
         return Ret;
     }
@@ -116,7 +132,9 @@ BOOLEAN Gatt_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr)
     tGATT_STATUS Gatt_Read (UINT16 conn_id, tGATT_READ_TYPE type, tGATT_READ_PARAM *p_read)
     {
         tGATT_STATUS Ret = 0;
+#if BTA_GATT_INCLUDED == TRUE
         Ret = GATTC_Read(conn_id, type, p_read);
+#endif
         printf("%s::Ret=%d, conn_id=%d, type=%d \n", __FUNCTION__, Ret, conn_id, type);
         return Ret;
     }
@@ -124,28 +142,36 @@ BOOLEAN Gatt_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr)
     tGATT_STATUS Gatt_Write (UINT16 conn_id, tGATT_WRITE_TYPE type, tGATT_VALUE *p_write)
     {
         tGATT_STATUS Ret = 0;
+#if BTA_GATT_INCLUDED == TRUE
         Ret = GATTC_Write(conn_id, type, p_write);
+#endif
         printf("%s::Ret=%d, conn_id=%d, type=%d \n", __FUNCTION__, Ret, conn_id, type);
         return Ret;
     }
     tGATT_STATUS Gatt_ExecuteWrite (UINT16 conn_id, BOOLEAN is_execute)
     {
         tGATT_STATUS Ret = 0;
+#if BTA_GATT_INCLUDED == TRUE
         Ret = GATTC_ExecuteWrite(conn_id, is_execute);
+#endif
         printf("%s::Ret=%d, conn_id=%d, is_execute=%d \n", __FUNCTION__, Ret, conn_id, is_execute);
         return Ret;
     }
     tGATT_STATUS Gatt_SendHandleValueConfirm (UINT16 conn_id, UINT16 handle)
     {
         tGATT_STATUS Ret = 0;
+#if BTA_GATT_INCLUDED == TRUE
         Ret = GATTC_SendHandleValueConfirm(conn_id, handle);
+#endif
         printf("%s::Ret=%d, conn_id=%d, handle=%d \n", __FUNCTION__, Ret, conn_id, handle);
         return Ret;
     }
 
     void Gatt_SetIdleTimeout (BD_ADDR bd_addr, UINT16 idle_tout)
     {
+#if BTA_GATT_INCLUDED == TRUE
         GATT_SetIdleTimeout (bd_addr, idle_tout,BT_TRANSPORT_LE);
+#endif
         printf("%s::\n", __FUNCTION__);
     }
 /*    void Gatt_SetLeAdvParams (BD_ADDR bd_addr, UINT16 idle_tout)

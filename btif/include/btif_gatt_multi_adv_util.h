@@ -57,9 +57,11 @@ typedef struct
     BOOLEAN is_scan_rsp;
     UINT8 client_if;
     UINT16 service_uuid_len;
+#if BLE_INCLUDED == TRUE
     tBTA_BLE_AD_MASK mask;
     tBTA_BLE_ADV_DATA data;
     tBTA_BLE_ADV_PARAMS param;
+#endif
     TIMER_LIST_ENT tle_limited_timer;
     int timeout_s;
 }btgatt_multi_adv_inst_cb;

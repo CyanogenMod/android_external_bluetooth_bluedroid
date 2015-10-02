@@ -130,7 +130,9 @@ static int  g_server_if_scan = 0;
 
 const btgatt_test_interface_t     *sGattInterface = NULL;
 const  btgatt_interface_t   *sGattIfaceScan = NULL;
+#if SMP_INCLUDED == TRUE
 const btsmp_interface_t    *sSmpIface             = NULL;
+#endif
 const btgap_interface_t    *sGapInterface         = NULL;
 const btl2cap_interface_t *sL2capInterface = NULL;
 
@@ -406,7 +408,7 @@ static tGATT_CBACK gap_cback =
 };
 
 
-
+#if SMP_INCLUDED == TRUE
 /************************************************************************************
 **  SMP Callbacks
 ************************************************************************************/
@@ -442,7 +444,7 @@ static UINT8 SMP_cb (tSMP_EVT event, BD_ADDR bda, tSMP_EVT_DATA *p_data)
     }
     return 0;
 }
-
+#endif
 
 
 
@@ -1943,7 +1945,7 @@ BOOLEAN do_l2cap_disconnect(char *p)
 
 
 
-
+#if SMP_INCLUDED == TRUE
 /*******************************************************************************
  ** SMP API commands
  *******************************************************************************/
@@ -1996,6 +1998,7 @@ void do_smp_passkey_reply(char *p)
     sSmpIface->PasskeyReply(bd_addr.address, res, passkey);
     printf("%s:: Ret=%d \n", __FUNCTION__,res);
 }
+#endif
 
 void do_smp_encrypt(char *p)
 {
@@ -2156,12 +2159,13 @@ const t_cmd console_cmd_list[] =
     { "s_add_service", do_le_server_add_service, "::", 0 },
 
     { "pair", do_pairing, ":: BdAddr<00112233445566>", 0 },
-
+#if SMP_INCLUDED == TRUE
     { "smp_init", do_smp_init, "::", 0 }, //Here itself we will register.
     { "smp_pair", do_smp_pair, ":: BdAddr<00112233445566>", 0 },
     { "smp_pair_cancel", do_smp_pair_cancel, ":: BdAddr<00112233445566>", 0 },
     { "smp_security_grant", do_smp_security_grant, ":: BdAddr<00112233445566>, res<>", 0 },
     { "smp_passkey_reply", do_smp_passkey_reply, ":: BdAddr<00112233445566>, res<>, passkey<>", 0 },
+#endif
     //{ "smp_encrypt", do_smp_encrypt, "::", 0 },
     { "l2cap_send_data_cid", do_l2cap_send_data_cid, ":: BdAddr<00112233445566>, CID<>", 0 },
 
@@ -2244,8 +2248,12 @@ int main (int argc, char * argv[])
     bdt_enable();
     sleep(5);
     bdt_log("Get SMP IF BT Interface = %x \n", sBtInterface);
+#if BTA_GATT_INCLUDED == TRUE
     sGattInterface   = sBtInterface->get_testapp_interface(TEST_APP_GATT);
+#endif
+#if SMP_INCLUDED == TRUE
     sSmpIface        = sBtInterface->get_testapp_interface(TEST_APP_SMP);
+#endif
     bdt_log("Get GAP IF");
     sGapInterface    = sBtInterface->get_testapp_interface(TEST_APP_GAP);
 

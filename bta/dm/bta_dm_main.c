@@ -366,12 +366,13 @@ BOOLEAN bta_dm_search_sm_execute(BT_HDR *p_msg)
 
     APPL_TRACE_EVENT("bta_dm_search_sm_execute state:%d, event:0x%x",
         bta_dm_search_cb.state, p_msg->event);
-
+#if BTA_GATT_INCLUDED == TRUE
     if ((bta_dm_search_cb.state == BTA_DM_SEARCH_IDLE) &&
            ((p_msg->event == BTA_DM_API_SEARCH_EVT) || (p_msg->event == BTA_DM_API_DISCOVER_EVT)))
     {
         bta_dm_gattc_service_search_close(p_msg->event);
     }
+#endif
     /* look up the state table for the current state */
     state_table = bta_dm_search_st_tbl[bta_dm_search_cb.state];
 

@@ -2044,6 +2044,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             BTIF_TRACE_DEBUG("BTA_DM_LINK_UP_EVT. Sending BT_ACL_STATE_CONNECTED");
 
             bd2str(&bd_addr, &bdstr);
+#if BLE_INCLUDED == TRUE
             if(btif_config_get_int("Remote", (char const *)&bdstr,"DevType", &dev_type) &&
                     p_data->link_up.link_type == BT_TRANSPORT_LE && dev_type == BT_DEVICE_TYPE_BREDR)
             {
@@ -2058,6 +2059,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
                 BTIF_TRACE_DEBUG("Remote device addr type=%d", p_data->link_up.remote_addr_type);
                 btif_storage_set_remote_addr_type(&bd_addr, p_data->link_up.remote_addr_type);
             }
+#endif
             btif_update_remote_version_property(&bd_addr);
 
             HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
@@ -3050,10 +3052,10 @@ bt_status_t btif_dm_get_remote_services_by_transport(bt_bdaddr_t *remote_addr, i
     mask_ext.num_uuid = 0;
     mask_ext.p_uuid = NULL;
     mask_ext.srvc_mask = BTA_ALL_SERVICE_MASK;
-
+#if BLE_INCLUDED == TRUE
     BTA_DmDiscoverByTransport(remote_addr->address, &mask_ext,
                    bte_dm_search_services_evt, TRUE, BT_TRANSPORT_LE);
-
+#endif
     return BT_STATUS_SUCCESS;
 }
 
