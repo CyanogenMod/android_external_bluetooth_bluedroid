@@ -166,18 +166,18 @@ void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
     BOOLEAN            ext;
     BOOLEAN         forward;
 
-    BTIF_TRACE_API("bta_pan_co_tx_path, handle:%d, app_id:%d", handle, app_id);
+    BTIF_TRACE_API("%s, handle:%d, app_id:%d", __func__, handle, app_id);
 
     btpan_conn_t* conn = btpan_find_conn_handle(handle);
     if (!conn)
     {
-        BTIF_TRACE_ERROR("bta_pan_co_tx_path: cannot find pan connection");
+        BTIF_TRACE_ERROR("%s: cannot find pan connection", __func__);
         return;
     }
     else if(conn->state != PAN_STATE_OPEN)
     {
-        BTIF_TRACE_ERROR("bta_pan_co_tx_path: conn is not opened, conn:%p, conn->state:%d",
-            conn, conn->state);
+        BTIF_TRACE_ERROR("%s: conn is not opened, conn:%p, conn->state:%d",
+            __func__, conn, conn->state);
         return;
     }
 
@@ -187,16 +187,16 @@ void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
         if ((p_buf = bta_pan_ci_readbuf(handle, src, dst, &protocol,
                                  &ext, &forward)))
         {
-            BTIF_TRACE_DEBUG("bta_pan_co_tx_path, calling btapp_tap_send, "
-                "p_buf->len:%d, offset:%d", p_buf->len, p_buf->offset);
+            bdstr_t bdstr;
+            BTIF_TRACE_DEBUG("%s, calling btapp_tap_send, "
+                "p_buf->len:%d, offset:%d", __func__, p_buf->len, p_buf->offset);
             if(is_empty_eth_addr(conn->eth_addr) && is_valid_bt_eth_addr(src))
             {
-                BTIF_TRACE_DEBUG("pan bt peer addr: %02x:%02x:%02x:%02x:%02x:%02x",
-                    conn->peer[0], conn->peer[1], conn->peer[2],
-                    conn->peer[3],conn->peer[4], conn->peer[5]);
-                BTIF_TRACE_DEBUG("     update its ethernet addr: "
-                    "%02x:%02x:%02x:%02x:%02x:%02x", src[0], src[1], src[2],
-                    src[3],src[4], src[5]);
+                BTIF_TRACE_DEBUG("%s pan bt peer addr: %s", __func__,
+                    bd2str((bt_bdaddr_t *)conn->peer, &bdstr));
+                bd2str((bt_bdaddr_t *)src, &bdstr);
+                BTIF_TRACE_DEBUG("%s:     update its ethernet addr: %s", __func__,
+                    bd2str((bt_bdaddr_t *)src, &bdstr));
                 memcpy(conn->eth_addr, src, sizeof(conn->eth_addr));
 
             }
