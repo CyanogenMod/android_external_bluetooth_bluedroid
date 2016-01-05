@@ -216,12 +216,6 @@ void bnep_send_conn_req (tBNEP_CONN *p_bcb)
             __func__, p_bcb->dst_uuid.uu.uuid16, p_bcb->dst_uuid.len);
     }
 #endif
-    else
-    {
-        BNEP_TRACE_ERROR ("%s: uuid: %x, invalid length: %x",
-            __func__, p_bcb->dst_uuid.uu.uuid16, p_bcb->dst_uuid.len);
-    }
-
     p_buf->len = (UINT16)(p - p_start);
 
     bnepu_check_send_packet (p_bcb, p_buf);
