@@ -2874,7 +2874,7 @@ bt_status_t btif_dm_pin_reply( const bt_bdaddr_t *bd_addr, uint8_t accept,
                                uint8_t pin_len, bt_pin_code_t *pin_code)
 {
     BTIF_TRACE_EVENT("%s: accept=%d", __FUNCTION__, accept);
-    if (pin_code == NULL)
+    if (pin_code == NULL || pin_len > PIN_CODE_LEN)
         return BT_STATUS_FAIL;
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 
