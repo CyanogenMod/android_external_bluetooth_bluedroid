@@ -51,6 +51,7 @@
 #include "bt_utils.h"
 #include "l2cdefs.h"
 #include "l2c_api.h"
+#include "btif_storage.h"
 
 #if TEST_APP_INTERFACE == TRUE
 #include <bt_testapp.h>
@@ -99,6 +100,7 @@ typedef struct
 ************************************************************************************/
 
 bt_callbacks_t *bt_hal_cbacks = NULL;
+bool restricted_mode = FALSE;
 
 /** Operating System specific callouts for resource management */
 bt_os_callouts_t *bt_os_callouts = NULL;
@@ -205,9 +207,10 @@ static int initq(bt_callbacks_t* callbacks)
 }
 
 
-static int enable( void )
-{
+static int enable(bool start_restricted) {
     ALOGI("enable");
+
+    restricted_mode = start_restricted;
 
     /* sanity check */
     if (interface_ready() == FALSE)
@@ -236,6 +239,10 @@ static void cleanup( void )
     /* hal callbacks reset upon shutdown complete callback */
 
     return;
+}
+
+bool is_restricted_mode() {
+  return restricted_mode;
 }
 
 static void ssrcleanup(void)
@@ -353,6 +360,9 @@ static int cancel_bond(const bt_bdaddr_t *bd_addr)
 
 static int remove_bond(const bt_bdaddr_t *bd_addr)
 {
+    if (is_restricted_mode() && !btif_storage_is_restricted_device(bd_addr))
+        return BT_STATUS_SUCCESS;
+
     /* sanity check */
     if (interface_ready() == FALSE)
         return BT_STATUS_NOT_READY;

@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
   // Run the full test suite.
   for (size_t i = 0; i < test_suite_size; ++i) {
     callbacks_init();
-    CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
+    CALL_AND_WAIT(bt_interface->enable(false), adapter_state_changed);
     if (test_suite[i].function()) {
       printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, test_suite[i].function_name, GREEN, GRAY);
       ++pass;

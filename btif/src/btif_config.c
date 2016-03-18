@@ -105,6 +105,7 @@ static int set_node(const char* section, const char* key, const char* name,
 static int save_cfg();
 static void load_cfg();
 static short find_next_node(const cfg_node* p, short start, char* name, int* bytes);
+static void btif_config_remove_restricted();
 #ifdef UNIT_TEST
 static void cfg_test_load();
 static void cfg_test_write();
@@ -148,6 +149,9 @@ int btif_config_init()
             //cfg_test_read();
             exit(0);
         #endif
+
+        if (!is_restricted_mode())
+          btif_config_remove_restricted();
     }
     return pth >= 0;
 }
@@ -995,3 +999,20 @@ static void cfg_test_read()
 
 
 #endif
+
+static void btif_config_remove_restricted() {
+    int section_index = -1;
+    if ((section_index = find_inode(&root, "Remote")) < 0)
+        return;
+
+    cfg_node* remote_node = &root.child[section_index];
+    int count = GET_CHILD_COUNT(remote_node);
+    for (int i = 0; i < count; i ++) {
+        cfg_node* bdaddr_node = &remote_node->child[i];
+        if (find_inode(bdaddr_node, "Restricted") != -1) {
+            free_child(bdaddr_node, 0, GET_CHILD_COUNT(bdaddr_node));
+            free_child(remote_node, i, 1);
+        }
+    }
+}
+

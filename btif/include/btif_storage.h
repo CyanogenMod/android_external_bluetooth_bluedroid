@@ -355,6 +355,18 @@ BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_bd_addr);
 *******************************************************************************/
 BOOLEAN btif_storage_is_wiimote(bt_bdaddr_t *remote_bd_addr, bt_bdname_t *remote_bd_name);
 
+/*******************************************************************************
+**
+** Function         btif_storage_is_retricted_device
+**
+** Description      BTIF storage API - checks if this device is a restricted device
+**
+** Returns          TRUE  if the device is labled as restricted
+**                  FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN btif_storage_is_restricted_device(const bt_bdaddr_t *remote_bd_addr);
+
 #if (BLE_INCLUDED == TRUE)
 bt_status_t btif_storage_add_ble_bonding_key( bt_bdaddr_t *remote_bd_addr,
                                               char *key,

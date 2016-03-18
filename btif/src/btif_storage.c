@@ -892,6 +892,13 @@ bt_status_t btif_storage_add_bonded_device(bt_bdaddr_t *remote_bd_addr,
     int ret = btif_config_set_int("Remote", bdstr, "LinkKeyType", (int)key_type);
     ret &= btif_config_set_int("Remote", bdstr, "PinLength", (int)pin_length);
     ret &= btif_config_set("Remote", bdstr, "LinkKey", (const char*)link_key, sizeof(LINK_KEY), BTIF_CFG_TYPE_BIN);
+
+    if (is_restricted_mode()) {
+        BTIF_TRACE_WARNING("%s: '%s' pairing will be removed if unrestricted",
+                         __func__, bdstr);
+        btif_config_set_int("Remote", bdstr, "Restricted", 1);
+    }
+
     /* write bonded info immediately */
     btif_config_flush();
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
@@ -2116,4 +2123,22 @@ bt_status_t btif_storage_remove_hidd(bt_bdaddr_t *remote_bd_addr)
     btif_config_save();
 
     return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_storage_is_restricted_device
+**
+** Description      BTIF storage API - checks if this device is a restricted device
+**
+** Returns          TRUE  if the device is labeled as restricted
+**                  FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN btif_storage_is_restricted_device(const bt_bdaddr_t *remote_bd_addr)
+{
+    bdstr_t bdstr;
+    bd2str(remote_bd_addr, &bdstr);
+
+    return btif_config_exist("Remote", bdstr, "Restricted");
 }
