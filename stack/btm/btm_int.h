@@ -908,11 +908,6 @@ typedef struct
     BOOLEAN                  security_mode_changed;  /* mode changed during bonding */
     BOOLEAN                  pin_type_changed;       /* pin type changed during bonding */
     BOOLEAN                  sec_req_pending;       /*   TRUE if a request is pending */
-// btla-specific ++
-#ifdef PORCHE_PAIRING_CONFLICT
-    UINT8                    pin_code_len_saved;     /* for legacy devices */
-#endif
-// btla-specific --
 
     UINT8                    pin_code_len;  /* for legacy devices */
     PIN_CODE                 pin_code;      /* for legacy devices */
