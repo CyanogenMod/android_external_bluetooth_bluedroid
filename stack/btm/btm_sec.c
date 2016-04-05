@@ -1087,13 +1087,6 @@ void BTM_PINCodeReply (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len, UINT8 *p_pin, 
     btm_sec_change_pairing_state (BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
     btm_cb.acl_disc_reason = HCI_SUCCESS;
 
-#ifdef PORCHE_PAIRING_CONFLICT
-    BTM_TRACE_EVENT("BTM_PINCodeReply(): Saving pin_len: %d btm_cb.pin_code_len: %d", pin_len, btm_cb.pin_code_len);
-    /* if this was not pre-fetched, save the PIN */
-    if (btm_cb.pin_code_len == 0)
-        memcpy (btm_cb.pin_code, p_pin, pin_len);
-    btm_cb.pin_code_len_saved = pin_len;
-#endif
     btsnd_hcic_pin_code_req_reply (bd_addr, pin_len, p_pin);
 }
 
@@ -5190,40 +5183,15 @@ void btm_sec_pin_code_request (UINT8 *p_bda)
         if ( (memcmp (p_bda, btm_cb.pairing_bda, BD_ADDR_LEN) == 0)  &&
              (btm_cb.pairing_state == BTM_PAIR_STATE_WAIT_AUTH_COMPLETE) )
         {
-             /* fake this out - porshe carkit issue - */
-//            btm_cb.pairing_state = BTM_PAIR_STATE_IDLE;
-             if(! btm_cb.pin_code_len_saved)
-             {
-                 btsnd_hcic_pin_code_neg_reply (p_bda);
-                 return;
-             }
-             else
-             {
-                 btsnd_hcic_pin_code_req_reply (p_bda, btm_cb.pin_code_len_saved, p_cb->pin_code);
-      	         return;
-             }
+             btsnd_hcic_pin_code_neg_reply (p_bda);
+             return;
         }
         else if ((btm_cb.pairing_state != BTM_PAIR_STATE_WAIT_PIN_REQ)
                  || memcmp (p_bda, btm_cb.pairing_bda, BD_ADDR_LEN) != 0)
         {
             BTM_TRACE_WARNING ("btm_sec_pin_code_request() rejected - state: %s",
                                 btm_pair_state_descr(btm_cb.pairing_state));
-
-#ifdef PORCHE_PAIRING_CONFLICT
-            /* reply pin code again due to counter in_rand when local initiates pairing */
-            BTM_TRACE_EVENT ("btm_sec_pin_code_request from remote dev. for local initiated pairing");
-            if(! btm_cb.pin_code_len_saved)
-            {
-                btsnd_hcic_pin_code_neg_reply (p_bda);
-            }
-            else
-            {
-                btm_sec_change_pairing_state (BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
-                btsnd_hcic_pin_code_req_reply (p_bda, btm_cb.pin_code_len_saved, p_cb->pin_code);
-            }
-#else
             btsnd_hcic_pin_code_neg_reply (p_bda);
-#endif
             return;
         }
     }
@@ -5260,10 +5228,6 @@ void btm_sec_pin_code_request (UINT8 *p_bda)
         BTM_TRACE_EVENT ("btm_sec_pin_code_request bonding sending reply");
         btsnd_hcic_pin_code_req_reply (p_bda, btm_cb.pin_code_len, p_cb->pin_code);
 
-#ifdef PORCHE_PAIRING_CONFLICT
-        btm_cb.pin_code_len_saved = btm_cb.pin_code_len;
-#endif
-
         /* Mark that we forwarded received from the user PIN code */
         btm_cb.pin_code_len = 0;
 
@@ -5294,7 +5258,6 @@ void btm_sec_pin_code_request (UINT8 *p_bda)
     /* Notify upper layer of PIN request and start expiration timer */
     else
     {
-        btm_cb.pin_code_len_saved = 0;
         btm_sec_change_pairing_state (BTM_PAIR_STATE_WAIT_LOCAL_PIN);
         /* Pin code request can not come at the same time as connection request */
         memcpy (p_cb->connecting_bda, p_bda, BD_ADDR_LEN);
