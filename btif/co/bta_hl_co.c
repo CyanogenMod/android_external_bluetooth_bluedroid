@@ -385,7 +385,7 @@ void bta_hl_co_put_rx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
             {
                 BTIF_TRACE_DEBUG4("app_idx=%d mcl_idx=0x%x mdl_idx=0x%x data_size=%d",
                                   app_idx, mcl_idx, mdl_idx, data_size);
-                r = send(p_dcb->p_scb->socket_id[1], p_dcb->p_rx_pkt, data_size, 0);
+                r = TEMP_FAILURE_RETRY(send(p_dcb->p_scb->socket_id[1], p_dcb->p_rx_pkt, data_size, 0));
 
                 if (r == data_size)
                 {

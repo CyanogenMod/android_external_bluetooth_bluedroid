@@ -221,9 +221,9 @@ static int btsnoop_log_open(char *btsnoop_logfile)
     /* write the BT snoop header */
     if ((btsnoop_logfile != NULL) && (strlen(btsnoop_logfile) != 0))
     {
-        hci_btsnoop_fd = open(btsnoop_logfile, \
+        hci_btsnoop_fd = TEMP_FAILURE_RETRY(open(btsnoop_logfile, \
                               O_WRONLY|O_CREAT|O_TRUNC, \
-                              S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
+                              S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH));
         if (hci_btsnoop_fd == -1)
         {
             perror("open");
@@ -231,7 +231,7 @@ static int btsnoop_log_open(char *btsnoop_logfile)
             hci_btsnoop_fd = -1;
             return 0;
         }
-        write(hci_btsnoop_fd, "btsnoop\0\0\0\0\1\0\0\x3\xea", 16);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, "btsnoop\0\0\0\0\1\0\0\x3\xea", 16));
         return 1;
     }
 #endif
@@ -285,24 +285,24 @@ void btsnoop_hci_cmd(uint8_t *p)
 
         /* store the length in both original and included fields */
         value = l_to_be(p[2] + 4);
-        write(hci_btsnoop_fd, &value, 4);
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* flags: command sent from the host */
         value = l_to_be(2);
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* drops: none */
         value = 0;
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* time */
         gettimeofday(&tv, NULL);
         tv_to_btsnoop_ts(&value, &value_hi, &tv);
         value_hi = l_to_be(value_hi);
         value = l_to_be(value);
-        write(hci_btsnoop_fd, &value_hi, 4);
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value_hi, 4));
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* data */
-        write(hci_btsnoop_fd, "\x1", 1);
-        write(hci_btsnoop_fd, p, p[2] + 3);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, "\x1", 1));
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, p, p[2] + 3));
 
         /* since these display functions are called from different contexts */
         utils_unlock();
@@ -331,24 +331,24 @@ void btsnoop_hci_evt(uint8_t *p)
 
         /* store the length in both original and included fields */
         value = l_to_be(p[1] + 3);
-        write(hci_btsnoop_fd, &value, 4);
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* flags: event received in the host */
         value = l_to_be(3);
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* drops: none */
         value = 0;
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* time */
         gettimeofday(&tv, NULL);
         tv_to_btsnoop_ts(&value, &value_hi, &tv);
         value_hi = l_to_be(value_hi);
         value = l_to_be(value);
-        write(hci_btsnoop_fd, &value_hi, 4);
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value_hi, 4));
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* data */
-        write(hci_btsnoop_fd, "\x4", 1);
-        write(hci_btsnoop_fd, p, p[1] + 2);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, "\x4", 1));
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, p, p[1] + 2));
 
         /* since these display functions are called from different contexts */
         utils_unlock();
@@ -377,24 +377,24 @@ void btsnoop_sco_data(uint8_t *p, uint8_t is_rcvd)
 
         /* store the length in both original and included fields */
         value = l_to_be(p[2] + 4);
-        write(hci_btsnoop_fd, &value, 4);
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* flags: data can be sent or received */
         value = l_to_be(is_rcvd?1:0);
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* drops: none */
         value = 0;
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* time */
         gettimeofday(&tv, NULL);
         tv_to_btsnoop_ts(&value, &value_hi, &tv);
         value_hi = l_to_be(value_hi);
         value = l_to_be(value);
-        write(hci_btsnoop_fd, &value_hi, 4);
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value_hi, 4));
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* data */
-        write(hci_btsnoop_fd, "\x3", 1);
-        write(hci_btsnoop_fd, p, p[2] + 3);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, "\x3", 1));
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, p, p[2] + 3));
 
         /* since these display functions are called from different contexts */
         utils_unlock();
@@ -422,24 +422,24 @@ void btsnoop_acl_data(uint8_t *p, uint8_t is_rcvd)
 
         /* store the length in both original and included fields */
         value = l_to_be((p[3]<<8) + p[2] + 5);
-        write(hci_btsnoop_fd, &value, 4);
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* flags: data can be sent or received */
         value = l_to_be(is_rcvd?1:0);
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* drops: none */
         value = 0;
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* time */
         gettimeofday(&tv, NULL);
         tv_to_btsnoop_ts(&value, &value_hi, &tv);
         value_hi = l_to_be(value_hi);
         value = l_to_be(value);
-        write(hci_btsnoop_fd, &value_hi, 4);
-        write(hci_btsnoop_fd, &value, 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value_hi, 4));
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, &value, 4));
         /* data */
-        write(hci_btsnoop_fd, "\x2", 1);
-        write(hci_btsnoop_fd, p, (p[3]<<8) + p[2] + 4);
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, "\x2", 1));
+        TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, p, (p[3]<<8) + p[2] + 4));
 
         /* since these display functions are called from different contexts */
         utils_unlock();
@@ -505,7 +505,7 @@ static int ext_parser_accept(int port)
 
     clilen = sizeof(struct sockaddr_in);
 
-    s = accept(s_listen, (struct sockaddr *) &cliaddr, &clilen);
+    s = TEMP_FAILURE_RETRY(accept(s_listen, (struct sockaddr *) &cliaddr, &clilen));
 
     if (s < 0)
     {
@@ -550,7 +550,7 @@ static int send_ext_parser(char *p, int len)
 
     SNOOPDBG("write %d to snoop socket\n", len);
 
-    n = write(ext_parser_fd, p, len);
+    n = TEMP_FAILURE_RETRY(write(ext_parser_fd, p, len));
 
     utils_unlock();
     if (n<=0)

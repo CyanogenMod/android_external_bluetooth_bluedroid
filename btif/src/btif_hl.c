@@ -4958,7 +4958,7 @@ void btif_hl_select_monitor_callback( fd_set *p_cur_set , fd_set *p_org_set){
                         //     r = recv(p_scb->socket_id[1], p_dcb->p_tx_pkt, p_dcb->mtu , MSG_DONTWAIT));
                         // } while (r == SOCKET_ERROR && errno == EINTR);
 
-                        if ((r = (int)recv(p_scb->socket_id[1], p_dcb->p_tx_pkt, p_dcb->mtu , MSG_DONTWAIT)) > 0)
+                        if ((r = (int)TEMP_FAILURE_RETRY(recv(p_scb->socket_id[1], p_dcb->p_tx_pkt, p_dcb->mtu , MSG_DONTWAIT))) > 0)
                         {
                             BTIF_TRACE_DEBUG1("btif_hl_select_monitor_callback send data r =%d", r);
                             p_dcb->tx_size = r;
@@ -5018,7 +5018,7 @@ static inline int btif_hl_select_wakeup_init(fd_set* set){
 static inline int btif_hl_select_wakeup(void){
     char sig_on = btif_hl_signal_select_wakeup;
     BTIF_TRACE_DEBUG0("btif_hl_select_wakeup");
-    return send(signal_fds[1], &sig_on, sizeof(sig_on), 0);
+    return TEMP_FAILURE_RETRY(send(signal_fds[1], &sig_on, sizeof(sig_on), 0));
 }
 
 /*******************************************************************************
@@ -5033,7 +5033,7 @@ static inline int btif_hl_select_wakeup(void){
 static inline int btif_hl_select_close_connected(void){
     char sig_on = btif_hl_signal_select_close_connected;
     BTIF_TRACE_DEBUG0("btif_hl_select_close_connected");
-    return send(signal_fds[1], &sig_on, sizeof(sig_on), 0);
+    return TEMP_FAILURE_RETRY(send(signal_fds[1], &sig_on, sizeof(sig_on), 0));
 }
 
 /*******************************************************************************
@@ -5050,7 +5050,7 @@ static inline int btif_hl_close_select_thread(void)
     int result = 0;
     char sig_on = btif_hl_signal_select_exit;
     BTIF_TRACE_DEBUG0("btif_hl_signal_select_exit");
-    result = send(signal_fds[1], &sig_on, sizeof(sig_on), 0);
+    result = TEMP_FAILURE_RETRY(send(signal_fds[1], &sig_on, sizeof(sig_on), 0));
     /* Wait for the select_thread_id to exit */
     if (select_thread_id != -1) {
         pthread_join(select_thread_id, NULL);
@@ -5083,7 +5083,7 @@ static inline int btif_hl_select_wake_reset(void){
     char sig_recv = 0;
 
     BTIF_TRACE_DEBUG0("btif_hl_select_wake_reset");
-    recv(signal_fds[0], &sig_recv, sizeof(sig_recv), MSG_WAITALL);
+    TEMP_FAILURE_RETRY(recv(signal_fds[0], &sig_recv, sizeof(sig_recv), MSG_WAITALL));
     return(int)sig_recv;
 }
 /*******************************************************************************
@@ -5143,7 +5143,7 @@ static void *btif_hl_select_thread(void *arg){
         BTIF_TRACE_DEBUG0("set curr_set = org_set ");
         curr_set = org_set;
         max_curr_s = max_org_s;
-        int ret = select((max_curr_s + 1), &curr_set, NULL, NULL, NULL);
+        int ret = TEMP_FAILURE_RETRY(select((max_curr_s + 1), &curr_set, NULL, NULL, NULL));
         BTIF_TRACE_DEBUG1("select unblocked ret=%d", ret);
         if (ret == -1)
         {

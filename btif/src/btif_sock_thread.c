@@ -116,12 +116,12 @@ static pthread_mutex_t thread_slot_lock;
 static inline void set_socket_blocking(int s, int blocking)
 {
     int opts;
-    opts = fcntl(s, F_GETFL);
+    opts = TEMP_FAILURE_RETRY(fcntl(s, F_GETFL));
     if (opts<0) APPL_TRACE_ERROR1("set blocking (%s)", strerror(errno));
     if(blocking)
         opts &= ~O_NONBLOCK;
     else opts |= O_NONBLOCK;
-    fcntl(s, F_SETFL, opts);
+    TEMP_FAILURE_RETRY(fcntl(s, F_SETFL, opts));
 }
 
 static inline int create_server_socket(const char* name)
@@ -158,7 +158,7 @@ static inline int accept_server_socket(int s)
 {
     struct sockaddr_un client_address;
     socklen_t clen;
-    int fd = accept(s, (struct sockaddr*)&client_address, &clen);
+    int fd = TEMP_FAILURE_RETRY(accept(s, (struct sockaddr*)&client_address, &clen));
     APPL_TRACE_DEBUG2("accepted fd:%d for server fd:%d", fd, s);
     return fd;
 }
@@ -308,7 +308,7 @@ int btsock_thread_add_fd(int h, int fd, int type, int flags, uint32_t user_id)
     }
     sock_cmd_t cmd = {CMD_ADD_FD, fd, type, flags, user_id};
     APPL_TRACE_DEBUG2("adding fd:%d, flags:0x%x", fd, flags);
-    return send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0) == sizeof(cmd);
+    return TEMP_FAILURE_RETRY(send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0)) == sizeof(cmd);
 }
 int btsock_thread_post_cmd(int h, int type, const unsigned char* data, int size, uint32_t user_id)
 {
@@ -341,7 +341,7 @@ int btsock_thread_post_cmd(int h, int type, const unsigned char* data, int size,
             return FALSE;
         }
     }
-    return send(ts[h].cmd_fdw, cmd_send, size_send, 0) == size_send;
+    return TEMP_FAILURE_RETRY(send(ts[h].cmd_fdw, cmd_send, size_send, 0)) == size_send;
 }
 int btsock_thread_wakeup(int h)
 {
@@ -356,7 +356,7 @@ int btsock_thread_wakeup(int h)
         return FALSE;
     }
     sock_cmd_t cmd = {CMD_WAKEUP, 0, 0, 0, 0};
-    return send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0) == sizeof(cmd);
+    return TEMP_FAILURE_RETRY(send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0)) == sizeof(cmd);
 }
 int btsock_thread_exit(int h)
 {
@@ -371,7 +371,7 @@ int btsock_thread_exit(int h)
         return FALSE;
     }
     sock_cmd_t cmd = {CMD_EXIT, 0, 0, 0, 0};
-    if(send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0) == sizeof(cmd))
+    if(TEMP_FAILURE_RETRY(send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0)) == sizeof(cmd))
     {
         pthread_join(ts[h].thread_id, 0);
         lock_slot(&thread_slot_lock);
@@ -466,7 +466,7 @@ static int process_cmd_sock(int h)
 {
     sock_cmd_t cmd = {-1, 0, 0, 0, 0};
     int fd = ts[h].cmd_fdr;
-    if(recv(fd, &cmd, sizeof(cmd), MSG_WAITALL) != sizeof(cmd))
+    if(TEMP_FAILURE_RETRY(recv(fd, &cmd, sizeof(cmd), MSG_WAITALL)) != sizeof(cmd))
     {
         APPL_TRACE_ERROR1("recv cmd errno:%d", errno);
         return FALSE;
@@ -563,7 +563,7 @@ static void *sock_poll_thread(void *arg)
     for(;;)
     {
         prepare_poll_fds(h, pfds);
-        int ret = poll(pfds, ts[h].poll_count, -1);
+        int ret = TEMP_FAILURE_RETRY(poll(pfds, ts[h].poll_count, -1));
         if(ret == -1)
         {
             APPL_TRACE_ERROR2("poll ret -1, exit the thread, errno:%d, err:%s", errno, strerror(errno));

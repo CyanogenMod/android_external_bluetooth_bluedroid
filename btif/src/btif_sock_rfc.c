@@ -971,7 +971,7 @@ static int send_data_to_app(int fd, BT_HDR *p_buf)
 {
     if(p_buf->len == 0)
         return SENT_ALL;
-    int sent = send(fd, (UINT8 *)(p_buf + 1) + p_buf->offset,  p_buf->len, MSG_DONTWAIT);
+    int sent = TEMP_FAILURE_RETRY(send(fd, (UINT8 *)(p_buf + 1) + p_buf->offset,  p_buf->len, MSG_DONTWAIT));
     if(sent == p_buf->len)
         return SENT_ALL;
 
@@ -1043,7 +1043,7 @@ void btsock_rfc_signaled(int fd, int flags, uint32_t user_id)
                     int size = 0;
                     //make sure there's data pending in case the peer closed the socket
                     if(!(flags & SOCK_THREAD_FD_EXCEPTION) ||
-                                (ioctl(rs->fd, FIONREAD, &size) == 0 && size))
+                                (TEMP_FAILURE_RETRY(ioctl(rs->fd, FIONREAD, &size)) == 0 && size))
                         BTA_JvRfcommWrite(rs->rfc_handle, (UINT32)rs->id);
                 }
                 else
@@ -1068,7 +1068,7 @@ void btsock_rfc_signaled(int fd, int flags, uint32_t user_id)
         if(need_close || (flags & SOCK_THREAD_FD_EXCEPTION))
         {
             int size = 0;
-            if(need_close || ioctl(rs->fd, FIONREAD, &size) != 0 || size == 0 )
+            if(need_close || TEMP_FAILURE_RETRY(ioctl(rs->fd, FIONREAD, &size)) != 0 || size == 0 )
             {
                 //cleanup when no data pending
                 APPL_TRACE_DEBUG3("SOCK_THREAD_FD_EXCEPTION, cleanup, flags:%x, need_close:%d, pending size:%d",
@@ -1128,7 +1128,7 @@ int bta_co_rfc_data_outgoing_size(void *user_data, int *size)
     rfc_slot_t* rs = find_rfc_slot_by_id(id);
     if(rs)
     {
-        if(ioctl(rs->fd, FIONREAD, size) == 0)
+        if(TEMP_FAILURE_RETRY(ioctl(rs->fd, FIONREAD, size)) == 0)
         {
             APPL_TRACE_DEBUG2("ioctl read avaiable size:%d, fd:%d", *size, rs->fd);
             ret = TRUE;
@@ -1151,7 +1151,7 @@ int bta_co_rfc_data_outgoing(void *user_data, UINT8* buf, UINT16 size)
     rfc_slot_t* rs = find_rfc_slot_by_id(id);
     if(rs)
     {
-        int received = recv(rs->fd, buf, size, 0);
+        int received = TEMP_FAILURE_RETRY(recv(rs->fd, buf, size, 0));
         if(received == size)
             ret = TRUE;
         else

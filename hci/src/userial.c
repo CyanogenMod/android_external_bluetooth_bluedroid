@@ -143,12 +143,12 @@ static inline int create_signal_fds(fd_set* set)
 }
 static inline int send_wakeup_signal(char sig_cmd)
 {
-    return send(signal_fds[1], &sig_cmd, sizeof(sig_cmd), 0);
+    return TEMP_FAILURE_RETRY(send(signal_fds[1], &sig_cmd, sizeof(sig_cmd), 0));
 }
 static inline char reset_signal()
 {
     char sig_recv = -1;
-    recv(signal_fds[0], &sig_recv, sizeof(sig_recv), MSG_WAITALL);
+    TEMP_FAILURE_RETRY(recv(signal_fds[0], &sig_recv, sizeof(sig_recv), MSG_WAITALL));
     return sig_recv;
 }
 static inline int is_signaled(fd_set* set)
@@ -187,7 +187,7 @@ static int select_read(int fd, uint8_t *pbuf, int len)
         fd_max = fd_max > fd ? fd_max : fd;
 
         /* Do the select */
-        n = select(fd_max+1, &input, NULL, NULL, NULL);
+        n = TEMP_FAILURE_RETRY(select(fd_max+1, &input, NULL, NULL, NULL));
         if(is_signaled(&input))
         {
             reason = reset_signal();
@@ -213,7 +213,7 @@ static int select_read(int fd, uint8_t *pbuf, int len)
             /* We might have input */
             if (FD_ISSET(fd, &input))
             {
-                ret = read(fd, pbuf, (size_t)len);
+                ret = TEMP_FAILURE_RETRY(read(fd, pbuf, (size_t)len));
                 if (0 == ret)
                     ALOGW( "read() returned 0!" );
 
@@ -497,7 +497,7 @@ uint16_t userial_write(uint16_t msg_id, uint8_t *p_data, uint16_t len)
 #if defined(ENABLE_USERIAL_TIMING_LOGS) && (ENABLE_USERIAL_TIMING_LOGS==TRUE)
         log_userial_tx_timing(len);
 #endif
-        ret = write(userial_cb.fd, p_data+total, len);
+        ret = TEMP_FAILURE_RETRY(write(userial_cb.fd, p_data+total, len));
         total += ret;
         len -= ret;
     }
