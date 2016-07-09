@@ -20,7 +20,7 @@ static void *saved_data;
 static const uint64_t EPSILON_MS = 5;
 
 static void msleep(uint64_t ms) {
-  usleep(ms * 1000);
+  TEMP_FAILURE_RETRY(usleep(ms * 1000));
 }
 
 static void timer_callback(void *) {

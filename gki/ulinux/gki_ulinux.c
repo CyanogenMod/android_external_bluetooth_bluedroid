@@ -536,7 +536,7 @@ void GKI_destroy_task(UINT8 task_id)
         i = 0;
 
         while ((gki_cb.com.OSWaitEvt[task_id] != 0) && (++i < 10))
-            usleep(100 * 1000);
+            TEMP_FAILURE_RETRY(usleep(100 * 1000));
 #else
         result = pthread_join( gki_cb.os.thread_id[task_id], NULL );
         if ( result < 0 )
@@ -657,7 +657,7 @@ void GKI_shutdown(void)
             i = 0;
 
             while ((gki_cb.com.OSWaitEvt[task_id - 1] != 0) && (++i < 10))
-                usleep(100 * 1000);
+                TEMP_FAILURE_RETRY(usleep(100 * 1000));
 #else
             result = pthread_join( gki_cb.os.thread_id[task_id-1], NULL );
 
@@ -905,7 +905,7 @@ void GKI_delay (UINT32 timeout)
     /* [u]sleep can't be used because it uses SIGALRM */
 
     do {
-        err = nanosleep(&delay, &delay);
+        err = TEMP_FAILURE_RETRY(nanosleep(&delay, &delay));
     } while (err < 0 && errno ==EINTR);
 
     /* Check if task was killed while sleeping */

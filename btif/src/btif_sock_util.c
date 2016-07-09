@@ -73,7 +73,7 @@ int sock_send_all(int sock_fd, const uint8_t* buf, int len)
     int ret;
     while(s)
     {
-        do ret = send(sock_fd, buf, s, 0);
+        do ret = TEMP_FAILURE_RETRY(send(sock_fd, buf, s, 0));
         while(ret < 0 && errno == EINTR);
         if(ret <= 0)
         {
@@ -91,7 +91,7 @@ int sock_recv_all(int sock_fd, uint8_t* buf, int len)
     int ret = -1;
     while(r)
     {
-        do ret = recv(sock_fd, buf, r, MSG_WAITALL);
+        do ret = TEMP_FAILURE_RETRY(recv(sock_fd, buf, r, MSG_WAITALL));
         while(ret < 0 && errno == EINTR);
         if(ret <= 0)
         {
@@ -139,7 +139,7 @@ int sock_send_fd(int sock_fd, const uint8_t* buf, int len, int send_fd)
         msg.msg_iovlen = 1;
 
         do {
-            ret = sendmsg(sock_fd, &msg, MSG_NOSIGNAL);
+            ret = TEMP_FAILURE_RETRY(sendmsg(sock_fd, &msg, MSG_NOSIGNAL));
         } while (ret < 0 && errno == EINTR);
 
         if (ret < 0) {

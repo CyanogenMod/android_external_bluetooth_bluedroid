@@ -163,7 +163,7 @@ static reactor_status_t run_reactor(reactor_t *reactor, int iterations, struct t
 
     int ret;
     do {
-      ret = select(max_fd + 1, &read_set, &write_set, NULL, tv);
+      ret = TEMP_FAILURE_RETRY(select(max_fd + 1, &read_set, &write_set, NULL, tv));
     } while (ret == -1 && errno == EINTR);
 
     if (ret == -1) {

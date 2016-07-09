@@ -345,7 +345,7 @@ void bta_fs_co_open(const char *p_path, int oflags, UINT32 size, UINT16 evt,
 
     if ( 0==err )
     {
-        if ((fd = open(p_path, oflags | O_NONBLOCK, 0666)) >= 0)
+        if ((fd = TEMP_FAILURE_RETRY(open(p_path, oflags | O_NONBLOCK, 0666))) >= 0)
         {
             if (fstat(fd, &file_stat) == 0)
             {
@@ -458,7 +458,7 @@ void bta_fs_co_read(int fd, UINT8 *p_buf, UINT16 nbytes, UINT16 evt, UINT8 ssn, 
     int     err;
     UNUSED(ssn);
 
-    if ((num_read = read (fd, p_buf, nbytes)) < 0)
+    if ((num_read = TEMP_FAILURE_RETRY(read (fd, p_buf, nbytes))) < 0)
     {
         err = errno;
         status = BTA_FS_CO_FAIL;
@@ -505,7 +505,7 @@ void bta_fs_co_write(int fd, const UINT8 *p_buf, UINT16 nbytes, UINT16 evt,
     UNUSED(ssn);
     UNUSED(app_id);
 
-    if ((num_written = write (fd, p_buf, nbytes)) < 0)
+    if ((num_written = TEMP_FAILURE_RETRY(write (fd, p_buf, nbytes))) < 0)
     {
         err = errno;
         status = BTA_FS_CO_FAIL;
