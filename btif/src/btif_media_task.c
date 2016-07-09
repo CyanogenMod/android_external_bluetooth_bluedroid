@@ -862,7 +862,7 @@ int btif_a2dp_start_media_task(void)
 
     /* wait for task to come up to sure we are able to send messages to it */
     while (media_task_running == MEDIA_TASK_STATE_OFF)
-        usleep(10);
+        TEMP_FAILURE_RETRY(usleep(10));
 
     APPL_TRACE_EVENT("## A2DP MEDIA TASK STARTED ##");
 

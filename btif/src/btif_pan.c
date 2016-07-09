@@ -314,7 +314,7 @@ static int tap_if_up(const char *devname, BD_ADDR addr)
     //set mac addr
     memset(&ifr, 0, sizeof(ifr));
     strncpy(ifr.ifr_name, devname, IFNAMSIZ - 1);
-    err = ioctl(sk, SIOCGIFHWADDR, &ifr);
+    err = TEMP_FAILURE_RETRY(ioctl(sk, SIOCGIFHWADDR, &ifr));
     if(err < 0)
     {
         BTIF_TRACE_ERROR("Could not get network hardware for interface:%s, errno:%s", devname, strerror(errno));
@@ -340,7 +340,7 @@ static int tap_if_up(const char *devname, BD_ADDR addr)
         ifr.ifr_hwaddr.sa_data[0] &= ~0x01;
     }
 
-    err = ioctl(sk, SIOCSIFHWADDR, (caddr_t)&ifr);
+    err = TEMP_FAILURE_RETRY(ioctl(sk, SIOCSIFHWADDR, (caddr_t)&ifr));
 
     if (err < 0) {
         BTIF_TRACE_ERROR("Could not set bt address for interface:%s, errno:%s", devname, strerror(errno));
@@ -355,7 +355,7 @@ static int tap_if_up(const char *devname, BD_ADDR addr)
     ifr.ifr_flags |= IFF_UP;
     ifr.ifr_flags |= IFF_MULTICAST;
 
-    err = ioctl(sk, SIOCSIFFLAGS, (caddr_t) &ifr);
+    err = TEMP_FAILURE_RETRY(ioctl(sk, SIOCSIFFLAGS, (caddr_t) &ifr));
 
 
     if (err < 0) {
@@ -380,7 +380,7 @@ static int tap_if_down(const char *devname)
 
     ifr.ifr_flags &= ~IFF_UP;
 
-    err = ioctl(sk, SIOCSIFFLAGS, (caddr_t) &ifr);
+    err = TEMP_FAILURE_RETRY(ioctl(sk, SIOCSIFFLAGS, (caddr_t) &ifr));
 
     close(sk);
 
@@ -407,7 +407,7 @@ int btpan_tap_open()
     /* open the clone device */
 
     //system("insmod /system/lib/modules/tun.ko");
-    if( (fd = open(clonedev, O_RDWR)) < 0 ) {
+    if( (fd = TEMP_FAILURE_RETRY(open(clonedev, O_RDWR))) < 0 ) {
 
         BTIF_TRACE_DEBUG("could not open %s, err:%d", clonedev, errno);
         return fd;
@@ -419,7 +419,7 @@ int btpan_tap_open()
     strncpy(ifr.ifr_name, TAP_IF_NAME, IFNAMSIZ);
 
     /* try to create the device */
-    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 )//|| tap_setup_ip(TAP_IF_NAME) == FALSE)
+    if( (err = TEMP_FAILURE_RETRY(ioctl(fd, TUNSETIFF, (void *) &ifr))) < 0 )//|| tap_setup_ip(TAP_IF_NAME) == FALSE)
     {
         BTIF_TRACE_DEBUG("ioctl error:%d, errno:%s", err, strerror(errno));
         close(fd);
@@ -428,8 +428,8 @@ int btpan_tap_open()
     BTM_GetLocalDeviceAddr (local_addr);
     if(tap_if_up(TAP_IF_NAME, local_addr) == 0)
     {
-        int flags = fcntl(fd, F_GETFL, 0);
-        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+        int flags = TEMP_FAILURE_RETRY(fcntl(fd, F_GETFL, 0));
+        TEMP_FAILURE_RETRY(fcntl(fd, F_SETFL, flags | O_NONBLOCK));
         return fd;
     }
     BTIF_TRACE_ERROR("can not bring up tap interface:%s", TAP_IF_NAME);
@@ -463,7 +463,7 @@ int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 prot
         /* Send data to network interface */
         //btnet_send(btpan_cb.conn[i].sock.sock, &buffer, (len + sizeof(tETH_HDR)));
         //dump_bin("packet to network", packet, len + sizeof(tETH_HDR));
-        int ret = write(tap_fd, packet, len + sizeof(tETH_HDR));
+        int ret = TEMP_FAILURE_RETRY(write(tap_fd, packet, len + sizeof(tETH_HDR)));
         BTIF_TRACE_DEBUG("ret:%d", ret);
         return ret;
     }
@@ -722,7 +722,7 @@ static void btu_exec_tap_fd_read(void *p_param) {
         // We save it in the congest_packet right away in case we can't deliver it in this
         // attempt.
         if (!btpan_cb.congest_packet_size) {
-            ssize_t ret = read(fd, btpan_cb.congest_packet, sizeof(btpan_cb.congest_packet));
+            ssize_t ret = TEMP_FAILURE_RETRY(read(fd, btpan_cb.congest_packet, sizeof(btpan_cb.congest_packet)));
             switch (ret) {
                 case -1:
                     BTIF_TRACE_ERROR("%s unable to read from driver: %s", __func__, strerror(errno));
@@ -766,7 +766,7 @@ static void btu_exec_tap_fd_read(void *p_param) {
         ufd.fd = fd;
         ufd.events = POLLIN;
         ufd.revents = 0;
-        if(poll(&ufd, 1, 0) <= 0 || IS_EXCEPTION(ufd.revents))
+        if(TEMP_FAILURE_RETRY(poll(&ufd, 1, 0)) <= 0 || IS_EXCEPTION(ufd.revents))
             break;
     }
     //add fd back to monitor thread

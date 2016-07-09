@@ -156,7 +156,7 @@ static int select_read(int fd, uint8_t *pbuf, int len)
         fd_max = fd_max > fd ? fd_max : fd;
 
         /* Do the select */
-        n = select(fd_max+1, &input, NULL, NULL, NULL);
+        n = TEMP_FAILURE_RETRY(select(fd_max+1, &input, NULL, NULL, NULL));
         if(is_event_available(&input))
         {
             uint64_t event = read_event();
@@ -172,7 +172,7 @@ static int select_read(int fd, uint8_t *pbuf, int len)
             /* We might have input */
             if (FD_ISSET(fd, &input))
             {
-                ret = read(fd, pbuf, (size_t)len);
+                ret = TEMP_FAILURE_RETRY(read(fd, pbuf, (size_t)len));
                 if (0 == ret)
                     ALOGW( "read() returned 0!" );
 
@@ -366,7 +366,7 @@ uint16_t userial_write(uint16_t msg_id, const uint8_t *p_data, uint16_t len) {
 
     uint16_t total = 0;
     while (len) {
-        ssize_t ret = write(userial_cb.fd, p_data + total, len);
+        ssize_t ret = TEMP_FAILURE_RETRY(write(userial_cb.fd, p_data + total, len));
         switch (ret) {
             case -1:
                 ALOGE("%s error writing to serial port: %s", __func__, strerror(errno));

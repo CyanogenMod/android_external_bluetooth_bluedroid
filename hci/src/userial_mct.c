@@ -126,12 +126,12 @@ static inline int create_signal_fds(fd_set* set)
 }
 static inline int send_wakeup_signal(char sig_cmd)
 {
-    return send(signal_fds[1], &sig_cmd, sizeof(sig_cmd), 0);
+    return TEMP_FAILURE_RETRY(send(signal_fds[1], &sig_cmd, sizeof(sig_cmd), 0));
 }
 static inline char reset_signal()
 {
     char sig_recv = -1;
-    recv(signal_fds[0], &sig_recv, sizeof(sig_recv), MSG_WAITALL);
+    TEMP_FAILURE_RETRY(recv(signal_fds[0], &sig_recv, sizeof(sig_recv), MSG_WAITALL));
     return sig_recv;
 }
 static inline int is_signaled(fd_set* set)
@@ -176,7 +176,7 @@ static void *userial_read_thread(void *arg)
 
         /* Do the select */
         n = 0;
-        n = select(fd_max+1, &input, NULL, NULL, NULL);
+        n = TEMP_FAILURE_RETRY(select(fd_max+1, &input, NULL, NULL, NULL));
         if(is_signaled(&input))
         {
             reason = reset_signal();
@@ -366,7 +366,7 @@ uint16_t userial_read(uint16_t msg_id, uint8_t *p_buffer, uint16_t len)
     int ret = -1;
     int ch_idx = (msg_id == MSG_HC_TO_STACK_HCI_EVT) ? CH_EVT : CH_ACL_IN;
 
-    ret = read(userial_cb.fd[ch_idx], p_buffer, (size_t)len);
+    ret = TEMP_FAILURE_RETRY(read(userial_cb.fd[ch_idx], p_buffer, (size_t)len));
     if (ret <= 0)
         ALOGW( "userial_read: read() returned %d!", ret);
 
@@ -390,7 +390,7 @@ uint16_t userial_write(uint16_t msg_id, const uint8_t *p_data, uint16_t len)
 
     while(len != 0)
     {
-        ret = write(userial_cb.fd[ch_idx], p_data+total, len);
+        ret = TEMP_FAILURE_RETRY(write(userial_cb.fd[ch_idx], p_data+total, len));
         total += ret;
         len -= ret;
     }

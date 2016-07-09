@@ -66,7 +66,7 @@ static uint64_t btsnoop_timestamp(void) {
 
 static void btsnoop_write(const void *data, size_t length) {
   if (hci_btsnoop_fd != -1)
-    write(hci_btsnoop_fd, data, length);
+    TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, data, length));
 
   btsnoop_net_write(data, length);
 }
@@ -139,16 +139,16 @@ void btsnoop_open(const char *p_path, const bool save_existing) {
     rename(p_path, fname_backup);
   }
 
-  hci_btsnoop_fd = open(p_path,
+  hci_btsnoop_fd = TEMP_FAILURE_RETRY(open(p_path,
                         O_WRONLY | O_CREAT | O_TRUNC,
-                        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+                        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH));
 
   if (hci_btsnoop_fd == -1) {
     ALOGE("%s unable to open '%s': %s", __func__, p_path, strerror(errno));
     return;
   }
 
-  write(hci_btsnoop_fd, "btsnoop\0\0\0\0\1\0\0\x3\xea", 16);
+  TEMP_FAILURE_RETRY(write(hci_btsnoop_fd, "btsnoop\0\0\0\0\1\0\0\x3\xea", 16));
 }
 
 void btsnoop_close(void) {

@@ -273,8 +273,8 @@ LogMsg(UINT32 trace_set_mask, const char *fmt_str, ...)
     LOGI0(bt_layer_tags[trace_layer], buffer);
 #endif
 #else
-	write(2, buffer, strlen(buffer));
-	write(2, "\n", 1);
+	TEMP_FAILURE_RETRY(write(2, buffer, strlen(buffer)));
+	TEMP_FAILURE_RETRY(write(2, "\n", 1));
 #endif
 }
 
@@ -305,8 +305,8 @@ ScrLog(UINT32 trace_set_mask, const char *fmt_str, ...)
 #if (defined(ANDROID_USE_LOGCAT) && (ANDROID_USE_LOGCAT==TRUE))
     LOGI0(bt_layer_tags[trace_layer], buffer);
 #else
-	write(2, buffer, strlen(buffer));
-	write(2, "\n", 1);
+	TEMP_FAILURE_RETRY(write(2, buffer, strlen(buffer)));
+	TEMP_FAILURE_RETRY(write(2, "\n", 1));
 #endif
 }
 

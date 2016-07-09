@@ -238,7 +238,7 @@ static void toggle_os_keylockstates(int fd, int changedlockstates)
     BTIF_TRACE_DEBUG("%s:  %x %x %x", __FUNCTION__,
          hidreport[6], hidreport[7], hidreport[8]);
     bta_hh_co_write(fd , hidreport, sizeof(hidreport));
-    usleep(200000);
+    TEMP_FAILURE_RETRY(usleep(200000));
     memset(hidreport,0,9);
     hidreport[0]=1;
     BTIF_TRACE_DEBUG("Writing hidreport #2 to os: "\
@@ -366,7 +366,7 @@ static void sync_lockstate_on_connect(btif_hh_device_t *p_dev)
         BTIF_TRACE_DEBUG("%s: Sending hid report to kernel "\
             "indicating lock key state 0x%x",__FUNCTION__,
             keylockstates);
-        usleep(200000);
+        TEMP_FAILURE_RETRY(usleep(200000));
         toggle_os_keylockstates(p_dev->fd, keylockstates);
     }
     else

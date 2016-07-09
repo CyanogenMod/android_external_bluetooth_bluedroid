@@ -395,10 +395,10 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
 
         BTIF_TRACE_DEBUG("local bdaddr is stored in %s", val);
 
-        if ((addr_fd = open(val, O_RDONLY)) != -1)
+        if ((addr_fd = TEMP_FAILURE_RETRY(open(val, O_RDONLY))) != -1)
         {
             memset(val, 0, sizeof(val));
-            read(addr_fd, val, FACTORY_BT_BDADDR_STORAGE_LEN);
+            TEMP_FAILURE_RETRY(read(addr_fd, val, FACTORY_BT_BDADDR_STORAGE_LEN));
             str2bd(val, local_addr);
             /* If this is not a reserved/special bda, then use it */
             if (memcmp(local_addr->address, null_bdaddr, BD_ADDR_LEN) != 0)
