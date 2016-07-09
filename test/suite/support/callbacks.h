@@ -21,11 +21,12 @@
 #include "base.h"
 
 #include <semaphore.h>
+#include <unistd.h>
 
 #define WAIT(callback) \
   do { \
     sem_t *semaphore = callbacks_get_semaphore(#callback); \
-    sem_wait(semaphore); \
+    TEMP_FAILURE_RETRY(sem_wait(semaphore)); \
   } while (0)
 
 #define CALL_AND_WAIT(expression, callback) \
@@ -33,7 +34,7 @@
     sem_t *semaphore = callbacks_get_semaphore(#callback); \
     while (!sem_trywait(semaphore)); \
     expression; \
-    sem_wait(semaphore); \
+    TEMP_FAILURE_RETRY(sem_wait(semaphore)); \
   } while(0)
 
 // To be called from every exit point of the callback. This macro

@@ -401,7 +401,7 @@ static int open_file_map(const char *pathname, const char**map, int* size)
     st.st_size = 0;
     int fd;
     //debug("in");
-    if((fd = open(pathname, O_RDONLY)) >= 0)
+    if((fd = TEMP_FAILURE_RETRY(open(pathname, O_RDONLY))) >= 0)
     {
         //debug("fd:%d", fd);
         if(fstat(fd, &st) == 0 && st.st_size)

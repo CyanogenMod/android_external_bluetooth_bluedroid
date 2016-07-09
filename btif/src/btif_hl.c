@@ -4928,7 +4928,7 @@ static inline int btif_hl_select_wakeup_init(fd_set* set){
 static inline int btif_hl_select_wakeup(void){
     char sig_on = btif_hl_signal_select_wakeup;
     BTIF_TRACE_DEBUG("btif_hl_select_wakeup");
-    return send(signal_fds[1], &sig_on, sizeof(sig_on), 0);
+    return TEMP_FAILURE_RETRY(send(signal_fds[1], &sig_on, sizeof(sig_on), 0));
 }
 
 /*******************************************************************************
@@ -4943,7 +4943,7 @@ static inline int btif_hl_select_wakeup(void){
 static inline int btif_hl_select_close_connected(void){
     char sig_on = btif_hl_signal_select_close_connected;
     BTIF_TRACE_DEBUG("btif_hl_select_close_connected");
-    return send(signal_fds[1], &sig_on, sizeof(sig_on), 0);
+    return TEMP_FAILURE_RETRY(send(signal_fds[1], &sig_on, sizeof(sig_on), 0));
 }
 
 /*******************************************************************************
@@ -4960,7 +4960,7 @@ static inline int btif_hl_close_select_thread(void)
     int result = 0;
     char sig_on = btif_hl_signal_select_exit;
     BTIF_TRACE_DEBUG("btif_hl_signal_select_exit");
-    result = send(signal_fds[1], &sig_on, sizeof(sig_on), 0);
+    result = TEMP_FAILURE_RETRY(send(signal_fds[1], &sig_on, sizeof(sig_on), 0));
     if (btif_is_enabled())
     {
         /* Wait for the select_thread_id to exit if BT is still enabled
@@ -4986,7 +4986,7 @@ static inline int btif_hl_select_wake_reset(void){
     char sig_recv = 0;
 
     BTIF_TRACE_DEBUG("btif_hl_select_wake_reset");
-    recv(signal_fds[0], &sig_recv, sizeof(sig_recv), MSG_WAITALL);
+    TEMP_FAILURE_RETRY(recv(signal_fds[0], &sig_recv, sizeof(sig_recv), MSG_WAITALL));
     return(int)sig_recv;
 }
 /*******************************************************************************
@@ -5047,7 +5047,7 @@ static void *btif_hl_select_thread(void *arg){
         BTIF_TRACE_DEBUG("set curr_set = org_set ");
         curr_set = org_set;
         max_curr_s = max_org_s;
-        int ret = select((max_curr_s + 1), &curr_set, NULL, NULL, NULL);
+        int ret = TEMP_FAILURE_RETRY(select((max_curr_s + 1), &curr_set, NULL, NULL, NULL));
         BTIF_TRACE_DEBUG("select unblocked ret=%d", ret);
         if (ret == -1)
         {
